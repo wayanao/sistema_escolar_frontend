@@ -170,7 +170,7 @@ const cargarHistorial = async () => {
           </div>
         </div>
 
-        {/* Fecha */}
+        {/* Fecha 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
           <div className="max-w-xs">
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Asistencia</label>
@@ -185,7 +185,7 @@ const cargarHistorial = async () => {
               }}
             />
           </div>
-        </div>
+        </div>*/}
 
         {/* Lista de Estudiantes */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
