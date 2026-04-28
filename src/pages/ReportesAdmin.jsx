@@ -299,7 +299,7 @@ function ReportesAdmin() {
           </div>
           
           {loadingDetalleMes ? (
-             <div className="text-center py-4">Cargando detalles...</div>
+          <div className="text-center py-4">Cargando detalles...</div>
           ) : detalleMes.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
