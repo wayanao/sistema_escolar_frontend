@@ -6,6 +6,12 @@ import FacturaModerna from "../components/FacturaModerna";
 
 const API = import.meta.env.VITE_API_URL;
 
+const obtenerFechaLocal = () => {
+  const ahora = new Date();
+  const local = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000);
+  return local.toISOString().split('T')[0];
+};
+
 function PagosAdmin() {
   const navigate = useNavigate();
   const [estudiantes, setEstudiantes] = useState([]);
@@ -22,7 +28,7 @@ function PagosAdmin() {
   const [pagoData, setPagoData] = useState({
     estudiante_id: "",
     descripcion: "",
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: obtenerFechaLocal(),
     monto: "",
     venta_id: null,
     metodos: [] // [{ tipo: 'efectivo', monto: '' }, ...]
@@ -102,6 +108,33 @@ function PagosAdmin() {
     }
   };
 
+  const obtenerSaldoSeleccionado = () => {
+    if (pagoData.venta_id) {
+      const venta = ventasPendientes.find((v) => Number(v.id) === Number(pagoData.venta_id));
+      return venta ? Number(venta.total || 0) : null;
+    }
+
+    if (!pagoData.descripcion) return null;
+    const deuda = deudasEstudiante.find((d) => d.concepto === pagoData.descripcion);
+    return deuda ? Number(deuda.deuda || 0) : null;
+  };
+
+  const validarMontoContraSaldo = (monto) => {
+    const saldo = obtenerSaldoSeleccionado();
+    if (saldo === null) return true;
+
+    if (Number(monto) > saldo) {
+      Swal.fire(
+        'Monto mayor a la deuda',
+        `El estudiante solo debe $${saldo.toLocaleString()}. Puedes registrar un abono menor o igual a ese valor.`,
+        'warning'
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const handlePagoSubmit = async (e) => {
     e.preventDefault();
     if (!pagoData.metodos.length || pagoData.metodos.some(m => !m.monto || m.monto <= 0)) {
@@ -111,6 +144,9 @@ function PagosAdmin() {
     const total = pagoData.metodos.reduce((acc, m) => acc + parseFloat(m.monto || 0), 0);
     if (!pagoData.monto || parseFloat(pagoData.monto) !== total) {
       Swal.fire('Error', 'La suma de los métodos debe ser igual al monto total', 'error');
+      return;
+    }
+    if (!validarMontoContraSaldo(total)) {
       return;
     }
     try {
@@ -123,7 +159,7 @@ function PagosAdmin() {
         setPagoData({
           estudiante_id: "",
           descripcion: "",
-          fecha: new Date().toISOString().split('T')[0],
+          fecha: obtenerFechaLocal(),
           monto: "",
           venta_id: null,
           metodos: []
@@ -136,7 +172,14 @@ function PagosAdmin() {
       }
     } catch (error) {
       console.error("Error:", error);
-      Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+      const detalle = error.response?.data?.detail;
+      const mensaje =
+        typeof detalle === "string"
+          ? detalle
+          : error.response
+            ? "El servidor rechazó el pago. Revisa los datos e intenta nuevamente."
+            : "No se pudo conectar con el servidor. Verifica que el backend esté encendido.";
+      Swal.fire('Error', mensaje, 'error');
     }
   };
 
@@ -239,6 +282,9 @@ function PagosAdmin() {
                         step="0.01"
                         value={pagoData.monto}
                         onChange={(e) => setPagoData({ ...pagoData, monto: e.target.value })}
+                        onBlur={(e) => {
+                          if (e.target.value) validarMontoContraSaldo(Number(e.target.value));
+                        }}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                         required
                         placeholder="0.00"
@@ -314,7 +360,7 @@ function PagosAdmin() {
                               onChange={e => {
                                 let nuevosMetodos = [...pagoData.metodos];
                                 if (e.target.checked) {
-                                  nuevosMetodos.push({ tipo, monto: '' });
+                                  nuevosMetodos.push({ tipo, monto: '', nota: '' });
                                 } else {
                                   nuevosMetodos = nuevosMetodos.filter(m => m.tipo !== tipo);
                                 }
@@ -323,21 +369,37 @@ function PagosAdmin() {
                             />
                             <label htmlFor={`metodo-${tipo}`} className="capitalize w-24">{tipo}</label>
                             {checked && (
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="Monto"
-                                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-32"
-                                value={pagoData.metodos[idx]?.monto || ''}
-                                onChange={e => {
-                                  const nuevosMetodos = pagoData.metodos.map(m =>
-                                    m.tipo === tipo ? { ...m, monto: e.target.value } : m
-                                  );
-                                  setPagoData({ ...pagoData, metodos: nuevosMetodos });
-                                }}
-                                required
-                              />
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  placeholder="Monto"
+                                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-32"
+                                  value={pagoData.metodos[idx]?.monto || ''}
+                                  onChange={e => {
+                                    const nuevosMetodos = pagoData.metodos.map(m =>
+                                      m.tipo === tipo ? { ...m, monto: e.target.value } : m
+                                    );
+                                    setPagoData({ ...pagoData, metodos: nuevosMetodos });
+                                  }}
+                                  required
+                                />
+                                {tipo === 'transferencia' && (
+                                  <input
+                                    type="text"
+                                    placeholder="Banco o plataforma"
+                                    className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-full sm:w-56"
+                                    value={pagoData.metodos[idx]?.nota || ''}
+                                    onChange={e => {
+                                      const nuevosMetodos = pagoData.metodos.map(m =>
+                                        m.tipo === tipo ? { ...m, nota: e.target.value } : m
+                                      );
+                                      setPagoData({ ...pagoData, metodos: nuevosMetodos });
+                                    }}
+                                  />
+                                )}
+                              </div>
                             )}
                           </div>
                         );

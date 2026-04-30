@@ -28,6 +28,17 @@ function ReportesAdmin() {
     cargarDatosIniciales();
   }, []);
 
+  useEffect(() => {
+    const refrescarAlVolver = () => {
+      if (document.visibilityState === "visible") {
+        cargarDatosIniciales();
+      }
+    };
+
+    document.addEventListener("visibilitychange", refrescarAlVolver);
+    return () => document.removeEventListener("visibilitychange", refrescarAlVolver);
+  }, []);
+
   if (!usuario || usuario.rol !== "admin") {
     navigate("/login");
     return null;
@@ -120,12 +131,22 @@ function ReportesAdmin() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Reportes y Estadísticas
-        </h1>
-        <p className="text-gray-600">
-          Visualiza reportes y estadísticas del sistema escolar
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Reportes y Estadísticas
+            </h1>
+            <p className="text-gray-600">
+              Visualiza reportes y estadísticas del sistema escolar
+            </p>
+          </div>
+          <button
+            onClick={cargarDatosIniciales}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Actualizar reportes
+          </button>
+        </div>
       </div>
 
       {/* Estadísticas Generales */}

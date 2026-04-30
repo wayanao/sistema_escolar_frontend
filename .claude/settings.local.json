@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/David/Documents/sistema_escolar_api/app/routes//**)",
+      "Read(//c/Users/David/Documents/sistema_escolar_api/app/controllers//**)",
+      "Read(//c/Users/David/Documents/sistema_escolar_api/app/services//**)"
+    ]
+  }
+}

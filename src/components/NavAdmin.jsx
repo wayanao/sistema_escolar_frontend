@@ -55,6 +55,7 @@ function NavAdmin() {
             <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[170px] z-50 border border-gray-100">
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin">Administración</NavLink>
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin/horarios">Horarios Asignados</NavLink>
+                <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/boletin">Gestión Boletines</NavLink>
             </div>
           </div>
@@ -89,6 +90,7 @@ function NavAdmin() {
             <span className="text-white/60 text-xs font-bold uppercase tracking-wider px-2">🎓 Gestión Académica</span>
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin">Administración</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin/horarios">Horarios Asignados</NavLink>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/boletin">Gestión Boletines</NavLink>
           </div>
 

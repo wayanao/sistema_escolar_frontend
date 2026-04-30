@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import api from "../../utils/api";
 
+const VALORACIONES_DESARROLLO = [
+    { value: "destacado", label: "Destacado", emoji: "⭐" },
+    { value: "logrado", label: "Logrado", emoji: "😀" },
+    { value: "proceso", label: "En proceso", emoji: "🙂" },
+    { value: "apoyo", label: "Requiere acompañamiento", emoji: "🧩" },
+];
+
 function IngresoBoletinProfesor() {
     const [asignacionId, setAsignacionId] = useState(
         localStorage.getItem("asignacionId") || ""
@@ -42,16 +49,21 @@ function IngresoBoletinProfesor() {
             // Inicializar el estado de formulario para cada estudiante basado en sus notas
             const estadoInicial = {};
             dataObtenida.forEach((est) => {
-                const definitivaCalc = est.notas.length > 0 
-                    ? (est.notas.reduce((sum, n) => sum + n.valor, 0) / est.notas.length).toFixed(2) 
+                const notasNumericas = est.notas.filter(
+                    n => n.tipo_evaluacion !== "desarrollo" && n.valor !== null && n.valor !== undefined
+                );
+                const definitivaCalc = notasNumericas.length > 0
+                    ? (notasNumericas.reduce((sum, n) => sum + n.valor, 0) / notasNumericas.length).toFixed(2)
                     : 0;
 
                 estadoInicial[est.estudiante_id] = {
                     definitiva: definitivaCalc,
                     observaciones: est.notas.map(n => ({
                         nota: n.valor,
-                        observacion: "",
-                        referencia: n.tipo_nota
+                        observacion: n.observacion_guardada || "",
+                        referencia: n.tipo_nota,
+                        tipo_evaluacion: n.tipo_evaluacion || "numerica",
+                        valoracion: n.valoracion || ""
                     }))
                 };
             });
@@ -79,28 +91,21 @@ function IngresoBoletinProfesor() {
         });
     };
 
-    const handleDefinitivaChange = (estId, valor) => {
-         setDatosBoletin(prev => {
-            const nuevo = { ...prev };
-            const estData = { ...nuevo[estId] };
-            estData.definitiva = valor;
-            nuevo[estId] = estData;
-            return nuevo;
-        });
-    }
-
     const guardarBoletinEstudiante = async (estudiante_id) => {
         const data = datosBoletin[estudiante_id];
         if (!data) return;
+        const esDesarrollo = data.observaciones.some(obs => obs.tipo_evaluacion === "desarrollo");
 
         const payload = {
             estudiante_id: estudiante_id,
             asignacion_id: parseInt(asignacionId),
             periodo: parseInt(periodo),
-            definitiva: parseFloat(data.definitiva),
+            definitiva: esDesarrollo ? null : parseFloat(data.definitiva),
             detalles: data.observaciones.map(obs => ({
-                nota: parseFloat(obs.nota),
-                observacion: obs.observacion
+                nota: obs.tipo_evaluacion === "desarrollo" ? null : parseFloat(obs.nota),
+                observacion: obs.observacion,
+                tipo_evaluacion: obs.tipo_evaluacion || "numerica",
+                valoracion: obs.tipo_evaluacion === "desarrollo" ? obs.valoracion : null
             }))
         };
 
@@ -164,13 +169,18 @@ function IngresoBoletinProfesor() {
                                 <div className="flex flex-col md:flex-row justify-between items-center border-b pb-3 mb-4 gap-4">
                                     <h3 className="text-xl font-bold text-gray-800">🧑‍🎓 {est.nombre}</h3>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-sm font-semibold text-gray-600">Definitiva calculada:</span>
-                                        <input 
-                                            type="number" step="0.1" 
-                                            value={form.definitiva} 
-                                            onChange={(e) => handleDefinitivaChange(est.estudiante_id, e.target.value)}
-                                            className="w-20 font-bold p-1 text-lg text-center border border-gray-300 rounded focus:ring-purple-500" 
-                                        />
+                                        {form.observaciones.some(obs => obs.tipo_evaluacion === "desarrollo") ? (
+                                            <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded border border-emerald-200">
+                                                Desarrollo infantil
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <span className="text-sm font-semibold text-gray-600">Definitiva calculada:</span>
+                                                <span className="w-20 font-bold p-1 text-lg text-center border border-gray-200 rounded bg-gray-50">
+                                                    {Number(form.definitiva || 0).toFixed(1)}
+                                                </span>
+                                            </>
+                                        )}
                                         <button 
                                             onClick={() => guardarBoletinEstudiante(est.estudiante_id)}
                                             className="ml-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded transition-colors"
@@ -188,12 +198,26 @@ function IngresoBoletinProfesor() {
                                             <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide truncate max-w-[120px]" title={nota.tipo_nota}>{nota.tipo_nota}</span>
-                                                    <span className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">Nota: {nota.valor}</span>
+                                                    {nota.tipo_evaluacion === "numerica" ? (
+                                                        <span className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">Nota: {nota.valor}</span>
+                                                    ) : (
+                                                        <span className="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full">
+                                                            {VALORACIONES_DESARROLLO.find(op => op.value === nota.valoracion)?.emoji || "—"}
+                                                        </span>
+                                                    )}
                                                 </div>
+                                                {nota.tipo_evaluacion === "desarrollo" && (
+                                                    <div className="mb-3 flex items-center gap-2">
+                                                        <span className="text-xs font-semibold text-gray-500 uppercase">Valoración registrada</span>
+                                                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                                                            <span>{VALORACIONES_DESARROLLO.find(op => op.value === nota.valoracion)?.emoji || "—"}</span>
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 <textarea 
                                                     className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                                                     rows="3"
-                                                    placeholder="Escribe la observación sobre esta nota específica para el boletín final..."
+                                                    placeholder={nota.tipo_evaluacion === "desarrollo" ? "Describe el proceso del niño en este logro..." : "Escribe la observación sobre esta nota específica para el boletín final..."}
                                                     value={form.observaciones[idx].observacion}
                                                     onChange={(e) => handleObservacionChange(est.estudiante_id, idx, e.target.value)}
                                                 ></textarea>

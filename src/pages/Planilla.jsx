@@ -23,6 +23,9 @@ function Planilla() {
     const [fecha, setFecha] = useState(
     localStorage.getItem("fechaAsistencia") || ""
     );
+    const [tipoEvaluacion, setTipoEvaluacion] = useState(
+        localStorage.getItem("planillaTipoEvaluacion") || "numerica"
+    );
 
     const profesorStorage = localStorage.getItem("profesor");
     const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
@@ -73,12 +76,21 @@ function Planilla() {
     const guardarNota = async (estudiante_id, descripcion, valor) => {
     
         if (!valor) return;// si el input quedó vacío, no hacer nada
+        if (tipoEvaluacion === "numerica") {
+            const numero = parseFloat(valor);
+            if (Number.isNaN(numero) || numero < 1 || numero > 5) {
+                Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
+                return;
+            }
+        }
         await api.post(`/planilla/nota`, {// revisar body
                 estudiante_id,
                 asignacion_id: parseInt(asignacionId),
-                nota: parseFloat(valor),
+                nota: tipoEvaluacion === "numerica" ? parseFloat(valor) : null,
                 descripcion,
-                periodo: parseInt(periodo)
+                periodo: parseInt(periodo),
+                tipo_evaluacion: tipoEvaluacion,
+                valoracion: tipoEvaluacion === "desarrollo" ? valor : null
         });
 
           // 🔄 recargar datos
@@ -116,6 +128,20 @@ function Planilla() {
                 <div>
                     <p className="text-sm font-medium text-gray-700">Fecha</p>
                     <p className="text-gray-900">{fecha || "No especificada"}</p>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de calificación</label>
+                    <select
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={tipoEvaluacion}
+                        onChange={(e) => {
+                            setTipoEvaluacion(e.target.value);
+                            localStorage.setItem("planillaTipoEvaluacion", e.target.value);
+                        }}
+                    >
+                        <option value="numerica">Numérica (1 a 5)</option>
+                        <option value="desarrollo">Caritas / Desarrollo infantil</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -168,7 +194,9 @@ function Planilla() {
                                 asignacion_id: parseInt(asignacionId),
                                 nota: null,
                                 descripcion: tipoLimpio,
-                                periodo: parseInt(periodo)
+                                periodo: parseInt(periodo),
+                                tipo_evaluacion: tipoEvaluacion,
+                                valoracion: null
                             });
                         setNuevoTipo("");
                         cargarPlanilla();
@@ -238,6 +266,7 @@ function Planilla() {
                                 est={est}
                                 columnas={columnas}
                                 guardarNota={guardarNota}
+                                tipoEvaluacion={tipoEvaluacion}
                             />
                         ))}
                     </tbody>

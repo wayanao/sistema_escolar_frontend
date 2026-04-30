@@ -11,6 +11,27 @@ const mockInstitucion = {
   resolucion: "Resolución No. 1234 de 2026"
 };
 
+const VALORACIONES_DESARROLLO = {
+  destacado: { label: "Destacado", emoji: "⭐" },
+  logrado: { label: "Logrado", emoji: "😀" },
+  proceso: { label: "En proceso", emoji: "🙂" },
+  apoyo: { label: "Requiere acompañamiento", emoji: "🧩" }
+};
+
+const EMOJI_DESARROLLO = {
+  destacado: "⭐",
+  logrado: "😀",
+  proceso: "🙂",
+  apoyo: "🧩"
+};
+
+const ESCALA_NUMERICA = [
+  { rango: "5.0", concepto: "Excelente / Superior" },
+  { rango: "4.0 - 4.9", concepto: "Alto" },
+  { rango: "3.0 - 3.9", concepto: "Básico" },
+  { rango: "1.0 - 2.9", concepto: "Bajo" }
+];
+
 const Boletin = () => {
   const [institucion, setInstitucion] = useState(mockInstitucion);
   const [cargando, setCargando] = useState(true);
@@ -74,6 +95,15 @@ const Boletin = () => {
     if (definitiva >= 4.0) return { text: "text-green-700", bg: "bg-green-50" };
     if (definitiva >= 3.0) return { text: "text-blue-700", bg: "bg-blue-50" };
     return { text: "text-red-700", bg: "bg-red-50" };
+  };
+
+  const renderValoracionPeriodo = (det, periodoKey) => {
+    const valor = det.valoraciones_por_periodo?.[periodoKey];
+    if (valor) {
+      return EMOJI_DESARROLLO[valor] || valor;
+    }
+
+    return det.notas_por_periodo?.[periodoKey]?.toFixed(1) || "";
   };
 
   const estudiantesFiltrados = estudiantes.filter(est => {
@@ -170,6 +200,13 @@ const Boletin = () => {
     );
   }
 
+  const usaDesarrolloInfantil = boletinData.materias?.some((materia) =>
+    materia.detalles?.some((detalle) =>
+      detalle.tipo_evaluacion === "desarrollo" ||
+      Object.keys(detalle.valoraciones_por_periodo || {}).length > 0
+    )
+  );
+
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
       <div className="fixed bottom-6 right-6 no-print flex flex-col gap-3 z-50">
@@ -223,6 +260,32 @@ const Boletin = () => {
           </div>
         </div>
 
+        {/* Escala de valoración */}
+        <div className="border border-gray-300 rounded mb-8">
+          <div className="bg-gray-50 border-b border-gray-300 py-2 px-4 uppercase font-bold text-xs tracking-wider text-gray-600">
+            Escala de Valoración
+          </div>
+          {usaDesarrolloInfantil ? (
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              {Object.entries(VALORACIONES_DESARROLLO).map(([key, item]) => (
+                <div key={key} className="border border-emerald-100 bg-emerald-50 px-3 py-2 rounded">
+                  <span className="text-xl mr-2">{item.emoji}</span>
+                  <span className="font-bold text-emerald-800">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              {ESCALA_NUMERICA.map((item) => (
+                <div key={item.rango} className="border border-blue-100 bg-blue-50 px-3 py-2 rounded">
+                  <span className="font-black text-blue-800 mr-2">{item.rango}</span>
+                  <span className="font-bold text-blue-900">{item.concepto}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Rendimiento Consolidado */}
         <div className="mb-6 flex justify-between items-end border-b-2 border-gray-800 pb-2">
           <h2 className="text-xl font-extrabold uppercase tracking-widest text-gray-900">
@@ -252,6 +315,7 @@ const Boletin = () => {
     return acc;
   }, {})
 ).map((mat) => {
+  const tipoMateria = mat.detalles?.some(det => det.tipo_evaluacion === "desarrollo") ? "desarrollo" : "numerica";
   const styles = getStyles(mat.definitiva);
   const desempeno = getDesempeno(mat.definitiva);
 
@@ -267,14 +331,24 @@ const Boletin = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold uppercase text-gray-500 block">Definitiva</span>
+                    <span className="text-xs font-bold uppercase text-gray-500 block">
+                      {tipoMateria === "desarrollo" ? "Valoración" : "Definitiva"}
+                    </span>
                     <div className="flex items-center gap-3 justify-end">
-                      <span className={`text-xs font-black tracking-widest px-2 py-1 rounded bg-white bg-opacity-60 ${styles.text}`}>
-                        {desempeno}
-                      </span>
-                      <span className={`text-2xl font-black ${styles.text}`}>
-                        {mat.definitiva !== null ? mat.definitiva.toFixed(1) : "---"}
-                      </span>
+                      {tipoMateria === "desarrollo" ? (
+                        <span className="text-sm font-black tracking-widest px-3 py-2 rounded bg-emerald-50 text-emerald-700">
+                          DESARROLLO INFANTIL
+                        </span>
+                      ) : (
+                        <>
+                          <span className={`text-xs font-black tracking-widest px-2 py-1 rounded bg-white bg-opacity-60 ${styles.text}`}>
+                            {desempeno}
+                          </span>
+                          <span className={`text-2xl font-black ${styles.text}`}>
+                            {mat.definitiva !== null ? mat.definitiva.toFixed(1) : "---"}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -303,35 +377,15 @@ const Boletin = () => {
                             </thead>
 
                          <tbody>
-  {Object.values(
-    (mat?.detalles || []).reduce((acc, det) => {
-      const key = det.observacion?.trim() || "Sin observación";
-
-      if (!acc[key]) {
-        acc[key] = {
-          observacion: key,
-          notas: { 1: '', 2: '', 3: '', 4: '' }
-        };
-      }
-
-      if (det.periodo && det.nota !== null && det.nota !== undefined) {
-        acc[key].notas[det.periodo] = det.nota.toFixed(1);
-      }
-
-      return acc;
-    }, {})
-  ).map((item, idx) => (
-    <tr key={`${item.observacion}-${Object.values(item.notas).join('-')}`} className="border-b">
-
+  {(mat?.detalles || []).map((det, idx) => (
+    <tr key={idx} className="border-b">
       <td className="px-3 py-2 text-gray-700 border border-gray-300 break-words whitespace-normal max-w-[300px]">
-        {item.observacion}
+        {det.observacion?.trim() || <span className="text-gray-400 italic">Sin observación</span>}
       </td>
-
-      <td className="px-3 py-2 text-right border border-gray-300">{item.notas[1]}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{item.notas[2]}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{item.notas[3]}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{item.notas[4]}</td>
-
+      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "1")}</td>
+      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "2")}</td>
+      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "3")}</td>
+      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "4")}</td>
     </tr>
   ))}
 </tbody>

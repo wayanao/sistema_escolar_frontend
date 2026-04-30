@@ -1,33 +1,91 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
+const campoBase =
+  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
+
+const estadoInicial = {
+  unidad: "",
+  proposito: "",
+  clase: "",
+  estandar: "",
+  dba: "",
+  competencias: "",
+  actividad_casa: "",
+  tema: "",
+};
 
 function PlanDeClases() {
-  const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
-  const [clases, setClases] = useState([]);
-  const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
-  const [unidad, setUnidad] = useState("");
-  const [proposito, setProposito] = useState("");
-  const [estandar, setEstandar] = useState("");
-  const [dba, setDba] = useState("");
-  const [competencias, setCompetencias] = useState("");
-  const [tema, setTema] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
-  const [imagenes, setImagenes] = useState([]);
-
   const profesorStorage = localStorage.getItem("profesor");
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
   const profesorId = profesor?.id;
+
+  const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
+  const [clases, setClases] = useState([]);
+  const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
+  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [form, setForm] = useState(estadoInicial);
+  const [imagenes, setImagenes] = useState([]);
+  const [planActualId, setPlanActualId] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
+  const selectedClase = useMemo(
+    () => clases.find((claseItem) => String(claseItem.id) === String(asignacionId)),
+    [clases, asignacionId],
+  );
+
+  const actualizarCampo = (campo, valor) => {
+    setForm((actual) => ({ ...actual, [campo]: valor }));
+  };
 
   const cargarClases = async () => {
     if (!profesorId) return;
     try {
       const res = await api.get(`/mis-clases/${profesorId}`);
-      const data = res.data;
+      const data = res.data || [];
       setClases(data);
+      if (!asignacionId && data.length > 0) {
+        setAsignacionId(String(data[0].id));
+        localStorage.setItem("asignacionId", String(data[0].id));
+      }
     } catch (error) {
       console.error("Error cargando clases", error);
+      setMensaje("No se pudieron cargar tus clases asignadas.");
+    }
+  };
+
+  const cargarPlanDelDia = async () => {
+    if (!asignacionId || !fecha) return;
+    setCargando(true);
+    try {
+      const res = await api.get(`/plan-de-clases/${asignacionId}`, { params: { fecha } });
+      const plan = res.data;
+      if (plan) {
+        setPlanActualId(plan.id);
+        setPeriodo(String(plan.periodo || "1"));
+        setForm({
+          unidad: plan.unidad || "",
+          proposito: plan.proposito || "",
+          clase: plan.clase || "",
+          estandar: plan.estandar || "",
+          dba: plan.dba || "",
+          competencias: plan.competencias || "",
+          actividad_casa: plan.actividad_casa || "",
+          tema: plan.tema || "",
+        });
+        setMensaje("Plan cargado para esta fecha.");
+      } else {
+        setPlanActualId(null);
+        setForm(estadoInicial);
+        setMensaje("");
+      }
+    } catch (error) {
+      console.error("Error cargando plan del día", error);
+      setMensaje("No se pudo cargar el plan de esta fecha.");
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -39,218 +97,191 @@ function PlanDeClases() {
     cargarClases();
   }, [profesorId]);
 
-    const handleImageChange = (e) => {
+  useEffect(() => {
+    if (!asignacionId) return;
+    localStorage.setItem("asignacionId", String(asignacionId));
+    cargarPlanDelDia();
+  }, [asignacionId, fecha]);
+
+  useEffect(() => {
+    localStorage.setItem("periodo", String(periodo));
+  }, [periodo]);
+
+  const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 2) {
-        alert("Solo puedes seleccionar hasta 2 imágenes");
-        return;
+      alert("Solo puedes seleccionar hasta 2 imágenes");
+      e.target.value = "";
+      return;
     }
     setImagenes(files);
-    };
+  };
 
-    const guardarPlan = async () => {
-    if (
-    !asignacionId ||
-    !unidad ||
-    !fecha ||
-    !proposito ||
-    !estandar ||
-    !dba ||
-    !competencias ||
-    !tema
-) {
-    alert("Completa todos los campos obligatorios");
-    return;
-}
+  const guardarPlan = async () => {
+    const incompleto =
+      !asignacionId ||
+      !periodo ||
+      !fecha ||
+      Object.values(form).some((valor) => !String(valor).trim());
+
+    if (incompleto) {
+      alert("Completa todos los campos obligatorios");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("asignacion_id", asignacionId);
-    formData.append("unidad", unidad);
-    formData.append("proposito", proposito);
-    formData.append("estandar", estandar);
-    formData.append("dba", dba);
-    formData.append("competencias", competencias);
-    formData.append("tema", tema);
+    formData.append("periodo", periodo);
     formData.append("fecha", fecha);
-
+    Object.entries(form).forEach(([campo, valor]) => formData.append(campo, valor));
     if (imagenes[0]) formData.append("imagen1", imagenes[0]);
     if (imagenes[1]) formData.append("imagen2", imagenes[1]);
 
+    setGuardando(true);
     try {
-      const res = await api.post(`/plan-de-clases`, formData);
-      const data = res.data;
-      alert("Plan guardado: " + data.mensaje);
-      // Limpiar campos
-      setUnidad("");
-      setProposito("");
-      setEstandar("");
-      setDba("");
-      setCompetencias("");
-      setTema("");
+      const res = await api.post("/plan-de-clases", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setPlanActualId(res.data.id);
       setImagenes([]);
+      setMensaje(res.data.mensaje || "Plan guardado y enviado a administración.");
     } catch (error) {
       console.error("Error guardando plan", error);
-      alert("Error al guardar");
+      alert(error.response?.data?.detail || "Error al guardar");
+    } finally {
+      setGuardando(false);
     }
   };
 
-  const selectedClase = clases.find(c => c.id == asignacionId);
-
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          📚 Plan de Clases
-        </h1>
-        <p className="text-gray-600">
-          Crea y gestiona tus planes de clases
-        </p>
+    <div className="space-y-6 p-2 sm:p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Plan de clases</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Prepara el plan diario y déjalo disponible para seguimiento administrativo.
+          </p>
+        </div>
+        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          {planActualId ? `Editando plan #${planActualId}` : "Nuevo plan para la fecha seleccionada"}
+        </div>
       </div>
 
-      {selectedClase && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Información del Curso</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Clase asignada</label>
+            <select
+              value={asignacionId}
+              onChange={(e) => setAsignacionId(e.target.value)}
+              className={campoBase}
+            >
+              <option value="">Selecciona una clase</option>
+              {clases.map((claseItem) => (
+                <option key={claseItem.id} value={claseItem.id}>
+                  {claseItem.materia} - {claseItem.curso}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Periodo</label>
+            <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={campoBase}>
+              <option value="1">Periodo 1</option>
+              <option value="2">Periodo 2</option>
+              <option value="3">Periodo 3</option>
+              <option value="4">Periodo 4</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Fecha</label>
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={campoBase} />
+          </div>
+        </div>
+
+        {selectedClase && (
+          <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg bg-gray-50 p-4 text-sm md:grid-cols-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">Materia</p>
+              <span className="font-medium text-gray-600">Materia</span>
               <p className="text-gray-900">{selectedClase.materia}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Período</p>
-              <p className="text-gray-900">{periodo}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700">Salón</p>
+              <span className="font-medium text-gray-600">Curso</span>
               <p className="text-gray-900">{selectedClase.curso}</p>
             </div>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Detalles del Plan</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-            <textarea
-              value={unidad}
-              onChange={(e) => setUnidad(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Describe la unidad..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Logro</label>
-            <textarea
-              value={proposito}
-              onChange={(e) => setProposito(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Objetivos de aprendizaje..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Clase</label>
-            <textarea
-              value={estandar}
-              onChange={(e) => setEstandar(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Número de clase..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estándar</label>
-            <textarea
-              value={estandar}
-              onChange={(e) => setEstandar(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Estándares curriculares..."
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tema</label>
-            <input
-              type="text"
-              value={tema}
-              onChange={(e) => setTema(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Tema de la clase..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">DESARROLLO COGNITIVO</label>
-            <textarea
-              value={dba}
-              onChange={(e) => setDba(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Actividades y desarrollo de la clase..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ACTIVIDAD EN CLASE </label>
-            <textarea
-              value={competencias}
-              onChange={(e) => setCompetencias(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Actividades en clase..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ACTIVIDAD EN CASA</label>
-            <textarea
-              value={competencias}
-              onChange={(e) => setCompetencias(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Tareas para casa..."
-            />
-          </div>
-          
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Imágenes (máximo 2)</h2>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleImageChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        {imagenes.length > 0 && (
-          <div className="mt-2">
-            <p className="text-sm text-gray-600">Archivos seleccionados:</p>
-            {imagenes.map((img, idx) => (
-              <p key={idx} className="text-sm text-gray-900">{img.name}</p>
-            ))}
+            <div>
+              <span className="font-medium text-gray-600">Estado</span>
+              <p className="text-gray-900">{cargando ? "Cargando..." : planActualId ? "Guardado" : "Sin guardar"}</p>
+            </div>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="flex justify-center">
-        <button
-          onClick={guardarPlan}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
-        >
-          Guardar Plan
-        </button>
-      </div>
+      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Detalles del plan</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <CampoTextarea label="Unidad" value={form.unidad} onChange={(valor) => actualizarCampo("unidad", valor)} />
+          <CampoInput label="Tema" value={form.tema} onChange={(valor) => actualizarCampo("tema", valor)} />
+          <CampoTextarea label="Logro" value={form.proposito} onChange={(valor) => actualizarCampo("proposito", valor)} />
+          <CampoTextarea label="Clase" value={form.clase} onChange={(valor) => actualizarCampo("clase", valor)} />
+          <CampoTextarea label="Estándar" value={form.estandar} onChange={(valor) => actualizarCampo("estandar", valor)} />
+          <CampoTextarea label="Desarrollo cognitivo" value={form.dba} onChange={(valor) => actualizarCampo("dba", valor)} />
+          <CampoTextarea
+            label="Actividad en clase"
+            value={form.competencias}
+            onChange={(valor) => actualizarCampo("competencias", valor)}
+          />
+          <CampoTextarea
+            label="Actividad en casa"
+            value={form.actividad_casa}
+            onChange={(valor) => actualizarCampo("actividad_casa", valor)}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="w-full">
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">Imágenes</h2>
+            <input type="file" multiple accept="image/*" onChange={handleImageChange} className={campoBase} />
+            {imagenes.length > 0 && (
+              <div className="mt-2 text-sm text-gray-700">
+                {imagenes.map((img) => (
+                  <span key={img.name} className="mr-3 inline-block">
+                    {img.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={guardarPlan}
+            disabled={guardando || cargando}
+            className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 md:w-auto"
+          >
+            {guardando ? "Guardando..." : "Guardar y enviar"}
+          </button>
+        </div>
+        {mensaje && <p className="mt-3 text-sm text-gray-700">{mensaje}</p>}
+      </section>
+    </div>
+  );
+}
+
+function CampoInput({ label, value, onChange }) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} />
+    </div>
+  );
+}
+
+function CampoTextarea({ label, value, onChange }) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} rows="4" />
     </div>
   );
 }

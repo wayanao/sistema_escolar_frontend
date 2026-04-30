@@ -23,6 +23,7 @@ import NominaAdmin from "./pages/NominaAdmin";
 import EstudiantesAdmin from "./pages/EstudiantesAdmin";
 import ReportesAdmin from "./pages/ReportesAdmin";
 import HorariosAdmin from "./pages/HorariosAdmin";
+import PlaneadoresClasesAdmin from "./pages/PlaneadoresClasesAdmin";
 
 function ProtectedRoute({ children }) {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -69,6 +70,7 @@ function Layout() {
           <Route path="/admin/estudiantes" element={<AdminRoute><EstudiantesAdmin /></AdminRoute>} />
           <Route path="/admin/reportes" element={<AdminRoute><ReportesAdmin /></AdminRoute>} />
           <Route path="/admin/horarios" element={<AdminRoute><HorariosAdmin /></AdminRoute>} />
+          <Route path="/admin/planeadores-clases" element={<AdminRoute><PlaneadoresClasesAdmin /></AdminRoute>} />
           <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />
           <Route path="/Formulario" element={<ProtectedRoute><Formulario /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
