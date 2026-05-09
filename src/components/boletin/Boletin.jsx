@@ -1,15 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import Header from './Header';
 import api from '../../utils/api';
-
-const mockInstitucion = {
-  nombre: "Institución Educativa Moderna",
-  lema: "Formando líderes para el futuro",
-  nit: "901.234.567-8",
-  direccion: "Avenida Principal 456, Ciudad",
-  resolucion: "Resolución No. 1234 de 2026"
-};
+import DocumentoImprimible from '../impresion/DocumentoImprimible';
 
 const VALORACIONES_DESARROLLO = {
   destacado: { label: "Destacado", emoji: "⭐" },
@@ -33,7 +25,6 @@ const ESCALA_NUMERICA = [
 ];
 
 const Boletin = () => {
-  const [institucion, setInstitucion] = useState(mockInstitucion);
   const [cargando, setCargando] = useState(true);
   const [cursos, setCursos] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
@@ -209,212 +200,236 @@ const Boletin = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
-      <div className="fixed bottom-6 right-6 no-print flex flex-col gap-3 z-50">
-        <button
-          onClick={() => window.print()}
-          className="bg-indigo-600 text-white p-4 rounded-full shadow-xl hover:bg-indigo-700 transition"
-          title="Imprimir PDF"
-        >
-          🖨️
-        </button>
+      <div className="fixed bottom-6 left-6 no-print z-50">
         <button
           onClick={() => setBoletinData(null)}
           className="bg-slate-800 text-white p-4 rounded-full shadow-xl hover:bg-slate-900 transition"
           title="Volver"
         >
-          🔙
+          ← Volver
         </button>
       </div>
 
-      <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 shadow-2xl rounded boletin-print-container" style={{ minHeight: '1122px' }}>
-        <Header institucion={institucion} onChangeInstitucion={setInstitucion} />
-
-        {/* Sección Datos Estudiante */}
-        <div className="border border-gray-300 rounded mb-8 mt-6">
-          <div className="bg-gray-50 border-b border-gray-300 py-2 px-4 uppercase font-bold text-xs tracking-wider text-gray-600">
-            Datos del Alumno
+      <DocumentoImprimible
+        tipo="boletin"
+        titulo="Boletín Académico Informativo"
+        subtitulo={`Periodo ${boletinData.periodo} · Año Lectivo ${new Date().getFullYear()}`}
+        firmas={[
+          { nombre: "Rector del Colegio" },
+          { nombre: "Director de Grupo" },
+        ]}
+      >
+        {/* Datos del alumno + chips - una sola fila balanceada */}
+        <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 leading-none mb-1">Estudiante</p>
+            <p className="text-base font-extrabold uppercase tracking-wide text-slate-800 truncate leading-tight">
+              {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
+            </p>
           </div>
-          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-800">
-            <div className="md:col-span-2">
-              <span className="font-bold uppercase block text-xs text-gray-500">Apellidos y Nombres:</span>
-              <span className="uppercase text-lg tracking-wide font-bold">
-                {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
-              </span>
-            </div>
-            <div>
-              <span className="font-bold uppercase block text-xs text-gray-500">Sistema ID:</span>
-              <span>EST-{boletinData.estudiante_id}</span>
-            </div>
-            <div>
-              <span className="font-bold uppercase block text-xs text-gray-500">Grado y Grupo:</span>
-              <span className="font-semibold">{boletinData.curso}</span>
-            </div>
-            <div>
-              <span className="font-bold uppercase block text-xs text-gray-500">Periodo:</span>
-              <span className="font-semibold">Periodo {boletinData.periodo}</span>
-            </div>
-            <div>
-              <span className="font-bold uppercase block text-xs text-gray-500">Año Lectivo:</span>
-              <span className="font-semibold">{new Date().getFullYear()}</span>
-            </div>
+          <div className="flex items-stretch gap-1.5 text-[11px]">
+            <Chip label="Curso" value={boletinData.curso} highlight />
+            <Chip label="Periodo" value={boletinData.periodo} highlight />
+            <Chip label="Año" value={new Date().getFullYear()} />
           </div>
         </div>
 
-        {/* Escala de valoración */}
-        <div className="border border-gray-300 rounded mb-8">
-          <div className="bg-gray-50 border-b border-gray-300 py-2 px-4 uppercase font-bold text-xs tracking-wider text-gray-600">
-            Escala de Valoración
-          </div>
-          {usaDesarrolloInfantil ? (
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              {Object.entries(VALORACIONES_DESARROLLO).map(([key, item]) => (
-                <div key={key} className="border border-emerald-100 bg-emerald-50 px-3 py-2 rounded">
-                  <span className="text-xl mr-2">{item.emoji}</span>
-                  <span className="font-bold text-emerald-800">{item.label}</span>
+        {/* Escala + Promedio en una sola fila */}
+        <div className="rounded-lg border border-slate-200 mb-4 overflow-hidden">
+          <div className="flex items-stretch">
+            <div className="flex-1 p-3">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">
+                Escala de valoración
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {usaDesarrolloInfantil
+                  ? Object.entries(VALORACIONES_DESARROLLO).map(([key, item]) => (
+                      <span
+                        key={key}
+                        className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded px-2 py-0.5 text-[11px] font-semibold"
+                      >
+                        <span>{item.emoji}</span>
+                        <span>{item.label}</span>
+                      </span>
+                    ))
+                  : ESCALA_NUMERICA.map((item) => (
+                      <span
+                        key={item.rango}
+                        className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 border border-blue-200 rounded px-2 py-0.5 text-[11px]"
+                      >
+                        <span className="font-black">{item.rango}</span>
+                        <span className="font-semibold">{item.concepto}</span>
+                      </span>
+                    ))}
+              </div>
+            </div>
+            <div
+              className="border-l border-slate-200 px-5 py-3 flex items-stretch text-white min-w-[140px] divide-x divide-white/20"
+              style={{ backgroundColor: "var(--di-color-primario, #0f314f)" }}
+            >
+              <div className="flex flex-col items-center justify-center px-2">
+                <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">Promedio</span>
+                <span className={`text-3xl font-black leading-none mt-1 ${(calcularPromedioGeneral() >= 3.0 || calcularPromedioGeneral() == 0) ? 'text-white' : 'text-red-300'}`}>
+                  {calcularPromedioGeneral()}
+                </span>
+                <span className="text-[10px] uppercase tracking-widest font-semibold opacity-70 mt-1">general</span>
+              </div>
+              {!usaDesarrolloInfantil && boletinData.puesto && boletinData.total_estudiantes > 0 && (
+                <div className="flex flex-col items-center justify-center px-3">
+                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">Puesto</span>
+                  <span className="text-3xl font-black leading-none mt-1">{boletinData.puesto}</span>
+                  <span className="text-[10px] uppercase tracking-widest font-semibold opacity-70 mt-1">
+                    de {boletinData.total_estudiantes}
+                  </span>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              {ESCALA_NUMERICA.map((item) => (
-                <div key={item.rango} className="border border-blue-100 bg-blue-50 px-3 py-2 rounded">
-                  <span className="font-black text-blue-800 mr-2">{item.rango}</span>
-                  <span className="font-bold text-blue-900">{item.concepto}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Rendimiento Consolidado */}
-        <div className="mb-6 flex justify-between items-end border-b-2 border-gray-800 pb-2">
-          <h2 className="text-xl font-extrabold uppercase tracking-widest text-gray-900">
-            Resumen de Evaluaciones
-          </h2>
-          <div className="text-right">
-            <span className="uppercase text-xs font-bold text-gray-500 mr-2">Promedio General</span>
-            <span className={`text-2xl font-black ${(calcularPromedioGeneral() >= 3.0 || calcularPromedioGeneral() == 0) ? 'text-blue-700' : 'text-red-600'}`}>
-              {calcularPromedioGeneral()}
-            </span>
           </div>
         </div>
+
+        {/* Encabezado materias */}
+        <h2 className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 border-slate-800 pb-1 mb-3">
+          Resumen de evaluaciones
+        </h2>
 
         {/* Materias */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           {Object.values(
-  boletinData.materias.reduce((acc, mat) => {
-    if (!acc[mat.materia_id]) {
-      acc[mat.materia_id] = {
-        ...mat,
-        detalles: []
-      };
-    }
-
-    acc[mat.materia_id].detalles.push(...(mat.detalles || []));
-
-    return acc;
-  }, {})
-).map((mat) => {
-  const tipoMateria = mat.detalles?.some(det => det.tipo_evaluacion === "desarrollo") ? "desarrollo" : "numerica";
-  const styles = getStyles(mat.definitiva);
-  const desempeno = getDesempeno(mat.definitiva);
+            boletinData.materias.reduce((acc, mat) => {
+              if (!acc[mat.materia_id]) {
+                acc[mat.materia_id] = { ...mat, detalles: [] };
+              }
+              acc[mat.materia_id].detalles.push(...(mat.detalles || []));
+              return acc;
+            }, {})
+          ).map((mat) => {
+            const tipoMateria = mat.detalles?.some(det => det.tipo_evaluacion === "desarrollo") ? "desarrollo" : "numerica";
+            const styles = getStyles(mat.definitiva);
+            const desempeno = getDesempeno(mat.definitiva);
 
             return (
-              <div key={`${mat.materia_id}-${mat.boletin_id}`}className="border border-gray-300 rounded page-break-inside-avoid">
-                <div className={`px-4 py-3 flex justify-between items-center border-b border-gray-300 ${styles.bg}`}>
-                  <div>
-                    <h3 className="font-extrabold uppercase text-gray-800 tracking-wider">
+              <div
+                key={`${mat.materia_id}-${mat.boletin_id}`}
+                className="border border-slate-200 rounded-lg overflow-hidden page-break-inside-avoid"
+              >
+                <div className="px-3 py-2 flex justify-between items-center bg-slate-50 border-b border-slate-200">
+                  <div className="min-w-0">
+                    <h3 className="font-bold uppercase text-slate-800 tracking-wide text-sm truncate">
                       {mat.materia}
                     </h3>
-                    <p className="text-xs text-gray-600 font-medium uppercase mt-1">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-0.5">
                       Docente: {mat.profesor_nombre} {mat.profesor_apellido || ""}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold uppercase text-gray-500 block">
-                      {tipoMateria === "desarrollo" ? "Valoración" : "Definitiva"}
-                    </span>
-                    <div className="flex items-center gap-3 justify-end">
-                      {tipoMateria === "desarrollo" ? (
-                        <span className="text-sm font-black tracking-widest px-3 py-2 rounded bg-emerald-50 text-emerald-700">
-                          DESARROLLO INFANTIL
+                  <div className="flex items-center gap-2 shrink-0">
+                    {tipoMateria === "desarrollo" ? (
+                      <span className="text-[10px] font-black tracking-widest px-2 py-1 rounded bg-emerald-100 text-emerald-700">
+                        DESARROLLO
+                      </span>
+                    ) : (
+                      <>
+                        <span className={`text-[10px] font-black tracking-widest px-2 py-0.5 rounded border ${styles.text} ${styles.bg}`}>
+                          {desempeno}
                         </span>
-                      ) : (
-                        <>
-                          <span className={`text-xs font-black tracking-widest px-2 py-1 rounded bg-white bg-opacity-60 ${styles.text}`}>
-                            {desempeno}
-                          </span>
-                          <span className={`text-2xl font-black ${styles.text}`}>
-                            {mat.definitiva !== null ? mat.definitiva.toFixed(1) : "---"}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                        <span className={`text-2xl font-black leading-none ${styles.text}`}>
+                          {mat.definitiva !== null ? mat.definitiva.toFixed(1) : "---"}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className="p-4 bg-white text-sm">
+                <div className="bg-white">
                   {mat.detalles && mat.detalles.length > 0 ? (
-                    <div>
-                      <h4 className="text-xs font-bold uppercase text-gray-400 mb-2 border-b pb-1">
-                        Logros
-                      </h4 >
-
-
-                      <div className="overflow-x-auto">
-                        
-                          <table className="w-full border border-gray-300 border-collapse text-sm">
-  
-                            <thead>
-                              <tr className="bg-gray-100 text-gray-600 text-xs uppercase">
-                                <th className="text-left px-3 py-2 border border-gray-300">Observación</th>
-
-                                <th className="text-right px-3 py-2 w-20 border border-gray-300">P1</th>
-                                <th className="text-right px-3 py-2 w-20 border border-gray-300">P2</th>
-                                <th className="text-right px-3 py-2 w-20 border border-gray-300">P3</th>
-                                <th className="text-right px-3 py-2 w-20 border border-gray-300">P4</th>
-                              </tr>
-                            </thead>
-
-                         <tbody>
-  {(mat?.detalles || []).map((det, idx) => (
-    <tr key={idx} className="border-b">
-      <td className="px-3 py-2 text-gray-700 border border-gray-300 break-words whitespace-normal max-w-[300px]">
-        {det.observacion?.trim() || <span className="text-gray-400 italic">Sin observación</span>}
-      </td>
-      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "1")}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "2")}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "3")}</td>
-      <td className="px-3 py-2 text-right border border-gray-300">{renderValoracionPeriodo(det, "4")}</td>
-    </tr>
-  ))}
-</tbody>
-                    
-                          </table>
-                      
-                      </div>
-                    </div>
-                    ) : 
-                    (
-                    <div className="text-center py-4 bg-gray-50 text-gray-500 rounded border border-dashed border-gray-300 text-xs uppercase font-semibold">
+                    <table className="w-full border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wide">
+                          <th className="text-left px-3 py-1.5 border-b border-slate-200">Logro / Observación</th>
+                          <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">P1</th>
+                          <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">P2</th>
+                          <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">P3</th>
+                          <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">P4</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(mat?.detalles || []).map((det, idx) => (
+                          <tr key={idx} className="border-b border-slate-100 last:border-b-0">
+                            <td className="px-3 py-1.5 text-slate-700 break-words whitespace-normal max-w-[300px]">
+                              {det.observacion?.trim() || <span className="text-slate-400 italic">Sin observación</span>}
+                            </td>
+                            <td className="px-2 py-1.5 text-center font-semibold text-slate-700">{renderValoracionPeriodo(det, "1")}</td>
+                            <td className="px-2 py-1.5 text-center font-semibold text-slate-700">{renderValoracionPeriodo(det, "2")}</td>
+                            <td className="px-2 py-1.5 text-center font-semibold text-slate-700">{renderValoracionPeriodo(det, "3")}</td>
+                            <td className="px-2 py-1.5 text-center font-semibold text-slate-700">{renderValoracionPeriodo(det, "4")}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-3 text-slate-400 text-[10px] uppercase font-semibold">
                       Calificación y observaciones pendientes por ingresar.
                     </div>
                   )}
-
                 </div>
               </div>
             );
           })}
 
           {boletinData.materias.length === 0 && (
-            <div className="p-10 text-center font-bold text-gray-400 border-2 border-dashed border-gray-300">
+            <div className="p-8 text-center font-semibold text-slate-400 border-2 border-dashed border-slate-300 rounded">
               El curso no tiene asignadas materias o profesores todavía.
             </div>
           )}
         </div>
-      </div>
+
+        {/* Observación general - editable en pantalla, NO se guarda en BD */}
+        <section className="mt-5 page-break-inside-avoid">
+          <p
+            className="text-[10px] uppercase tracking-widest font-bold mb-1.5"
+            style={{ color: "var(--di-color-primario, #0f314f)" }}
+          >
+            Observación general
+          </p>
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck={false}
+            data-placeholder="Escriba aquí la observación general del estudiante…"
+            className="di-observacion-editable rounded-lg border border-slate-300 bg-white text-slate-800"
+            style={{
+              minHeight: "110px",
+              padding: "10px 14px",
+              lineHeight: "24px",
+              backgroundImage:
+                "repeating-linear-gradient(transparent, transparent 23px, #e2e8f0 23px, #e2e8f0 24px)",
+              backgroundPosition: "0 14px",
+              outline: "none",
+              whiteSpace: "pre-wrap",
+            }}
+          />
+        </section>
+      </DocumentoImprimible>
     </div>
   );
 };
+
+function Chip({ label, value, highlight }) {
+  const highlightStyle = highlight
+    ? {
+        backgroundColor: "var(--di-color-primario, #0f314f)",
+        borderColor: "var(--di-color-primario, #0f314f)",
+        color: "#ffffff",
+      }
+    : undefined;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 border ${highlight ? "" : "bg-white text-slate-700 border-slate-300"}`}
+      style={highlightStyle}
+    >
+      <span className={`text-[9px] uppercase tracking-widest font-bold ${highlight ? "opacity-75" : "text-slate-500"}`}>{label}</span>
+      <span className="font-bold">{value}</span>
+    </span>
+  );
+}
 
 export default Boletin;

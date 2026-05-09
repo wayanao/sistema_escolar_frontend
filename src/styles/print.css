@@ -1,0 +1,213 @@
+/* ============================================================
+   Estilos unificados de impresion - <DocumentoImprimible>
+   Las variables CSS las inyecta el wrapper segun la plantilla
+   activa del tenant (--di-color-primario, --di-fuente, etc.).
+   ============================================================ */
+
+.di-documento {
+  font-family: var(--di-fuente, "Inter", system-ui, sans-serif);
+  font-size: var(--di-fuente-base, 12px);
+  color: #1f2937;
+  background: #ffffff;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: var(--di-margen, 20mm);
+  box-sizing: border-box;
+}
+
+/* En pantalla, aprovechamos un poco mas el ancho del viewport para que la
+   vista previa no quede tan estrecha; al imprimir vuelve a 210mm (A4). */
+@media screen {
+  .di-documento {
+    max-width: min(95vw, 250mm);
+    box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.25);
+    margin: 24px auto;
+    border-radius: 6px;
+  }
+}
+
+.di-documento--bordeado {
+  border: 1px solid var(--di-color-secundario, #526775);
+}
+
+.di-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--di-color-primario, #0f314f);
+  margin-bottom: 16px;
+}
+
+.di-encabezado--center { justify-content: center; text-align: center; }
+.di-encabezado--left   { justify-content: flex-start; text-align: left; }
+
+.di-encabezado__logos {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.di-encabezado__logos img {
+  max-height: 70px;
+  max-width: 110px;
+  object-fit: contain;
+}
+
+.di-encabezado__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.di-encabezado__nombre {
+  font-size: 1.4em;
+  font-weight: 700;
+  color: var(--di-color-primario, #0f314f);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.di-encabezado__eslogan {
+  font-style: italic;
+  color: var(--di-color-secundario, #526775);
+  font-size: 0.95em;
+  margin: 0;
+}
+
+.di-encabezado__contacto {
+  font-size: 0.78em;
+  color: var(--di-color-secundario, #526775);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.di-titulo {
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--di-color-primario, #0f314f);
+  margin: 12px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.di-subtitulo {
+  text-align: center;
+  font-size: 0.95em;
+  color: var(--di-color-secundario, #526775);
+  margin: 0 0 14px;
+}
+
+.di-cuerpo {
+  margin: 12px 0;
+}
+
+.di-firmas {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 50px;
+  page-break-inside: avoid;
+}
+
+.di-firmas__bloque {
+  text-align: center;
+  width: 40%;
+}
+
+.di-firmas__linea {
+  border-top: 1px solid #1f2937;
+  margin-top: 40px;
+  padding-top: 4px;
+  font-size: 0.85em;
+  color: var(--di-color-secundario, #526775);
+}
+
+.di-pie {
+  margin-top: 30px;
+  padding-top: 10px;
+  border-top: 1px solid var(--di-color-secundario, #526775);
+  font-size: 0.75em;
+  color: var(--di-color-secundario, #526775);
+  text-align: center;
+}
+
+/* Cuadro de observacion editable (no se guarda - solo para imprimir) */
+.di-observacion-editable {
+  cursor: text;
+  font-family: inherit;
+  font-size: inherit;
+  transition: border-color 0.15s ease;
+}
+.di-observacion-editable:focus {
+  border-color: var(--di-color-primario, #0f314f);
+}
+.di-observacion-editable:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  font-style: italic;
+  pointer-events: none;
+}
+@media print {
+  .di-observacion-editable:empty::before {
+    content: "";
+  }
+  .di-observacion-editable {
+    border-color: #94a3b8 !important;
+  }
+}
+
+/* Botones flotantes solo pantalla */
+.di-toolbar {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+/* ============================================================
+   @media print: oculta UI, deja el documento limpio
+   ============================================================ */
+@media print {
+  body { background: #fff !important; margin: 0 !important; }
+  .no-print, .di-toolbar { display: none !important; }
+
+  /* Marco profesional que se REPITE en cada pagina cuando el documento
+     ocupa varias hojas. La tecnica: aplicar borde al .di-documento y
+     usar box-decoration-break: clone para que el borde se redibuje en
+     cada fragmento (cada hoja impresa). */
+  .di-documento {
+    box-shadow: none;
+    border-radius: 0;
+    margin: 0 auto;
+    padding: var(--di-margen, 20mm);
+    border: 1.5px solid var(--di-color-primario, #0f314f);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Solo cuando un <DocumentoImprimible> esta montado, ocultamos lo demas.
+     La clase 'di-printing-mode' la inyecta el wrapper en el body via useEffect.
+     Asi convive con impresos legacy que aun no han sido migrados. */
+  body.di-printing-mode * { visibility: hidden; }
+  body.di-printing-mode .di-print-root,
+  body.di-printing-mode .di-print-root * { visibility: visible; }
+  body.di-printing-mode .di-print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}

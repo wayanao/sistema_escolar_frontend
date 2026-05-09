@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../utils/api";
+import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -14,6 +15,7 @@ function PlaneadorAnual() {
   const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
   const [asignacion, setAsignacion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [vistaImpresion, setVistaImpresion] = useState(false);
 
   const asignacionId = localStorage.getItem("asignacionId");
   const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
@@ -109,130 +111,7 @@ function PlaneadorAnual() {
     setPlaneadores(updated);
   };
 
-  const imprimirPeriodo = () => {
-    const printWindow = window.open('', '_blank');
-    const content = `
-      <html>
-        <head>
-          <title>Planeador Anual - Período ${periodo}</title>
-          <style>
-            body { 
-              font-family: 'Arial', sans-serif; 
-              margin: 20px; 
-              color: #374151;
-              background: white;
-              font-size: 11px;
-              line-height: 1.4;
-            }
-            .header {
-              background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
-              color: #1e40af;
-              padding: 1.5rem;
-              border-radius: 8px;
-              margin-bottom: 1.5rem;
-              text-align: center;
-              border: 2px solid #3b82f6;
-            }
-            .header h1 {
-              font-size: 24px;
-              font-weight: bold;
-              margin: 0 0 0.5rem 0;
-            }
-            .header p {
-              margin: 0;
-              font-size: 14px;
-              opacity: 0.9;
-            }
-            .info {
-              margin-bottom: 1.5rem;
-              background: #f9fafb;
-              padding: 1rem;
-              border-radius: 6px;
-              border-left: 4px solid #3b82f6;
-            }
-            .info p {
-              margin: 0.25rem 0;
-              font-weight: 500;
-            }
-            table { 
-              width: 100%; 
-              border-collapse: collapse;
-              margin-top: 1rem;
-              font-size: 10px;
-            }
-            th, td { 
-              border: 1px solid #d1d5db; 
-              padding: 0.75rem;
-              text-align: left; 
-              vertical-align: top;
-              word-break: break-word;
-              white-space: pre-wrap;
-            }
-            th { 
-              background-color: #f3f4f6; 
-              font-weight: 600;
-              font-size: 9px;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-            }
-            tr:nth-child(even) td { 
-              background-color: #f9fafb; 
-            }
-            @media print { 
-              body { margin: 0; }
-              .header { margin-bottom: 1rem; }
-              table { page-break-inside: auto; }
-              tr { page-break-inside: avoid; page-break-after: auto; }
-              th, td { padding: 0.5rem; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Planeador Anual de Clases</h1>
-            <p>Planificación académica institucional</p>
-          </div>
-          <div class="info">
-            <p><strong>Curso:</strong> ${asignacion ? asignacion.curso : ''}</p>
-            <p><strong>Materia:</strong> ${asignacion ? asignacion.materia : ''}</p>
-            <p><strong>Período:</strong> ${periodo}</p>
-          </div>
-          <table>
-            <colgroup>
-              <col style="width: 20%">
-              <col style="width: 20%">
-              <col style="width: 25%">
-              <col style="width: 25%">
-              <col style="width: 10%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Unidad temática</th>
-                <th>Estándar/competencia</th>
-                <th>Contenido</th>
-                <th>Actividades y recursos</th>
-                <th>Fecha estimada</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${planeadores.map((p) => `
-                <tr>
-                  <td>${p.unidad_tematica || ''}</td>
-                  <td>${p.estandar_competencia || ''}</td>
-                  <td>${p.contenido || ''}</td>
-                  <td>${p.actividades_recursos || ''}</td>
-                  <td>${p.fecha || ''}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `;
-    printWindow.document.write(content);
-    printWindow.document.close();
-    printWindow.print();
-  };
+  const imprimirPeriodo = () => setVistaImpresion(true);
 
   useEffect(() => {
     cargarAsignacion();
@@ -264,6 +143,56 @@ function PlaneadorAnual() {
 
   if (!asignacionId) {
     return <div className="p-6 text-center">Selecciona una asignación en el Dashboard primero.</div>;
+  }
+
+  if (vistaImpresion) {
+    return (
+      <div className="fixed inset-0 bg-slate-100 z-50 overflow-auto">
+        <div className="fixed top-4 left-4 no-print z-[60]">
+          <button
+            onClick={() => setVistaImpresion(false)}
+            className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:bg-slate-900"
+          >
+            ← Volver
+          </button>
+        </div>
+        <DocumentoImprimible
+          tipo="planeador"
+          titulo="Planeador Anual de Clases"
+          subtitulo={`${asignacion ? `${asignacion.curso} · ${asignacion.materia} · ` : ""}Período ${periodo}`}
+        >
+          <table className="w-full border-collapse text-xs">
+            <colgroup>
+              <col style={{ width: "20%" }} />
+              <col style={{ width: "20%" }} />
+              <col style={{ width: "25%" }} />
+              <col style={{ width: "25%" }} />
+              <col style={{ width: "10%" }} />
+            </colgroup>
+            <thead>
+              <tr className="bg-slate-100 text-slate-700 uppercase tracking-wider">
+                <th className="border border-slate-300 px-2 py-2 text-left">Unidad temática</th>
+                <th className="border border-slate-300 px-2 py-2 text-left">Estándar/competencia</th>
+                <th className="border border-slate-300 px-2 py-2 text-left">Contenido</th>
+                <th className="border border-slate-300 px-2 py-2 text-left">Actividades y recursos</th>
+                <th className="border border-slate-300 px-2 py-2 text-left">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planeadores.map((p, i) => (
+                <tr key={i} className="align-top">
+                  <td className="border border-slate-300 px-2 py-2 whitespace-pre-wrap">{p.unidad_tematica || ""}</td>
+                  <td className="border border-slate-300 px-2 py-2 whitespace-pre-wrap">{p.estandar_competencia || ""}</td>
+                  <td className="border border-slate-300 px-2 py-2 whitespace-pre-wrap">{p.contenido || ""}</td>
+                  <td className="border border-slate-300 px-2 py-2 whitespace-pre-wrap">{p.actividades_recursos || ""}</td>
+                  <td className="border border-slate-300 px-2 py-2">{p.fecha || ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </DocumentoImprimible>
+      </div>
+    );
   }
 
   return (

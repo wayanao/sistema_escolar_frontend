@@ -1,43 +1,45 @@
+import DocumentoImprimible from "./impresion/DocumentoImprimible";
+
 function ReporteEstudiante({ estudiante, observacion, profesorNombre }) {
+  const firmas = [
+    { nombre: profesorNombre || "Profesor", cargo: "Firma del Profesor" },
+    { nombre: "Rectora", cargo: "Firma de Rectoría" },
+  ];
+
+  const subtitulo = estudiante
+    ? `${estudiante.nombre || ""} ${estudiante.apellido || ""}`.trim()
+    : undefined;
 
   return (
-    <div className="p-10 bg-white text-black">
-
-      <h2 className="text-red-600 font-bold">
-        DIMENSIÓN CONDUCTUAL:
-      </h2>
-      <p>{observacion.conductual}</p>
-
-      <h2 className="text-red-600 font-bold mt-4">
-        DIMENSIÓN COGNITIVO:
-      </h2>
-      <p>{observacion.cognitivo}</p>
-
-      <h2 className="text-red-600 font-bold mt-4">
-        DIMENSIÓN DEL LENGUAJE:
-      </h2>
-      <p>{observacion.lenguaje}</p>
-
-      {/* 🔥 FIRMAS */}
-      <div className="mt-16 flex justify-between">
-        <div className="text-center">
-          _______________________<br />
-          {profesorNombre}
+    <DocumentoImprimible
+      tipo="reporte_estudiante"
+      titulo="Reporte del Estudiante"
+      subtitulo={subtitulo}
+      firmas={firmas}
+    >
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-red-600 font-bold uppercase tracking-wide">
+            Dimensión Conductual
+          </h3>
+          <p className="whitespace-pre-wrap mt-1">{observacion?.conductual || "---"}</p>
         </div>
 
-        <div className="text-center">
-          _______________________<br />
-          Rectora
+        <div>
+          <h3 className="text-red-600 font-bold uppercase tracking-wide">
+            Dimensión Cognitiva
+          </h3>
+          <p className="whitespace-pre-wrap mt-1">{observacion?.cognitivo || "---"}</p>
         </div>
-      </div>
-        <button
-            onClick={() => window.print()}
-            className="bg-green-600 text-white px-3 py-2 rounded mt-4"
-            >
-            🖨️ Imprimir
-        </button>
 
-    </div>
+        <div>
+          <h3 className="text-red-600 font-bold uppercase tracking-wide">
+            Dimensión del Lenguaje
+          </h3>
+          <p className="whitespace-pre-wrap mt-1">{observacion?.lenguaje || "---"}</p>
+        </div>
+      </section>
+    </DocumentoImprimible>
   );
 }
 

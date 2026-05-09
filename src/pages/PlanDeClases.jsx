@@ -26,6 +26,7 @@ function PlanDeClases() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [form, setForm] = useState(estadoInicial);
   const [imagenes, setImagenes] = useState([]);
+  const [historial, setHistorial] = useState([]);
   const [planActualId, setPlanActualId] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -89,6 +90,16 @@ function PlanDeClases() {
     }
   };
 
+  const cargarHistorial = async () => {
+    if (!asignacionId) return;
+    try {
+      const res = await api.get(`/plan-de-clases/${asignacionId}`);
+      setHistorial(Array.isArray(res.data) ? res.data.slice(0, 6) : []);
+    } catch (error) {
+      console.error("Error cargando historial", error);
+    }
+  };
+
   useEffect(() => {
     if (!profesor) {
       window.location.href = "/login";
@@ -101,6 +112,7 @@ function PlanDeClases() {
     if (!asignacionId) return;
     localStorage.setItem("asignacionId", String(asignacionId));
     cargarPlanDelDia();
+    cargarHistorial();
   }, [asignacionId, fecha]);
 
   useEffect(() => {
@@ -145,6 +157,7 @@ function PlanDeClases() {
       setPlanActualId(res.data.id);
       setImagenes([]);
       setMensaje(res.data.mensaje || "Plan guardado y enviado a administración.");
+      await cargarHistorial();
     } catch (error) {
       console.error("Error guardando plan", error);
       alert(error.response?.data?.detail || "Error al guardar");
@@ -264,6 +277,27 @@ function PlanDeClases() {
         </div>
         {mensaje && <p className="mt-3 text-sm text-gray-700">{mensaje}</p>}
       </section>
+
+      {historial.length > 0 && (
+        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Planes recientes de esta clase</h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {historial.map((plan) => (
+              <button
+                key={plan.id}
+                onClick={() => setFecha(plan.fecha)}
+                className="rounded-lg border border-gray-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-gray-900">{plan.tema}</span>
+                  <span className="text-xs text-gray-500">{plan.fecha}</span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm text-gray-600">{plan.unidad}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

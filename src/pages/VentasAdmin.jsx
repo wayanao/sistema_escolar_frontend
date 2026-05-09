@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../utils/api";
+import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
 const VentasAdmin = () => {
     const [inventario, setInventario] = useState([]);
@@ -17,6 +18,7 @@ const VentasAdmin = () => {
 
     // Imprimir volante
     const [ultimaVenta, setUltimaVenta] = useState(null);
+    const [vistaVolante, setVistaVolante] = useState(false);
 
     const cargarDatos = async () => {
     try {
@@ -130,78 +132,69 @@ const VentasAdmin = () => {
 
     const currentStudent = estudiantes.find(e => e.id === parseInt(estudianteId));
 
-  // Función para imprimir volante usando la ventana de impresión del navegador
-const imprimirVolante = () => {
-      window.print();
-  };
+    const abrirVolante = () => setVistaVolante(true);
 
-return (
-    <div className="p-6">
-
-      {/* SECCIÓN SOLO VISIBLE AL IMPRIMIR */}
-    <div className="print-area bg-white z-[9999] relative">
-        {ultimaVenta && (
-            <div className="border-2 border-gray-800 p-8 w-full max-w-2xl mx-auto mt-10 relative overflow-hidden bg-white z-10">
-                {/* MARCA DE AGUA FORZADA CON IMG */}
-                <img 
-                    src="https://img.freepik.com/free-vector/hand-drawn-school-elements-pattern_23-2149504543.jpg" 
-                    alt="Fondo"
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
-                    style={{ opacity: 0.25 }}
-                />
-
-                <div className="text-center mb-6 relative z-10">
-                    <h1 className="text-3xl font-bold uppercase">VOLANTE DE PAGO</h1>
-                    <h2 className="text-xl">Escuela Demo</h2>
-                    <p className="text-gray-600">Cargo #{ultimaVenta.id} - {ultimaVenta.fecha}</p>
+    if (vistaVolante && ultimaVenta) {
+        return (
+            <div className="fixed inset-0 bg-slate-100 z-50 overflow-auto">
+                <div className="fixed top-4 left-4 no-print z-[60]">
+                    <button
+                        onClick={() => setVistaVolante(false)}
+                        className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:bg-slate-900"
+                    >
+                        ← Volver
+                    </button>
                 </div>
-                
-                <div className="mb-6 flex justify-between relative z-10 bg-white/80 p-2 rounded">
-                    <div>
+                <DocumentoImprimible
+                    tipo="volante_venta"
+                    titulo="Volante de Pago"
+                    subtitulo={`Cargo #${ultimaVenta.id} · ${ultimaVenta.fecha}`}
+                >
+                    <div className="mb-6">
                         <p><strong>Cliente:</strong> <span className="capitalize">{ultimaVenta.cliente}</span></p>
                         <p><strong>Condición:</strong> {ultimaVenta.tipo_venta}</p>
                     </div>
-                </div>
-                <div className="relative z-10 bg-white/90 p-4 rounded shadow-sm">
-                  <table className="w-full text-left border-collapse mb-4">
-                      <thead>
-                        <tr className="border-b-2 border-gray-800">
-                            <th className="py-2">Cant</th>
-                            <th className="py-2">Descripción</th>
-                            <th className="py-2 text-right">P. Unitario</th>
-                            <th className="py-2 text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {ultimaVenta.detalles.map((p, idx) => (
-                            <tr key={idx} className="border-b">
-                                <td className="py-2">{p.cantidad}</td>
-                                <td className="py-2">{p.nombre}</td>
-                                <td className="py-2 text-right">${p.precio_venta.toLocaleString()}</td>
-                                <td className="py-2 text-right font-bold">${(p.precio_venta * p.cantidad).toLocaleString()}</td>
+                    <table className="w-full text-left border-collapse mb-4">
+                        <thead>
+                            <tr className="border-b-2 border-gray-800">
+                                <th className="py-2">Cant</th>
+                                <th className="py-2">Descripción</th>
+                                <th className="py-2 text-right">P. Unitario</th>
+                                <th className="py-2 text-right">Total</th>
                             </tr>
-                        ))}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan="3" className="py-4 text-right text-xl font-bold">TOTAL A PAGAR:</td>
-                            <td className="py-4 text-right text-xl font-bold">${ultimaVenta.total.toLocaleString()}</td>
-                        </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="text-center mt-10 text-gray-500 text-sm relative z-10 font-medium">
-                    <p>Gracias por contribuir con nuestra institución</p>
-                </div>
+                        </thead>
+                        <tbody>
+                            {ultimaVenta.detalles.map((p, idx) => (
+                                <tr key={idx} className="border-b">
+                                    <td className="py-2">{p.cantidad}</td>
+                                    <td className="py-2">{p.nombre}</td>
+                                    <td className="py-2 text-right">${p.precio_venta.toLocaleString()}</td>
+                                    <td className="py-2 text-right font-bold">${(p.precio_venta * p.cantidad).toLocaleString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan="3" className="py-4 text-right text-xl font-bold">TOTAL A PAGAR:</td>
+                                <td className="py-4 text-right text-xl font-bold">${ultimaVenta.total.toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div className="text-center mt-10 text-gray-500 text-sm font-medium">
+                        <p>Gracias por contribuir con nuestra institución</p>
+                    </div>
+                </DocumentoImprimible>
             </div>
-        )}
-    </div>
+        );
+    }
 
+return (
+    <div className="p-6">
     <div>
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Caja / Cargar Productos al Estudiante</h1>
             {ultimaVenta && (
-                <button onClick={imprimirVolante} className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
+                <button onClick={abrirVolante} className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
                     🖨️ Imprimir Volante de Pago #{ultimaVenta.id}
                 </button>
             )}

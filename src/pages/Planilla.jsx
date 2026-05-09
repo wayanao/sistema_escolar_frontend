@@ -72,6 +72,7 @@ function Planilla() {
     };
 
 
+    
             // 🔥 Guardar nota por celda
     const guardarNota = async (estudiante_id, descripcion, valor) => {
     

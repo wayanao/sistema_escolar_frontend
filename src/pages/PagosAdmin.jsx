@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import api from "../utils/api";
 import FacturaModerna from "../components/FacturaModerna";
+import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -184,15 +185,6 @@ function PagosAdmin() {
   };
 
   const [pagoAImprimir, setPagoAImprimir] = useState(null);
-
-  useEffect(() => {
-    if (pagoAImprimir) {
-      setTimeout(() => {
-        window.print();
-        setPagoAImprimir(null);
-      }, 100); // Dar un momento corto para renderizar visualmente
-    }
-  }, [pagoAImprimir]);
 
   const imprimirFactura = (pago) => {
     if (!selectedEstudiante) return;
@@ -458,13 +450,23 @@ function PagosAdmin() {
         </div>
       </div>
 
-      {/* COMPONENTE OCULTO PARA IMPRESIÓN */}
       {pagoAImprimir && selectedEstudiante && (
-        <div className="print-area bg-white absolute top-0 left-0 w-full min-h-screen z-[9999]" style={{ display: 'block' }}>
-          <FacturaModerna 
-            pago={pagoAImprimir} 
-            estudiante={selectedEstudiante} 
-          />
+        <div className="fixed inset-0 bg-slate-100 z-50 overflow-auto">
+          <div className="fixed top-4 left-4 no-print z-[60]">
+            <button
+              onClick={() => setPagoAImprimir(null)}
+              className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:bg-slate-900"
+            >
+              ← Volver
+            </button>
+          </div>
+          <DocumentoImprimible
+            tipo="voucher_pago"
+            titulo="Comprobante de Pago"
+            subtitulo={`Factura #FAC-${(pagoAImprimir.pago_id || 0).toString().padStart(6, "0")}`}
+          >
+            <FacturaModerna pago={pagoAImprimir} estudiante={selectedEstudiante} />
+          </DocumentoImprimible>
         </div>
       )}
     </div>

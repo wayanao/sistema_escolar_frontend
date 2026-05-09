@@ -57,6 +57,7 @@ function NavAdmin() {
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin/horarios">Horarios Asignados</NavLink>
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
                 <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/boletin">Gestión Boletines</NavLink>
+                <NavLink className={({ isActive }) => "block px-4 py-2 text-sm " + (isActive ? "text-blue-600 bg-blue-50 font-semibold border-l-4 border-blue-600" : "hover:bg-gray-100 hover:text-blue-600 border-l-4 border-transparent")} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
             </div>
           </div>
 
@@ -92,6 +93,7 @@ function NavAdmin() {
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin/horarios">Horarios Asignados</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/boletin">Gestión Boletines</NavLink>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
           </div>
 
           <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
