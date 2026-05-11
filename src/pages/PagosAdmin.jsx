@@ -211,7 +211,7 @@ function PagosAdmin() {
               placeholder="Buscar estudiante..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
           <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
@@ -226,7 +226,7 @@ function PagosAdmin() {
                   onClick={() => handleEstudianteSelect(estudiante)}
                   className={"p-3 rounded-lg border cursor-pointer transition-colors " + 
                     (selectedEstudiante?.id === estudiante.id
-                      ? "bg-blue-50 border-blue-300"
+                      ? "bg-purple-50 border-purple-600 text-purple-900 shadow-sm"
                       : "bg-gray-50 border-gray-200 hover:bg-gray-100")
                   }
                 >
@@ -248,7 +248,7 @@ function PagosAdmin() {
                 </h2>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
                 >
                   {showForm ? "Cancelar" : "+ Nuevo Pago/Factura"}
                 </button>
@@ -263,7 +263,7 @@ function PagosAdmin() {
                         type="date"
                         value={pagoData.fecha}
                         onChange={(e) => setPagoData({ ...pagoData, fecha: e.target.value })}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                         required
                       />
                     </div>
@@ -277,7 +277,7 @@ function PagosAdmin() {
                         onBlur={(e) => {
                           if (e.target.value) validarMontoContraSaldo(Number(e.target.value));
                         }}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                         required
                         placeholder="0.00"
                       />
@@ -311,7 +311,7 @@ function PagosAdmin() {
                           });
                         }
                       }}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                       required
                     >
                       <option value="">-- Seleccione un Concepto --</option>
@@ -367,7 +367,7 @@ function PagosAdmin() {
                                   step="0.01"
                                   min="0"
                                   placeholder="Monto"
-                                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-32"
+                                  className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white w-32"
                                   value={pagoData.metodos[idx]?.monto || ''}
                                   onChange={e => {
                                     const nuevosMetodos = pagoData.metodos.map(m =>
@@ -381,7 +381,7 @@ function PagosAdmin() {
                                   <input
                                     type="text"
                                     placeholder="Banco o plataforma"
-                                    className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white w-full sm:w-56"
+                                    className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white w-full sm:w-56"
                                     value={pagoData.metodos[idx]?.nota || ''}
                                     onChange={e => {
                                       const nuevosMetodos = pagoData.metodos.map(m =>
@@ -415,13 +415,13 @@ function PagosAdmin() {
                   <p className="text-gray-500 italic">No hay pagos registrados para este estudiante.</p>
                 ) : (
                   pagos.map((pago) => (
-                      <div key={pago.pago_id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                      <div key={pago.pago_id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium text-lg">{pago.descripcion}</p>
                           <p className="text-gray-500">{pago.fecha}</p>
                           {pago.tipo_pago && (
-                            <span className="inline-block mt-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            <span className="inline-block mt-1 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                               Método: {pago.tipo_pago}
                             </span>
                           )}
@@ -430,7 +430,7 @@ function PagosAdmin() {
                           <p className="font-bold text-green-600 text-lg">${pago.monto.toLocaleString()}</p>
                           <button
                             onClick={() => imprimirFactura(pago)}
-                            className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            className="mt-2 text-sm text-purple-700 hover:text-purple-800 flex items-center gap-1"
                           >
                             <span>🖨️</span> Imprimir Recibo
                           </button>

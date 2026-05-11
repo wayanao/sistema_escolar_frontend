@@ -127,7 +127,7 @@ function AsignarClase() {
                     <select
                         value={profesorId}
                         onChange={(e) => setProfesorId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                         <option value="">Seleccionar Profesor</option>
                         {profesores.map(p => (
@@ -143,7 +143,7 @@ function AsignarClase() {
                     <select
                         value={cursoId}
                         onChange={(e) => setCursoId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                         <option value="">Seleccionar Curso</option>
                         {cursos.map(c => (
@@ -159,7 +159,7 @@ function AsignarClase() {
                     <select
                         value={materiaId}
                         onChange={(e) => setMateriaId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                         <option value="">Seleccionar Materia</option>
                         {materias.map(m => (
@@ -177,7 +177,7 @@ function AsignarClase() {
                     <select
                         value={dia}
                         onChange={(e) => setDia(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                         <option value="">Seleccionar Día</option>
                         <option value="Lunes">Lunes</option>
@@ -194,7 +194,7 @@ function AsignarClase() {
                         type="time"
                         value={horaInicio}
                         onChange={(e) => setHoraInicio(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                 </div>
 
@@ -204,7 +204,7 @@ function AsignarClase() {
                         type="time"
                         value={horaFin}
                         onChange={(e) => setHoraFin(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                 </div>
             </div>

@@ -84,7 +84,7 @@ const Boletin = () => {
   const getStyles = (definitiva) => {
     if (definitiva === null) return { text: "text-gray-500", bg: "bg-gray-100" };
     if (definitiva >= 4.0) return { text: "text-green-700", bg: "bg-green-50" };
-    if (definitiva >= 3.0) return { text: "text-blue-700", bg: "bg-blue-50" };
+    if (definitiva >= 3.0) return { text: "text-purple-700", bg: "bg-purple-50" };
     return { text: "text-red-700", bg: "bg-red-50" };
   };
 
@@ -111,7 +111,7 @@ const Boletin = () => {
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <select 
-            className="p-3 border rounded-lg shadow-sm w-full md:w-1/3 focus:ring-2 focus:ring-blue-500"
+            className="p-3 border rounded-lg shadow-sm w-full md:w-1/3 focus:ring-2 focus:ring-purple-500"
             value={cursoSeleccionado}
             onChange={(e) => setCursoSeleccionado(e.target.value)}
           >
@@ -123,14 +123,14 @@ const Boletin = () => {
 
           <input 
             type="text"
-            className="p-3 border rounded-lg shadow-sm w-full md:w-2/3 focus:ring-2 focus:ring-blue-500"
+            className="p-3 border rounded-lg shadow-sm w-full md:w-2/3 focus:ring-2 focus:ring-purple-500"
             placeholder="Buscar alumno por nombre, apellido o ID..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
 
           <select 
-            className="p-3 border rounded-lg shadow-sm w-full md:w-32 focus:ring-2 focus:ring-blue-500 border-indigo-300"
+            className="p-3 border rounded-lg shadow-sm w-full md:w-32 focus:ring-2 focus:ring-purple-500 border-purple-300"
             value={periodo}
             onChange={(e) => setPeriodo(e.target.value)}
             title="Periodo Académico"
@@ -161,7 +161,7 @@ const Boletin = () => {
                     const cursoObj = cursos.find(c => c.id === est.curso_id);
                     const cursoNombre = cursoObj ? cursoObj.nombre : "Sin Asignar";
                     return (
-                      <tr key={est.id} className="hover:bg-blue-50 transition duration-150">
+                      <tr key={est.id} className="hover:bg-purple-50 transition duration-150">
                         <td className="p-4 text-sm text-gray-600">{est.documento_identidad}</td>
                         <td className="p-4 font-bold text-gray-800 uppercase">{est.apellido}, {est.nombre}</td>
                         <td className="p-4 text-sm text-gray-600 font-medium">{cursoNombre}</td>
@@ -169,7 +169,7 @@ const Boletin = () => {
                           <button 
                             disabled={cargandoBoletin}
                             onClick={() => generarBoletin(est.id)}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-md transition transform hover:-translate-y-1 disabled:opacity-50"
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-md transition transform hover:-translate-y-1 disabled:opacity-50"
                           >
                             {cargandoBoletin ? "⏳ Generando..." : "📄 Generar Boletín"}
                           </button>
@@ -255,7 +255,7 @@ const Boletin = () => {
                   : ESCALA_NUMERICA.map((item) => (
                       <span
                         key={item.rango}
-                        className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 border border-blue-200 rounded px-2 py-0.5 text-[11px]"
+                        className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-900 border border-purple-200 rounded px-2 py-0.5 text-[11px]"
                       >
                         <span className="font-black">{item.rango}</span>
                         <span className="font-semibold">{item.concepto}</span>

@@ -148,7 +148,7 @@ function AdministrarTiposPago() {
                 <span className="text-xs text-green-600 font-semibold">${tp.valor}</span>
               </div>
               <div className="flex flex-col gap-1 ml-2">
-                <button onClick={() => handleEdit(tp)} className="text-blue-500 hover:text-blue-700 text-xs" title="Editar">✏️</button>
+                <button onClick={() => handleEdit(tp)} className="text-purple-600 hover:text-purple-700 text-xs" title="Editar">✏️</button>
                 <button onClick={() => handleDelete(tp.id)} className="text-red-500 hover:text-red-700 text-xs" title="Eliminar">❌</button>
               </div>
             </div>

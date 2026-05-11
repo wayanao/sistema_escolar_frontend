@@ -140,7 +140,7 @@ const NominaAdmin = () => {
                                             <td className="border px-4 py-2 text-center">
                                                 <button
                                                     onClick={() => openModal(emp)}
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm transition"
+                                                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded text-sm transition"
                                                 >
                                                     Realizar Pago
                                                 </button>
@@ -163,7 +163,7 @@ const NominaAdmin = () => {
                         placeholder="Buscar por empleado..."
                         value={searchHistorial}
                         onChange={(e) => setSearchHistorial(e.target.value)}
-                        className="border rounded p-2 focus:ring-blue-500 w-full md:w-64"
+                        className="border rounded p-2 focus:ring-purple-500 w-full md:w-64"
                     />
                 </div>
                 
@@ -219,7 +219,7 @@ const NominaAdmin = () => {
             {modalOpen && selectedEmpleado && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-lg sm:max-w-xl mx-auto flex flex-col max-h-[95vh]">
-                        <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center rounded-t-lg shrink-0">
+                        <div className="bg-purple-700 text-white px-6 py-4 flex justify-between items-center rounded-t-lg shrink-0">
                             <h3 className="text-xl font-bold truncate">Procesar Pago Nómina</h3>
                             <button onClick={() => setModalOpen(false)} className="text-white hover:text-gray-200 ml-4 shrink-0">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -245,7 +245,7 @@ const NominaAdmin = () => {
                                     <div className="col-span-2 sm:col-span-1">
                                         <label className="block text-gray-700 text-sm font-bold mb-1">Salario Base ($)</label>
                                         <input type="number" required min="0" step="0.01"
-                                            className="w-full border rounded p-2 focus:ring-blue-500"
+                                            className="w-full border rounded p-2 focus:ring-purple-500"
                                             value={salarioBase}
                                             onChange={(e) => setSalarioBase(e.target.value)}
                                             placeholder="Ej. 1500" />
@@ -253,7 +253,7 @@ const NominaAdmin = () => {
                                     <div className="col-span-2 sm:col-span-1">
                                         <label className="block text-gray-700 text-sm font-bold mb-1">Bonos Adicionales ($)</label>
                                         <input type="number" min="0" step="0.01" disabled={false}
-                                            className="w-full border rounded p-2 focus:ring-blue-500 text-green-700"
+                                            className="w-full border rounded p-2 focus:ring-purple-500 text-green-700"
                                             value={bonificaciones}
                                             onChange={(e) => setBonificaciones(e.target.value)} />
                                     </div>
@@ -261,7 +261,7 @@ const NominaAdmin = () => {
                                     <div className="col-span-2 sm:col-span-1">
                                         <label className="block text-gray-700 text-sm font-bold mb-1">Abonar a Préstamos ($)</label>
                                         <input type="number" min="0" step="0.01" disabled={selectedEmpleado.saldo_prestamos === 0}
-                                            className="w-full border rounded p-2 focus:ring-blue-500 text-red-600 bg-red-50"
+                                            className="w-full border rounded p-2 focus:ring-purple-500 text-red-600 bg-red-50"
                                             value={abonoPrestamo}
                                             onChange={(e) => setAbonoPrestamo(e.target.value)} />
                                         {selectedEmpleado.saldo_prestamos > 0 && <span className="text-xs text-gray-500">Máx: {selectedEmpleado.saldo_prestamos}</span>}
@@ -270,7 +270,7 @@ const NominaAdmin = () => {
                                     <div className="col-span-2 sm:col-span-1">
                                         <label className="block text-gray-700 text-sm font-bold mb-1">Otras Deducciones ($)</label>
                                         <input type="number" min="0" step="0.01" 
-                                            className="w-full border rounded p-2 focus:ring-blue-500"
+                                            className="w-full border rounded p-2 focus:ring-purple-500"
                                             value={otrosDescuentos}
                                             onChange={(e) => setOtrosDescuentos(e.target.value)} />
                                     </div>
@@ -278,16 +278,16 @@ const NominaAdmin = () => {
                                     <div className="col-span-2">
                                         <label className="block text-gray-700 text-sm font-bold mb-1">Concepto / Notas</label>
                                         <input type="text"
-                                            className="w-full border rounded p-2 focus:ring-blue-500"
+                                            className="w-full border rounded p-2 focus:ring-purple-500"
                                             value={notas}
                                             onChange={(e) => setNotas(e.target.value)}
                                             placeholder="Mes de Marzo 2026..." />
                                     </div>
                                 </div>
                                 
-                                <div className="bg-gray-100 p-4 rounded mt-6 mb-6 text-center border border-gray-300">
+                                <div className="bg-purple-50 p-4 rounded mt-6 mb-6 text-center border border-purple-200">
                                     <p className="text-gray-600 font-semibold mb-1">TOTAL NETO A DEPOSITAR:</p>
-                                    <p className="text-4xl font-black text-blue-800">${calcularTotal().toFixed(2)}</p>
+                                    <p className="text-4xl font-black text-purple-900">${calcularTotal().toFixed(2)}</p>
                                 </div>
 
                                 <div className="flex justify-end gap-3">
@@ -296,7 +296,7 @@ const NominaAdmin = () => {
                                         Cancelar
                                     </button>
                                     <button type="submit" 
-                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition shadow-md">
+                                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded transition shadow-md">
                                         Confirmar Pago
                                     </button>
                                 </div>

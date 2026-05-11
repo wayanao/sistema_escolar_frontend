@@ -120,7 +120,7 @@ function InventarioAdmin() {
               setEditingId(null);
             }
           }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition font-medium"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow transition font-medium"
         >
           {showForm ? "Cancelar" : "+ Nuevo Producto"}
         </button>
@@ -132,19 +132,19 @@ function InventarioAdmin() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre / Descripción</label>
-              <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required />
+              <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Costo Unitario ($)</label>
-              <input type="number" step="0.01" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required />
+              <input type="number" step="0.01" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Precio de Venta ($)</label>
-              <input type="number" step="0.01" value={formData.precio_venta} onChange={e => setFormData({...formData, precio_venta: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required />
+              <input type="number" step="0.01" value={formData.precio_venta} onChange={e => setFormData({...formData, precio_venta: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock Actual</label>
-              <input type="number" value={formData.stock_actual} onChange={e => setFormData({...formData, stock_actual: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required />
+              <input type="number" value={formData.stock_actual} onChange={e => setFormData({...formData, stock_actual: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
             </div>
           </div>
           <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium shadow-sm w-full md:w-auto">
@@ -154,7 +154,7 @@ function InventarioAdmin() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
@@ -183,11 +183,11 @@ function InventarioAdmin() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">${p.costo.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-blue-700">${p.precio_venta.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-purple-700">${p.precio_venta.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">${p.utilidad_unitaria.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-purple-600 font-medium">{p.margen_utilidad}%</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onClick={() => editarProducto(p)} className="text-indigo-600 hover:text-indigo-900 mr-3">Editar</button>
+                        <button onClick={() => editarProducto(p)} className="text-purple-700 hover:text-purple-900 mr-3">Editar</button>
                         <button onClick={() => eliminarProducto(p.id)} className="text-red-600 hover:text-red-900">Eliminar</button>
                       </td>
                     </tr>

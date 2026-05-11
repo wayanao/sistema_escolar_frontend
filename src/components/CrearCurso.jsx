@@ -93,7 +93,7 @@ function CrearCurso() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
             <input
               placeholder="Nombre (6A, 7B...)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
@@ -103,7 +103,7 @@ function CrearCurso() {
             <input
               placeholder="Matrícula"
               type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               value={matricula}
               onChange={(e) => setMatricula(e.target.value)}
             />
@@ -113,7 +113,7 @@ function CrearCurso() {
             <input
               placeholder="Mensualidad"
               type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               value={mensualidad}
               onChange={(e) => setMensualidad(e.target.value)}        
             />
@@ -123,7 +123,7 @@ function CrearCurso() {
             <input
               placeholder="Meses"
               type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               value={meses}
               onChange={(e) => setMeses(e.target.value)}
             />
@@ -131,7 +131,7 @@ function CrearCurso() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Jornada</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
               value={jornada}
               onChange={(e) => setJornada(e.target.value)}
             >
@@ -174,14 +174,14 @@ function CrearCurso() {
                 <tr key={c.id} className="border-b hover:bg-gray-50">
                   <td className="p-2">{c.nombre}</td>
                   <td className="p-2">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${c.jornada === 'Tarde' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}`}>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${c.jornada === 'Tarde' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-900'}`}>
                       {c.jornada || 'Mañana'}
                     </span>
                   </td>
                   <td className="p-2 text-right">
                     <button
                       onClick={() => editCurso(c)}
-                      className="text-blue-600 hover:underline"
+                      className="text-purple-700 hover:underline"
                     >
                       ✏️ Editar
                     </button>

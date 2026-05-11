@@ -65,25 +65,35 @@ function LoginForm() {
   };
 
 
-// 🔥 cargar historial
 return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         iniciarSesion();
       }}
-      className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      className="w-full max-w-md">
 
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
-        🔐 Login Sistema Escolar SaaS
-      </h1>
+      <div className="mb-8">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-700 text-2xl font-black text-white shadow-lg shadow-purple-200">
+          S
+        </div>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-purple-700">
+          Acceso institucional
+        </p>
+        <h2 className="mt-2 text-3xl font-black text-gray-950">
+          Accede a Scholarix
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-gray-600">
+          Ingresa con tu colegio, correo y contraseña para continuar con la gestion academica.
+        </p>
+      </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Código del Colegio</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Codigo del colegio</label>
         <input
           type="text"
           placeholder="ej. colegio123"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 uppercase"
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
           style={{textTransform: 'lowercase'}}
           value={codigoColegio}
           onChange={(e) => setCodigoColegio(e.target.value)}
@@ -91,24 +101,24 @@ return (
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Correo</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Correo</label>
         <input
           type="email"
-          placeholder="Correo"
+          placeholder="correo@colegio.edu"
           autoComplete="username"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
     
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">Contraseña</label>
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder="Tu contraseña"
           autoComplete="current-password"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -116,10 +126,14 @@ return (
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+        className="w-full rounded-xl bg-purple-700 px-4 py-3.5 font-bold text-white shadow-lg shadow-purple-200 transition hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-200"
         >
         Ingresar
       </button>
+
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-xs font-medium text-slate-500">
+        Plataforma segura para administradores y profesores.
+      </div>
     </form>
 );
 

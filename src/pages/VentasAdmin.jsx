@@ -194,7 +194,7 @@ return (
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Caja / Cargar Productos al Estudiante</h1>
             {ultimaVenta && (
-                <button onClick={abrirVolante} className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
+                <button onClick={abrirVolante} className="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
                     🖨️ Imprimir Volante de Pago #{ultimaVenta.id}
                 </button>
             )}
@@ -210,7 +210,7 @@ return (
                                 <div>
                                     <h3 className="font-bold text-lg">{prod.nombre}</h3>
                                     <p className="text-gray-600 text-sm">Stock: {prod.stock_actual} unid.</p>
-                                    <p className="text-blue-600 font-bold">${prod.precio_venta.toLocaleString()}</p>
+                                    <p className="text-purple-700 font-bold">${prod.precio_venta.toLocaleString()}</p>
                                 </div>
                                 <button 
                                     onClick={() => handleAgregarAlCarrito(prod.id)}
@@ -254,7 +254,7 @@ return (
                         )}
                     </div>  
                     <div className="border-t pt-4">
-                        <div className="flex justify-between items-center text-xl font-bold text-blue-800 mb-4">
+                        <div className="flex justify-between items-center text-xl font-bold text-purple-900 mb-4">
                             <span>Total de Venta:</span>
                             <span>${totalVenta.toLocaleString()}</span>
                         </div>  
@@ -280,7 +280,7 @@ return (
                                         .map(e => (
                                             <li 
                                                 key={e.id} 
-                                                className="p-2 text-sm cursor-pointer hover:bg-blue-100 uppercase"
+                                                className="p-2 text-sm cursor-pointer hover:bg-purple-100 uppercase"
                                                 onMouseDown={() => {
                                                     setEstudianteId(e.id.toString());
                                                     setBusquedaEstudiante(`${e.apellido} ${e.nombre}`);
@@ -296,7 +296,7 @@ return (
                         </div>  
                             <button 
                                 onClick={handleProcesarVenta}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2"
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2"
                             >
                                 <span>➕</span> Cargar al Estudiante
                             </button>

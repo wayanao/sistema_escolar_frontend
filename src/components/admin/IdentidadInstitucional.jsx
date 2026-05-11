@@ -210,7 +210,7 @@ function LogoSlot({ label, url, inputRef, onUpload, onDelete }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded"
+          className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded"
         >
           {url ? "Cambiar" : "Subir"}
         </button>

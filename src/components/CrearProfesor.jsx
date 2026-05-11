@@ -116,7 +116,7 @@ function CrearProfesor() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
               <input
                 placeholder="Nombre"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
               />
@@ -125,7 +125,7 @@ function CrearProfesor() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
               <input
                 placeholder="Apellidos"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={apellido}
                 onChange={(e) => setApellido(e.target.value)}
               />
@@ -134,7 +134,7 @@ function CrearProfesor() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Documento</label>
               <input
                 placeholder="Documento"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={documento_identidad}
                 onChange={(e) => setDocumento(e.target.value)}
               />
@@ -145,7 +145,7 @@ function CrearProfesor() {
                 type="email"
                 placeholder="Email"
                 autoComplete="username"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -155,7 +155,7 @@ function CrearProfesor() {
               <input
                 placeholder="Teléfono"
                 autoComplete="tel"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
               />
@@ -168,7 +168,7 @@ function CrearProfesor() {
                 type="password"
                 placeholder="Contraseña"
                 autoComplete="new-password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -179,7 +179,7 @@ function CrearProfesor() {
                 type="number"
                 step="0.01"
                 placeholder="Ej. 1200.50"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={sueldo}
                 onChange={(e) => setSueldo(e.target.value)}
               />
@@ -189,7 +189,7 @@ function CrearProfesor() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition"
             >
               {editId ? "Actualizar Profesor" : "Crear Profesor"}
             </button>
@@ -212,7 +212,7 @@ function CrearProfesor() {
           <input 
             type="text" 
             placeholder="🔍 Buscar profesor..." 
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -234,7 +234,7 @@ function CrearProfesor() {
                   <td className="p-2">
                     <button
                       onClick={() => editProfesor(p)}
-                      className="text-blue-600 hover:underline"
+                      className="text-purple-700 hover:underline"
                     >
                       ✏️ Editar
                     </button>

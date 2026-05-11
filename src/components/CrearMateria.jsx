@@ -65,7 +65,7 @@ function CrearMateria() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
           <input
             placeholder="Matemáticas, Biología..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
           />
@@ -106,7 +106,7 @@ function CrearMateria() {
                   <td className="p-2 text-right">
                     <button
                       onClick={() => editMateria(m)}
-                      className="text-blue-600 hover:underline"
+                      className="text-purple-700 hover:underline"
                     >
                       ✏️ Editar
                     </button>

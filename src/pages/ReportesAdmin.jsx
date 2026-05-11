@@ -123,7 +123,7 @@ function ReportesAdmin() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -142,7 +142,7 @@ function ReportesAdmin() {
           </div>
           <button
             onClick={cargarDatosIniciales}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
           >
             Actualizar reportes
           </button>
@@ -154,7 +154,7 @@ function ReportesAdmin() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-purple-100 rounded-lg">
                 <span className="text-2xl">👨‍🎓</span>
               </div>
               <div className="ml-4">
@@ -232,7 +232,7 @@ function ReportesAdmin() {
             {reporteGeneral?.estudiantes_por_curso.map((item, index) => (
               <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium">{item.curso}</span>
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                <span className="bg-purple-100 text-purple-900 px-2 py-1 rounded-full text-sm font-medium">
                   {item.cantidad} estudiantes
                 </span>
               </div>
@@ -246,11 +246,17 @@ function ReportesAdmin() {
           <div className="space-y-3">
             {reporteGeneral?.ingresos_mensuales.map((item, index) => (
               <div key={index} 
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                className={`flex justify-between items-center p-3 rounded-lg cursor-pointer border transition-colors ${
+                  mesSeleccionado === item.mes && !rangoSeleccionado
+                    ? "bg-purple-50 border-purple-600 text-purple-900 shadow-sm"
+                    : "bg-gray-50 border-transparent hover:bg-gray-200"
+                }`}
                 onClick={() => cargarDetalleMes(item.mes)}
                 title="Haga clic para ver el detalle del mes"
               >
-                <span className="font-medium text-blue-600 underline">
+                <span className={`font-medium underline ${
+                  mesSeleccionado === item.mes && !rangoSeleccionado ? "text-purple-900" : "text-purple-700"
+                }`}>
                   {new Date(item.mes + '-01').toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long'
@@ -275,7 +281,7 @@ function ReportesAdmin() {
                 type="date" 
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div className="flex-1">
@@ -284,14 +290,14 @@ function ReportesAdmin() {
                 type="date" 
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div className="flex items-end">
               <button 
                 onClick={cargarDetalleRango}
                 disabled={loadingDetalleMes}
-                className="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                className="w-full sm:w-auto bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
               >
                 Buscar
               </button>
@@ -302,7 +308,9 @@ function ReportesAdmin() {
 
       {/* Detalle de Ingresos Mostrado */}
       {detalleMes && (
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        <div className={`mt-8 bg-white rounded-lg shadow-md p-6 border ${
+          mesSeleccionado || rangoSeleccionado ? "border-purple-200" : "border-transparent"
+        }`}>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
               Detalle de Ingresos:{' '}
@@ -342,7 +350,7 @@ function ReportesAdmin() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pago.descripcion}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-xs">
                         {pago.tipo_pago ? (
-                          <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          <span className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded">
                             {pago.tipo_pago}
                           </span>
                         ) : '-'}
@@ -372,7 +380,7 @@ function ReportesAdmin() {
             <select
               value={selectedCurso}
               onChange={(e) => setSelectedCurso(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="">Seleccionar curso</option>
               {cursos.map((curso) => (
@@ -386,7 +394,7 @@ function ReportesAdmin() {
             <button
               onClick={cargarEstadoCuenta}
               disabled={loadingEstadoCuenta}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
             >
               {loadingEstadoCuenta ? "Cargando..." : "Generar Reporte"}
             </button>

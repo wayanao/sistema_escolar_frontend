@@ -102,7 +102,7 @@ const PrestamosAdmin = () => {
             <label className="block text-gray-700 font-semibold mb-2">Profesor</label>
             <select
               required
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={profesorId}
               onChange={(e) => setProfesorId(e.target.value)}
             >
@@ -120,7 +120,7 @@ const PrestamosAdmin = () => {
               type="number"
               step="0.01"
               required
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={monto}
               onChange={(e) => setMonto(e.target.value)}
               placeholder="Ej. 1000.00"
@@ -130,7 +130,7 @@ const PrestamosAdmin = () => {
             <label className="block text-gray-700 font-semibold mb-2">Fecha (Opcional, hoy por defecto)</label>
             <input
               type="date"
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
             />
@@ -138,7 +138,7 @@ const PrestamosAdmin = () => {
           <div className="md:col-span-2">
             <label className="block text-gray-700 font-semibold mb-2">Notas adicionales</label>
             <textarea
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Ej. Descuento programado para la siguiente quincena..."
@@ -148,7 +148,7 @@ const PrestamosAdmin = () => {
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition"
+              className="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 transition"
             >
               Registrar Préstamo
             </button>

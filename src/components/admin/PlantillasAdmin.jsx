@@ -229,7 +229,7 @@ function PlantillaCard({ plantilla, seleccionada, onSelect, onActivar, onDuplica
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDuplicar(); }}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1 rounded"
+          className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2.5 py-1 rounded"
         >
           Duplicar
         </button>

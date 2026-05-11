@@ -81,7 +81,7 @@ const EgresosAdmin = () => {
             <input
               type="text"
               required
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={concepto}
               onChange={(e) => setConcepto(e.target.value)}
               placeholder="Ej. Compra de papelería"
@@ -93,7 +93,7 @@ const EgresosAdmin = () => {
               type="number"
               step="0.01"
               required
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={monto}
               onChange={(e) => setMonto(e.target.value)}
               placeholder="Ej. 150.50"
@@ -102,7 +102,7 @@ const EgresosAdmin = () => {
           <div>
             <label className="block text-gray-700 font-semibold mb-2">Categoría</label>
             <select
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
             >
@@ -113,7 +113,7 @@ const EgresosAdmin = () => {
             <label className="block text-gray-700 font-semibold mb-2">Fecha (Opcional, hoy por defecto)</label>
             <input
               type="date"
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
             />
@@ -121,7 +121,7 @@ const EgresosAdmin = () => {
           <div className="md:col-span-2">
             <label className="block text-gray-700 font-semibold mb-2">Notas adicionales</label>
             <textarea
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Ej. Aprobado por el director. Número de factura..."
@@ -131,7 +131,7 @@ const EgresosAdmin = () => {
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition"
+              className="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 transition"
             >
               Registrar Egreso
             </button>

@@ -213,7 +213,7 @@ function EstudiantesAdmin() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -237,7 +237,7 @@ function EstudiantesAdmin() {
             placeholder="Buscar estudiante..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
         </div>
         <button
@@ -254,7 +254,7 @@ function EstudiantesAdmin() {
             }
             setShowForm(!showForm);
           }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
         >
           {showForm ? "Cancelar" : "Nuevo Estudiante"}
         </button>
@@ -273,7 +273,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.nombre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, nombre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
@@ -285,7 +285,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.apellido}
                 onChange={(e) => setEstudianteData({ ...estudianteData, apellido: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
@@ -296,7 +296,7 @@ function EstudiantesAdmin() {
               <select
                 value={estudianteData.tipo_documento}
                 onChange={(e) => setEstudianteData({ ...estudianteData, tipo_documento: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               >
                 <option value="">Seleccione...</option>
@@ -315,7 +315,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.documento_identidad}
                 onChange={(e) => setEstudianteData({ ...estudianteData, documento_identidad: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
@@ -327,7 +327,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.lugar_expedicion}
                 onChange={(e) => setEstudianteData({ ...estudianteData, lugar_expedicion: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -338,7 +338,7 @@ function EstudiantesAdmin() {
                 type="date"
                 value={estudianteData.fecha_nacimiento}
                 onChange={(e) => setEstudianteData({ ...estudianteData, fecha_nacimiento: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -349,7 +349,7 @@ function EstudiantesAdmin() {
                 type="email"
                 value={estudianteData.email}
                 onChange={(e) => setEstudianteData({ ...estudianteData, email: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -360,7 +360,7 @@ function EstudiantesAdmin() {
                 type="tel"
                 value={estudianteData.telefono}
                 onChange={(e) => setEstudianteData({ ...estudianteData, telefono: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -370,7 +370,7 @@ function EstudiantesAdmin() {
               <select
                 value={estudianteData.curso_id}
                 onChange={(e) => setEstudianteData({ ...estudianteData, curso_id: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               >
                 <option value="">Seleccionar curso</option>
@@ -390,7 +390,7 @@ function EstudiantesAdmin() {
                 step="0.01"
                 value={estudianteData.descuento_matricula}
                 onChange={(e) => setEstudianteData({ ...estudianteData, descuento_matricula: parseFloat(e.target.value) || 0 })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -402,7 +402,7 @@ function EstudiantesAdmin() {
                 step="0.01"
                 value={estudianteData.descuento_mensualidad}
                 onChange={(e) => setEstudianteData({ ...estudianteData, descuento_mensualidad: parseFloat(e.target.value) || 0 })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2">
@@ -412,7 +412,7 @@ function EstudiantesAdmin() {
               <textarea
                 value={estudianteData.direccion}
                 onChange={(e) => setEstudianteData({ ...estudianteData, direccion: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 rows="3"
               />
             </div>
@@ -427,7 +427,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.eps}
                 onChange={(e) => setEstudianteData({ ...estudianteData, eps: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -438,7 +438,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.estrato}
                 onChange={(e) => setEstudianteData({ ...estudianteData, estrato: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -449,7 +449,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.jornada}
                 onChange={(e) => setEstudianteData({ ...estudianteData, jornada: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2">
@@ -459,7 +459,7 @@ function EstudiantesAdmin() {
               <textarea
                 value={estudianteData.datos_medicos}
                 onChange={(e) => setEstudianteData({ ...estudianteData, datos_medicos: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 rows="2"
               />
             </div>
@@ -475,7 +475,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.colegio_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, colegio_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -486,7 +486,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.anio_cursado_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, anio_cursado_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -497,7 +497,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.pre_escolar_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, pre_escolar_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -508,7 +508,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.ebp_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, ebp_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -518,7 +518,7 @@ function EstudiantesAdmin() {
               <select
                 value={estudianteData.paz_salvo_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, paz_salvo_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Seleccione...</option>
                 <option value="SI">SI</option>
@@ -533,7 +533,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.motivo_retiro_anterior}
                 onChange={(e) => setEstudianteData({ ...estudianteData, motivo_retiro_anterior: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -549,7 +549,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.nombre_padre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, nombre_padre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -559,7 +559,7 @@ function EstudiantesAdmin() {
               <select
                 value={estudianteData.tipo_documento_padre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, tipo_documento_padre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Seleccione...</option>
                 <option value="Cédula">Cédula</option>
@@ -574,7 +574,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.documento_padre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, documento_padre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -585,7 +585,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.ocupacion_padre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, ocupacion_padre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2">
@@ -596,7 +596,7 @@ function EstudiantesAdmin() {
                 type="tel"
                 value={estudianteData.telefono_padre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, telefono_padre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -609,7 +609,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.nombre_madre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, nombre_madre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -619,7 +619,7 @@ function EstudiantesAdmin() {
               <select
                 value={estudianteData.tipo_documento_madre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, tipo_documento_madre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Seleccione...</option>
                 <option value="Cédula">Cédula</option>
@@ -634,7 +634,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.documento_madre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, documento_madre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -645,7 +645,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.ocupacion_madre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, ocupacion_madre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2">
@@ -656,7 +656,7 @@ function EstudiantesAdmin() {
                 type="tel"
                 value={estudianteData.telefono_madre}
                 onChange={(e) => setEstudianteData({ ...estudianteData, telefono_madre: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -668,7 +668,7 @@ function EstudiantesAdmin() {
                 type="text"
                 value={estudianteData.contacto_emergencia}
                 onChange={(e) => setEstudianteData({ ...estudianteData, contacto_emergencia: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div className="md:col-span-2 flex gap-2">
@@ -725,15 +725,15 @@ function EstudiantesAdmin() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center">
                           <span className="text-white font-medium">
                             {estudiante.apellido.charAt(0)}{estudiante.nombre.charAt(0)}
                           </span>
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 border-b border-transparent hover:border-blue-500 text-left capitalize">
-                            {estudiante.apellido} {estudiante.nombre} <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{cursos.find(c => c.id === estudiante.curso_id)?.nombre || "N/A"}</span>
+                        <div className="text-sm font-medium text-gray-900 border-b border-transparent hover:border-purple-500 text-left capitalize">
+                            {estudiante.apellido} {estudiante.nombre} <span className="ml-2 text-xs bg-purple-100 text-purple-900 px-2 py-0.5 rounded-full">{cursos.find(c => c.id === estudiante.curso_id)?.nombre || "N/A"}</span>
                         </div>
                         <div className="text-xs text-gray-500 text-left">
                           Click para ver detalles
@@ -747,7 +747,7 @@ function EstudiantesAdmin() {
                         e.stopPropagation();
                         cargarEstudianteAEditar(estudiante.id);
                       }}
-                      className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded-md transition-colors"
+                      className="text-purple-700 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-md transition-colors"
                     >
                       ✏️ Editar
                     </button>
@@ -772,7 +772,7 @@ function EstudiantesAdmin() {
             <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center capitalize">
                   Resumen de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
-                  <span className="ml-3 text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                  <span className="ml-3 text-sm bg-purple-50 text-purple-900 border border-purple-200 px-3 py-1 rounded-full font-medium">
                     {cursos.find(c => c.id === selectedEstudiante.curso_id)?.nombre || "Curso no asignado"}
                   </span>
               </h2>
@@ -787,13 +787,13 @@ function EstudiantesAdmin() {
             <div className="p-6 overflow-y-auto flex-1">
               {loadingDetalles ? (
                 <div className="flex justify-center p-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
                 </div>
               ) : detallesEstudiante ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* General Info */}
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center gap-2">👨‍🏫 Rendimiento</h3>
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h3 className="text-lg font-semibold text-purple-900 mb-3 flex items-center gap-2">👨‍🏫 Rendimiento</h3>
                     <p className="text-sm text-gray-700 mb-2"><strong>Promedio General:</strong> <span className={`font-bold ${detallesEstudiante.promedio_general >= 3.0 ? 'text-green-600' : 'text-red-600'}`}>{detallesEstudiante.promedio_general !== undefined ? detallesEstudiante.promedio_general : 'N/A'}</span></p>
                     <p className="text-sm text-gray-700 mb-2"><strong>Inasistencias Acumuladas:</strong> {detallesEstudiante.inasistencias}</p>
                     <div className="mt-4">
@@ -877,12 +877,12 @@ function EstudiantesAdmin() {
                         {detallesEstudiante.observaciones.map((obs, i) => (
                           <div key={i} className="bg-white p-3 rounded shadow-sm border border-yellow-200">
                               <div className="flex justify-between items-center mb-3">
-                                  <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full uppercase tracking-wider">📅 Periodo {obs.periodo} | 👨‍🏫 {obs.profesor} | 📚 {obs.materia}</span>
+                                  <span className="text-xs font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">📅 Periodo {obs.periodo} | 👨‍🏫 {obs.profesor} | 📚 {obs.materia}</span>
                                   {obs.fecha && <span className="text-xs text-gray-400">{obs.fecha}</span>}
                                 </div>
                               <div className="flex flex-col gap-2 mt-2">
-                                <div className="bg-blue-50 p-2 rounded border border-blue-100">
-                                  <p className="text-xs font-bold text-blue-800 uppercase">CONDUCTUAL</p>
+                                <div className="bg-purple-50 p-2 rounded border border-purple-100">
+                                  <p className="text-xs font-bold text-purple-900 uppercase">CONDUCTUAL</p>
                                   <p className="text-sm text-gray-700">{obs.conductual}</p>
                                 </div>
                                 <div className="bg-green-50 p-2 rounded border border-green-100">
