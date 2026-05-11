@@ -94,3 +94,15 @@ proyecto_escolar/
 ## 📌 Estado del proyecto
 
 🚧 En desarrollo activo
+
+---
+
+## 📝 Cambios recientes
+
+### Panel administrativo
+
+* Se actualizó `src/pages/Admin.jsx` para reemplazar la carga simultánea de todos los módulos administrativos por un sidebar.
+* Ahora los módulos `Crear profesor`, `Crear curso`, `Crear materia`, `Asignar clases` y `Tipos de pago` solo se montan cuando el usuario selecciona la opción correspondiente.
+* Se agregó carga diferida con `React.lazy` y `Suspense`, evitando que todos los componentes se importen y ejecuten al entrar al panel.
+* No se modificó la lógica interna de los componentes administrativos existentes; solo cambió la forma en que se muestran desde el panel.
+* Se dejó una pantalla inicial ligera que indica que se debe elegir un módulo antes de cargar datos.
