@@ -106,3 +106,11 @@ proyecto_escolar/
 * Se agregó carga diferida con `React.lazy` y `Suspense`, evitando que todos los componentes se importen y ejecuten al entrar al panel.
 * No se modificó la lógica interna de los componentes administrativos existentes; solo cambió la forma en que se muestran desde el panel.
 * Se dejó una pantalla inicial ligera que indica que se debe elegir un módulo antes de cargar datos.
+
+### Dashboard del profesor
+
+* Se actualizó `src/pages/DashboardProfesor.jsx` para mostrar el horario asignado por el administrador a cada profesor.
+* El horario se construye desde `/asignaciones/lista` filtrando por `profesor_id`, porque `/mis-clases/{profesorId}` solo devuelve materia y curso.
+* Se agregaron tarjetas responsive para móvil y tablet, organizadas por día de la semana.
+* En escritorio se muestra una grilla semanal de lunes a viernes con materia, curso y hora de cada clase.
+* Se agregó formato de hora en 12 horas y ordenamiento por día y hora de inicio.

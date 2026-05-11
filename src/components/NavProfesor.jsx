@@ -16,7 +16,11 @@ function NavProfesor() {
   };
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const nombreUsuario = usuario ? usuario.nombre : "";
+  const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
+  const currentUser = usuario || profesor;
+  const nombreUsuario = currentUser
+    ? `${currentUser.nombre || ""} ${currentUser.apellido || ""}`.trim()
+    : "";
 
   return (
     <header className="bg-blue-700 text-white px-4 py-3 shadow-md relative z-50">
@@ -31,7 +35,8 @@ function NavProfesor() {
         {/* Mobile menu button */}
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-white hover:text-yellow-200 focus:outline-none"
+          className="md:hidden text-white hover:text-blue-100 focus:outline-none"
+          aria-label="Abrir menu de profesor"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMenuOpen ? (
@@ -44,28 +49,28 @@ function NavProfesor() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-4">
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/">Dashboard</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/planilla">Planilla</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/asistencia">Asistencia</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/Formulario">Observaciones</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/plan-de-clases">Plan de Clases</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/planeador-anual">Malla curricular</NavLink>
-          <NavLink className={({ isActive }) => isActive ? "text-yellow-300 font-semibold" : "text-white hover:text-yellow-200"} to="/ingreso-boletin">Boletín Final</NavLink>
-          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesión</button>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/">Dashboard</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/planilla">Planilla</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/asistencia">Asistencia</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/Formulario">Observaciones</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/plan-de-clases">Plan de Clases</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/planeador-anual">Malla curricular</NavLink>
+          <NavLink className={({ isActive }) => isActive ? "text-blue-100 font-semibold border-b-2 border-blue-100 pb-1" : "text-white hover:text-blue-100"} to="/ingreso-boletin">Boletin Final</NavLink>
+          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesion</button>
         </nav>
       </div>
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <nav className="md:hidden mt-4 pb-2 flex flex-col gap-3">
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/">Dashboard</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/planilla">Planilla</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/asistencia">Asistencia</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/Formulario">Observaciones</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/plan-de-clases">Plan de Clases</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/planeador-anual">Malla curricular</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-yellow-300 font-semibold block px-2" : "text-white hover:text-yellow-200 block px-2"} to="/ingreso-boletin">Boletín Final</NavLink>
-          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/">Dashboard</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/planilla">Planilla</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/asistencia">Asistencia</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/Formulario">Observaciones</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/plan-de-clases">Plan de Clases</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/planeador-anual">Malla curricular</NavLink>
+          <NavLink onClick={() => setIsMenuOpen(false)} className={({ isActive }) => isActive ? "text-blue-100 font-semibold block px-2" : "text-white hover:text-blue-100 block px-2"} to="/ingreso-boletin">Boletin Final</NavLink>
+          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesion</button>
         </nav>
       )}
     </header>

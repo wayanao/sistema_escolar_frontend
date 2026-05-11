@@ -1,12 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import api from "../utils/api";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const API = import.meta.env.VITE_API_URL;
+const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+const obtenerOrdenDia = (dia) => {
+  const orden = DIAS_SEMANA.indexOf(dia);
+  return orden === -1 ? DIAS_SEMANA.length : orden;
+};
+
+const formatearHora12 = (hora24) => {
+  if (!hora24) return "";
+  if (hora24.toLowerCase().includes("am") || hora24.toLowerCase().includes("pm")) return hora24;
+
+  const [horaStr, minutoStr = "00"] = hora24.split(":");
+  let horaNum = parseInt(horaStr, 10);
+  const ampm = horaNum >= 12 ? "PM" : "AM";
+  horaNum = horaNum % 12 || 12;
+  return `${horaNum}:${minutoStr} ${ampm}`;
+};
+
+const ordenarPorHora = (a, b) => (a.hora_inicio || "").localeCompare(b.hora_inicio || "");
 
 function DashboardProfesor() {
   const navigate = useNavigate();
   const [clases, setClases] = useState([]);
+  const [horarioAsignado, setHorarioAsignado] = useState([]);
   const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
   const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
   const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
@@ -37,6 +56,26 @@ function DashboardProfesor() {
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
   const profesorId = profesor?.id;
   const nombreProfesor = profesor ? `${profesor.nombre || ""} ${profesor.apellido || ""}`.trim() : "";
+  const clasesConHorario = useMemo(
+    () =>
+      horarioAsignado
+        .filter((clase) => clase.dia && clase.hora_inicio && clase.hora_fin)
+        .sort((a, b) => {
+          const diaA = obtenerOrdenDia(a.dia);
+          const diaB = obtenerOrdenDia(b.dia);
+          if (diaA !== diaB) return diaA - diaB;
+          return ordenarPorHora(a, b);
+        }),
+    [horarioAsignado]
+  );
+  const horarioPorDia = useMemo(
+    () =>
+      DIAS_SEMANA.reduce((acc, dia) => {
+        acc[dia] = clasesConHorario.filter((clase) => clase.dia === dia);
+        return acc;
+      }, {}),
+    [clasesConHorario]
+  );
 
   const cargarClases = async () => {
     if (!profesorId) return;
@@ -46,6 +85,28 @@ function DashboardProfesor() {
       setClases(data);
     } catch (error) {
       console.error("Error cargando clases", error);
+    }
+  };
+
+  const cargarHorarioAsignado = async () => {
+    if (!profesorId) return;
+    try {
+      const res = await api.get("/asignaciones/lista");
+      const data = res.data || [];
+      const horarioProfesor = data
+        .filter((asignacion) => String(asignacion.profesor_id) === String(profesorId))
+        .map((asignacion) => ({
+          id: asignacion.id,
+          materia: asignacion.materia_nombre,
+          curso: asignacion.curso_nombre,
+          dia: asignacion.dia,
+          hora_inicio: asignacion.hora_inicio,
+          hora_fin: asignacion.hora_fin,
+        }));
+
+      setHorarioAsignado(horarioProfesor);
+    } catch (error) {
+      console.error("Error cargando horario asignado", error);
     }
   };
 
@@ -89,7 +150,13 @@ function DashboardProfesor() {
     }
     const cargarDatos = async () => {
       setLoading(true);
-      await Promise.all([cargarClases(), cargarInasistencias(), cargarNotasBajas(), cargarNotasAltas()]);
+      await Promise.all([
+        cargarClases(),
+        cargarHorarioAsignado(),
+        cargarInasistencias(),
+        cargarNotasBajas(),
+        cargarNotasAltas(),
+      ]);
       setLoading(false);
     };
     cargarDatos();
@@ -104,9 +171,9 @@ function DashboardProfesor() {
   }
 
   return (
-    <div className="p-6">
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Panel del Profesor
         </h1>
         <p className="text-gray-600">
@@ -153,6 +220,112 @@ function DashboardProfesor() {
           />
         </div>
       </div>
+
+      <section className="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+        <div className="border-b border-gray-200 bg-white px-4 py-4 sm:px-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
+                Horario asignado
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-gray-900 sm:text-xl">
+                Tus clases de la semana
+              </h2>
+            </div>
+            <span className="w-max rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+              {clasesConHorario.length} {clasesConHorario.length === 1 ? "clase" : "clases"}
+            </span>
+          </div>
+        </div>
+
+        {clasesConHorario.length === 0 ? (
+          <div className="p-6 text-gray-600">
+            No tienes clases con horario asignado todavía.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-2.5 p-3 sm:grid-cols-2 lg:hidden">
+              {DIAS_SEMANA.map((dia) => {
+                const clasesDelDia = horarioPorDia[dia];
+
+                return (
+                  <div key={dia} className="rounded-lg border border-gray-200 bg-gray-50">
+                    <div className="border-b border-gray-200 px-3 py-2">
+                      <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
+                        {dia}
+                      </h3>
+                    </div>
+                    <div className="space-y-2 p-2.5">
+                      {clasesDelDia.length === 0 ? (
+                        <p className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-3 text-center text-sm text-gray-500">
+                          Sin clases
+                        </p>
+                      ) : (
+                        clasesDelDia.map((clase) => (
+                          <article
+                            key={clase.id}
+                            className="rounded-md border-l-4 border-blue-600 bg-white px-2.5 py-2 shadow-sm"
+                          >
+                            <p className="text-[11px] font-bold leading-tight text-blue-700">
+                              {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
+                            </p>
+                            <h4 className="mt-1 text-xs font-semibold leading-tight text-gray-900">
+                              {clase.materia}
+                            </h4>
+                            <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
+                              Curso: {clase.curso}
+                            </p>
+                          </article>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden overflow-x-auto p-3 lg:block">
+              <div className="grid min-w-[860px] grid-cols-5 gap-2.5">
+                {DIAS_SEMANA.map((dia) => {
+                  const clasesDelDia = horarioPorDia[dia];
+
+                  return (
+                    <div key={dia} className="flex min-h-[240px] flex-col rounded-lg border border-gray-200 bg-gray-50">
+                      <div className="rounded-t-lg bg-blue-700 px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white">
+                        {dia}
+                      </div>
+                      <div className="flex flex-1 flex-col gap-2 p-2.5">
+                        {clasesDelDia.length === 0 ? (
+                          <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-200 bg-white px-3 text-sm italic text-gray-400">
+                            Sin clases
+                          </div>
+                        ) : (
+                          clasesDelDia.map((clase) => (
+                            <article
+                              key={clase.id}
+                              className="rounded-md border border-gray-200 border-l-4 border-l-blue-500 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md"
+                            >
+                              <p className="text-[11px] font-bold leading-tight text-blue-700">
+                                {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
+                              </p>
+                              <h4 className="mt-1 text-xs font-bold leading-tight text-gray-900">
+                                {clase.materia}
+                              </h4>
+                              <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
+                                Curso: {clase.curso}
+                              </p>
+                            </article>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200">
