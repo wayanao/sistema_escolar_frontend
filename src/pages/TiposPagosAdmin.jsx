@@ -1,4 +1,4 @@
-import AdministrarTiposPago from "../components/AdministrarTiposPago";
+import AdministrarTiposPago from "../components/cartera/AdministrarTiposPago";
 
 function TiposPagosAdmin() {
     return (

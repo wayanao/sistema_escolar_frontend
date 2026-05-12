@@ -82,6 +82,7 @@ function NavAdmin() {
             </span>
             <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[170px] z-50 border border-gray-100">
                 <NavLink className={dropdownLinkClass} to="/admin/pagos">Gestión de Pagos</NavLink>
+                <NavLink className={dropdownLinkClass} to="/admin/tipos-pagos">Tipos de Pago</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/inventario">Inventario</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/egresos">Egresos</NavLink>
@@ -112,10 +113,13 @@ function NavAdmin() {
           <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
             <span className="text-white/60 text-xs font-bold uppercase tracking-wider px-2">📂 Cartera</span>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/pagos">Pagos</NavLink>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/tipos-pagos">Tipos de Pago</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/inventario">Inventario</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/egresos">Egresos</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/prestamos">Préstamos</NavLink>              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/nomina">Nómina</NavLink>                 </div>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/prestamos">Préstamos</NavLink>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/nomina">Nómina</NavLink>
+          </div>
           <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
           <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>

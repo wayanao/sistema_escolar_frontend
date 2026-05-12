@@ -2,7 +2,6 @@ import CrearProfesor from "../components/CrearProfesor";
 import CrearCurso from "../components/CrearCurso";
 import CrearMateria from "../components/CrearMateria";
 import AsignarClase from "../components/AsignarClase";
-import AdministrarTiposPago from "../components/AdministrarTiposPago";
 
 function GestionAcademica() {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -23,7 +22,6 @@ function GestionAcademica() {
                 <CrearCurso />
                 <CrearMateria />
                 <AsignarClase />
-                <AdministrarTiposPago />
             </div>
         </div>
     );

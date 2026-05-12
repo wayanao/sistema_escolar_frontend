@@ -4,7 +4,6 @@ const CrearProfesor = lazy(() => import("../components/CrearProfesor"));
 const CrearCurso = lazy(() => import("../components/CrearCurso"));
 const CrearMateria = lazy(() => import("../components/CrearMateria"));
 const AsignarClase = lazy(() => import("../components/AsignarClase"));
-const AdministrarTiposPago = lazy(() => import("../components/AdministrarTiposPago"));
 
 const modulosAdmin = [
     {
@@ -30,12 +29,6 @@ const modulosAdmin = [
         titulo: "Asignar clases",
         descripcion: "Relacionar profesores, cursos, materias y horarios.",
         componente: AsignarClase,
-    },
-    {
-        id: "tipos-pago",
-        titulo: "Tipos de pago",
-        descripcion: "Configurar conceptos y valores de pago.",
-        componente: AdministrarTiposPago,
     },
 ];
 

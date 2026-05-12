@@ -114,3 +114,62 @@ proyecto_escolar/
 * Se agregaron tarjetas responsive para móvil y tablet, organizadas por día de la semana.
 * En escritorio se muestra una grilla semanal de lunes a viernes con materia, curso y hora de cada clase.
 * Se agregó formato de hora en 12 horas y ordenamiento por día y hora de inicio.
+
+### Reorganización: Componente "Tipos de Pago" movido a pestaña Cartera
+
+**Fecha**: Mayo 12, 2026
+
+**Cambio**: Se movió el componente `AdministrarTiposPago` de la pestaña "Gestión Académica" a la pestaña "Cartera" como módulo independiente.
+
+#### ¿Qué se hizo?
+
+1. **Movimiento de archivo**
+   - Componente movido desde: `src/components/AdministrarTiposPago.jsx`
+   - Componente ahora en: `src/components/cartera/AdministrarTiposPago.jsx`
+
+2. **Actualización de rutas y navegación**
+   - Ruta agregada en `src/App.jsx`: `/admin/tipos-pagos` → `TiposPagosAdmin`
+   - Enlace agregado en `src/components/NavAdmin.jsx` (desktop y mobile): Sección "Cartera" → "Tipos de Pago"
+
+3. **Actualización de imports**
+   - `src/pages/Admin.jsx`: Removido import y módulo de `AdministrarTiposPago`
+   - `src/pages/GestionAcademica.jsx`: Removido import y componente de `AdministrarTiposPago`
+   - `src/pages/TiposPagosAdmin.jsx`: Import actualizado a `../components/cartera/AdministrarTiposPago`
+
+4. **Limpieza**
+   - Eliminado archivo duplicado: `src/components/AdministrarTiposPago.jsx`
+
+#### Funcionalidades del componente
+
+El componente `AdministrarTiposPago` gestiona los tipos de pago (conceptos de recaudo) de la institución:
+
+- **Crear**: Agregar nuevos conceptos de pago con nombre y valor
+- **Editar**: Modificar conceptos existentes (botón ✏️)
+- **Eliminar**: Remover conceptos con confirmación (botón ❌)
+- **Listar**: Visualizar todos los conceptos registrados en tarjetas
+
+#### Endpoints API utilizados
+
+```
+GET    /tipos-pagos          - Obtener todos los tipos de pago
+POST   /tipos-pagos          - Crear nuevo tipo de pago
+PUT    /tipos-pagos/{id}     - Actualizar tipo de pago
+DELETE /tipos-pagos/{id}     - Eliminar tipo de pago
+```
+
+#### Acceso en la aplicación
+
+- **Pestaña**: Cartera (en el menú principal)
+- **Ruta**: `/admin/tipos-pagos`
+- **Navegación desktop**: Cartera → Tipos de Pago
+- **Navegación mobile**: Cartera → Tipos de Pago
+
+#### Documentación del código
+
+Todos los métodos del componente incluyen comentarios explicativos:
+- `cargarTiposPagos()`: Carga tipos de pago del backend
+- `handleSubmit()`: Crea o actualiza conceptos
+- `handleEdit()`: Prepara concepto para edición
+- `handleDelete()`: Elimina concepto con confirmación
+
+La interfaz incluye validaciones, alertas de confirmación con SweetAlert2 y respuesta visual inmediata al usuario.
