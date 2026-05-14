@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "predev": "node -e \"if(!/pnpm/.test(process.env.npm_config_user_agent||'')){console.error('\\n\\u274C Usa pnpm: pnpm run dev\\n');process.exit(1)}\"",
     "dev": "vite",
+    "prebuild": "node -e \"if(!/pnpm/.test(process.env.npm_config_user_agent||'')){console.error('\\n\\u274C Usa pnpm: pnpm run build\\n');process.exit(1)}\"",
     "build": "vite build",
+    "prelint": "node -e \"if(!/pnpm/.test(process.env.npm_config_user_agent||'')){console.error('\\n\\u274C Usa pnpm: pnpm run lint\\n');process.exit(1)}\"",
     "lint": "eslint .",
+    "prepreview": "node -e \"if(!/pnpm/.test(process.env.npm_config_user_agent||'')){console.error('\\n\\u274C Usa pnpm: pnpm run preview\\n');process.exit(1)}\"",
     "preview": "vite preview"
   },
   "packageManager": "pnpm@11.1.2",
