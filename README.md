@@ -54,9 +54,51 @@ uvicorn main:app --reload
 
 ```bash
 cd frontend-react
-npm install
-npm run dev
+# Prefer `pnpm`. Si no lo tienes, habilita Corepack (Node >=16.10) o instala pnpm globalmente:
+# Corepack (recomendado):
+#   corepack enable && corepack prepare pnpm@latest --activate
+# O instala pnpm globalmente:
+#   npm install -g pnpm
+pnpm install
+pnpm run dev
 ```
+
+### Migrar desde `npm` a `pnpm` (resumen rápido)
+
+1. Instala/activa `pnpm` como en las instrucciones anteriores.
+2. Si tienes `package-lock.json` y quieres conservar las versiones resueltas:
+
+```bash
+cd frontend-react
+pnpm import   # convierte package-lock.json -> pnpm-lock.yaml
+pnpm install
+```
+
+3. Si no necesitas importar el lockfile, simplemente elimina `node_modules` y `package-lock.json` y ejecuta:
+
+```bash
+rm -rf node_modules package-lock.json   # unix/mac
+del /s /q node_modules                   # PowerShell/Windows (o use Explorer)
+pnpm install
+```
+
+4. Prueba la app y el build:
+
+```bash
+pnpm run dev
+pnpm run build
+```
+
+5. Si encuentras errores por hoisting (módulos que estaban disponibles globalmente con npm), añade la dependencia faltante a `package.json` o habilita hoisting temporalmente en `.npmrc`:
+
+```ini
+# .npmrc (opcional, para compatibilidad):
+shamefully-hoist=true
+```
+
+6. Actualiza CI/Docker para usar `pnpm` (`corepack enable` en runners o instalar pnpm) y reemplaza `npm ci`/`npm install` por `pnpm install --frozen-lockfile`.
+
+Nota: `npx` → `pnpm dlx` cuando uses ejecutables temporales.
 
 ---
 
