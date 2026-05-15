@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../utils/api";
+import AsignarClaseGrid from "./AsignarClaseGrid";
 
 function AsignarClase() {
+    const [vista, setVista] = useState("grilla"); // 'grilla' | 'formulario'
     const [profesores, setProfesores] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [materias, setMaterias] = useState([]);
@@ -108,6 +110,26 @@ function AsignarClase() {
     };
 
     return (
+        <div className="space-y-4">
+            {/* Selector de vista */}
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-2 w-max">
+                <button
+                    onClick={() => setVista("grilla")}
+                    className={`px-3 py-1.5 text-sm font-medium rounded ${vista === "grilla" ? "bg-orange-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                    🧩 Vista grilla
+                </button>
+                <button
+                    onClick={() => setVista("formulario")}
+                    className={`px-3 py-1.5 text-sm font-medium rounded ${vista === "formulario" ? "bg-orange-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                    📝 Vista formulario
+                </button>
+            </div>
+
+            {vista === "grilla" && <AsignarClaseGrid onChange={cargarDatos} />}
+
+            {vista === "formulario" && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">🔗 {editandoId ? "Editar Asignación" : "Asignar Clase"}</h2>
@@ -251,6 +273,8 @@ function AsignarClase() {
                         </table>
                     </div>
                 </div>
+            )}
+        </div>
             )}
         </div>
     );

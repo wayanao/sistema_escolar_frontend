@@ -1,4 +1,5 @@
 import HorariosProfesores from "../components/HorariosProfesores";
+import HorariosPorCurso from "../components/HorariosPorCurso";
 
 function HorariosAdmin() {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -10,11 +11,12 @@ function HorariosAdmin() {
                     📅 Horarios Asignados
                 </h1>
                 <p className="text-gray-600">
-                    Revisa el calendario semanal de los profesores, {usuario?.nombre || "Admin"}.
+                    Revisa el calendario semanal por profesor y por curso, {usuario?.nombre || "Admin"}.
                 </p>
             </div>
-            
+
             <HorariosProfesores />
+            <HorariosPorCurso />
         </div>
     );
 }
