@@ -56,6 +56,17 @@ function DashboardProfesor() {
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
   const profesorId = profesor?.id;
   const nombreProfesor = profesor ? `${profesor.nombre || ""} ${profesor.apellido || ""}`.trim() : "";
+  const clasesUnicas = useMemo(() => {
+    const vistos = new Map();
+    for (const clase of clases) {
+      const key = `${(clase.materia || "").trim().toLowerCase()}|${(clase.curso || "").trim().toLowerCase()}`;
+      if (!vistos.has(key)) {
+        vistos.set(key, clase);
+      }
+    }
+    return Array.from(vistos.values());
+  }, [clases]);
+
   const clasesConHorario = useMemo(
     () =>
       horarioAsignado
@@ -190,7 +201,7 @@ function DashboardProfesor() {
             className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Todos los salones</option>
-            {clases.map(clase => (
+            {clasesUnicas.map(clase => (
               <option key={clase.id} value={clase.id}>
                 {clase.materia} - {clase.curso}
               </option>

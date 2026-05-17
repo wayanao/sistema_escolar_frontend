@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import api from "../utils/api";
 import FacturaModerna from "../components/FacturaModerna";
@@ -15,6 +15,9 @@ const obtenerFechaLocal = () => {
 
 function PagosAdmin() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Si llegamos desde Cartera Vencida / Resumen estudiante con un id preseleccionado
+  const estudianteIdPreseleccionado = location.state?.estudiante_id ?? null;
   const [estudiantes, setEstudiantes] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [tiposPagos, setTiposPagos] = useState([]);
@@ -41,6 +44,24 @@ function PagosAdmin() {
     cargarEstudiantes();
     cargarTiposPagos();
   }, []);
+
+  // Auto-seleccionar estudiante y abrir formulario cuando se navega
+  // con estado desde Cartera Vencida ("Cobrar") u otra pantalla.
+  useEffect(() => {
+    if (!estudianteIdPreseleccionado || estudiantes.length === 0) return;
+    if (selectedEstudiante?.id === estudianteIdPreseleccionado) return;
+
+    const est = estudiantes.find(
+      (e) => Number(e.id) === Number(estudianteIdPreseleccionado)
+    );
+    if (est) {
+      handleEstudianteSelect(est);
+      setShowForm(true);
+      // Limpiar el state de navegación para que F5 no vuelva a abrir el form.
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estudiantes, estudianteIdPreseleccionado]);
 
   if (!usuario || usuario.rol !== "admin") {
     navigate("/login");

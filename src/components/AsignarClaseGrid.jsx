@@ -2,19 +2,34 @@ import { useState, useEffect, useMemo } from "react";
 import api from "../utils/api";
 
 // Bloques horarios de REFERENCIA (solo guía visual; cada clase puede usar horas libres)
-const BLOQUES_HORARIOS = [
-    { inicio: "07:00", fin: "08:00" },
-    { inicio: "08:00", fin: "09:00" },
-    { inicio: "09:00", fin: "10:00" },
-    { inicio: "10:00", fin: "11:00" },
-    { inicio: "11:00", fin: "12:00" },
-    { inicio: "12:00", fin: "13:00" },
-    { inicio: "13:00", fin: "14:00" },
-    { inicio: "14:00", fin: "15:00" },
-    { inicio: "15:00", fin: "16:00" },
-    { inicio: "16:00", fin: "17:00" },
-    { inicio: "17:00", fin: "18:00" },
-];
+// Generados automáticamente: clases de 45 minutos desde 06:30 hasta 17:45 (5:45 PM).
+const DURACION_BLOQUE_MIN = 45;
+const HORA_INICIO_JORNADA = "06:30";
+const HORA_FIN_JORNADA = "17:45"; // último bloque NO debe pasar de esta hora
+
+const _toMinutos = (hhmm) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+};
+const _toHHMM = (totalMin) => {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
+
+const generarBloques = () => {
+    const bloques = [];
+    let inicio = _toMinutos(HORA_INICIO_JORNADA);
+    const finJornada = _toMinutos(HORA_FIN_JORNADA);
+    while (inicio + DURACION_BLOQUE_MIN <= finJornada) {
+        const fin = inicio + DURACION_BLOQUE_MIN;
+        bloques.push({ inicio: _toHHMM(inicio), fin: _toHHMM(fin) });
+        inicio = fin;
+    }
+    return bloques;
+};
+
+const BLOQUES_HORARIOS = generarBloques();
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
@@ -276,7 +291,7 @@ function AsignarClaseGrid({ onChange }) {
             <div className="mb-5 pb-4 border-b border-gray-100">
                 <h2 className="text-xl font-semibold text-gray-900">🧩 Asignar por grilla</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    Click en una celda vacía para asignar (las horas son <strong>solo guía</strong>: puedes ajustar 3:15, 3:30, etc.). Click en una existente para editar / eliminar. Usa <strong>🟩 Disponibilidad</strong> para ver qué profesores tienen huecos.
+                    Click en una celda vacía para asignar — la <strong>franja horaria queda fija</strong> según el bloque seleccionado. Click en una existente para editar / eliminar. Usa <strong>🟩 Disponibilidad</strong> para ver qué profesores tienen huecos.
                 </p>
             </div>
 
@@ -685,27 +700,19 @@ function AsignarClaseGrid({ onChange }) {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Hora inicio</label>
-                                    <input
-                                        type="time"
-                                        step="300"
-                                        value={form.hora_inicio}
-                                        onChange={(e) => setForm({ ...form, hora_inicio: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                                    />
+                            {/* Franja horaria fija: viene de la cuadrícula, no se puede editar.
+                                Para cambiar el rango usa la configuración global de bloques. */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Franja horaria</label>
+                                <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-800 font-semibold flex items-center justify-between">
+                                    <span>
+                                        {form.hora_inicio && form.hora_fin
+                                            ? `${formatearHora12(form.hora_inicio)} — ${formatearHora12(form.hora_fin)}`
+                                            : "—"}
+                                    </span>
+                                    <span className="text-[11px] font-normal text-gray-500">🔒 Definida por el bloque</span>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
-                                    <input
-                                        type="time"
-                                        step="300"
-                                        value={form.hora_fin}
-                                        onChange={(e) => setForm({ ...form, hora_fin: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
+                                
                             </div>
 
                             {jornadaCurso && (
