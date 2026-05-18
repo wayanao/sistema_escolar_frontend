@@ -195,7 +195,7 @@ function AdministrarTiposPago() {
             } else {
                 Swal.fire("Error", "Error al guardar o ya existe", "error");
             }
-        } catch (error) {
+        } catch {
             Swal.fire("Error", "Error de conexión", "error");
         }
     };
@@ -231,7 +231,7 @@ function AdministrarTiposPago() {
                     setDetalle(null);
                 }
             }
-        } catch (e) {
+        } catch {
             Swal.fire("Error", "", "error");
         }
     };

@@ -27,6 +27,7 @@ function PagosAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pagoAImprimir, setPagoAImprimir] = useState(null);
 
   // Formulario de pago mixto
   const [pagoData, setPagoData] = useState({
@@ -204,8 +205,6 @@ function PagosAdmin() {
       Swal.fire('Error', mensaje, 'error');
     }
   };
-
-  const [pagoAImprimir, setPagoAImprimir] = useState(null);
 
   const imprimirFactura = (pago) => {
     if (!selectedEstudiante) return;

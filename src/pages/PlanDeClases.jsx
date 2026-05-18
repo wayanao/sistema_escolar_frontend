@@ -37,6 +37,21 @@ function PlanDeClases() {
     [clases, asignacionId],
   );
 
+  const clasesUnicas = useMemo(() => {
+    const clasesPorCursoMateria = new Map();
+
+    clases.forEach((claseItem) => {
+      const clave = `${claseItem.curso}__${claseItem.materia}`;
+      const esAsignacionActual = String(claseItem.id) === String(asignacionId);
+
+      if (!clasesPorCursoMateria.has(clave) || esAsignacionActual) {
+        clasesPorCursoMateria.set(clave, claseItem);
+      }
+    });
+
+    return Array.from(clasesPorCursoMateria.values());
+  }, [clases, asignacionId]);
+
   const actualizarCampo = (campo, valor) => {
     setForm((actual) => ({ ...actual, [campo]: valor }));
   };
@@ -190,7 +205,7 @@ function PlanDeClases() {
               className={campoBase}
             >
               <option value="">Selecciona una clase</option>
-              {clases.map((claseItem) => (
+              {clasesUnicas.map((claseItem) => (
                 <option key={claseItem.id} value={claseItem.id}>
                   {claseItem.materia} - {claseItem.curso}
                 </option>

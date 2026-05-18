@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import api from "../utils/api";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
@@ -6,7 +6,7 @@ const VentasAdmin = () => {
     const [inventario, setInventario] = useState([]);
     const [estudiantes, setEstudiantes] = useState([]);
     const [ventasAnteriores, setVentasAnteriores] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
   // Carrito de compras
     const [carrito, setCarrito] = useState([]);
@@ -129,8 +129,6 @@ const VentasAdmin = () => {
             alert("Error procesando la venta");
         }
     };
-
-    const currentStudent = estudiantes.find(e => e.id === parseInt(estudianteId));
 
     const abrirVolante = () => setVistaVolante(true);
 

@@ -74,9 +74,31 @@ function AsignarClase() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const buscarMateriaConOtroProfesor = ({ cursoId, materiaId, profesorId, asignacionIdActual }) => {
+        return listaAsignaciones.find((asig) =>
+            String(asig.id) !== String(asignacionIdActual || "") &&
+            String(asig.curso_id) === String(cursoId) &&
+            String(asig.materia_id) === String(materiaId) &&
+            String(asig.profesor_id) !== String(profesorId)
+        );
+    };
+
     const asignar = async () => {
         if (!profesorId || !cursoId || !materiaId || !dia || !horaInicio || !horaFin) {
             alert("Completa todo el formulario");
+            return;
+        }
+
+        const conflictoProfesor = buscarMateriaConOtroProfesor({
+            cursoId,
+            materiaId,
+            profesorId,
+            asignacionIdActual: editandoId,
+        });
+        if (conflictoProfesor) {
+            alert(
+                `Esta materia ya está asignada en este curso al profesor ${conflictoProfesor.profesor_nombre || ""} ${conflictoProfesor.profesor_apellido || ""}. No puede tener dos profesores distintos.`
+            );
             return;
         }
 

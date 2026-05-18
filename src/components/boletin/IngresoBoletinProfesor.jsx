@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import api from "../../utils/api";
 
@@ -20,6 +20,21 @@ function IngresoBoletinProfesor() {
 
     // Estado local para almacenar lo que el profesor digita
     const [datosBoletin, setDatosBoletin] = useState({});
+
+    const clasesUnicas = useMemo(() => {
+        const clasesPorCursoMateria = new Map();
+
+        clases.forEach((clase) => {
+            const clave = `${clase.curso}__${clase.materia}`;
+            const esAsignacionActual = String(clase.id) === String(asignacionId);
+
+            if (!clasesPorCursoMateria.has(clave) || esAsignacionActual) {
+                clasesPorCursoMateria.set(clave, clase);
+            }
+        });
+
+        return Array.from(clasesPorCursoMateria.values());
+    }, [clases, asignacionId]);
 
     useEffect(() => {
         const cargarClases = async () => {
@@ -134,7 +149,7 @@ function IngresoBoletinProfesor() {
                         onChange={(e) => setAsignacionId(e.target.value)}
                     >
                         <option value="">Seleccione una clase...</option>
-                        {clases.map((c) => (
+                        {clasesUnicas.map((c) => (
                             <option key={c.id} value={c.id}>
                                 {c.curso} - {c.materia}
                             </option>

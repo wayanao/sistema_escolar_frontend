@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-const API = import.meta.env.VITE_API_URL;
 import AsistenciaRow from "../components/AsistenciaRow";
 import api from "../utils/api";
 
 
 function Asistencia() {
 
-const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
+const [fecha] = useState(localStorage.getItem("fechaAsistencia") || "");
 const [asistencia, setAsistencia] = useState({});
 const [historial, setHistorial] = useState([]);
 const [estudiantes, setEstudiantes] = useState([]);

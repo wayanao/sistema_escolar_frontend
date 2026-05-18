@@ -94,43 +94,57 @@ export default function DocumentoImprimible({
       <article
         className={`di-documento ${bordeado ? "di-documento--bordeado" : ""}`}
       >
-        <header className={`di-encabezado di-encabezado--${alineacion}`}>
-          {posicionLogo === "izquierda" && logos}
-          {posicionLogo === "centro" && branding?.logo_principal_url && (
-            <img
-              src={branding.logo_principal_url}
-              alt="logo"
-              style={{ maxHeight: 80, maxWidth: 120, margin: "0 auto" }}
-            />
-          )}
-          {textosInstitucion}
-          {posicionLogo === "derecha" && logos}
-        </header>
+        <table className="di-tabla-documento">
+          <thead>
+            <tr>
+              <td>
+                <header className={`di-encabezado di-encabezado--${alineacion}`}>
+                  {posicionLogo === "izquierda" && logos}
+                  {posicionLogo === "centro" && branding?.logo_principal_url && (
+                    <img
+                      src={branding.logo_principal_url}
+                      alt="logo"
+                      style={{ maxHeight: 80, maxWidth: 120, margin: "0 auto" }}
+                    />
+                  )}
+                  {textosInstitucion}
+                  {posicionLogo === "derecha" && logos}
+                </header>
 
-        {titulo && <h2 className="di-titulo">{titulo}</h2>}
-        {subtitulo && <p className="di-subtitulo">{subtitulo}</p>}
+                {titulo && <h2 className="di-titulo">{titulo}</h2>}
+                {subtitulo && <p className="di-subtitulo">{subtitulo}</p>}
+              </td>
+            </tr>
+          </thead>
 
-        <section className="di-cuerpo">{children}</section>
+          <tbody>
+            <tr>
+              <td>
+                <section className="di-cuerpo">{children}</section>
 
-        {mostrarFirmas && (
-          <section className="di-firmas">
-            {firmas.map((f, i) => (
-              <div key={i} className="di-firmas__bloque">
-                <div className="di-firmas__linea">
-                  <strong>{f.nombre}</strong>
-                  {f.cargo && <div>{f.cargo}</div>}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+                {mostrarFirmas && (
+                  <section className="di-firmas">
+                    {firmas.map((f, i) => (
+                      <div key={i} className="di-firmas__bloque">
+                        <div className="di-firmas__linea">
+                          <strong>{f.nombre}</strong>
+                          {f.cargo && <div>{f.cargo}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </section>
+                )}
 
-        {mostrarPie && (
-          <footer className="di-pie">
-            {branding?.sitio_web && <span>{branding.sitio_web} - </span>}
-            Documento generado el {new Date().toLocaleDateString("es-CO")}
-          </footer>
-        )}
+                {mostrarPie && (
+                  <footer className="di-pie">
+                    {branding?.sitio_web && <span>{branding.sitio_web} - </span>}
+                    Documento generado el {new Date().toLocaleDateString("es-CO")}
+                  </footer>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </article>
 
       <div className="di-toolbar no-print">

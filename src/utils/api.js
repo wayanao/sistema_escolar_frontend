@@ -26,7 +26,7 @@ api.interceptors.request.use(
             token = userData.access_token;
             Cookies.set('token', token, { expires: 1 });
           }
-        } catch (_) {
+        } catch {
           // ignorar JSON malformado
         }
       }

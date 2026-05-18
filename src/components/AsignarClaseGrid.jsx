@@ -218,6 +218,15 @@ function AsignarClaseGrid({ onChange }) {
         setErrorModal("");
     };
 
+    const buscarMateriaConOtroProfesor = ({ cursoId, materiaId, profesorId, asignacionIdActual }) => {
+        return asignaciones.find((asig) =>
+            String(asig.id) !== String(asignacionIdActual || "") &&
+            String(asig.curso_id) === String(cursoId) &&
+            String(asig.materia_id) === String(materiaId) &&
+            String(asig.profesor_id) !== String(profesorId)
+        );
+    };
+
     const guardar = async () => {
         if (!form.profesor_id || !form.curso_id || !form.materia_id) {
             setErrorModal("Completa profesor y materia.");
@@ -237,6 +246,19 @@ function AsignarClaseGrid({ onChange }) {
         const errJornada = validarJornada(cursoSel?.jornada, form.hora_inicio, form.hora_fin);
         if (errJornada) {
             setErrorModal(errJornada);
+            return;
+        }
+
+        const conflictoProfesor = buscarMateriaConOtroProfesor({
+            cursoId: form.curso_id,
+            materiaId: form.materia_id,
+            profesorId: form.profesor_id,
+            asignacionIdActual: modalData.asignacion?.id,
+        });
+        if (conflictoProfesor) {
+            setErrorModal(
+                `Esta materia ya está asignada en este curso al profesor ${conflictoProfesor.profesor_nombre || ""} ${conflictoProfesor.profesor_apellido || ""}. No puede tener dos profesores distintos.`
+            );
             return;
         }
 

@@ -2,16 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 function ReportesAdmin() {
   const navigate = useNavigate();
   const [reporteGeneral, setReporteGeneral] = useState(null);
-  const [cursos, setCursos] = useState([]);
-  const [selectedCurso, setSelectedCurso] = useState("");
-  const [estadoCuenta, setEstadoCuenta] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingEstadoCuenta, setLoadingEstadoCuenta] = useState(false);
 
   const [detalleMes, setDetalleMes] = useState(null);
   const [loadingDetalleMes, setLoadingDetalleMes] = useState(false);
@@ -47,16 +41,10 @@ function ReportesAdmin() {
   const cargarDatosIniciales = async () => {
     try {
       setLoading(true);
-      const [reporteRes, cursosRes] = await Promise.all([
-        api.get(`/reportes/general`),
-        api.get(`/cursos`)
-      ]);
-
+      const reporteRes = await api.get(`/reportes/general`);
       const reporteData = reporteRes.data;
-      const cursosData = cursosRes.data;
 
       setReporteGeneral(reporteData);
-      setCursos(cursosData);
     } catch (error) {
       console.error("Error cargando datos:", error);
       alert("Error al cargar datos del reporte");
@@ -65,24 +53,6 @@ function ReportesAdmin() {
     }
   };
 
-  const cargarEstadoCuenta = async () => {
-    if (!selectedCurso) {
-      alert("Selecciona un curso");
-      return;
-    }
-
-    try {
-      setLoadingEstadoCuenta(true);
-      const res = await api.get(`/reportes/estado-cuenta/${selectedCurso}`);
-      const data = res.data;
-      setEstadoCuenta(data);
-    } catch (error) {
-      console.error("Error cargando estado de cuenta:", error);
-      alert("Error al cargar estado de cuenta");
-    } finally {
-      setLoadingEstadoCuenta(false);
-    }
-  };
   const cargarDetalleMes = async (mes) => {
     try {
       setLoadingDetalleMes(true);
@@ -368,107 +338,6 @@ function ReportesAdmin() {
         </div>
       )}
 
-      {/* Estado de Cuenta por Curso */}
-      <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4">Estado de Cuenta por Curso</h2>
-
-        <div className="mb-4 flex gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Seleccionar Curso
-            </label>
-            <select
-              value={selectedCurso}
-              onChange={(e) => setSelectedCurso(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Seleccionar curso</option>
-              {cursos.map((curso) => (
-                <option key={curso.id} value={curso.id}>
-                  {curso.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={cargarEstadoCuenta}
-              disabled={loadingEstadoCuenta}
-              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
-            >
-              {loadingEstadoCuenta ? "Cargando..." : "Generar Reporte"}
-            </button>
-          </div>
-        </div>
-
-        {estadoCuenta.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estudiante
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Resumen Total
-                  </th>
-                  {estadoCuenta[0]?.deudas_detalle?.map((d, i) => (
-                    <th key={i} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {d.concepto} <br/>(Pagado / Deuda)
-                    </th>
-                  ))}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {estadoCuenta.map((estudiante) => (
-                  <tr key={estudiante.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {estudiante.nombre} {estudiante.apellido}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div><span className="text-gray-500">Pagado:</span> ${estudiante.pagado?.toLocaleString() || 0}</div>
-                      <div><span className="text-gray-500">Total:</span> ${estudiante.total?.toLocaleString() || 0}</div>
-                      <div className="font-semibold text-red-600">Deuda: ${(estudiante.deuda || 0).toLocaleString()}</div>
-                    </td>
-                    {estudiante.deudas_detalle?.map((d, i) => (
-                      <td key={i} className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="text-gray-900">${d.pagado.toLocaleString()}</div>
-                        <div className={`font-medium ${d.deuda > 0 ? "text-red-500" : "text-green-500"}`}>
-                          Debe: ${d.deuda.toLocaleString()}
-                        </div>
-                      </td>
-                    ))}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        estudiante.deuda <= 0
-                          ? "bg-green-100 text-green-800"
-                          : estudiante.deuda < estudiante.total * 0.5
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}>
-                        {estudiante.deuda <= 0 ? "Pagado" :
-                         estudiante.deuda < estudiante.total * 0.5 ? "Parcial" : "Pendiente"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {estadoCuenta.length === 0 && selectedCurso && !loadingEstadoCuenta && (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-4">📊</div>
-            <p>No hay estudiantes en este curso o no hay datos disponibles</p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

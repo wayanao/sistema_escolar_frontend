@@ -2,8 +2,6 @@ import { useState,useEffect } from "react";
 import Observaciones from "../components/Observaciones";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 function ObservacionesPage() {
 
   // 🔥 ejemplo temporal (luego lo conectamos mejor)
@@ -13,11 +11,9 @@ function ObservacionesPage() {
   
   const asignacionId = localStorage.getItem("asignacionId");
   const periodo = localStorage.getItem("periodo") || "1";
-
   const cargarEstudiantes = async () => {
 
   const asignacionId = localStorage.getItem("asignacionId");
-  const periodo = localStorage.getItem("periodo") || "1";
 
   if (!asignacionId) {
     alert("Selecciona una asignación primero en la página principal");

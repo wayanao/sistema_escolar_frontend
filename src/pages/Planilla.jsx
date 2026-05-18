@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import PlanillaRow from "../components/PlanillaRow";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
-
 function Planilla() {
 
-    const [asignacionId, setAsignacionId] = useState(
+    const [asignacionId] = useState(
         localStorage.getItem("asignacionId") || ""
     ); 
     const [estudiantes, setEstudiantes] = useState([]);
@@ -17,10 +13,10 @@ function Planilla() {
     const [nuevoTipo, setNuevoTipo] = useState("");
     const [tipoEliminar, setTipoEliminar] = useState("");
     const [clases, setClases] = useState([]);
-    const [periodo, setPeriodo] = useState(
+    const [periodo] = useState(
     localStorage.getItem("periodo") || "1"
     );
-    const [fecha, setFecha] = useState(
+    const [fecha] = useState(
     localStorage.getItem("fechaAsistencia") || ""
     );
     const [tipoEvaluacion, setTipoEvaluacion] = useState(
@@ -43,6 +39,15 @@ function Planilla() {
     setClases(data);
     };
 
+        // 🔥 Cargar planilla
+    const cargarPlanilla = async () => {
+    const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
+    const data = res.data;
+
+    setColumnas(data.columnas);
+    setEstudiantes(data.data);
+    };
+
     useEffect(() => {
         if (!profesor) {
         window.location.href = "/login";
@@ -61,15 +66,6 @@ function Planilla() {
         cargarPlanilla();
         }
     }, [asignacionId, periodo]);
-
-        // 🔥 Cargar planilla
-    const cargarPlanilla = async () => {
-    const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
-    const data = res.data;
-
-    setColumnas(data.columnas);
-    setEstudiantes(data.data);
-    };
 
 
     

@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 function InventarioAdmin() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +86,7 @@ function InventarioAdmin() {
           Swal.fire("Eliminado", "Producto eliminado correctamente", "success");
           cargarInventario();
         }
-      } catch (error) {
+      } catch {
         Swal.fire("Error", "Error al eliminar producto", "error");
       }
     }
