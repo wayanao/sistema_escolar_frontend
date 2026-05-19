@@ -102,14 +102,13 @@ function DashboardProfesor() {
   const cargarHorarioAsignado = async () => {
     if (!profesorId) return;
     try {
-      const res = await api.get("/asignaciones/lista");
+      const res = await api.get(`/mis-clases/${profesorId}`);
       const data = res.data || [];
       const horarioProfesor = data
-        .filter((asignacion) => String(asignacion.profesor_id) === String(profesorId))
         .map((asignacion) => ({
           id: asignacion.id,
-          materia: asignacion.materia_nombre,
-          curso: asignacion.curso_nombre,
+          materia: asignacion.materia,
+          curso: asignacion.curso,
           dia: asignacion.dia,
           hora_inicio: asignacion.hora_inicio,
           hora_fin: asignacion.hora_fin,
