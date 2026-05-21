@@ -1,16 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
 
 const inputClass =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100";
-
-const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-
-function obtenerUrlImagen(path) {
-  if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${apiBaseUrl}/${path.replaceAll("\\", "/").replace(/^\/+/, "")}`;
-}
 
 function PlaneadoresClasesAdmin() {
   const [profesores, setProfesores] = useState([]);
@@ -47,11 +40,15 @@ function PlaneadoresClasesAdmin() {
         if (value) params[key] = value;
       });
       const res = await api.get("/admin/plan-de-clases", { params });
-      setPlanes(res.data.items || []);
+      const items = res.data.items || [];
+      setPlanes(items);
       setTotal(res.data.total || 0);
       setSeleccionado((actual) => {
-        if (actual && res.data.items?.some((plan) => plan.id === actual.id)) return actual;
-        return res.data.items?.[0] || null;
+        if (actual) {
+          const actualizado = items.find((plan) => plan.id === actual.id);
+          if (actualizado) return actualizado;
+        }
+        return items[0] || null;
       });
     } catch (error) {
       console.error("Error cargando planeadores", error);
@@ -77,6 +74,23 @@ function PlaneadoresClasesAdmin() {
   const buscar = (e) => {
     e.preventDefault();
     cargarPlanes();
+  };
+
+  const eliminarImagen = async (planId, slot) => {
+    const nombreImagen = slot === "imagen1" ? "imagen 1" : "imagen 2";
+    const confirmar = window.confirm(`¿Quieres borrar la ${nombreImagen} de este planeador?`);
+    if (!confirmar) return;
+
+    try {
+      await api.delete(`/admin/plan-de-clases/${planId}/imagen`, { params: { slot } });
+
+      const limpiarImagen = (plan) => (plan.id === planId ? { ...plan, [slot]: null } : plan);
+      setPlanes((actual) => actual.map(limpiarImagen));
+      setSeleccionado((actual) => (actual?.id === planId ? limpiarImagen(actual) : actual));
+    } catch (error) {
+      console.error("Error eliminando imagen", error);
+      window.alert(error.response?.data?.detail || "No se pudo eliminar la imagen.");
+    }
   };
 
   return (
@@ -209,7 +223,7 @@ function PlaneadoresClasesAdmin() {
               <Detalle titulo="Desarrollo cognitivo" texto={seleccionado.dba} />
               <Detalle titulo="Actividad en clase" texto={seleccionado.competencias} />
               <Detalle titulo="Actividad en casa" texto={seleccionado.actividad_casa} />
-              <Evidencias plan={seleccionado} />
+              <Evidencias plan={seleccionado} onEliminarImagen={eliminarImagen} />
             </div>
           )}
         </section>
@@ -218,8 +232,11 @@ function PlaneadoresClasesAdmin() {
   );
 }
 
-function Evidencias({ plan }) {
-  const imagenes = [plan.imagen1, plan.imagen2].filter(Boolean);
+function Evidencias({ plan, onEliminarImagen }) {
+  const imagenes = [
+    { slot: "imagen1", path: plan.imagen1, label: "Imagen 1" },
+    { slot: "imagen2", path: plan.imagen2, label: "Imagen 2" },
+  ].filter((imagen) => Boolean(imagen.path));
 
   if (imagenes.length === 0) {
     return (
@@ -234,27 +251,57 @@ function Evidencias({ plan }) {
     <div>
       <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Imágenes enviadas</h3>
       <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {imagenes.map((imagen, index) => {
-          const url = obtenerUrlImagen(imagen);
-          return (
-            <a
-              key={imagen}
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="block overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition hover:border-purple-300"
-            >
-              <img
-                src={url}
-                alt={`Imagen ${index + 1} del plan de clases`}
-                className="h-56 w-full object-contain"
-              />
-              <div className="border-t border-gray-200 bg-white px-3 py-2 text-sm font-medium text-purple-700">
-                Ver imagen completa
-              </div>
-            </a>
-          );
-        })}
+        {imagenes.map((imagen, index) => (
+          <ImagenPlanCard
+            key={imagen.slot}
+            imagen={imagen}
+            alt={`Imagen ${index + 1} del plan de clases`}
+            onEliminarImagen={() => onEliminarImagen(plan.id, imagen.slot)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ImagenPlanCard({ imagen, alt, onEliminarImagen }) {
+  const { url, cargando, error } = useImagenProtegida(imagen.path);
+
+  const abrirImagen = () => {
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+      <button
+        type="button"
+        onClick={abrirImagen}
+        disabled={!url}
+        className="block h-40 w-full transition hover:opacity-90 disabled:cursor-not-allowed sm:h-48"
+      >
+        {cargando && <div className="flex h-full items-center justify-center text-sm text-gray-500">Cargando imagen...</div>}
+        {error && !cargando && <div className="flex h-full items-center justify-center px-3 text-sm text-red-600">{error}</div>}
+        {url && !cargando && <img src={url} alt={alt} className="h-full w-full object-contain" />}
+      </button>
+      <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2">
+        <div>
+          <p className="text-sm font-semibold text-gray-800">{imagen.label}</p>
+          <button
+            type="button"
+            onClick={abrirImagen}
+            disabled={!url}
+            className="text-xs font-medium text-purple-700 disabled:text-gray-400"
+          >
+            Ver imagen completa
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onEliminarImagen}
+          className="rounded-md border border-red-200 px-3 py-1 text-sm font-semibold text-red-700 hover:bg-red-50"
+        >
+          Borrar
+        </button>
       </div>
     </div>
   );

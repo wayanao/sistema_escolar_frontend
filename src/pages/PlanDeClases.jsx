@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
 
 const campoBase =
@@ -26,11 +27,13 @@ function PlanDeClases() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [form, setForm] = useState(estadoInicial);
   const [imagenes, setImagenes] = useState([]);
+  const [imagenesGuardadas, setImagenesGuardadas] = useState({ imagen1: null, imagen2: null });
   const [historial, setHistorial] = useState([]);
   const [planActualId, setPlanActualId] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const imagenInputRef = useRef(null);
 
   const selectedClase = useMemo(
     () => clases.find((claseItem) => String(claseItem.id) === String(asignacionId)),
@@ -51,6 +54,17 @@ function PlanDeClases() {
 
     return Array.from(clasesPorCursoMateria.values());
   }, [clases, asignacionId]);
+
+  const imagenesSeleccionadas = useMemo(
+    () => imagenes.map((imagen) => ({ nombre: imagen.name, url: URL.createObjectURL(imagen) })),
+    [imagenes],
+  );
+
+  useEffect(() => {
+    return () => {
+      imagenesSeleccionadas.forEach((imagen) => URL.revokeObjectURL(imagen.url));
+    };
+  }, [imagenesSeleccionadas]);
 
   const actualizarCampo = (campo, valor) => {
     setForm((actual) => ({ ...actual, [campo]: valor }));
@@ -80,6 +94,7 @@ function PlanDeClases() {
       const plan = res.data;
       if (plan) {
         setPlanActualId(plan.id);
+        setImagenesGuardadas({ imagen1: plan.imagen1 || null, imagen2: plan.imagen2 || null });
         setPeriodo(String(plan.periodo || "1"));
         setForm({
           unidad: plan.unidad || "",
@@ -94,6 +109,7 @@ function PlanDeClases() {
         setMensaje("Plan cargado para esta fecha.");
       } else {
         setPlanActualId(null);
+        setImagenesGuardadas({ imagen1: null, imagen2: null });
         setForm(estadoInicial);
         setMensaje("");
       }
@@ -171,6 +187,8 @@ function PlanDeClases() {
       });
       setPlanActualId(res.data.id);
       setImagenes([]);
+      if (imagenInputRef.current) imagenInputRef.current.value = "";
+      await cargarPlanDelDia();
       setMensaje(res.data.mensaje || "Plan guardado y enviado a administración.");
       await cargarHistorial();
     } catch (error) {
@@ -178,6 +196,26 @@ function PlanDeClases() {
       alert(error.response?.data?.detail || "Error al guardar");
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const eliminarImagenGuardada = async (slot) => {
+    if (!planActualId) return;
+
+    const nombreImagen = slot === "imagen1" ? "imagen 1" : "imagen 2";
+    const confirmar = window.confirm(`¿Quieres borrar la ${nombreImagen} de este plan?`);
+    if (!confirmar) return;
+
+    try {
+      await api.delete(`/plan-de-clases/${planActualId}/imagen`, { params: { slot } });
+      setImagenesGuardadas((actual) => ({ ...actual, [slot]: null }));
+      setHistorial((actual) =>
+        actual.map((plan) => (plan.id === planActualId ? { ...plan, [slot]: null } : plan)),
+      );
+      setMensaje("Imagen eliminada correctamente.");
+    } catch (error) {
+      console.error("Error eliminando imagen", error);
+      window.alert(error.response?.data?.detail || "No se pudo eliminar la imagen.");
     }
   };
 
@@ -271,16 +309,16 @@ function PlanDeClases() {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="w-full">
             <h2 className="mb-2 text-lg font-semibold text-gray-900">Imágenes</h2>
-            <input type="file" multiple accept="image/*" onChange={handleImageChange} className={campoBase} />
-            {imagenes.length > 0 && (
-              <div className="mt-2 text-sm text-gray-700">
-                {imagenes.map((img) => (
-                  <span key={img.name} className="mr-3 inline-block">
-                    {img.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            <input
+              ref={imagenInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+              className={campoBase}
+            />
+            <ImagenesSeleccionadas imagenes={imagenesSeleccionadas} />
+            <ImagenesGuardadas imagenes={imagenesGuardadas} onEliminarImagen={eliminarImagenGuardada} />
           </div>
           <button
             onClick={guardarPlan}
@@ -313,6 +351,96 @@ function PlanDeClases() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function ImagenesSeleccionadas({ imagenes }) {
+  if (imagenes.length === 0) return null;
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-semibold text-gray-700">Imágenes por subir</h3>
+      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {imagenes.map((imagen) => (
+          <div key={imagen.url} className="overflow-hidden rounded-lg border border-blue-100 bg-blue-50">
+            <img src={imagen.url} alt={imagen.nombre} className="h-36 w-full object-contain sm:h-40" />
+            <div className="border-t border-blue-100 bg-white px-3 py-2 text-xs font-medium text-gray-700">
+              {imagen.nombre}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ImagenesGuardadas({ imagenes, onEliminarImagen }) {
+  const imagenesDisponibles = [
+    { slot: "imagen1", path: imagenes.imagen1, label: "Imagen 1" },
+    { slot: "imagen2", path: imagenes.imagen2, label: "Imagen 2" },
+  ].filter((imagen) => Boolean(imagen.path));
+
+  if (imagenesDisponibles.length === 0) {
+    return <p className="mt-3 text-sm text-gray-600">Este plan todavía no tiene imágenes guardadas.</p>;
+  }
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-semibold text-gray-700">Imágenes guardadas</h3>
+      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {imagenesDisponibles.map((imagen, index) => (
+          <ImagenGuardadaCard
+            key={imagen.slot}
+            imagen={imagen}
+            alt={`${imagen.label} del plan de clases ${index + 1}`}
+            onEliminarImagen={() => onEliminarImagen(imagen.slot)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ImagenGuardadaCard({ imagen, alt, onEliminarImagen }) {
+  const { url, cargando, error } = useImagenProtegida(imagen.path);
+
+  const abrirImagen = () => {
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+      <button
+        type="button"
+        onClick={abrirImagen}
+        disabled={!url}
+        className="block h-36 w-full transition hover:opacity-90 disabled:cursor-not-allowed sm:h-40"
+      >
+        {cargando && <div className="flex h-full items-center justify-center text-sm text-gray-500">Cargando imagen...</div>}
+        {error && !cargando && <div className="flex h-full items-center justify-center px-3 text-sm text-red-600">{error}</div>}
+        {url && !cargando && <img src={url} alt={alt} className="h-full w-full object-contain" />}
+      </button>
+      <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2">
+        <div>
+          <p className="text-sm font-semibold text-gray-800">{imagen.label}</p>
+          <button
+            type="button"
+            onClick={abrirImagen}
+            disabled={!url}
+            className="text-xs font-medium text-blue-700 disabled:text-gray-400"
+          >
+            Ver imagen completa
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onEliminarImagen}
+          className="rounded-md border border-red-200 px-3 py-1 text-sm font-semibold text-red-700 hover:bg-red-50"
+        >
+          Borrar
+        </button>
+      </div>
     </div>
   );
 }
