@@ -133,7 +133,7 @@ export default function IdentidadInstitucional() {
           />
         </div>
         <p className="text-xs text-slate-500 mt-4">
-          Formatos: PNG, JPG, WebP, SVG. Tamaño máximo 2MB.
+          Formatos: PNG, JPG, WebP. Tamaño máximo 2MB.
         </p>
       </section>
 
@@ -202,7 +202,7 @@ function LogoSlot({ label, url, inputRef, onUpload, onDelete }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+        accept="image/png,image/jpeg,image/webp"
         onChange={onUpload}
         className="hidden"
       />

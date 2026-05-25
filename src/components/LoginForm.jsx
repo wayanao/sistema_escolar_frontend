@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import api from "../utils/api";
-import Cookies from "js-cookie";
 
 function LoginForm() {
 
@@ -27,8 +26,7 @@ function LoginForm() {
           // revisar respuesta
       const data = res.data;
 
-      // Guardar token y tenant para que el interceptor los inyecte en cada request
-      Cookies.set('token', data.access_token, { expires: 1 });
+      // Guardar tenant local; la cookie de sesion la emite el backend.
       localStorage.setItem('tenant', data.tenant);
 
       // 🔥 guardar sesión según rol y limpiar la opuesta

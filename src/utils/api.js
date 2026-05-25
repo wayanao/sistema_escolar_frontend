@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,7 +25,6 @@ api.interceptors.request.use(
           const userData = JSON.parse(raw);
           if (userData?.access_token) {
             token = userData.access_token;
-            Cookies.set('token', token, { expires: 1 });
           }
         } catch {
           // ignorar JSON malformado
