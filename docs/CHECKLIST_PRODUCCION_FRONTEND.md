@@ -1,0 +1,189 @@
+# Checklist Produccion Frontend
+
+Checklist tecnico basado en el estado actual documentado del frontend.
+
+## 1. CRITICO
+
+### Token disponible en `localStorage`
+
+- Problema: el cliente API usa cookie `token`, pero conserva fallback a `access_token` guardado dentro de `localStorage.usuario` o `localStorage.profesor`.
+- Riesgo: si ocurre XSS, el token puede ser leido desde `localStorage`.
+- Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
+- Que puede pasar en produccion: un atacante podria robar el token y usarlo para consumir endpoints como el usuario afectado.
+- Prioridad: CRITICO.
+- Como probarlo: iniciar sesion, abrir DevTools, revisar `localStorage.usuario` o `localStorage.profesor` y confirmar si contiene `access_token`.
+- Recomendacion tecnica: usar cookie HttpOnly/Secure/SameSite para sesion en produccion y eliminar el fallback de token desde `localStorage` cuando el backend ya soporte ese flujo completamente.
+
+### Guards basados en datos manipulables del navegador
+
+- Problema: `ProtectedRoute` y `AdminRoute` validan acceso con datos de `localStorage`.
+- Riesgo: un usuario puede modificar manualmente `localStorage` y hacer que la UI muestre rutas que no le corresponden.
+- Archivo afectado: `src/App.jsx`.
+- Que puede pasar en produccion: un profesor podria ver pantallas administrativas en la UI si altera `localStorage`; el backend debe bloquear los datos reales, pero la interfaz quedaria expuesta.
+- Prioridad: CRITICO.
+- Como probarlo: iniciar como profesor, cambiar en DevTools `localStorage.usuario` con `{ "rol": "admin" }`, refrescar e intentar entrar a `/dashboard-admin`.
+- Recomendacion tecnica: mantener guards de UI, pero revalidar sesion/rol contra backend al cargar la app y asumir que la autorizacion real siempre vive en backend.
+
+### Tenant enviado desde `localStorage`
+
+- Problema: el header `X-Tenant-ID` se toma de `localStorage.tenant`.
+- Riesgo: el valor puede ser manipulado desde el navegador.
+- Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
+- Que puede pasar en produccion: si el backend confiara en ese header como fuente absoluta, podria existir riesgo de acceso cruzado entre tenants.
+- Prioridad: CRITICO.
+- Como probarlo: iniciar sesion, cambiar `localStorage.tenant` por otro valor y hacer una peticion; verificar que el backend rechace o ignore tenants no autorizados por el JWT.
+- Recomendacion tecnica: tratar `X-Tenant-ID` como dato auxiliar de cliente; la fuente de verdad debe ser el JWT/sesion validada por backend.
+
+### Fallback de API a localhost
+
+- Problema: si `VITE_API_URL` no esta configurado, el frontend usa `http://localhost:8000`.
+- Riesgo: un build de produccion mal configurado podria intentar consumir una API local inexistente.
+- Archivo afectado: `src/utils/api.js`, `.env`.
+- Que puede pasar en produccion: la aplicacion podria quedar sin conexion al backend, con errores de red para todos los usuarios.
+- Prioridad: CRITICO.
+- Como probarlo: ejecutar build sin `VITE_API_URL` de produccion y revisar en navegador hacia donde salen las peticiones.
+- Recomendacion tecnica: exigir `VITE_API_URL` en entornos de produccion y documentar valores por ambiente.
+
+### Seguridad real dependiente del backend
+
+- Problema: los roles, rutas protegidas y menus del frontend solo controlan la experiencia visual.
+- Riesgo: cualquier endpoint llamado desde el navegador puede ser replicado manualmente con herramientas externas.
+- Archivo afectado: `src/App.jsx`, `src/utils/api.js`, paginas que consumen API.
+- Que puede pasar en produccion: si algun endpoint backend no valida permisos, tenant o ownership, la UI no lo impediria.
+- Prioridad: CRITICO.
+- Como probarlo: capturar una peticion desde DevTools, repetirla con otro ID o rol usando Postman/curl y verificar respuesta del backend.
+- Recomendacion tecnica: mantener el frontend como capa de UX y auditar backend como fuente obligatoria de permisos.
+
+## 2. IMPORTANTE
+
+### Manejo global de errores limitado a 401
+
+- Problema: el interceptor global solo actua ante `401`.
+- Riesgo: errores `403`, `422`, `429` o `500` pueden quedar manejados de forma inconsistente por cada pagina.
+- Archivo afectado: `src/utils/api.js` y paginas que llaman API.
+- Que puede pasar en produccion: usuarios pueden ver mensajes confusos, pantallas sin datos o fallos silenciosos.
+- Prioridad: IMPORTANTE.
+- Como probarlo: simular respuestas `403`, `500` y desconexion de red en una pagina con datos.
+- Recomendacion tecnica: centralizar criterios de error comunes sin quitar los mensajes especificos de cada modulo.
+
+### Componentes y paginas grandes
+
+- Problema: existen archivos grandes que mezclan estado, UI y llamadas API.
+- Riesgo: aumenta la probabilidad de bugs al modificar funcionalidades y dificulta pruebas.
+- Archivo afectado: `src/pages/EstudiantesAdmin.jsx` con 927 lineas, `src/components/cartera/AdministrarTiposPago.jsx` con 902 lineas, `src/components/AsignarClaseGrid.jsx` con 792 lineas, entre otros.
+- Que puede pasar en produccion: cambios pequenos pueden romper flujos completos por acoplamiento interno.
+- Prioridad: IMPORTANTE.
+- Como probarlo: revisar cambios en esos archivos y ejecutar pruebas manuales completas del modulo afectado.
+- Recomendacion tecnica: cuando se toque cada modulo, extraer hooks, subcomponentes y servicios por responsabilidad.
+
+### Estado de sesion repartido en varias claves
+
+- Problema: la sesion usa `usuario`, `profesor`, `tenant`, `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion`.
+- Riesgo: puede quedar estado viejo despues de cambios de usuario, logout parcial o expiracion.
+- Archivo afectado: `src/components/NavAdmin.jsx`, `src/components/NavProfesor.jsx`, `src/utils/api.js`, paginas academicas.
+- Que puede pasar en produccion: un usuario podria ver selecciones anteriores, periodos viejos o peticiones con contexto incorrecto.
+- Prioridad: IMPORTANTE.
+- Como probarlo: iniciar como profesor, seleccionar asignacion/periodo, cerrar sesion, entrar con otro usuario y revisar si queda estado anterior.
+- Recomendacion tecnica: centralizar limpieza de sesion y diferenciar estado de autenticacion de estado de trabajo.
+
+### Rutas protegidas sin verificacion asincrona inicial
+
+- Problema: `App.jsx` decide acceso inmediatamente desde `localStorage`.
+- Riesgo: una sesion expirada puede renderizar brevemente layout o menus hasta que una peticion devuelva `401`.
+- Archivo afectado: `src/App.jsx`, `src/utils/api.js`.
+- Que puede pasar en produccion: experiencia inconsistente, parpadeos de UI o acceso visual temporal a pantallas protegidas.
+- Prioridad: IMPORTANTE.
+- Como probarlo: guardar datos viejos en `localStorage`, invalidar token en backend, refrescar una ruta protegida.
+- Recomendacion tecnica: agregar una fase de validacion de sesion al iniciar la app antes de renderizar rutas privadas.
+
+### Formularios con validacion distribuida
+
+- Problema: las validaciones de formularios viven en cada componente/pagina.
+- Riesgo: reglas inconsistentes entre modulos y errores dificiles de mantener.
+- Archivo afectado: `LoginForm.jsx`, `CrearEstudiante.jsx`, `CrearProfesor.jsx`, `CrearCurso.jsx`, paginas administrativas y academicas.
+- Que puede pasar en produccion: datos incompletos, mensajes diferentes para el mismo error o validaciones duplicadas.
+- Prioridad: IMPORTANTE.
+- Como probarlo: enviar formularios vacios, formatos invalidos y valores limite en cada modulo.
+- Recomendacion tecnica: documentar reglas por modulo y luego centralizar validaciones compartidas.
+
+### Build con `dist/` presente en el repositorio
+
+- Problema: existe carpeta `dist/` generada por build dentro del proyecto.
+- Riesgo: puede mezclarse codigo generado viejo con cambios actuales si se revisa o despliega manualmente.
+- Archivo afectado: `dist/`.
+- Que puede pasar en produccion: despliegues con assets desactualizados o confusion al revisar cambios.
+- Prioridad: IMPORTANTE.
+- Como probarlo: ejecutar `pnpm run build` y comparar si `dist/` cambia despues de modificaciones.
+- Recomendacion tecnica: definir si `dist/` debe versionarse o generarse solo en CI/CD, y mantener ese criterio consistente.
+
+### Logs locales en raiz del frontend
+
+- Problema: existen logs locales de Vite en la raiz.
+- Riesgo: ruido en el repo y posible exposicion accidental de informacion de desarrollo.
+- Archivo afectado: `vite-dev.out.log`, `vite-dev.err.log`.
+- Que puede pasar en produccion: confusion operativa o subida accidental de logs no necesarios.
+- Prioridad: IMPORTANTE.
+- Como probarlo: revisar `git status` y verificar si los logs aparecen como cambios.
+- Recomendacion tecnica: mantener logs fuera del control de versiones o ignorarlos si son generados localmente.
+
+### Lazy loading existe, pero no hay estrategia visible de precarga
+
+- Problema: las paginas se cargan con `React.lazy`, pero no se observa una estrategia de prefetch/preload por flujo.
+- Riesgo: pantallas pesadas pueden tardar al primer ingreso.
+- Archivo afectado: `src/App.jsx`, paginas grandes.
+- Que puede pasar en produccion: usuarios con internet lento pueden sentir demoras al entrar a modulos grandes.
+- Prioridad: IMPORTANTE.
+- Como probarlo: ejecutar build, abrir DevTools Network con throttling y entrar por primera vez a paginas administrativas grandes.
+- Recomendacion tecnica: medir chunks reales y decidir precarga selectiva solo para rutas criticas.
+
+## 3. OPCIONAL
+
+### Loader generico muy basico
+
+- Problema: `PageLoader` solo muestra `Cargando...`.
+- Riesgo: en cargas lentas no informa contexto del modulo.
+- Archivo afectado: `src/App.jsx`.
+- Que puede pasar en produccion: experiencia menos clara en conexiones lentas.
+- Prioridad: OPCIONAL.
+- Como probarlo: activar throttling en DevTools y navegar entre rutas lazy.
+- Recomendacion tecnica: mejorar loaders por modulo cuando se trabaje experiencia de usuario.
+
+### Documentacion de variables por ambiente
+
+- Problema: se observa `.env` local con `VITE_API_URL`, pero no una plantilla documentada en el frontend.
+- Riesgo: nuevos despliegues pueden olvidar configurar URL de API.
+- Archivo afectado: `.env`, documentacion del frontend.
+- Que puede pasar en produccion: build apuntando a localhost o a una API incorrecta.
+- Prioridad: OPCIONAL.
+- Como probarlo: preparar un entorno nuevo sin `.env` y revisar resultado de build.
+- Recomendacion tecnica: agregar documentacion de variables por ambiente cuando se formalice el proceso de despliegue.
+
+### Menus y rutas definidos manualmente
+
+- Problema: rutas en `App.jsx` y enlaces en `NavAdmin.jsx`/`NavProfesor.jsx` se mantienen por separado.
+- Riesgo: una ruta puede existir sin enlace o un enlace puede quedar apuntando a una ruta removida.
+- Archivo afectado: `src/App.jsx`, `src/components/NavAdmin.jsx`, `src/components/NavProfesor.jsx`.
+- Que puede pasar en produccion: navegacion rota o pantallas inaccesibles desde el menu.
+- Prioridad: OPCIONAL.
+- Como probarlo: recorrer todos los enlaces del menu y refrescar cada ruta.
+- Recomendacion tecnica: centralizar definicion de rutas y menus cuando crezca el numero de modulos.
+
+### Versiones modernas con superficie de compatibilidad
+
+- Problema: el proyecto usa React 19, React Router DOM 7 y Vite 8.
+- Riesgo: algunas librerias o patrones antiguos pueden tener cambios de compatibilidad.
+- Archivo afectado: `package.json`.
+- Que puede pasar en produccion: warnings, incompatibilidades o comportamientos distintos en actualizaciones.
+- Prioridad: OPCIONAL.
+- Como probarlo: ejecutar `pnpm run build`, `pnpm run lint` y pruebas manuales de rutas principales despues de actualizar dependencias.
+- Recomendacion tecnica: fijar estrategia de actualizacion y probar dependencias en rama separada.
+
+### Separacion futura de servicios por dominio
+
+- Problema: el cliente `api` es central, pero las llamadas especificas estan distribuidas en paginas y algunos servicios.
+- Riesgo: crecimiento de llamadas duplicadas y manejo desigual de parametros/errores.
+- Archivo afectado: paginas en `src/pages/`, componentes en `src/components/`, `src/services/printingService.js`.
+- Que puede pasar en produccion: inconsistencias entre modulos al consumir endpoints parecidos.
+- Prioridad: OPCIONAL.
+- Como probarlo: buscar `api.get`, `api.post`, `api.put` y `api.delete` y revisar duplicados por modulo.
+- Recomendacion tecnica: crear servicios por dominio cuando se refactorice cada modulo.

@@ -1,0 +1,76 @@
+# Arquitectura Frontend
+
+Estado documentado del frontend `frontend-react`.
+
+## Stack actual
+
+- React 19.
+- React Router DOM 7.
+- Vite 8.
+- Axios para consumo del backend.
+- SweetAlert2 para alertas.
+- js-cookie para lectura/eliminacion de cookie `token`.
+- jsPDF y jspdf-autotable para impresos/reportes.
+- pnpm como gestor obligatorio del proyecto.
+
+## Estructura raiz observada
+
+- `src/`: codigo fuente de React.
+- `public/`: archivos publicos servidos por Vite.
+- `dist/`: salida generada por build.
+- `docs/`: documentacion de control del frontend.
+- `scripts/`: scripts auxiliares del proyecto.
+- `index.html`: entrada HTML de Vite.
+- `vite.config.js`: configuracion de Vite con plugin React.
+- `vercel.json`: reescritura SPA hacia `index.html`.
+- `.env`: variables de entorno locales.
+- `package.json`: scripts, dependencias y version de pnpm.
+
+## Estructura de `src/`
+
+- `src/main.jsx`: monta React en el DOM y envuelve `App` con `BrowserRouter`.
+- `src/App.jsx`: define rutas, layouts, lazy loading y guards principales.
+- `src/assets/`: imagenes y recursos estaticos del frontend.
+- `src/components/`: componentes reutilizables y componentes por modulo.
+- `src/components/admin/`: componentes administrativos de branding/plantillas.
+- `src/components/boletin/`: componentes del modulo de boletines.
+- `src/components/cartera/`: componentes del modulo de cartera.
+- `src/components/impresion/`: componentes de documentos imprimibles.
+- `src/hooks/`: hooks propios del frontend.
+- `src/pages/`: paginas principales de la aplicacion.
+- `src/services/`: servicios de frontend.
+- `src/styles/`: estilos globales adicionales.
+- `src/utils/`: utilidades compartidas, incluyendo cliente API.
+
+## Entrada de la aplicacion
+
+`src/main.jsx` renderiza:
+
+- `BrowserRouter`
+- `App`
+
+`src/App.jsx` carga varias paginas con `React.lazy` y usa `Suspense` con un loader simple de texto `Cargando...`.
+
+## Layout principal
+
+La aplicacion tiene una ruta superior:
+
+- `/login`: pantalla de login.
+- `/*`: layout autenticado.
+
+El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
+
+- Si existe `usuario` con rol `admin`, muestra `NavAdmin`.
+- Si no, muestra `NavProfesor`.
+- Si no existe ningun usuario/profesor en sesion, redirige a `/login`.
+
+## Build
+
+Los scripts actuales de `package.json` son:
+
+- `pnpm run dev`: inicia Vite.
+- `pnpm run build`: ejecuta `vite build`.
+- `pnpm run lint`: ejecuta ESLint.
+- `pnpm run preview`: sirve el build con Vite preview.
+
+El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`, `prebuild`, `prelint` y `prepreview`.

@@ -1,0 +1,165 @@
+# Plan Ejecucion Frontend
+
+Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archivo no cambia codigo; ordena el trabajo futuro del frontend.
+
+## 1. Seguridad frontend
+
+- Objetivo: reducir exposicion de datos sensibles en el navegador y dejar claro que la autorizacion real viene del backend.
+- Tareas:
+  - Revisar uso de `access_token` dentro de `localStorage.usuario` y `localStorage.profesor`.
+  - Coordinar eliminacion del fallback de token en `localStorage` cuando backend trabaje con cookie segura.
+  - Revisar uso de `X-Tenant-ID` desde `localStorage.tenant`.
+  - Validar que ninguna pantalla asuma que ocultar botones equivale a permiso real.
+- Archivos probables:
+  - `src/utils/api.js`
+  - `src/components/LoginForm.jsx`
+  - `src/App.jsx`
+  - paginas que consumen API.
+- Riesgo: ALTO; tocar sesion/token puede romper login y consumo de API.
+- Como probar:
+  - Iniciar sesion como admin y profesor.
+  - Revisar DevTools Storage y confirmar que el token no queda expuesto cuando se haga el cambio.
+  - Cambiar manualmente `tenant` y rol local para confirmar que backend bloquea.
+  - Probar endpoints desde la UI despues de limpiar storage.
+- Cuando hacer commit:
+  - Un commit despues de que login, navegacion y llamadas autenticadas funcionen con admin y profesor.
+
+## 2. Manejo de sesion
+
+- Objetivo: centralizar el estado de sesion y evitar restos de usuario anterior.
+- Tareas:
+  - Crear o consolidar una utilidad de lectura/limpieza de sesion.
+  - Unificar logout de `NavAdmin.jsx` y `NavProfesor.jsx`.
+  - Separar datos de autenticacion de selecciones de trabajo como `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion`.
+  - Agregar validacion inicial de sesion si backend expone endpoint para usuario actual.
+- Archivos probables:
+  - `src/components/NavAdmin.jsx`
+  - `src/components/NavProfesor.jsx`
+  - `src/utils/api.js`
+  - `src/App.jsx`
+  - paginas academicas que usan selecciones persistidas.
+- Riesgo: MEDIO/ALTO; limpiar mal el storage puede sacar al usuario o perder selecciones necesarias.
+- Como probar:
+  - Login admin, logout, login profesor.
+  - Login profesor, seleccionar asignacion/periodo, logout, login con otro profesor.
+  - Refrescar rutas protegidas con token vigente y token vencido.
+  - Confirmar redireccion a `/login` en `401`.
+- Cuando hacer commit:
+  - Despues de probar login/logout y cambio de usuario en ambos perfiles.
+
+## 3. Roles y guards
+
+- Objetivo: hacer que las rutas protegidas dependan de una sesion validada y no solo de datos locales manipulables.
+- Tareas:
+  - Revisar `ProtectedRoute` y `AdminRoute`.
+  - Agregar estado de carga de sesion antes de renderizar layout protegido cuando exista endpoint backend.
+  - Mantener menus por rol, pero sincronizados con rol validado.
+  - Revisar paginas que tambien validan rol internamente para evitar duplicacion confusa.
+- Archivos probables:
+  - `src/App.jsx`
+  - `src/components/NavAdmin.jsx`
+  - `src/components/NavProfesor.jsx`
+  - paginas administrativas con validaciones locales.
+- Riesgo: ALTO; cambios en guards pueden bloquear rutas correctas o dejar rutas admin visibles.
+- Como probar:
+  - Entrar como admin a todas las rutas admin.
+  - Entrar como profesor e intentar `/dashboard-admin`, `/admin/pagos`, `/boletin`.
+  - Manipular `localStorage.usuario.rol` y refrescar.
+  - Probar sesion expirada.
+- Cuando hacer commit:
+  - Despues de recorrer rutas principales de admin y profesor sin regresiones.
+
+## 4. Componentes grandes
+
+- Objetivo: reducir riesgo de mantenimiento en archivos grandes sin cambiar comportamiento.
+- Tareas:
+  - Empezar por un modulo a la vez.
+  - Extraer subcomponentes visuales cuando no cambien reglas de negocio.
+  - Extraer hooks/servicios para llamadas API repetidas.
+  - Mantener nombres y flujos existentes durante la primera separacion.
+- Archivos probables:
+  - `src/pages/EstudiantesAdmin.jsx`
+  - `src/components/cartera/AdministrarTiposPago.jsx`
+  - `src/components/AsignarClaseGrid.jsx`
+  - `src/pages/PagosAdmin.jsx`
+  - `src/pages/CarteraVencidaAdmin.jsx`
+  - `src/pages/PlaneadorAnual.jsx`
+  - `src/pages/PlanDeClases.jsx`
+- Riesgo: MEDIO; refactors grandes pueden romper flujos si se mezclan con cambios funcionales.
+- Como probar:
+  - Probar el modulo antes del refactor y anotar flujo base.
+  - Probar crear, editar, eliminar, listar y filtros del modulo afectado.
+  - Ejecutar build despues de cada extraccion.
+- Cuando hacer commit:
+  - Un commit por modulo o por extraccion pequena que compile y mantenga el flujo igual.
+
+## 5. Performance
+
+- Objetivo: mejorar carga inicial y navegacion sin perder funcionalidad.
+- Tareas:
+  - Medir chunks generados por `pnpm run build`.
+  - Revisar paginas pesadas cargadas con `React.lazy`.
+  - Evaluar precarga selectiva solo para rutas criticas.
+  - Revisar tablas/listas grandes y coordinar paginacion con backend donde aplique.
+- Archivos probables:
+  - `src/App.jsx`
+  - paginas administrativas grandes.
+  - componentes de tablas/listados.
+  - `package.json`
+  - `vite.config.js` si se ajusta build.
+- Riesgo: MEDIO; optimizaciones prematuras pueden complicar el codigo sin mejorar tiempos reales.
+- Como probar:
+  - Ejecutar `pnpm run build`.
+  - Usar DevTools Network con throttling.
+  - Medir primera carga, navegacion a modulos grandes y tiempo de respuesta de API.
+- Cuando hacer commit:
+  - Despues de medir mejora o confirmar que el cambio no empeora carga y navegacion.
+
+## 6. Manejo de errores
+
+- Objetivo: hacer respuestas de error consistentes y entendibles para el usuario.
+- Tareas:
+  - Ampliar criterio global en `api.js` para errores comunes sin borrar manejo local.
+  - Revisar formularios principales y mensajes para `422`, `403`, `500` y red.
+  - Diferenciar error de permisos, error de validacion y error de conexion.
+  - Evitar pantallas vacias cuando una peticion falla.
+- Archivos probables:
+  - `src/utils/api.js`
+  - `src/components/LoginForm.jsx`
+  - paginas con formularios administrativos y academicos.
+- Riesgo: MEDIO; un manejo global agresivo puede tapar mensajes especificos utiles.
+- Como probar:
+  - Credenciales invalidas.
+  - Usuario sin permiso.
+  - Backend apagado.
+  - Formularios con datos incompletos.
+  - Error 500 simulado o provocado en entorno de prueba.
+- Cuando hacer commit:
+  - Despues de probar errores en login y al menos un modulo admin y uno profesor.
+
+## 7. Build produccion
+
+- Objetivo: asegurar que el build use variables correctas y no dependa de archivos locales.
+- Tareas:
+  - Documentar/validar `VITE_API_URL` por ambiente.
+  - Revisar que el build no use `http://localhost:8000` en produccion.
+  - Definir criterio sobre `dist/` versionado.
+  - Revisar logs locales de Vite.
+  - Confirmar que `vercel.json` mantiene rutas SPA funcionando.
+- Archivos probables:
+  - `.env`
+  - `src/utils/api.js`
+  - `vercel.json`
+  - `package.json`
+  - `dist/`
+  - `vite-dev.out.log`
+  - `vite-dev.err.log`
+- Riesgo: ALTO; un build mal configurado puede dejar la app sin API o con assets desactualizados.
+- Como probar:
+  - Ejecutar `pnpm run build`.
+  - Ejecutar `pnpm run preview`.
+  - Navegar rutas internas y refrescar.
+  - Revisar Network para confirmar URL real de API.
+  - Probar login contra ambiente correcto.
+- Cuando hacer commit:
+  - Despues de build exitoso y prueba manual de login, rutas protegidas y una ruta admin/profesor.
