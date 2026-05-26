@@ -87,6 +87,23 @@ function PlaneadorAnual() {
 
   const guardarPlaneadores = async () => {
     if (!asignacionId || !periodo) return;
+
+    const filaSinFecha = planeadores.findIndex((planeador) => {
+      const tieneContenido = [
+        planeador.unidad_tematica,
+        planeador.estandar_competencia,
+        planeador.contenido,
+        planeador.actividades_recursos,
+      ].some((valor) => String(valor || "").trim());
+
+      return tieneContenido && !planeador.fecha;
+    });
+
+    if (filaSinFecha !== -1) {
+      alert(`Debes seleccionar la fecha en la fila ${filaSinFecha + 1} antes de guardar.`);
+      return;
+    }
+
     try {
       const res = await api.put(`/planeador-anual/${asignacionId}/${periodo}`, planeadores);
       if (res.status >= 200 && res.status < 300) {
