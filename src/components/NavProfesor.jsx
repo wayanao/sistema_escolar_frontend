@@ -1,12 +1,19 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import api from "../utils/api";
 
 function NavProfesor() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState(null);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+    } catch (error) {
+      console.error("Error cerrando sesión", error);
+    }
+
     localStorage.removeItem("profesor");
     localStorage.removeItem("usuario");
     localStorage.removeItem("asignacionId");

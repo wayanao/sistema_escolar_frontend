@@ -14,23 +14,10 @@ const api = axios.create({
 // ────────────────────────────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    // 1. JWT ─ recuperar de cookie (prioridad) o localStorage (fallback para dev)
-    let token = Cookies.get('token');
-
-    if (!token) {
-      const raw =
-        localStorage.getItem('usuario') || localStorage.getItem('profesor');
-      if (raw) {
-        try {
-          const userData = JSON.parse(raw);
-          if (userData?.access_token) {
-            token = userData.access_token;
-          }
-        } catch {
-          // ignorar JSON malformado
-        }
-      }
-    }
+    // 1. JWT ─ recuperar de cookie. En produccion debe ser HttpOnly y viajar
+    // automaticamente con withCredentials; este fallback conserva compatibilidad
+    // con cookies no HttpOnly usadas en desarrollo.
+    const token = Cookies.get('token');
 
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;

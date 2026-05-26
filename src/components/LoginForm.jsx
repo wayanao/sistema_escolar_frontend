@@ -26,16 +26,23 @@ function LoginForm() {
           // revisar respuesta
       const data = res.data;
 
+      const sessionData = {
+        id: data.id,
+        nombre: data.nombre,
+        rol: data.rol,
+        tenant: data.tenant,
+      };
+
       // Guardar tenant local; la cookie de sesion la emite el backend.
       localStorage.setItem('tenant', data.tenant);
 
       // 🔥 guardar sesión según rol y limpiar la opuesta
       if (data.rol === "admin") {
-        localStorage.setItem("usuario", JSON.stringify(data));
+        localStorage.setItem("usuario", JSON.stringify(sessionData));
         localStorage.removeItem("profesor"); // Limpiar sesión de profesor
       } else {
         // Para profesores, mantener compatibilidad con el código existente
-        localStorage.setItem("profesor", JSON.stringify(data));
+        localStorage.setItem("profesor", JSON.stringify(sessionData));
         localStorage.removeItem("usuario"); // Limpiar sesión de admin
       }
 
