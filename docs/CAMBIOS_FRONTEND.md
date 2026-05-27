@@ -233,3 +233,36 @@ Pruebas manuales recomendadas:
 - Intentar crear un concepto con un nombre existente.
 - Confirmar que la alerta diga que el concepto ya existe.
 - Intentar editar un concepto usando el nombre de otro existente.
+
+## 2026-05-26 - Normalizacion visual al crear profesor, curso y materia
+
+Se agrego normalizacion en frontend para enviar nombres en formato titulo desde
+el panel administrativo.
+
+Archivos modificados:
+
+- `src/components/CrearProfesor.jsx`
+- `src/components/CrearCurso.jsx`
+- `src/components/CrearMateria.jsx`
+
+Cambio:
+
+- Profesor:
+  - `nombre` y `apellido` se envian con iniciales en mayuscula;
+  - `email` se envia en minusculas.
+- Curso:
+  - `nombre` se envia con iniciales en mayuscula.
+- Materia:
+  - `nombre` se envia con iniciales en mayuscula.
+
+Motivo:
+
+- Mejorar consistencia visual en listados, boletines, reportes e impresos.
+- Evitar guardar textos con mayusculas/minusculas desordenadas desde la UI.
+
+Pruebas manuales recomendadas:
+
+- Crear profesor escribiendo `juan carlos` y `perez`.
+- Confirmar que se guarda/lista como `Juan Carlos Perez`.
+- Crear curso y materia en minusculas.
+- Confirmar que aparecen con iniciales en mayuscula.

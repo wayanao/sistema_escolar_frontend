@@ -3,6 +3,13 @@ import api from "../utils/api";
 
 const API = import.meta.env.VITE_API_URL;
 
+const toTitleCase = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("es-CO")
+    .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
+
 function CrearProfesor() {
   const [profesores, setProfesores] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -39,10 +46,10 @@ function CrearProfesor() {
 
     try {
       const payload = {
-        nombre,
-        apellido,
+        nombre: toTitleCase(nombre),
+        apellido: toTitleCase(apellido),
         documento_identidad,
-        email,
+        email: email.trim().toLocaleLowerCase("es-CO"),
         telefono,
         password,
         sueldo: parseFloat(sueldo) || 0

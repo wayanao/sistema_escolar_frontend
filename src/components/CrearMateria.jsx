@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "../utils/api";
 
+const toTitleCase = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("es-CO")
+    .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
+
 function CrearMateria() {
   const [materias, setMaterias] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -23,11 +30,12 @@ function CrearMateria() {
     if (!nombre) return alert("Falta nombre");
 
     try {
+      const nombreNormalizado = toTitleCase(nombre);
       let res;
       if (editId) {
-        res = await api.put(`/materias/${editId}`, { nombre });
+        res = await api.put(`/materias/${editId}`, { nombre: nombreNormalizado });
       } else {
-        res = await api.post(`/materia`, { nombre });
+        res = await api.post(`/materia`, { nombre: nombreNormalizado });
       }
 
       if (res.status >= 200 && res.status < 300) {

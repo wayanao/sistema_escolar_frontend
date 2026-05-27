@@ -3,6 +3,13 @@ import api from "../utils/api";
 
 const API = import.meta.env.VITE_API_URL;
 
+const toTitleCase = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("es-CO")
+    .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
+
 function CrearCurso() {
   const [cursos, setCursos] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -28,7 +35,7 @@ function CrearCurso() {
 
     try {
       const payload = {
-        nombre,
+        nombre: toTitleCase(nombre),
         jornada
       };
 
