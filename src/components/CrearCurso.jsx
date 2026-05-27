@@ -8,9 +8,6 @@ function CrearCurso() {
   const [editId, setEditId] = useState(null);
 
   const [nombre, setNombre] = useState("");
-  const [matricula, setMatricula] = useState("");
-  const [mensualidad, setMensualidad] = useState("");
-  const [meses, setMeses] = useState("");
   const [jornada, setJornada] = useState("Mañana");
 
   const cargarCursos = async () => {
@@ -32,9 +29,6 @@ function CrearCurso() {
     try {
       const payload = {
         nombre,
-        matricula: matricula ? parseFloat(matricula) : 0,
-        mensualidad: mensualidad ? parseFloat(mensualidad) : 0,
-        meses: meses ? parseInt(meses) : 0,
         jornada
       };
 
@@ -49,9 +43,6 @@ function CrearCurso() {
         alert(editId ? "Curso actualizado 🔥" : "Curso creado 🔥");
         setEditId(null);
         setNombre("");
-        setMatricula("");
-        setMensualidad("");
-        setMeses("");
         setJornada("Mañana");
         cargarCursos();
       } else {
@@ -66,18 +57,12 @@ function CrearCurso() {
   const editCurso = (c) => {
     setEditId(c.id);
     setNombre(c.nombre);
-    setMatricula(c.matricula);
-    setMensualidad(c.mensualidad);
-    setMeses(c.meses);
     setJornada(c.jornada || "Mañana");
   };
 
   const cancelEdit = () => {
     setEditId(null);
     setNombre("");
-    setMatricula("");
-    setMensualidad("");
-    setMeses("");
     setJornada("Mañana");
   };
 
@@ -96,36 +81,6 @@ function CrearCurso() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Matrícula</label>
-            <input
-              placeholder="Matrícula"
-              type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-              value={matricula}
-              onChange={(e) => setMatricula(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mensualidad</label>
-            <input
-              placeholder="Mensualidad"
-              type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-              value={mensualidad}
-              onChange={(e) => setMensualidad(e.target.value)}        
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Meses</label>
-            <input
-              placeholder="Meses"
-              type="number"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-              value={meses}
-              onChange={(e) => setMeses(e.target.value)}
             />
           </div>
           <div>

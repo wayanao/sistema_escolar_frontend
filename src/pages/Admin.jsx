@@ -15,7 +15,7 @@ const modulosAdmin = [
     {
         id: "cursos",
         titulo: "Crear curso",
-        descripcion: "Administrar cursos, matrículas y mensualidades.",
+        descripcion: "Administrar cursos y jornadas.",
         componente: CrearCurso,
     },
     {

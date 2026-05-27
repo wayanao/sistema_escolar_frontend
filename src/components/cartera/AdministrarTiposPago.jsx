@@ -195,8 +195,14 @@ function AdministrarTiposPago() {
             } else {
                 Swal.fire("Error", "Error al guardar o ya existe", "error");
             }
-        } catch {
-            Swal.fire("Error", "Error de conexión", "error");
+        } catch (error) {
+            const detail = error?.response?.data?.detail;
+            const status = error?.response?.status;
+            if (status === 409) {
+                Swal.fire("Concepto duplicado", detail || "Ya existe un tipo de pago con ese nombre.", "warning");
+            } else {
+                Swal.fire("Error", detail || "No se pudo guardar el tipo de pago", "error");
+            }
         }
     };
 

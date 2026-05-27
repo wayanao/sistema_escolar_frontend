@@ -139,3 +139,97 @@ Verificacion:
 - Se revisaron `src/components/LoginForm.jsx` y `src/utils/api.js`.
 - Se intento buscar usos restantes de `access_token`/`token_type`, pero PowerShell mostro ruido local de permisos de `fnm`; no se observaron coincidencias funcionales en los archivos modificados.
 - La compilacion con `pnpm run build` sigue bloqueada por permisos locales `EPERM` en `AppData`.
+
+## 2026-05-26 - Crear Curso sin campos financieros
+
+Se actualizo el formulario administrativo de crear/editar cursos para separar lo academico de lo financiero.
+
+Archivo modificado:
+
+- `src/components/CrearCurso.jsx`
+
+Cambio:
+
+- Se ocultaron/eliminaron del formulario los inputs:
+  - `Matricula`;
+  - `Mensualidad`;
+  - `Meses`.
+- El formulario ahora muestra datos academicos del curso:
+  - `Nombre`;
+  - `Jornada`.
+- El payload ya no envia `matricula`, `mensualidad` ni `meses`.
+
+Motivo:
+
+- Los cobros se administran desde `Tipos de Pago`.
+- Evitar que el admin configure valores financieros duplicados entre Crear Curso y Cartera.
+- Alinear el formulario con el backend, donde Curso ya quedo como entidad academica.
+
+Pruebas manuales recomendadas:
+
+- Crear un curso nuevo desde Administracion > Crear Curso.
+- Confirmar que solo pide nombre y jornada.
+- Editar un curso existente y confirmar que no aparecen campos financieros.
+- Ir a Tipos de Pago y asignar los cobros al curso.
+- Confirmar que cartera/pagos calculan deuda desde Tipos de Pago.
+
+Verificacion:
+
+- Se reviso `src/components/CrearCurso.jsx`.
+- No quedan estados, inputs ni payload de `matricula`, `mensualidad` o `meses`.
+
+## 2026-05-26 - Nomina usa sueldo del profesor como salario base
+
+Se ajusto el modal de pago de nomina para que el campo `Salario Base` se llene
+automaticamente con el sueldo asignado al profesor.
+
+Archivo modificado:
+
+- `src/pages/NominaAdmin.jsx`
+
+Cambio:
+
+- Al abrir el modal `Realizar Pago`, `salarioBase` ya no queda vacio.
+- Ahora toma `empleado.sueldo` recibido desde `/api/nomina/empleados`.
+- Si el empleado no trae sueldo, usa `0` como valor seguro.
+
+Motivo:
+
+- Evitar que el admin tenga que volver a digitar manualmente el sueldo que ya se
+  configuro al crear o editar el profesor.
+
+Pruebas manuales recomendadas:
+
+- Crear o editar un profesor con sueldo.
+- Ir a Admin > Cartera > Gestion de Nomina.
+- Abrir `Realizar Pago` para ese profesor.
+- Confirmar que `Salario Base` muestra el sueldo asignado.
+- Confirmar que el total neto se recalcula correctamente con bonos/descuentos.
+
+## 2026-05-26 - Alerta clara para tipos de pago duplicados
+
+Se ajusto la pantalla de Tipos de Pago para mostrar la causa real cuando el
+backend rechaza un concepto duplicado.
+
+Archivo modificado:
+
+- `src/components/cartera/AdministrarTiposPago.jsx`
+
+Cambio:
+
+- En el guardado de conceptos, el `catch` ahora lee `error.response.data.detail`.
+- Si el backend responde `409`, muestra una alerta de `Concepto duplicado`.
+- Para otros errores, muestra el detalle del backend o un mensaje generico mas
+  especifico.
+
+Motivo:
+
+- Evitar que el usuario vea "Error de conexion" cuando en realidad el concepto
+  ya existe.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Cartera > Tipos de Pago.
+- Intentar crear un concepto con un nombre existente.
+- Confirmar que la alerta diga que el concepto ya existe.
+- Intentar editar un concepto usando el nombre de otro existente.

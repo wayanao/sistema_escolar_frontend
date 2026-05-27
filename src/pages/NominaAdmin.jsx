@@ -43,7 +43,7 @@ const NominaAdmin = () => {
 
     const openModal = (empleado) => {
         setSelectedEmpleado(empleado);
-        setSalarioBase("");
+        setSalarioBase(String(empleado.sueldo ?? 0));
         setAbonoPrestamo("0");
         setOtrosDescuentos("0");
         setBonificaciones("0");
