@@ -63,11 +63,17 @@ function NavProfesor() {
   return (
     <header className="bg-blue-700 text-white px-4 py-3 shadow-md relative z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-        <div>
-          <NavLink to="/" className="hover:opacity-80 transition cursor-pointer">
-            <strong className="text-lg">Sistema Escolar</strong>
+        <div className="min-w-0">
+          <NavLink to="/" className="inline-flex flex-col leading-tight hover:opacity-90 transition cursor-pointer">
+            <strong className="text-xl font-black tracking-normal">
+              Scholar<span className="text-cyan-200">ix</span>
+            </strong>
           </NavLink>
-          {nombreUsuario && <span className="ml-3 text-sm opacity-80 hidden sm:inline">Profesor/a: {nombreUsuario}</span>}
+          {nombreUsuario && (
+            <span className="block max-w-[230px] truncate text-xs font-medium text-blue-100 sm:max-w-[320px]">
+              Profesor/a: {nombreUsuario}
+            </span>
+          )}
         </div>
 
         {/* Mobile menu button */}

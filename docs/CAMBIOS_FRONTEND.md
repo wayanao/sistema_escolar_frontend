@@ -333,3 +333,43 @@ Pruebas manuales recomendadas:
 - Anularla desde cargos recientes escribiendo motivo.
 - Confirmar que queda marcada como `Anulada`.
 - Confirmar que al recargar la pantalla se mantiene anulada.
+
+## 2026-05-28 - Dashboard profesor: rankings por curso
+
+Se ajustaron los cards del dashboard del profesor para mostrar informacion mas
+util y filtrable sin depender solo del primer resultado.
+
+Archivo modificado:
+
+- `src/pages/DashboardProfesor.jsx`
+
+Cambio:
+
+- El card de inasistencias ahora muestra ranking por curso.
+- Los cards de notas bajas y notas altas muestran listados, no solo un
+  estudiante.
+- Se agrego filtro por `Curso` y `Materia` para notas bajas y notas altas.
+- Los botones de ranking detallado quedaron separados del card para evitar
+  navegaciones accidentales.
+
+Seguridad:
+
+- El filtro por curso se envia al backend como `curso_id`.
+- La autorizacion real queda en backend; la UI no decide permisos.
+
+Pruebas manuales recomendadas:
+
+- Entrar como profesor y revisar el dashboard.
+- Cambiar el filtro entre `Todas las materias del curso` y una materia especifica.
+- Confirmar que notas bajas/altas cambian segun el filtro.
+- Confirmar que inasistencias muestra ranking por curso.
+- Confirmar que el boton `Ver ranking por materia` sigue pidiendo seleccionar
+  un salon/materia.
+
+Correccion posterior:
+
+- El filtro de rendimiento quedo en dos niveles:
+  - `Curso`.
+  - `Materia`: `Todas las materias del curso` o una materia especifica.
+- `Todas las materias del curso` calcula el rendimiento usando solo las
+  materias que ese profesor dicta en el curso seleccionado.

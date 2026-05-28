@@ -41,11 +41,17 @@ function NavAdmin() {
   return (
     <header className="bg-purple-700 text-white px-4 py-3 shadow-md relative z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-        <div>
-          <NavLink to="/dashboard-admin" className="hover:opacity-80 transition cursor-pointer">
-            <strong className="text-lg">Sistema Escolar - Admin</strong>
+        <div className="min-w-0">
+          <NavLink to="/dashboard-admin" className="inline-flex flex-col leading-tight hover:opacity-90 transition cursor-pointer">
+            <strong className="text-xl font-black tracking-normal">
+              Scholar<span className="text-fuchsia-200">ix</span>
+            </strong>
           </NavLink>
-          {nombreUsuario && <span className="ml-3 text-sm opacity-80 hidden sm:inline">Admin: {nombreUsuario}</span>}
+          {nombreUsuario && (
+            <span className="block max-w-[230px] truncate text-xs font-medium text-purple-100 sm:max-w-[320px]">
+              Admin: {nombreUsuario}
+            </span>
+          )}
         </div>
 
         {/* Mobile menu button */}

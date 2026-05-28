@@ -29,9 +29,11 @@ function DashboardProfesor() {
   const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
   const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
   const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
-  const [inasistencias, setInasistencias] = useState(null);
+  const [inasistencias, setInasistencias] = useState([]);
   const [notasBajas, setNotasBajas] = useState([]);
   const [notasAltas, setNotasAltas] = useState([]);
+  const [cursoFiltroRendimiento, setCursoFiltroRendimiento] = useState("");
+  const [materiaFiltroRendimiento, setMateriaFiltroRendimiento] = useState("todas");
   const [loading, setLoading] = useState(true);
 
   const handleAsignacionChange = (e) => {
@@ -66,6 +68,31 @@ function DashboardProfesor() {
     }
     return Array.from(vistos.values());
   }, [clases]);
+  const cursosProfesor = useMemo(() => {
+    const vistos = new Map();
+    for (const clase of clases) {
+      if (!clase.curso_id) continue;
+      const key = String(clase.curso_id);
+      if (!vistos.has(key)) {
+        vistos.set(key, { id: clase.curso_id, nombre: clase.curso });
+      }
+    }
+    return Array.from(vistos.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [clases]);
+  const cursoFiltroNombre = useMemo(() => {
+    return cursosProfesor.find((curso) => String(curso.id) === String(cursoFiltroRendimiento))?.nombre || "Curso";
+  }, [cursoFiltroRendimiento, cursosProfesor]);
+  const materiasDelCursoFiltro = useMemo(
+    () =>
+      clasesUnicas
+        .filter((clase) => String(clase.curso_id) === String(cursoFiltroRendimiento))
+        .sort((a, b) => (a.materia || "").localeCompare(b.materia || "")),
+    [clasesUnicas, cursoFiltroRendimiento]
+  );
+  const materiaFiltroNombre = useMemo(() => {
+    if (materiaFiltroRendimiento === "todas") return "Todas las materias";
+    return materiasDelCursoFiltro.find((clase) => String(clase.id) === String(materiaFiltroRendimiento))?.materia || "Materia";
+  }, [materiaFiltroRendimiento, materiasDelCursoFiltro]);
 
   const clasesConHorario = useMemo(
     () =>
@@ -109,6 +136,7 @@ function DashboardProfesor() {
           id: asignacion.id,
           materia: asignacion.materia,
           curso: asignacion.curso,
+          curso_id: asignacion.curso_id,
           dia: asignacion.dia,
           hora_inicio: asignacion.hora_inicio,
           hora_fin: asignacion.hora_fin,
@@ -125,7 +153,7 @@ function DashboardProfesor() {
     try {
       const res = await api.get(`/dashboard/inasistencias/${profesorId}`);
       const data = res.data;
-      setInasistencias(data);
+      setInasistencias(Array.isArray(data) ? data : data ? [data] : []);
     } catch (error) {
       console.error("Error cargando inasistencias", error);
     }
@@ -133,8 +161,16 @@ function DashboardProfesor() {
 
   const cargarNotasBajas = async () => {
     if (!profesorId) return;
+    if (!cursoFiltroRendimiento) {
+      setNotasBajas([]);
+      return;
+    }
     try {
-      const res = await api.get(`/dashboard/notas-bajas/${profesorId}`);
+      const params = { curso_id: cursoFiltroRendimiento };
+      if (materiaFiltroRendimiento !== "todas") {
+        params.asignacion_id = materiaFiltroRendimiento;
+      }
+      const res = await api.get(`/dashboard/notas-bajas/${profesorId}`, { params });
       const data = res.data;
       setNotasBajas(data);
     } catch (error) {
@@ -144,8 +180,16 @@ function DashboardProfesor() {
 
   const cargarNotasAltas = async () => {
     if (!profesorId) return;
+    if (!cursoFiltroRendimiento) {
+      setNotasAltas([]);
+      return;
+    }
     try {
-      const res = await api.get(`/dashboard/notas-altas/${profesorId}`);        
+      const params = { curso_id: cursoFiltroRendimiento };
+      if (materiaFiltroRendimiento !== "todas") {
+        params.asignacion_id = materiaFiltroRendimiento;
+      }
+      const res = await api.get(`/dashboard/notas-altas/${profesorId}`, { params });        
       const data = res.data;
       setNotasAltas(data);
     } catch (error) {
@@ -164,13 +208,30 @@ function DashboardProfesor() {
         cargarClases(),
         cargarHorarioAsignado(),
         cargarInasistencias(),
-        cargarNotasBajas(),
-        cargarNotasAltas(),
       ]);
       setLoading(false);
     };
     cargarDatos();
   }, [profesorId]);
+
+  useEffect(() => {
+    if (!cursosProfesor.length || cursoFiltroRendimiento) return;
+    setCursoFiltroRendimiento(String(cursosProfesor[0].id));
+  }, [cursosProfesor, cursoFiltroRendimiento]);
+
+  useEffect(() => {
+    if (!profesorId) return;
+    cargarNotasBajas();
+    cargarNotasAltas();
+  }, [profesorId, cursoFiltroRendimiento, materiaFiltroRendimiento]);
+
+  const irARanking = (ruta) => {
+    if (!asignacionId) {
+      alert("Por favor, selecciona un salón (materia) primero para ver el ranking.");
+      return;
+    }
+    navigate(ruta);
+  };
 
   if (loading) {
     return (
@@ -337,20 +398,84 @@ function DashboardProfesor() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200">
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">Filtro de rendimiento</p>
+          <p className="text-sm text-gray-600">
+            Primero selecciona el curso; luego mira todas las materias de ese curso o una materia especifica.
+          </p>
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Curso
+            </label>
+            <select
+              value={cursoFiltroRendimiento}
+              onChange={(e) => {
+                setCursoFiltroRendimiento(e.target.value);
+                setMateriaFiltroRendimiento("todas");
+              }}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {cursosProfesor.map((curso) => (
+                <option key={curso.id} value={curso.id}>
+                  {curso.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Materia
+            </label>
+            <select
+              value={materiaFiltroRendimiento}
+              onChange={(e) => setMateriaFiltroRendimiento(e.target.value)}
+              disabled={!cursoFiltroRendimiento}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+            >
+              <option value="todas">Todas las materias del curso</option>
+              {materiasDelCursoFiltro.map((clase) => (
+                <option key={clase.id} value={clase.id}>
+                  {clase.materia}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
           <div className="p-6">
             <div className="bg-red-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-2xl">⚠️</span>
+              <span className="text-2xl" aria-hidden="true">!</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Estudiante con más inasistencias
+              Ranking de inasistencias por curso
             </h3>
-            {inasistencias ? (
-              <div>
-                <p className="text-lg font-medium">{inasistencias.nombre}</p>
-                <p className="text-gray-600">Curso: {inasistencias.curso}</p>
-                <p className="text-red-500 font-bold">Total de fallas: {inasistencias.total_fallas}</p>
+            {inasistencias.length > 0 ? (
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {inasistencias.map((item) => (
+                  <div
+                    key={`${item.curso_id}-${item.estudiante_id}-${item.posicion}`}
+                    className="flex items-center justify-between gap-3 rounded-md border border-gray-100 bg-gray-50 px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+                          #{item.posicion}
+                        </span>
+                        <p className="truncate text-sm font-semibold text-gray-900">{item.nombre}</p>
+                      </div>
+                      <p className="mt-1 truncate text-xs font-medium text-gray-600">Curso: {item.curso}</p>
+                    </div>
+                    <span className="shrink-0 rounded bg-white px-2 py-1 text-sm font-bold text-red-600">
+                      {item.total_fallas}
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-gray-600">No hay datos disponibles</p>
@@ -358,65 +483,97 @@ function DashboardProfesor() {
           </div>
         </div>
 
-        <div 
-          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200 cursor-pointer"
-          onClick={() => {
-            if (!asignacionId) {
-              alert("Por favor, selecciona un salón (materia) primero para ver el ranking.");
-              return;
-            }
-            navigate("/ranking-rendimiento");
-          }}
-        >
+        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
           <div className="p-6">
-            <div className="bg-yellow-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4 cursor-pointer">
-              <span className="text-2xl">📉</span>
+            <div className="bg-yellow-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <span className="text-2xl" aria-hidden="true">↓</span>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 cursor-pointer hover:text-blue-600 transition-colors">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <h3 className="text-xl font-semibold text-gray-900">
               Estudiantes con bajo rendimiento
-            </h3>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-semibold text-yellow-700">
+                  {cursoFiltroNombre}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                  {materiaFiltroNombre}
+                </span>
+              </div>
+            </div>
             {notasBajas.length > 0 ? (
-              <div>
-                <p className="text-lg font-medium">{notasBajas[0].nombre}</p>
-                <p className="text-gray-600">Curso: {notasBajas[0].curso}</p>
-                <p className={`text-sm font-bold ${notasBajas[0].color === 'red' ? 'text-red-500' : notasBajas[0].color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`}>
-                  Promedio: {Number(notasBajas[0].promedio).toFixed(2)}
-                </p>
+              <div className="space-y-2">
+                {notasBajas.map((estudiante, index) => (
+                  <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-semibold text-gray-900">{estudiante.nombre}</p>
+                      <p className={`text-sm font-bold ${estudiante.color === 'red' ? 'text-red-500' : estudiante.color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`}>
+                        {Number(estudiante.promedio).toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="mt-1 truncate text-xs font-medium text-gray-600">
+                      Curso: {estudiante.curso} · Materia: {estudiante.materia || materiaFiltroNombre}
+                    </p>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-gray-600">No hay estudiantes con bajo rendimiento</p>
             )}
+            <button
+              type="button"
+              onClick={() => irARanking("/ranking-rendimiento")}
+              className="mt-4 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+            >
+              Ver ranking por materia
+            </button>
           </div>
         </div>
 
-        <div
-          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200 cursor-pointer"
-          onClick={() => {
-            if (!asignacionId) {
-              alert("Por favor, selecciona un salón (materia) primero para ver el ranking.");
-              return;
-            }
-            navigate("/ranking-mejor-rendimiento");
-          }}
-        >
+        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
           <div className="p-6">
-            <div className="bg-green-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4 cursor-pointer">
-              <span className="text-2xl">🏆</span>
+            <div className="bg-green-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <span className="text-2xl" aria-hidden="true">↑</span>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 cursor-pointer hover:text-green-600 transition-colors">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <h3 className="text-xl font-semibold text-gray-900">
               Mejores Estudiantes
-            </h3>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+                  {cursoFiltroNombre}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                  {materiaFiltroNombre}
+                </span>
+              </div>
+            </div>
             {notasAltas.length > 0 ? (
-              <div>
-                <p className="text-lg font-medium">{notasAltas[0].nombre}</p>
-                <p className="text-gray-600">Curso: {notasAltas[0].curso}</p>
-                <p className="text-sm font-bold text-green-600">
-                  Promedio: {Number(notasAltas[0].promedio).toFixed(2)}
-                </p>
+              <div className="space-y-2">
+                {notasAltas.map((estudiante, index) => (
+                  <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-semibold text-gray-900">{estudiante.nombre}</p>
+                      <p className="text-sm font-bold text-green-600">
+                        {Number(estudiante.promedio).toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="mt-1 truncate text-xs font-medium text-gray-600">
+                      Curso: {estudiante.curso} · Materia: {estudiante.materia || materiaFiltroNombre}
+                    </p>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-gray-600">No hay estudiantes con notas altas aún</p>
             )}
+            <button
+              type="button"
+              onClick={() => irARanking("/ranking-mejor-rendimiento")}
+              className="mt-4 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+            >
+              Ver ranking por materia
+            </button>
           </div>
         </div>
       </div>

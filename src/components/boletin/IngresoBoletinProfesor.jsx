@@ -20,6 +20,7 @@ function IngresoBoletinProfesor() {
 
     // Estado local para almacenar lo que el profesor digita
     const [datosBoletin, setDatosBoletin] = useState({});
+    const [estadoGuardado, setEstadoGuardado] = useState({});
 
     const clasesUnicas = useMemo(() => {
         const clasesPorCursoMateria = new Map();
@@ -83,6 +84,20 @@ function IngresoBoletinProfesor() {
                 };
             });
             setDatosBoletin(estadoInicial);
+
+            const estadoInicialGuardado = {};
+            dataObtenida.forEach((est) => {
+                const tieneObservacionesGuardadas = est.notas.some((n) =>
+                    String(n.observacion_guardada || "").trim().length > 0
+                );
+
+                estadoInicialGuardado[est.estudiante_id] = {
+                    guardado: tieneObservacionesGuardadas,
+                    modificado: false,
+                    guardadoEn: null,
+                };
+            });
+            setEstadoGuardado(estadoInicialGuardado);
         } catch (error) {
             console.error("Error al cargar alumnos", error);
         } finally {
@@ -104,6 +119,46 @@ function IngresoBoletinProfesor() {
             nuevo[estId] = estData;
             return nuevo;
         });
+
+        setEstadoGuardado(prev => ({
+            ...prev,
+            [estId]: {
+                ...(prev[estId] || {}),
+                modificado: true,
+            }
+        }));
+    };
+
+    const obtenerEstadoVisual = (estudianteId) => {
+        const estado = estadoGuardado[estudianteId] || {};
+
+        if (estado.modificado) {
+            return {
+                label: "Cambios sin guardar",
+                detail: "Hay ediciones pendientes",
+                badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
+                dotClass: "bg-amber-500",
+                buttonText: "Guardar cambios",
+            };
+        }
+
+        if (estado.guardado) {
+            return {
+                label: "Guardado",
+                detail: estado.guardadoEn ? `Actualizado ${estado.guardadoEn}` : "Informe registrado",
+                badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
+                dotClass: "bg-emerald-500",
+                buttonText: "Actualizar resumen",
+            };
+        }
+
+        return {
+            label: "Pendiente",
+            detail: "Aún no se ha guardado",
+            badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+            dotClass: "bg-slate-400",
+            buttonText: "Guardar resumen",
+        };
     };
 
     const guardarBoletinEstudiante = async (estudiante_id) => {
@@ -126,6 +181,17 @@ function IngresoBoletinProfesor() {
 
         try {
             await api.post("/boletines/guardar", payload);
+            setEstadoGuardado(prev => ({
+                ...prev,
+                [estudiante_id]: {
+                    guardado: true,
+                    modificado: false,
+                    guardadoEn: new Date().toLocaleTimeString("es-CO", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                }
+            }));
             Swal.fire({ icon: 'success', title: 'Boletín guardado', text: 'Datos enviados al Admin correctamente.', timer: 2000, showConfirmButton: false });
         } catch (error) {
             Swal.fire("Error", "No se pudo guardar la información del boletín", "error");
@@ -178,33 +244,47 @@ function IngresoBoletinProfesor() {
                     {estudiantes.map((est) => {
                         const form = datosBoletin[est.estudiante_id];
                         if (!form) return null;
+                        const estadoVisual = obtenerEstadoVisual(est.estudiante_id);
 
                         return (
-                            <div key={est.estudiante_id} className="bg-white p-5 rounded-lg shadow border border-gray-200">
-                                <div className="flex flex-col md:flex-row justify-between items-center border-b pb-3 mb-4 gap-4">
-                                    <h3 className="text-xl font-bold text-gray-800">🧑‍🎓 {est.nombre}</h3>
-                                    <div className="flex items-center gap-3">
-                                        {form.observaciones.some(obs => obs.tipo_evaluacion === "desarrollo") ? (
-                                            <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded border border-emerald-200">
-                                                Desarrollo infantil
-                                            </span>
-                                        ) : (
-                                            <>
-                                                <span className="text-sm font-semibold text-gray-600">Definitiva calculada:</span>
-                                                <span className="w-20 font-bold p-1 text-lg text-center border border-gray-200 rounded bg-gray-50">
-                                                    {Number(form.definitiva || 0).toFixed(1)}
+                            <div key={est.estudiante_id} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+                                <div className="border-b border-gray-200 bg-slate-50/70 px-4 py-4 sm:px-5">
+                                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="min-w-0">
+                                            <h3 className="truncate text-xl font-bold text-gray-900">{est.nombre}</h3>
+                                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
+                                                    <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
+                                                    {estadoVisual.label}
                                                 </span>
-                                            </>
-                                        )}
+                                                <span className="text-xs font-medium text-gray-500">{estadoVisual.detail}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
+                                            {form.observaciones.some(obs => obs.tipo_evaluacion === "desarrollo") ? (
+                                                <span className="inline-flex justify-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                                                    Desarrollo infantil
+                                                </span>
+                                            ) : (
+                                                <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 sm:justify-start">
+                                                    <span className="text-sm font-semibold text-gray-600">Definitiva</span>
+                                                    <span className="min-w-14 rounded bg-gray-100 px-2 py-1 text-center text-lg font-bold text-gray-900">
+                                                        {Number(form.definitiva || 0).toFixed(1)}
+                                                    </span>
+                                                </div>
+                                            )}
                                         <button 
                                             onClick={() => guardarBoletinEstudiante(est.estudiante_id)}
-                                            className="ml-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+                                            className="w-full rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700 sm:w-auto"
                                         >
-                                            💾 Guardar Resumen
+                                            {estadoVisual.buttonText}
                                         </button>
+                                        </div>
                                     </div>
                                 </div>
 
+                                <div className="p-4 sm:p-5">
                                 {est.notas.length === 0 ? (
                                     <p className="text-gray-500 italic text-sm p-4 bg-gray-50 rounded">Este alumno no tiene notas registradas en esta planilla para usar como referencia.</p>
                                 ) : (
@@ -240,6 +320,7 @@ function IngresoBoletinProfesor() {
                                         ))}
                                     </div>
                                 )}
+                                </div>
                             </div>
                         )
                     })}
