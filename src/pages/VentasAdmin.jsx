@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import api from "../utils/api";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
@@ -131,6 +132,45 @@ const VentasAdmin = () => {
     };
 
     const abrirVolante = () => setVistaVolante(true);
+
+    const anularVenta = async (venta) => {
+        if (!venta || venta.estado === "Anulada") return;
+
+        const result = await Swal.fire({
+            title: `Anular venta #${venta.id}`,
+            text: "La venta quedará como anulada, se devolverá el stock y se anularán los pagos asociados.",
+            input: "textarea",
+            inputLabel: "Motivo de anulación",
+            inputPlaceholder: "Ej: Error en productos cargados",
+            inputAttributes: {
+                maxlength: 300,
+            },
+            showCancelButton: true,
+            confirmButtonText: "Anular venta",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#dc2626",
+            inputValidator: (value) => {
+                if (!value || value.trim().length < 5) {
+                    return "Escribe un motivo de al menos 5 caracteres.";
+                }
+                return null;
+            },
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            await api.post(`/api/ventas/${venta.id}/anular`, {
+                motivo: result.value.trim(),
+            });
+            Swal.fire("Venta anulada", "El stock, la cartera y los pagos asociados fueron actualizados.", "success");
+            cargarDatos();
+        } catch (error) {
+            console.error("Error anulando venta:", error);
+            const detail = error?.response?.data?.detail;
+            Swal.fire("Error", detail || "No se pudo anular la venta.", "error");
+        }
+    };
 
     if (vistaVolante && ultimaVenta) {
         return (
@@ -313,6 +353,7 @@ return (
                             <th className="px-4 py-2 text-left">Detalle del Cargo (Productos)</th>
                             <th className="px-4 py-2 text-center w-32">Estado</th>
                             <th className="px-4 py-2 text-right w-36">Total Cargo</th>
+                            <th className="px-4 py-2 text-right w-28">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -320,7 +361,7 @@ return (
                             ventasAnteriores
                                 .filter(v => v.estudiante_id === (estudianteId ? parseInt(estudianteId) : estudianteFiltroId))
                                 .map(v => (
-                                    <tr key={v.id} className="border-b hover:bg-gray-50">
+                                    <tr key={v.id} className={`border-b ${v.estado === "Anulada" ? "bg-red-50" : "hover:bg-gray-50"}`}>
                                         <td className="px-4 py-3 align-top">{v.id}</td>
                                         <td className="px-4 py-3 align-top">{v.fecha.substring(0, 16)}</td>
                                         <td className="px-4 py-3">
@@ -336,20 +377,45 @@ return (
                                             ) : (
                                                 <span className="text-sm text-gray-500 italic">Sin detalles</span>
                                             )}
+                                            {v.estado === "Anulada" && (
+                                                <p className="mt-2 text-xs text-red-700">
+                                                    Motivo: {v.motivo_anulacion || "Sin motivo registrado"}
+                                                </p>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-center align-top">
-                                            <span className={`px-2 py-1 rounded text-xs ${v.estado === 'Pendiente' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                            <span className={`px-2 py-1 rounded text-xs ${
+                                                v.estado === 'Anulada'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : v.estado === 'Pendiente'
+                                                        ? 'bg-yellow-100 text-yellow-800'
+                                                        : 'bg-green-100 text-green-800'
+                                            }`}>
                                                 {v.estado}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-right font-bold text-red-600 align-top">${v.total.toLocaleString()}</td>
+                                        <td className={`px-4 py-3 text-right font-bold align-top ${v.estado === "Anulada" ? "text-red-600 line-through" : "text-red-600"}`}>
+                                            ${v.total.toLocaleString()}
+                                        </td>
+                                        <td className="px-4 py-3 text-right align-top">
+                                            {v.estado !== "Anulada" ? (
+                                                <button
+                                                    onClick={() => anularVenta(v)}
+                                                    className="text-sm font-semibold text-red-600 hover:text-red-700"
+                                                >
+                                                    Anular
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-gray-400">Anulada</span>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))
                         ) : (
-                            <tr><td colSpan="5" className="text-center py-4 text-gray-500">Selecciona o carga productos a un estudiante para ver su historial</td></tr>
+                            <tr><td colSpan="6" className="text-center py-4 text-gray-500">Selecciona o carga productos a un estudiante para ver su historial</td></tr>
                         )}
                         {(estudianteId || estudianteFiltroId) && ventasAnteriores.filter(v => v.estudiante_id === (estudianteId ? parseInt(estudianteId) : estudianteFiltroId)).length === 0 && (
-                            <tr><td colSpan="5" className="text-center py-4 text-gray-500">Este estudiante no tiene cargos previos</td></tr>
+                            <tr><td colSpan="6" className="text-center py-4 text-gray-500">Este estudiante no tiene cargos previos</td></tr>
                         )}
                     </tbody>
                 </table>

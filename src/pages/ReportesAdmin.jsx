@@ -17,6 +17,9 @@ function ReportesAdmin() {
   const [rangoSeleccionado, setRangoSeleccionado] = useState(false);
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const detalleIngresos = Array.isArray(detalleMes) ? detalleMes : [];
+  const totalValidoDetalle = detalleIngresos.reduce((sum, pago) => sum + Number(pago.monto_valido ?? (pago.anulado ? 0 : pago.monto) ?? 0), 0);
+  const totalAnuladoDetalle = detalleIngresos.reduce((sum, pago) => sum + (pago.anulado ? Number(pago.monto || 0) : 0), 0);
 
   useEffect(() => {
     cargarDatosIniciales();
@@ -299,7 +302,18 @@ function ReportesAdmin() {
           
           {loadingDetalleMes ? (
           <div className="text-center py-4">Cargando detalles...</div>
-          ) : detalleMes.length > 0 ? (
+          ) : detalleIngresos.length > 0 ? (
+            <>
+            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                <p className="text-xs font-semibold uppercase text-green-700">Total válido</p>
+                <p className="text-xl font-bold text-green-800">${totalValidoDetalle.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="text-xs font-semibold uppercase text-red-700">Total anulado</p>
+                <p className="text-xl font-bold text-red-800">${totalAnuladoDetalle.toLocaleString()}</p>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -307,17 +321,36 @@ function ReportesAdmin() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {detalleMes.map((pago) => (
-                    <tr key={pago.id} className="hover:bg-gray-50">
+                  {detalleIngresos.map((pago) => (
+                    <tr key={pago.id} className={pago.anulado ? "bg-red-50 hover:bg-red-100" : "hover:bg-gray-50"}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{pago.fecha}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{pago.estudiante}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">${pago.monto.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pago.descripcion}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${pago.anulado ? "text-red-600 line-through" : "text-green-600"}`}>
+                        ${pago.monto.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-xs">
+                        {pago.anulado ? (
+                          <span className="inline-block rounded bg-red-100 px-2 py-1 font-bold text-red-700">
+                            Anulado
+                          </span>
+                        ) : (
+                          <span className="inline-block rounded bg-green-100 px-2 py-1 font-bold text-green-700">
+                            Pagado
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div>{pago.descripcion}</div>
+                        {pago.anulado && pago.motivo_anulacion && (
+                          <div className="mt-1 text-xs text-red-700">Motivo: {pago.motivo_anulacion}</div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-xs">
                         {pago.tipo_pago ? (
                           <span className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded">
@@ -330,6 +363,7 @@ function ReportesAdmin() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
             <div className="text-center py-8 text-gray-500">
               No hay pagos registrados para este mes.

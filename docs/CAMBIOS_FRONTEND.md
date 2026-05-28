@@ -266,3 +266,70 @@ Pruebas manuales recomendadas:
 - Confirmar que se guarda/lista como `Juan Carlos Perez`.
 - Crear curso y materia en minusculas.
 - Confirmar que aparecen con iniciales en mayuscula.
+
+## 2026-05-27 - Anular pagos desde historial del estudiante
+
+Se agrego la accion de anulacion de pagos desde el historial de pagos del
+estudiante y se ajusto el reporte de ingresos para mostrar la huella de pagos
+anulados.
+
+Archivos modificados:
+
+- `src/pages/PagosAdmin.jsx`
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- En el historial de pagos del estudiante aparece `Anular pago` para pagos
+  vigentes.
+- Al anular, se pide motivo obligatorio.
+- Los pagos anulados quedan visibles, marcados como `Anulado` y con el monto
+  tachado.
+- No se permite imprimir recibo de un pago anulado.
+- En Reportes > Ingresos Mensuales/rango:
+  - se muestran `Total valido` y `Total anulado`;
+  - las filas anuladas se ven en rojo;
+  - el motivo de anulacion aparece en el detalle.
+
+Motivo:
+
+- Evitar eliminacion fisica de pagos.
+- Mantener trazabilidad financiera antes de implementar una pagina general de
+  movimientos/auditoria.
+
+Pruebas manuales recomendadas:
+
+- Registrar un pago.
+- Anularlo desde el historial con motivo.
+- Confirmar que aparece en rojo como anulado.
+- Abrir ingresos mensuales y confirmar que aparece como huella, pero no suma al
+  total valido.
+
+## 2026-05-27 - Anular ventas de inventario
+
+Se agrego accion de anulacion en el listado de cargos recientes de ventas de
+inventario.
+
+Archivo modificado:
+
+- `src/pages/VentasAdmin.jsx`
+
+Cambio:
+
+- Cada venta vigente muestra accion `Anular`.
+- La anulacion pide motivo obligatorio.
+- Una venta anulada queda marcada en rojo como `Anulada`.
+- El motivo de anulacion se muestra debajo del detalle del cargo.
+- El total aparece tachado cuando la venta esta anulada.
+
+Motivo:
+
+- Evitar eliminacion de ventas y conservar trazabilidad visual.
+- Alinear ventas de inventario con la anulacion auditada de pagos.
+
+Pruebas manuales recomendadas:
+
+- Crear una venta/cargo de inventario.
+- Anularla desde cargos recientes escribiendo motivo.
+- Confirmar que queda marcada como `Anulada`.
+- Confirmar que al recargar la pantalla se mantiene anulada.
