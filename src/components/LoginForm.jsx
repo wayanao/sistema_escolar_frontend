@@ -37,12 +37,18 @@ function LoginForm() {
       localStorage.setItem('tenant', data.tenant);
 
       // 🔥 guardar sesión según rol y limpiar la opuesta
-      if (data.rol === "admin") {
+      if (data.rol === "super_admin") {
+        localStorage.setItem("super_admin", JSON.stringify(sessionData));
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("profesor");
+      } else if (data.rol === "admin") {
         localStorage.setItem("usuario", JSON.stringify(sessionData));
+        localStorage.removeItem("super_admin");
         localStorage.removeItem("profesor"); // Limpiar sesión de profesor
       } else {
         // Para profesores, mantener compatibilidad con el código existente
         localStorage.setItem("profesor", JSON.stringify(sessionData));
+        localStorage.removeItem("super_admin");
         localStorage.removeItem("usuario"); // Limpiar sesión de admin
       }
 
@@ -54,7 +60,9 @@ function LoginForm() {
         showConfirmButton: false
       }).then(() => {
         // 🔥 redirigir según rol
-        if (data.rol === "admin") {
+        if (data.rol === "super_admin") {
+          window.location.href = "/super-admin";
+        } else if (data.rol === "admin") {
           window.location.href = "/dashboard-admin";
         } else {
           window.location.href = "/";
@@ -63,6 +71,16 @@ function LoginForm() {
     } catch (error) {
       if (error.response && error.response.status === 401) {
           Swal.fire({ icon: 'error', title: 'Error', text: 'Credenciales incorrectas' });
+      } else if (error.response && error.response.status === 403) {
+          const detail = error.response.data?.detail;
+          const message = typeof detail === "object"
+            ? detail.message
+            : detail;
+          Swal.fire({
+            icon: 'warning',
+            title: 'Servicio no disponible',
+            text: message || 'El servicio del colegio no se encuentra habilitado.',
+          });
       } else {
           Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo conectar con el servidor' });
       }

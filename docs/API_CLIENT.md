@@ -16,17 +16,16 @@ Configuracion actual:
 
 ## Token
 
-El interceptor de request busca token en este orden:
+El interceptor de request busca token en cookie `token` usando `js-cookie`.
 
-1. Cookie `token`, usando `js-cookie`.
-2. `localStorage.usuario.access_token`.
-3. `localStorage.profesor.access_token`.
-
-Si encuentra token, agrega:
+Si encuentra una cookie legible por JavaScript, agrega:
 
 ```text
 Authorization: Bearer <token>
 ```
+
+En produccion la cookie debe ser HttpOnly; en ese caso JavaScript no puede leerla
+y la autenticacion viaja automaticamente por `withCredentials: true`.
 
 ## Tenant
 
@@ -45,6 +44,7 @@ X-Tenant-ID: <tenant>
 El interceptor de response hace limpieza cuando recibe `401` y la ruta actual no es `/login`:
 
 - Elimina cookie `token`.
+- Elimina `localStorage.super_admin`.
 - Elimina `localStorage.usuario`.
 - Elimina `localStorage.profesor`.
 - Elimina `localStorage.tenant`.
@@ -63,6 +63,36 @@ Envia:
 - `email`
 - `password`
 - `codigo_colegio`
+
+## Estado SaaS del tenant
+
+`TenantStatusBanner.jsx` consume:
+
+```text
+GET /tenant/status
+```
+
+Uso:
+
+- `activo`: no muestra aviso.
+- `en_mora`: muestra banner de pago.
+- `suspendido` y `cancelado`: el bloqueo real lo aplica el backend.
+
+## Super admin
+
+`SuperAdminDashboard.jsx` consume:
+
+```text
+GET /super-admin/tenants
+PATCH /super-admin/tenants/{tenant_id}/estado
+GET /super-admin/tenants/{tenant_id}/estado-auditoria
+```
+
+Uso:
+
+- listar colegios/tenants registrados en `public.colegios`;
+- cambiar estado SaaS entre `activo`, `en_mora`, `suspendido` y `cancelado`.
+- consultar historial de cambios de estado.
 
 ## Imagenes protegidas
 
@@ -99,6 +129,5 @@ Endpoints observados en ese servicio:
 
 ## Riesgos pendientes observados
 
-- El frontend conserva fallback de token desde `localStorage`.
 - `VITE_API_URL` cae a `http://localhost:8000` si no esta configurado.
 - La autorizacion final debe estar siempre en backend, no solo en la UI.

@@ -373,3 +373,134 @@ Correccion posterior:
   - `Materia`: `Todas las materias del curso` o una materia especifica.
 - `Todas las materias del curso` calcula el rendimiento usando solo las
   materias que ese profesor dicta en el curso seleccionado.
+
+## 2026-05-30 - Aviso de tenant en mora
+
+Se agrego un aviso global para tenants con estado `en_mora`.
+
+Archivos modificados/agregados:
+
+- `src/components/TenantStatusBanner.jsx`
+- `src/App.jsx`
+
+Cambio:
+
+- El layout autenticado consulta `GET /tenant/status`.
+- Si el backend responde `mostrar_aviso = true`, se muestra un banner superior
+  indicando que el servicio esta en mora.
+- Si el tenant esta `activo`, no se muestra ningun aviso.
+- El aviso se renderiza una sola vez en el layout para admin y profesor.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-01 - Confirmacion, motivo e historial de estado SaaS
+
+Se fortalecio el panel de super admin para que los cambios de estado tengan
+motivo y puedan revisarse.
+
+Archivos modificados:
+
+- `src/pages/SuperAdminDashboard.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+- `docs/CHECKLIST_PRODUCCION_FRONTEND.md`
+- `docs/PLAN_EJECUCION_FRONTEND.md`
+
+Cambio:
+
+- Antes de cambiar estado se pide confirmacion.
+- Para `suspendido` y `cancelado` el motivo es obligatorio.
+- El motivo se envia al backend junto con el estado.
+- Se agrego boton `Ver` para consultar historial de cambios por tenant.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-01 - Mensaje de login para tenant bloqueado
+
+Se ajusto el formulario de login para no mostrar "Credenciales incorrectas"
+cuando el colegio existe pero esta suspendido o cancelado.
+
+Archivo modificado:
+
+- `src/components/LoginForm.jsx`
+
+Cambio:
+
+- `401`: muestra credenciales incorrectas.
+- `403`: muestra "Servicio no disponible" y el mensaje enviado por backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-05-30 - Panel inicial de super admin
+
+Se agrego la primera pantalla de plataforma para controlar tenants.
+
+Archivos modificados/agregados:
+
+- `src/components/NavSuperAdmin.jsx`
+- `src/pages/SuperAdminDashboard.jsx`
+- `src/App.jsx`
+- `src/components/LoginForm.jsx`
+- `src/utils/api.js`
+- `src/components/NavAdmin.jsx`
+- `src/components/NavProfesor.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/PRODUCCION_FRONTEND.md`
+- `docs/ROLES_UI.md`
+- `docs/RUTAS_FRONTEND.md`
+
+Cambio:
+
+- El mismo login soporta `rol = "super_admin"`.
+- El super admin se guarda en `localStorage.super_admin`.
+- Se agrego ruta `/super-admin`.
+- El panel lista tenants y permite cambiar estado entre `activo`, `en_mora`,
+  `suspendido` y `cancelado`.
+- Logout y manejo global de `401` limpian tambien `localStorage.super_admin`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.

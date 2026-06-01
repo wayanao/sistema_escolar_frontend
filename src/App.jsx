@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import NavProfesor from "./components/NavProfesor";
 import NavAdmin from "./components/NavAdmin";
+import NavSuperAdmin from "./components/NavSuperAdmin";
+import TenantStatusBanner from "./components/TenantStatusBanner";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
 const Asistencia = lazy(() => import("./pages/Asistencia"));
@@ -29,6 +31,7 @@ const PlaneadoresClasesAdmin = lazy(() => import("./pages/PlaneadoresClasesAdmin
 const BrandingAdmin = lazy(() => import("./pages/BrandingAdmin"));
 const TiposPagosAdmin = lazy(() => import("./pages/TiposPagosAdmin"));
 const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
+const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 
 function PageLoader() {
   return (
@@ -49,12 +52,31 @@ function AdminRoute({ children }) {
   return (usuario && usuario.rol === "admin") ? children : <Navigate to="/login" />;
 }
 
+function SuperAdminRoute({ children }) {
+  const superAdmin = JSON.parse(localStorage.getItem("super_admin") || "null");
+  return (superAdmin && superAdmin.rol === "super_admin") ? children : <Navigate to="/login" />;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/super-admin" element={<SuperAdminRoute><SuperAdminLayout /></SuperAdminRoute>} />
       <Route path="/*" element={<Layout />} />
     </Routes>
+  );
+}
+
+function SuperAdminLayout() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <NavSuperAdmin />
+      <main className="max-w-6xl mx-auto p-4">
+        <Suspense fallback={<PageLoader />}>
+          <SuperAdminDashboard />
+        </Suspense>
+      </main>
+    </div>
   );
 }
 
@@ -70,6 +92,7 @@ function Layout() {
   return (
     <div className="min-h-screen bg-slate-50">
       {usuario && usuario.rol === "admin" ? <NavAdmin /> : <NavProfesor />}
+      <TenantStatusBanner />
       <main className="max-w-6xl mx-auto p-4">
         <Suspense fallback={<PageLoader />}>
           <Routes>

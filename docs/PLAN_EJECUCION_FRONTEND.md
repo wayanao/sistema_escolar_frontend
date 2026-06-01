@@ -163,3 +163,36 @@ Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archiv
   - Probar login contra ambiente correcto.
 - Cuando hacer commit:
   - Despues de build exitoso y prueba manual de login, rutas protegidas y una ruta admin/profesor.
+
+## Pendiente 2026-05-30 - Flujo super admin
+
+Estado actual:
+
+- La ruta `/super-admin` ya existe.
+- El mismo login redirige a `/super-admin` cuando backend responde
+  `rol = "super_admin"`.
+- El panel lista tenants y permite cambiar estado.
+
+Pendiente manual:
+
+- Reiniciar backend y frontend despues de los cambios.
+- Probar login con codigo `super_admin`.
+- Confirmar que `/super-admin` no entra con `admin` ni `profesor`.
+- Confirmar que `/super-admin` lista tenants.
+- Probar cambio de estado con un tenant de prueba:
+  - `activo` -> `en_mora`;
+  - `en_mora` -> `suspendido`;
+  - `suspendido` -> `activo`.
+- Confirmar que el banner de mora aparece en layout de admin/profesor cuando
+  el tenant esta `en_mora`.
+
+Pendiente UX:
+
+- Mejorar el mensaje del banner de mora cuando existan canales de pago reales.
+- Agregar campo de busqueda/filtro si crece el numero de tenants.
+
+Completado despues:
+
+- Confirmacion antes de cambiar estado de tenant.
+- Motivo obligatorio para `suspendido` y `cancelado`.
+- Consulta de historial de cambios por tenant desde el panel.

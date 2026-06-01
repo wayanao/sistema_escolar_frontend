@@ -7,7 +7,8 @@ Estado actual del manejo de roles en la interfaz.
 La UI distingue principalmente:
 
 - `admin`: usuario administrativo.
-- profesor: usuario no admin guardado como `profesor`.
+- `profesor`: usuario no admin guardado como `profesor`.
+- `super_admin`: usuario de plataforma guardado como `super_admin`.
 
 El rol se obtiene desde la respuesta de login y se guarda en `localStorage`.
 
@@ -19,15 +20,24 @@ El rol se obtiene desde la respuesta de login y se guarda en `localStorage`.
 - `password`
 - `codigo_colegio`
 
+Si la respuesta contiene `rol === "super_admin"`:
+
+- Guarda la respuesta en `localStorage.super_admin`.
+- Elimina `localStorage.usuario`.
+- Elimina `localStorage.profesor`.
+- Redirige a `/super-admin`.
+
 Si la respuesta contiene `rol === "admin"`:
 
 - Guarda la respuesta en `localStorage.usuario`.
+- Elimina `localStorage.super_admin`.
 - Elimina `localStorage.profesor`.
 - Redirige a `/dashboard-admin`.
 
 Si no es admin:
 
 - Guarda la respuesta en `localStorage.profesor`.
+- Elimina `localStorage.super_admin`.
 - Elimina `localStorage.usuario`.
 - Redirige a `/`.
 
@@ -45,6 +55,11 @@ Tambien guarda `tenant` en `localStorage.tenant`.
 - `localStorage.usuario`
 - y `usuario.rol === "admin"`.
 
+`SuperAdminRoute` permite acceso si existe:
+
+- `localStorage.super_admin`
+- y `super_admin.rol === "super_admin"`.
+
 Si falla la validacion, ambos redirigen a `/login`.
 
 ## Menus por rol
@@ -53,6 +68,7 @@ Si falla la validacion, ambos redirigen a `/login`.
 
 - `NavAdmin` cuando existe `usuario` con rol `admin`.
 - `NavProfesor` cuando no hay admin y existe profesor.
+- `NavSuperAdmin` en la ruta `/super-admin`.
 
 ## Validaciones adicionales en paginas
 

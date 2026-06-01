@@ -16,6 +16,8 @@ function NavProfesor() {
 
     localStorage.removeItem("profesor");
     localStorage.removeItem("usuario");
+    localStorage.removeItem("super_admin");
+    localStorage.removeItem("tenant");
     localStorage.removeItem("asignacionId");
     localStorage.removeItem("periodo");
     // Remover token

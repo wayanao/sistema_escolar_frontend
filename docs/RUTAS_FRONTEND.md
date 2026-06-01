@@ -47,6 +47,14 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | `/admin/diseno-impresos` | `BrandingAdmin` |
 | `/boletin` | `Boletin` |
 
+## Rutas de super admin
+
+Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "super_admin"`.
+
+| Ruta | Componente |
+| --- | --- |
+| `/super-admin` | `SuperAdminDashboard` |
+
 ## Navegacion de administrador
 
 `src/components/NavAdmin.jsx` muestra enlaces a:
@@ -79,6 +87,12 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 - Plan de clases.
 - Planeador anual.
 - Ingreso de boletin.
+
+## Navegacion de super admin
+
+`src/components/NavSuperAdmin.jsx` muestra enlace a:
+
+- Tenants.
 
 ## Reescritura SPA
 

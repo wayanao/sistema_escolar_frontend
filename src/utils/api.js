@@ -47,6 +47,7 @@ api.interceptors.response.use(
       window.location.pathname !== '/login'
     ) {
       Cookies.remove('token');
+      localStorage.removeItem('super_admin');
       localStorage.removeItem('usuario');
       localStorage.removeItem('profesor');
       localStorage.removeItem('tenant');

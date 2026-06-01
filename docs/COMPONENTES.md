@@ -7,6 +7,8 @@ Estado actual de componentes y paginas del frontend.
 - `LoginForm.jsx`: formulario de acceso; consume `/login`.
 - `NavAdmin.jsx`: menu principal para usuario admin.
 - `NavProfesor.jsx`: menu principal para profesor.
+- `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
+- `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
 - `AsignarClase.jsx` y `AsignarClaseGrid.jsx`: asignacion de clases.
 - `CrearCurso.jsx`: creacion/gestion relacionada con cursos.
@@ -70,6 +72,7 @@ Estado actual de componentes y paginas del frontend.
 - `RankingMejorRendimiento.jsx`
 - `RankingRendimiento.jsx`
 - `ReportesAdmin.jsx`
+- `SuperAdminDashboard.jsx`
 - `TiposPagosAdmin.jsx`
 - `VentasAdmin.jsx`
 

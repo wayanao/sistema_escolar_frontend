@@ -1,0 +1,65 @@
+import { NavLink, useNavigate } from "react-router-dom";
+import api from "../utils/api";
+
+function NavSuperAdmin() {
+  const navigate = useNavigate();
+  const superAdmin = JSON.parse(localStorage.getItem("super_admin") || "null");
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+    } catch (error) {
+      console.error("Error cerrando sesión", error);
+    }
+
+    localStorage.removeItem("super_admin");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("profesor");
+    localStorage.removeItem("tenant");
+    localStorage.removeItem("asignacionId");
+    localStorage.removeItem("periodo");
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    navigate("/login");
+  };
+
+  return (
+    <header className="border-b border-slate-200 bg-slate-950 px-4 py-3 text-white shadow-sm">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+        <div className="min-w-0">
+          <NavLink to="/super-admin" className="inline-flex flex-col leading-tight hover:opacity-90">
+            <strong className="text-xl font-black tracking-normal">
+              Scholar<span className="text-emerald-300">ix</span>
+            </strong>
+          </NavLink>
+          {superAdmin?.nombre && (
+            <span className="block max-w-[260px] truncate text-xs font-medium text-slate-300 sm:max-w-[360px]">
+              Plataforma: {superAdmin.nombre}
+            </span>
+          )}
+        </div>
+
+        <nav className="flex items-center gap-3">
+          <NavLink
+            to="/super-admin"
+            className={({ isActive }) =>
+              isActive
+                ? "rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-slate-950"
+                : "text-sm font-medium text-slate-200 hover:text-white"
+            }
+          >
+            Tenants
+          </NavLink>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-red-500"
+          >
+            Cerrar sesión
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export default NavSuperAdmin;

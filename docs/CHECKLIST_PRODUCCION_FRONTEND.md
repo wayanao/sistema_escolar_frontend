@@ -4,15 +4,15 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 
 ## 1. CRITICO
 
-### Token disponible en `localStorage`
+### Cookie de sesion en produccion
 
-- Problema: el cliente API usa cookie `token`, pero conserva fallback a `access_token` guardado dentro de `localStorage.usuario` o `localStorage.profesor`.
-- Riesgo: si ocurre XSS, el token puede ser leido desde `localStorage`.
+- Estado actual: el frontend ya no guarda `access_token` dentro de `localStorage.usuario` ni `localStorage.profesor`; conserva datos minimos de sesion visual y usa cookie `token`.
+- Riesgo: si la cookie productiva no queda `HttpOnly`, `Secure` y con `SameSite` adecuado, JavaScript podria leerla o el navegador podria enviarla en contextos no deseados.
 - Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
-- Que puede pasar en produccion: un atacante podria robar el token y usarlo para consumir endpoints como el usuario afectado.
+- Que puede pasar en produccion: una configuracion debil de cookie podria exponer la sesion o romper login entre dominios.
 - Prioridad: CRITICO.
-- Como probarlo: iniciar sesion, abrir DevTools, revisar `localStorage.usuario` o `localStorage.profesor` y confirmar si contiene `access_token`.
-- Recomendacion tecnica: usar cookie HttpOnly/Secure/SameSite para sesion en produccion y eliminar el fallback de token desde `localStorage` cuando el backend ya soporte ese flujo completamente.
+- Como probarlo: iniciar sesion, abrir DevTools, confirmar que `localStorage.usuario` y `localStorage.profesor` no contienen `access_token`, y revisar que la cookie `token` tenga atributos productivos esperados.
+- Recomendacion tecnica: mantener la sesion real en cookie HttpOnly/Secure/SameSite emitida por backend y no volver a guardar JWT en `localStorage`.
 
 ### Guards basados en datos manipulables del navegador
 
@@ -187,3 +187,28 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 - Prioridad: OPCIONAL.
 - Como probarlo: buscar `api.get`, `api.post`, `api.put` y `api.delete` y revisar duplicados por modulo.
 - Recomendacion tecnica: crear servicios por dominio cuando se refactorice cada modulo.
+
+## Pendientes 2026-05-30 - Super admin
+
+### Validacion manual de acceso
+
+- Estado: pendiente.
+- Archivo afectado: `src/App.jsx`, `src/pages/SuperAdminDashboard.jsx`.
+- Como probarlo:
+  - iniciar sesion con `super_admin`;
+  - confirmar redireccion a `/super-admin`;
+  - cerrar sesion;
+  - entrar como admin/profesor y confirmar que `/super-admin` redirige a `/login`.
+
+### Confirmacion para estados criticos
+
+- Estado: completado.
+- Problema: cambiar a `suspendido` o `cancelado` tiene impacto directo en acceso del colegio.
+- Recomendacion tecnica: pedir confirmacion explicita antes de aplicar esos estados.
+
+### Aviso de pago configurable
+
+- Estado: pendiente.
+- Problema: el banner de mora muestra mensaje general.
+- Recomendacion tecnica: cuando backend tenga canales de pago, mostrar banco,
+  cuenta/referencia y contacto de soporte en el aviso.
