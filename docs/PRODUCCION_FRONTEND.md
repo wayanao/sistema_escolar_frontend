@@ -128,6 +128,7 @@ Desde esa pantalla se consume:
 
 ```text
 GET /super-admin/tenants
+POST /super-admin/tenants
 PATCH /super-admin/tenants/{tenant_id}/estado
 GET /super-admin/tenants/{tenant_id}/estado-auditoria
 ```
@@ -135,6 +136,9 @@ GET /super-admin/tenants/{tenant_id}/estado-auditoria
 El cambio de estado pide motivo/confirmacion. Para `suspendido` y `cancelado`
 el motivo es obligatorio. La pantalla tambien permite consultar historial por
 tenant.
+
+La pantalla tambien permite crear colegios. El formulario pide datos del
+colegio, admin inicial, fecha de inicio, proximo pago y dias de gracia.
 
 ## Login con tenant bloqueado
 
@@ -147,6 +151,15 @@ Cuando backend responde `403`, el frontend muestra el mensaje especifico del
 backend en lugar de "Credenciales incorrectas".
 
 ## Riesgos pendientes observados
+
+Actualizacion 2026-06-01:
+
+- El login debe recibir `debe_cambiar_password` desde backend.
+- Si es `true`, redirige a `/cambiar-password`.
+- El admin no debe poder usar rutas normales hasta cambiar la password temporal.
+- El panel de super admin muestra estado efectivo y estado manual cuando son
+  distintos.
+- Crear colegio valida password temporal fuerte antes de llamar API.
 
 - El fallback de API apunta a `http://localhost:8000`.
 - Las rutas protegidas del frontend dependen de `localStorage`.

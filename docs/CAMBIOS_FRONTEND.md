@@ -404,6 +404,77 @@ Resultado:
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
 
+## 2026-06-01 - Cierre fase SaaS super admin
+
+Se agregaron ajustes frontend para cerrar la primera fase de control SaaS.
+
+Archivos modificados/agregados:
+
+- `src/App.jsx`
+- `src/components/LoginForm.jsx`
+- `src/pages/CambiarPassword.jsx`
+- `src/pages/SuperAdminDashboard.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+- `docs/RUTAS_FRONTEND.md`
+- `docs/CHECKLIST_PRODUCCION_FRONTEND.md`
+
+Cambio:
+
+- Si login responde `debe_cambiar_password = true`, el admin entra a
+  `/cambiar-password`.
+- Las rutas normales de admin redirigen a `/cambiar-password` hasta completar
+  el cambio.
+- `CambiarPassword` llama `POST /auth/cambiar-password` y actualiza
+  `localStorage.usuario`.
+- Crear colegio valida email y password temporal fuerte desde frontend.
+- El panel de super admin muestra `estado` efectivo y, cuando difiere,
+  `estado_manual`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+
+## 2026-06-01 - Crear colegio desde super admin
+
+Se agrego el formulario frontend para crear colegios desde el panel de
+plataforma.
+
+Archivos modificados:
+
+- `src/pages/SuperAdminDashboard.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+- `docs/CHECKLIST_PRODUCCION_FRONTEND.md`
+- `docs/PLAN_EJECUCION_FRONTEND.md`
+
+Cambio:
+
+- Se agrego boton `Crear colegio`.
+- El formulario pide colegio, codigo, admin inicial, password temporal, fecha
+  de inicio, proximo pago, dias de gracia y notas.
+- Al crear correctamente, el colegio aparece en la tabla de tenants.
+- La tabla muestra proximo pago y dias de gracia.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-01 - Confirmacion, motivo e historial de estado SaaS
 
 Se fortalecio el panel de super admin para que los cambios de estado tengan

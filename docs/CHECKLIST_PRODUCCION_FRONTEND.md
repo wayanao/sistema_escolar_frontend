@@ -193,12 +193,32 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 ### Validacion manual de acceso
 
 - Estado: pendiente.
+
+## Cierre SaaS 2026-06-01
+
+[ ] Login de admin inicial con password temporal redirige a `/cambiar-password`.
+[ ] Cambiar password temporal con una password fuerte.
+[ ] Confirmar que despues del cambio entra a `/dashboard-admin`.
+[ ] Confirmar que crear colegio rechaza password temporal debil.
+[ ] Confirmar que super admin muestra `estado` efectivo y `estado_manual` si
+son diferentes.
 - Archivo afectado: `src/App.jsx`, `src/pages/SuperAdminDashboard.jsx`.
 - Como probarlo:
   - iniciar sesion con `super_admin`;
   - confirmar redireccion a `/super-admin`;
   - cerrar sesion;
   - entrar como admin/profesor y confirmar que `/super-admin` redirige a `/login`.
+
+### Creacion de colegio desde super admin
+
+- Estado: pendiente de prueba manual.
+- Archivo afectado: `src/pages/SuperAdminDashboard.jsx`.
+- Como probarlo:
+  - iniciar sesion con `super_admin`;
+  - hacer clic en `Crear colegio`;
+  - completar colegio, admin inicial y suscripcion;
+  - confirmar que aparece en la tabla;
+  - cerrar sesion e iniciar con el admin inicial del colegio creado.
 
 ### Confirmacion para estados criticos
 

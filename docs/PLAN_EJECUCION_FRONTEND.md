@@ -179,6 +179,8 @@ Pendiente manual:
 - Probar login con codigo `super_admin`.
 - Confirmar que `/super-admin` no entra con `admin` ni `profesor`.
 - Confirmar que `/super-admin` lista tenants.
+- Crear colegio de prueba desde `/super-admin`.
+- Probar login del admin inicial del colegio creado.
 - Probar cambio de estado con un tenant de prueba:
   - `activo` -> `en_mora`;
   - `en_mora` -> `suspendido`;
@@ -196,3 +198,4 @@ Completado despues:
 - Confirmacion antes de cambiar estado de tenant.
 - Motivo obligatorio para `suspendido` y `cancelado`.
 - Consulta de historial de cambios por tenant desde el panel.
+- Creacion de colegio desde el panel con admin inicial y suscripcion.

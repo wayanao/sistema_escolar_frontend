@@ -54,6 +54,7 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 | Ruta | Componente |
 | --- | --- |
 | `/super-admin` | `SuperAdminDashboard` |
+| `/cambiar-password` | `CambiarPassword` |
 
 ## Navegacion de administrador
 

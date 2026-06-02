@@ -21,6 +21,17 @@ const escapeHtml = (value) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+const passwordErrors = (value) => {
+  const errors = [];
+  if ((value || "").length < 10) errors.push("minimo 10 caracteres");
+  if (!/[A-Z]/.test(value || "")) errors.push("una mayuscula");
+  if (!/[a-z]/.test(value || "")) errors.push("una minuscula");
+  if (!/[0-9]/.test(value || "")) errors.push("un numero");
+  return errors;
+};
+
 function SuperAdminDashboard() {
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,14 +68,132 @@ function SuperAdminDashboard() {
     );
   }, [tenants]);
 
+  const crearColegio = async () => {
+    const hoy = todayIso();
+    const result = await Swal.fire({
+      title: "Crear colegio",
+      width: 720,
+      html: `
+        <div class="grid gap-3 text-left sm:grid-cols-2">
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Nombre colegio
+            <input id="tenant-nombre" class="swal2-input" placeholder="Colegio Demo" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Codigo acceso
+            <input id="tenant-codigo" class="swal2-input" placeholder="colegio_demo" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Admin nombre
+            <input id="tenant-admin-nombre" class="swal2-input" placeholder="Administrador" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Admin correo
+            <input id="tenant-admin-email" type="email" class="swal2-input" placeholder="admin@colegio.com" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Password temporal
+            <input id="tenant-admin-password" type="password" class="swal2-input" placeholder="Password temporal" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Dias de gracia
+            <input id="tenant-dias-gracia" type="number" min="0" class="swal2-input" value="5" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Fecha inicio
+            <input id="tenant-fecha-inicio" type="date" class="swal2-input" value="${hoy}" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Proximo pago
+            <input id="tenant-fecha-pago" type="date" class="swal2-input" value="${hoy}" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500 sm:col-span-2">
+            Notas
+            <textarea id="tenant-notas" class="swal2-textarea" placeholder="Plan, observaciones de suscripcion..."></textarea>
+          </label>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Crear colegio",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#059669",
+      preConfirm: () => {
+        const payload = {
+          nombre: document.getElementById("tenant-nombre")?.value.trim(),
+          codigo: document.getElementById("tenant-codigo")?.value.trim().toLowerCase(),
+          admin_nombre: document.getElementById("tenant-admin-nombre")?.value.trim(),
+          admin_email: document.getElementById("tenant-admin-email")?.value.trim().toLowerCase(),
+          admin_password: document.getElementById("tenant-admin-password")?.value,
+          fecha_inicio: document.getElementById("tenant-fecha-inicio")?.value,
+          fecha_proximo_pago: document.getElementById("tenant-fecha-pago")?.value,
+          dias_gracia: Number(document.getElementById("tenant-dias-gracia")?.value || 0),
+          notas: document.getElementById("tenant-notas")?.value.trim(),
+        };
+
+        if (!payload.nombre || !payload.codigo || !payload.admin_nombre || !payload.admin_email || !payload.admin_password) {
+          Swal.showValidationMessage("Completa colegio, codigo y admin inicial.");
+          return false;
+        }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.admin_email)) {
+          Swal.showValidationMessage("Escribe un correo valido para el admin.");
+          return false;
+        }
+        const passErrors = passwordErrors(payload.admin_password);
+        if (passErrors.length) {
+          Swal.showValidationMessage(`La password temporal debe incluir ${passErrors.join(", ")}.`);
+          return false;
+        }
+        if (!/^[a-z0-9_]{3,50}$/.test(payload.codigo)) {
+          Swal.showValidationMessage("El codigo debe usar minusculas, numeros o guion bajo, minimo 3 caracteres.");
+          return false;
+        }
+        if (!payload.fecha_inicio || !payload.fecha_proximo_pago) {
+          Swal.showValidationMessage("Completa las fechas de suscripcion.");
+          return false;
+        }
+        if (payload.fecha_proximo_pago < payload.fecha_inicio) {
+          Swal.showValidationMessage("El proximo pago no puede ser anterior al inicio.");
+          return false;
+        }
+        if (payload.dias_gracia < 0) {
+          Swal.showValidationMessage("Los dias de gracia no pueden ser negativos.");
+          return false;
+        }
+
+        return payload;
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await api.post("/super-admin/tenants", result.value);
+      setTenants((current) => [...current, response.data]);
+      Swal.fire({
+        icon: "success",
+        title: "Colegio creado",
+        text: `${response.data.nombre} ya puede iniciar sesion.`,
+      });
+    } catch (err) {
+      console.error("Error creando colegio", err);
+      const detail = err.response?.data?.detail;
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo crear",
+        text: typeof detail === "string" ? detail : "Revisa los datos e intenta nuevamente.",
+      });
+    }
+  };
+
   const cambiarEstado = async (tenant, estado) => {
-    if (tenant.estado === estado) return;
+    const estadoManual = tenant.estado_manual || tenant.estado;
+    if (estadoManual === estado) return;
 
     const requiereMotivo = estadosCriticos.has(estado);
     const result = await Swal.fire({
       icon: requiereMotivo ? "warning" : "question",
       title: `Cambiar a ${estado}`,
-      text: `${tenant.nombre} pasará de ${tenant.estado} a ${estado}.`,
+      text: `${tenant.nombre} pasara de ${estadoManual} a ${estado}.`,
       input: "textarea",
       inputLabel: requiereMotivo ? "Motivo obligatorio" : "Motivo opcional",
       inputPlaceholder: "Ej. Pago vencido, pago confirmado, solicitud del cliente...",
@@ -184,13 +313,22 @@ function SuperAdminDashboard() {
             Control de tenants
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={cargarTenants}
-          className="w-fit rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
-        >
-          Actualizar
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={crearColegio}
+            className="w-fit rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          >
+            Crear colegio
+          </button>
+          <button
+            type="button"
+            onClick={cargarTenants}
+            className="w-fit rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
+          >
+            Actualizar
+          </button>
+        </div>
       </section>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -227,6 +365,8 @@ function SuperAdminDashboard() {
                   <th className="px-4 py-3">Colegio</th>
                   <th className="px-4 py-3">Código</th>
                   <th className="px-4 py-3">Schema</th>
+                  <th className="px-4 py-3">Próximo pago</th>
+                  <th className="px-4 py-3">Gracia</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3">Cambiar</th>
                   <th className="px-4 py-3">Historial</th>
@@ -238,6 +378,8 @@ function SuperAdminDashboard() {
                     <td className="px-4 py-3 font-semibold text-slate-950">{tenant.nombre}</td>
                     <td className="px-4 py-3 text-slate-700">{tenant.subdominio}</td>
                     <td className="px-4 py-3 font-mono text-xs text-slate-600">{tenant.esquema_db}</td>
+                    <td className="px-4 py-3 text-slate-700">{tenant.fecha_proximo_pago || "Sin fecha"}</td>
+                    <td className="px-4 py-3 text-slate-700">{tenant.dias_gracia ?? 0} dias</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-bold uppercase ${
@@ -246,10 +388,15 @@ function SuperAdminDashboard() {
                       >
                         {tenant.estado}
                       </span>
+                      {tenant.estado_manual && tenant.estado_manual !== tenant.estado ? (
+                        <p className="mt-1 text-xs font-medium text-slate-500">
+                          Manual: {tenant.estado_manual}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        value={tenant.estado}
+                        value={tenant.estado_manual || tenant.estado}
                         disabled={savingId === tenant.id}
                         onChange={(event) => cambiarEstado(tenant, event.target.value)}
                         className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"

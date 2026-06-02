@@ -32,6 +32,7 @@ const BrandingAdmin = lazy(() => import("./pages/BrandingAdmin"));
 const TiposPagosAdmin = lazy(() => import("./pages/TiposPagosAdmin"));
 const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
+const CambiarPassword = lazy(() => import("./pages/CambiarPassword"));
 
 function PageLoader() {
   return (
@@ -44,12 +45,33 @@ function PageLoader() {
 function ProtectedRoute({ children }) {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
+  if (usuario?.debe_cambiar_password) {
+    return <Navigate to="/cambiar-password" />;
+  }
   return (usuario || profesor) ? children : <Navigate to="/login" />;
 }
 
 function AdminRoute({ children }) {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  if (usuario?.debe_cambiar_password) {
+    return <Navigate to="/cambiar-password" />;
+  }
   return (usuario && usuario.rol === "admin") ? children : <Navigate to="/login" />;
+}
+
+function PasswordChangeRoute() {
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  if (!usuario || usuario.rol !== "admin") {
+    return <Navigate to="/login" />;
+  }
+  if (!usuario.debe_cambiar_password) {
+    return <Navigate to="/dashboard-admin" />;
+  }
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <CambiarPassword />
+    </Suspense>
+  );
 }
 
 function SuperAdminRoute({ children }) {
@@ -62,6 +84,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/super-admin" element={<SuperAdminRoute><SuperAdminLayout /></SuperAdminRoute>} />
+      <Route path="/cambiar-password" element={<PasswordChangeRoute />} />
       <Route path="/*" element={<Layout />} />
     </Routes>
   );

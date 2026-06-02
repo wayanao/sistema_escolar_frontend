@@ -84,13 +84,16 @@ Uso:
 
 ```text
 GET /super-admin/tenants
+POST /super-admin/tenants
 PATCH /super-admin/tenants/{tenant_id}/estado
 GET /super-admin/tenants/{tenant_id}/estado-auditoria
+POST /auth/cambiar-password
 ```
 
 Uso:
 
 - listar colegios/tenants registrados en `public.colegios`;
+- crear colegio con admin inicial y suscripcion;
 - cambiar estado SaaS entre `activo`, `en_mora`, `suspendido` y `cancelado`.
 - consultar historial de cambios de estado.
 
@@ -128,6 +131,15 @@ Endpoints observados en ese servicio:
 - `POST /plantillas`
 
 ## Riesgos pendientes observados
+
+Actualizacion 2026-06-01:
+
+- `GET /super-admin/tenants` ahora diferencia:
+  - `estado`: estado efectivo por fecha de pago/gracia;
+  - `estado_manual`: estado administrativo guardado.
+- `POST /auth/cambiar-password` se usa en primer ingreso del admin inicial.
+- El cliente redirige a `/cambiar-password` mientras
+  `usuario.debe_cambiar_password` sea `true`.
 
 - `VITE_API_URL` cae a `http://localhost:8000` si no esta configurado.
 - La autorizacion final debe estar siempre en backend, no solo en la UI.

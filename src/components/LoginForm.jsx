@@ -31,6 +31,7 @@ function LoginForm() {
         nombre: data.nombre,
         rol: data.rol,
         tenant: data.tenant,
+        debe_cambiar_password: Boolean(data.debe_cambiar_password),
       };
 
       // Guardar tenant local; la cookie de sesion la emite el backend.
@@ -62,6 +63,8 @@ function LoginForm() {
         // 🔥 redirigir según rol
         if (data.rol === "super_admin") {
           window.location.href = "/super-admin";
+        } else if (data.rol === "admin" && data.debe_cambiar_password) {
+          window.location.href = "/cambiar-password";
         } else if (data.rol === "admin") {
           window.location.href = "/dashboard-admin";
         } else {
