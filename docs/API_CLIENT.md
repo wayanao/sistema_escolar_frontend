@@ -97,6 +97,35 @@ Uso:
 - cambiar estado SaaS entre `activo`, `en_mora`, `suspendido` y `cancelado`.
 - consultar historial de cambios de estado.
 
+## Estados de estudiantes y profesores
+
+`EstudiantesAdmin.jsx` consume:
+
+```text
+GET /estudiantes?estado=activo|retirado|egresado|inactivo|todos
+PATCH /estudiantes/{estudiante_id}/estado
+```
+
+Uso:
+
+- Por defecto muestra estudiantes `activo`.
+- Permite filtrar `retirado`, `egresado`, `inactivo` o `todos`.
+- El cambio de estado no borra el estudiante ni su historial.
+
+`CrearProfesor.jsx` consume:
+
+```text
+GET /profesores?estado=activo|inactivo|todos
+PATCH /profesores/{profesor_id}/estado
+```
+
+Uso:
+
+- Por defecto muestra profesores `activo`.
+- Permite filtrar `inactivo` o `todos`.
+- El cambio de estado no borra el profesor ni su historial.
+- El backend bloquea login y nuevas asignaciones para profesores `inactivo`.
+
 ## Imagenes protegidas
 
 `ImagenProtegida.jsx` usa el cliente `api` con:

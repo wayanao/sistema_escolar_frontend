@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../utils/api";
 
 const API = import.meta.env.VITE_API_URL;
@@ -10,10 +10,29 @@ const toTitleCase = (value) =>
     .toLocaleLowerCase("es-CO")
     .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
 
+const ESTADOS_PROFESOR = [
+  { value: "activo", label: "Activo" },
+  { value: "inactivo", label: "Inactivo" },
+];
+
+const FILTROS_PROFESOR = [
+  ...ESTADOS_PROFESOR,
+  { value: "todos", label: "Todos" },
+];
+
+const estadoLabel = (estado) =>
+  ESTADOS_PROFESOR.find((item) => item.value === estado)?.label || "Activo";
+
+const estadoClasses = {
+  activo: "bg-green-100 text-green-800 border-green-200",
+  inactivo: "bg-gray-100 text-gray-700 border-gray-200",
+};
+
 function CrearProfesor() {
   const [profesores, setProfesores] = useState([]);
   const [editId, setEditId] = useState(null);
   const [busqueda, setBusqueda] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState("activo");
 
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
@@ -22,21 +41,34 @@ function CrearProfesor() {
   const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
   const [sueldo, setSueldo] = useState("");
+  const [estado, setEstado] = useState("activo");
 
-  const cargarProfesores = async () => {
+  const limpiarFormulario = () => {
+    setEditId(null);
+    setNombre("");
+    setApellido("");
+    setDocumento("");
+    setEmail("");
+    setTelefono("");
+    setPassword("");
+    setSueldo("");
+    setEstado("activo");
+  };
+
+  const cargarProfesores = useCallback(async () => {
     try {
-      const res = await api.get('/profesores');
+      const res = await api.get('/profesores', { params: { estado: estadoFiltro } });
       if (res.status === 200) {
         setProfesores(res.data);
       }
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [estadoFiltro]);
 
   useEffect(() => {
     cargarProfesores();
-  }, []);
+  }, [cargarProfesores]);
 
   const handleSubmit = async () => {
     if (!nombre || !apellido || !documento_identidad || !email || !telefono || (!password && !editId) || !sueldo) {
@@ -52,7 +84,8 @@ function CrearProfesor() {
         email: email.trim().toLocaleLowerCase("es-CO"),
         telefono,
         password,
-        sueldo: parseFloat(sueldo) || 0
+        sueldo: parseFloat(sueldo) || 0,
+        estado,
       };
 
       let res;
@@ -64,14 +97,7 @@ function CrearProfesor() {
 
       if (res.status >= 200 && res.status < 300) {
         alert(editId ? "Profesor actualizado 🔥" : "Profesor creado 🔥");
-        setEditId(null);
-        setNombre("");
-        setApellido("");
-        setDocumento("");
-        setEmail("");
-        setTelefono("");
-        setPassword("");
-        setSueldo("");
+        limpiarFormulario();
         cargarProfesores();
       } else {
         alert("Error al guardar profesor");
@@ -91,17 +117,47 @@ function CrearProfesor() {
     setTelefono(p.telefono);
     setPassword(""); // Leave blank if not changing
     setSueldo(p.sueldo || 0);
+    setEstado(p.estado || "activo");
   };
 
   const cancelEdit = () => {
-    setEditId(null);
-    setNombre("");
-    setApellido("");
-    setDocumento("");
-    setEmail("");
-    setTelefono("");
-    setPassword("");
-    setSueldo("");
+    limpiarFormulario();
+  };
+
+  const cambiarEstadoProfesor = async (profesor, nuevoEstado) => {
+    const estadoActual = profesor.estado || "activo";
+    if (nuevoEstado === estadoActual) return;
+
+    const accion = nuevoEstado === "activo" ? "reactivar" : "desactivar";
+    if (!window.confirm(`¿Deseas ${accion} a ${profesor.nombre} ${profesor.apellido}?`)) {
+      return;
+    }
+
+    try {
+      const res = await api.patch(`/profesores/${profesor.id}/estado`, {
+        estado: nuevoEstado,
+      });
+      const estadoActualizado = res.data?.estado || nuevoEstado;
+
+      setProfesores((actuales) =>
+        actuales
+          .map((item) =>
+            item.id === profesor.id
+              ? { ...item, estado: estadoActualizado }
+              : item
+          )
+          .filter((item) =>
+            estadoFiltro === "todos" ? true : (item.estado || "activo") === estadoFiltro
+          )
+      );
+
+      if (editId === profesor.id) {
+        setEstado(estadoActualizado);
+      }
+    } catch (error) {
+      console.error("Error cambiando estado del profesor:", error);
+      alert("No se pudo cambiar el estado del profesor");
+    }
   };
 
   return (
@@ -191,6 +247,20 @@ function CrearProfesor() {
                 onChange={(e) => setSueldo(e.target.value)}
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select
+                value={estado}
+                onChange={(e) => setEstado(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+              >
+                {ESTADOS_PROFESOR.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex gap-2">
@@ -215,7 +285,7 @@ function CrearProfesor() {
       
       <div className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Lista de Profesores</h3>
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
           <input 
             type="text" 
             placeholder="🔍 Buscar profesor..." 
@@ -223,6 +293,17 @@ function CrearProfesor() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
+          <select
+            value={estadoFiltro}
+            onChange={(e) => setEstadoFiltro(e.target.value)}
+            className="w-full sm:w-40 p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+          >
+            {FILTROS_PROFESOR.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="overflow-x-auto max-h-64">
           <table className="w-full text-left border-collapse">
@@ -230,6 +311,7 @@ function CrearProfesor() {
               <tr className="bg-gray-100 text-gray-600">
                 <th className="p-2 border-b">Nombre</th>
                 <th className="p-2 border-b">Email</th>
+                <th className="p-2 border-b">Estado</th>
                 <th className="p-2 border-b">Acciones</th>
               </tr>
             </thead>
@@ -239,12 +321,30 @@ function CrearProfesor() {
                   <td className="p-2">{p.nombre} {p.apellido}</td>
                   <td className="p-2">{p.email}</td>
                   <td className="p-2">
-                    <button
-                      onClick={() => editProfesor(p)}
-                      className="text-purple-700 hover:underline"
-                    >
-                      ✏️ Editar
-                    </button>
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${estadoClasses[p.estado || "activo"] || estadoClasses.activo}`}>
+                      {estadoLabel(p.estado || "activo")}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={p.estado || "activo"}
+                        onChange={(e) => cambiarEstadoProfesor(p, e.target.value)}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                      >
+                        {ESTADOS_PROFESOR.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => editProfesor(p)}
+                        className="text-purple-700 hover:underline"
+                      >
+                        Editar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

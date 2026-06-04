@@ -1,8 +1,30 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 
 const API = import.meta.env.VITE_API_URL;
+
+const ESTADOS_ESTUDIANTE = [
+  { value: "activo", label: "Activo" },
+  { value: "retirado", label: "Retirado" },
+  { value: "egresado", label: "Egresado" },
+  { value: "inactivo", label: "Inactivo" },
+];
+
+const FILTROS_ESTUDIANTE = [
+  ...ESTADOS_ESTUDIANTE,
+  { value: "todos", label: "Todos" },
+];
+
+const estadoLabel = (estado) =>
+  ESTADOS_ESTUDIANTE.find((item) => item.value === estado)?.label || "Activo";
+
+const estadoClasses = {
+  activo: "bg-green-100 text-green-800 border-green-200",
+  retirado: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  egresado: "bg-blue-100 text-blue-800 border-blue-200",
+  inactivo: "bg-gray-100 text-gray-700 border-gray-200",
+};
 
 function EstudiantesAdmin() {
   const navigate = useNavigate();
@@ -15,6 +37,7 @@ function EstudiantesAdmin() {
   const [detallesEstudiante, setDetallesEstudiante] = useState(null);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState("activo");
 
   // Formulario de estudiante
   const [estudianteData, setEstudianteData] = useState({
@@ -55,20 +78,11 @@ function EstudiantesAdmin() {
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  if (!usuario || usuario.rol !== "admin") {
-    navigate("/login");
-    return null;
-  }
-
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     try {
       setLoading(true);
       const [estRes, cursosRes] = await Promise.all([
-        api.get(`/estudiantes`),
+        api.get(`/estudiantes`, { params: { estado: estadoFiltro } }),
         api.get(`/cursos`)
       ]);
 
@@ -83,7 +97,18 @@ function EstudiantesAdmin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [estadoFiltro]);
+
+  useEffect(() => {
+    if (usuario?.rol === "admin") {
+      cargarDatos();
+    }
+  }, [cargarDatos, usuario?.rol]);
+
+  if (!usuario || usuario.rol !== "admin") {
+    navigate("/login");
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -188,8 +213,50 @@ function EstudiantesAdmin() {
   const filteredEstudiantes = estudiantes.filter(estudiante =>
     estudiante.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     estudiante.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    estudiante.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    estudiante.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    estudiante.documento?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const cambiarEstadoEstudiante = async (estudiante, nuevoEstado) => {
+    const estadoActual = estudiante.estado || "activo";
+    if (nuevoEstado === estadoActual) return;
+
+    const accion = nuevoEstado === "activo"
+      ? "reactivar"
+      : `marcar como ${estadoLabel(nuevoEstado).toLowerCase()}`;
+
+    if (!window.confirm(`¿Deseas ${accion} a ${estudiante.nombre} ${estudiante.apellido}?`)) {
+      return;
+    }
+
+    try {
+      const res = await api.patch(`/estudiantes/${estudiante.id}/estado`, {
+        estado: nuevoEstado,
+      });
+      const estadoActualizado = res.data?.estado || nuevoEstado;
+
+      setEstudiantes((actuales) =>
+        actuales
+          .map((item) =>
+            item.id === estudiante.id
+              ? { ...item, estado: estadoActualizado }
+              : item
+          )
+          .filter((item) =>
+            estadoFiltro === "todos" ? true : (item.estado || "activo") === estadoFiltro
+          )
+      );
+      if (selectedEstudiante?.id === estudiante.id) {
+        setSelectedEstudiante((actual) => ({
+          ...actual,
+          estado: estadoActualizado,
+        }));
+      }
+    } catch (error) {
+      console.error("Error cambiando estado:", error);
+      alert("No se pudo cambiar el estado del estudiante");
+    }
+  };
 
   const verDetalles = async (estudiante) => {
     setSelectedEstudiante(estudiante);
@@ -231,7 +298,7 @@ function EstudiantesAdmin() {
 
       {/* Barra de búsqueda y botón */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex-1 max-w-md">
+        <div className="flex flex-1 flex-col gap-3 sm:max-w-2xl sm:flex-row">
           <input
             type="text"
             placeholder="Buscar estudiante..."
@@ -239,6 +306,17 @@ function EstudiantesAdmin() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
+          <select
+            value={estadoFiltro}
+            onChange={(e) => setEstadoFiltro(e.target.value)}
+            className="w-full sm:w-44 p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            {FILTROS_ESTUDIANTE.map((estado) => (
+              <option key={estado.value} value={estado.value}>
+                {estado.label}
+              </option>
+            ))}
+          </select>
         </div>
         <button
           onClick={() => {
@@ -714,6 +792,9 @@ function EstudiantesAdmin() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nombre del Estudiante
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
@@ -741,16 +822,38 @@ function EstudiantesAdmin() {
                       </div>
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${estadoClasses[estudiante.estado || "activo"] || estadoClasses.activo}`}>
+                      {estadoLabel(estudiante.estado || "activo")}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        cargarEstudianteAEditar(estudiante.id);
-                      }}
-                      className="text-purple-700 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-md transition-colors"
-                    >
-                      ✏️ Editar
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <select
+                        value={estudiante.estado || "activo"}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          cambiarEstadoEstudiante(estudiante, e.target.value);
+                        }}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                      >
+                        {ESTADOS_ESTUDIANTE.map((estado) => (
+                          <option key={estado.value} value={estado.value}>
+                            {estado.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cargarEstudianteAEditar(estudiante.id);
+                        }}
+                        className="text-purple-700 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-md transition-colors"
+                      >
+                        Editar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

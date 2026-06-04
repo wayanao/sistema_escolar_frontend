@@ -575,3 +575,43 @@ Resultado:
 - Build de produccion OK.
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Estados de estudiantes y profesores
+
+Se agrego control operativo por estado para estudiantes y profesores desde las
+pantallas administrativas, alineado con el backend y sin borrado fisico.
+
+Archivos modificados:
+
+- `src/pages/EstudiantesAdmin.jsx`
+- `src/components/CrearProfesor.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+
+Cambio:
+
+- Estudiantes muestran `activo` por defecto.
+- La pantalla de estudiantes permite filtrar `activo`, `retirado`, `egresado`,
+  `inactivo` y `todos`.
+- Se agrego cambio de estado de estudiante via
+  `PATCH /estudiantes/{estudiante_id}/estado`.
+- Profesores muestran `activo` por defecto.
+- La pantalla de profesores permite filtrar `activo`, `inactivo` y `todos`.
+- Se agrego cambio de estado de profesor via
+  `PATCH /profesores/{profesor_id}/estado`.
+- El formulario de profesor permite crear/editar conservando estado.
+- La UI muestra etiquetas de estado y trata la desactivacion como operativa, no
+  como eliminacion de historial.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.

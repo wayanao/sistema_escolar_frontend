@@ -140,6 +140,39 @@ tenant.
 La pantalla tambien permite crear colegios. El formulario pide datos del
 colegio, admin inicial, fecha de inicio, proximo pago y dias de gracia.
 
+## Estados operativos de estudiantes y profesores
+
+`EstudiantesAdmin.jsx` muestra estudiantes activos por defecto y permite
+filtrar por:
+
+- `activo`
+- `retirado`
+- `egresado`
+- `inactivo`
+- `todos`
+
+El cambio de estado se hace con:
+
+```text
+PATCH /estudiantes/{estudiante_id}/estado
+```
+
+`CrearProfesor.jsx` muestra profesores activos por defecto y permite filtrar
+por:
+
+- `activo`
+- `inactivo`
+- `todos`
+
+El cambio de estado se hace con:
+
+```text
+PATCH /profesores/{profesor_id}/estado
+```
+
+El frontend no debe tratar estos cambios como borrado. El historial y la
+seguridad final dependen del backend.
+
 ## Login con tenant bloqueado
 
 `LoginForm.jsx` distingue:
