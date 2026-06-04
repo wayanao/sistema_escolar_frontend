@@ -140,7 +140,7 @@ tenant.
 La pantalla tambien permite crear colegios. El formulario pide datos del
 colegio, admin inicial, fecha de inicio, proximo pago y dias de gracia.
 
-## Estados operativos de estudiantes y profesores
+## Estados operativos de estudiantes, profesores y cursos
 
 `EstudiantesAdmin.jsx` muestra estudiantes activos por defecto y permite
 filtrar por:
@@ -168,6 +168,18 @@ El cambio de estado se hace con:
 
 ```text
 PATCH /profesores/{profesor_id}/estado
+```
+
+`CrearCurso.jsx` muestra cursos activos por defecto y permite filtrar por:
+
+- `activo`
+- `inactivo`
+- `todos`
+
+El cambio de estado se hace con:
+
+```text
+PATCH /cursos/{curso_id}/estado
 ```
 
 El frontend no debe tratar estos cambios como borrado. El historial y la

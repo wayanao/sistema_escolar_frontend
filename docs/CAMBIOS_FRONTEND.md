@@ -615,3 +615,36 @@ Resultado:
 - Build de produccion OK.
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Estado operativo de cursos
+
+Se agrego control operativo por estado para cursos desde la pantalla
+administrativa, alineado con el backend y sin borrado fisico.
+
+Archivos modificados:
+
+- `src/components/CrearCurso.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+
+Cambio:
+
+- Cursos muestran `activo` por defecto.
+- La pantalla de cursos permite filtrar `activo`, `inactivo` y `todos`.
+- Se agrego campo de estado al crear/editar curso.
+- Se agrego cambio de estado de curso via `PATCH /cursos/{curso_id}/estado`.
+- La UI muestra etiquetas de estado y trata la desactivacion como operativa, no
+  como eliminacion de historial.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.

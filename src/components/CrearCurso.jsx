@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import api from "../utils/api";
-
-const API = import.meta.env.VITE_API_URL;
 
 const toTitleCase = (value) =>
   String(value || "")
@@ -10,25 +8,52 @@ const toTitleCase = (value) =>
     .toLocaleLowerCase("es-CO")
     .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
 
+const ESTADOS_CURSO = [
+  { value: "activo", label: "Activo" },
+  { value: "inactivo", label: "Inactivo" },
+];
+
+const FILTROS_CURSO = [
+  ...ESTADOS_CURSO,
+  { value: "todos", label: "Todos" },
+];
+
+const estadoLabel = (estado) =>
+  ESTADOS_CURSO.find((item) => item.value === estado)?.label || "Activo";
+
+const estadoClasses = {
+  activo: "bg-green-100 text-green-800 border-green-200",
+  inactivo: "bg-gray-100 text-gray-700 border-gray-200",
+};
+
 function CrearCurso() {
   const [cursos, setCursos] = useState([]);
   const [editId, setEditId] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState("activo");
 
   const [nombre, setNombre] = useState("");
   const [jornada, setJornada] = useState("Mañana");
+  const [estado, setEstado] = useState("activo");
 
-  const cargarCursos = async () => {
+  const limpiarFormulario = () => {
+    setEditId(null);
+    setNombre("");
+    setJornada("Mañana");
+    setEstado("activo");
+  };
+
+  const cargarCursos = useCallback(async () => {
     try {
-      const res = await api.get('/cursos');
+      const res = await api.get('/cursos', { params: { estado: estadoFiltro } });
       if (res.status === 200) setCursos(res.data);
     } catch(err) {
       console.error(err);
     }
-  };
+  }, [estadoFiltro]);
 
   useEffect(() => {
     cargarCursos();
-  }, []);
+  }, [cargarCursos]);
 
   const handleSubmit = async () => {
     if (!nombre) return alert("Falta nombre");
@@ -36,7 +61,8 @@ function CrearCurso() {
     try {
       const payload = {
         nombre: toTitleCase(nombre),
-        jornada
+        jornada,
+        estado,
       };
 
       let res;
@@ -48,9 +74,7 @@ function CrearCurso() {
 
       if (res.status >= 200 && res.status < 300) {
         alert(editId ? "Curso actualizado 🔥" : "Curso creado 🔥");
-        setEditId(null);
-        setNombre("");
-        setJornada("Mañana");
+        limpiarFormulario();
         cargarCursos();
       } else {
         alert("Error al guardar el curso");
@@ -65,12 +89,47 @@ function CrearCurso() {
     setEditId(c.id);
     setNombre(c.nombre);
     setJornada(c.jornada || "Mañana");
+    setEstado(c.estado || "activo");
   };
 
   const cancelEdit = () => {
-    setEditId(null);
-    setNombre("");
-    setJornada("Mañana");
+    limpiarFormulario();
+  };
+
+  const cambiarEstadoCurso = async (curso, nuevoEstado) => {
+    const estadoActual = curso.estado || "activo";
+    if (nuevoEstado === estadoActual) return;
+
+    const accion = nuevoEstado === "activo" ? "reactivar" : "desactivar";
+    if (!window.confirm(`¿Deseas ${accion} el curso ${curso.nombre}?`)) {
+      return;
+    }
+
+    try {
+      const res = await api.patch(`/cursos/${curso.id}/estado`, {
+        estado: nuevoEstado,
+      });
+      const estadoActualizado = res.data?.estado || nuevoEstado;
+
+      setCursos((actuales) =>
+        actuales
+          .map((item) =>
+            item.id === curso.id
+              ? { ...item, estado: estadoActualizado }
+              : item
+          )
+          .filter((item) =>
+            estadoFiltro === "todos" ? true : (item.estado || "activo") === estadoFiltro
+          )
+      );
+
+      if (editId === curso.id) {
+        setEstado(estadoActualizado);
+      }
+    } catch (error) {
+      console.error("Error cambiando estado del curso:", error);
+      alert("No se pudo cambiar el estado del curso");
+    }
   };
 
   return (
@@ -80,7 +139,7 @@ function CrearCurso() {
           🏫 {editId ? "Editar" : "Crear"} Curso
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">        
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
             <input
@@ -99,6 +158,20 @@ function CrearCurso() {
             >
               <option value="Mañana">🌅 Mañana</option>
               <option value="Tarde">🌇 Tarde</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+              value={estado}
+              onChange={(e) => setEstado(e.target.value)}
+            >
+              {ESTADOS_CURSO.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -121,13 +194,27 @@ function CrearCurso() {
         </div>
       </div>
       <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Lista de Cursos</h3>
-        <div className="overflow-x-auto max-h-48">
+        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Lista de Cursos</h3>
+          <select
+            value={estadoFiltro}
+            onChange={(e) => setEstadoFiltro(e.target.value)}
+            className="w-full sm:w-40 p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+          >
+            {FILTROS_CURSO.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="overflow-x-auto max-h-64">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-100 text-gray-600">
                 <th className="p-2 border-b">Nombre</th>
                 <th className="p-2 border-b">Jornada</th>
+                <th className="p-2 border-b">Estado</th>
                 <th className="p-2 border-b text-right">Acciones</th>
               </tr>
             </thead>
@@ -140,13 +227,31 @@ function CrearCurso() {
                       {c.jornada || 'Mañana'}
                     </span>
                   </td>
+                  <td className="p-2">
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${estadoClasses[c.estado || "activo"] || estadoClasses.activo}`}>
+                      {estadoLabel(c.estado || "activo")}
+                    </span>
+                  </td>
                   <td className="p-2 text-right">
-                    <button
-                      onClick={() => editCurso(c)}
-                      className="text-purple-700 hover:underline"
-                    >
-                      ✏️ Editar
-                    </button>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <select
+                        value={c.estado || "activo"}
+                        onChange={(e) => cambiarEstadoCurso(c, e.target.value)}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                      >
+                        {ESTADOS_CURSO.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => editCurso(c)}
+                        className="text-purple-700 hover:underline"
+                      >
+                        Editar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
