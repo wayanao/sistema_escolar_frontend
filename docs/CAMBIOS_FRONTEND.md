@@ -912,3 +912,90 @@ Resultado:
 - Build de produccion OK.
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Tipos de pago sin eliminar concepto
+
+Se ajusto la pantalla de Tipos de Pago para que los conceptos de cobro no se
+eliminen desde acciones.
+
+Archivos modificados:
+
+- `src/components/cartera/AdministrarTiposPago.jsx`
+- `docs/API_CLIENT.md`
+
+Cambio:
+
+- Se quito el boton de eliminar concepto en la tabla de conceptos existentes.
+- Se elimino la llamada frontend `DELETE /tipos-pagos/{id}` desde esa pantalla.
+- El flujo operativo queda en crear, editar, configurar y cambiar estado
+  `activo/inactivo`.
+- La conservacion del concepto protege trazabilidad de cartera, pagos y reportes
+  financieros.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Cartera > Tipos de Pago.
+- Confirmar que en `Conceptos Existentes` solo aparecen acciones de configurar
+  y editar.
+- Desactivar un concepto desde su configuracion y confirmar que queda como
+  inactivo/borrador.
+- Confirmar que los conceptos historicos siguen visibles al listar.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Filtro operativo de tipos de pago por estado
+
+Se mejoro la experiencia de Tipos de Pago para separar los conceptos activos de
+los inactivos.
+
+Archivos modificados:
+
+- `src/components/cartera/AdministrarTiposPago.jsx`
+- `src/pages/PagosAdmin.jsx`
+- `docs/API_CLIENT.md`
+
+Cambio:
+
+- La tabla de conceptos muestra por defecto solo los activos.
+- Se agrego filtro `Activos`, `Inactivos` y `Todos` con contador.
+- Los conceptos inactivos se muestran atenuados cuando se consultan desde
+  `Inactivos` o `Todos`.
+- Al desactivar un concepto se confirma que no generara nuevos cobros y que las
+  deudas/pagos existentes se conservan.
+- Al reactivar un concepto se confirma que vuelve con su configuracion anterior
+  sin generar cobros retroactivos automaticamente.
+- `PagosAdmin` solo conserva conceptos activos como apoyo para nuevos pagos.
+- Las deudas ya generadas siguen visibles y cobrables aunque su concepto haya
+  sido desactivado.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Cartera > Tipos de Pago y confirmar que inicia en `Activos`.
+- Desactivar un concepto y confirmar que sale del filtro `Activos`.
+- Cambiar a `Inactivos` y confirmar que aparece atenuado.
+- Reactivar el concepto y confirmar el aviso de no retroactividad.
+- En Pagos, confirmar que las deudas pendientes del estudiante siguen visibles.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.

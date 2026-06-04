@@ -85,8 +85,8 @@ function PagosAdmin() {
   const cargarTiposPagos = async () => {
     try {
       const res = await api.get("/tipos-pagos");
-      const data = res.data;
-      setTiposPagos(data);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setTiposPagos(data.filter((tipoPago) => tipoPago.activo !== false));
     } catch (error) {
       console.error("Error cargando tipos de pagos:", error);
     }

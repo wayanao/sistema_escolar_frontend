@@ -174,6 +174,48 @@ Uso:
 GET /inventario?estado=activo
 ```
 
+## Tipos de pago
+
+`AdministrarTiposPago.jsx` consume:
+
+```text
+GET /tipos-pagos/detallado
+GET /tipos-pagos
+POST /tipos-pagos
+PUT /tipos-pagos/{tipo_pago_id}
+GET /tipos-pagos/{tipo_pago_id}/detalle
+PUT /tipos-pagos/{tipo_pago_id}/configuracion
+PUT /tipos-pagos/{tipo_pago_id}/cursos
+```
+
+Uso:
+
+- La pantalla permite crear y editar conceptos de cobro.
+- Por defecto muestra solo conceptos activos.
+- Permite filtrar conceptos `activos`, `inactivos` o `todos`.
+- La accion de eliminar concepto no se muestra en el listado.
+- Para retirar un concepto de la operacion diaria se usa el estado
+  `activo/inactivo` desde su configuracion.
+- Los conceptos se conservan para proteger trazabilidad de cartera, pagos e
+  historiales financieros.
+- La asignacion de cursos se administra aparte; quitar un curso de un concepto
+  no elimina el concepto completo.
+- Al desactivar un concepto, los cobros/deudas ya generados se conservan.
+- Al reactivar un concepto, vuelve a usarse con su configuracion anterior y no
+  se generan cobros retroactivos automaticamente.
+
+`PagosAdmin.jsx` tambien consulta:
+
+```text
+GET /tipos-pagos
+```
+
+Uso:
+
+- Solo conserva en memoria conceptos activos para nuevos pagos.
+- Las deudas pendientes ya generadas siguen visibles desde el detalle del
+  estudiante aunque el concepto original este inactivo.
+
 ## Reportes
 
 `ReportesAdmin.jsx` consume:

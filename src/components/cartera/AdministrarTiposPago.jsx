@@ -3,7 +3,7 @@
  *
  * Centro de configuración financiera del sistema escolar.
  * Permite:
- *  - CRUD básico de tipos de pago (nombre + valor base) [funcionalidad ya existente]
+ *  - Crear y editar tipos de pago (nombre + valor base)
  *  - Configuración avanzada por tipo de cobro: único, mensual, anual, opcional
  *  - Mora (porcentaje o fijo), días de gracia, fecha límite
  *  - Recurrencia mensual (mes inicial, frecuencia, generación automática)
@@ -28,6 +28,12 @@ const TIPOS_COBRO = [
 const MESES = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
+const FILTROS_ESTADO_CONCEPTO = [
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
+    { value: "todos", label: "Todos" },
 ];
 
 const CONFIG_DEFAULT = {
@@ -126,11 +132,12 @@ function BadgeEstadoCartera({ tp }) {
 }
 
 function AdministrarTiposPago() {
-    // CRUD existente
+    // Crear/editar conceptos existentes.
     const [tiposPagos, setTiposPagos] = useState([]);
     const [nuevoTipoPago, setNuevoTipoPago] = useState("");
     const [valorTipoPago, setValorTipoPago] = useState("");
     const [editingTipoId, setEditingTipoId] = useState(null);
+    const [estadoFiltro, setEstadoFiltro] = useState("activo");
 
     // Avanzado
     const [cursos, setCursos] = useState([]);
@@ -174,7 +181,7 @@ function AdministrarTiposPago() {
     }, [cargarTiposPagos, cargarCursos]);
 
     // -------------------------------------------------------------------------
-    // CRUD básico (sin cambios funcionales)
+    // Crear/editar conceptos
     // -------------------------------------------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -210,36 +217,6 @@ function AdministrarTiposPago() {
         setEditingTipoId(tp.id);
         setNuevoTipoPago(tp.nombre);
         setValorTipoPago(tp.valor);
-    };
-
-    const handleDelete = async (id) => {
-        const result = await Swal.fire({
-            title: "¿Estás seguro?",
-            text: "Se eliminará este tipo de pago.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Eliminar",
-        });
-        if (!result.isConfirmed) return;
-
-        try {
-            const res = await api.delete(`/tipos-pagos/${id}`);
-            if (res.status >= 200 && res.status < 300) {
-                Swal.fire("Eliminado", "", "success");
-                cargarTiposPagos();
-                if (editingTipoId === id) {
-                    setEditingTipoId(null);
-                    setNuevoTipoPago("");
-                    setValorTipoPago("");
-                }
-                if (selectedTipoId === id) {
-                    setSelectedTipoId(null);
-                    setDetalle(null);
-                }
-            }
-        } catch {
-            Swal.fire("Error", "", "error");
-        }
     };
 
     // -------------------------------------------------------------------------
@@ -290,6 +267,25 @@ function AdministrarTiposPago() {
 
     const guardarConfiguracion = async () => {
         if (!selectedTipoId) return;
+        const estabaActivo = detalle?.activo !== false;
+        const quedaraActivo = !!config.activo;
+        const seDesactiva = estabaActivo && !quedaraActivo;
+        const seReactiva = !estabaActivo && quedaraActivo;
+
+        if (seDesactiva || seReactiva) {
+            const result = await Swal.fire({
+                title: seReactiva ? "Reactivar concepto" : "Desactivar concepto",
+                html: seReactiva
+                    ? "El concepto volverá a estar disponible con su configuración anterior.<br/><br/><strong>No se generarán cobros retroactivos automáticamente.</strong>"
+                    : "El concepto se ocultará de la operación diaria y no generará nuevos cobros.<br/><br/><strong>Las deudas y pagos ya existentes se conservarán.</strong>",
+                icon: seReactiva ? "info" : "warning",
+                showCancelButton: true,
+                confirmButtonText: seReactiva ? "Reactivar" : "Desactivar",
+                cancelButtonText: "Cancelar",
+            });
+            if (!result.isConfirmed) return;
+        }
+
         setGuardandoConfig(true);
         try {
             const payload = {
@@ -306,7 +302,16 @@ function AdministrarTiposPago() {
                 activo: !!config.activo,
             };
             await api.put(`/tipos-pagos/${selectedTipoId}/configuracion`, payload);
-            Swal.fire("Guardado", "Configuración actualizada", "success");
+            setDetalle((prev) => (prev ? { ...prev, ...payload } : prev));
+            Swal.fire(
+                "Guardado",
+                seReactiva
+                    ? "Concepto reactivado. Queda disponible sin generar cobros retroactivos."
+                    : seDesactiva
+                        ? "Concepto desactivado. Las deudas existentes siguen pendientes."
+                        : "Configuración actualizada",
+                "success"
+            );
             await cargarTiposPagos();
         } catch (error) {
             console.error(error);
@@ -425,9 +430,32 @@ function AdministrarTiposPago() {
         });
     }, [detalle, config.tipo_cobro, config.activo, cursosAsignados]);
 
+    const resumenEstados = useMemo(() => {
+        const activos = tiposPagos.filter((tp) => tp.activo !== false).length;
+        const inactivos = tiposPagos.filter((tp) => tp.activo === false).length;
+        return {
+            activo: activos,
+            inactivo: inactivos,
+            todos: tiposPagos.length,
+        };
+    }, [tiposPagos]);
+
+    const tiposPagosFiltrados = useMemo(() => {
+        if (estadoFiltro === "todos") return tiposPagos;
+        const debeEstarActivo = estadoFiltro === "activo";
+        return tiposPagos.filter((tp) => (tp.activo !== false) === debeEstarActivo);
+    }, [tiposPagos, estadoFiltro]);
+
+    const mensajeConceptosVacios =
+        estadoFiltro === "activo"
+            ? "No hay conceptos activos. Puedes revisar Inactivos o crear un nuevo concepto."
+            : estadoFiltro === "inactivo"
+                ? "No hay conceptos inactivos."
+                : "No hay conceptos registrados.";
+
     return (
         <div className="space-y-6">
-            {/* ============================ CRUD básico ============================ */}
+            {/* ============================ Conceptos ============================ */}
             <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
                     💳 Administrar Tipos de Pago y Valores
@@ -492,9 +520,36 @@ function AdministrarTiposPago() {
                 </form>
 
                 <div className="mt-2">
-                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Conceptos Existentes</h3>
+                    <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Conceptos Existentes</h3>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Los inactivos se conservan para historial, pero quedan fuera de la operación diaria.
+                            </p>
+                        </div>
+                        <div className="inline-flex w-full rounded-lg border border-gray-200 bg-gray-50 p-1 md:w-auto">
+                            {FILTROS_ESTADO_CONCEPTO.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setEstadoFiltro(filtro.value)}
+                                    className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors md:flex-none ${
+                                        estadoFiltro === filtro.value
+                                            ? "bg-white text-purple-700 shadow-sm"
+                                            : "text-gray-600 hover:bg-white/70"
+                                    }`}
+                                >
+                                    {filtro.label} ({resumenEstados[filtro.value]})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     {tiposPagos.length === 0 ? (
                         <span className="text-gray-500 text-sm">No hay conceptos registrados</span>
+                    ) : tiposPagosFiltrados.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                            {mensajeConceptosVacios}
+                        </div>
                     ) : (
                         <div className="overflow-x-auto rounded-lg border border-gray-200">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
@@ -510,14 +565,21 @@ function AdministrarTiposPago() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 bg-white">
-                                    {tiposPagos.map((tp) => {
+                                    {tiposPagosFiltrados.map((tp) => {
                                         const cartera = evaluarEstadoCartera(tp);
+                                        const inactivo = tp.activo === false;
                                         return (
                                         <tr
                                             key={tp.id}
-                                            className={`hover:bg-purple-50/40 ${selectedTipoId === tp.id ? "bg-purple-50" : ""}`}
+                                            className={`hover:bg-purple-50/40 ${
+                                                selectedTipoId === tp.id
+                                                    ? "bg-purple-50"
+                                                    : inactivo
+                                                        ? "bg-gray-50/70"
+                                                        : ""
+                                            }`}
                                         >
-                                            <td className="px-3 py-2 font-medium text-gray-800">
+                                            <td className={`px-3 py-2 font-medium ${inactivo ? "text-gray-500" : "text-gray-800"}`}>
                                                 {tp.nombre}
                                                 {!cartera.publicado && (
                                                     <p className="text-[11px] text-amber-700 mt-0.5">
@@ -540,17 +602,10 @@ function AdministrarTiposPago() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleEdit(tp)}
-                                                    className="text-blue-600 hover:text-blue-800 text-xs mr-2"
+                                                    className="text-blue-600 hover:text-blue-800 text-xs"
                                                     title="Editar nombre/valor"
                                                 >
                                                     ✏️
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(tp.id)}
-                                                    className="text-red-500 hover:text-red-700 text-xs"
-                                                    title="Eliminar"
-                                                >
-                                                    ❌
                                                 </button>
                                             </td>
                                         </tr>
