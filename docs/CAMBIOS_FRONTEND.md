@@ -404,6 +404,77 @@ Resultado:
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
 
+## 2026-06-04 - Reportes dinamicos con card de egresos
+
+Se rediseño la pantalla de reportes y estadisticas para mostrar indicadores
+financieros mas claros y permitir detalle clickeable de egresos.
+
+Archivos modificados:
+
+- `src/pages/ReportesAdmin.jsx`
+- `docs/API_CLIENT.md`
+
+Cambio:
+
+- Se agregaron cards de ingresos hoy, egresos hoy, balance hoy y balance
+  general.
+- El card de egresos es clickeable y carga el detalle desde
+  `GET /reportes/egresos-rango`.
+- Al cargar un detalle desde una card o boton de reportes, la pantalla baja
+  automaticamente al panel de detalle.
+- Se agrego comparacion mensual de ingresos, egresos y balance con barras
+  visuales.
+- El panel de detalle ahora alterna entre ingresos y egresos.
+- Se mantuvo la busqueda por rango de fechas para ingresos y egresos.
+- La pantalla usa un layout mas denso, moderno y orientado a lectura rapida.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Prestamos sin eliminar y filtro por profesor
+
+Se ajusto la pantalla de prestamos para conservar trazabilidad financiera y
+facilitar la revision por profesor.
+
+Archivos modificados:
+
+- `src/pages/PrestamosAdmin.jsx`
+- `docs/API_CLIENT.md`
+
+Cambio:
+
+- Antes de registrar, el formulario valida profesor y monto mayor que 0.
+- Antes de enviar al backend, muestra confirmacion con profesor, monto, fecha y
+  aviso de que el prestamo no se puede eliminar; solo saldar.
+- Se quito la accion `Eliminar`.
+- Los prestamos pendientes solo muestran accion `Saldar`.
+- Los prestamos pagados muestran estado saldado sin accion operativa.
+- El historial permite filtrar por profesor usando
+  `GET /api/prestamos/?profesor_id={profesor_id}`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-01 - Cierre fase SaaS super admin
 
 Se agregaron ajustes frontend para cerrar la primera fase de control SaaS.
@@ -736,6 +807,17 @@ Cambio:
 - Se agrego boton `Buscar` para consultar el rango seleccionado.
 - Se agrego boton `Hoy` para volver rapidamente al dia actual.
 - Se quito la columna/accion `Eliminar`.
+- Antes de registrar, el formulario valida concepto, categoria y monto mayor
+  que 0.
+- Antes de enviar al backend, muestra una confirmacion con concepto, monto,
+  fecha y categoria.
+- Si el backend rechaza el egreso, la alerta muestra el detalle de validacion
+  recibido.
+- Se agrego accion `Editar` solo para egresos manuales devueltos con
+  `editable = true`.
+- Al editar, se reutiliza el formulario, se pide confirmacion y se llama
+  `PUT /api/egresos/{egreso_id}`.
+- Los egresos automaticos, como nomina, se muestran sin accion editable.
 - Al registrar un egreso, el listado se actualiza para la fecha del egreso
   registrado.
 

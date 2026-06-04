@@ -174,6 +174,26 @@ Uso:
 GET /inventario?estado=activo
 ```
 
+## Reportes
+
+`ReportesAdmin.jsx` consume:
+
+```text
+GET /reportes/general
+GET /reportes/ingresos-mes/{mes}
+GET /reportes/ingresos-rango?inicio=YYYY-MM-DD&fin=YYYY-MM-DD
+GET /reportes/egresos-rango?inicio=YYYY-MM-DD&fin=YYYY-MM-DD
+```
+
+Uso:
+
+- El panel muestra cards de ingresos, egresos y balance.
+- El card de egresos consulta el detalle por rango desde
+  `/reportes/egresos-rango`.
+- La comparacion mensual usa `ingresos_mensuales` y `egresos_mensuales` de
+  `/reportes/general`.
+- El panel de detalle alterna entre tabla de ingresos y tabla de egresos.
+
 ## Egresos
 
 `EgresosAdmin.jsx` consume:
@@ -181,14 +201,45 @@ GET /inventario?estado=activo
 ```text
 GET /api/egresos/?fecha_desde=YYYY-MM-DD&fecha_hasta=YYYY-MM-DD
 POST /api/egresos/
+PUT /api/egresos/{egreso_id}
 ```
 
 Uso:
 
 - La pantalla inicia filtrando el dia actual.
 - El usuario puede buscar egresos por rango de fechas.
+- Al crear egreso se envia concepto y categoria normalizados, monto numerico
+  mayor que 0 y fecha del formulario o del dia actual.
+- Al editar egreso se usa el mismo formulario y se envia el mismo payload por
+  `PUT`.
+- Antes de crear o actualizar, la pantalla pide confirmacion con el resumen del
+  egreso.
+- La accion `Editar` solo aparece para egresos con `origen = manual` y
+  `editable = true`.
+- Los egresos automaticos, como nomina, se muestran sin accion de edicion.
 - La opcion de eliminar egreso no se muestra; el backend tambien bloquea el
   borrado fisico.
+
+## Prestamos
+
+`PrestamosAdmin.jsx` consume:
+
+```text
+GET /api/prestamos/
+GET /api/prestamos/?profesor_id={profesor_id}
+POST /api/prestamos/
+PUT /api/prestamos/{prestamo_id}/estado
+```
+
+Uso:
+
+- La pantalla permite filtrar el historial por profesor.
+- Al crear prestamo se valida profesor y monto mayor que 0 antes de enviar.
+- Antes de crear, la pantalla pide confirmacion e informa que el prestamo no se
+  puede eliminar; solo saldar.
+- La accion `Eliminar` no se muestra.
+- La unica accion operativa sobre un prestamo pendiente es `Saldar`, que envia
+  estado `Pagado`.
 
 ## Imagenes protegidas
 

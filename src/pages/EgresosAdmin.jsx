@@ -16,6 +16,7 @@ const EgresosAdmin = () => {
   const [fecha, setFecha] = useState("");
   const [categoria, setCategoria] = useState("Compras Institucionales");
   const [notas, setNotas] = useState("");
+  const [egresoEditando, setEgresoEditando] = useState(null);
 
   const categorias = ["Compras Institucionales", "Pago de Servicios", "Mantenimiento", "Otros"];
 
@@ -41,28 +42,84 @@ const EgresosAdmin = () => {
     cargarEgresos();
   }, [cargarEgresos]);
 
-  const handleCrear = async (e) => {
+  const limpiarFormulario = () => {
+    setConcepto("");
+    setMonto("");
+    setNotas("");
+    setFecha("");
+    setCategoria("Compras Institucionales");
+    setEgresoEditando(null);
+  };
+
+  const cargarFormularioEdicion = (egreso) => {
+    if (egreso.editable === false || egreso.origen !== "manual") {
+      alert("Solo puedes editar egresos creados manualmente en esta pantalla.");
+      return;
+    }
+
+    setEgresoEditando(egreso);
+    setConcepto(egreso.concepto || "");
+    setMonto(String(egreso.monto ?? ""));
+    setFecha(String(egreso.fecha || "").split("T")[0]);
+    setCategoria(egreso.categoria || "Otros");
+    setNotas(egreso.notas || "");
+  };
+
+  const handleGuardar = async (e) => {
     e.preventDefault();
     try {
       const fechaRegistro = fecha || hoyISO();
-      await api.post("/api/egresos/", {
-        concepto,
-        monto: parseFloat(monto),
+      const conceptoLimpio = concepto.trim();
+      const categoriaLimpia = categoria.trim();
+      const notasLimpias = notas.trim();
+      const montoNumero = Number(monto);
+
+      if (!conceptoLimpio) {
+        alert("Debes escribir el concepto del egreso.");
+        return;
+      }
+
+      if (!Number.isFinite(montoNumero) || montoNumero <= 0) {
+        alert("El monto del egreso debe ser mayor que 0.");
+        return;
+      }
+
+      if (!categoriaLimpia) {
+        alert("Debes seleccionar una categoría.");
+        return;
+      }
+
+      const accion = egresoEditando ? "actualizar" : "registrar";
+      const confirmar = window.confirm(
+        `¿Seguro que deseas ${accion} este egreso?\n\nConcepto: ${conceptoLimpio}\nMonto: $${montoNumero.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nFecha: ${fechaRegistro}\nCategoría: ${categoriaLimpia}`
+      );
+
+      if (!confirmar) {
+        return;
+      }
+
+      const payload = {
+        concepto: conceptoLimpio,
+        monto: montoNumero,
         fecha: fechaRegistro,
-        categoria,
-        notas
-      });
-      // Limpiar formulario y recargar
-      setConcepto("");
-      setMonto("");
-      setNotas("");
-      setFecha("");
-      setFechaDesde(fechaRegistro);
-      setFechaHasta(fechaRegistro);
-      cargarEgresos({ fecha_desde: fechaRegistro, fecha_hasta: fechaRegistro });
+        categoria: categoriaLimpia,
+        notas: notasLimpias
+      };
+
+      if (egresoEditando) {
+        await api.put(`/api/egresos/${egresoEditando.id}`, payload);
+        await cargarEgresos({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta });
+      } else {
+        await api.post("/api/egresos/", payload);
+        setFechaDesde(fechaRegistro);
+        setFechaHasta(fechaRegistro);
+        await cargarEgresos({ fecha_desde: fechaRegistro, fecha_hasta: fechaRegistro });
+      }
+
+      limpiarFormulario();
     } catch (err) {
       console.error(err);
-      alert("No se pudo registrar el egreso.");
+      alert(err.response?.data?.detail || "No se pudo guardar el egreso.");
     }
   };
 
@@ -90,8 +147,8 @@ const EgresosAdmin = () => {
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <div className="bg-white shadow rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Registrar Nuevo Egreso</h2>
-        <form onSubmit={handleCrear} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <h2 className="text-xl font-bold mb-4">{egresoEditando ? "Editar Egreso" : "Registrar Nuevo Egreso"}</h2>
+        <form onSubmit={handleGuardar} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-700 font-semibold mb-2">Concepto / Motivo</label>
             <input
@@ -149,8 +206,17 @@ const EgresosAdmin = () => {
               type="submit"
               className="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 transition"
             >
-              Registrar Egreso
+              {egresoEditando ? "Actualizar Egreso" : "Registrar Egreso"}
             </button>
+            {egresoEditando && (
+              <button
+                type="button"
+                onClick={limpiarFormulario}
+                className="ml-3 rounded bg-gray-200 px-4 py-2 font-bold text-gray-700 transition hover:bg-gray-300"
+              >
+                Cancelar edición
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -211,12 +277,13 @@ const EgresosAdmin = () => {
                   <th className="px-4 py-2 text-left">Concepto</th>
                   <th className="px-4 py-2 text-left">Categoría</th>
                   <th className="px-4 py-2 text-right">Monto</th>
+                  <th className="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {egresos.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-4 text-gray-500">No hay egresos registrados para las fechas seleccionadas.</td>
+                    <td colSpan="5" className="text-center py-4 text-gray-500">No hay egresos registrados para las fechas seleccionadas.</td>
                   </tr>
                 ) : (
                   egresos.map((egreso) => (
@@ -225,6 +292,19 @@ const EgresosAdmin = () => {
                       <td className="px-4 py-2 font-medium">{egreso.concepto}</td>
                       <td className="px-4 py-2 text-sm text-gray-600">{egreso.categoria}</td>
                       <td className="px-4 py-2 text-right font-bold text-red-600">${egreso.monto.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right">
+                        {egreso.editable !== false && egreso.origen === "manual" ? (
+                          <button
+                            type="button"
+                            onClick={() => cargarFormularioEdicion(egreso)}
+                            className="rounded bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-700 transition hover:bg-gray-300"
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">Automático</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

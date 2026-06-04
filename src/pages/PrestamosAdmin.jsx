@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import api from "../utils/api";
 
 const PrestamosAdmin = () => {
@@ -12,13 +12,15 @@ const PrestamosAdmin = () => {
     const [monto, setMonto] = useState("");
     const [fecha, setFecha] = useState("");
     const [notas, setNotas] = useState("");
+    const [profesorFiltro, setProfesorFiltro] = useState("");
 
-    const cargarDatos = async () => {
+    const cargarDatos = useCallback(async (filtroProfesor = "") => {
         try {
             setLoading(true);
             setError(null); // Limpiar error anterior
+            const params = filtroProfesor ? { profesor_id: filtroProfesor } : {};
             const [resPrestamos, resProfesores] = await Promise.all([
-            api.get("/api/prestamos/"),
+            api.get("/api/prestamos/", { params }),
             api.get("/profesores")
             ]);
             setPrestamos(resPrestamos.data);
@@ -31,11 +33,19 @@ const PrestamosAdmin = () => {
         finally {
             setLoading(false);
         }
-    };
+    }, []);
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [cargarDatos]);
+
+  const obtenerNombreProfesor = (id) => {
+    const profesor = profesores.find((prof) => String(prof.id) === String(id));
+    if (!profesor) {
+      return "Profesor seleccionado";
+    }
+    return `${profesor.apellido} ${profesor.nombre}`;
+  };
 
   const handleCrear = async (e) => {
     e.preventDefault();
@@ -43,23 +53,42 @@ const PrestamosAdmin = () => {
       alert("Por favor, selecciona un profesor.");
       return;
     }
+
+    const montoNumero = Number(monto);
+    if (!Number.isFinite(montoNumero) || montoNumero <= 0) {
+      alert("El monto del préstamo debe ser mayor que 0.");
+      return;
+    }
+
+    const fechaPrestamo = fecha || new Date().toISOString().split("T")[0];
+    const notasLimpias = notas.trim();
+    const nombreProfesor = obtenerNombreProfesor(profesorId);
+    const confirmar = window.confirm(
+      `¿Seguro que deseas registrar este préstamo?\n\nProfesor: ${nombreProfesor}\nMonto: $${montoNumero.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nFecha: ${fechaPrestamo}\n\nUna vez creado no se puede eliminar; solo se podrá saldar.`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
     try {
       await api.post("/api/prestamos/", {
         profesor_id: parseInt(profesorId),
-        monto: parseFloat(monto),
-        fecha: fecha || new Date().toISOString().split("T")[0],
+        monto: montoNumero,
+        fecha: fechaPrestamo,
         estado: "Pendiente",
-        notas
+        notas: notasLimpias
       });
       // Limpiar formulario y recargar
+      setProfesorFiltro(profesorId);
       setProfesorId("");
       setMonto("");
       setNotas("");
       setFecha("");
-      cargarDatos();
+      cargarDatos(profesorId);
     } catch (err) {
       console.error(err);
-      alert("No se pudo registrar el préstamo.");
+      alert(err.response?.data?.detail || "No se pudo registrar el préstamo.");
     }
   };
 
@@ -67,22 +96,20 @@ const PrestamosAdmin = () => {
     if (!window.confirm(`¿Marcar este préstamo como ${nuevoEstado}?`)) return;
     try {
       await api.put(`/api/prestamos/${id}/estado`, { estado: nuevoEstado });
-      cargarDatos();
+      cargarDatos(profesorFiltro);
     } catch (err) {
       console.error(err);
       alert("Error al actualizar el estado.");
     }
   };
 
-  const handleEliminar = async (id) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este préstamo permanentemente?")) return;
-    try {
-      await api.delete(`/api/prestamos/${id}`);
-      cargarDatos();
-    } catch (err) {
-      console.error(err);
-      alert("Error al eliminar.");
-    }
+  const filtrarPorProfesor = () => {
+    cargarDatos(profesorFiltro);
+  };
+
+  const limpiarFiltro = () => {
+    setProfesorFiltro("");
+    cargarDatos("");
   };
 
   const totalPendiente = prestamos
@@ -157,8 +184,42 @@ const PrestamosAdmin = () => {
       </div>
 
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Historial de Préstamos</h2>
+        <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-xl font-bold">Historial de Préstamos</h2>
+            <p className="text-sm text-gray-500">Puedes filtrar el historial por profesor.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Profesor</label>
+              <select
+                className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={profesorFiltro}
+                onChange={(e) => setProfesorFiltro(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {profesores.map(prof => (
+                  <option key={prof.id} value={prof.id}>
+                    {prof.apellido} {prof.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={filtrarPorProfesor}
+              className="self-end rounded bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700"
+            >
+              Buscar
+            </button>
+            <button
+              type="button"
+              onClick={limpiarFiltro}
+              className="self-end rounded bg-gray-200 px-4 py-2 font-semibold text-gray-700 transition hover:bg-gray-300"
+            >
+              Todos
+            </button>
+          </div>
           <span className="text-lg font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded">
             Total por Cobrar: ${totalPendiente.toFixed(2)}
           </span>
@@ -196,7 +257,7 @@ const PrestamosAdmin = () => {
                           {prestamo.estado}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-center flex justify-center gap-2">
+                      <td className="px-4 py-2 text-center">
                         {prestamo.estado === 'Pendiente' && (
                           <button
                             onClick={() => handleEstado(prestamo.id, 'Pagado')}
@@ -206,12 +267,9 @@ const PrestamosAdmin = () => {
                             Saldar
                           </button>
                         )}
-                        <button
-                          onClick={() => handleEliminar(prestamo.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Eliminar
-                        </button>
+                        {prestamo.estado !== 'Pendiente' && (
+                          <span className="text-xs text-gray-400">Saldado</span>
+                        )}
                       </td>
                     </tr>
                   ))
