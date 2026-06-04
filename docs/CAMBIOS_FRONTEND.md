@@ -718,3 +718,36 @@ Resultado:
 - Build de produccion OK.
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Egresos filtrados por fecha y sin eliminar
+
+Se ajusto la pantalla de egresos para mostrar por defecto solo los egresos del
+dia actual y buscar por rango de fechas.
+
+Archivos modificados:
+
+- `src/pages/EgresosAdmin.jsx`
+- `docs/API_CLIENT.md`
+
+Cambio:
+
+- El historial inicia filtrado por la fecha actual.
+- Se agregaron campos `Desde` y `Hasta`.
+- Se agrego boton `Buscar` para consultar el rango seleccionado.
+- Se agrego boton `Hoy` para volver rapidamente al dia actual.
+- Se quito la columna/accion `Eliminar`.
+- Al registrar un egreso, el listado se actualiza para la fecha del egreso
+  registrado.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.

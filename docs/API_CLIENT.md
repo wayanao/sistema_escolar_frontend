@@ -174,6 +174,22 @@ Uso:
 GET /inventario?estado=activo
 ```
 
+## Egresos
+
+`EgresosAdmin.jsx` consume:
+
+```text
+GET /api/egresos/?fecha_desde=YYYY-MM-DD&fecha_hasta=YYYY-MM-DD
+POST /api/egresos/
+```
+
+Uso:
+
+- La pantalla inicia filtrando el dia actual.
+- El usuario puede buscar egresos por rango de fechas.
+- La opcion de eliminar egreso no se muestra; el backend tambien bloquea el
+  borrado fisico.
+
 ## Imagenes protegidas
 
 `ImagenProtegida.jsx` usa el cliente `api` con:

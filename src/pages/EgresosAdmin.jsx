@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import api from "../utils/api";
+
+const hoyISO = () => new Date().toISOString().split("T")[0];
 
 const EgresosAdmin = () => {
   const [egresos, setEgresos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fechaDesde, setFechaDesde] = useState(hoyISO());
+  const [fechaHasta, setFechaHasta] = useState(hoyISO());
 
   // Formulario
   const [concepto, setConcepto] = useState("");
@@ -15,10 +19,15 @@ const EgresosAdmin = () => {
 
   const categorias = ["Compras Institucionales", "Pago de Servicios", "Mantenimiento", "Otros"];
 
-  const cargarEgresos = async () => {
+  const cargarEgresos = useCallback(async (filtros = null) => {
     try {
       setLoading(true);
-      const res = await api.get("/api/egresos/");
+      setError(null);
+      const params = filtros || {
+        fecha_desde: hoyISO(),
+        fecha_hasta: hoyISO(),
+      };
+      const res = await api.get("/api/egresos/", { params });
       setEgresos(res.data);
     } catch (err) {
       console.error(err);
@@ -26,19 +35,20 @@ const EgresosAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarEgresos();
-  }, []);
+  }, [cargarEgresos]);
 
   const handleCrear = async (e) => {
     e.preventDefault();
     try {
+      const fechaRegistro = fecha || hoyISO();
       await api.post("/api/egresos/", {
         concepto,
         monto: parseFloat(monto),
-        fecha: fecha || new Date().toISOString().split("T")[0],
+        fecha: fechaRegistro,
         categoria,
         notas
       });
@@ -47,22 +57,28 @@ const EgresosAdmin = () => {
       setMonto("");
       setNotas("");
       setFecha("");
-      cargarEgresos();
+      setFechaDesde(fechaRegistro);
+      setFechaHasta(fechaRegistro);
+      cargarEgresos({ fecha_desde: fechaRegistro, fecha_hasta: fechaRegistro });
     } catch (err) {
       console.error(err);
       alert("No se pudo registrar el egreso.");
     }
   };
 
-  const handleEliminar = async (id) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este egreso?")) return;
-    try {
-      await api.delete(`/api/egresos/${id}`);
-      cargarEgresos();
-    } catch (err) {
-      console.error(err);
-      alert("Error al eliminar.");
+  const filtrarHoy = () => {
+    const hoy = hoyISO();
+    setFechaDesde(hoy);
+    setFechaHasta(hoy);
+    cargarEgresos({ fecha_desde: hoy, fecha_hasta: hoy });
+  };
+
+  const buscarPorFechas = () => {
+    if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+      alert("La fecha desde no puede ser mayor que la fecha hasta.");
+      return;
     }
+    cargarEgresos();
   };
 
   const totalMonto = egresos.reduce((acc, curr) => acc + curr.monto, 0);
@@ -140,10 +156,47 @@ const EgresosAdmin = () => {
       </div>
 
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Historial de Egresos</h2>
-          <span className="text-lg font-bold text-red-600 bg-red-100 px-3 py-1 rounded">
-            Total Egresos: ${totalMonto.toFixed(2)}
+        <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-xl font-bold">Historial de Egresos</h2>
+            <p className="text-sm text-gray-500">Por defecto se muestran solo los egresos del día.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Desde</label>
+              <input
+                type="date"
+                value={fechaDesde}
+                onChange={(e) => setFechaDesde(e.target.value)}
+                className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Hasta</label>
+              <input
+                type="date"
+                value={fechaHasta}
+                onChange={(e) => setFechaHasta(e.target.value)}
+                className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={buscarPorFechas}
+              className="self-end rounded bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700"
+            >
+              Buscar
+            </button>
+            <button
+              type="button"
+              onClick={filtrarHoy}
+              className="self-end rounded bg-gray-200 px-4 py-2 font-semibold text-gray-700 transition hover:bg-gray-300"
+            >
+              Hoy
+            </button>
+          </div>
+          <span className="text-lg font-bold text-red-600 bg-red-100 px-3 py-2 rounded">
+            Total: ${totalMonto.toFixed(2)}
           </span>
         </div>
 
@@ -158,13 +211,12 @@ const EgresosAdmin = () => {
                   <th className="px-4 py-2 text-left">Concepto</th>
                   <th className="px-4 py-2 text-left">Categoría</th>
                   <th className="px-4 py-2 text-right">Monto</th>
-                  <th className="px-4 py-2 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {egresos.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="text-center py-4 text-gray-500">No hay egresos registrados.</td>
+                    <td colSpan="4" className="text-center py-4 text-gray-500">No hay egresos registrados para las fechas seleccionadas.</td>
                   </tr>
                 ) : (
                   egresos.map((egreso) => (
@@ -173,14 +225,6 @@ const EgresosAdmin = () => {
                       <td className="px-4 py-2 font-medium">{egreso.concepto}</td>
                       <td className="px-4 py-2 text-sm text-gray-600">{egreso.categoria}</td>
                       <td className="px-4 py-2 text-right font-bold text-red-600">${egreso.monto.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-center">
-                        <button
-                          onClick={() => handleEliminar(egreso.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
                     </tr>
                   ))
                 )}
