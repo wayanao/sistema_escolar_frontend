@@ -140,7 +140,7 @@ tenant.
 La pantalla tambien permite crear colegios. El formulario pide datos del
 colegio, admin inicial, fecha de inicio, proximo pago y dias de gracia.
 
-## Estados operativos de estudiantes, profesores y cursos
+## Estados operativos de estudiantes, profesores, cursos, materias e inventario
 
 `EstudiantesAdmin.jsx` muestra estudiantes activos por defecto y permite
 filtrar por:
@@ -181,6 +181,33 @@ El cambio de estado se hace con:
 ```text
 PATCH /cursos/{curso_id}/estado
 ```
+
+`CrearMateria.jsx` muestra materias activas por defecto y permite filtrar por:
+
+- `activo`
+- `inactivo`
+- `todos`
+
+El cambio de estado se hace con:
+
+```text
+PATCH /materias/{materia_id}/estado
+```
+
+`InventarioAdmin.jsx` muestra productos activos por defecto y permite filtrar
+por:
+
+- `activo`
+- `inactivo`
+- `todos`
+
+El cambio de estado se hace con:
+
+```text
+PATCH /inventario/{item_id}/estado
+```
+
+`VentasAdmin.jsx` solo muestra productos activos con stock para cargos nuevos.
 
 El frontend no debe tratar estos cambios como borrado. El historial y la
 seguridad final dependen del backend.

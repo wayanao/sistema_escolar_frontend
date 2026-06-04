@@ -26,11 +26,11 @@ const VentasAdmin = () => {
         setLoading(true);
         const [resVentas, resInv, resEst] = await Promise.all([
         api.get("/api/ventas/"),
-        api.get("/inventario"),
+        api.get("/inventario", { params: { estado: "activo" } }),
         api.get("/estudiantes")
         ]);
         setVentasAnteriores(resVentas.data);
-        setInventario(resInv.data.filter(i => i.stock_actual > 0)); // Solo vender lo que hay
+        setInventario(resInv.data.filter(i => i.stock_actual > 0)); // Solo vender productos activos con stock
         setEstudiantes(resEst.data);
         } catch (err) {
             console.error(err);
@@ -259,7 +259,7 @@ return (
                             </div>
                         ))}
                     </div>
-                    {inventario.length === 0 && <p className="text-gray-500">No hay productos con stock actualmente.</p>}
+                    {inventario.length === 0 && <p className="text-gray-500">No hay productos activos con stock actualmente.</p>}
                 </div>
 
               {/* Panel de Carrito de Compras a la derecha */}

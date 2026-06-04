@@ -97,7 +97,7 @@ Uso:
 - cambiar estado SaaS entre `activo`, `en_mora`, `suspendido` y `cancelado`.
 - consultar historial de cambios de estado.
 
-## Estados de estudiantes, profesores y cursos
+## Estados de estudiantes, profesores, cursos, materias e inventario
 
 `EstudiantesAdmin.jsx` consume:
 
@@ -139,6 +139,40 @@ Uso:
 - Permite filtrar `inactivo` o `todos`.
 - El cambio de estado no borra el curso ni su historial.
 - El backend bloquea nuevas asignaciones para cursos `inactivo`.
+
+`CrearMateria.jsx` consume:
+
+```text
+GET /materias?estado=activo|inactivo|todos
+PATCH /materias/{materia_id}/estado
+```
+
+Uso:
+
+- Por defecto muestra materias `activo`.
+- Permite filtrar `inactivo` o `todos`.
+- El cambio de estado no borra la materia ni su historial.
+- El backend bloquea nuevas asignaciones para materias `inactivo`.
+
+`InventarioAdmin.jsx` consume:
+
+```text
+GET /inventario?estado=activo|inactivo|todos
+PATCH /inventario/{item_id}/estado
+```
+
+Uso:
+
+- Por defecto muestra productos `activo`.
+- Permite filtrar `inactivo` o `todos`.
+- El cambio de estado no borra el producto ni su historial de ventas.
+- El backend bloquea ventas nuevas para productos `inactivo`.
+
+`VentasAdmin.jsx` consume productos activos con:
+
+```text
+GET /inventario?estado=activo
+```
 
 ## Imagenes protegidas
 

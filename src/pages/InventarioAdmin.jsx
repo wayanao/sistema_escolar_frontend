@@ -1,27 +1,49 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import api from "../utils/api";
+
+const ESTADOS_PRODUCTO = [
+  { value: "activo", label: "Activo" },
+  { value: "inactivo", label: "Inactivo" },
+];
+
+const FILTROS_PRODUCTO = [
+  ...ESTADOS_PRODUCTO,
+  { value: "todos", label: "Todos" },
+];
+
+const estadoLabel = (estado) =>
+  ESTADOS_PRODUCTO.find((item) => item.value === estado)?.label || "Activo";
+
+const estadoClasses = {
+  activo: "bg-green-100 text-green-800 border-green-200",
+  inactivo: "bg-gray-100 text-gray-700 border-gray-200",
+};
 
 function InventarioAdmin() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState("activo");
 
   const [formData, setFormData] = useState({
     nombre: "",
     costo: "",
     precio_venta: "",
-    stock_actual: ""
+    stock_actual: "",
+    estado: "activo"
   });
 
-  useEffect(() => {
-    cargarInventario();
-  }, []);
+  const limpiarFormulario = () => {
+    setFormData({ nombre: "", costo: "", precio_venta: "", stock_actual: "", estado: "activo" });
+    setShowForm(false);
+    setEditingId(null);
+  };
 
-  const cargarInventario = async () => {
+  const cargarInventario = useCallback(async () => {
     try {
-      const res = await api.get(`/inventario`);
+      const res = await api.get(`/inventario`, { params: { estado: estadoFiltro } });
       const data = res.data;
       setProductos(data);
     } catch (error) {
@@ -30,7 +52,11 @@ function InventarioAdmin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [estadoFiltro]);
+
+  useEffect(() => {
+    cargarInventario();
+  }, [cargarInventario]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +73,8 @@ function InventarioAdmin() {
         nombre: formData.nombre,
         costo: parseFloat(formData.costo),
         precio_venta: parseFloat(formData.precio_venta),
-        stock_actual: parseInt(formData.stock_actual, 10)
+        stock_actual: parseInt(formData.stock_actual, 10),
+        estado: formData.estado
       };
 
       const res = isEditing 
@@ -56,9 +83,7 @@ function InventarioAdmin() {
 
       if (res.status >= 200 && res.status < 300) {
         Swal.fire("Éxito", isEditing ? "Producto actualizado" : "Producto creado", "success");
-        setFormData({ nombre: "", costo: "", precio_venta: "", stock_actual: "" });
-        setShowForm(false);
-        setEditingId(null);
+        limpiarFormulario();
         cargarInventario();
       } else {
         Swal.fire("Error", "Ocurrió un error", "error");
@@ -69,25 +94,41 @@ function InventarioAdmin() {
     }
   };
 
-  const eliminarProducto = async (id) => {
+  const cambiarEstadoProducto = async (producto, nuevoEstado) => {
+    const estadoActual = producto.estado || "activo";
+    if (nuevoEstado === estadoActual) return;
+
+    const accion = nuevoEstado === "activo" ? "reactivar" : "desactivar";
     const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: "Esta acción no se puede deshacer",
-      icon: 'warning',
+      title: `¿Deseas ${accion} este producto?`,
+      text: "No se borrará el historial de ventas.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: `Sí, ${accion}`,
+      cancelButtonText: "Cancelar"
     });
 
     if (result.isConfirmed) {
       try {
-        const res = await api.delete(`/inventario/${id}`);
+        const res = await api.patch(`/inventario/${producto.id}/estado`, { estado: nuevoEstado });
         if (res.status >= 200 && res.status < 300) {
-          Swal.fire("Eliminado", "Producto eliminado correctamente", "success");
-          cargarInventario();
+          const estadoActualizado = res.data?.estado || nuevoEstado;
+          setProductos((actuales) =>
+            actuales
+              .map((item) =>
+                item.id === producto.id ? { ...item, estado: estadoActualizado } : item
+              )
+              .filter((item) =>
+                estadoFiltro === "todos" ? true : (item.estado || "activo") === estadoFiltro
+              )
+          );
+          if (editingId === producto.id) {
+            setFormData((actual) => ({ ...actual, estado: estadoActualizado }));
+          }
+          Swal.fire("Listo", `Producto ${estadoLabel(estadoActualizado).toLowerCase()}`, "success");
         }
       } catch {
-        Swal.fire("Error", "Error al eliminar producto", "error");
+        Swal.fire("Error", "No se pudo cambiar el estado del producto", "error");
       }
     }
   };
@@ -97,7 +138,8 @@ function InventarioAdmin() {
       nombre: prod.nombre,
       costo: prod.costo,
       precio_venta: prod.precio_venta,
-      stock_actual: prod.stock_actual
+      stock_actual: prod.stock_actual,
+      estado: prod.estado || "activo"
     });
     setEditingId(prod.id);
     setShowForm(true);
@@ -114,8 +156,7 @@ function InventarioAdmin() {
           onClick={() => {
             setShowForm(!showForm);
             if(showForm) {
-              setFormData({ nombre: "", costo: "", precio_venta: "", stock_actual: "" });
-              setEditingId(null);
+              limpiarFormulario();
             }
           }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow transition font-medium"
@@ -127,7 +168,7 @@ function InventarioAdmin() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-xl font-bold mb-4">{editingId ? "Editar Producto" : "Registrar Nuevo Producto"}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre / Descripción</label>
               <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
@@ -144,6 +185,14 @@ function InventarioAdmin() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Stock Actual</label>
               <input type="number" value={formData.stock_actual} onChange={e => setFormData({...formData, stock_actual: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500" required />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 bg-white">
+                {ESTADOS_PRODUCTO.map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium shadow-sm w-full md:w-auto">
             {editingId ? "Actualizar Producto" : "Guardar Producto"}
@@ -155,6 +204,20 @@ function InventarioAdmin() {
         <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Productos</h2>
+            <select
+              value={estadoFiltro}
+              onChange={(e) => setEstadoFiltro(e.target.value)}
+              className="w-full sm:w-40 p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+            >
+              {FILTROS_PRODUCTO.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -165,12 +228,13 @@ function InventarioAdmin() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venta</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilidad c/u</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margen</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {productos.length === 0 ? (
-                  <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500">No hay productos en inventario</td></tr>
+                  <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">No hay productos en inventario</td></tr>
                 ) : (
                   productos.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50">
@@ -184,9 +248,24 @@ function InventarioAdmin() {
                       <td className="px-6 py-4 whitespace-nowrap font-medium text-purple-700">${p.precio_venta.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">${p.utilidad_unitaria.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-purple-600 font-medium">{p.margen_utilidad}%</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${estadoClasses[p.estado || "activo"] || estadoClasses.activo}`}>
+                          {estadoLabel(p.estado || "activo")}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onClick={() => editarProducto(p)} className="text-purple-700 hover:text-purple-900 mr-3">Editar</button>
-                        <button onClick={() => eliminarProducto(p.id)} className="text-red-600 hover:text-red-900">Eliminar</button>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <select
+                            value={p.estado || "activo"}
+                            onChange={(e) => cambiarEstadoProducto(p, e.target.value)}
+                            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                          >
+                            {ESTADOS_PRODUCTO.map((item) => (
+                              <option key={item.value} value={item.value}>{item.label}</option>
+                            ))}
+                          </select>
+                          <button onClick={() => editarProducto(p)} className="text-purple-700 hover:text-purple-900">Editar</button>
+                        </div>
                       </td>
                     </tr>
                   ))

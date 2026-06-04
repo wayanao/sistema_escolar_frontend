@@ -648,3 +648,73 @@ Resultado:
 - Build de produccion OK.
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Estado operativo de materias
+
+Se agrego control operativo por estado para materias desde la pantalla
+administrativa, alineado con el backend y sin borrado fisico.
+
+Archivos modificados:
+
+- `src/components/CrearMateria.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+
+Cambio:
+
+- Materias muestran `activo` por defecto.
+- La pantalla de materias permite filtrar `activo`, `inactivo` y `todos`.
+- Se agrego campo de estado al crear/editar materia.
+- Se agrego cambio de estado de materia via
+  `PATCH /materias/{materia_id}/estado`.
+- La UI muestra etiquetas de estado y trata la desactivacion como operativa, no
+  como eliminacion de historial.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Estado operativo de productos de inventario
+
+Se agrego control operativo por estado para productos de inventario, alineado
+con el backend y sin borrado fisico.
+
+Archivos modificados:
+
+- `src/pages/InventarioAdmin.jsx`
+- `src/pages/VentasAdmin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/PRODUCCION_FRONTEND.md`
+
+Cambio:
+
+- Productos muestran `activo` por defecto en inventario.
+- La pantalla de inventario permite filtrar `activo`, `inactivo` y `todos`.
+- Se agrego campo de estado al crear/editar producto.
+- Se agrego cambio de estado de producto via
+  `PATCH /inventario/{item_id}/estado`.
+- La accion de eliminar en UI se reemplazo por desactivar para conservar
+  historial de ventas.
+- Ventas solo carga productos activos con stock.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run build
+pnpm run lint
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
