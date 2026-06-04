@@ -30,6 +30,10 @@ function NavAdmin() {
     isActive
       ? "rounded-md bg-purple-50 px-3 py-1.5 font-semibold text-purple-900 transition"
       : "text-white hover:text-purple-100 transition";
+  const exactTopLinkClass = ({ isActive }) =>
+    isActive
+      ? "rounded-md bg-purple-50 px-3 py-1.5 font-semibold text-purple-900 transition"
+      : "text-white hover:text-purple-100 transition";
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2 text-sm " +
     (isActive
@@ -81,9 +85,9 @@ function NavAdmin() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </span>
             <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[170px] z-50 border border-gray-100">
-                <NavLink className={dropdownLinkClass} to="/admin">Administración</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/horarios">Horarios Asignados</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
+                <NavLink className={dropdownLinkClass} to="/admin/certificados">Certificados</NavLink>
                 <NavLink className={dropdownLinkClass} to="/boletin">Gestión Boletines</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
             </div>
@@ -106,6 +110,7 @@ function NavAdmin() {
                 <NavLink className={dropdownLinkClass} to="/admin/nomina">Nómina</NavLink>
               </div>
           </div>
+          <NavLink end className={exactTopLinkClass} to="/admin">Administración</NavLink>
           <NavLink className={topLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
           <NavLink className={topLinkClass} to="/admin/reportes">Reportes</NavLink>
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesión</button>
@@ -119,9 +124,9 @@ function NavAdmin() {
           
           <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
             <span className="text-white/60 text-xs font-bold uppercase tracking-wider px-2">🎓 Gestión Académica</span>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin">Administración</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/horarios">Horarios Asignados</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
+              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/certificados">Certificados</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/boletin">Gestión Boletines</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
           </div>
@@ -137,6 +142,7 @@ function NavAdmin() {
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/prestamos">Préstamos</NavLink>
               <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/nomina">Nómina</NavLink>
           </div>
+          <NavLink end onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin">Administración</NavLink>
           <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
           <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>

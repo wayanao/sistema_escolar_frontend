@@ -44,6 +44,7 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | `/admin/reportes` | `ReportesAdmin` |
 | `/admin/horarios` | `HorariosAdmin` |
 | `/admin/planeadores-clases` | `PlaneadoresClasesAdmin` |
+| `/admin/certificados` | `CertificadosAdmin` |
 | `/admin/diseno-impresos` | `BrandingAdmin` |
 | `/boletin` | `Boletin` |
 
@@ -64,6 +65,7 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 - Administracion academica.
 - Horarios.
 - Planeadores de clases.
+- Certificados.
 - Boletin.
 - Diseno de impresos.
 - Pagos.

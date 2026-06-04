@@ -53,6 +53,7 @@ Estado actual de componentes y paginas del frontend.
 - `Asistencia.jsx`
 - `BrandingAdmin.jsx`
 - `CarteraVencidaAdmin.jsx`
+- `CertificadosAdmin.jsx`
 - `DashboardAdmin.jsx`
 - `DashboardProfesor.jsx`
 - `EgresosAdmin.jsx`

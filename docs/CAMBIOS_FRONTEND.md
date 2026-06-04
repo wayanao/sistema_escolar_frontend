@@ -441,6 +441,85 @@ Resultado:
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
 
+## 2026-06-04 - Administracion como pestaña principal
+
+Se ajusto la navegacion del admin para mejorar acceso a la pantalla de
+administracion academica.
+
+Archivos modificados:
+
+- `src/components/NavAdmin.jsx`
+
+Cambio:
+
+- Se saco `Administracion` del dropdown `Gestion Academica`.
+- Se agrego `Administracion` como pestaña principal junto a `Estudiantes`.
+- El mismo ajuste se aplico al menu movil.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-04 - Certificados en Gestion Academica
+
+Se agrego una pantalla administrativa para generar certificados de notas usando
+el sistema de impresion existente.
+
+Archivos modificados/agregados:
+
+- `src/pages/CertificadosAdmin.jsx`
+- `src/App.jsx`
+- `src/components/NavAdmin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/RUTAS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- Se agrego la ruta `/admin/certificados`.
+- Se agrego `Certificados` dentro del menu `Gestion Academica`.
+- La pantalla permite filtrar estudiantes por curso, estado, busqueda y periodo.
+- Se agrego opcion `Todos los periodos`, que consulta P1 a P4 y presenta notas
+  por periodo con promedio.
+- El certificado toma nombre completo y documento desde la ficha del estudiante
+  para evitar datos incompletos si el consolidado academico no los devuelve.
+- Si una materia no trae definitiva directa, o recibe `0`, la pantalla calcula
+  una nota de respaldo desde `detalles.notas_por_periodo` o `detalles.nota`,
+  usando solo valores mayores que `0`.
+- Al generar, consume `GET /boletines/admin/generar/{estudiante_id}/{periodo}`.
+- El certificado se imprime con `DocumentoImprimible`, reutilizando el branding,
+  encabezado, firmas y pie de pagina del diseno de impresos.
+
+Pruebas manuales recomendadas:
+
+- Entrar como admin.
+- Ir a `Gestion Academica > Certificados`.
+- Filtrar un curso, seleccionar periodo y generar certificado de un estudiante.
+- Confirmar que aparece el certificado con tabla de materias, notas y desempeno.
+- Presionar `Imprimir` y validar encabezado, datos institucionales y firmas.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-04 - Prestamos sin eliminar y filtro por profesor
 
 Se ajusto la pantalla de prestamos para conservar trazabilidad financiera y

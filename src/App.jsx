@@ -28,6 +28,7 @@ const EstudiantesAdmin = lazy(() => import("./pages/EstudiantesAdmin"));
 const ReportesAdmin = lazy(() => import("./pages/ReportesAdmin"));
 const HorariosAdmin = lazy(() => import("./pages/HorariosAdmin"));
 const PlaneadoresClasesAdmin = lazy(() => import("./pages/PlaneadoresClasesAdmin"));
+const CertificadosAdmin = lazy(() => import("./pages/CertificadosAdmin"));
 const BrandingAdmin = lazy(() => import("./pages/BrandingAdmin"));
 const TiposPagosAdmin = lazy(() => import("./pages/TiposPagosAdmin"));
 const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
@@ -133,6 +134,7 @@ function Layout() {
             <Route path="/admin/reportes" element={<AdminRoute><ReportesAdmin /></AdminRoute>} />
             <Route path="/admin/horarios" element={<AdminRoute><HorariosAdmin /></AdminRoute>} />
             <Route path="/admin/planeadores-clases" element={<AdminRoute><PlaneadoresClasesAdmin /></AdminRoute>} />
+            <Route path="/admin/certificados" element={<AdminRoute><CertificadosAdmin /></AdminRoute>} />
             <Route path="/admin/diseno-impresos" element={<AdminRoute><BrandingAdmin /></AdminRoute>} />
             <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />
             <Route path="/Formulario" element={<ProtectedRoute><Formulario /></ProtectedRoute>} />

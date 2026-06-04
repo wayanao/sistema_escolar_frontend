@@ -194,6 +194,28 @@ Uso:
   `/reportes/general`.
 - El panel de detalle alterna entre tabla de ingresos y tabla de egresos.
 
+## Certificados
+
+`CertificadosAdmin.jsx` consume:
+
+```text
+GET /cursos
+GET /estudiantes
+GET /boletines/admin/generar/{estudiante_id}/{periodo}
+```
+
+Uso:
+
+- La pantalla permite filtrar estudiantes por curso, estado, busqueda y periodo.
+- El usuario puede generar un certificado por periodo individual o por todos los
+  periodos academicos.
+- El certificado de notas reutiliza el consolidado academico del boletin admin.
+- Si la materia no trae definitiva directa, o recibe `0`, la pantalla intenta
+  calcularla con las notas numericas mayores que `0` recibidas en `detalles`.
+- La impresion usa `DocumentoImprimible` con la plantilla de
+  `reporte_estudiante`, manteniendo branding, encabezado, firmas y pie de
+  pagina del sistema de impresos existente.
+
 ## Egresos
 
 `EgresosAdmin.jsx` consume:
