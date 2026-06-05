@@ -954,6 +954,49 @@ Resultado:
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
 
+## 2026-06-05 - Administracion admin con tabs superiores
+
+Se rediseño la pagina `Admin.jsx` para eliminar el sidebar y dar todo el ancho
+al contenido de los modulos academicos del perfil admin.
+
+Archivo modificado:
+
+- `src/pages/Admin.jsx`
+
+Cambio:
+
+- Se elimino el sidebar de la pagina de administracion academica.
+- Se agregaron tabs superiores compactas para `Profesores`, `Cursos`,
+  `Materias` y `Asignaciones`.
+- El modulo `Profesores` queda cargado por defecto.
+- El contenido del modulo usa el ancho completo disponible.
+- En movil y tablet las tabs se desplazan horizontalmente.
+- Se elimino la pantalla inicial de seleccion para evitar redundancia.
+- Se conserva la carga lazy: cursos, materias y asignaciones se cargan solo
+  cuando el usuario abre su tab.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Administracion.
+- Confirmar que `Profesores` carga por defecto.
+- Abrir Profesores, Cursos, Materias y Asignaciones.
+- Confirmar que no aparece sidebar ni pantalla inicial de seleccion.
+- Probar en una pantalla angosta y confirmar que el menu se desplaza
+  horizontalmente.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-04 - Filtro operativo de tipos de pago por estado
 
 Se mejoro la experiencia de Tipos de Pago para separar los conceptos activos de

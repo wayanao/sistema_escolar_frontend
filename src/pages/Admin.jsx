@@ -8,110 +8,87 @@ const AsignarClase = lazy(() => import("../components/AsignarClase"));
 const modulosAdmin = [
     {
         id: "profesores",
-        titulo: "Crear profesor",
-        descripcion: "Registrar, editar y consultar profesores.",
+        titulo: "Profesores",
         componente: CrearProfesor,
     },
     {
         id: "cursos",
-        titulo: "Crear curso",
-        descripcion: "Administrar cursos y jornadas.",
+        titulo: "Cursos",
         componente: CrearCurso,
     },
     {
         id: "materias",
-        titulo: "Crear materia",
-        descripcion: "Crear y actualizar materias académicas.",
+        titulo: "Materias",
         componente: CrearMateria,
     },
     {
         id: "asignar-clases",
-        titulo: "Asignar clases",
-        descripcion: "Relacionar profesores, cursos, materias y horarios.",
+        titulo: "Asignaciones",
         componente: AsignarClase,
     },
 ];
 
 function Admin() {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-    const [moduloActivoId, setModuloActivoId] = useState(null);
+    const [moduloActivoId, setModuloActivoId] = useState("profesores");
     const moduloActivo = useMemo(
-        () => modulosAdmin.find((modulo) => modulo.id === moduloActivoId),
+        () => modulosAdmin.find((modulo) => modulo.id === moduloActivoId) || modulosAdmin[0],
         [moduloActivoId]
     );
-    const ModuloActivo = moduloActivo?.componente;
+    const ModuloActivo = moduloActivo.componente;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-6">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                        Panel Administrativo
+        <div className="min-h-screen bg-gray-50 px-3 py-4 sm:px-5 sm:py-6">
+            <div className="mx-auto w-full max-w-[1500px]">
+                <header className="mb-4">
+                    <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                        Administración académica
                     </h1>
-                    <p className="text-gray-600">
-                        Bienvenido, {usuario?.nombre || "Admin"}. Selecciona una opcion para cargar solo ese modulo.
+                    <p className="mt-1 text-sm text-gray-600">
+                        Bienvenido, {usuario?.nombre || "Admin"}.
                     </p>
-                </div>
+                </header>
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-                    <aside className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm lg:sticky lg:top-6 lg:self-start">
-                        <div className="px-2 pb-3">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                                Modulos
-                            </h2>
-                        </div>
+                <nav
+                    aria-label="Módulos de administración"
+                    className="mb-4 overflow-x-auto border-b border-gray-200"
+                >
+                    <div className="flex min-w-max gap-2">
+                        {modulosAdmin.map((modulo) => {
+                            const activo = modulo.id === moduloActivoId;
 
-                        <nav className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
-                            {modulosAdmin.map((modulo) => {
-                                const activo = modulo.id === moduloActivoId;
+                            return (
+                                <button
+                                    key={modulo.id}
+                                    type="button"
+                                    onClick={() => setModuloActivoId(modulo.id)}
+                                    aria-current={activo ? "page" : undefined}
+                                    className={`border-b-2 px-4 py-3 text-sm font-semibold transition ${
+                                        activo
+                                            ? "border-purple-600 text-purple-700"
+                                            : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                                    }`}
+                                >
+                                    {modulo.titulo}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </nav>
 
-                                return (
-                                    <button
-                                        key={modulo.id}
-                                        type="button"
-                                        onClick={() => setModuloActivoId(modulo.id)}
-                                        className={`min-w-[220px] rounded-md border px-4 py-3 text-left transition lg:min-w-0 ${
-                                            activo
-                                                ? "border-purple-600 bg-purple-50 text-purple-900 shadow-sm"
-                                                : "border-transparent text-gray-700 hover:border-gray-200 hover:bg-gray-50"
-                                        }`}
-                                    >
-                                        <span className="block text-sm font-semibold">
-                                            {modulo.titulo}
-                                        </span>
-                                        <span className="mt-1 block text-xs leading-5 text-gray-500">
-                                            {modulo.descripcion}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </nav>
-                    </aside>
-
-                    <main className="min-w-0">
-                        {ModuloActivo ? (
-                            <Suspense
-                                fallback={
-                                    <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-600 shadow-sm">
-                                        Cargando modulo...
-                                    </div>
-                                }
-                            >
-                                <ModuloActivo />
-                            </Suspense>
-                        ) : (
-                            <section className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                    Elige un modulo del panel
-                                </h2>
-                                <p className="mx-auto mt-2 max-w-xl text-gray-600">
-                                    Al entrar no se consultan profesores, cursos, materias, asignaciones ni tipos de pago.
-                                    Cada modulo se carga cuando lo abres desde el sidebar.
-                                </p>
-                            </section>
-                        )}
-                    </main>
-                </div>
+                <main className="min-w-0">
+                    <div className="min-w-0 overflow-x-auto pb-2">
+                        <Suspense
+                            fallback={
+                                <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-600 shadow-sm">
+                                    Cargando módulo...
+                                </div>
+                            }
+                        >
+                            <ModuloActivo />
+                        </Suspense>
+                    </div>
+                </main>
             </div>
         </div>
     );
