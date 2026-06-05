@@ -63,8 +63,8 @@ function NavProfesor() {
   };
 
   return (
-    <header className="bg-blue-700 text-white px-4 py-3 shadow-md relative z-50">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+    <header className="bg-blue-700 text-white shadow-md relative z-50">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink to="/" className="inline-flex flex-col leading-tight hover:opacity-90 transition cursor-pointer">
             <strong className="text-xl font-black tracking-normal">
@@ -130,7 +130,7 @@ function NavProfesor() {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <nav className="md:hidden mt-4 pb-2 flex flex-col gap-1">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/">Dashboard</NavLink>
 
           {/* Grupo móvil: Control Académico */}

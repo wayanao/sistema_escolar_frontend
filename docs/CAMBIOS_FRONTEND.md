@@ -2,6 +2,47 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-05 - Documento visible en generar boletines
+
+Se corrigio la columna `Documento` en la pantalla administrativa para generar
+boletines.
+
+Archivo modificado:
+
+- `src/components/boletin/Boletin.jsx`
+
+Cambio:
+
+- Se agrego una funcion `documentoEstudiante` para leer el documento desde los
+  nombres de campo usados por distintas respuestas del backend:
+  `documento_identidad`, `documento`, `identificacion` o `cedula`.
+- La tabla de estudiantes ahora muestra el documento aunque el endpoint no lo
+  entregue como `documento_identidad`.
+- La busqueda tambien incluye el documento normalizado.
+- Se ajusto el placeholder de busqueda para indicar `documento` en lugar de
+  `ID`.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Gestion Academica > Gestion Boletines.
+- Confirmar que la columna `Documento` muestra el numero del estudiante.
+- Buscar por documento y confirmar que el estudiante aparece.
+- Generar un boletin para confirmar que el flujo no cambia.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-05-25
 
 Se creo/actualizo la carpeta `docs/` del frontend con documentacion del estado actual del proyecto.
@@ -913,6 +954,46 @@ Resultado:
 - Lint sin errores.
 - Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
 
+## 2026-06-05 - Correccion de historial de egresos por fechas
+
+Se corrigio la carga del historial en Control de Egresos y Gastos.
+
+Archivo modificado:
+
+- `src/pages/EgresosAdmin.jsx`
+
+Cambio:
+
+- El boton `Buscar` ahora envia correctamente `fecha_desde` y `fecha_hasta`
+  seleccionadas por el usuario.
+- La fecha por defecto ya no usa UTC; ahora se calcula con la fecha local del
+  navegador.
+- El boton `Hoy` tambien usa la fecha local.
+- La respuesta de egresos se normaliza a lista para evitar fallos si el backend
+  devuelve un formato inesperado.
+- El total y el monto de la tabla convierten `monto` a numero antes de formatear.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Cartera > Egresos.
+- Confirmar que al entrar se muestran los egresos del dia local.
+- Elegir un rango con egresos anteriores y presionar `Buscar`.
+- Confirmar que el historial cambia al rango seleccionado.
+- Presionar `Hoy` y confirmar que vuelve al dia actual.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-04 - Tipos de pago sin eliminar concepto
 
 Se ajusto la pantalla de Tipos de Pago para que los conceptos de cobro no se
@@ -940,6 +1021,201 @@ Pruebas manuales recomendadas:
 - Desactivar un concepto desde su configuracion y confirmar que queda como
   inactivo/borrador.
 - Confirmar que los conceptos historicos siguen visibles al listar.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-05 - Alineacion de acciones en listado de profesores
+
+Se ajusto el listado de profesores dentro de Administracion academica para que
+la columna de acciones quede ubicada de forma consistente despues de ampliar el
+layout global.
+
+Archivo modificado:
+
+- `src/components/CrearProfesor.jsx`
+
+Cambio:
+
+- La tabla de profesores ahora usa `table-fixed` y un ancho minimo controlado.
+- Las columnas `Nombre`, `Email`, `Estado` y `Acciones` tienen anchos definidos.
+- La columna `Acciones` queda alineada a la derecha.
+- Los controles de estado y editar no hacen wrap en pantallas amplias.
+- Nombre y email usan truncado con `title` para evitar que textos largos
+  deformen la tabla.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Administracion > Profesores.
+- Confirmar que la columna `Acciones` queda al extremo derecho del listado.
+- Probar con profesores de nombres/emails largos.
+- Revisar que en pantallas angostas la tabla mantenga scroll horizontal.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-05 - Ancho de generar boletines administrativos
+
+Se ajusto la pantalla administrativa de generacion de boletines para que use el
+ancho ampliado del layout global.
+
+Archivo modificado:
+
+- `src/components/boletin/Boletin.jsx`
+
+Cambio:
+
+- La vista de busqueda/listado para generar boletines dejo de usar
+  `max-w-6xl mx-auto`.
+- El listado de estudiantes y los filtros ahora pueden ocupar el ancho global
+  disponible.
+- No se modifico la vista del boletin generado ni `DocumentoImprimible`, para
+  conservar el formato profesional de impresion.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Gestion Academica > Gestion Boletines.
+- Confirmar que la pantalla de busqueda/listado aprovecha mas ancho.
+- Generar un boletin y confirmar que la vista imprimible conserva su formato.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-05 - Revision de paginas amplias y asistencia profesor
+
+Se revisaron las paginas operativas principales despues de ampliar el layout
+global para detectar limites internos que seguian dejando pantallas pequeñas.
+
+Archivos modificados:
+
+- `src/pages/Asistencia.jsx`
+- `src/components/AsistenciaRow.jsx`
+- `src/pages/TiposPagosAdmin.jsx`
+
+Cambio:
+
+- `Asistencia.jsx` dejo de usar `max-w-4xl`, por lo que ahora aprovecha el
+  ancho del layout global.
+- `AsistenciaRow.jsx` se ajusto para verse mejor en ancho amplio y en movil:
+  nombre truncado, contador de inasistencias y botones estables.
+- `TiposPagosAdmin.jsx` dejo de limitar el modulo de conceptos a `max-w-4xl`.
+- Estudiantes, Pagos, Reportes, Administracion e Inventario no tenian un
+  `max-w` interno fuerte que bloqueara el nuevo ancho global.
+
+Pruebas manuales recomendadas:
+
+- Entrar como profesor y abrir Asistencia.
+- Confirmar que la pagina ya no queda angosta y que las filas se ven ordenadas.
+- Entrar como admin y revisar Tipos de Pago.
+- Revisar Estudiantes, Pagos, Reportes, Administracion e Inventario para
+  confirmar que el ancho global se aprovecha sin desordenar la UI.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-05 - Alineacion de navbars al ancho global
+
+Se ajustaron las barras superiores y el banner SaaS para que coincidan con el
+nuevo ancho global de la aplicacion.
+
+Archivos modificados:
+
+- `src/components/NavAdmin.jsx`
+- `src/components/NavProfesor.jsx`
+- `src/components/NavSuperAdmin.jsx`
+- `src/components/TenantStatusBanner.jsx`
+
+Cambio:
+
+- Los contenedores internos pasaron de `max-w-6xl` a `max-w-[1600px]`.
+- Se agrego `w-full` y el mismo padding responsive usado por el `main` global.
+- Los menus moviles conservan el mismo ancho/padding para quedar alineados.
+- No se cambiaron rutas, permisos ni logica de navegacion.
+
+Pruebas manuales recomendadas:
+
+- Iniciar sesion como admin y confirmar que navbar, banner y contenido quedan
+  alineados.
+- Repetir el flujo como profesor.
+- Revisar super admin en `/super-admin`.
+- Probar el menu movil en una pantalla angosta.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-05 - Ampliacion inicial del ancho global
+
+Se ajusto el contenedor principal de la aplicacion para aprovechar mejor
+pantallas grandes sin eliminar limites internos de paginas especificas.
+
+Archivo modificado:
+
+- `src/App.jsx`
+
+Cambio:
+
+- El `main` global paso de `max-w-6xl` a `max-w-[1600px]`.
+- Se mantiene `mx-auto`, `w-full` y padding responsive.
+- El cambio aplica al layout general y al layout de super admin.
+- No se tocaron navbars ni paginas internas en este primer paso.
+
+Pruebas manuales recomendadas:
+
+- Abrir pantallas grandes como Estudiantes, Pagos, Reportes, Inventario y
+  Administracion.
+- Confirmar si el contenido gana ancho sin sentirse desordenado.
+- Revisar una pantalla pequena para confirmar que el padding responsive se
+  mantiene correcto.
 
 Verificacion ejecutada:
 

@@ -305,32 +305,40 @@ function CrearProfesor() {
             ))}
           </select>
         </div>
-        <div className="overflow-x-auto max-h-64">
-          <table className="w-full text-left border-collapse">
+        <div className="max-h-64 overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full min-w-[820px] table-fixed text-left border-collapse">
             <thead>
               <tr className="bg-gray-100 text-gray-600">
-                <th className="p-2 border-b">Nombre</th>
-                <th className="p-2 border-b">Email</th>
-                <th className="p-2 border-b">Estado</th>
-                <th className="p-2 border-b">Acciones</th>
+                <th className="w-[32%] p-2 border-b">Nombre</th>
+                <th className="w-[34%] p-2 border-b">Email</th>
+                <th className="w-[140px] p-2 border-b">Estado</th>
+                <th className="w-[240px] p-2 border-b text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {profesores.filter(p => `${p.nombre} ${p.apellido} ${p.documento}`.toLowerCase().includes(busqueda.toLowerCase())).map(p => (
                 <tr key={p.id} className="border-b hover:bg-gray-50">
-                  <td className="p-2">{p.nombre} {p.apellido}</td>
-                  <td className="p-2">{p.email}</td>
+                  <td className="p-2">
+                    <span className="block truncate" title={`${p.nombre} ${p.apellido}`}>
+                      {p.nombre} {p.apellido}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    <span className="block truncate" title={p.email}>
+                      {p.email}
+                    </span>
+                  </td>
                   <td className="p-2">
                     <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${estadoClasses[p.estado || "activo"] || estadoClasses.activo}`}>
                       {estadoLabel(p.estado || "activo")}
                     </span>
                   </td>
-                  <td className="p-2">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <td className="p-2 text-right">
+                    <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                       <select
                         value={p.estado || "activo"}
                         onChange={(e) => cambiarEstadoProfesor(p, e.target.value)}
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                        className="w-32 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
                       >
                         {ESTADOS_PROFESOR.map((item) => (
                           <option key={item.value} value={item.value}>
@@ -340,7 +348,7 @@ function CrearProfesor() {
                       </select>
                       <button
                         onClick={() => editProfesor(p)}
-                        className="text-purple-700 hover:underline"
+                        className="rounded-md px-2 py-1 text-sm font-semibold text-purple-700 hover:bg-purple-50"
                       >
                         Editar
                       </button>

@@ -38,7 +38,7 @@ function TenantStatusBanner() {
 
   return (
     <div className="border-b border-amber-200 bg-amber-50">
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-2 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between sm:px-6 xl:px-8">
         <div>
           <p className="font-bold">Servicio en mora</p>
           <p className="mt-0.5 text-amber-800">

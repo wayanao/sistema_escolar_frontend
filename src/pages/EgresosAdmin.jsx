@@ -1,14 +1,18 @@
 import React, { useCallback, useState, useEffect } from "react";
 import api from "../utils/api";
 
-const hoyISO = () => new Date().toISOString().split("T")[0];
+const obtenerFechaLocal = () => {
+  const ahora = new Date();
+  const local = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000);
+  return local.toISOString().split("T")[0];
+};
 
 const EgresosAdmin = () => {
   const [egresos, setEgresos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [fechaDesde, setFechaDesde] = useState(hoyISO());
-  const [fechaHasta, setFechaHasta] = useState(hoyISO());
+  const [fechaDesde, setFechaDesde] = useState(obtenerFechaLocal());
+  const [fechaHasta, setFechaHasta] = useState(obtenerFechaLocal());
 
   // Formulario
   const [concepto, setConcepto] = useState("");
@@ -25,11 +29,11 @@ const EgresosAdmin = () => {
       setLoading(true);
       setError(null);
       const params = filtros || {
-        fecha_desde: hoyISO(),
-        fecha_hasta: hoyISO(),
+        fecha_desde: obtenerFechaLocal(),
+        fecha_hasta: obtenerFechaLocal(),
       };
       const res = await api.get("/api/egresos/", { params });
-      setEgresos(res.data);
+      setEgresos(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
       setError("Error al cargar los egresos.");
@@ -68,7 +72,7 @@ const EgresosAdmin = () => {
   const handleGuardar = async (e) => {
     e.preventDefault();
     try {
-      const fechaRegistro = fecha || hoyISO();
+      const fechaRegistro = fecha || obtenerFechaLocal();
       const conceptoLimpio = concepto.trim();
       const categoriaLimpia = categoria.trim();
       const notasLimpias = notas.trim();
@@ -124,7 +128,7 @@ const EgresosAdmin = () => {
   };
 
   const filtrarHoy = () => {
-    const hoy = hoyISO();
+    const hoy = obtenerFechaLocal();
     setFechaDesde(hoy);
     setFechaHasta(hoy);
     cargarEgresos({ fecha_desde: hoy, fecha_hasta: hoy });
@@ -135,10 +139,10 @@ const EgresosAdmin = () => {
       alert("La fecha desde no puede ser mayor que la fecha hasta.");
       return;
     }
-    cargarEgresos();
+    cargarEgresos({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta });
   };
 
-  const totalMonto = egresos.reduce((acc, curr) => acc + curr.monto, 0);
+  const totalMonto = egresos.reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
 
   return (
     <div className="p-6">
@@ -291,7 +295,7 @@ const EgresosAdmin = () => {
                       <td className="px-4 py-2">{egreso.fecha}</td>
                       <td className="px-4 py-2 font-medium">{egreso.concepto}</td>
                       <td className="px-4 py-2 text-sm text-gray-600">{egreso.categoria}</td>
-                      <td className="px-4 py-2 text-right font-bold text-red-600">${egreso.monto.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right font-bold text-red-600">${Number(egreso.monto || 0).toFixed(2)}</td>
                       <td className="px-4 py-2 text-right">
                         {egreso.editable !== false && egreso.origen === "manual" ? (
                           <button

@@ -136,7 +136,7 @@ const cargarHistorial = async () => {
     const selectedClase = clases.find(c => c.id == asignacionId);
 
     return (
-      <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full">
+      <div className="w-full p-4 sm:p-6 md:p-8">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             📅 Gestión de Asistencia

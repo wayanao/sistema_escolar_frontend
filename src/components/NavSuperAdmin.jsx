@@ -23,8 +23,8 @@ function NavSuperAdmin() {
   };
 
   return (
-    <header className="border-b border-slate-200 bg-slate-950 px-4 py-3 text-white shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+    <header className="border-b border-slate-200 bg-slate-950 text-white shadow-sm">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink to="/super-admin" className="inline-flex flex-col leading-tight hover:opacity-90">
             <strong className="text-xl font-black tracking-normal">

@@ -24,6 +24,19 @@ const ESCALA_NUMERICA = [
   { rango: "1.0 - 2.9", concepto: "Bajo" }
 ];
 
+const normalizarTexto = (valor, fallback = "N/A") => {
+  const texto = String(valor ?? "").trim();
+  return texto || fallback;
+};
+
+const documentoEstudiante = (estudiante) =>
+  normalizarTexto(
+    estudiante?.documento_identidad ??
+      estudiante?.documento ??
+      estudiante?.identificacion ??
+      estudiante?.cedula
+  );
+
 const Boletin = () => {
   const [cargando, setCargando] = useState(true);
   const [cursos, setCursos] = useState([]);
@@ -99,13 +112,18 @@ const Boletin = () => {
 
   const estudiantesFiltrados = estudiantes.filter(est => {
     const matchCurso = cursoSeleccionado ? est.curso_id === parseInt(cursoSeleccionado) : true;
-    const matchBusqueda = (est.nombre + " " + est.apellido + " " + est.documento_identidad).toLowerCase().includes(busqueda.toLowerCase());
+    const textoBusqueda = [
+      est.nombre,
+      est.apellido,
+      documentoEstudiante(est),
+    ].join(" ").toLowerCase();
+    const matchBusqueda = textoBusqueda.includes(busqueda.toLowerCase());
     return matchCurso && matchBusqueda;
   });
 
   if (!boletinData) {
     return (
-      <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      <div className="w-full p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-2 text-gray-800">Generar Boletines Administrativos</h1>
         <p className="text-gray-600 mb-8">Escoge un estudiante para extraer y consolidar las notas digitadas por los profesores.</p>
 
@@ -124,7 +142,7 @@ const Boletin = () => {
           <input 
             type="text"
             className="p-3 border rounded-lg shadow-sm w-full md:w-2/3 focus:ring-2 focus:ring-purple-500"
-            placeholder="Buscar alumno por nombre, apellido o ID..."
+            placeholder="Buscar alumno por nombre, apellido o documento..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -162,7 +180,7 @@ const Boletin = () => {
                     const cursoNombre = cursoObj ? cursoObj.nombre : "Sin Asignar";
                     return (
                       <tr key={est.id} className="hover:bg-purple-50 transition duration-150">
-                        <td className="p-4 text-sm text-gray-600">{est.documento_identidad}</td>
+                        <td className="p-4 text-sm text-gray-600">{documentoEstudiante(est)}</td>
                         <td className="p-4 font-bold text-gray-800 uppercase">{est.apellido}, {est.nombre}</td>
                         <td className="p-4 text-sm text-gray-600 font-medium">{cursoNombre}</td>
                         <td className="p-4 text-right">

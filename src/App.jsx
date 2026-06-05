@@ -95,7 +95,7 @@ function SuperAdminLayout() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavSuperAdmin />
-      <main className="max-w-6xl mx-auto p-4">
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
           <SuperAdminDashboard />
         </Suspense>
@@ -117,7 +117,7 @@ function Layout() {
     <div className="min-h-screen bg-slate-50">
       {usuario && usuario.rol === "admin" ? <NavAdmin /> : <NavProfesor />}
       <TenantStatusBanner />
-      <main className="max-w-6xl mx-auto p-4">
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<ProtectedRoute><DashboardProfesor /></ProtectedRoute>} />

@@ -45,8 +45,8 @@ function NavAdmin() {
       : "text-white hover:text-purple-100 block px-2";
 
   return (
-    <header className="bg-purple-700 text-white px-4 py-3 shadow-md relative z-50">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+    <header className="bg-purple-700 text-white shadow-md relative z-50">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink to="/dashboard-admin" className="inline-flex flex-col leading-tight hover:opacity-90 transition cursor-pointer">
             <strong className="text-xl font-black tracking-normal">
@@ -119,7 +119,7 @@ function NavAdmin() {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <nav className="md:hidden mt-4 pb-2 flex flex-col gap-3">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
           <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/dashboard-admin">Dashboard</NavLink>
           
           <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
