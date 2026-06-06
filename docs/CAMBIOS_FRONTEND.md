@@ -2,6 +2,59 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-06 - Impresion de estado de cuenta por estudiante y curso
+
+Se agrego impresion de estado de cuenta desde el modulo de Cartera, usando solo
+la informacion de cuotas vencidas que ya carga esa pantalla.
+
+Archivo modificado:
+
+- `src/pages/CarteraVencidaAdmin.jsx`
+
+Cambio:
+
+- Se agrego un boton `Imprimir` por estudiante en la tabla.
+- Se agrego un boton `Imprimir curso`, habilitado cuando hay un curso
+  seleccionado y registros visibles.
+- El impreso usa `DocumentoImprimible` para mantener encabezado, branding,
+  margenes y boton de impresion unificado.
+- El reporte se presenta como `Estado de cuenta`.
+- El alcance visible del documento queda como `Cuotas vencidas`.
+- El reporte individual del estudiante conserva fecha de corte, totales, deuda
+  academica, inventario, mora, cuotas vencidas, conceptos academicos y
+  ventas/cargos pendientes.
+- El reporte de curso imprime una tabla compacta con estudiante y valor general
+  adeudado.
+- Al final del reporte de curso se muestran los totales de deuda academica,
+  deuda de inventario y total general.
+- El reporte de curso respeta los estudiantes visibles dentro del curso y los
+  filtros activos de la pantalla.
+- No se agregaron endpoints ni se modificaron calculos financieros; el impreso
+  reutiliza la data actual de `/cartera/mora`.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Cartera > Cartera vencida.
+- Presionar `Imprimir` en un estudiante y validar el detalle.
+- Seleccionar un curso y presionar `Imprimir curso`.
+- Confirmar que `Volver` regresa a la tabla.
+- En la vista imprimible, presionar `Imprimir` y revisar que el documento
+  conserve encabezado, totales y tablas.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-05 - Documento visible en generar boletines
 
 Se corrigio la columna `Documento` en la pantalla administrativa para generar

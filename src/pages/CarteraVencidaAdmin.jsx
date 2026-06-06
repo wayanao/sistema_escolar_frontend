@@ -17,6 +17,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
 const formatMoney = (v) =>
     new Intl.NumberFormat("es-CO", {
@@ -24,6 +25,246 @@ const formatMoney = (v) =>
         currency: "COP",
         maximumFractionDigits: 0,
     }).format(Number(v || 0));
+
+const formatDate = (value) => {
+    if (!value) return "—";
+    const fecha = new Date(value);
+    if (Number.isNaN(fecha.getTime())) return String(value).slice(0, 10);
+    return fecha.toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+    });
+};
+
+const nombreCompleto = (item) =>
+    `${item?.apellido || ""} ${item?.nombre || ""}`.trim().replace(/\s+/g, " ");
+
+const calcularTotalesCartera = (lista) =>
+    lista.reduce(
+        (acc, item) => ({
+            total: acc.total + Number(item.total || 0),
+            academica: acc.academica + Number(item.deuda_academica || 0),
+            inventario: acc.inventario + Number(item.deuda_inventario || 0),
+            mora: acc.mora + Number(item.mora || 0),
+            cuotas: acc.cuotas + Number(item.cuotas_vencidas || 0),
+        }),
+        { total: 0, academica: 0, inventario: 0, mora: 0, cuotas: 0 }
+    );
+
+function DatoResumen({ label, value, accent = false }) {
+    return (
+        <div className={`rounded border px-3 py-2 ${accent ? "bg-rose-50 border-rose-200" : "bg-slate-50 border-slate-200"}`}>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500">{label}</p>
+            <p className={`text-sm font-extrabold ${accent ? "text-rose-800" : "text-slate-800"}`}>{value}</p>
+        </div>
+    );
+}
+
+function TablaConceptos({ conceptos }) {
+    if (!conceptos.length) {
+        return <p className="text-xs text-slate-500 italic">Sin conceptos académicos en cuotas vencidas.</p>;
+    }
+
+    return (
+        <table className="w-full border-collapse text-xs">
+            <thead>
+                <tr className="bg-slate-100 text-slate-600">
+                    <th className="border border-slate-200 px-2 py-1 text-left">Concepto</th>
+                    <th className="border border-slate-200 px-2 py-1 text-center">Cuotas</th>
+                    <th className="border border-slate-200 px-2 py-1 text-right">Pagado</th>
+                    <th className="border border-slate-200 px-2 py-1 text-right">Mora</th>
+                    <th className="border border-slate-200 px-2 py-1 text-right">Debe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {conceptos.map((concepto, idx) => (
+                    <tr key={`${concepto.concepto || "concepto"}-${idx}`}>
+                        <td className="border border-slate-200 px-2 py-1">
+                            <span className="font-semibold text-slate-800">{concepto.concepto}</span>
+                            {concepto.tipo_cobro && (
+                                <span className="ml-1 text-[10px] text-slate-500">({concepto.tipo_cobro})</span>
+                            )}
+                        </td>
+                        <td className="border border-slate-200 px-2 py-1 text-center">{concepto.cuotas_vencidas || "—"}</td>
+                        <td className="border border-slate-200 px-2 py-1 text-right text-emerald-700">{formatMoney(concepto.pagado)}</td>
+                        <td className="border border-slate-200 px-2 py-1 text-right text-rose-700">
+                            {Number(concepto.mora || 0) > 0 ? formatMoney(concepto.mora) : "—"}
+                        </td>
+                        <td className="border border-slate-200 px-2 py-1 text-right font-bold text-rose-800">
+                            {formatMoney(concepto.deuda)}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
+function TablaVentasPendientes({ ventas }) {
+    if (!ventas.length) {
+        return <p className="text-xs text-slate-500 italic">Sin cargos de inventario en cuotas vencidas.</p>;
+    }
+
+    return (
+        <table className="w-full border-collapse text-xs">
+            <thead>
+                <tr className="bg-slate-100 text-slate-600">
+                    <th className="border border-slate-200 px-2 py-1 text-left">Venta</th>
+                    <th className="border border-slate-200 px-2 py-1 text-left">Fecha</th>
+                    <th className="border border-slate-200 px-2 py-1 text-right">Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {ventas.map((venta) => (
+                    <tr key={venta.venta_id}>
+                        <td className="border border-slate-200 px-2 py-1 font-mono text-slate-700">#{venta.venta_id}</td>
+                        <td className="border border-slate-200 px-2 py-1 text-slate-600">{formatDate(venta.fecha)}</td>
+                        <td className="border border-slate-200 px-2 py-1 text-right font-bold text-amber-700">
+                            {formatMoney(venta.saldo)}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
+function BloqueEstudianteCartera({ item }) {
+    const conceptos = item.conceptos || [];
+    const ventasPendientes = item.ventas_pendientes || [];
+
+    return (
+        <section className="rounded-lg border border-slate-200 overflow-hidden bg-white" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+            <div className="bg-slate-50 border-b border-slate-200 px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Estudiante</p>
+                    <h3 className="text-sm font-extrabold uppercase text-slate-800">{nombreCompleto(item)}</h3>
+                    <p className="text-[11px] text-slate-500">Curso: {item.curso_nombre || "Sin curso"}</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Total vencido</p>
+                    <p className="text-lg font-black text-rose-800">{formatMoney(item.total)}</p>
+                </div>
+            </div>
+
+            <div className="p-3 space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <DatoResumen label="Académica" value={formatMoney(item.deuda_academica)} />
+                    <DatoResumen label="Inventario" value={formatMoney(item.deuda_inventario)} />
+                    <DatoResumen label="Mora" value={formatMoney(item.mora)} />
+                    <DatoResumen label="Cuotas vencidas" value={item.cuotas_vencidas || 0} accent />
+                </div>
+
+                <div>
+                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-slate-600 mb-1">
+                        Conceptos académicos
+                    </h4>
+                    <TablaConceptos conceptos={conceptos} />
+                </div>
+
+                <div>
+                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-slate-600 mb-1">
+                        Ventas o cargos pendientes
+                    </h4>
+                    <TablaVentasPendientes ventas={ventasPendientes} />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function ReporteCursoEstadoCuenta({ reporte, totales }) {
+    const lista = reporte.items || [];
+
+    return (
+        <div className="space-y-4 text-slate-800">
+            <section className="grid grid-cols-2 gap-2 text-xs">
+                <DatoResumen label="Curso" value={reporte.nombre} />
+                <DatoResumen label="Fecha de corte" value={reporte.fechaCorte} />
+                <DatoResumen label="Estudiantes incluidos" value={lista.length} />
+                <DatoResumen label="Alcance" value="Cuotas vencidas" />
+            </section>
+
+            <section className="rounded-lg border border-slate-200 overflow-hidden bg-white">
+                <div className="bg-slate-50 border-b border-slate-200 px-3 py-2">
+                    <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-700">
+                        Resumen por estudiante
+                    </h3>
+                </div>
+                <table className="w-full border-collapse text-xs">
+                    <thead>
+                        <tr className="bg-slate-100 text-slate-600">
+                            <th className="border border-slate-200 px-3 py-2 text-left">Estudiante</th>
+                            <th className="border border-slate-200 px-3 py-2 text-right">Valor que debe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {lista.map((item) => (
+                            <tr key={item.estudiante_id}>
+                                <td className="border border-slate-200 px-3 py-2 font-semibold uppercase text-slate-800">
+                                    {nombreCompleto(item)}
+                                </td>
+                                <td className="border border-slate-200 px-3 py-2 text-right font-bold text-rose-800">
+                                    {formatMoney(item.total)}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </section>
+
+            <section className="rounded-lg border border-slate-200 bg-slate-50 p-3" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-700 mb-2">
+                    Totales del curso
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <DatoResumen label="Total deuda académica" value={formatMoney(totales.academica)} />
+                    <DatoResumen label="Total deuda inventario" value={formatMoney(totales.inventario)} />
+                    <DatoResumen label="Total general" value={formatMoney(totales.total)} accent />
+                </div>
+            </section>
+        </div>
+    );
+}
+
+function ReporteCarteraVencida({ reporte }) {
+    const lista = reporte.items || [];
+    const totales = calcularTotalesCartera(lista);
+    const esCurso = reporte.tipo === "curso";
+
+    if (esCurso) {
+        return <ReporteCursoEstadoCuenta reporte={reporte} totales={totales} />;
+    }
+
+    return (
+        <div className="space-y-4 text-slate-800">
+            <section className="grid grid-cols-2 gap-2 text-xs">
+                <DatoResumen label="Estudiante" value={reporte.nombre} />
+                <DatoResumen label="Fecha de corte" value={reporte.fechaCorte} />
+                <DatoResumen label="Registros incluidos" value={`${lista.length} estudiante${lista.length === 1 ? "" : "s"}`} />
+                <DatoResumen label="Alcance" value="Cuotas vencidas" />
+            </section>
+
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <DatoResumen label="Total vencido" value={formatMoney(totales.total)} accent />
+                <DatoResumen label="Académica" value={formatMoney(totales.academica)} />
+                <DatoResumen label="Inventario" value={formatMoney(totales.inventario)} />
+                <DatoResumen label="Mora" value={formatMoney(totales.mora)} />
+            </section>
+
+            <p className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+                Este documento muestra únicamente las cuotas vencidas visibles al momento de generarlo.
+            </p>
+
+            <div className="space-y-3">
+                {lista.map((item) => (
+                    <BloqueEstudianteCartera key={item.estudiante_id} item={item} />
+                ))}
+            </div>
+        </div>
+    );
+}
 
 function KpiCard({ icon, label, value, accent = "purple", subtitle }) {
     const palette = {
@@ -70,6 +311,7 @@ function CarteraVencidaAdmin() {
     const [filtroCurso, setFiltroCurso] = useState("");
     const [filtroTipo, setFiltroTipo] = useState("todos"); // todos | academica | inventario | mora
     const [expandido, setExpandido] = useState(null);
+    const [reporteImpresion, setReporteImpresion] = useState(null);
 
     useEffect(() => {
         const cargar = async () => {
@@ -128,6 +370,40 @@ function CarteraVencidaAdmin() {
         [itemsFiltrados]
     );
 
+    const cursoSeleccionado = useMemo(() => {
+        if (!filtroCurso) return null;
+        return cursosUnicos.find((curso) => String(curso.id) === String(filtroCurso)) || null;
+    }, [cursosUnicos, filtroCurso]);
+
+    const fechaCorte = useMemo(
+        () =>
+            new Date().toLocaleDateString("es-CO", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            }),
+        []
+    );
+
+    const abrirReporteEstudiante = (item) => {
+        setReporteImpresion({
+            tipo: "estudiante",
+            nombre: nombreCompleto(item),
+            fechaCorte,
+            items: [item],
+        });
+    };
+
+    const abrirReporteCurso = () => {
+        if (!cursoSeleccionado || itemsFiltrados.length === 0) return;
+        setReporteImpresion({
+            tipo: "curso",
+            nombre: cursoSeleccionado.nombre,
+            fechaCorte,
+            items: itemsFiltrados,
+        });
+    };
+
     const exportarCSV = () => {
         const headers = [
             "Estudiante",
@@ -161,6 +437,30 @@ function CarteraVencidaAdmin() {
         URL.revokeObjectURL(url);
     };
 
+    if (reporteImpresion) {
+        return (
+            <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
+                <div className="fixed bottom-6 left-6 no-print z-50">
+                    <button
+                        onClick={() => setReporteImpresion(null)}
+                        className="bg-slate-800 text-white px-4 py-3 rounded-full shadow-xl hover:bg-slate-900 transition"
+                        title="Volver"
+                    >
+                        Volver
+                    </button>
+                </div>
+
+                <DocumentoImprimible
+                    tipo="reporte_estudiante"
+                    titulo="Estado de cuenta"
+                    subtitulo={`${reporteImpresion.tipo === "curso" ? "Curso" : "Estudiante"}: ${reporteImpresion.nombre}`}
+                >
+                    <ReporteCarteraVencida reporte={reporteImpresion} />
+                </DocumentoImprimible>
+            </div>
+        );
+    }
+
     if (cargando) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -175,9 +475,9 @@ function CarteraVencidaAdmin() {
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                     <p className="text-xs uppercase tracking-wide font-semibold text-purple-700">Cartera</p>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📂 Cartera vencida</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📂 Estado de cuenta</h1>
                     <p className="text-gray-600 text-sm mt-1">
-                        Reporte consolidado de estudiantes con deudas pendientes (académicas y de inventario).
+                        Reporte consolidado de cuotas vencidas académicas y de inventario.
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -194,6 +494,14 @@ function CarteraVencidaAdmin() {
                     >
                         ⬇ Exportar CSV
                     </button>
+                    <button
+                        onClick={abrirReporteCurso}
+                        disabled={!cursoSeleccionado || itemsFiltrados.length === 0}
+                        title={cursoSeleccionado ? "Imprimir estado de cuenta del curso seleccionado" : "Selecciona un curso para imprimir"}
+                        className="px-3 py-2 text-sm rounded-lg bg-slate-800 text-white hover:bg-slate-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Imprimir curso
+                    </button>
                 </div>
             </div>
 
@@ -201,7 +509,7 @@ function CarteraVencidaAdmin() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <KpiCard
                     icon="💸"
-                    label="Cartera vencida total"
+                    label="Total cuotas vencidas"
                     value={formatMoney(resumen?.total_deuda)}
                     accent="red"
                     subtitle={`${resumen?.total_estudiantes || 0} estudiantes en mora`}
@@ -335,7 +643,7 @@ function CarteraVencidaAdmin() {
                                     <th className="px-3 py-3 text-right">Mora</th>
                                     <th className="px-3 py-3 text-right">Total</th>
                                     <th className="px-3 py-3">Indicador</th>
-                                    <th className="px-3 py-3 text-right">Acción</th>
+                                    <th className="px-3 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 bg-white">
@@ -383,15 +691,26 @@ function CarteraVencidaAdmin() {
                                                     </div>
                                                 </td>
                                                 <td className="px-3 py-2 text-right">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate(`/admin/pagos`, { state: { estudiante_id: i.estudiante_id } });
-                                                        }}
-                                                        className="text-xs px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap"
-                                                    >
-                                                        💰 Cobrar
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                abrirReporteEstudiante(i);
+                                                            }}
+                                                            className="text-xs px-2 py-1 rounded-md bg-slate-700 hover:bg-slate-800 text-white font-semibold whitespace-nowrap"
+                                                        >
+                                                            Imprimir
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/admin/pagos`, { state: { estudiante_id: i.estudiante_id } });
+                                                            }}
+                                                            className="text-xs px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap"
+                                                        >
+                                                            💰 Cobrar
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
 
@@ -404,7 +723,7 @@ function CarteraVencidaAdmin() {
                                                                 <h4 className="text-xs font-bold text-gray-700 uppercase mb-2">
                                                                     🎓 Conceptos académicos
                                                                 </h4>
-                                                                {i.conceptos.length === 0 ? (
+                                                                {(i.conceptos || []).length === 0 ? (
                                                                     <p className="text-xs text-gray-500 italic">Sin deuda académica.</p>
                                                                 ) : (
                                                                     <table className="w-full text-xs">
@@ -418,7 +737,7 @@ function CarteraVencidaAdmin() {
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            {i.conceptos.map((c, idx) => (
+                                                                            {(i.conceptos || []).map((c, idx) => (
                                                                                 <tr key={idx} className="border-t border-gray-100">
                                                                                     <td className="py-1 font-medium text-gray-800">
                                                                                         {c.concepto}
@@ -440,7 +759,7 @@ function CarteraVencidaAdmin() {
                                                                 <h4 className="text-xs font-bold text-gray-700 uppercase mb-2">
                                                                     📦 Ventas / cargos pendientes
                                                                 </h4>
-                                                                {i.ventas_pendientes.length === 0 ? (
+                                                                {(i.ventas_pendientes || []).length === 0 ? (
                                                                     <p className="text-xs text-gray-500 italic">Sin cargos de inventario pendientes.</p>
                                                                 ) : (
                                                                     <table className="w-full text-xs">
@@ -452,7 +771,7 @@ function CarteraVencidaAdmin() {
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            {i.ventas_pendientes.map((v) => (
+                                                                            {(i.ventas_pendientes || []).map((v) => (
                                                                                 <tr key={v.venta_id} className="border-t border-gray-100">
                                                                                     <td className="py-1 font-mono text-gray-700">#{v.venta_id}</td>
                                                                                     <td className="py-1 text-gray-600">{v.fecha?.slice(0, 10) || "—"}</td>
