@@ -99,15 +99,18 @@ function obtenerFilasMaterias(certificado) {
 }
 
 export default function CertificadosAdmin() {
+  const [tabActiva, setTabActiva] = useState("notas");
   const [cursos, setCursos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("activo");
   const [busqueda, setBusqueda] = useState("");
   const [periodo, setPeriodo] = useState("1");
+  const [anioLectivo, setAnioLectivo] = useState(String(new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
   const [generandoId, setGenerandoId] = useState(null);
   const [certificado, setCertificado] = useState(null);
+  const [certificadoMatricula, setCertificadoMatricula] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -193,6 +196,40 @@ export default function CertificadosAdmin() {
     }
   };
 
+  const generarCertificadoMatricula = (estudianteId) => {
+    setGenerandoId(estudianteId);
+    setError("");
+    try {
+      const estudiante = estudiantes.find((item) => item.id === estudianteId);
+      if (!estudiante) {
+        setError("No se encontro el estudiante seleccionado.");
+        return;
+      }
+
+      const curso = cursosPorId.get(estudiante.curso_id);
+      setCertificadoMatricula({
+        estudiante_nombre_completo: nombreEstudiante(estudiante),
+        documento_identidad: documentoEstudiante(estudiante),
+        curso: curso?.nombre || estudiante.curso_nombre || "Sin asignar",
+        jornada: curso?.jornada || estudiante.jornada || "",
+        estado: estudiante.estado || "activo",
+        anio_lectivo: anioLectivo || String(new Date().getFullYear()),
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setGenerandoId(null);
+    }
+  };
+
+  const generarSegunTab = (estudianteId) => {
+    if (tabActiva === "matricula") {
+      generarCertificadoMatricula(estudianteId);
+      return;
+    }
+
+    generarCertificado(estudianteId);
+  };
+
   if (certificado) {
     return (
       <CertificadoPreview
@@ -202,11 +239,47 @@ export default function CertificadosAdmin() {
     );
   }
 
+  if (certificadoMatricula) {
+    return (
+      <CertificadoMatriculaPreview
+        certificado={certificadoMatricula}
+        onBack={() => setCertificadoMatricula(null)}
+      />
+    );
+  }
+
+  const tabs = [
+    { id: "notas", label: "Certificado de notas" },
+    { id: "matricula", label: "Certificado de matrícula" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Certificados</h1>
-        <p className="text-sm text-slate-600">Certificado de notas por estudiante y periodo.</p>
+        <p className="text-sm text-slate-600">
+          Genera certificados académicos e institucionales por estudiante.
+        </p>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto border-b border-slate-200">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => {
+              setTabActiva(tab.id);
+              setError("");
+            }}
+            className={`border-b-2 px-4 py-2 text-sm font-bold transition ${
+              tabActiva === tab.id
+                ? "border-purple-600 text-purple-700"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -238,15 +311,27 @@ export default function CertificadosAdmin() {
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
           />
 
-          <select
-            value={periodo}
-            onChange={(event) => setPeriodo(event.target.value)}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
-          >
-            {PERIODOS.map((item) => (
-              <option key={item.value} value={item.value}>{item.label}</option>
-            ))}
-          </select>
+          {tabActiva === "notas" ? (
+            <select
+              value={periodo}
+              onChange={(event) => setPeriodo(event.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
+            >
+              {PERIODOS.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="number"
+              min="2000"
+              max="2100"
+              value={anioLectivo}
+              onChange={(event) => setAnioLectivo(event.target.value)}
+              placeholder="Año lectivo"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
+            />
+          )}
 
           <select
             value={estadoFiltro}
@@ -299,10 +384,10 @@ export default function CertificadosAdmin() {
                         <button
                           type="button"
                           disabled={!!generandoId}
-                          onClick={() => generarCertificado(estudiante.id)}
+                          onClick={() => generarSegunTab(estudiante.id)}
                           className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {cargando ? "Generando..." : "Generar"}
+                          {cargando ? "Generando..." : tabActiva === "matricula" ? "Generar matrícula" : "Generar notas"}
                         </button>
                       </td>
                     </tr>
@@ -373,8 +458,7 @@ function CertificadoPreview({ certificado, onBack }) {
       >
         <section className="space-y-5 text-slate-800">
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              <DatoCertificado label="Estudiante" value={estudianteFormal} />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <DatoCertificado label="Documento" value={normalizarTexto(certificado.documento_identidad)} />
               <DatoCertificado label="Curso" value={normalizarTexto(certificado.curso)} />
               <DatoCertificado label="Periodo" value={periodoTexto} />
@@ -461,6 +545,81 @@ function CertificadoPreview({ certificado, onBack }) {
           <p className="text-justify text-sm leading-7">
             Este certificado se expide a solicitud del interesado en la fecha {fecha}.
           </p>
+        </section>
+      </DocumentoImprimible>
+    </div>
+  );
+}
+
+function CertificadoMatriculaPreview({ certificado, onBack }) {
+  const estudiante = normalizarTexto(certificado.estudiante_nombre_completo);
+  const documento = normalizarTexto(certificado.documento_identidad);
+  const curso = normalizarTexto(certificado.curso);
+  const jornada = normalizarTexto(certificado.jornada, "No especificada");
+  const estado = normalizarTexto(certificado.estado, "activo");
+  const anioLectivo = normalizarTexto(certificado.anio_lectivo, String(new Date().getFullYear()));
+  const fecha = new Date().toLocaleDateString("es-CO", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
+      <div className="fixed bottom-6 left-6 z-50 no-print">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
+          title="Volver"
+        >
+          Volver
+        </button>
+      </div>
+
+      <DocumentoImprimible
+        tipo="reporte_estudiante"
+        titulo="Certificado de Matrícula"
+        subtitulo={`Año Lectivo ${anioLectivo}`}
+        firmas={[
+          { nombre: "", cargo: "Rector(a)" },
+          { nombre: "", cargo: "Secretaria academica" },
+        ]}
+      >
+        <section className="space-y-6 text-slate-800">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <DatoCertificado label="Documento" value={documento} />
+              <DatoCertificado label="Curso" value={curso} />
+              <DatoCertificado label="Jornada" value={jornada} />
+              <DatoCertificado label="Estado" value={estado} />
+            </div>
+          </div>
+
+          <div className="space-y-4 text-justify text-sm leading-8">
+            <p>
+              La institución educativa certifica que <strong className="uppercase">{estudiante}</strong>,
+              identificado(a) con documento de identidad <strong>{documento}</strong>, se encuentra
+              matriculado(a) en esta institución para el año lectivo <strong>{anioLectivo}</strong>,
+              cursando <strong>{curso}</strong>
+              {jornada !== "No especificada" ? (
+                <>
+                  {" "}en la jornada <strong>{jornada}</strong>
+                </>
+              ) : null}
+              .
+            </p>
+
+            <p>
+              El presente certificado se expide a solicitud del interesado para los fines que estime
+              convenientes, incluyendo trámites administrativos, pensiones, subsidios u otros soportes
+              requeridos por entidades externas.
+            </p>
+
+            <p>
+              Se expide en la fecha {fecha}.
+            </p>
+          </div>
         </section>
       </DocumentoImprimible>
     </div>

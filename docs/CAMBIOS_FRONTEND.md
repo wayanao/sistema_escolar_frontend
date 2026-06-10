@@ -2,6 +2,137 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-10 - Ajuste de resumen en certificados imprimibles
+
+Se ajustaron los impresos de certificados para evitar repetir el nombre del
+estudiante en el bloque superior de datos.
+
+Archivo modificado:
+
+- `src/pages/CertificadosAdmin.jsx`
+
+Cambio:
+
+- En `Certificado de notas` se quito el campo `Estudiante` del resumen superior.
+- En `Certificado de matrícula` se quito el campo `Estudiante` del resumen
+  superior.
+- El nombre del estudiante se conserva dentro del texto formal del certificado.
+
+Pruebas manuales recomendadas:
+
+- Generar un certificado de notas y confirmar que el resumen inicia en
+  `Documento`.
+- Generar un certificado de matrícula y confirmar que el resumen inicia en
+  `Documento`.
+- Confirmar que el nombre del estudiante sigue apareciendo en el cuerpo del
+  certificado.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Certificado de matricula en modulo de certificados
+
+Se agrego la separacion por pestanas dentro del modulo de certificados para
+soportar certificado de notas y certificado de matricula.
+
+Archivo modificado:
+
+- `src/pages/CertificadosAdmin.jsx`
+
+Cambio:
+
+- Se agregaron pestanas internas: `Certificado de notas` y
+  `Certificado de matrícula`.
+- La pestana de notas conserva el flujo existente de periodo individual o todos
+  los periodos.
+- La pestana de matricula reemplaza el selector de periodo por el campo
+  `Año lectivo`.
+- El certificado de matricula reutiliza `DocumentoImprimible` y el branding
+  institucional.
+- El impreso de matricula muestra estudiante, documento, curso, jornada, estado
+  y año lectivo.
+- El texto del certificado queda orientado a soportes administrativos,
+  pensiones, subsidios u otros tramites externos.
+- No se agregaron rutas nuevas ni cambios en navbar; ambos certificados viven
+  dentro de `/admin/certificados`.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Gestion Academica > Certificados.
+- Confirmar que inicia en `Certificado de notas` y genera como antes.
+- Cambiar a `Certificado de matrícula`.
+- Ajustar el año lectivo, seleccionar un estudiante y generar el certificado.
+- Presionar `Imprimir` y validar encabezado, datos del estudiante y firmas.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Historial de prestamos bajo seleccion de trabajador
+
+Se ajusto la pantalla de prestamos para que el historial no se cargue
+automaticamente al abrir el modulo.
+
+Archivo modificado:
+
+- `src/pages/PrestamosAdmin.jsx`
+
+Cambio:
+
+- Al abrir la pagina solo se carga la lista de profesores/trabajadores.
+- El historial de prestamos se consulta unicamente cuando se selecciona un
+  profesor o trabajador en el filtro.
+- El selector del historial carga automaticamente los prestamos del trabajador
+  seleccionado.
+- El boton `Limpiar` vacia el historial y vuelve al mensaje inicial.
+- Se agrego un mensaje visible indicando que el historial se carga al escoger
+  un profesor o trabajador.
+- Despues de registrar un prestamo, el historial se muestra filtrado por el
+  trabajador al que se le creo el prestamo.
+
+Pruebas manuales recomendadas:
+
+- Abrir Admin > Nomina/Prestamos y confirmar que no aparece historial cargado.
+- Confirmar que se muestra el aviso para seleccionar profesor o trabajador.
+- Seleccionar un trabajador y validar que se cargue su historial.
+- Presionar `Limpiar` y confirmar que el historial desaparece.
+- Crear un prestamo y confirmar que queda visible filtrado por ese trabajador.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-06 - Impresion de estado de cuenta por estudiante y curso
 
 Se agrego impresion de estado de cuenta desde el modulo de Cartera, usando solo

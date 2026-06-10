@@ -4,7 +4,9 @@ import api from "../utils/api";
 const PrestamosAdmin = () => {
     const [prestamos, setPrestamos] = useState([]);
     const [profesores, setProfesores] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingProfesores, setLoadingProfesores] = useState(true);
+    const [loadingPrestamos, setLoadingPrestamos] = useState(false);
+    const [historialConsultado, setHistorialConsultado] = useState(false);
     const [error, setError] = useState(null);
 
   // Formulario
@@ -14,30 +16,50 @@ const PrestamosAdmin = () => {
     const [notas, setNotas] = useState("");
     const [profesorFiltro, setProfesorFiltro] = useState("");
 
-    const cargarDatos = useCallback(async (filtroProfesor = "") => {
+    const cargarProfesores = useCallback(async () => {
         try {
-            setLoading(true);
-            setError(null); // Limpiar error anterior
-            const params = filtroProfesor ? { profesor_id: filtroProfesor } : {};
-            const [resPrestamos, resProfesores] = await Promise.all([
-            api.get("/api/prestamos/", { params }),
-            api.get("/profesores")
-            ]);
-            setPrestamos(resPrestamos.data);
+            setLoadingProfesores(true);
+            setError(null);
+            const resProfesores = await api.get("/profesores");
             setProfesores(resProfesores.data);
         } 
         catch (err) {
             console.error(err);
-            setError("Error al cargar los préstamos o profesores.");
+            setError("Error al cargar los profesores o trabajadores.");
         } 
         finally {
-            setLoading(false);
+            setLoadingProfesores(false);
+        }
+    }, []);
+
+    const cargarPrestamos = useCallback(async (filtroProfesor) => {
+        if (!filtroProfesor) {
+            setPrestamos([]);
+            setHistorialConsultado(false);
+            return;
+        }
+
+        try {
+            setLoadingPrestamos(true);
+            setError(null);
+            setHistorialConsultado(true);
+            const resPrestamos = await api.get("/api/prestamos/", {
+                params: { profesor_id: filtroProfesor },
+            });
+            setPrestamos(Array.isArray(resPrestamos.data) ? resPrestamos.data : []);
+        }
+        catch (err) {
+            console.error(err);
+            setError("Error al cargar el historial de préstamos.");
+        }
+        finally {
+            setLoadingPrestamos(false);
         }
     }, []);
 
   useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
+    cargarProfesores();
+  }, [cargarProfesores]);
 
   const obtenerNombreProfesor = (id) => {
     const profesor = profesores.find((prof) => String(prof.id) === String(id));
@@ -50,7 +72,7 @@ const PrestamosAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     if (!profesorId) {
-      alert("Por favor, selecciona un profesor.");
+      alert("Por favor, selecciona un profesor o trabajador.");
       return;
     }
 
@@ -64,7 +86,7 @@ const PrestamosAdmin = () => {
     const notasLimpias = notas.trim();
     const nombreProfesor = obtenerNombreProfesor(profesorId);
     const confirmar = window.confirm(
-      `¿Seguro que deseas registrar este préstamo?\n\nProfesor: ${nombreProfesor}\nMonto: $${montoNumero.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nFecha: ${fechaPrestamo}\n\nUna vez creado no se puede eliminar; solo se podrá saldar.`
+      `¿Seguro que deseas registrar este préstamo?\n\nProfesor o trabajador: ${nombreProfesor}\nMonto: $${montoNumero.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\nFecha: ${fechaPrestamo}\n\nUna vez creado no se puede eliminar; solo se podrá saldar.`
     );
 
     if (!confirmar) {
@@ -85,7 +107,7 @@ const PrestamosAdmin = () => {
       setMonto("");
       setNotas("");
       setFecha("");
-      cargarDatos(profesorId);
+      cargarPrestamos(profesorId);
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.detail || "No se pudo registrar el préstamo.");
@@ -96,7 +118,7 @@ const PrestamosAdmin = () => {
     if (!window.confirm(`¿Marcar este préstamo como ${nuevoEstado}?`)) return;
     try {
       await api.put(`/api/prestamos/${id}/estado`, { estado: nuevoEstado });
-      cargarDatos(profesorFiltro);
+      cargarPrestamos(profesorFiltro);
     } catch (err) {
       console.error(err);
       alert("Error al actualizar el estado.");
@@ -104,12 +126,17 @@ const PrestamosAdmin = () => {
   };
 
   const filtrarPorProfesor = () => {
-    cargarDatos(profesorFiltro);
+    if (!profesorFiltro) {
+      alert("Selecciona un profesor o trabajador para ver su historial.");
+      return;
+    }
+    cargarPrestamos(profesorFiltro);
   };
 
   const limpiarFiltro = () => {
     setProfesorFiltro("");
-    cargarDatos("");
+    setPrestamos([]);
+    setHistorialConsultado(false);
   };
 
   const totalPendiente = prestamos
@@ -118,7 +145,7 @@ const PrestamosAdmin = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Préstamos a Profesores</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Préstamos a Profesores o Trabajadores</h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -126,12 +153,13 @@ const PrestamosAdmin = () => {
         <h2 className="text-xl font-bold mb-4">Registrar Nuevo Préstamo</h2>
         <form onSubmit={handleCrear} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">Profesor</label>
+            <label className="block text-gray-700 font-semibold mb-2">Profesor o trabajador</label>
             <select
               required
               className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={profesorId}
               onChange={(e) => setProfesorId(e.target.value)}
+              disabled={loadingProfesores}
             >
               <option value="">-- Seleccionar --</option>
               {profesores.map(prof => (
@@ -187,17 +215,24 @@ const PrestamosAdmin = () => {
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-xl font-bold">Historial de Préstamos</h2>
-            <p className="text-sm text-gray-500">Puedes filtrar el historial por profesor.</p>
+            <p className="text-sm text-gray-500">
+              El historial se carga solo cuando seleccionas un profesor o trabajador.
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Profesor</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Profesor o trabajador</label>
               <select
                 className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 value={profesorFiltro}
-                onChange={(e) => setProfesorFiltro(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setProfesorFiltro(value);
+                  cargarPrestamos(value);
+                }}
+                disabled={loadingProfesores}
               >
-                <option value="">Todos</option>
+                <option value="">Selecciona para ver historial</option>
                 {profesores.map(prof => (
                   <option key={prof.id} value={prof.id}>
                     {prof.apellido} {prof.nombre}
@@ -217,7 +252,7 @@ const PrestamosAdmin = () => {
               onClick={limpiarFiltro}
               className="self-end rounded bg-gray-200 px-4 py-2 font-semibold text-gray-700 transition hover:bg-gray-300"
             >
-              Todos
+              Limpiar
             </button>
           </div>
           <span className="text-lg font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded">
@@ -225,8 +260,13 @@ const PrestamosAdmin = () => {
           </span>
         </div>
 
-        {loading ? (
+        {loadingPrestamos ? (
           <p>Cargando préstamos...</p>
+        ) : !historialConsultado ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <p className="font-semibold text-gray-700">Selecciona un profesor o trabajador para ver su historial de préstamos.</p>
+            <p className="mt-1 text-sm text-gray-500">El historial no se carga automáticamente al abrir la página.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full table-auto">
