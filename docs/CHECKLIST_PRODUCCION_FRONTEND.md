@@ -24,15 +24,22 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 - Como probarlo: iniciar como profesor, cambiar en DevTools `localStorage.usuario` con `{ "rol": "admin" }`, refrescar e intentar entrar a `/dashboard-admin`.
 - Recomendacion tecnica: mantener guards de UI, pero revalidar sesion/rol contra backend al cargar la app y asumir que la autorizacion real siempre vive en backend.
 
-### Tenant enviado desde `localStorage`
+### Tenant resuelto por cookie/JWT del backend
 
-- Problema: el header `X-Tenant-ID` se toma de `localStorage.tenant`.
-- Riesgo: el valor puede ser manipulado desde el navegador.
+- Estado actual: resuelto en frontend; ya no se envia header de tenant desde
+  `localStorage`.
+- Riesgo residual: si algun flujo futuro vuelve a confiar en un tenant enviado
+  por el navegador, se reabre el riesgo de acceso cruzado entre colegios.
 - Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
-- Que puede pasar en produccion: si el backend confiara en ese header como fuente absoluta, podria existir riesgo de acceso cruzado entre tenants.
+- Que puede pasar en produccion: un contrato frontend/backend ambiguo podria
+  permitir que se reintroduzca un header manipulable.
 - Prioridad: CRITICO.
-- Como probarlo: iniciar sesion, cambiar `localStorage.tenant` por otro valor y hacer una peticion; verificar que el backend rechace o ignore tenants no autorizados por el JWT.
-- Recomendacion tecnica: tratar `X-Tenant-ID` como dato auxiliar de cliente; la fuente de verdad debe ser el JWT/sesion validada por backend.
+- Como probarlo: buscar `X-Tenant-ID`, `localStorage.tenant`,
+  `setItem("tenant"` y `getItem("tenant"` en `src`; no deben existir usos
+  funcionales para seleccionar tenant.
+- Recomendacion tecnica: mantener la fuente de verdad del tenant en la
+  cookie/token validado por backend. El tenant dentro del objeto de sesion local
+  es solo informativo para la UI.
 
 ### Fallback de API a localhost
 
@@ -80,7 +87,9 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 
 ### Estado de sesion repartido en varias claves
 
-- Problema: la sesion usa `usuario`, `profesor`, `tenant`, `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion`.
+- Problema: la sesion visual usa `usuario`, `profesor`, `super_admin`, junto
+  con selecciones de trabajo como `asignacionId`, `periodo`,
+  `fechaAsistencia` y `planillaTipoEvaluacion`.
 - Riesgo: puede quedar estado viejo despues de cambios de usuario, logout parcial o expiracion.
 - Archivo afectado: `src/components/NavAdmin.jsx`, `src/components/NavProfesor.jsx`, `src/utils/api.js`, paginas academicas.
 - Que puede pasar en produccion: un usuario podria ver selecciones anteriores, periodos viejos o peticiones con contexto incorrecto.
@@ -108,25 +117,33 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 - Como probarlo: enviar formularios vacios, formatos invalidos y valores limite en cada modulo.
 - Recomendacion tecnica: documentar reglas por modulo y luego centralizar validaciones compartidas.
 
-### Build con `dist/` presente en el repositorio
+### Build con `dist/` generado localmente
 
-- Problema: existe carpeta `dist/` generada por build dentro del proyecto.
-- Riesgo: puede mezclarse codigo generado viejo con cambios actuales si se revisa o despliega manualmente.
+- Estado actual: mitigado; `.gitignore` excluye `dist` y el build local no dejo
+  cambios pendientes en `git status`.
+- Problema: `dist/` se genera localmente durante el build y no debe tratarse
+  como fuente de verdad del codigo.
+- Riesgo: puede mezclarse codigo generado viejo con cambios actuales si se
+  despliega manualmente fuera del flujo Vercel/CI.
 - Archivo afectado: `dist/`.
 - Que puede pasar en produccion: despliegues con assets desactualizados o confusion al revisar cambios.
 - Prioridad: IMPORTANTE.
 - Como probarlo: ejecutar `pnpm run build` y comparar si `dist/` cambia despues de modificaciones.
-- Recomendacion tecnica: definir si `dist/` debe versionarse o generarse solo en CI/CD, y mantener ese criterio consistente.
+- Recomendacion tecnica: mantener `dist/` fuera de control de versiones y
+  generarlo en Vercel/CI.
 
-### Logs locales en raiz del frontend
+### Logs locales de desarrollo
 
-- Problema: existen logs locales de Vite en la raiz.
-- Riesgo: ruido en el repo y posible exposicion accidental de informacion de desarrollo.
+- Estado actual: mitigado; `.gitignore` excluye `logs` y `*.log`.
+- Problema: logs locales de Vite u otros comandos pueden aparecer en la raiz
+  durante desarrollo.
+- Riesgo: ruido en el repo y posible exposicion accidental de informacion de desarrollo si se fuerza su versionado.
 - Archivo afectado: `vite-dev.out.log`, `vite-dev.err.log`.
 - Que puede pasar en produccion: confusion operativa o subida accidental de logs no necesarios.
 - Prioridad: IMPORTANTE.
 - Como probarlo: revisar `git status` y verificar si los logs aparecen como cambios.
-- Recomendacion tecnica: mantener logs fuera del control de versiones o ignorarlos si son generados localmente.
+- Recomendacion tecnica: mantener logs fuera del control de versiones y revisar
+  `git status` antes de commits.
 
 ### Lazy loading existe, pero no hay estrategia visible de precarga
 

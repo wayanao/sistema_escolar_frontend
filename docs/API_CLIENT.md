@@ -31,15 +31,12 @@ y la autenticacion viaja automaticamente por `withCredentials: true`.
 
 ## Tenant
 
-El interceptor lee:
+El frontend no envia un header de tenant propio.
 
-- `localStorage.tenant`
-
-Si existe, agrega:
-
-```text
-X-Tenant-ID: <tenant>
-```
+La fuente de verdad del tenant es la cookie/token emitida por el backend. El
+tenant puede conservarse dentro del objeto visual de sesion (`usuario`,
+`profesor` o `super_admin`) solo como dato informativo para la UI, pero no se
+usa para autorizar ni para seleccionar el schema desde el cliente.
 
 ## Manejo de 401
 
@@ -49,7 +46,8 @@ El interceptor de response hace limpieza cuando recibe `401` y la ruta actual no
 - Elimina `localStorage.super_admin`.
 - Elimina `localStorage.usuario`.
 - Elimina `localStorage.profesor`.
-- Elimina `localStorage.tenant`.
+- Elimina `localStorage.tenant` solo como limpieza legacy si existia de
+  sesiones anteriores.
 - Redirige a `/login`.
 
 ## Login

@@ -99,6 +99,23 @@ El script ejecuta:
 eslint .
 ```
 
+## Sesion y tenant
+
+El frontend conserva datos minimos de sesion visual en:
+
+- `localStorage.usuario`
+- `localStorage.profesor`
+- `localStorage.super_admin`
+
+La sesion real viaja en la cookie `token` emitida por el backend. En produccion
+esa cookie debe ser HttpOnly, Secure y con SameSite adecuado para el dominio
+real.
+
+El frontend ya no guarda `tenant` como clave separada ni envia un header de
+tenant. La fuente de verdad del tenant es el token/cookie validado por backend.
+El tenant que aparece dentro del objeto de sesion local es informativo para la
+UI.
+
 ## Estado SaaS del tenant
 
 El layout autenticado monta:
@@ -225,18 +242,20 @@ backend en lugar de "Credenciales incorrectas".
 
 ## Riesgos pendientes observados
 
-Actualizacion 2026-06-01:
+Actualizacion 2026-06-10:
 
-- El login debe recibir `debe_cambiar_password` desde backend.
+- El login recibe `debe_cambiar_password` desde backend.
 - Si es `true`, redirige a `/cambiar-password`.
-- El admin no debe poder usar rutas normales hasta cambiar la password temporal.
+- El admin no puede usar rutas normales hasta cambiar la password temporal.
 - El panel de super admin muestra estado efectivo y estado manual cuando son
   distintos.
 - Crear colegio valida password temporal fuerte antes de llamar API.
+- El frontend no envia `X-Tenant-ID`; el tenant lo define backend desde la
+  cookie/token.
 
 - El fallback a `http://localhost:8000` solo debe usarse en desarrollo local.
 - En Vercel, `VITE_API_URL` debe apuntar a la URL publica del backend en Render.
 - Las rutas protegidas del frontend dependen de `localStorage`.
-- El frontend aun puede contener archivos generados en `dist/` dentro del repo.
-- Existen logs locales de Vite en la raiz del proyecto.
+- `dist/` y logs locales estan ignorados por `.gitignore`; no deben
+  versionarse.
 - La seguridad efectiva depende de que el backend valide cada endpoint.

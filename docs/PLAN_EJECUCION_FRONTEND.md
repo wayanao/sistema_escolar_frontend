@@ -6,9 +6,10 @@ Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archiv
 
 - Objetivo: reducir exposicion de datos sensibles en el navegador y dejar claro que la autorizacion real viene del backend.
 - Tareas:
-  - Revisar uso de `access_token` dentro de `localStorage.usuario` y `localStorage.profesor`.
-  - Coordinar eliminacion del fallback de token en `localStorage` cuando backend trabaje con cookie segura.
-  - Revisar uso de `X-Tenant-ID` desde `localStorage.tenant`.
+  - Mantener cerrado el uso de `access_token` dentro de `localStorage.usuario`
+    y `localStorage.profesor`.
+  - Mantener la sesion real en cookie emitida por backend.
+  - Mantener cerrado el envio de tenant desde `localStorage`.
   - Validar que ninguna pantalla asuma que ocultar botones equivale a permiso real.
 - Archivos probables:
   - `src/utils/api.js`
@@ -18,8 +19,11 @@ Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archiv
 - Riesgo: ALTO; tocar sesion/token puede romper login y consumo de API.
 - Como probar:
   - Iniciar sesion como admin y profesor.
-  - Revisar DevTools Storage y confirmar que el token no queda expuesto cuando se haga el cambio.
-  - Cambiar manualmente `tenant` y rol local para confirmar que backend bloquea.
+  - Revisar DevTools Storage y confirmar que el token no queda expuesto en los
+    objetos `usuario`, `profesor` o `super_admin`.
+  - Cambiar manualmente rol local para confirmar que backend bloquea los
+    endpoints no autorizados.
+  - Buscar `X-Tenant-ID`, `setItem("tenant"` y `getItem("tenant"` en `src`.
   - Probar endpoints desde la UI despues de limpiar storage.
 - Cuando hacer commit:
   - Un commit despues de que login, navegacion y llamadas autenticadas funcionen con admin y profesor.
@@ -143,17 +147,15 @@ Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archiv
 - Tareas:
   - Documentar/validar `VITE_API_URL` por ambiente.
   - Revisar que el build no use `http://localhost:8000` en produccion.
-  - Definir criterio sobre `dist/` versionado.
-  - Revisar logs locales de Vite.
+  - Mantener `dist/` fuera de control de versiones.
+  - Mantener logs locales de Vite fuera de control de versiones.
   - Confirmar que `vercel.json` mantiene rutas SPA funcionando.
 - Archivos probables:
   - `.env`
   - `src/utils/api.js`
   - `vercel.json`
   - `package.json`
-  - `dist/`
-  - `vite-dev.out.log`
-  - `vite-dev.err.log`
+  - `.gitignore`
 - Riesgo: ALTO; un build mal configurado puede dejar la app sin API o con assets desactualizados.
 - Como probar:
   - Ejecutar `pnpm run build`.

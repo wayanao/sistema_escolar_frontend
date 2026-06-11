@@ -11,6 +11,8 @@ La UI distingue principalmente:
 - `super_admin`: usuario de plataforma guardado como `super_admin`.
 
 El rol se obtiene desde la respuesta de login y se guarda en `localStorage`.
+La sesion real viaja en cookie `token` emitida por backend; los datos en
+`localStorage` son apoyo visual de la UI.
 
 ## Login
 
@@ -32,7 +34,8 @@ Si la respuesta contiene `rol === "admin"`:
 - Guarda la respuesta en `localStorage.usuario`.
 - Elimina `localStorage.super_admin`.
 - Elimina `localStorage.profesor`.
-- Redirige a `/dashboard-admin`.
+- Si `debe_cambiar_password` es `true`, redirige a `/cambiar-password`.
+- Si no, redirige a `/dashboard-admin`.
 
 Si no es admin:
 
@@ -41,7 +44,9 @@ Si no es admin:
 - Elimina `localStorage.usuario`.
 - Redirige a `/`.
 
-Tambien guarda `tenant` en `localStorage.tenant`.
+El objeto guardado conserva `tenant` y `debe_cambiar_password` como datos
+informativos de sesion visual. Ya no se guarda `tenant` como clave separada ni
+se envia un header de tenant desde el frontend.
 
 ## Guards principales
 
