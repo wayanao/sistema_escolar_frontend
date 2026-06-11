@@ -9,26 +9,14 @@ const api = axios.create({
   },
 });
 
-// ────────────────────────────────────────────────────────────────────────────
-//  Interceptor de Petición  →  inyecta Authorization + X-Tenant-ID
-// ────────────────────────────────────────────────────────────────────────────
+// Interceptor de peticion: la sesion principal viaja en cookie HttpOnly.
+// Authorization queda solo como fallback para cookies no HttpOnly en desarrollo.
 api.interceptors.request.use(
   (config) => {
-    // 1. JWT ─ recuperar de cookie. En produccion debe ser HttpOnly y viajar
-    // automaticamente con withCredentials; este fallback conserva compatibilidad
-    // con cookies no HttpOnly usadas en desarrollo.
     const token = Cookies.get('token');
 
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    // 2. Tenant ─ leer del localStorage e inyectar como header dedicado.
-    //    El backend lo usa como referencia para apuntar al schema de BD correcto.
-    //    Fuente de verdad sigue siendo el JWT (firmado); este header es explícito.
-    const tenant = localStorage.getItem('tenant');
-    if (tenant) {
-      config.headers['X-Tenant-ID'] = tenant;
     }
 
     return config;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import PlanillaRow from "../components/PlanillaRow";
 import api from "../utils/api";
@@ -29,7 +29,8 @@ function Planilla() {
 
 
 
-    const cargarClases = async () => {
+    const cargarClases = useCallback(async () => {
+    if (!profesorId) return;
 
     const res = await api.get(`/mis-clases/${profesorId}`);
     const data = res.data;//
@@ -37,19 +38,19 @@ function Planilla() {
     console.log("CLASES:", data);// revisar respuesta
 
     setClases(data);
-    };
+    }, [profesorId]);
 
         // 🔥 Cargar planilla
-    const cargarPlanilla = async () => {
+    const cargarPlanilla = useCallback(async () => {
     const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
     const data = res.data;
 
     setColumnas(data.columnas);
     setEstudiantes(data.data);
-    };
+    }, [asignacionId, periodo]);
 
     useEffect(() => {
-        if (!profesor) {
+        if (!profesorId) {
         window.location.href = "/login";
         return;
         }
@@ -58,14 +59,14 @@ function Planilla() {
         cargarClases();
         }
 
-    }, [profesorId]);
+    }, [profesorId, cargarClases]);
 
     // 🔥 Auto-cargar planilla cuando asignacionId o periodo cambie
     useEffect(() => {
         if (asignacionId && periodo) {
         cargarPlanilla();
         }
-    }, [asignacionId, periodo]);
+    }, [asignacionId, periodo, cargarPlanilla]);
 
 
     

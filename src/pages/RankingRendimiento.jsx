@@ -38,7 +38,7 @@ function RankingBajoRendimiento() {
     };
 
     cargarRanking();
-  }, [asignacionId, periodo, navigate]);
+  }, [asignacionId, periodo, navigate, profesorStorage]);
 
   if (loading) {
     return (

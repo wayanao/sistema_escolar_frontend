@@ -251,7 +251,7 @@ function EditorPlantilla({ plantilla, onSave }) {
 
   useEffect(() => {
     setConfig(plantilla.config_json || {});
-  }, [plantilla.id]);
+  }, [plantilla.id, plantilla.config_json]);
 
   const set = (k, v) => setConfig((prev) => ({ ...prev, [k]: v }));
   const bloqueado = plantilla.es_predefinida;

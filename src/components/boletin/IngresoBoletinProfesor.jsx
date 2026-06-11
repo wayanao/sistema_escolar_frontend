@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import api from "../../utils/api";
 
@@ -52,7 +52,7 @@ function IngresoBoletinProfesor() {
         cargarClases();
     }, []);
 
-    const cargarAlumnos = async () => {
+    const cargarAlumnos = useCallback(async () => {
         if (!asignacionId || !periodo) return;
         localStorage.setItem("asignacionId", asignacionId);
         setCargando(true);
@@ -103,11 +103,11 @@ function IngresoBoletinProfesor() {
         } finally {
             setCargando(false);
         }
-    };
+    }, [asignacionId, periodo]);
 
     useEffect(() => {
         if (asignacionId) cargarAlumnos();
-    }, [asignacionId, periodo]);
+    }, [asignacionId, cargarAlumnos]);
 
     const handleObservacionChange = (estId, index, texto) => {
         setDatosBoletin(prev => {

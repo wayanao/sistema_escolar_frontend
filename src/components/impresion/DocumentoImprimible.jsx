@@ -25,7 +25,7 @@ export default function DocumentoImprimible({
 }) {
   const { branding, plantilla, loading, error } = usePrintConfig(tipo);
 
-  const config = plantilla?.config_json || {};
+  const config = useMemo(() => plantilla?.config_json || {}, [plantilla?.config_json]);
 
   // Marca el body cuando este wrapper esta montado, para que @media print
   // sepa que debe ocultar todo lo demas. No afecta impresos legacy.

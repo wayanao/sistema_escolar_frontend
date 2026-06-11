@@ -2,6 +2,590 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-10 - Limpieza de header de tenant en frontend
+
+Se removio el envio del header `X-Tenant-ID` desde el cliente.
+
+Archivos modificados:
+
+- `src/utils/api.js`
+- `src/components/LoginForm.jsx`
+
+Cambio:
+
+- El frontend ya no lee `tenant` desde `localStorage` para enviarlo como header.
+- El login ya no guarda `tenant` como clave separada en `localStorage`.
+- La fuente de verdad del tenant sigue siendo la cookie/token emitida por el
+  backend.
+- El objeto de sesion (`usuario`, `profesor` o `super_admin`) conserva el tenant
+  solo como dato informativo de sesion.
+
+Verificacion ejecutada:
+
+```powershell
+rg -n "X-Tenant-ID|setItem\\(['\\\"]tenant['\\\"]|getItem\\(['\\\"]tenant['\\\"]" src
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- No quedan lecturas/escrituras separadas de `tenant` para el header.
+- Lint OK.
+- Build de produccion OK.
+
+## 2026-06-10 - Limpieza controlada de warnings de hooks
+
+Se limpiaron los warnings pendientes de `react-hooks/exhaustive-deps` sin
+cambiar endpoints, rutas, permisos ni reglas de negocio.
+
+Archivos modificados:
+
+- `src/components/admin/PlantillasAdmin.jsx`
+- `src/components/boletin/IngresoBoletinProfesor.jsx`
+- `src/components/impresion/DocumentoImprimible.jsx`
+- `src/pages/Asistencia.jsx`
+- `src/pages/DashboardProfesor.jsx`
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/PlaneadoresClasesAdmin.jsx`
+- `src/pages/Planilla.jsx`
+- `src/pages/RankingRendimiento.jsx`
+
+Cambio:
+
+- Se estabilizaron funciones usadas por `useEffect` con `useCallback`.
+- Se declararon dependencias reales en los hooks para evitar estados antiguos en
+  memoria.
+- Se memoizo la configuracion de impresos para evitar recalculos innecesarios.
+- En `PlaneadoresClasesAdmin`, el filtro de profesor y fechas conserva recarga
+  automatica, mientras que el campo de busqueda sigue ejecutandose solo al
+  presionar `Buscar`.
+- Este cambio deja cerrada la nota previa de warnings pendientes en lint.
+
+Pruebas manuales recomendadas:
+
+- Entrar con perfil profesor y revisar `Dashboard`.
+- Revisar `Asistencia`, `Planilla`, `Plan de Clases`, `Malla Curricular` y
+  `Boletin final`.
+- Entrar con perfil admin y revisar `Diseño de impresos / Plantillas`.
+- Revisar `Planeadores de clases`, cambiando profesor, fechas y usando el boton
+  `Buscar`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Lint OK, sin errores y sin warnings.
+- Build de produccion OK al ejecutarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+
+## 2026-06-10 - Estado de guardado en plan de clases y malla curricular
+
+Se agrego identificador visual de guardado en los modulos del perfil profesor:
+Plan de clases y Malla curricular.
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/PlaneadorAnual.jsx`
+
+Cambio:
+
+- Ambos modulos muestran estado `Verificando`, `Pendiente`, `Guardado` o
+  `Cambios sin guardar`.
+- Plan de clases marca `Guardado` cuando existe plan para la fecha seleccionada.
+- Malla curricular marca `Guardado` cuando el periodo trae planeadores
+  registrados desde el backend.
+- Al editar campos, fechas o imagenes pendientes de subir, el estado cambia a
+  `Cambios sin guardar`.
+- Luego de guardar correctamente, vuelve a `Guardado` y muestra hora de
+  actualizacion.
+- Los botones cambian texto segun el estado, siguiendo el criterio visual usado
+  en boletin final y observador.
+
+Pruebas manuales recomendadas:
+
+- Entrar con perfil profesor.
+- Abrir `Plan de Clases`, seleccionar fecha con y sin plan guardado y confirmar
+  el estado.
+- Editar un campo o cargar imagen y confirmar `Cambios sin guardar`.
+- Guardar y confirmar que vuelve a `Guardado`.
+- Abrir `Malla Curricular`, cambiar de periodo y confirmar si aparece
+  `Guardado` o `Pendiente`.
+- Editar una celda o fecha, guardar y confirmar que vuelve a `Guardado`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 12 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Estado de guardado en observador del estudiante
+
+Se agrego identificador visual de guardado en el Observador del estudiante del
+perfil profesor.
+
+Archivos modificados:
+
+- `src/components/Observaciones.jsx`
+
+Cambio:
+
+- Cada observador muestra un badge con estado `Pendiente`, `Guardado`,
+  `Cambios sin guardar` o `Verificando`.
+- Al cargar una observacion existente completa, el estado queda como
+  `Guardado`.
+- Al editar cualquier dimension, el estado cambia a `Cambios sin guardar`.
+- Luego de guardar correctamente, vuelve a `Guardado` y muestra la hora de
+  actualizacion.
+- Se replica el criterio visual usado en el ingreso de boletin final.
+
+Pruebas manuales recomendadas:
+
+- Entrar con perfil profesor.
+- Abrir `Observaciones`.
+- Confirmar que estudiantes sin observador muestran `Pendiente`.
+- Confirmar que estudiantes con observador ya guardado muestran `Guardado`.
+- Editar un campo y confirmar que cambia a `Cambios sin guardar`.
+- Guardar y confirmar que vuelve a `Guardado`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 12 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Refactor de medios de pago en reportes
+
+Se separo la logica de medios de pago del componente principal de Reportes y
+Estadisticas.
+
+Archivos modificados:
+
+- `src/pages/ReportesAdmin.jsx`
+- `src/utils/reportesMediosPago.js`
+
+Cambio:
+
+- Se extrajeron helpers de normalizacion, filtro, detalle visible y calculo de
+  montos por medio de pago.
+- `ReportesAdmin.jsx` queda enfocado en carga de datos, estados y renderizado.
+- El comportamiento visual y funcional del detalle de ingresos se mantiene igual.
+- El archivo principal bajo a 609 lineas; la logica extraida queda aislada en
+  `reportesMediosPago.js`.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Reportes y Estadisticas`.
+- Abrir `Detalle de ingresos`.
+- Filtrar por `Efectivo`, `Transferencia` y `Tarjeta`.
+- Confirmar que los detalles como `Transferencia - daviplata` y los montos se
+  sigan mostrando igual.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Etiqueta base en transferencias con detalle
+
+Se ajusto la etiqueta visible del medio de pago cuando una transferencia trae
+detalle libre.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- Cuando el metodo interno es `transferencia` y existe detalle, el chip usa
+  `Transferencia` como etiqueta base.
+- Evita duplicados como `Daviplata - daviplata`.
+- Un pago con detalle `daviplata` ahora debe verse como
+  `Transferencia - daviplata`.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Detalle de ingresos`.
+- Revisar una transferencia con detalle `daviplata`.
+- Confirmar que el chip muestre `Transferencia - daviplata`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Correccion de extraccion de detalle por guion
+
+Se corrigio la lectura del detalle libre del medio de pago cuando el backend
+envia valores como `transferencia - texto`.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- La extraccion del detalle ya no usa la normalizacion que reemplaza guiones por
+  espacios.
+- Valores como `transferencia - sapo` ahora conservan el texto posterior al
+  guion y se muestran como `Transferencia - sapo`.
+- Tambien se mantiene soporte para `transferencia: texto`.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Detalle de ingresos`.
+- Confirmar que un pago con `tipo_pago` guardado como `transferencia - texto`
+  se vea en el chip como `Transferencia - texto`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Conserva descripcion libre en tipo de pago
+
+Se corrigio el detalle visible del medio de pago cuando el backend envia el
+texto libre dentro de `tipo_pago`.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- Si el backend envia valores como `transferencia - sapo`, el reporte extrae y
+  muestra el texto libre despues del separador.
+- La clasificacion interna sigue siendo `transferencia`, para que el filtro
+  funcione igual.
+- La etiqueta visible queda como `Transferencia - sapo` en vez de reducirse a
+  solo `Transferencia`.
+- Tambien se soporta el formato con dos puntos, por ejemplo
+  `transferencia: sapo`.
+
+Pruebas manuales recomendadas:
+
+- Registrar un pago por transferencia con una nota libre.
+- Abrir `Detalle de ingresos`.
+- Filtrar por `Transferencia`.
+- Confirmar que se vea `Transferencia - texto libre`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Detalle libre en transferencia
+
+Se ajusto el detalle visible del medio de pago en Reportes y Estadisticas para
+respetar el texto escrito por el usuario.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- En transferencias, el texto escrito en `nota` o campos equivalentes se muestra
+  como detalle visible.
+- El sistema ya no limita ese detalle a bancos o plataformas conocidas.
+- Si el usuario escribe un texto libre como `sapo`, el detalle puede mostrarse
+  como `Transferencia - sapo`.
+- Se amplio la lectura de campos como `nota_pago`, `nota_metodo`,
+  `observacion`, `observaciones`, `referencia`, `detalle`,
+  `detalle_pago` y `descripcion_metodo`.
+
+Pruebas manuales recomendadas:
+
+- Registrar un pago por transferencia con una nota libre.
+- Abrir `Detalle de ingresos`.
+- Confirmar que el chip del medio de pago muestre `Transferencia - texto`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Correccion de monto en ingresos filtrados
+
+Se corrigio el monto mostrado en `Detalle de ingresos` cuando se filtra por
+`Transferencia` o `Tarjeta`.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- La columna `Monto` ya no depende solo de `pago.monto`; ahora usa como respaldo
+  `monto_valido`, `valor`, `total`, `monto_pagado`, `valor_pagado`, `abono` y
+  campos equivalentes.
+- Si el backend no entrega el monto parcial separado del metodo, pero el ingreso
+  pertenece al metodo filtrado, se muestra el monto total del ingreso en vez de
+  quedar en `0`.
+- Los chips de medio de pago tambien muestran el monto al estar dentro de un
+  filtro seleccionado.
+- Se ajusto la lectura de valores con separador colombiano, por ejemplo
+  `10.000`, para que se interpreten como diez mil y no como diez.
+- Los pagos anulados siguen sin sumar en los totales del detalle filtrado.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Detalle de ingresos`.
+- Filtrar por `Transferencia` y confirmar que la columna `Monto` muestra valor.
+- Filtrar por `Tarjeta` y confirmar que la columna `Monto` muestra valor.
+- Confirmar que el total superior cambia segun el filtro y no suma anulados.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Detalle visible y monto por medio de pago
+
+Se ajusto el detalle de ingresos en Reportes y Estadisticas para conservar la
+informacion especifica del metodo de pago al filtrar.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- El filtro sigue usando categorias internas (`efectivo`, `transferencia`,
+  `tarjeta`), pero la tabla conserva la etiqueta visible real del pago.
+- Las transferencias pueden mostrarse como `Nequi`, `Daviplata`, `PSE`,
+  `Bancolombia` o `Transferencia - banco/app` si el backend entrega ese dato.
+- Se amplio la lectura de montos parciales por metodo para campos como
+  `monto_transferencia`, `valor_transferencia`, `monto_nequi`,
+  `valor_daviplata`, `monto_tarjeta`, `valor_tarjeta`, entre otros.
+- Al filtrar por un solo metodo, la columna `Monto` muestra el valor parcial de
+  ese metodo cuando esta disponible.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Detalle de ingresos`.
+- Filtrar por `Transferencia` y confirmar que se vea `Nequi`, `Daviplata` o el
+  banco correspondiente.
+- Confirmar que el monto mostrado sea el valor de la transferencia cuando el
+  pago tenga montos separados.
+- Filtrar por `Tarjeta` y confirmar que el monto parcial tambien se conserve.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Correccion de filtro por transferencia y tarjeta
+
+Se amplio la normalizacion del filtro de medio de pago en Reportes y
+Estadisticas.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- El filtro ya no depende de coincidencias exactas como `transferencia` o
+  `tarjeta`.
+- Se reconocen variantes como `transferencia bancaria`, `PSE`, `Nequi`,
+  `Daviplata`, `Bancolombia`, `tarjeta debito`, `tarjeta credito`, `datafono`,
+  `POS` y `targeta`.
+- Se aceptan metodos enviados como arreglo, arreglo de textos, objeto, JSON
+  serializado o texto.
+- Si un texto contiene varios medios de pago, el ingreso aparece en cada filtro
+  correspondiente.
+
+Pruebas manuales recomendadas:
+
+- Abrir `Detalle de ingresos`.
+- Filtrar por `Transferencia` y confirmar que aparecen pagos transferidos.
+- Filtrar por `Tarjeta` y confirmar que aparecen pagos de tarjeta/datáfono.
+- Confirmar que `Efectivo` sigue funcionando.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Filtro por medio de pago en detalle de ingresos
+
+Se agrego filtro por medio de pago en el detalle de ingresos del modulo
+Reportes y Estadisticas.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- El panel `Detalle de ingresos` ahora incluye un selector para filtrar por
+  `Todos`, `Efectivo`, `Transferencia` o `Tarjeta`.
+- El filtro se aplica localmente sobre los ingresos ya cargados para no cambiar
+  endpoints ni calculos del backend.
+- El total superior se recalcula segun el medio de pago seleccionado.
+- En pagos mixtos con montos por metodo, el total filtrado suma solo el monto
+  del metodo seleccionado.
+- Las filas anuladas conservan el monto visible tachado, pero no suman como
+  ingreso valido.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Reportes y Estadisticas.
+- Abrir `Detalle de ingresos`.
+- Cambiar el filtro entre `Efectivo`, `Transferencia` y `Tarjeta`.
+- Confirmar que la tabla y el total cambian segun el filtro.
+- Probar un pago mixto y confirmar que el filtro muestra el metodo correcto.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
+## 2026-06-10 - Medio de pago en detalle de ingresos
+
+Se agrego el medio de pago en el detalle de ingresos del modulo Reportes y
+Estadisticas.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+
+Cambio:
+
+- La tabla `Detalle de ingresos` ahora muestra una columna `Medio de pago`.
+- Se normalizan los valores `efectivo`, `transferencia` y `tarjeta`.
+- Tambien se acepta `targeta` como equivalente de `tarjeta` por compatibilidad.
+- Si el backend entrega pago mixto en una lista de metodos, se muestran los
+  metodos y sus montos.
+- Se soportan varios nombres posibles de campo: `tipo_pago`, `metodo_pago`,
+  `medio_pago`, `forma_pago`, `metodos`, `metodos_pago`, `medios_pago`,
+  `formas_pago` y `detalle_metodos`.
+
+Pruebas manuales recomendadas:
+
+- Ir a Admin > Reportes y Estadisticas.
+- Abrir `Detalle de ingresos` por el dia o por rango.
+- Confirmar que cada ingreso muestra `Efectivo`, `Transferencia` o `Tarjeta`.
+- Probar un pago mixto y confirmar que se ven varios metodos.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Build de produccion OK al relanzarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+- Lint sin errores.
+- Permanecen 13 warnings conocidos de `react-hooks/exhaustive-deps`.
+
 ## 2026-06-10 - Ajuste de resumen en certificados imprimibles
 
 Se ajustaron los impresos de certificados para evitar repetir el nombre del

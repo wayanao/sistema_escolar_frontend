@@ -34,9 +34,6 @@ function LoginForm() {
         debe_cambiar_password: Boolean(data.debe_cambiar_password),
       };
 
-      // Guardar tenant local; la cookie de sesion la emite el backend.
-      localStorage.setItem('tenant', data.tenant);
-
       // 🔥 guardar sesión según rol y limpiar la opuesta
       if (data.rol === "super_admin") {
         localStorage.setItem("super_admin", JSON.stringify(sessionData));

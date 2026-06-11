@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import AsistenciaRow from "../components/AsistenciaRow";
 import api from "../utils/api";
 
@@ -19,7 +19,7 @@ const profesorId = profesor?.id;
 
 
 
-const cargarEstudiantes = async () => {
+const cargarEstudiantes = useCallback(async () => {
   if (!asignacionId) {
     alert("No hay asignación seleccionada. Ve al Dashboard.");
     window.location.href = "/";
@@ -35,9 +35,9 @@ const cargarEstudiantes = async () => {
     } catch (error) {
     console.error("Error cargando estudiantes", error);
   }
-};
+}, [asignacionId, periodo]);
 
-const cargarClases = async () => {
+const cargarClases = useCallback(async () => {
   if (!profesorId) return;
   try {
     const res = await api.get(`/mis-clases/${profesorId}`);
@@ -46,19 +46,19 @@ const cargarClases = async () => {
   } catch (error) {
     console.error("Error cargando clases", error);
   } 
-};
+}, [profesorId]);
 
-const cargarHistorial = async () => {
+const cargarHistorial = useCallback(async () => {
 
     const res = await api.get(`/asistencia/historial/${asignacionId}/${periodo}`);
     const data = res.data;
 
     setHistorial(data);
-    };
+    }, [asignacionId, periodo]);
 
 
       useEffect(() => {
-    if (!profesor) {
+    if (!profesorId) {
       window.location.href = "/login";
       return;
     }
@@ -70,7 +70,7 @@ const cargarHistorial = async () => {
   
     cargarClases();
   
-  }, [asignacionId, periodo]);
+  }, [asignacionId, periodo, profesorId, cargarEstudiantes, cargarHistorial, cargarClases]);
 
 
 

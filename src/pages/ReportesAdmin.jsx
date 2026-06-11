@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import {
+  MEDIOS_PAGO_INGRESO,
+  montoIngresoPorMedio,
+  montoVisibleIngreso,
+  montoVisibleMetodoPago,
+  obtenerMediosPago,
+} from "../utils/reportesMediosPago";
 
 const hoyISO = () => new Date().toISOString().split("T")[0];
 
@@ -30,6 +37,7 @@ function ReportesAdmin() {
   const [fechaInicio, setFechaInicio] = useState(hoyISO());
   const [fechaFin, setFechaFin] = useState(hoyISO());
   const [rangoActivo, setRangoActivo] = useState({ inicio: hoyISO(), fin: hoyISO() });
+  const [filtroMedioIngreso, setFiltroMedioIngreso] = useState("todos");
   const detalleRef = useRef(null);
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
@@ -89,6 +97,7 @@ function ReportesAdmin() {
       setDetalleTipo(tipo);
       setDetalleTitulo(titulo || `${inicio} a ${fin}`);
       setRangoActivo({ inicio, fin });
+      if (tipo === "ingresos") setFiltroMedioIngreso("todos");
     } catch (error) {
       console.error("Error cargando detalle:", error);
       alert("Error al cargar el detalle seleccionado");
@@ -106,6 +115,7 @@ function ReportesAdmin() {
         setDetalleTipo("ingresos");
         setDetalleTitulo(nombreMes(mes));
         setRangoActivo({ inicio: `${mes}-01`, fin: `${mes}-31` });
+        setFiltroMedioIngreso("todos");
       } catch (error) {
         console.error("Error cargando ingresos del mes:", error);
         alert("Error al cargar detalle del mes");
@@ -160,10 +170,22 @@ function ReportesAdmin() {
       });
   }, [egresosMensuales, egresosPorMes, ingresosMensuales]);
 
-  const detalleIngresos = detalleTipo === "ingresos" && Array.isArray(detalle) ? detalle : [];
-  const detalleEgresos = detalleTipo === "egresos" && Array.isArray(detalle) ? detalle : [];
-  const totalDetalleIngresos = detalleIngresos.reduce(
-    (sum, pago) => sum + Number(pago.monto_valido ?? (pago.anulado ? 0 : pago.monto) ?? 0),
+  const detalleIngresos = useMemo(
+    () => (detalleTipo === "ingresos" && Array.isArray(detalle) ? detalle : []),
+    [detalle, detalleTipo]
+  );
+  const detalleEgresos = useMemo(
+    () => (detalleTipo === "egresos" && Array.isArray(detalle) ? detalle : []),
+    [detalle, detalleTipo]
+  );
+  const detalleIngresosFiltrados = useMemo(() => {
+    if (filtroMedioIngreso === "todos") return detalleIngresos;
+    return detalleIngresos.filter((pago) =>
+      obtenerMediosPago(pago).some((medio) => medio.key === filtroMedioIngreso)
+    );
+  }, [detalleIngresos, filtroMedioIngreso]);
+  const totalDetalleIngresos = detalleIngresosFiltrados.reduce(
+    (sum, pago) => sum + montoIngresoPorMedio(pago, filtroMedioIngreso),
     0
   );
   const totalDetalleEgresos = detalleEgresos.reduce((sum, egreso) => sum + Number(egreso.monto || 0), 0);
@@ -460,7 +482,21 @@ function ReportesAdmin() {
               </h2>
               <p className="text-sm text-gray-600">{detalleTitulo}</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {detalleTipo === "ingresos" && (
+                <select
+                  value={filtroMedioIngreso}
+                  onChange={(event) => setFiltroMedioIngreso(event.target.value)}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  title="Filtrar por medio de pago"
+                >
+                  {MEDIOS_PAGO_INGRESO.map((medio) => (
+                    <option key={medio.value} value={medio.value}>
+                      {medio.label}
+                    </option>
+                  ))}
+                </select>
+              )}
               <span className={`rounded-lg px-3 py-2 text-sm font-bold ${detalleTipo === "egresos" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
                 {formatoMoneda(detalleTipo === "egresos" ? totalDetalleEgresos : totalDetalleIngresos)}
               </span>
@@ -511,18 +547,19 @@ function ReportesAdmin() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px]">
+              <table className="w-full min-w-[980px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase text-gray-500">Fecha</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase text-gray-500">Estudiante</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase text-gray-500">Descripción</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase text-gray-500">Medio de pago</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase text-gray-500">Estado</th>
                     <th className="px-4 py-3 text-right text-xs font-bold uppercase text-gray-500">Monto</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {detalleIngresos.map((pago) => (
+                  {detalleIngresosFiltrados.map((pago) => (
                     <tr key={pago.id} className={pago.anulado ? "bg-red-50 hover:bg-red-100" : "hover:bg-green-50"}>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">{pago.fecha}</td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-gray-900">{pago.estudiante}</td>
@@ -533,18 +570,34 @@ function ReportesAdmin() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-xs">
+                        <div className="flex flex-wrap gap-1.5">
+                          {obtenerMediosPago(pago).map((medio, index) => {
+                            const montoMetodo = montoVisibleMetodoPago(pago, medio, filtroMedioIngreso);
+                            return (
+                              <span
+                                key={`${medio.tipo}-${index}`}
+                                className="rounded-full bg-blue-100 px-2 py-1 font-bold text-blue-700"
+                              >
+                                {medio.tipo}
+                                {montoMetodo !== null ? ` ${formatoMoneda(montoMetodo)}` : ""}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs">
                         <span className={`rounded-full px-2 py-1 font-bold ${pago.anulado ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
                           {pago.anulado ? "Anulado" : "Pagado"}
                         </span>
                       </td>
                       <td className={`whitespace-nowrap px-4 py-3 text-right text-sm font-bold ${pago.anulado ? "text-red-600 line-through" : "text-green-700"}`}>
-                        {formatoMoneda(pago.monto)}
+                        {formatoMoneda(montoVisibleIngreso(pago, filtroMedioIngreso))}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {detalleIngresos.length === 0 && <p className="py-8 text-center text-sm text-gray-500">No hay ingresos en este rango.</p>}
+              {detalleIngresosFiltrados.length === 0 && <p className="py-8 text-center text-sm text-gray-500">No hay ingresos para el medio de pago seleccionado.</p>}
             </div>
           )}
         </div>

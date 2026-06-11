@@ -15,7 +15,14 @@ function PlaneadorAnual() {
   const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
   const [asignacion, setAsignacion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [guardando, setGuardando] = useState(false);
   const [vistaImpresion, setVistaImpresion] = useState(false);
+  const [estadoGuardado, setEstadoGuardado] = useState({
+    cargando: true,
+    guardado: false,
+    modificado: false,
+    guardadoEn: null,
+  });
 
   const asignacionId = localStorage.getItem("asignacionId");
   const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
@@ -55,6 +62,12 @@ function PlaneadorAnual() {
 
   const cargarPlaneadores = useCallback(async () => {
     if (!asignacionId || !periodo) return;
+    setEstadoGuardado({
+      cargando: true,
+      guardado: false,
+      modificado: false,
+      guardadoEn: null,
+    });
     try {
       const res = await api.get(`/planeador-anual/${asignacionId}/${periodo}`);
       const data = res.data;
@@ -78,12 +91,64 @@ function PlaneadorAnual() {
         }
       });
       setPlaneadores(updatedPlaneadores);
+      setEstadoGuardado({
+        cargando: false,
+        guardado: planeadoresData.length > 0,
+        modificado: false,
+        guardadoEn: null,
+      });
     } catch (error) {
       console.error("Error cargando planeadores", error);
+      setEstadoGuardado({
+        cargando: false,
+        guardado: false,
+        modificado: false,
+        guardadoEn: null,
+      });
     } finally {
       setLoading(false);
     }
   }, [asignacionId, periodo]);
+
+  const obtenerEstadoVisual = () => {
+    if (estadoGuardado.cargando || loading) {
+      return {
+        label: "Verificando",
+        detail: "Consultando malla del periodo",
+        badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+        dotClass: "bg-slate-400",
+        buttonText: "Guardar Planeador",
+      };
+    }
+
+    if (estadoGuardado.modificado) {
+      return {
+        label: "Cambios sin guardar",
+        detail: "Hay ediciones pendientes",
+        badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
+        dotClass: "bg-amber-500",
+        buttonText: "Guardar cambios",
+      };
+    }
+
+    if (estadoGuardado.guardado) {
+      return {
+        label: "Guardado",
+        detail: estadoGuardado.guardadoEn ? `Actualizado ${estadoGuardado.guardadoEn}` : "Malla registrada",
+        badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        dotClass: "bg-emerald-500",
+        buttonText: "Actualizar malla",
+      };
+    }
+
+    return {
+      label: "Pendiente",
+      detail: "Aún no se ha guardado",
+      badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+      dotClass: "bg-slate-400",
+      buttonText: "Guardar Planeador",
+    };
+  };
 
   const guardarPlaneadores = async () => {
     if (!asignacionId || !periodo) return;
@@ -104,15 +169,27 @@ function PlaneadorAnual() {
       return;
     }
 
+    setGuardando(true);
     try {
       const res = await api.put(`/planeador-anual/${asignacionId}/${periodo}`, planeadores);
       if (res.status >= 200 && res.status < 300) {
+        setEstadoGuardado({
+          cargando: false,
+          guardado: true,
+          modificado: false,
+          guardadoEn: new Date().toLocaleTimeString("es-CO", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        });
         alert("Planeador guardado correctamente");
       } else {
         alert("Error al guardar/debe completar todos los campos");
       }
     } catch (error) {
       console.error("Error guardando planeadores", error);
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -126,6 +203,7 @@ function PlaneadorAnual() {
     const updated = [...planeadores];
     updated[index] = { ...updated[index], [field]: value };
     setPlaneadores(updated);
+    setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
   const imprimirPeriodo = () => setVistaImpresion(true);
@@ -211,6 +289,8 @@ function PlaneadorAnual() {
       </div>
     );
   }
+
+  const estadoVisual = obtenerEstadoVisual();
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -348,7 +428,7 @@ function PlaneadorAnual() {
 
       {asignacion && (
         <div className="mb-6 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
               <div>
@@ -362,6 +442,13 @@ function PlaneadorAnual() {
                 <p className="text-sm text-gray-500 uppercase tracking-wide">Materia</p>
                 <p className="text-lg font-semibold text-gray-900">{asignacion.materia}</p>
               </div>
+            </div>
+            <div className="flex items-center">
+              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
+                <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
+                {estadoVisual.label}
+              </span>
+              <span className="ml-3 text-xs font-medium text-gray-500">{estadoVisual.detail}</span>
             </div>
           </div>
         </div>
@@ -465,11 +552,12 @@ function PlaneadorAnual() {
       <div className="mt-8 flex flex-col sm:flex-row gap-4 no-print">
         <button
           onClick={guardarPlaneadores}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          disabled={guardando || estadoGuardado.cargando}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300 disabled:hover:scale-100"
         >
           <span className="flex items-center justify-center">
             <span className="mr-2">💾</span>
-            Guardar Planeador
+            {guardando ? "Guardando..." : estadoVisual.buttonText}
           </span>
         </button>
         <button

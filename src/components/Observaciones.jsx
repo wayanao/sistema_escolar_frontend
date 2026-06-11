@@ -7,29 +7,114 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
   const [cognitivo, setCognitivo] = useState("");
   const [lenguaje, setLenguaje] = useState("");
   const [vistaImpresion, setVistaImpresion] = useState(false);
+  const [estadoGuardado, setEstadoGuardado] = useState({
+    cargando: true,
+    guardado: false,
+    modificado: false,
+    guardadoEn: null,
+  });
 
   const profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
   const periodoActivo = parseInt(localStorage.getItem("periodo"), 10) || 1;
 
   useEffect(() => {
     const cargarObservacion = async () => {
+      const per = periodoActivo || periodo || 1;
+      setConductual("");
+      setCognitivo("");
+      setLenguaje("");
+      setEstadoGuardado({
+        cargando: true,
+        guardado: false,
+        modificado: false,
+        guardadoEn: null,
+      });
+
       try {
-        const per = periodoActivo || periodo || 1;
         const res = await api.get(`/observaciones/${estudiante.estudiante_id}/${asignacionId}/${per}`);
         if (res.status >= 200 && res.status < 300) {
           const data = res.data;
           if (data) {
-            setConductual(data.conductual || "");
-            setCognitivo(data.cognitivo || "");
-            setLenguaje(data.lenguaje || "");
+            const conductualGuardado = data.conductual || "";
+            const cognitivoGuardado = data.cognitivo || "";
+            const lenguajeGuardado = data.lenguaje || "";
+            const tieneObservacionCompleta = [conductualGuardado, cognitivoGuardado, lenguajeGuardado].every(
+              (valor) => String(valor || "").trim().length > 0
+            );
+
+            setConductual(conductualGuardado);
+            setCognitivo(cognitivoGuardado);
+            setLenguaje(lenguajeGuardado);
+            setEstadoGuardado({
+              cargando: false,
+              guardado: tieneObservacionCompleta,
+              modificado: false,
+              guardadoEn: null,
+            });
+            return;
           }
         }
       } catch (error) {
         console.error("Error cargando observación", error);
       }
+
+      setEstadoGuardado({
+        cargando: false,
+        guardado: false,
+        modificado: false,
+        guardadoEn: null,
+      });
     };
     cargarObservacion();
-  }, [estudiante.estudiante_id, asignacionId, periodo]);
+  }, [estudiante.estudiante_id, asignacionId, periodo, periodoActivo]);
+
+  const marcarModificado = (setter) => (valor) => {
+    setter(valor);
+    setEstadoGuardado((prev) => ({
+      ...prev,
+      modificado: true,
+    }));
+  };
+
+  const obtenerEstadoVisual = () => {
+    if (estadoGuardado.cargando) {
+      return {
+        label: "Verificando",
+        detail: "Consultando registro",
+        badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+        dotClass: "bg-slate-400",
+        buttonText: "Guardar Observación",
+      };
+    }
+
+    if (estadoGuardado.modificado) {
+      return {
+        label: "Cambios sin guardar",
+        detail: "Hay ediciones pendientes",
+        badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
+        dotClass: "bg-amber-500",
+        buttonText: "Guardar cambios",
+      };
+    }
+
+    if (estadoGuardado.guardado) {
+      return {
+        label: "Guardado",
+        detail: estadoGuardado.guardadoEn ? `Actualizado ${estadoGuardado.guardadoEn}` : "Observador registrado",
+        badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        dotClass: "bg-emerald-500",
+        buttonText: "Actualizar observación",
+      };
+    }
+
+    return {
+      label: "Pendiente",
+      detail: "Aún no se ha guardado",
+      badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+      dotClass: "bg-slate-400",
+      buttonText: "Guardar observación",
+    };
+  };
 
   const guardar = async () => {
     if (!conductual || !cognitivo || !lenguaje) {
@@ -49,6 +134,15 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
         alert("Error al guardar");
         return;
       }
+      setEstadoGuardado({
+        cargando: false,
+        guardado: true,
+        modificado: false,
+        guardadoEn: new Date().toLocaleTimeString("es-CO", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
       alert("Observación guardada/actualizada");
     } catch (err) {
       console.error(err);
@@ -112,11 +206,22 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
     );
   }
 
+  const estadoVisual = obtenerEstadoVisual();
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mt-4">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">
-        {estudiante.nombre} {estudiante.apellido} (Período {periodoActivo})
-      </h3>
+      <div className="mb-4 flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {estudiante.nombre} {estudiante.apellido} (Período {periodoActivo})
+          </h3>
+          <p className="mt-1 text-xs font-medium text-gray-500">{estadoVisual.detail}</p>
+        </div>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
+          <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
+          {estadoVisual.label}
+        </span>
+      </div>
 
       <div className="space-y-4 mb-6">
         <div>
@@ -126,7 +231,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows="3"
             value={conductual}
-            onChange={(e) => setConductual(e.target.value)}
+            onChange={(e) => marcarModificado(setConductual)(e.target.value)}
           />
         </div>
 
@@ -137,7 +242,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows="3"
             value={cognitivo}
-            onChange={(e) => setCognitivo(e.target.value)}
+            onChange={(e) => marcarModificado(setCognitivo)(e.target.value)}
           />
         </div>
 
@@ -148,7 +253,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows="3"
             value={lenguaje}
-            onChange={(e) => setLenguaje(e.target.value)}
+            onChange={(e) => marcarModificado(setLenguaje)(e.target.value)}
           />
         </div>
       </div>
@@ -158,7 +263,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           onClick={guardar}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Guardar Observación
+          {estadoVisual.buttonText}
         </button>
 
         <button

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
 
@@ -15,6 +15,7 @@ function PlaneadoresClasesAdmin() {
     fecha_hasta: "",
     busqueda: "",
   });
+  const filtrosRef = useRef(filtros);
   const [seleccionado, setSeleccionado] = useState(null);
   const [cargando, setCargando] = useState(false);
 
@@ -23,20 +24,20 @@ function PlaneadoresClasesAdmin() {
     [profesores, filtros.profesor_id],
   );
 
-  const cargarProfesores = async () => {
+  const cargarProfesores = useCallback(async () => {
     try {
       const res = await api.get("/profesores");
       setProfesores(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error cargando profesores", error);
     }
-  };
+  }, []);
 
-  const cargarPlanes = async () => {
+  const cargarPlanes = useCallback(async () => {
     setCargando(true);
     try {
       const params = { limit: 50, offset: 0 };
-      Object.entries(filtros).forEach(([key, value]) => {
+      Object.entries(filtrosRef.current).forEach(([key, value]) => {
         if (value) params[key] = value;
       });
       const res = await api.get("/admin/plan-de-clases", { params });
@@ -57,18 +58,22 @@ function PlaneadoresClasesAdmin() {
     } finally {
       setCargando(false);
     }
-  };
-
-  useEffect(() => {
-    cargarProfesores();
   }, []);
 
   useEffect(() => {
+    cargarProfesores();
+  }, [cargarProfesores]);
+
+  useEffect(() => {
     cargarPlanes();
-  }, [filtros.profesor_id, filtros.fecha_desde, filtros.fecha_hasta]);
+  }, [filtros.profesor_id, filtros.fecha_desde, filtros.fecha_hasta, cargarPlanes]);
 
   const actualizarFiltro = (campo, valor) => {
-    setFiltros((actual) => ({ ...actual, [campo]: valor }));
+    setFiltros((actual) => {
+      const siguientes = { ...actual, [campo]: valor };
+      filtrosRef.current = siguientes;
+      return siguientes;
+    });
   };
 
   const buscar = (e) => {

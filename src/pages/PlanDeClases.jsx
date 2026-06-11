@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
 
@@ -33,6 +33,12 @@ function PlanDeClases() {
   const [cargando, setCargando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [estadoGuardado, setEstadoGuardado] = useState({
+    cargando: false,
+    guardado: false,
+    modificado: false,
+    guardadoEn: null,
+  });
   const imagenInputRef = useRef(null);
 
   const selectedClase = useMemo(
@@ -68,27 +74,81 @@ function PlanDeClases() {
 
   const actualizarCampo = (campo, valor) => {
     setForm((actual) => ({ ...actual, [campo]: valor }));
+    setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
-  const cargarClases = async () => {
+  const actualizarPeriodo = (valor) => {
+    setPeriodo(valor);
+    setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
+  };
+
+  const obtenerEstadoVisual = () => {
+    if (estadoGuardado.cargando || cargando) {
+      return {
+        label: "Verificando",
+        detail: "Consultando plan de la fecha",
+        badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+        dotClass: "bg-slate-400",
+        buttonText: "Guardar y enviar",
+      };
+    }
+
+    if (estadoGuardado.modificado) {
+      return {
+        label: "Cambios sin guardar",
+        detail: "Hay ediciones pendientes",
+        badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
+        dotClass: "bg-amber-500",
+        buttonText: "Guardar cambios",
+      };
+    }
+
+    if (estadoGuardado.guardado) {
+      return {
+        label: "Guardado",
+        detail: estadoGuardado.guardadoEn ? `Actualizado ${estadoGuardado.guardadoEn}` : "Plan registrado",
+        badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        dotClass: "bg-emerald-500",
+        buttonText: "Actualizar plan",
+      };
+    }
+
+    return {
+      label: "Pendiente",
+      detail: "Aún no se ha guardado",
+      badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
+      dotClass: "bg-slate-400",
+      buttonText: "Guardar y enviar",
+    };
+  };
+
+  const cargarClases = useCallback(async () => {
     if (!profesorId) return;
     try {
       const res = await api.get(`/mis-clases/${profesorId}`);
       const data = res.data || [];
       setClases(data);
-      if (!asignacionId && data.length > 0) {
-        setAsignacionId(String(data[0].id));
-        localStorage.setItem("asignacionId", String(data[0].id));
-      }
+      setAsignacionId((actual) => {
+        if (actual || data.length === 0) return actual;
+        const primeraAsignacion = String(data[0].id);
+        localStorage.setItem("asignacionId", primeraAsignacion);
+        return primeraAsignacion;
+      });
     } catch (error) {
       console.error("Error cargando clases", error);
       setMensaje("No se pudieron cargar tus clases asignadas.");
     }
-  };
+  }, [profesorId]);
 
-  const cargarPlanDelDia = async () => {
+  const cargarPlanDelDia = useCallback(async () => {
     if (!asignacionId || !fecha) return;
     setCargando(true);
+    setEstadoGuardado({
+      cargando: true,
+      guardado: false,
+      modificado: false,
+      guardadoEn: null,
+    });
     try {
       const res = await api.get(`/plan-de-clases/${asignacionId}`, { params: { fecha } });
       const plan = res.data;
@@ -106,22 +166,44 @@ function PlanDeClases() {
           actividad_casa: plan.actividad_casa || "",
           tema: plan.tema || "",
         });
+        setImagenes([]);
+        if (imagenInputRef.current) imagenInputRef.current.value = "";
+        setEstadoGuardado({
+          cargando: false,
+          guardado: true,
+          modificado: false,
+          guardadoEn: null,
+        });
         setMensaje("Plan cargado para esta fecha.");
       } else {
         setPlanActualId(null);
         setImagenesGuardadas({ imagen1: null, imagen2: null });
+        setImagenes([]);
+        if (imagenInputRef.current) imagenInputRef.current.value = "";
         setForm(estadoInicial);
+        setEstadoGuardado({
+          cargando: false,
+          guardado: false,
+          modificado: false,
+          guardadoEn: null,
+        });
         setMensaje("");
       }
     } catch (error) {
       console.error("Error cargando plan del día", error);
+      setEstadoGuardado({
+        cargando: false,
+        guardado: false,
+        modificado: false,
+        guardadoEn: null,
+      });
       setMensaje("No se pudo cargar el plan de esta fecha.");
     } finally {
       setCargando(false);
     }
-  };
+  }, [asignacionId, fecha]);
 
-  const cargarHistorial = async () => {
+  const cargarHistorial = useCallback(async () => {
     if (!asignacionId) return;
     try {
       const res = await api.get(`/plan-de-clases/${asignacionId}`);
@@ -129,22 +211,22 @@ function PlanDeClases() {
     } catch (error) {
       console.error("Error cargando historial", error);
     }
-  };
+  }, [asignacionId]);
 
   useEffect(() => {
-    if (!profesor) {
+    if (!profesorId) {
       window.location.href = "/login";
       return;
     }
     cargarClases();
-  }, [profesorId]);
+  }, [cargarClases, profesorId]);
 
   useEffect(() => {
     if (!asignacionId) return;
     localStorage.setItem("asignacionId", String(asignacionId));
     cargarPlanDelDia();
     cargarHistorial();
-  }, [asignacionId, fecha]);
+  }, [asignacionId, fecha, cargarPlanDelDia, cargarHistorial]);
 
   useEffect(() => {
     localStorage.setItem("periodo", String(periodo));
@@ -158,6 +240,7 @@ function PlanDeClases() {
       return;
     }
     setImagenes(files);
+    setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
   const guardarPlan = async () => {
@@ -189,6 +272,15 @@ function PlanDeClases() {
       setImagenes([]);
       if (imagenInputRef.current) imagenInputRef.current.value = "";
       await cargarPlanDelDia();
+      setEstadoGuardado({
+        cargando: false,
+        guardado: true,
+        modificado: false,
+        guardadoEn: new Date().toLocaleTimeString("es-CO", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
       setMensaje(res.data.mensaje || "Plan guardado y enviado a administración.");
       await cargarHistorial();
     } catch (error) {
@@ -212,12 +304,23 @@ function PlanDeClases() {
       setHistorial((actual) =>
         actual.map((plan) => (plan.id === planActualId ? { ...plan, [slot]: null } : plan)),
       );
+      setEstadoGuardado({
+        cargando: false,
+        guardado: true,
+        modificado: false,
+        guardadoEn: new Date().toLocaleTimeString("es-CO", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
       setMensaje("Imagen eliminada correctamente.");
     } catch (error) {
       console.error("Error eliminando imagen", error);
       window.alert(error.response?.data?.detail || "No se pudo eliminar la imagen.");
     }
   };
+
+  const estadoVisual = obtenerEstadoVisual();
 
   return (
     <div className="space-y-6 p-2 sm:p-6">
@@ -228,8 +331,15 @@ function PlanDeClases() {
             Prepara el plan diario y déjalo disponible para seguimiento administrativo.
           </p>
         </div>
-        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          {planActualId ? `Editando plan #${planActualId}` : "Nuevo plan para la fecha seleccionada"}
+        <div className="flex flex-col items-start gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm md:items-end">
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
+            <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
+            {estadoVisual.label}
+          </span>
+          <span className="text-xs font-medium text-gray-500">{estadoVisual.detail}</span>
+          <span className="text-xs text-gray-500">
+            {planActualId ? `Plan #${planActualId}` : "Nuevo plan para la fecha seleccionada"}
+          </span>
         </div>
       </div>
 
@@ -252,7 +362,7 @@ function PlanDeClases() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Periodo</label>
-            <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={campoBase}>
+            <select value={periodo} onChange={(e) => actualizarPeriodo(e.target.value)} className={campoBase}>
               <option value="1">Periodo 1</option>
               <option value="2">Periodo 2</option>
               <option value="3">Periodo 3</option>
@@ -277,7 +387,7 @@ function PlanDeClases() {
             </div>
             <div>
               <span className="font-medium text-gray-600">Estado</span>
-              <p className="text-gray-900">{cargando ? "Cargando..." : planActualId ? "Guardado" : "Sin guardar"}</p>
+              <p className="text-gray-900">{estadoVisual.label}</p>
             </div>
           </div>
         )}
@@ -325,7 +435,7 @@ function PlanDeClases() {
             disabled={guardando || cargando}
             className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 md:w-auto"
           >
-            {guardando ? "Guardando..." : "Guardar y enviar"}
+            {guardando ? "Guardando..." : estadoVisual.buttonText}
           </button>
         </div>
         {mensaje && <p className="mt-3 text-sm text-gray-700">{mensaje}</p>}

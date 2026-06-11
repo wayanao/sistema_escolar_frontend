@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 
@@ -115,7 +115,7 @@ function DashboardProfesor() {
     [clasesConHorario]
   );
 
-  const cargarClases = async () => {
+  const cargarClases = useCallback(async () => {
     if (!profesorId) return;
     try {
       const res = await api.get(`/mis-clases/${profesorId}`);
@@ -124,9 +124,9 @@ function DashboardProfesor() {
     } catch (error) {
       console.error("Error cargando clases", error);
     }
-  };
+  }, [profesorId]);
 
-  const cargarHorarioAsignado = async () => {
+  const cargarHorarioAsignado = useCallback(async () => {
     if (!profesorId) return;
     try {
       const res = await api.get(`/mis-clases/${profesorId}`);
@@ -146,9 +146,9 @@ function DashboardProfesor() {
     } catch (error) {
       console.error("Error cargando horario asignado", error);
     }
-  };
+  }, [profesorId]);
 
-  const cargarInasistencias = async () => {
+  const cargarInasistencias = useCallback(async () => {
     if (!profesorId) return;
     try {
       const res = await api.get(`/dashboard/inasistencias/${profesorId}`);
@@ -157,9 +157,9 @@ function DashboardProfesor() {
     } catch (error) {
       console.error("Error cargando inasistencias", error);
     }
-  };
+  }, [profesorId]);
 
-  const cargarNotasBajas = async () => {
+  const cargarNotasBajas = useCallback(async () => {
     if (!profesorId) return;
     if (!cursoFiltroRendimiento) {
       setNotasBajas([]);
@@ -176,9 +176,9 @@ function DashboardProfesor() {
     } catch (error) {
       console.error("Error cargando notas bajas", error);
     }
-  };
+  }, [cursoFiltroRendimiento, materiaFiltroRendimiento, profesorId]);
 
-  const cargarNotasAltas = async () => {
+  const cargarNotasAltas = useCallback(async () => {
     if (!profesorId) return;
     if (!cursoFiltroRendimiento) {
       setNotasAltas([]);
@@ -195,10 +195,10 @@ function DashboardProfesor() {
     } catch (error) {
       console.error("Error cargando notas altas", error);
     }
-  };
+  }, [cursoFiltroRendimiento, materiaFiltroRendimiento, profesorId]);
 
   useEffect(() => {
-    if (!profesor) {
+    if (!profesorId) {
       window.location.href = "/login";
       return;
     }
@@ -212,7 +212,7 @@ function DashboardProfesor() {
       setLoading(false);
     };
     cargarDatos();
-  }, [profesorId]);
+  }, [cargarClases, cargarHorarioAsignado, cargarInasistencias, profesorId]);
 
   useEffect(() => {
     if (!cursosProfesor.length || cursoFiltroRendimiento) return;
@@ -223,7 +223,7 @@ function DashboardProfesor() {
     if (!profesorId) return;
     cargarNotasBajas();
     cargarNotasAltas();
-  }, [profesorId, cursoFiltroRendimiento, materiaFiltroRendimiento]);
+  }, [profesorId, cargarNotasBajas, cargarNotasAltas]);
 
   const irARanking = (ruta) => {
     if (!asignacionId) {
