@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 function CrearEstudiante() {
 
   const [nombre, setNombre] = useState("");

@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 const toTitleCase = (value) =>
   String(value || "")
     .trim()

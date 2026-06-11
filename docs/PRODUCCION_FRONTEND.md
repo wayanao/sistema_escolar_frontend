@@ -16,8 +16,9 @@ VITE_API_URL=http://localhost:8000
 
 Esta variable es usada por:
 
+- `src/config/env.js`
 - `src/utils/api.js`
-- servicios o paginas que leen `import.meta.env.VITE_API_URL`
+- servicios que necesitan resolver URLs absolutas de archivos
 
 ## Build
 
@@ -233,7 +234,8 @@ Actualizacion 2026-06-01:
   distintos.
 - Crear colegio valida password temporal fuerte antes de llamar API.
 
-- El fallback de API apunta a `http://localhost:8000`.
+- El fallback a `http://localhost:8000` solo debe usarse en desarrollo local.
+- En Vercel, `VITE_API_URL` debe apuntar a la URL publica del backend en Render.
 - Las rutas protegidas del frontend dependen de `localStorage`.
 - El frontend aun puede contener archivos generados en `dist/` dentro del repo.
 - Existen logs locales de Vite en la raiz del proyecto.

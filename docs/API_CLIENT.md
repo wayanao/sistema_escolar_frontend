@@ -10,7 +10,9 @@ El cliente compartido esta en:
 
 Configuracion actual:
 
-- `baseURL`: `import.meta.env.VITE_API_URL || "http://localhost:8000"`.
+- `baseURL`: `API_BASE_URL` desde `src/config/env.js`.
+- En desarrollo, si falta `VITE_API_URL`, usa `http://localhost:8000`.
+- En produccion, `VITE_API_URL` debe estar configurado.
 - `withCredentials: true`.
 - Header por defecto: `Content-Type: application/json`.
 
@@ -349,5 +351,6 @@ Actualizacion 2026-06-01:
 - El cliente redirige a `/cambiar-password` mientras
   `usuario.debe_cambiar_password` sea `true`.
 
-- `VITE_API_URL` cae a `http://localhost:8000` si no esta configurado.
+- Produccion depende de que `VITE_API_URL` este configurado en Vercel con la URL
+  publica del backend.
 - La autorizacion final debe estar siempre en backend, no solo en la UI.

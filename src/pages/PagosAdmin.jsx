@@ -5,8 +5,6 @@ import api from "../utils/api";
 import FacturaModerna from "../components/FacturaModerna";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
-const API = import.meta.env.VITE_API_URL;
-
 const obtenerFechaLocal = () => {
   const ahora = new Date();
   const local = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000);

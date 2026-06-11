@@ -2,8 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 
-const API = import.meta.env.VITE_API_URL;
-
 const ESTADOS_ESTUDIANTE = [
   { value: "activo", label: "Activo" },
   { value: "retirado", label: "Retirado" },
@@ -128,11 +126,8 @@ function EstudiantesAdmin() {
 
     try {
       const isEditing = editingId !== null;
-      const url = isEditing ? `${API}/estudiantes/${editingId}` : `${API}/estudiantes`;
-      const method = isEditing ? "PUT" : "POST";
-
-      const parsedUrl = url.replace(API, "");
-      const res = await (method === "PUT" ? api.put(parsedUrl, dataToSend) : api.post(parsedUrl, dataToSend));
+      const endpoint = isEditing ? `/estudiantes/${editingId}` : "/estudiantes";
+      const res = await (isEditing ? api.put(endpoint, dataToSend) : api.post(endpoint, dataToSend));
 
       if ((res.status >= 200 && res.status < 300)) {
         alert(isEditing ? "Estudiante actualizado correctamente" : "Estudiante creado correctamente");

@@ -1,12 +1,11 @@
 import api from "../utils/api";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_BASE_URL } from "../config/env";
 
 // Convierte URL relativa del backend ('/uploads/...') a URL absoluta servible.
 export function resolveAssetUrl(url) {
   if (!url) return null;
   if (/^https?:\/\//i.test(url)) return url;
-  return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
 // ── Branding ───────────────────────────────────────────────────────────────

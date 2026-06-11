@@ -36,13 +36,15 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 
 ### Fallback de API a localhost
 
-- Problema: si `VITE_API_URL` no esta configurado, el frontend usa `http://localhost:8000`.
+- Estado: mitigado en build remoto.
+- Problema: en desarrollo local el frontend puede usar `http://localhost:8000`,
+  pero en despliegues remotos debe existir `VITE_API_URL`.
 - Riesgo: un build de produccion mal configurado podria intentar consumir una API local inexistente.
-- Archivo afectado: `src/utils/api.js`, `.env`.
+- Archivo afectado: `src/config/env.js`, `scripts/check-env.mjs`, `.env.example`.
 - Que puede pasar en produccion: la aplicacion podria quedar sin conexion al backend, con errores de red para todos los usuarios.
 - Prioridad: CRITICO.
-- Como probarlo: ejecutar build sin `VITE_API_URL` de produccion y revisar en navegador hacia donde salen las peticiones.
-- Recomendacion tecnica: exigir `VITE_API_URL` en entornos de produccion y documentar valores por ambiente.
+- Como probarlo: ejecutar `pnpm run build` sin `VITE_API_URL` en un build remoto o con una URL invalida.
+- Recomendacion tecnica: mantener `VITE_API_URL` configurado en Vercel con la URL publica del backend en Render.
 
 ### Seguridad real dependiente del backend
 
@@ -150,13 +152,14 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 
 ### Documentacion de variables por ambiente
 
-- Problema: se observa `.env` local con `VITE_API_URL`, pero no una plantilla documentada en el frontend.
-- Riesgo: nuevos despliegues pueden olvidar configurar URL de API.
-- Archivo afectado: `.env`, documentacion del frontend.
-- Que puede pasar en produccion: build apuntando a localhost o a una API incorrecta.
+- Estado: completado.
+- Problema: los despliegues nuevos deben conocer el valor correcto de `VITE_API_URL`.
+- Riesgo: si se ignora la plantilla, Vercel podria quedar apuntando a una API incorrecta.
+- Archivo afectado: `.env.example`, `.env.production.example`, `docs/DEPLOY_GRATIS.md`.
+- Que puede pasar en produccion: build apuntando a una API incorrecta.
 - Prioridad: OPCIONAL.
 - Como probarlo: preparar un entorno nuevo sin `.env` y revisar resultado de build.
-- Recomendacion tecnica: agregar documentacion de variables por ambiente cuando se formalice el proceso de despliegue.
+- Recomendacion tecnica: usar las plantillas y la guia de deploy como fuente de verdad inicial.
 
 ### Menus y rutas definidos manualmente
 

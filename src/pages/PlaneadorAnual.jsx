@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../utils/api";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 
-const API = import.meta.env.VITE_API_URL;
-
 function PlaneadorAnual() {
   const [planeadores, setPlaneadores] = useState(Array(8).fill({
     unidad_tematica: "",
