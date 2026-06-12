@@ -69,6 +69,11 @@ Cambios:
   `3.0` y rojo cuando esta por debajo de `3.0`.
 - Despues de guardar una nota numerica, el promedio de la tarjeta movil se
   recalcula localmente para no depender de recargar la pagina.
+- La actualizacion del promedio movil se aplica de forma optimista antes de la
+  recarga del backend y se reaplica despues de sincronizar, evitando que Android
+  conserve visualmente el promedio anterior.
+- Las notas numericas aceptan coma decimal de teclado movil y se normalizan a
+  punto antes de enviar al backend.
 - Los controles superiores de la planilla ajustan padding, tamaño de titulo y
   botones para pantallas estrechas.
 

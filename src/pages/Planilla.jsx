@@ -37,6 +37,8 @@ const calcularPromedioNotas = (notas) => {
     return promedio.toFixed(2);
 };
 
+const normalizarNumeroNota = (valor) => Number(String(valor).replace(",", "."));
+
 function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
@@ -45,6 +47,11 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
         : promedioNumerico >= 3
             ? "text-emerald-600"
             : "text-red-600";
+    const promedioMostrado = tipoEvaluacion === "desarrollo"
+        ? "—"
+        : Number.isNaN(promedioNumerico)
+            ? est.promedio
+            : promedioNumerico.toFixed(2);
 
     return (
         <article className="border-b border-gray-200 last:border-b-0">
@@ -58,7 +65,7 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
                         {nombreCompleto}
                     </p>
                     <p className={`mt-1 text-xs font-bold uppercase ${promedioClass}`}>
-                        Promedio: {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
+                        Promedio: {promedioMostrado}
                     </p>
                 </div>
 
@@ -211,32 +218,21 @@ function Planilla() {
     const guardarNota = async (estudiante_id, descripcion, valor) => {
     
         if (!valor) return;// si el input quedó vacío, no hacer nada
-        if (tipoEvaluacion === "numerica") {
-            const numero = parseFloat(valor);
-            if (Number.isNaN(numero) || numero < 1 || numero > 5) {
-                Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
-                return;
-            }
-        }
-        await api.post(`/planilla/nota`, {// revisar body
-                estudiante_id,
-                asignacion_id: parseInt(asignacionId),
-                nota: tipoEvaluacion === "numerica" ? parseFloat(valor) : null,
-                descripcion,
-                periodo: parseInt(periodo),
-                tipo_evaluacion: tipoEvaluacion,
-                valoracion: tipoEvaluacion === "desarrollo" ? valor : null
-        });
-
-          // 🔄 recargar datos
-        await cargarPlanilla();
-
-        if (tipoEvaluacion === "numerica") {
-            const numero = parseFloat(valor);
-
+        const numero = normalizarNumeroNota(valor);
+        const actualizarNotaLocal = () => {
             setEstudiantes((actuales) =>
                 actuales.map((est) => {
                     if (Number(est.estudiante_id) !== Number(estudiante_id)) return est;
+
+                    if (tipoEvaluacion === "desarrollo") {
+                        return {
+                            ...est,
+                            valoraciones: {
+                                ...(est.valoraciones || {}),
+                                [descripcion]: valor,
+                            },
+                        };
+                    }
 
                     const notasActualizadas = {
                         ...(est.notas || {}),
@@ -250,7 +246,30 @@ function Planilla() {
                     };
                 })
             );
+        };
+
+        if (tipoEvaluacion === "numerica") {
+            if (Number.isNaN(numero) || numero < 1 || numero > 5) {
+                Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
+                return;
+            }
         }
+
+        actualizarNotaLocal();
+
+        await api.post(`/planilla/nota`, {// revisar body
+                estudiante_id,
+                asignacion_id: parseInt(asignacionId),
+                nota: tipoEvaluacion === "numerica" ? numero : null,
+                descripcion,
+                periodo: parseInt(periodo),
+                tipo_evaluacion: tipoEvaluacion,
+                valoracion: tipoEvaluacion === "desarrollo" ? valor : null
+        });
+
+          // 🔄 recargar datos
+        await cargarPlanilla();
+        actualizarNotaLocal();
     };
 
     const selectedClase = clases.find(c => c.id == asignacionId);   

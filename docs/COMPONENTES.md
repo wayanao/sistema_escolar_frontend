@@ -52,6 +52,8 @@ Estado actual de componentes y paginas del frontend.
   debajo de `3.0`.
 - Al guardar una nota numerica, la tarjeta movil recalcula el promedio local
   mientras la planilla se sincroniza con el backend.
+- La captura numerica normaliza coma decimal de teclado movil a punto para que
+  el calculo local y el envio al backend usen el mismo valor.
 - En desarrollo infantil, reutiliza las opciones compartidas desde
   `constants/valoracionesDesarrollo.js` y muestra botones tactiles con
   etiqueta humana.
