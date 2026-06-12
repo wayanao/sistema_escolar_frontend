@@ -65,6 +65,8 @@ Cambios:
   nombre visible: `Destacado`, `Logrado`, `En proceso` y `Requiere apoyo`.
 - En escritorio se conserva la tabla tradicional con columnas, encabezados y
   promedio fijo.
+- En la tarjeta movil, el promedio se muestra verde cuando es mayor o igual a
+  `3.0` y rojo cuando esta por debajo de `3.0`.
 - Los controles superiores de la planilla ajustan padding, tamaño de titulo y
   botones para pantallas estrechas.
 

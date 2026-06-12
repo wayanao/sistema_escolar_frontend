@@ -28,6 +28,12 @@ const esColumnaInterna = (valor) =>
 
 function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
+    const promedioNumerico = Number(est.promedio);
+    const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
+        ? "text-gray-500"
+        : promedioNumerico >= 3
+            ? "text-emerald-600"
+            : "text-red-600";
 
     return (
         <article className="border-b border-gray-200 last:border-b-0">
@@ -40,7 +46,7 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
                     >
                         {nombreCompleto}
                     </p>
-                    <p className="mt-1 text-xs font-medium uppercase text-gray-500">
+                    <p className={`mt-1 text-xs font-bold uppercase ${promedioClass}`}>
                         Promedio: {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
                     </p>
                 </div>
