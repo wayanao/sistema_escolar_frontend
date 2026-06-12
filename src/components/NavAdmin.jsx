@@ -5,6 +5,7 @@ import api from "../utils/api";
 function NavAdmin() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [openMobileGroup, setOpenMobileGroup] = useState(null);
 
   const handleLogout = async () => {
     try {
@@ -41,8 +42,21 @@ function NavAdmin() {
       : "hover:bg-gray-100 hover:text-purple-700 border-l-4 border-transparent");
   const mobileLinkClass = ({ isActive }) =>
     isActive
+      ? "block rounded-md bg-white px-3 py-2 font-semibold text-purple-900"
+      : "block rounded-md px-3 py-2 font-medium text-white hover:bg-purple-600 hover:text-white";
+  const mobileSubLinkClass = ({ isActive }) =>
+    isActive
       ? "block rounded-md bg-purple-50 px-3 py-2 font-semibold text-purple-900"
-      : "text-white hover:text-purple-100 block px-2";
+      : "block rounded-md px-3 py-2 text-sm font-medium text-purple-50 hover:bg-purple-600 hover:text-white";
+
+  const closeMobile = () => {
+    setIsMenuOpen(false);
+    setOpenMobileGroup(null);
+  };
+
+  const toggleMobileGroup = (key) => {
+    setOpenMobileGroup((prev) => (prev === key ? null : key));
+  };
 
   return (
     <header className="bg-purple-700 text-white shadow-md relative z-50">
@@ -64,6 +78,7 @@ function NavAdmin() {
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="md:hidden text-white hover:text-purple-100 focus:outline-none"
+          aria-label="Abrir menu de administrador"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMenuOpen ? (
@@ -119,32 +134,65 @@ function NavAdmin() {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
-          <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/dashboard-admin">Dashboard</NavLink>
-          
-          <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
-            <span className="text-white/60 text-xs font-bold uppercase tracking-wider px-2">🎓 Gestión Académica</span>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/horarios">Horarios Asignados</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/certificados">Certificados</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/boletin">Gestión Boletines</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
-          </div>
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/dashboard-admin">Dashboard</NavLink>
 
-          <div className="flex flex-col gap-2 mt-1 mb-1 border-l-2 border-white/20 pl-2">
-            <span className="text-white/60 text-xs font-bold uppercase tracking-wider px-2">📂 Cartera</span>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/pagos">Pagos</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/tipos-pagos">Tipos de Pago</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/cartera-vencida">Cartera Vencida</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/inventario">Inventario</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/egresos">Egresos</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/prestamos">Préstamos</NavLink>
-              <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/nomina">Nómina</NavLink>
-          </div>
-          <NavLink end onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin">Administración</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
-          <NavLink onClick={() => setIsMenuOpen(false)} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
+          <button
+            type="button"
+            onClick={() => toggleMobileGroup("academica")}
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left font-semibold transition ${
+              openMobileGroup === "academica"
+                ? "bg-purple-900/35 text-white"
+                : "text-white hover:bg-purple-600 hover:text-white"
+            }`}
+            aria-expanded={openMobileGroup === "academica"}
+          >
+            <span>Gestión Académica</span>
+            <svg className={`h-4 w-4 transition-transform ${openMobileGroup === "academica" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {openMobileGroup === "academica" && (
+            <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/horarios">Horarios Asignados</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/certificados">Certificados</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/boletin">Gestión Boletines</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => toggleMobileGroup("cartera")}
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left font-semibold transition ${
+              openMobileGroup === "cartera"
+                ? "bg-purple-900/35 text-white"
+                : "text-white hover:bg-purple-600 hover:text-white"
+            }`}
+            aria-expanded={openMobileGroup === "cartera"}
+          >
+            <span>Cartera</span>
+            <svg className={`h-4 w-4 transition-transform ${openMobileGroup === "cartera" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {openMobileGroup === "cartera" && (
+            <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/pagos">Pagos</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/tipos-pagos">Tipos de Pago</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/cartera-vencida">Cartera Vencida</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/inventario">Inventario</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/egresos">Egresos</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/prestamos">Préstamos</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/nomina">Nómina</NavLink>
+            </div>
+          )}
+
+          <NavLink end onClick={closeMobile} className={mobileLinkClass} to="/admin">Administración</NavLink>
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>
         </nav>
       )}
