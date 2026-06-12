@@ -18,8 +18,24 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
   const periodoActivo = parseInt(localStorage.getItem("periodo"), 10) || 1;
 
   useEffect(() => {
+    let activo = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const cargarObservacion = async () => {
       const per = periodoActivo || periodo || 1;
+      if (!estudiante?.estudiante_id || !asignacionId) {
+        if (activo) {
+          setEstadoGuardado({
+            cargando: false,
+            guardado: false,
+            modificado: false,
+            guardadoEn: null,
+          });
+        }
+        return;
+      }
+
       setConductual("");
       setCognitivo("");
       setLenguaje("");
@@ -31,7 +47,11 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
       });
 
       try {
-        const res = await api.get(`/observaciones/${estudiante.estudiante_id}/${asignacionId}/${per}`);
+        const res = await api.get(`/observaciones/${estudiante.estudiante_id}/${asignacionId}/${per}`, {
+          signal: controller.signal,
+        });
+        if (!activo) return;
+
         if (res.status >= 200 && res.status < 300) {
           const data = res.data;
           if (data) {
@@ -55,8 +75,14 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           }
         }
       } catch (error) {
-        console.error("Error cargando observación", error);
+        if (!controller.signal.aborted) {
+          console.error("Error cargando observación", error);
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
+
+      if (!activo) return;
 
       setEstadoGuardado({
         cargando: false,
@@ -66,6 +92,12 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
       });
     };
     cargarObservacion();
+
+    return () => {
+      activo = false;
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [estudiante.estudiante_id, asignacionId, periodo, periodoActivo]);
 
   const marcarModificado = (setter) => (valor) => {

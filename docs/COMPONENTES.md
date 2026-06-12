@@ -21,7 +21,9 @@ Estado actual de componentes y paginas del frontend.
 - `PlanillaRow.jsx`: fila de planilla.
 - `AsistenciaRow.jsx`: fila de asistencia; muestra botones presente/ausente y
   contador de inasistencias cuando el historial ya cargo.
-- `Observaciones.jsx`: manejo de observaciones.
+- `Observaciones.jsx`: manejo de observaciones; su verificacion inicial usa
+  cancelacion con tiempo limite para no dejar el badge en `Verificando`
+  indefinidamente.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 
 ## Dashboard profesor

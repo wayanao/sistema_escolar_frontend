@@ -2,6 +2,29 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-12 - Verificacion del observador en movil
+
+Se ajusto el estado inicial del Observador del estudiante para evitar que el
+badge quede indefinidamente en `Verificando` cuando la consulta de registro
+tarda o se queda colgada en movil.
+
+Archivo modificado:
+
+- `src/components/Observaciones.jsx`
+
+Cambio:
+
+- La consulta inicial de observacion usa cancelacion con tiempo limite.
+- Si la consulta falla o se cancela, el componente apaga `cargando` y vuelve a
+  estado `Pendiente` en vez de quedarse en `Verificando`.
+- Se evita actualizar estado si el componente se desmonta durante la consulta.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-12 - Etiqueta Nomina en nav admin movil
 
 Se corrigio la etiqueta `Nómina` del menu de cartera en `NavAdmin` para evitar
