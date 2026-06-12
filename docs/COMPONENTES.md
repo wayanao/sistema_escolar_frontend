@@ -106,7 +106,9 @@ Estado actual de componentes y paginas del frontend.
 
 - `components/boletin/Boletin.jsx`
 - `components/boletin/Header.jsx`
-- `components/boletin/IngresoBoletinProfesor.jsx`
+- `components/boletin/IngresoBoletinProfesor.jsx`: ingreso de observaciones de
+  boletin final; oculta notas tecnicas como `mas_alto` y muestra los tipos de
+  nota con etiquetas humanas marcadas con `translate="no"`.
 - `components/boletin/Materia.jsx`
 - `components/boletin/TablaNotas.jsx`
 

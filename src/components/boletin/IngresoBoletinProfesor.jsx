@@ -9,6 +9,20 @@ const VALORACIONES_DESARROLLO = [
     { value: "apoyo", label: "Requiere acompañamiento", emoji: "🧩" },
 ];
 
+const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
+
+const obtenerTipoNota = (nota) => nota?.tipo_nota || nota?.descripcion || nota?.referencia || "";
+
+const esNotaInterna = (nota) =>
+    COLUMNAS_INTERNAS_OCULTAS.has(String(obtenerTipoNota(nota)).trim().toLowerCase());
+
+const formatearEtiquetaNota = (valor) =>
+    String(valor || "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, (letra) => letra.toUpperCase());
+
 function IngresoBoletinProfesor() {
     const [asignacionId, setAsignacionId] = useState(
         localStorage.getItem("asignacionId") || ""
@@ -59,13 +73,17 @@ function IngresoBoletinProfesor() {
         try {
             // Este endpoint trae los alumnos y sus notas de la planilla como referencia
             const res = await api.get(`/boletines/referencia/${asignacionId}/${periodo}`);
-            const dataObtenida = res.data;
-            setEstudiantes(dataObtenida);
+            const dataObtenida = Array.isArray(res.data) ? res.data : [];
+            const dataVisible = dataObtenida.map((est) => ({
+                ...est,
+                notas: (est.notas || []).filter((nota) => !esNotaInterna(nota)),
+            }));
+            setEstudiantes(dataVisible);
 
             // Inicializar el estado de formulario para cada estudiante basado en sus notas
             const estadoInicial = {};
-            dataObtenida.forEach((est) => {
-                const notasNumericas = est.notas.filter(
+            dataVisible.forEach((est) => {
+                const notasNumericas = (est.notas || []).filter(
                     n => n.tipo_evaluacion !== "desarrollo" && n.valor !== null && n.valor !== undefined
                 );
                 const definitivaCalc = notasNumericas.length > 0
@@ -74,10 +92,10 @@ function IngresoBoletinProfesor() {
 
                 estadoInicial[est.estudiante_id] = {
                     definitiva: definitivaCalc,
-                    observaciones: est.notas.map(n => ({
+                    observaciones: (est.notas || []).map(n => ({
                         nota: n.valor,
                         observacion: n.observacion_guardada || "",
-                        referencia: n.tipo_nota,
+                        referencia: obtenerTipoNota(n),
                         tipo_evaluacion: n.tipo_evaluacion || "numerica",
                         valoracion: n.valoracion || ""
                     }))
@@ -86,8 +104,8 @@ function IngresoBoletinProfesor() {
             setDatosBoletin(estadoInicial);
 
             const estadoInicialGuardado = {};
-            dataObtenida.forEach((est) => {
-                const tieneObservacionesGuardadas = est.notas.some((n) =>
+            dataVisible.forEach((est) => {
+                const tieneObservacionesGuardadas = (est.notas || []).some((n) =>
                     String(n.observacion_guardada || "").trim().length > 0
                 );
 
@@ -245,6 +263,7 @@ function IngresoBoletinProfesor() {
                         const form = datosBoletin[est.estudiante_id];
                         if (!form) return null;
                         const estadoVisual = obtenerEstadoVisual(est.estudiante_id);
+                        const notasVisibles = est.notas || [];
 
                         return (
                             <div key={est.estudiante_id} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
@@ -285,14 +304,17 @@ function IngresoBoletinProfesor() {
                                 </div>
 
                                 <div className="p-4 sm:p-5">
-                                {est.notas.length === 0 ? (
+                                {notasVisibles.length === 0 ? (
                                     <p className="text-gray-500 italic text-sm p-4 bg-gray-50 rounded">Este alumno no tiene notas registradas en esta planilla para usar como referencia.</p>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {est.notas.map((nota, idx) => (
+                                        {notasVisibles.map((nota, idx) => {
+                                            const etiquetaNota = formatearEtiquetaNota(obtenerTipoNota(nota));
+
+                                            return (
                                             <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide truncate max-w-[120px]" title={nota.tipo_nota}>{nota.tipo_nota}</span>
+                                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide truncate max-w-[120px]" title={etiquetaNota} translate="no">{etiquetaNota}</span>
                                                     {nota.tipo_evaluacion === "numerica" ? (
                                                         <span className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">Nota: {nota.valor}</span>
                                                     ) : (
@@ -317,7 +339,8 @@ function IngresoBoletinProfesor() {
                                                     onChange={(e) => handleObservacionChange(est.estudiante_id, idx, e.target.value)}
                                                 ></textarea>
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                                 </div>

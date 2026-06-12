@@ -2,6 +2,29 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-12 - Etiquetas de notas en ingreso de boletin
+
+Se aplico al ingreso de boletin final el mismo criterio usado en planilla para
+evitar etiquetas tecnicas o traducidas por el navegador.
+
+Archivo modificado:
+
+- `src/components/boletin/IngresoBoletinProfesor.jsx`
+
+Cambios:
+
+- Se oculta la nota tecnica `mas_alto` en el detalle de notas de referencia.
+- Los nombres de tipo de nota se formatean como etiquetas humanas, reemplazando
+  guiones bajos o medios por espacios.
+- Las etiquetas visibles de notas usan `translate="no"` para reducir
+  traducciones automaticas del navegador.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-12 - Historial y estado guardado en asistencia profesor
 
 Se mejoro la pantalla de asistencia del perfil profesor para que el historial
