@@ -1,11 +1,11 @@
 const VALORACIONES_DESARROLLO = [
-    { value: "destacado", emoji: "⭐" },
-    { value: "logrado", emoji: "😀" },
-    { value: "proceso", emoji: "🙂" },
-    { value: "apoyo", emoji: "🧩" },
+    { value: "destacado", label: "Destacado", emoji: "⭐" },
+    { value: "logrado", label: "Logrado", emoji: "😀" },
+    { value: "proceso", label: "En proceso", emoji: "🙂" },
+    { value: "apoyo", label: "Requiere apoyo", emoji: "🧩" },
 ];
 
-function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion }) {
+function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
 
     return (
         <tr className="hover:bg-gray-50">
@@ -28,7 +28,8 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion }) {
                                         <button
                                             key={opcion.value}
                                             type="button"
-                                            title={opcion.value}
+                                            title={opcion.label}
+                                            aria-label={`${opcion.label} en ${formatearEtiquetaColumna?.(col) || col}`}
                                             onClick={() => guardarNota(est.estudiante_id, col, opcion.value)}
                                             className={`border rounded px-2 py-1 text-lg ${
                                                 activa

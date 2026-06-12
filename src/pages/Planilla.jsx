@@ -3,6 +3,28 @@ import Swal from "sweetalert2";
 import PlanillaRow from "../components/PlanillaRow";
 import api from "../utils/api";
 
+const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
+
+const formatearEtiquetaColumna = (valor) => {
+    const texto = String(valor || "").trim();
+    if (!texto) return "";
+
+    const etiquetas = {
+        mas_alto: "Más alto",
+    };
+    const clave = texto.toLowerCase();
+    if (etiquetas[clave]) return etiquetas[clave];
+
+    return texto
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, (letra) => letra.toUpperCase());
+};
+
+const esColumnaInterna = (valor) =>
+    COLUMNAS_INTERNAS_OCULTAS.has(String(valor || "").trim().toLowerCase());
+
 function Planilla() {
 
     const [asignacionId] = useState(
@@ -44,9 +66,10 @@ function Planilla() {
     const cargarPlanilla = useCallback(async () => {
     const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
     const data = res.data;
+    const columnasVisibles = (data.columnas || []).filter((col) => !esColumnaInterna(col));
 
-    setColumnas(data.columnas);
-    setEstudiantes(data.data);
+    setColumnas(columnasVisibles);
+    setEstudiantes(data.data || []);
     }, [asignacionId, periodo]);
 
     useEffect(() => {
@@ -168,7 +191,7 @@ function Planilla() {
                         <option value="">Seleccionar tipo</option>
                         {columnas.map((col, i) => (
                             <option key={i} value={col}>
-                                {col}
+                                {formatearEtiquetaColumna(col)}
                             </option>
                         ))}
                     </select>
@@ -180,6 +203,10 @@ function Planilla() {
                     onClick={async () => {
                         const tipoLimpio = nuevoTipo.trim();
                         if (!tipoLimpio) return;
+                        if (esColumnaInterna(tipoLimpio)) {
+                            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Ese nombre está reservado por el sistema.' });
+                            return;
+                        }
                         
                         const existe = columnas.some(col => col.trim().toLowerCase() === tipoLimpio.toLowerCase());
                         if (existe) {
@@ -247,8 +274,8 @@ function Planilla() {
                             </th>
                             {columnas.map((col) => (
                                 <th key={col} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                                    <div className="whitespace-nowrap" title={col}>
-                                        {col}
+                                    <div className="whitespace-nowrap" title={formatearEtiquetaColumna(col)}>
+                                        {formatearEtiquetaColumna(col)}
                                     </div>
                                 </th>
                             ))}
@@ -265,6 +292,7 @@ function Planilla() {
                                 columnas={columnas}
                                 guardarNota={guardarNota}
                                 tipoEvaluacion={tipoEvaluacion}
+                                formatearEtiquetaColumna={formatearEtiquetaColumna}
                             />
                         ))}
                     </tbody>
