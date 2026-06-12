@@ -19,7 +19,8 @@ Estado actual de componentes y paginas del frontend.
 - `HorariosPorCurso.jsx`: vista de horarios por curso.
 - `FacturaModerna.jsx`: componente de factura.
 - `PlanillaRow.jsx`: fila de planilla.
-- `AsistenciaRow.jsx`: fila de asistencia.
+- `AsistenciaRow.jsx`: fila de asistencia; muestra botones presente/ausente y
+  contador de inasistencias cuando el historial ya cargo.
 - `Observaciones.jsx`: manejo de observaciones.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 
@@ -35,6 +36,40 @@ Estado actual de componentes y paginas del frontend.
   - rendimiento bajo y alto.
 - Las consultas de rendimiento bajo y alto se ejecutan en paralelo cuando hay
   curso seleccionado.
+
+## Planilla de notas profesor
+
+- `pages/Planilla.jsx`: pantalla de captura y gestion de notas del perfil
+  profesor.
+- En escritorio conserva la tabla tradicional con estudiantes en filas, tipos
+  de evaluacion en columnas y promedio al final.
+- En movil usa tarjetas por estudiante para evitar que el nombre y las columnas
+  queden comprimidos. Cada tarjeta lista los tipos de evaluacion de forma
+  vertical.
+- En calificacion numerica, la vista movil usa inputs de ancho completo con
+  `inputMode="decimal"` para facilitar captura desde teclado movil.
+- En desarrollo infantil, reutiliza las opciones compartidas desde
+  `constants/valoracionesDesarrollo.js` y muestra botones tactiles con
+  etiqueta humana.
+- La planilla marca nombres, etiquetas e inputs con `translate="no"` para
+  reducir traducciones automaticas del navegador sobre textos guardados por el
+  profesor.
+
+## Asistencia profesor
+
+- `pages/Asistencia.jsx`: pantalla para registrar asistencia por fecha,
+  asignacion y periodo.
+- Carga estudiantes desde `GET /planilla-excel/{asignacion_id}/{periodo}`.
+- Carga historial desde `GET /asistencia/historial/{asignacion_id}/{periodo}`
+  con estado visual de carga, reintento corto y mensaje de error con accion
+  `Reintentar`.
+- El historial se organiza en un mapa por estudiante para que el conteo de
+  inasistencias no dependa de busquedas repetidas durante el render.
+- Si existe registro para la fecha seleccionada, muestra aviso
+  `Asistencia del día ya tomada`, precarga los botones presente/ausente y cambia
+  el boton principal a `Actualizar Asistencia`.
+- Mientras el historial esta cargando, las filas muestran
+  `Cargando historial...` en lugar de un contador provisional.
 
 ## Comportamiento UX movil documentado
 

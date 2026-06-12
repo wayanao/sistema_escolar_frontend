@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import PlanillaRow from "../components/PlanillaRow";
+import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
 import api from "../utils/api";
 
 const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
@@ -24,6 +25,102 @@ const formatearEtiquetaColumna = (valor) => {
 
 const esColumnaInterna = (valor) =>
     COLUMNAS_INTERNAS_OCULTAS.has(String(valor || "").trim().toLowerCase());
+
+function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+    const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
+
+    return (
+        <article className="border-b border-gray-200 last:border-b-0">
+            <div className="p-4">
+                <div className="mb-4">
+                    <p
+                        className="text-base font-semibold leading-snug text-gray-900 capitalize"
+                        title={nombreCompleto}
+                        translate="no"
+                    >
+                        {nombreCompleto}
+                    </p>
+                    <p className="mt-1 text-xs font-medium uppercase text-gray-500">
+                        Promedio: {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
+                    </p>
+                </div>
+
+                {columnas.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-sm text-gray-500">
+                        No hay tipos de evaluación registrados.
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {columnas.map((col) => {
+                            const etiqueta = formatearEtiquetaColumna(col);
+
+                            return (
+                                <div key={`${est.estudiante_id}-${col}-mobile`} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                    <div className="mb-2 flex items-center justify-between gap-3">
+                                        <span className="text-sm font-semibold text-gray-800" title={etiqueta} translate="no">
+                                            {etiqueta}
+                                        </span>
+                                        {tipoEvaluacion !== "desarrollo" && (
+                                            <span className="text-xs font-medium text-gray-500">
+                                                1.0 a 5.0
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {tipoEvaluacion === "desarrollo" ? (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {VALORACIONES_DESARROLLO.map((opcion) => {
+                                                const activa = est.valoraciones?.[col] === opcion.value;
+
+                                                return (
+                                                    <button
+                                                        key={opcion.value}
+                                                        type="button"
+                                                        title={opcion.label}
+                                                        aria-label={`${opcion.label} en ${etiqueta}`}
+                                                        translate="no"
+                                                        onClick={() => guardarNota(est.estudiante_id, col, opcion.value)}
+                                                        className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 py-2 text-sm font-semibold transition-colors ${
+                                                            activa
+                                                                ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                                                                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
+                                                        }`}
+                                                    >
+                                                        <span className="text-base" aria-hidden="true">{opcion.emoji}</span>
+                                                        <span className="truncate">{opcion.label}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            key={`${est.estudiante_id}-${col}-mobile-input`}
+                                            type="number"
+                                            min="1"
+                                            max="5"
+                                            step="0.1"
+                                            inputMode="decimal"
+                                            defaultValue={
+                                                est.notas?.[col] !== null && est.notas?.[col] !== undefined
+                                                    ? est.notas[col]
+                                                    : ""
+                                            }
+                                            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            translate="no"
+                                            onBlur={(e) =>
+                                                guardarNota(est.estudiante_id, col, e.target.value)
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </article>
+    );
+}
 
 function Planilla() {
 
@@ -120,9 +217,9 @@ function Planilla() {
 
     const selectedClase = clases.find(c => c.id == asignacionId);   
     return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
         <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 📋 Planilla de Notas
             </h1>
             <p className="text-gray-600">
@@ -131,8 +228,8 @@ function Planilla() {
         </div>
 
         {/* Información del curso */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Información del Curso</h2>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Información del Curso</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <p className="text-sm font-medium text-gray-700">Materia</p>
@@ -153,7 +250,7 @@ function Planilla() {
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de calificación</label>
                     <select
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:w-auto"
                         value={tipoEvaluacion}
                         onChange={(e) => {
                             setTipoEvaluacion(e.target.value);
@@ -168,8 +265,8 @@ function Planilla() {
         </div>
 
         {/* Gestión de Columnas */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Gestión de Tipos de Evaluación</h2>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Gestión de Tipos de Evaluación</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo Tipo</label>
@@ -197,9 +294,10 @@ function Planilla() {
                     </select>
                 </div>
             </div>
-            <div className="flex gap-4 mt-4">
+            <div className="flex flex-col gap-3 mt-4 sm:flex-row sm:gap-4">
                 <button
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    type="button"
+                    className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors sm:w-auto"
                     onClick={async () => {
                         const tipoLimpio = nuevoTipo.trim();
                         if (!tipoLimpio) return;
@@ -230,7 +328,8 @@ function Planilla() {
                     Agregar Tipo
                 </button>
                 <button
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    type="button"
+                    className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors sm:w-auto"
                     onClick={async () => {
                         if (!tipoEliminar) {
                             Swal.fire({ icon: 'warning', title: 'Atención', text: 'Selecciona un tipo a eliminar' });
@@ -262,10 +361,30 @@ function Planilla() {
 
         {/* Tabla de Notas */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Notas de Estudiantes</h2>
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Notas de Estudiantes</h2>
             </div>
-            <div className="w-full overflow-auto">
+
+            <div className="md:hidden">
+                {estudiantes.length > 0 ? (
+                    estudiantes.map((est) => (
+                        <PlanillaMobileCard
+                            key={`${est.estudiante_id}-mobile`}
+                            est={est}
+                            columnas={columnas}
+                            guardarNota={guardarNota}
+                            tipoEvaluacion={tipoEvaluacion}
+                            formatearEtiquetaColumna={formatearEtiquetaColumna}
+                        />
+                    ))
+                ) : (
+                    <div className="p-4 text-sm text-gray-500">
+                        No hay estudiantes para mostrar.
+                    </div>
+                )}
+            </div>
+
+            <div className="hidden w-full overflow-auto md:block">
                 <table className="min-w-max w-full">
                     <thead className="bg-gray-50">
                         <tr>

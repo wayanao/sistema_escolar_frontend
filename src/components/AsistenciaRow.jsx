@@ -1,4 +1,4 @@
-function AsistenciaRow({ est, asistencia, marcar }) {
+function AsistenciaRow({ est, asistencia, marcar, cargandoHistorial }) {
     const inasistencias = (est.historial || []).filter((h) => h.estado === "ausente").length;
     const nombreCompleto = `${est.apellido} ${est.nombre}`;
 
@@ -8,8 +8,8 @@ function AsistenciaRow({ est, asistencia, marcar }) {
                 <span className="block truncate font-medium capitalize text-gray-900">
                     {nombreCompleto}
                 </span>
-                <p className="mt-1 text-sm font-semibold text-red-600">
-                    Inasistencias: {inasistencias}
+                <p className={`mt-1 text-sm font-semibold ${cargandoHistorial ? "text-gray-500" : "text-red-600"}`}>
+                    {cargandoHistorial ? "Cargando historial..." : `Inasistencias: ${inasistencias}`}
                 </p>
             </div>
 

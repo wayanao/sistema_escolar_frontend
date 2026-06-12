@@ -1,6 +1,20 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import AsistenciaRow from "../components/AsistenciaRow";
 import api from "../utils/api";
+
+const normalizarFecha = (valor) => {
+  if (!valor) return "";
+  const texto = String(valor);
+  const formatoIso = texto.match(/^\d{4}-\d{2}-\d{2}/);
+  if (formatoIso) return formatoIso[0];
+
+  const fechaParseada = new Date(texto);
+  if (Number.isNaN(fechaParseada.getTime())) return texto.slice(0, 10);
+
+  return fechaParseada.toISOString().slice(0, 10);
+};
+
+const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 function Asistencia() {
@@ -8,6 +22,8 @@ function Asistencia() {
 const [fecha] = useState(localStorage.getItem("fechaAsistencia") || "");
 const [asistencia, setAsistencia] = useState({});
 const [historial, setHistorial] = useState([]);
+const [cargandoHistorial, setCargandoHistorial] = useState(false);
+const [errorHistorial, setErrorHistorial] = useState("");
 const [estudiantes, setEstudiantes] = useState([]);
 const [clases, setClases] = useState([]);
 const asignacionId = localStorage.getItem("asignacionId");
@@ -49,11 +65,37 @@ const cargarClases = useCallback(async () => {
 }, [profesorId]);
 
 const cargarHistorial = useCallback(async () => {
+    if (!asignacionId || !periodo) return;
 
-    const res = await api.get(`/asistencia/historial/${asignacionId}/${periodo}`);
-    const data = res.data;
+    setCargandoHistorial(true);
+    setErrorHistorial("");
 
-    setHistorial(data);
+    try {
+      let data = [];
+      let ultimoError = null;
+
+      for (let intento = 0; intento < 2; intento += 1) {
+        try {
+          const res = await api.get(`/asistencia/historial/${asignacionId}/${periodo}`);
+          data = res.data;
+          ultimoError = null;
+          break;
+        } catch (error) {
+          ultimoError = error;
+          if (intento === 0) await esperar(700);
+        }
+      }
+
+      if (ultimoError) throw ultimoError;
+
+      setHistorial(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error cargando historial de asistencia", error);
+      setHistorial([]);
+      setErrorHistorial("No se pudo cargar el historial de inasistencias. Intenta recargar.");
+    } finally {
+      setCargandoHistorial(false);
+    }
     }, [asignacionId, periodo]);
 
 
@@ -134,6 +176,43 @@ const cargarHistorial = useCallback(async () => {
 
       // 🎯 Contar asistencias e inasistencias
     const selectedClase = clases.find(c => c.id == asignacionId);
+    const historialPorEstudiante = useMemo(() => {
+      const mapa = new Map();
+
+      historial.forEach((item) => {
+        mapa.set(Number(item.estudiante_id), Array.isArray(item.historial) ? item.historial : []);
+      });
+
+      return mapa;
+    }, [historial]);
+
+    const asistenciaGuardadaHoy = useMemo(() => {
+      const registros = new Map();
+      const fechaNormalizada = normalizarFecha(fecha);
+
+      if (!fechaNormalizada) return registros;
+
+      historialPorEstudiante.forEach((items, estudianteId) => {
+        const registroHoy = items.find((item) => normalizarFecha(item.fecha) === fechaNormalizada);
+
+        if (registroHoy?.estado) {
+          registros.set(estudianteId, registroHoy.estado);
+        }
+      });
+
+      return registros;
+    }, [fecha, historialPorEstudiante]);
+
+    const asistenciaDelDiaTomada = asistenciaGuardadaHoy.size > 0;
+
+    useEffect(() => {
+      if (!asistenciaDelDiaTomada) return;
+
+      setAsistencia((actual) => {
+        if (Object.keys(actual).length > 0) return actual;
+        return Object.fromEntries(asistenciaGuardadaHoy);
+      });
+    }, [asistenciaDelDiaTomada, asistenciaGuardadaHoy]);
 
     return (
       <div className="w-full p-4 sm:p-6 md:p-8">
@@ -169,6 +248,22 @@ const cargarHistorial = useCallback(async () => {
           </div>
         </div>
 
+        {asistenciaDelDiaTomada && (
+          <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold">Asistencia del día ya tomada</p>
+                <p className="text-sm">
+                  Hay registro para {asistenciaGuardadaHoy.size} de {estudiantes.length} estudiantes en la fecha seleccionada.
+                </p>
+              </div>
+              <span className="inline-flex w-fit rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-bold">
+                Guardado
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Fecha 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
           <div className="max-w-xs">
@@ -188,17 +283,42 @@ const cargarHistorial = useCallback(async () => {
 
         {/* Lista de Estudiantes */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Lista de Estudiantes</h2>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Lista de Estudiantes</h2>
+              {cargandoHistorial && (
+                <p className="mt-1 text-sm font-medium text-gray-500">Cargando historial de inasistencias...</p>
+              )}
+              {errorHistorial && (
+                <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <p className="text-sm font-semibold text-red-600">{errorHistorial}</p>
+                  <button
+                    type="button"
+                    onClick={cargarHistorial}
+                    className="w-fit rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700 hover:bg-red-100"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              )}
+            </div>
+            {!cargandoHistorial && !errorHistorial && (
+              <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                Historial actualizado
+              </span>
+            )}
+          </div>
           <div className="space-y-4">
             {estudiantes.map(est => {
-              const hist = historial.find(h => h.estudiante_id === est.estudiante_id);
-              const estConHistorial = { ...est, historial: hist ? hist.historial : [] };
+              const hist = historialPorEstudiante.get(Number(est.estudiante_id)) || [];
+              const estConHistorial = { ...est, historial: hist };
               return (
               <AsistenciaRow
                 key={est.estudiante_id}
                 est={estConHistorial}
                 asistencia={asistencia}
                 marcar={marcar}
+                cargandoHistorial={cargandoHistorial}
               />
               );
             })}
@@ -211,7 +331,7 @@ const cargarHistorial = useCallback(async () => {
             className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors text-base sm:text-lg font-medium"
             onClick={guardarAsistencia}
           >
-            Guardar Asistencia
+            {asistenciaDelDiaTomada ? "Actualizar Asistencia" : "Guardar Asistencia"}
           </button>
         </div>
       </div>

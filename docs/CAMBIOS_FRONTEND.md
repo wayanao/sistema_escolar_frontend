@@ -2,6 +2,86 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-12 - Historial y estado guardado en asistencia profesor
+
+Se mejoro la pantalla de asistencia del perfil profesor para que el historial
+de inasistencias sea mas claro cuando tarda en cargar y para mostrar si la
+asistencia del dia ya fue registrada.
+
+Archivos modificados:
+
+- `src/pages/Asistencia.jsx`
+- `src/components/AsistenciaRow.jsx`
+
+Cambios:
+
+- La carga del historial ahora tiene estado visible: `Cargando historial de
+  inasistencias...`.
+- Si la consulta del historial falla, se muestra un mensaje de error con boton
+  `Reintentar`.
+- La consulta del historial hace un reintento corto antes de mostrar error,
+  para reducir fallos intermitentes de produccion.
+- El historial se normaliza en un mapa por estudiante para evitar busquedas
+  repetidas al renderizar la lista.
+- Si el historial trae registros para la fecha seleccionada, la pantalla muestra
+  la notificacion `Asistencia del día ya tomada`.
+- Cuando ya existe asistencia para la fecha, los botones de presente/ausente se
+  precargan con el estado guardado y el boton principal cambia a
+  `Actualizar Asistencia`.
+- Mientras el historial esta cargando, cada fila muestra `Cargando historial...`
+  en vez de un contador `0` que podria confundirse con dato real.
+
+Alcance:
+
+- No se cambiaron endpoints ni payloads enviados al backend.
+- La mejora es de estado visual, manejo de errores y eficiencia del render.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+## 2026-06-12 - UX movil en planilla de notas del profesor
+
+Se mejoro la experiencia movil de la planilla de notas del perfil profesor
+para que agregar o editar calificaciones sea mas comodo desde celular.
+
+Archivos modificados:
+
+- `src/pages/Planilla.jsx`
+- `src/components/PlanillaRow.jsx`
+- `src/constants/valoracionesDesarrollo.js`
+
+Cambios:
+
+- En movil, la tabla de notas se reemplaza por tarjetas por estudiante.
+- Cada tarjeta muestra primero el nombre del estudiante y luego las notas por
+  tipo de evaluacion, evitando que el nombre ocupe demasiado espacio lateral.
+- En calificacion numerica, cada tipo de nota usa un input tactil de ancho
+  completo.
+- En desarrollo infantil, las opciones se muestran como botones con emoji y
+  nombre visible: `Destacado`, `Logrado`, `En proceso` y `Requiere apoyo`.
+- En escritorio se conserva la tabla tradicional con columnas, encabezados y
+  promedio fijo.
+- Los controles superiores de la planilla ajustan padding, tamaño de titulo y
+  botones para pantallas estrechas.
+
+Alcance:
+
+- No se cambiaron endpoints ni estructura de datos enviada al backend.
+- La mejora aplica al render responsive del frontend.
+- Se mantiene la proteccion contra traduccion automatica en nombres, tipos de
+  nota e inputs.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
 ## 2026-06-11 - Optimizacion inicial de carga del dashboard profesor
 
 Se mejoro el tiempo percibido de aparicion del dashboard del perfil profesor
