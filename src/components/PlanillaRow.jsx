@@ -1,6 +1,12 @@
 import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
 
 function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+    const promedioNumerico = Number(est.promedio);
+    const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
+        ? "text-gray-900"
+        : promedioNumerico >= 3
+            ? "text-emerald-600"
+            : "text-red-600";
 
     return (
         <tr className="hover:bg-gray-50">
@@ -61,7 +67,7 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiq
                 ))}
 
             <td className="md:sticky md:right-0 bg-white md:z-10 px-6 py-4 text-center ">
-                <span className="text-sm font-semibold text-gray-900">
+                <span className={`text-sm font-semibold ${promedioClass}`}>
                     {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
                 </span>
             </td>

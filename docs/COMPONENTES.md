@@ -42,7 +42,8 @@ Estado actual de componentes y paginas del frontend.
 - `pages/Planilla.jsx`: pantalla de captura y gestion de notas del perfil
   profesor.
 - En escritorio conserva la tabla tradicional con estudiantes en filas, tipos
-  de evaluacion en columnas y promedio al final.
+  de evaluacion en columnas y promedio al final, con color verde desde `3.0` y
+  rojo por debajo de `3.0`.
 - En movil usa tarjetas por estudiante para evitar que el nombre y las columnas
   queden comprimidos. Cada tarjeta lista los tipos de evaluacion de forma
   vertical.

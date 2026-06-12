@@ -90,6 +90,8 @@ Cambios:
   promedio fijo.
 - En la tarjeta movil, el promedio se muestra verde cuando es mayor o igual a
   `3.0` y rojo cuando esta por debajo de `3.0`.
+- En la tabla de escritorio, el promedio usa el mismo color: verde desde `3.0`
+  y rojo por debajo de `3.0`.
 - Despues de guardar una nota numerica, el promedio de la tarjeta movil se
   recalcula localmente para no depender de recargar la pagina.
 - La actualizacion del promedio movil se aplica de forma optimista antes de la
