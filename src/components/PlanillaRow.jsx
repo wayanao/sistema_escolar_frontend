@@ -10,7 +10,7 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiq
     return (
         <tr className="hover:bg-gray-50">
             <td className="sticky left-0 bg-white z-10 px-6 py-4 truncate">
-                <div className="text-sm font-medium text-gray-900 capitalize" title={`${est.apellido} ${est.nombre}`}>
+                <div className="text-sm font-medium text-gray-900 capitalize" title={`${est.apellido} ${est.nombre}`} translate="no">
                     {est.apellido} {est.nombre}
                 </div>
             </td>
@@ -30,6 +30,7 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiq
                                             type="button"
                                             title={opcion.label}
                                             aria-label={`${opcion.label} en ${formatearEtiquetaColumna?.(col) || col}`}
+                                            translate="no"
                                             onClick={() => guardarNota(est.estudiante_id, col, opcion.value)}
                                             className={`border rounded px-2 py-1 text-lg ${
                                                 activa
@@ -55,6 +56,7 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiq
                                         : ""
                                 }
                                 className="w-full max-w-[70px] px-1 py-1 border border-gray-300 rounded text-center text-sm"
+                                translate="no"
                                 onBlur={(e) =>
                                     guardarNota(est.estudiante_id, col, e.target.value)
                                 }

@@ -136,11 +136,11 @@ function Planilla() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <p className="text-sm font-medium text-gray-700">Materia</p>
-                    <p className="text-gray-900">{selectedClase ? selectedClase.materia : "No seleccionada"}</p>
+                    <p className="text-gray-900" translate="no">{selectedClase ? selectedClase.materia : "No seleccionada"}</p>
                 </div>
                 <div>
                     <p className="text-sm font-medium text-gray-700">Salón</p>
-                    <p className="text-gray-900">{selectedClase ? selectedClase.curso : "No seleccionado"}</p>
+                    <p className="text-gray-900" translate="no">{selectedClase ? selectedClase.curso : "No seleccionado"}</p>
                 </div>
                 <div>
                     <p className="text-sm font-medium text-gray-700">Período</p>
@@ -190,7 +190,7 @@ function Planilla() {
                     >
                         <option value="">Seleccionar tipo</option>
                         {columnas.map((col, i) => (
-                            <option key={i} value={col}>
+                            <option key={i} value={col} translate="no">
                                 {formatearEtiquetaColumna(col)}
                             </option>
                         ))}
@@ -274,7 +274,7 @@ function Planilla() {
                             </th>
                             {columnas.map((col) => (
                                 <th key={col} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                                    <div className="whitespace-nowrap" title={formatearEtiquetaColumna(col)}>
+                                    <div className="whitespace-nowrap" title={formatearEtiquetaColumna(col)} translate="no">
                                         {formatearEtiquetaColumna(col)}
                                     </div>
                                 </th>
