@@ -133,6 +133,29 @@ Prueba manual recomendada antes de liberar:
 - Repetir una revision rapida en escritorio para confirmar que la vista amplia
   se conserva.
 
+## Performance del dashboard profesor
+
+`src/pages/DashboardProfesor.jsx` fue ajustado para mejorar el tiempo percibido
+de carga:
+
+- `GET /mis-clases/{profesor_id}` se ejecuta una sola vez.
+- La respuesta de clases se reutiliza para el selector de salon y para el
+  horario semanal.
+- La pantalla principal ya no queda bloqueada por un loader global; cada tarjeta
+  muestra su propio estado de carga.
+- Inasistencias y rendimiento cargan como secciones independientes.
+- `notas-bajas` y `notas-altas` se consultan en paralelo al seleccionar curso.
+
+Prueba manual recomendada:
+
+- Entrar como profesor despues de login.
+- Confirmar que el layout del dashboard aparece aunque alguna tarjeta diga
+  `Cargando...`.
+- Revisar DevTools Network y confirmar una sola llamada a
+  `/mis-clases/{profesor_id}` desde el dashboard.
+- Cambiar curso/materia en el filtro de rendimiento y confirmar que se
+  actualizan notas bajas y altas.
+
 ## Sesion y tenant
 
 El frontend conserva datos minimos de sesion visual en:

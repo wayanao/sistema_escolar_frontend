@@ -2,6 +2,52 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-11 - Optimizacion inicial de carga del dashboard profesor
+
+Se mejoro el tiempo percibido de aparicion del dashboard del perfil profesor
+sin cambiar endpoints ni reglas de negocio.
+
+Archivo modificado:
+
+- `src/pages/DashboardProfesor.jsx`
+
+Cambios:
+
+- Se elimino la doble llamada a `GET /mis-clases/{profesor_id}`. La misma
+  respuesta ahora alimenta tanto la lista de clases como el horario asignado.
+- Se reemplazo el `loading` global de pantalla completa por estados de carga
+  por seccion:
+  - clases/horario;
+  - inasistencias;
+  - rendimiento bajo/alto.
+- El dashboard puede pintar su estructura principal aunque una tarjeta siga
+  cargando datos.
+- Las consultas de `notas-bajas` y `notas-altas` se agruparon en una sola
+  funcion y se ejecutan en paralelo cuando hay curso seleccionado.
+
+Alcance:
+
+- No se agregaron endpoints.
+- No se cambiaron filtros, calculos, rutas ni permisos.
+- Si el backend esta dormido en hosting gratuito, la primera respuesta puede
+  seguir tardando, pero la UI ya no queda bloqueada por todas las peticiones.
+
+Verificacion ejecutada:
+
+```powershell
+rg -n "mis-clases|loadingClases|loadingInasistencias|loadingRendimiento" src/pages/DashboardProfesor.jsx
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- `GET /mis-clases/{profesor_id}` queda referenciado una sola vez en
+  `DashboardProfesor.jsx`.
+- Lint OK.
+- Build de produccion OK al ejecutarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+
 ## 2026-06-11 - Ajustes UX movil en admin, impresos y observador
 
 Se mejoro la experiencia movil del perfil admin sin cambiar endpoints, calculos

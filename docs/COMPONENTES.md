@@ -23,6 +23,19 @@ Estado actual de componentes y paginas del frontend.
 - `Observaciones.jsx`: manejo de observaciones.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 
+## Dashboard profesor
+
+- `pages/DashboardProfesor.jsx`: panel inicial del perfil profesor.
+- Carga `GET /mis-clases/{profesor_id}` una sola vez y reutiliza esa respuesta
+  para selector de clases y horario semanal.
+- La pantalla ya no depende de un `loading` global. Cada bloque muestra su
+  propio estado de carga:
+  - horario/clases;
+  - ranking de inasistencias;
+  - rendimiento bajo y alto.
+- Las consultas de rendimiento bajo y alto se ejecutan en paralelo cuando hay
+  curso seleccionado.
+
 ## Comportamiento UX movil documentado
 
 - `NavAdmin.jsx`: en movil muestra enlaces principales y grupos colapsables.

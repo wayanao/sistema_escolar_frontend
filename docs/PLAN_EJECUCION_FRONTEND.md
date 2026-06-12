@@ -188,6 +188,33 @@ Verificacion:
 - `pnpm run build` ejecutado con permisos elevados por `EPERM` local conocido
   de Vite/fnm.
 
+## Completado 2026-06-11 - Primera optimizacion dashboard profesor
+
+Objetivo cerrado:
+
+- Reducir bloqueo inicial del dashboard profesor sin tocar backend.
+
+Trabajo realizado:
+
+- Se elimino la llamada duplicada a `/mis-clases/{profesor_id}`.
+- Se separaron estados de carga por seccion.
+- Se removio el loader global de pantalla completa.
+- Inasistencias y rendimiento cargan sin impedir que el layout principal
+  aparezca.
+- `notas-bajas` y `notas-altas` se ejecutan en paralelo.
+
+Pendiente posible:
+
+- Si el dashboard sigue lento en produccion despues de este ajuste, revisar
+  backend/hosting y evaluar un endpoint consolidado como
+  `GET /dashboard/profesor/{profesor_id}`.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build` ejecutado con permisos elevados por `EPERM` local conocido
+  de Vite/fnm.
+
 ## Pendiente 2026-05-30 - Flujo super admin
 
 Estado actual:

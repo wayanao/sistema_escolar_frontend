@@ -34,7 +34,9 @@ function DashboardProfesor() {
   const [notasAltas, setNotasAltas] = useState([]);
   const [cursoFiltroRendimiento, setCursoFiltroRendimiento] = useState("");
   const [materiaFiltroRendimiento, setMateriaFiltroRendimiento] = useState("todas");
-  const [loading, setLoading] = useState(true);
+  const [loadingClases, setLoadingClases] = useState(true);
+  const [loadingInasistencias, setLoadingInasistencias] = useState(true);
+  const [loadingRendimiento, setLoadingRendimiento] = useState(false);
 
   const handleAsignacionChange = (e) => {
     const value = e.target.value;
@@ -117,20 +119,11 @@ function DashboardProfesor() {
 
   const cargarClases = useCallback(async () => {
     if (!profesorId) return;
-    try {
-      const res = await api.get(`/mis-clases/${profesorId}`);
-      const data = res.data;
-      setClases(data);
-    } catch (error) {
-      console.error("Error cargando clases", error);
-    }
-  }, [profesorId]);
-
-  const cargarHorarioAsignado = useCallback(async () => {
-    if (!profesorId) return;
+    setLoadingClases(true);
     try {
       const res = await api.get(`/mis-clases/${profesorId}`);
       const data = res.data || [];
+      setClases(data);
       const horarioProfesor = data
         .map((asignacion) => ({
           id: asignacion.id,
@@ -144,56 +137,49 @@ function DashboardProfesor() {
 
       setHorarioAsignado(horarioProfesor);
     } catch (error) {
-      console.error("Error cargando horario asignado", error);
+      console.error("Error cargando clases", error);
+    } finally {
+      setLoadingClases(false);
     }
   }, [profesorId]);
 
   const cargarInasistencias = useCallback(async () => {
     if (!profesorId) return;
+    setLoadingInasistencias(true);
     try {
       const res = await api.get(`/dashboard/inasistencias/${profesorId}`);
       const data = res.data;
       setInasistencias(Array.isArray(data) ? data : data ? [data] : []);
     } catch (error) {
       console.error("Error cargando inasistencias", error);
+    } finally {
+      setLoadingInasistencias(false);
     }
   }, [profesorId]);
 
-  const cargarNotasBajas = useCallback(async () => {
+  const cargarRendimiento = useCallback(async () => {
     if (!profesorId) return;
     if (!cursoFiltroRendimiento) {
       setNotasBajas([]);
-      return;
-    }
-    try {
-      const params = { curso_id: cursoFiltroRendimiento };
-      if (materiaFiltroRendimiento !== "todas") {
-        params.asignacion_id = materiaFiltroRendimiento;
-      }
-      const res = await api.get(`/dashboard/notas-bajas/${profesorId}`, { params });
-      const data = res.data;
-      setNotasBajas(data);
-    } catch (error) {
-      console.error("Error cargando notas bajas", error);
-    }
-  }, [cursoFiltroRendimiento, materiaFiltroRendimiento, profesorId]);
-
-  const cargarNotasAltas = useCallback(async () => {
-    if (!profesorId) return;
-    if (!cursoFiltroRendimiento) {
       setNotasAltas([]);
       return;
     }
+    setLoadingRendimiento(true);
     try {
       const params = { curso_id: cursoFiltroRendimiento };
       if (materiaFiltroRendimiento !== "todas") {
         params.asignacion_id = materiaFiltroRendimiento;
       }
-      const res = await api.get(`/dashboard/notas-altas/${profesorId}`, { params });        
-      const data = res.data;
-      setNotasAltas(data);
+      const [bajasRes, altasRes] = await Promise.all([
+        api.get(`/dashboard/notas-bajas/${profesorId}`, { params }),
+        api.get(`/dashboard/notas-altas/${profesorId}`, { params }),
+      ]);
+      setNotasBajas(bajasRes.data || []);
+      setNotasAltas(altasRes.data || []);
     } catch (error) {
-      console.error("Error cargando notas altas", error);
+      console.error("Error cargando rendimiento", error);
+    } finally {
+      setLoadingRendimiento(false);
     }
   }, [cursoFiltroRendimiento, materiaFiltroRendimiento, profesorId]);
 
@@ -202,17 +188,9 @@ function DashboardProfesor() {
       window.location.href = "/login";
       return;
     }
-    const cargarDatos = async () => {
-      setLoading(true);
-      await Promise.all([
-        cargarClases(),
-        cargarHorarioAsignado(),
-        cargarInasistencias(),
-      ]);
-      setLoading(false);
-    };
-    cargarDatos();
-  }, [cargarClases, cargarHorarioAsignado, cargarInasistencias, profesorId]);
+    cargarClases();
+    cargarInasistencias();
+  }, [cargarClases, cargarInasistencias, profesorId]);
 
   useEffect(() => {
     if (!cursosProfesor.length || cursoFiltroRendimiento) return;
@@ -221,9 +199,8 @@ function DashboardProfesor() {
 
   useEffect(() => {
     if (!profesorId) return;
-    cargarNotasBajas();
-    cargarNotasAltas();
-  }, [profesorId, cargarNotasBajas, cargarNotasAltas]);
+    cargarRendimiento();
+  }, [profesorId, cargarRendimiento]);
 
   const irARanking = (ruta) => {
     if (!asignacionId) {
@@ -232,14 +209,6 @@ function DashboardProfesor() {
     }
     navigate(ruta);
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
@@ -258,9 +227,10 @@ function DashboardProfesor() {
           <select
             value={asignacionId}
             onChange={handleAsignacionChange}
+            disabled={loadingClases}
             className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Todos los salones</option>
+            <option value="">{loadingClases ? "Cargando salones..." : "Todos los salones"}</option>
             {clasesUnicas.map(clase => (
               <option key={clase.id} value={clase.id}>
                 {clase.materia} - {clase.curso}
@@ -309,7 +279,11 @@ function DashboardProfesor() {
           </div>
         </div>
 
-        {clasesConHorario.length === 0 ? (
+        {loadingClases ? (
+          <div className="p-6 text-sm font-medium text-gray-500">
+            Cargando horario asignado...
+          </div>
+        ) : clasesConHorario.length === 0 ? (
           <div className="p-6 text-gray-600">
             No tienes clases con horario asignado todavía.
           </div>
@@ -416,8 +390,12 @@ function DashboardProfesor() {
                 setCursoFiltroRendimiento(e.target.value);
                 setMateriaFiltroRendimiento("todas");
               }}
+              disabled={loadingClases || cursosProfesor.length === 0}
               className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
+              {loadingClases && <option value="">Cargando cursos...</option>}
+              {!loadingClases && cursosProfesor.length > 0 && <option value="" disabled>Selecciona un curso</option>}
+              {!loadingClases && cursosProfesor.length === 0 && <option value="">Sin cursos asignados</option>}
               {cursosProfesor.map((curso) => (
                 <option key={curso.id} value={curso.id}>
                   {curso.nombre}
@@ -432,7 +410,7 @@ function DashboardProfesor() {
             <select
               value={materiaFiltroRendimiento}
               onChange={(e) => setMateriaFiltroRendimiento(e.target.value)}
-              disabled={!cursoFiltroRendimiento}
+              disabled={loadingClases || !cursoFiltroRendimiento}
               className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
             >
               <option value="todas">Todas las materias del curso</option>
@@ -455,7 +433,9 @@ function DashboardProfesor() {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Ranking de inasistencias por curso
             </h3>
-            {inasistencias.length > 0 ? (
+            {loadingInasistencias ? (
+              <p className="text-sm font-medium text-gray-500">Cargando inasistencias...</p>
+            ) : inasistencias.length > 0 ? (
               <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                 {inasistencias.map((item) => (
                   <div
@@ -501,7 +481,9 @@ function DashboardProfesor() {
                 </span>
               </div>
             </div>
-            {notasBajas.length > 0 ? (
+            {loadingRendimiento ? (
+              <p className="text-sm font-medium text-gray-500">Cargando rendimiento...</p>
+            ) : notasBajas.length > 0 ? (
               <div className="space-y-2">
                 {notasBajas.map((estudiante, index) => (
                   <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
@@ -548,7 +530,9 @@ function DashboardProfesor() {
                 </span>
               </div>
             </div>
-            {notasAltas.length > 0 ? (
+            {loadingRendimiento ? (
+              <p className="text-sm font-medium text-gray-500">Cargando rendimiento...</p>
+            ) : notasAltas.length > 0 ? (
               <div className="space-y-2">
                 {notasAltas.map((estudiante, index) => (
                   <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">

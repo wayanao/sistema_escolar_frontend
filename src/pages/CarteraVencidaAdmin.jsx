@@ -440,13 +440,13 @@ function CarteraVencidaAdmin() {
     if (reporteImpresion) {
         return (
             <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
-                <div className="fixed bottom-6 left-6 no-print z-50">
+                <div className="fixed left-4 top-4 no-print z-50 md:left-6 md:top-6">
                     <button
                         onClick={() => setReporteImpresion(null)}
-                        className="bg-slate-800 text-white px-4 py-3 rounded-full shadow-xl hover:bg-slate-900 transition"
-                        title="Volver"
+                        className="bg-slate-800 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow-xl hover:bg-slate-900 transition"
+                        title="Atras"
                     >
-                        Volver
+                        ← Atrás
                     </button>
                 </div>
 
