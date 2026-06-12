@@ -50,6 +50,8 @@ Estado actual de componentes y paginas del frontend.
   `inputMode="decimal"` para facilitar captura desde teclado movil.
 - El promedio de cada tarjeta movil se pinta verde desde `3.0` y rojo por
   debajo de `3.0`.
+- Al guardar una nota numerica, la tarjeta movil recalcula el promedio local
+  mientras la planilla se sincroniza con el backend.
 - En desarrollo infantil, reutiliza las opciones compartidas desde
   `constants/valoracionesDesarrollo.js` y muestra botones tactiles con
   etiqueta humana.

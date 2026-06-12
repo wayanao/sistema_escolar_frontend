@@ -26,6 +26,17 @@ const formatearEtiquetaColumna = (valor) => {
 const esColumnaInterna = (valor) =>
     COLUMNAS_INTERNAS_OCULTAS.has(String(valor || "").trim().toLowerCase());
 
+const calcularPromedioNotas = (notas) => {
+    const valores = Object.values(notas || {})
+        .map((valor) => Number(valor))
+        .filter((valor) => !Number.isNaN(valor));
+
+    if (valores.length === 0) return "";
+
+    const promedio = valores.reduce((total, valor) => total + valor, 0) / valores.length;
+    return promedio.toFixed(2);
+};
+
 function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
@@ -218,7 +229,28 @@ function Planilla() {
         });
 
           // 🔄 recargar datos
-        cargarPlanilla();
+        await cargarPlanilla();
+
+        if (tipoEvaluacion === "numerica") {
+            const numero = parseFloat(valor);
+
+            setEstudiantes((actuales) =>
+                actuales.map((est) => {
+                    if (Number(est.estudiante_id) !== Number(estudiante_id)) return est;
+
+                    const notasActualizadas = {
+                        ...(est.notas || {}),
+                        [descripcion]: numero,
+                    };
+
+                    return {
+                        ...est,
+                        notas: notasActualizadas,
+                        promedio: calcularPromedioNotas(notasActualizadas),
+                    };
+                })
+            );
+        }
     };
 
     const selectedClase = clases.find(c => c.id == asignacionId);   
