@@ -86,7 +86,8 @@
 
   .di-documento--boletin,
   .di-documento--certificado,
-  .di-documento--cartera {
+  .di-documento--cartera,
+  .di-documento--planeador {
     width: 210mm;
     min-width: 210mm;
     max-width: none;
@@ -96,7 +97,8 @@
 
   .di-documento--boletin .di-encabezado,
   .di-documento--certificado .di-encabezado,
-  .di-documento--cartera .di-encabezado {
+  .di-documento--cartera .di-encabezado,
+  .di-documento--planeador .di-encabezado {
     flex-direction: row;
     align-items: center;
     text-align: inherit;
@@ -104,7 +106,8 @@
 
   .di-documento--boletin .di-cuerpo,
   .di-documento--certificado .di-cuerpo,
-  .di-documento--cartera .di-cuerpo {
+  .di-documento--cartera .di-cuerpo,
+  .di-documento--planeador .di-cuerpo {
     overflow-x: visible;
   }
 

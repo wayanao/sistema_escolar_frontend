@@ -241,16 +241,18 @@ function PlaneadorAnual() {
   if (vistaImpresion) {
     return (
       <div className="fixed inset-0 bg-slate-100 z-50 overflow-auto">
-        <div className="fixed top-4 left-4 no-print z-[60]">
+        <div className="fixed left-4 top-4 no-print z-[60] md:left-6 md:top-6">
           <button
             onClick={() => setVistaImpresion(false)}
-            className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:bg-slate-900"
+            className="bg-slate-800 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow-xl hover:bg-slate-900 transition"
+            title="Atras"
           >
-            ← Volver
+            ← Atrás
           </button>
         </div>
         <DocumentoImprimible
           tipo="planeador"
+          className="di-documento--planeador"
           titulo="Planeador Anual de Clases"
           subtitulo={`${asignacion ? `${asignacion.curso} · ${asignacion.materia} · ` : ""}Período ${periodo}`}
         >
@@ -291,7 +293,7 @@ function PlaneadorAnual() {
   const estadoVisual = obtenerEstadoVisual();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
       <style>
         {`
           .planeador-header {
@@ -375,6 +377,36 @@ function PlaneadorAnual() {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
           }
+
+          @media screen and (max-width: 640px) {
+            .planeador-header {
+              padding: 1.25rem;
+              margin-bottom: 1rem;
+              text-align: left;
+            }
+
+            .planeador-header h1 {
+              font-size: 1.5rem;
+              line-height: 1.2;
+            }
+
+            .planeador-header p {
+              font-size: 0.95rem;
+            }
+
+            .planeador-textarea {
+              min-height: 5.5rem;
+              border: 1px solid #d1d5db;
+              border-radius: 0.5rem;
+              padding: 0.75rem;
+              background: #ffffff;
+            }
+
+            .planeador-input {
+              min-height: 2.75rem;
+              border-radius: 0.5rem;
+            }
+          }
           
           @media print {
             body { 
@@ -420,13 +452,13 @@ function PlaneadorAnual() {
       </style>
       
       <div className="planeador-header">
-        <h1 className="text-4xl font-bold mb-2">Planeador Anual de Clases</h1>
-        <p className="text-blue-100 text-lg">Planificación académica institucional</p>
+        <h1 className="text-2xl font-bold mb-2 sm:text-4xl">Planeador Anual de Clases</h1>
+        <p className="text-blue-100 text-base sm:text-lg">Planificación académica institucional</p>
       </div>
 
       {asignacion && (
-        <div className="mb-6 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
               <div>
@@ -441,19 +473,19 @@ function PlaneadorAnual() {
                 <p className="text-lg font-semibold text-gray-900">{asignacion.materia}</p>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
                 <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
                 {estadoVisual.label}
               </span>
-              <span className="ml-3 text-xs font-medium text-gray-500">{estadoVisual.detail}</span>
+              <span className="text-xs font-medium text-gray-500 sm:ml-3">{estadoVisual.detail}</span>
             </div>
           </div>
         </div>
       )}
 
-      <div className="mb-6 no-print">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-4 no-print sm:mb-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Período:</label>
           <select
             value={periodo}
@@ -468,7 +500,78 @@ function PlaneadorAnual() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="space-y-4 sm:hidden">
+        {planeadores.map((planeador, index) => (
+          <section key={index} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100 bg-blue-50 px-4 py-3">
+              <h2 className="text-sm font-black uppercase tracking-wide text-blue-900">
+                Fila {index + 1}
+              </h2>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
+                Periodo {periodo}
+              </span>
+            </div>
+
+            <div className="space-y-4 p-4">
+              <CampoMallaMovil label="Unidad temática">
+                <textarea
+                  name={`unidad_tematica-mobile-${index}`}
+                  value={planeador.unidad_tematica}
+                  onChange={(e) => handleTextareaChange(index, "unidad_tematica", e.target.value)}
+                  className="planeador-textarea font-semibold"
+                  rows="3"
+                  placeholder="Unidad temática"
+                />
+              </CampoMallaMovil>
+
+              <CampoMallaMovil label="Estándar/competencia">
+                <textarea
+                  name={`estandar_competencia-mobile-${index}`}
+                  value={planeador.estandar_competencia}
+                  onChange={(e) => handleTextareaChange(index, "estandar_competencia", e.target.value)}
+                  className="planeador-textarea"
+                  rows="3"
+                  placeholder="Estándar/competencia"
+                />
+              </CampoMallaMovil>
+
+              <CampoMallaMovil label="Contenido">
+                <textarea
+                  name={`contenido-mobile-${index}`}
+                  value={planeador.contenido}
+                  onChange={(e) => handleTextareaChange(index, "contenido", e.target.value)}
+                  className="planeador-textarea"
+                  rows="3"
+                  placeholder="Contenido"
+                />
+              </CampoMallaMovil>
+
+              <CampoMallaMovil label="Actividades y recursos">
+                <textarea
+                  name={`actividades_recursos-mobile-${index}`}
+                  value={planeador.actividades_recursos}
+                  onChange={(e) => handleTextareaChange(index, "actividades_recursos", e.target.value)}
+                  className="planeador-textarea"
+                  rows="3"
+                  placeholder="Actividades y recursos"
+                />
+              </CampoMallaMovil>
+
+              <CampoMallaMovil label="Fecha estimada">
+                <input
+                  name={`fecha-mobile-${index}`}
+                  type="date"
+                  value={planeador.fecha}
+                  onChange={(e) => handleChange(index, "fecha", e.target.value)}
+                  className="planeador-input"
+                />
+              </CampoMallaMovil>
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto sm:block">
         <table className="planeador-table">
           <colgroup>
             <col style={{width: '20%'}} />
@@ -547,7 +650,7 @@ function PlaneadorAnual() {
           </tbody>
         </table>
       </div>
-      <div className="mt-8 flex flex-col sm:flex-row gap-4 no-print">
+      <div className="mt-6 flex flex-col gap-3 no-print sm:mt-8 sm:flex-row sm:gap-4">
         <button
           onClick={guardarPlaneadores}
           disabled={guardando || estadoGuardado.cargando}
@@ -569,6 +672,17 @@ function PlaneadorAnual() {
         </button>
       </div>
     </div>
+  );
+}
+
+function CampoMallaMovil({ label, children }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-gray-500">
+        {label}
+      </span>
+      {children}
+    </label>
   );
 }
 

@@ -66,6 +66,7 @@ export default function DocumentoImprimible({
       "di-documento--boletin",
       "di-documento--certificado",
       "di-documento--cartera",
+      "di-documento--planeador",
     ].includes(clase)
   );
 
