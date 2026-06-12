@@ -122,7 +122,7 @@ function NavAdmin() {
                 <NavLink className={dropdownLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/egresos">Egresos</NavLink>
                 <NavLink className={dropdownLinkClass} to="/admin/prestamos">Préstamos</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/nomina">Nómina</NavLink>
+                <NavLink className={dropdownLinkClass} to="/admin/nomina" translate="no">Nómina</NavLink>
               </div>
           </div>
           <NavLink end className={exactTopLinkClass} to="/admin">Administración</NavLink>
@@ -186,7 +186,7 @@ function NavAdmin() {
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/egresos">Egresos</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/prestamos">Préstamos</NavLink>
-              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/nomina">Nómina</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/nomina" translate="no">Nómina</NavLink>
             </div>
           )}
 

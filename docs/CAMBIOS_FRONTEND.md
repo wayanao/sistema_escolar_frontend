@@ -2,6 +2,25 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-12 - Etiqueta Nomina en nav admin movil
+
+Se corrigio la etiqueta `Nómina` del menu de cartera en `NavAdmin` para evitar
+que Chrome Android la traduzca como `nombre`.
+
+Archivo modificado:
+
+- `src/components/NavAdmin.jsx`
+
+Cambio:
+
+- La opcion `Nómina` queda marcada con `translate="no"` en desktop y movil.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-12 - Etiquetas de notas en ingreso de boletin
 
 Se aplico al ingreso de boletin final el mismo criterio usado en planilla para
