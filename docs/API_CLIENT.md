@@ -338,6 +338,16 @@ Endpoints observados en ese servicio:
 - `DELETE /plantillas/{plantillaId}`
 - `POST /plantillas`
 
+Notas frontend sin cambio de API:
+
+- `DocumentoImprimible` consume la configuracion de branding/plantilla y
+  despues aplica comportamiento visual segun clase de documento.
+- Boletin, certificados y cartera no requieren endpoints nuevos para el ajuste
+  movil; solo agregan scroll lateral en pantalla cuando el documento conserva
+  ancho A4.
+- `Descargar PDF` e `Imprimir` usan `window.print()`. La generacion/guardado
+  del PDF depende del navegador del usuario.
+
 ## Riesgos pendientes observados
 
 Actualizacion 2026-06-01:

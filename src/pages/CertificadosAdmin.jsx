@@ -436,19 +436,20 @@ function CertificadoPreview({ certificado, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <div className="fixed bottom-6 left-6 z-50 no-print">
+      <div className="fixed left-4 top-4 z-50 no-print md:left-6 md:top-6">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
-          title="Volver"
+          className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
+          title="Atras"
         >
-          Volver
+          ← Atrás
         </button>
       </div>
 
       <DocumentoImprimible
         tipo="reporte_estudiante"
+        className="di-documento--certificado"
         titulo="Certificado de Notas"
         subtitulo={`${periodoTexto} · Año Lectivo ${new Date().getFullYear()}`}
         firmas={[
@@ -566,19 +567,20 @@ function CertificadoMatriculaPreview({ certificado, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <div className="fixed bottom-6 left-6 z-50 no-print">
+      <div className="fixed left-4 top-4 z-50 no-print md:left-6 md:top-6">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
-          title="Volver"
+          className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
+          title="Atras"
         >
-          Volver
+          ← Atrás
         </button>
       </div>
 
       <DocumentoImprimible
         tipo="reporte_estudiante"
+        className="di-documento--certificado"
         titulo="Certificado de Matrícula"
         subtitulo={`Año Lectivo ${anioLectivo}`}
         firmas={[

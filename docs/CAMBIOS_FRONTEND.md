@@ -2,6 +2,68 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-11 - Ajustes UX movil en admin, impresos y observador
+
+Se mejoro la experiencia movil del perfil admin sin cambiar endpoints, calculos
+ni reglas de negocio.
+
+Archivos modificados:
+
+- `src/components/NavAdmin.jsx`
+- `src/components/admin/PlantillasAdmin.jsx`
+- `src/components/boletin/Boletin.jsx`
+- `src/components/impresion/DocumentoImprimible.jsx`
+- `src/pages/BrandingAdmin.jsx`
+- `src/pages/CarteraVencidaAdmin.jsx`
+- `src/pages/CertificadosAdmin.jsx`
+- `src/pages/EstudiantesAdmin.jsx`
+- `src/styles/print.css`
+
+Cambios:
+
+- `NavAdmin` en movil ya no despliega todas las subsecciones al abrir el menu.
+  Las secciones agrupadas se abren bajo demanda, y sus subpestanas tienen
+  estilos diferenciados frente a las pestañas principales.
+- La administracion de diseno de impresos y plantillas se ajusto para pantallas
+  estrechas: tabs con desplazamiento horizontal, controles apilados y boton de
+  guardado mas usable en movil.
+- `DocumentoImprimible` acepta `className` por documento y aplica una clase de
+  root para documentos que necesitan scroll lateral en movil.
+- El toolbar de impresos ahora usa botones compactos `Descargar PDF` e
+  `Imprimir`. Ambos abren el dialogo nativo de impresion/guardar PDF del
+  navegador.
+- Boletin, certificados y estados de cuenta de cartera conservan ancho A4 en
+  movil y se desplazan horizontalmente para evitar que el documento salga
+  mocho o comprimido.
+- El boton `Atras` de boletin y certificados queda arriba a la izquierda para
+  no chocar con la barra inferior de descarga/impresion en celulares.
+- En `/admin/estudiantes`, el observador dentro del modal de detalle se
+  reorganizo para movil: encabezado apilado, contador de registros, chips para
+  periodo/materia/profesor/fecha y tarjetas separadas para conductual,
+  cognitivo y lenguaje.
+
+Alcance:
+
+- El scroll lateral A4 aplica solo a documentos marcados como boletin,
+  certificado o cartera.
+- Los cambios mas fuertes de documento estan dentro de media queries moviles.
+- En escritorio se conserva la vista centrada y amplia de documentos; el cambio
+  visible principal es la posicion superior del boton `Atras` en boletin y
+  certificados, y una presentacion mas ordenada del observador.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Lint OK.
+- Build de produccion OK al ejecutarlo con permisos elevados por el `EPERM`
+  local conocido de Vite/fnm.
+
 ## 2026-06-10 - Limpieza de header de tenant en frontend
 
 Se removio el envio del header `X-Tenant-ID` desde el cliente.

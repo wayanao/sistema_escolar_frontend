@@ -99,6 +99,40 @@ El script ejecuta:
 eslint .
 ```
 
+## UX movil de admin e impresos
+
+Ajustes activos en produccion:
+
+- `NavAdmin` en movil no despliega todos los submenus al abrir. Los grupos se
+  abren bajo demanda y sus subpestanas se diferencian visualmente de los enlaces
+  principales.
+- `BrandingAdmin` y `PlantillasAdmin` tienen controles mas compactos en
+  pantallas estrechas para administrar identidad y plantillas de impresos.
+- `DocumentoImprimible` soporta clases por documento para aplicar reglas
+  especificas de pantalla sin cambiar la logica de impresion.
+- Boletin, certificados y reportes de cartera usan ancho A4 con scroll lateral
+  en movil para evitar recortes visuales.
+- El toolbar de documentos imprimibles muestra `Descargar PDF` e `Imprimir`.
+  Ambos dependen del dialogo nativo del navegador.
+- Los botones `Atras` de boletin y certificados estan arriba a la izquierda
+  para no superponerse con el toolbar inferior de descarga/impresion.
+- El observador de estudiante en `/admin/estudiantes` se presenta en tarjetas
+  con chips de contexto y secciones separadas para conductual, cognitivo y
+  lenguaje.
+
+Prueba manual recomendada antes de liberar:
+
+- En movil, entrar como admin y abrir el menu principal.
+- Abrir grupos de `NavAdmin` y confirmar que los subenlaces no se confunden con
+  enlaces principales.
+- Generar boletin, certificado de notas, certificado de matricula y estado de
+  cuenta de cartera; confirmar scroll lateral y que el boton `Atras` no tape
+  `Descargar PDF`.
+- Abrir detalle de estudiante en `/admin/estudiantes` y revisar que el
+  observador no se vea corrido ni superpuesto.
+- Repetir una revision rapida en escritorio para confirmar que la vista amplia
+  se conserva.
+
 ## Sesion y tenant
 
 El frontend conserva datos minimos de sesion visual en:

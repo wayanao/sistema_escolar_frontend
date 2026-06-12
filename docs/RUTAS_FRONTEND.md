@@ -79,6 +79,25 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 - Estudiantes.
 - Reportes.
 
+En movil, `NavAdmin` separa enlaces principales de grupos colapsables. Al abrir
+el menu no se despliegan todas las subpestanas: el usuario selecciona el grupo
+correspondiente, por ejemplo Gestion Academica o Cartera, y entonces se muestran
+sus subenlaces. Los subenlaces usan estilo indentado/diferenciado para no
+confundirse con las pestañas principales.
+
+Notas de UX por ruta admin:
+
+- `/boletin`: el boletin imprimible usa ancho A4 con scroll lateral en movil y
+  boton `Atras` arriba a la izquierda.
+- `/admin/certificados`: certificado de notas y certificado de matricula usan
+  ancho A4 con scroll lateral en movil y boton `Atras` arriba a la izquierda.
+- `/admin/cartera-vencida`: los reportes imprimibles por estudiante y por curso
+  usan ancho A4 con scroll lateral en movil.
+- `/admin/estudiantes`: el modal de detalle organiza el observador en tarjetas
+  legibles en movil.
+- `/admin/diseno-impresos`: tabs y controles de plantillas se ajustan para uso
+  en pantallas estrechas.
+
 ## Navegacion de profesor
 
 `src/components/NavProfesor.jsx` muestra enlaces a:

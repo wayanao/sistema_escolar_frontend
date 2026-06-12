@@ -208,6 +208,33 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 - Como probarlo: buscar `api.get`, `api.post`, `api.put` y `api.delete` y revisar duplicados por modulo.
 - Recomendacion tecnica: crear servicios por dominio cuando se refactorice cada modulo.
 
+## Checklist UX movil admin e impresos
+
+Estado 2026-06-11: ajustado y validado con lint/build.
+
+[x] `NavAdmin` movil abre grupos bajo demanda y diferencia subpestanas.
+[x] Boletin imprimible conserva ancho A4 y tiene scroll lateral en movil.
+[x] Certificado de notas y certificado de matricula conservan ancho A4 y tienen
+scroll lateral en movil.
+[x] Estados de cuenta de cartera por estudiante y por curso conservan ancho A4
+y tienen scroll lateral en movil.
+[x] Boton `Atras` de boletin y certificados no se superpone con el toolbar de
+`Descargar PDF`/`Imprimir`.
+[x] Observador de estudiante desde admin queda organizado en tarjetas en movil.
+
+Pruebas manuales recomendadas despues de desplegar:
+
+- En celular, iniciar sesion como admin y abrir/cerrar el menu principal.
+- Entrar a `/boletin`, generar un boletin y desplazarlo lateralmente.
+- Entrar a `/admin/certificados`, generar ambos tipos de certificado y revisar
+  scroll lateral.
+- Entrar a `/admin/cartera-vencida`, generar estado de cuenta por estudiante y
+  por curso.
+- Entrar a `/admin/estudiantes`, abrir detalle y revisar el bloque de
+  observaciones.
+- Repetir revision breve en PC para confirmar que la vista de escritorio se
+  mantiene estable.
+
 ## Pendientes 2026-05-30 - Super admin
 
 ### Validacion manual de acceso

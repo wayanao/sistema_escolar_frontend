@@ -22,6 +22,7 @@ export default function DocumentoImprimible({
   subtitulo,
   firmas,
   children,
+  className = "",
 }) {
   const { branding, plantilla, loading, error } = usePrintConfig(tipo);
 
@@ -58,6 +59,15 @@ export default function DocumentoImprimible({
   const mostrarPie = config.mostrar_pie !== false;
   const mostrarFirmas = config.mostrar_firmas !== false && Array.isArray(firmas) && firmas.length > 0;
   const bordeado = config.borde_documento === true;
+  const abrirDialogoPDF = () => window.print();
+  const clasesDocumento = className.split(" ").filter(Boolean);
+  const usaScrollMovil = clasesDocumento.some((clase) =>
+    [
+      "di-documento--boletin",
+      "di-documento--certificado",
+      "di-documento--cartera",
+    ].includes(clase)
+  );
 
   const logos = (
     <div className="di-encabezado__logos">
@@ -90,9 +100,9 @@ export default function DocumentoImprimible({
   );
 
   return (
-    <div className="di-print-root" style={styleVars}>
+    <div className={`di-print-root ${usaScrollMovil ? "di-print-root--scroll-mobile" : ""}`} style={styleVars}>
       <article
-        className={`di-documento ${bordeado ? "di-documento--bordeado" : ""}`}
+        className={`di-documento ${className} ${bordeado ? "di-documento--bordeado" : ""}`}
       >
         <table className="di-tabla-documento">
           <thead>
@@ -150,9 +160,17 @@ export default function DocumentoImprimible({
       <div className="di-toolbar no-print">
         <button
           type="button"
-          onClick={() => window.print()}
-          className="bg-indigo-600 text-white px-4 py-3 rounded-full shadow-xl hover:bg-indigo-700 transition"
-          title="Imprimir"
+          onClick={abrirDialogoPDF}
+          className="di-toolbar__button di-toolbar__button--primary"
+          title="Descargar o guardar como PDF"
+        >
+          Descargar PDF
+        </button>
+        <button
+          type="button"
+          onClick={abrirDialogoPDF}
+          className="di-toolbar__button di-toolbar__button--secondary"
+          title="Imprimir documento"
         >
           Imprimir
         </button>

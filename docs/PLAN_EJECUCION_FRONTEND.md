@@ -166,6 +166,28 @@ Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archiv
 - Cuando hacer commit:
   - Despues de build exitoso y prueba manual de login, rutas protegidas y una ruta admin/profesor.
 
+## Completado 2026-06-11 - UX movil admin e impresos
+
+Objetivo cerrado:
+
+- Mejorar la experiencia movil del perfil admin, especialmente navegacion,
+  impresos y observador de estudiante.
+
+Trabajo realizado:
+
+- `NavAdmin` movil con grupos colapsables bajo demanda.
+- Impresos de boletin, certificados y cartera con scroll lateral A4 en movil.
+- Toolbar compacto de documentos con `Descargar PDF` e `Imprimir`.
+- Boton `Atras` arriba en boletin y certificados para evitar superposicion.
+- Diseno de impresos/plantillas adaptado para pantallas estrechas.
+- Observador de estudiante desde admin reorganizado en tarjetas responsive.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build` ejecutado con permisos elevados por `EPERM` local conocido
+  de Vite/fnm.
+
 ## Pendiente 2026-05-30 - Flujo super admin
 
 Estado actual:

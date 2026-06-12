@@ -865,12 +865,12 @@ function EstudiantesAdmin() {
 
       {/* Modal de Detalles del Estudiante */}
       {selectedEstudiante && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 relative flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center capitalize">
-                  Resumen de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
-                  <span className="ml-3 text-sm bg-purple-50 text-purple-900 border border-purple-200 px-3 py-1 rounded-full font-medium">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl my-3 sm:my-8 relative flex flex-col max-h-[94vh] sm:max-h-[90vh]">
+            <div className="p-4 sm:p-6 border-b border-gray-200 flex items-start justify-between gap-3 bg-gray-50 rounded-t-lg">
+                <h2 className="min-w-0 text-lg sm:text-2xl font-bold text-gray-800 flex flex-col gap-2 capitalize sm:flex-row sm:items-center">
+                  <span className="break-words">Resumen de {selectedEstudiante.apellido} {selectedEstudiante.nombre}</span>
+                  <span className="w-fit text-xs sm:text-sm bg-purple-50 text-purple-900 border border-purple-200 px-3 py-1 rounded-full font-medium">
                     {cursos.find(c => c.id === selectedEstudiante.curso_id)?.nombre || "Curso no asignado"}
                   </span>
               </h2>
@@ -882,7 +882,7 @@ function EstudiantesAdmin() {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="p-3 sm:p-6 overflow-y-auto flex-1">
               {loadingDetalles ? (
                 <div className="flex justify-center p-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -968,35 +968,59 @@ function EstudiantesAdmin() {
                   </div>
 
                   {/* Observaciones */}
-                  <div className="md:col-span-2 bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-                    <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center gap-2">📝 Observaciones del Estudiante</h3>
+                  <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
+                    <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Observador</p>
+                        <h3 className="text-lg font-bold text-amber-900">Observaciones del estudiante</h3>
+                      </div>
+                      <span className="w-fit rounded-full border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800">
+                        {detallesEstudiante.observaciones?.length || 0} registros
+                      </span>
+                    </div>
                     {detallesEstudiante.observaciones && detallesEstudiante.observaciones.length > 0 ? (
-                      <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                      <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1 sm:max-h-72 sm:pr-2">
                         {detallesEstudiante.observaciones.map((obs, i) => (
-                          <div key={i} className="bg-white p-3 rounded shadow-sm border border-yellow-200">
-                              <div className="flex justify-between items-center mb-3">
-                                  <span className="text-xs font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">📅 Periodo {obs.periodo} | 👨‍🏫 {obs.profesor} | 📚 {obs.materia}</span>
-                                  {obs.fecha && <span className="text-xs text-gray-400">{obs.fecha}</span>}
+                          <article key={i} className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
+                            <div className="border-b border-slate-100 bg-slate-50 px-3 py-3">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex min-w-0 flex-wrap gap-1.5">
+                                  <ObservacionPill label="Periodo" value={obs.periodo || "N/A"} />
+                                  <ObservacionPill label="Materia" value={obs.materia || "Sin materia"} />
+                                  <ObservacionPill label="Profesor" value={obs.profesor || "Sin profesor"} />
                                 </div>
-                              <div className="flex flex-col gap-2 mt-2">
-                                <div className="bg-purple-50 p-2 rounded border border-purple-100">
-                                  <p className="text-xs font-bold text-purple-900 uppercase">CONDUCTUAL</p>
-                                  <p className="text-sm text-gray-700">{obs.conductual}</p>
-                                </div>
-                                <div className="bg-green-50 p-2 rounded border border-green-100">
-                                  <p className="text-xs font-bold text-green-800 uppercase">COGNITIVO</p>
-                                  <p className="text-sm text-gray-700">{obs.cognitivo}</p>
-                                </div>
-                                <div className="bg-purple-50 p-2 rounded border border-purple-100">
-                                  <p className="text-xs font-bold text-purple-800 uppercase">LENGUAJE</p>
-                                  <p className="text-sm text-gray-700">{obs.lenguaje}</p>
-                                </div>
+                                {obs.fecha && (
+                                  <span className="w-fit rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 ring-1 ring-slate-200">
+                                    {obs.fecha}
+                                  </span>
+                                )}
                               </div>
-                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3">
+                              <ObservacionDimension
+                                titulo="Conductual"
+                                texto={obs.conductual}
+                                className="border-purple-100 bg-purple-50 text-purple-900"
+                              />
+                              <ObservacionDimension
+                                titulo="Cognitivo"
+                                texto={obs.cognitivo}
+                                className="border-emerald-100 bg-emerald-50 text-emerald-900"
+                              />
+                              <ObservacionDimension
+                                titulo="Lenguaje"
+                                texto={obs.lenguaje}
+                                className="border-sky-100 bg-sky-50 text-sky-900"
+                              />
+                            </div>
+                          </article>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 italic">No hay observaciones registradas</p>
+                      <div className="rounded-lg border border-dashed border-amber-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-500">
+                        No hay observaciones registradas
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1006,7 +1030,7 @@ function EstudiantesAdmin() {
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end">
+            <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end">
               <button 
                 onClick={cerrarModal}
                 className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors font-medium"
@@ -1018,6 +1042,26 @@ function EstudiantesAdmin() {
         </div>
       )}
     </div>
+  );
+}
+
+function ObservacionPill({ label, value }) {
+  return (
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+      <span className="shrink-0 uppercase tracking-wide text-slate-400">{label}:</span>
+      <span className="min-w-0 truncate">{value}</span>
+    </span>
+  );
+}
+
+function ObservacionDimension({ titulo, texto, className }) {
+  return (
+    <section className={`rounded-lg border p-3 ${className}`}>
+      <p className="mb-1 text-[10px] font-black uppercase tracking-widest">{titulo}</p>
+      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+        {texto || "Sin registro"}
+      </p>
+    </section>
   );
 }
 

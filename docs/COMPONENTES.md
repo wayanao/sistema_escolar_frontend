@@ -23,6 +23,24 @@ Estado actual de componentes y paginas del frontend.
 - `Observaciones.jsx`: manejo de observaciones.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 
+## Comportamiento UX movil documentado
+
+- `NavAdmin.jsx`: en movil muestra enlaces principales y grupos colapsables.
+  Las subpestanas de admin se abren solo al seleccionar su grupo, para evitar
+  que el menu despliegue todas las opciones al abrirse.
+- `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
+  necesitan comportamiento especial de pantalla. Los documentos marcados como
+  boletin, certificado o cartera usan root con scroll lateral en movil.
+- `Boletin.jsx`: el impreso final conserva ancho A4 en movil y se desplaza a
+  los lados. El boton `Atras` queda arriba a la izquierda.
+- `CertificadosAdmin.jsx`: certificado de notas y certificado de matricula
+  conservan ancho A4 en movil, tienen scroll lateral y boton `Atras` arriba.
+- `CarteraVencidaAdmin.jsx`: los estados de cuenta por estudiante y por curso
+  conservan ancho A4 en movil y usan scroll lateral.
+- `EstudiantesAdmin.jsx`: el modal de detalle del estudiante organiza el
+  observador en tarjetas con chips de periodo, materia, profesor y fecha. En
+  movil las secciones se apilan; en escritorio se muestran como columnas.
+
 ## Componentes por modulo
 
 ### Admin
@@ -45,6 +63,14 @@ Estado actual de componentes y paginas del frontend.
 ### Impresion
 
 - `components/impresion/DocumentoImprimible.jsx`
+
+Notas:
+
+- El toolbar de documentos imprimibles muestra `Descargar PDF` e `Imprimir`.
+  Ambos botones usan el dialogo nativo del navegador mediante `window.print()`.
+- En celular, el resultado de descarga depende del navegador. Android/Chrome
+  suele mostrar `Guardar como PDF`; iOS/Safari puede mostrar opciones de
+  compartir o imprimir.
 
 ## Paginas existentes
 
@@ -87,3 +113,9 @@ Estado actual de componentes y paginas del frontend.
 
 - `src/index.css`: estilos globales cargados desde `main.jsx`.
 - `styles/print.css`: estilos para impresion.
+
+`styles/print.css` contiene las reglas moviles de documentos imprimibles:
+
+- documentos comunes: se adaptan al ancho disponible;
+- boletin/certificados/cartera: mantienen `210mm` de ancho y se desplazan
+  horizontalmente en pantallas pequenas.

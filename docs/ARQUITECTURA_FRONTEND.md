@@ -64,6 +64,21 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - Si no, muestra `NavProfesor`.
 - Si no existe ningun usuario/profesor en sesion, redirige a `/login`.
 
+## Criterios de UX responsive
+
+- Los ajustes moviles se concentran en clases responsive de Tailwind y en
+  `src/styles/print.css`.
+- En documentos imprimibles, la regla general es:
+  - documentos comunes se adaptan al ancho de pantalla;
+  - boletin, certificados y cartera mantienen formato A4 (`210mm`) y usan
+    scroll horizontal en movil.
+- `DocumentoImprimible` es el punto de entrada para toolbar, branding,
+  encabezado, firmas, pie de pagina y comportamiento especial por documento.
+- `NavAdmin` mantiene grupos colapsables en movil para reducir ruido visual y
+  diferenciar subpestanas de enlaces principales.
+- `EstudiantesAdmin` mantiene el observador dentro del modal de detalle; la UI
+  movil usa tarjetas apiladas y la UI de escritorio conserva disposicion amplia.
+
 ## Build
 
 Los scripts actuales de `package.json` son:

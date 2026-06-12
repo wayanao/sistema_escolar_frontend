@@ -133,12 +133,12 @@ export default function PlantillasAdmin() {
 
       <div className="bg-white rounded-lg shadow border border-slate-200 p-4">
         <p className="text-sm text-slate-600 mb-2 font-semibold">Tipo de documento:</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {TIPOS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTipoActivo(t.key)}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+              className={`shrink-0 px-3 py-1.5 rounded text-sm font-medium transition ${
                 tipoActivo === t.key
                   ? "bg-purple-600 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -150,7 +150,7 @@ export default function PlantillasAdmin() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <div className="lg:col-span-1 space-y-3">
           {loading ? (
             <p className="text-slate-500 italic">Cargando...</p>
@@ -176,7 +176,7 @@ export default function PlantillasAdmin() {
               onSave={(nuevaConfig) => guardarConfig(seleccionada, nuevaConfig)}
             />
           ) : (
-            <div className="bg-white rounded-lg shadow border border-slate-200 p-12 text-center text-slate-500">
+            <div className="bg-white rounded-lg shadow border border-slate-200 p-6 text-center text-slate-500 sm:p-12">
               Selecciona una plantilla a la izquierda para verla y/o editarla.
             </div>
           )}
@@ -197,15 +197,15 @@ function PlantillaCard({ plantilla, seleccionada, onSelect, onActivar, onDuplica
           : "border-slate-200 hover:border-slate-400"
       }`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div>
+      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h3 className="font-bold text-slate-800">{plantilla.nombre}</h3>
           <p className="text-xs text-slate-500">
             {plantilla.es_predefinida ? "Predefinida" : "Personalizada"}
           </p>
         </div>
         {plantilla.activa && (
-          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
+          <span className="w-fit bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
             ACTIVA
           </span>
         )}
@@ -257,10 +257,10 @@ function EditorPlantilla({ plantilla, onSave }) {
   const bloqueado = plantilla.es_predefinida;
 
   return (
-    <div className="bg-white rounded-lg shadow border border-slate-200 p-6">
+    <div className="bg-white rounded-lg shadow border border-slate-200 p-4 sm:p-6">
       <div className="mb-4 flex justify-between items-start">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">{plantilla.nombre}</h2>
+          <h2 className="text-lg font-bold text-slate-800 sm:text-xl">{plantilla.nombre}</h2>
           {bloqueado && (
             <p className="text-sm text-amber-600 mt-1">
               ⚠️ Las plantillas predefinidas no se pueden editar. Duplícala para personalizar.
@@ -294,7 +294,7 @@ function EditorPlantilla({ plantilla, onSave }) {
         </Campo>
 
         <Campo label="Posición del logo principal">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             {POSICIONES_LOGO.map((p) => (
               <button
                 key={p.value}
@@ -313,7 +313,7 @@ function EditorPlantilla({ plantilla, onSave }) {
         </Campo>
 
         <Campo label="Alineación del encabezado">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             {ALINEACIONES.map((p) => (
               <button
                 key={p.value}
@@ -331,7 +331,7 @@ function EditorPlantilla({ plantilla, onSave }) {
           </div>
         </Campo>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
           <CampoNumero
             label="Margen sup. (mm)"
             value={config.margen_top ?? 20}
@@ -386,7 +386,7 @@ function EditorPlantilla({ plantilla, onSave }) {
           <button
             onClick={() => onSave(config)}
             disabled={bloqueado}
-            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow"
+            className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow sm:w-auto"
           >
             Guardar cambios
           </button>

@@ -452,6 +452,7 @@ function CarteraVencidaAdmin() {
 
                 <DocumentoImprimible
                     tipo="reporte_estudiante"
+                    className={`di-documento--cartera di-documento--cartera-${reporteImpresion.tipo}`}
                     titulo="Estado de cuenta"
                     subtitulo={`${reporteImpresion.tipo === "curso" ? "Curso" : "Estudiante"}: ${reporteImpresion.nombre}`}
                 >
