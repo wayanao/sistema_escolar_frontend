@@ -2,6 +2,8 @@
 
 Estado actual del manejo de sesion en el frontend.
 
+Ultima revision documental: 2026-06-13.
+
 ## Almacenamiento usado
 
 La aplicacion usa `localStorage` para varios datos de sesion y seleccion.
@@ -15,6 +17,12 @@ Claves observadas:
 - `periodo`: periodo seleccionado.
 - `fechaAsistencia`: fecha usada en asistencia.
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
+
+Separacion importante:
+
+- `usuario`, `profesor` y `super_admin` son datos visuales de sesion.
+- `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion` son
+  selecciones de trabajo del perfil profesor.
 
 Tambien se usa cookie:
 
@@ -50,11 +58,21 @@ Nota:
 - `profesor`
 - `usuario`
 - `super_admin`
+- `tenant` como limpieza legacy
 - `asignacionId`
 - `periodo`
 
 Tambien llaman `POST /logout`, intentan expirar la cookie `token` como
 compatibilidad para desarrollo y redirigen a `/login`.
+
+`NavSuperAdmin.jsx` limpia las mismas claves principales de sesion.
+
+Nota operativa:
+
+- `fechaAsistencia` y `planillaTipoEvaluacion` pueden quedar como preferencias
+  locales de trabajo si no se limpian explicitamente en el logout. Si se
+  observan selecciones antiguas al cambiar de usuario, conviene centralizar una
+  limpieza unica de sesion/trabajo.
 
 ## Limpieza automatica por 401
 
@@ -81,3 +99,5 @@ Luego redirige a `/login`.
 - Parte del estado sensible se conserva en `localStorage`.
 - La UI depende de datos de sesion locales para mostrar u ocultar rutas.
 - La expiracion real del token y permisos depende del backend.
+- Las selecciones de trabajo compartidas por modulos del profesor pueden quedar
+  viejas si un usuario cambia de curso, periodo o cuenta sin refrescar el flujo.

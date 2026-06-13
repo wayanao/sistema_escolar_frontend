@@ -236,6 +236,109 @@ Uso:
   `/reportes/general`.
 - El panel de detalle alterna entre tabla de ingresos y tabla de egresos.
 
+## Modulos del perfil profesor
+
+### Dashboard profesor
+
+`DashboardProfesor.jsx` consume:
+
+```text
+GET /mis-clases/{profesor_id}
+GET /dashboard/inasistencias/{profesor_id}
+GET /dashboard/notas-bajas/{asignacion_id}/{periodo}
+GET /dashboard/notas-altas/{asignacion_id}/{periodo}
+```
+
+Uso:
+
+- `GET /mis-clases/{profesor_id}` se consulta una sola vez y alimenta selector
+  de clases y horario.
+- Inasistencias y rendimiento cargan como secciones independientes para no
+  bloquear el layout inicial.
+- Notas bajas y altas se consultan en paralelo cuando hay asignacion y periodo.
+
+### Planilla de notas
+
+`Planilla.jsx` consume:
+
+```text
+GET /mis-clases/{profesor_id}
+GET /planilla-excel/{asignacion_id}/{periodo}
+POST /planilla/nota
+DELETE /planilla/tipo?asignacion_id={id}&descripcion={tipo}&periodo={periodo}
+```
+
+Uso:
+
+- Carga estudiantes, columnas, notas y promedio desde
+  `/planilla-excel/{asignacion_id}/{periodo}`.
+- Oculta columnas tecnicas como `mas_alto`.
+- Formatea etiquetas tecnicas para que no aparezcan con guiones bajos.
+- Marca textos de nombres, tipos de nota e inputs con `translate="no"` para
+  evitar traducciones automaticas del navegador.
+- En movil renderiza tarjetas por estudiante; en escritorio conserva tabla.
+- Las notas numericas se validan entre `1` y `5`; la captura movil normaliza
+  coma decimal a punto antes de enviar.
+- El promedio se pinta verde desde `3.0` y rojo por debajo de `3.0`.
+
+### Asistencia
+
+`Asistencia.jsx` consume:
+
+```text
+GET /mis-clases/{profesor_id}
+GET /planilla-excel/{asignacion_id}/{periodo}
+GET /asistencia/historial/{asignacion_id}/{periodo}
+POST /asistencia
+```
+
+Uso:
+
+- Carga estudiantes usando la misma referencia de planilla.
+- Carga historial de asistencia por asignacion y periodo.
+- Muestra estado visual mientras carga historial de inasistencias.
+- Si existe asistencia guardada para la fecha seleccionada, precarga estados y
+  muestra aviso `Asistencia del día ya tomada`.
+- Si el historial falla, muestra mensaje y permite `Reintentar`.
+
+### Observador del estudiante
+
+`Formulario.jsx` y `Observaciones.jsx` consumen:
+
+```text
+GET /planilla/{asignacion_id}
+GET /observaciones/{estudiante_id}/{asignacion_id}/{periodo}
+POST /observaciones
+```
+
+Uso:
+
+- `Formulario.jsx` lista estudiantes de la asignacion seleccionada.
+- `Observaciones.jsx` carga/guarda dimensiones conductual, cognitiva y lenguaje.
+- La verificacion inicial del estado tiene cancelacion con tiempo limite para
+  no dejar el badge en `Verificando` indefinidamente en movil.
+- El estado visible puede ser `Verificando`, `Pendiente`, `Guardado` o
+  `Cambios sin guardar`.
+
+### Ingreso de boletin final
+
+`IngresoBoletinProfesor.jsx` consume:
+
+```text
+GET /mis-clases/{profesor_id}
+GET /boletines/referencia/{asignacion_id}/{periodo}
+POST /boletines/guardar
+```
+
+Uso:
+
+- Carga notas de referencia de la planilla para que el profesor escriba
+  observaciones del boletin.
+- Oculta notas tecnicas como `mas_alto`.
+- Muestra tipos de nota con etiquetas humanas y `translate="no"` para evitar
+  traduccion automatica en Android/Chrome.
+- Guarda resumen del boletin por estudiante.
+
 ## Certificados
 
 `CertificadosAdmin.jsx` consume:
@@ -350,7 +453,7 @@ Notas frontend sin cambio de API:
 
 ## Riesgos pendientes observados
 
-Actualizacion 2026-06-01:
+Actualizacion 2026-06-13:
 
 - `GET /super-admin/tenants` ahora diferencia:
   - `estado`: estado efectivo por fecha de pago/gracia;
@@ -362,3 +465,7 @@ Actualizacion 2026-06-01:
 - Produccion depende de que `VITE_API_URL` este configurado en Vercel con la URL
   publica del backend.
 - La autorizacion final debe estar siempre en backend, no solo en la UI.
+- Los modulos del profesor dependen de `asignacionId`, `periodo` y
+  `fechaAsistencia` guardados como seleccion de trabajo en `localStorage`.
+- Si el backend responde lento en hosting gratuito, las pantallas deben mostrar
+  estados de carga o reintento para no parecer vacias.

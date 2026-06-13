@@ -2,6 +2,8 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
+Ultima revision documental: 2026-06-13.
+
 ## Rutas publicas
 
 | Ruta | Componente | Observacion |
@@ -85,6 +87,9 @@ correspondiente, por ejemplo Gestion Academica o Cartera, y entonces se muestran
 sus subenlaces. Los subenlaces usan estilo indentado/diferenciado para no
 confundirse con las pestañas principales.
 
+La opcion `Nómina` esta marcada con `translate="no"` para evitar que navegadores
+moviles la traduzcan como `nombre`.
+
 Notas de UX por ruta admin:
 
 - `/boletin`: el boletin imprimible usa ancho A4 con scroll lateral en movil y
@@ -103,12 +108,25 @@ Notas de UX por ruta admin:
 `src/components/NavProfesor.jsx` muestra enlaces a:
 
 - Dashboard.
-- Planilla.
-- Asistencia.
-- Formulario.
-- Plan de clases.
-- Planeador anual.
+- Control Academico:
+  - Planilla.
+  - Asistencia.
+  - Observaciones (`/Formulario`).
+- Planeacion Academica:
+  - Plan de clases.
+  - Planeador anual / Malla Curricular.
 - Ingreso de boletin.
+
+Notas de UX por ruta profesor:
+
+- `/planilla`: en movil usa tarjetas por estudiante; en escritorio conserva
+  tabla. El promedio se colorea verde/rojo segun umbral `3.0`.
+- `/asistencia`: muestra carga/reintento del historial y aviso si la asistencia
+  del dia ya fue tomada.
+- `/Formulario`: monta el Observador del estudiante; la verificacion inicial no
+  debe quedarse indefinidamente en `Verificando`.
+- `/ingreso-boletin`: oculta notas internas como `mas_alto` y protege tipos de
+  nota con `translate="no"`.
 
 ## Navegacion de super admin
 

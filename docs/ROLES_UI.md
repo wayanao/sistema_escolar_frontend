@@ -2,6 +2,8 @@
 
 Estado actual del manejo de roles en la interfaz.
 
+Ultima revision documental: 2026-06-13.
+
 ## Roles observados
 
 La UI distingue principalmente:
@@ -55,10 +57,16 @@ se envia un header de tenant desde el frontend.
 - `localStorage.usuario`, o
 - `localStorage.profesor`.
 
+Si el usuario admin tiene `debe_cambiar_password = true`, redirige a
+`/cambiar-password`.
+
 `AdminRoute` permite acceso si existe:
 
 - `localStorage.usuario`
 - y `usuario.rol === "admin"`.
+
+Si el admin tiene password temporal pendiente, tambien redirige a
+`/cambiar-password`.
 
 `SuperAdminRoute` permite acceso si existe:
 
@@ -82,3 +90,12 @@ Algunas paginas administrativas leen `usuario` desde `localStorage` y validan el
 ## Riesgo pendiente observado
 
 Estas validaciones de rol son de frontend. Protegen la experiencia de usuario, pero no reemplazan las validaciones del backend. La seguridad real depende de que cada endpoint valide token, rol, tenant y permisos.
+
+Notas operativas SaaS:
+
+- `super_admin` es rol de plataforma; no debe depender de un tenant de colegio
+  para autorizar acciones.
+- `admin` y `profesor` operan dentro de un tenant/colegio resuelto por backend
+  desde cookie/token.
+- La UI puede ocultar rutas, pero cualquier bloqueo real de tenant suspendido,
+  cancelado o permisos debe hacerse en backend.

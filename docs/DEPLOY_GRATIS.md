@@ -3,6 +3,8 @@
 Guia para desplegar primero sin rama de preproduccion. La idea es validar el
 flujo completo y despues separar ambientes.
 
+Ultima revision documental: 2026-06-13.
+
 ## Arquitectura inicial
 
 ```text
@@ -36,6 +38,16 @@ NODE_ENV=production
 Si el backend usa cookies cross-site, debe configurar cookies con `Secure` y
 `SameSite=None`, y CORS debe permitir credenciales.
 
+Notas importantes para movil:
+
+- Si frontend y backend estan en dominios distintos (`vercel.app` y
+  `onrender.com`), los navegadores moviles pueden ser mas estrictos con cookies
+  cross-site.
+- En produccion estable, es preferible usar dominios/subdominios propios
+  alineados, por ejemplo `app.tudominio.com` y `api.tudominio.com`.
+- Confirmar siempre que CORS permita credenciales y que la cookie sea compatible
+  con el esquema de dominios elegido.
+
 ### Base de datos en Neon
 
 Para esta primera fase se usa una sola base de datos. Copia el connection string
@@ -52,6 +64,29 @@ de Neon y pegalo en `DATABASE_URL` del backend en Render.
 7. Configurar `VITE_API_URL` en Vercel con la URL publica de Render.
 8. Ejecutar un redeploy del frontend.
 9. Probar login, rutas protegidas, pagos, reportes e imagenes.
+
+## Verificacion post deploy
+
+Despues de cada deploy de frontend:
+
+1. Abrir la app en escritorio y en Android real.
+2. Iniciar sesion como admin y profesor.
+3. Confirmar que cookies/sesion sobreviven a refrescar la pagina.
+4. Probar una ruta de admin y una ruta de profesor.
+5. En profesor, revisar `Planilla`, `Asistencia`, `Observaciones` e
+   `Ingreso de Boletin`.
+6. En admin, revisar menu movil, impresos y una pantalla financiera.
+7. Revisar DevTools/Network si alguna llamada queda en `401`, `403` o demora
+   demasiado.
+
+## Render/Neon en plan gratis
+
+- Render puede dormir el servicio y causar demora en la primera peticion.
+- Neon/Render pueden limitar conexiones; si aparece `connection pool exhausted`,
+  revisar que el backend cierre conexiones en `finally` y reiniciar/redeployar
+  para liberar conexiones colgadas.
+- Si un modulo tarda en cargar, diferenciar si el problema es cold start,
+  consulta lenta, muchas peticiones simultaneas o error de sesion/cookie.
 
 ## Configuracion de Vercel
 
@@ -75,6 +110,10 @@ pnpm run check:deploy
 
 Ese comando ejecuta lint y build. El build revisa que `VITE_API_URL` exista y
 que en despliegues remotos no apunte a `localhost`.
+
+En esta maquina local puede aparecer un `EPERM` conocido de Vite/fnm al hacer
+build dentro del sandbox; en ese caso se ha validado relanzando el build con
+permisos elevados.
 
 ## Despues de validar
 

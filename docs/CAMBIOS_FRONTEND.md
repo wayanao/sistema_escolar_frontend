@@ -2,6 +2,43 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-13 - Organizacion de documentacion frontend SaaS
+
+Se reorganizo y actualizo la documentacion del frontend para mejorar el control
+operativo del SaaS.
+
+Archivos modificados/agregados:
+
+- `docs/README.md`
+- `docs/API_CLIENT.md`
+- `docs/ARQUITECTURA_FRONTEND.md`
+- `docs/CHECKLIST_PRODUCCION_FRONTEND.md`
+- `docs/COMPONENTES.md`
+- `docs/DEPLOY_GRATIS.md`
+- `docs/ESTADO_SESION.md`
+- `docs/PLAN_EJECUCION_FRONTEND.md`
+- `docs/PRODUCCION_FRONTEND.md`
+- `docs/ROLES_UI.md`
+- `docs/RUTAS_FRONTEND.md`
+
+Cambios:
+
+- Se agrego un indice principal para saber que documento usar segun el tema.
+- Se documentaron los modulos recientes del perfil profesor: planilla movil,
+  asistencia, observador e ingreso de boletin.
+- Se agregaron criterios de Android/Chrome para `translate="no"` y ocultamiento
+  de etiquetas tecnicas como `mas_alto`.
+- Se actualizo la documentacion de produccion con UX movil profesor/admin,
+  riesgos de cookies, Render/Neon y verificaciones post deploy.
+- Se actualizaron rutas, roles, sesion, arquitectura y checklist para reflejar
+  el estado actual del SaaS.
+
+Verificacion ejecutada:
+
+```powershell
+rg -n "2026-06-13|Planilla|Asistencia|Observaciones|IngresoBoletin|translate=\"no\"|mas_alto" docs
+```
+
 ## 2026-06-12 - Verificacion del observador en movil
 
 Se ajusto el estado inicial del Observador del estudiante para evitar que el

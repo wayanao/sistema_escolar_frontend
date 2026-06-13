@@ -5,8 +5,10 @@ Estado actual de componentes y paginas del frontend.
 ## Componentes principales
 
 - `LoginForm.jsx`: formulario de acceso; consume `/login`.
-- `NavAdmin.jsx`: menu principal para usuario admin.
-- `NavProfesor.jsx`: menu principal para profesor.
+- `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones
+  y protege etiquetas como `Nómina` con `translate="no"`.
+- `NavProfesor.jsx`: menu principal para profesor; en movil separa control
+  academico y planeacion.
 - `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
@@ -63,6 +65,8 @@ Estado actual de componentes y paginas del frontend.
 - La planilla marca nombres, etiquetas e inputs con `translate="no"` para
   reducir traducciones automaticas del navegador sobre textos guardados por el
   profesor.
+- Oculta columnas internas como `mas_alto` para que no aparezcan como tipos de
+  nota reales.
 
 ## Asistencia profesor
 
@@ -114,6 +118,12 @@ Estado actual de componentes y paginas del frontend.
   nota con etiquetas humanas marcadas con `translate="no"`.
 - `components/boletin/Materia.jsx`
 - `components/boletin/TablaNotas.jsx`
+
+### Constantes
+
+- `constants/valoracionesDesarrollo.js`: opciones compartidas de desarrollo
+  infantil (`Destacado`, `Logrado`, `En proceso`, `Requiere apoyo`) usadas por
+  planilla y vistas relacionadas.
 
 ### Cartera
 

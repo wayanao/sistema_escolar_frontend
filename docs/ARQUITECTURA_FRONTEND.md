@@ -36,6 +36,7 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/boletin/`: componentes del modulo de boletines.
 - `src/components/cartera/`: componentes del modulo de cartera.
 - `src/components/impresion/`: componentes de documentos imprimibles.
+- `src/constants/`: constantes compartidas entre paginas/componentes.
 - `src/hooks/`: hooks propios del frontend.
 - `src/pages/`: paginas principales de la aplicacion.
 - `src/services/`: servicios de frontend.
@@ -76,8 +77,30 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   encabezado, firmas, pie de pagina y comportamiento especial por documento.
 - `NavAdmin` mantiene grupos colapsables en movil para reducir ruido visual y
   diferenciar subpestanas de enlaces principales.
+- `NavAdmin` marca etiquetas sensibles como `Nómina` con `translate="no"` para
+  evitar traducciones automaticas en Android/Chrome.
+- `NavProfesor` mantiene grupos moviles para control academico y planeacion.
+- `Planilla` usa vista de tarjetas en movil y tabla en escritorio; las etiquetas
+  tecnicas se formatean y se protegen con `translate="no"`.
+- `IngresoBoletinProfesor` reutiliza el criterio de planilla: oculta notas
+  internas y evita traduccion automatica de tipos de nota.
+- `Asistencia` muestra estados de carga/reintento para historial y aviso cuando
+  la asistencia de la fecha ya fue tomada.
+- `Observaciones` acota la verificacion inicial para evitar estados
+  `Verificando` indefinidos en conexiones moviles lentas.
 - `EstudiantesAdmin` mantiene el observador dentro del modal de detalle; la UI
   movil usa tarjetas apiladas y la UI de escritorio conserva disposicion amplia.
+
+## Convenciones actuales
+
+- Para textos guardados por usuarios o etiquetas academicas que no deben ser
+  traducidas por el navegador, usar `translate="no"`.
+- Las columnas internas o tecnicas, como `mas_alto`, no deben mostrarse al
+  usuario final.
+- Las mejoras moviles deben conservar la experiencia de escritorio salvo que el
+  cambio sea explicitamente solicitado para ambas vistas.
+- Los documentos imprimibles que representan formatos A4 deben conservar ancho
+  fijo y usar scroll horizontal en pantalla movil.
 
 ## Build
 

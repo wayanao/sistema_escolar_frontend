@@ -2,6 +2,8 @@
 
 Estado actual de preparacion para produccion del frontend.
 
+Ultima revision documental: 2026-06-13.
+
 ## Variables de entorno
 
 Archivo observado:
@@ -132,6 +134,39 @@ Prueba manual recomendada antes de liberar:
   observador no se vea corrido ni superpuesto.
 - Repetir una revision rapida en escritorio para confirmar que la vista amplia
   se conserva.
+
+## UX movil del perfil profesor
+
+Ajustes activos en produccion:
+
+- `Planilla.jsx` usa tarjetas por estudiante en movil para facilitar captura de
+  notas desde celular; escritorio conserva tabla tradicional.
+- Los promedios de planilla se pintan verde desde `3.0` y rojo por debajo de
+  `3.0` tanto en movil como en escritorio.
+- La planilla oculta columnas tecnicas como `mas_alto`, formatea etiquetas y
+  marca textos sensibles con `translate="no"` para evitar traducciones
+  automaticas del navegador.
+- La captura numerica de planilla normaliza coma decimal de teclado movil a
+  punto antes de calcular/enviar.
+- `IngresoBoletinProfesor.jsx` oculta notas tecnicas y protege los tipos de
+  nota con `translate="no"` para evitar nombres raros o traducidos en Android.
+- `Asistencia.jsx` muestra carga/reintento del historial de inasistencias y
+  avisa cuando la asistencia de la fecha ya fue tomada.
+- `Observaciones.jsx` evita que el badge inicial quede indefinidamente en
+  `Verificando` cuando la consulta se cuelga en movil.
+
+Prueba manual recomendada antes de liberar:
+
+- En Android real, entrar como profesor a `Planilla`, editar una nota y revisar
+  que color/promedio se comporten correctamente tras guardar.
+- En `Ingreso de Boletín Final`, confirmar que no aparezca `mas_alto` ni tipos
+  de nota traducidos por el navegador.
+- En `Asistencia`, confirmar que el historial muestre carga o reintento si
+  tarda, y que aparezca `Asistencia del día ya tomada` cuando ya exista registro.
+- En `Observaciones`, confirmar que el badge pase de `Verificando` a
+  `Pendiente` o `Guardado`.
+- Repetir una revision breve en PC para confirmar que tabla y layouts amplios se
+  mantienen.
 
 ## Performance del dashboard profesor
 
@@ -299,7 +334,7 @@ backend en lugar de "Credenciales incorrectas".
 
 ## Riesgos pendientes observados
 
-Actualizacion 2026-06-10:
+Actualizacion 2026-06-13:
 
 - El login recibe `debe_cambiar_password` desde backend.
 - Si es `true`, redirige a `/cambiar-password`.
@@ -316,3 +351,9 @@ Actualizacion 2026-06-10:
 - `dist/` y logs locales estan ignorados por `.gitignore`; no deben
   versionarse.
 - La seguridad efectiva depende de que el backend valide cada endpoint.
+- En hosting gratuito, Render puede dormir o responder lento; las pantallas
+  deben mostrar estados de carga/reintento y el backend debe cerrar conexiones
+  de base de datos correctamente.
+- El comportamiento de cookies en movil depende de dominio, `SameSite`,
+  `Secure`, CORS con credenciales y navegador. Para produccion estable, conviene
+  evitar combinaciones cross-site fragiles entre frontend/backend.

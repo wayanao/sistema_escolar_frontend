@@ -2,6 +2,8 @@
 
 Checklist tecnico basado en el estado actual documentado del frontend.
 
+Ultima revision documental: 2026-06-13.
+
 ## 1. CRITICO
 
 ### Cookie de sesion en produccion
@@ -210,9 +212,11 @@ Checklist tecnico basado en el estado actual documentado del frontend.
 
 ## Checklist UX movil admin e impresos
 
-Estado 2026-06-11: ajustado y validado con lint/build.
+Estado 2026-06-13: ajustado y validado con lint/build en cambios principales.
 
 [x] `NavAdmin` movil abre grupos bajo demanda y diferencia subpestanas.
+[x] Opcion `Nómina` marcada con `translate="no"` para evitar traduccion a
+`nombre` en Android.
 [x] Boletin imprimible conserva ancho A4 y tiene scroll lateral en movil.
 [x] Certificado de notas y certificado de matricula conservan ancho A4 y tienen
 scroll lateral en movil.
@@ -235,11 +239,43 @@ Pruebas manuales recomendadas despues de desplegar:
 - Repetir revision breve en PC para confirmar que la vista de escritorio se
   mantiene estable.
 
+## Checklist UX movil profesor
+
+Estado 2026-06-13: ajustes aplicados en planilla, asistencia, observador e
+ingreso de boletin.
+
+[x] `Planilla` movil usa tarjetas por estudiante.
+[x] `Planilla` escritorio conserva tabla tradicional.
+[x] Promedio de planilla se pinta verde desde `3.0` y rojo por debajo de `3.0`
+en movil y escritorio.
+[x] Tipos de nota en planilla usan etiquetas humanas y `translate="no"`.
+[x] Columnas internas como `mas_alto` se ocultan de la planilla.
+[x] `IngresoBoletinProfesor` oculta `mas_alto` y protege tipos de nota contra
+traduccion automatica.
+[x] `Asistencia` muestra estado de carga/reintento para historial de
+inasistencias.
+[x] `Asistencia` muestra aviso cuando la asistencia del dia ya fue tomada.
+[x] `Observaciones` tiene tiempo limite/cancelacion para no quedar en
+`Verificando` indefinidamente.
+
+Pruebas manuales recomendadas despues de desplegar:
+
+- Android real: entrar a `Planilla`, editar notas y verificar promedio/color.
+- Android real: abrir `Ingreso de Boletin Final` y confirmar que `quiz`,
+  `taller` u otros tipos no sean traducidos por el navegador.
+- Android real: confirmar que `mas_alto` no aparezca como nota.
+- Android real: abrir `Asistencia`, revisar historial y guardar/actualizar una
+  asistencia.
+- Android real: abrir `Observaciones`, confirmar que el badge no quede
+  permanentemente en `Verificando`.
+- PC: repetir planilla y boletin para confirmar que la vista de escritorio no
+  perdio comportamiento.
+
 ## Pendientes 2026-05-30 - Super admin
 
 ### Validacion manual de acceso
 
-- Estado: pendiente.
+- Estado: pendiente de prueba manual completa por tenant real.
 
 ## Cierre SaaS 2026-06-01
 
@@ -249,6 +285,8 @@ Pruebas manuales recomendadas despues de desplegar:
 [ ] Confirmar que crear colegio rechaza password temporal debil.
 [ ] Confirmar que super admin muestra `estado` efectivo y `estado_manual` si
 son diferentes.
+[ ] Confirmar que tenant `en_mora` muestra banner en admin/profesor.
+[ ] Confirmar que tenant `suspendido` o `cancelado` queda bloqueado por backend.
 - Archivo afectado: `src/App.jsx`, `src/pages/SuperAdminDashboard.jsx`.
 - Como probarlo:
   - iniciar sesion con `super_admin`;

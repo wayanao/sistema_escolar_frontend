@@ -2,6 +2,8 @@
 
 Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archivo no cambia codigo; ordena el trabajo futuro del frontend.
 
+Ultima revision documental: 2026-06-13.
+
 ## 1. Seguridad frontend
 
 - Objetivo: reducir exposicion de datos sensibles en el navegador y dejar claro que la autorizacion real viene del backend.
@@ -188,6 +190,41 @@ Verificacion:
 - `pnpm run build` ejecutado con permisos elevados por `EPERM` local conocido
   de Vite/fnm.
 
+## Completado 2026-06-13 - UX movil profesor y etiquetas Android
+
+Objetivo cerrado:
+
+- Mejorar la experiencia movil del perfil profesor y evitar traducciones
+  automaticas del navegador sobre etiquetas academicas.
+
+Trabajo realizado:
+
+- `Planilla` movil con tarjetas por estudiante.
+- Promedio de planilla con color verde/rojo en movil y escritorio.
+- Ocultamiento de columnas tecnicas como `mas_alto`.
+- Formateo de etiquetas tecnicas de notas.
+- `translate="no"` en nombres, tipos de nota, inputs y etiquetas sensibles.
+- Normalizacion de coma decimal de teclado movil en notas numericas.
+- `IngresoBoletinProfesor` alineado con planilla para ocultar notas internas y
+  evitar traduccion automatica.
+- `Asistencia` con carga/reintento de historial y aviso de asistencia ya tomada.
+- `Observaciones` con tiempo limite/cancelacion para no quedar en
+  `Verificando`.
+
+Verificacion:
+
+- `pnpm run lint` en ajustes puntuales.
+- `pnpm run build` ejecutado en cambios principales cuando fue necesario; en
+  local requiere permisos elevados por `EPERM` conocido de Vite/fnm.
+
+Pendiente posible:
+
+- Si Android real sigue sin refrescar valores de planilla en tiempo real, medir
+  si el problema es cache del bundle, evento `blur` del teclado movil o
+  respuesta tardia del backend antes de seguir cambiando codigo.
+- Si `Observaciones` sigue lento, redisenar la pantalla para abrir/cargar un
+  estudiante a la vez en vez de montar todos los formularios simultaneamente.
+
 ## Completado 2026-06-11 - Primera optimizacion dashboard profesor
 
 Objetivo cerrado:
@@ -226,7 +263,6 @@ Estado actual:
 
 Pendiente manual:
 
-- Reiniciar backend y frontend despues de los cambios.
 - Probar login con codigo `super_admin`.
 - Confirmar que `/super-admin` no entra con `admin` ni `profesor`.
 - Confirmar que `/super-admin` lista tenants.
