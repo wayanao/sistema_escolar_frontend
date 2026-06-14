@@ -2,6 +2,169 @@
 @tailwind components;
 @tailwind utilities;
 
+.desktop-animated-nav {
+  --nav-accent: rgba(255, 255, 255, 0.86);
+  --nav-accent-soft: rgba(255, 255, 255, 0.16);
+  --nav-accent-glow: rgba(255, 255, 255, 0.26);
+  --nav-active-text: #111827;
+  --indicator-x: 0px;
+  --indicator-width: 0px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  padding: 0.25rem;
+  box-shadow: none;
+}
+
+.desktop-animated-nav--admin {
+  --nav-accent: rgba(250, 232, 255, 0.95);
+  --nav-accent-soft: rgba(250, 232, 255, 0.18);
+  --nav-accent-glow: rgba(217, 70, 239, 0.24);
+  --nav-active-text: #581c87;
+}
+
+.desktop-animated-nav--profesor {
+  --nav-accent: rgba(224, 242, 254, 0.95);
+  --nav-accent-soft: rgba(224, 242, 254, 0.18);
+  --nav-accent-glow: rgba(34, 211, 238, 0.22);
+  --nav-active-text: #0c4a6e;
+}
+
+.desktop-nav-indicator {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0;
+  z-index: 0;
+  width: var(--indicator-width);
+  pointer-events: none;
+  transform: translateX(var(--indicator-x));
+  border: 1px solid var(--nav-accent);
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    var(--nav-accent-soft);
+  box-shadow: 0 8px 22px var(--nav-accent-glow);
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease;
+}
+
+.desktop-animated-nav.is-restoring .desktop-nav-indicator {
+  box-shadow: 0 10px 26px var(--nav-accent-glow);
+  transition:
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 180ms ease;
+}
+
+.desktop-nav-indicator::after {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.28rem;
+  left: 0.65rem;
+  height: 2px;
+  content: "";
+  border-radius: 999px;
+  background: var(--nav-accent);
+}
+
+.desktop-nav-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1;
+  padding: 0 0.82rem;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+  white-space: nowrap;
+}
+
+.desktop-nav-item:hover,
+.desktop-nav-item:focus-visible {
+  color: #fff;
+}
+
+.desktop-nav-item.is-active {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--nav-active-text);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+}
+
+.desktop-nav-item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 2px;
+}
+
+.desktop-nav-chevron {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 160ms ease;
+}
+
+.desktop-nav-group {
+  position: relative;
+  display: inline-flex;
+  padding: 0;
+}
+
+.desktop-nav-group:hover .desktop-nav-chevron,
+.desktop-nav-group:focus-within .desktop-nav-chevron {
+  transform: rotate(180deg);
+}
+
+.desktop-nav-dropdown {
+  margin-top: 0.35rem;
+  border-color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(135%);
+  box-shadow:
+    0 0 0 1px var(--nav-accent-soft),
+    0 16px 38px rgba(15, 23, 42, 0.18),
+    0 0 32px var(--nav-accent-glow);
+  transform-origin: top left;
+  animation: desktopDropdownBubble 170ms ease-out;
+}
+
+@keyframes desktopDropdownBubble {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-nav-indicator,
+  .desktop-nav-item,
+  .desktop-nav-chevron,
+  .desktop-nav-dropdown {
+    transition: none;
+    animation: none;
+  }
+}
+
 .print-area {
   display: none !important;
 }

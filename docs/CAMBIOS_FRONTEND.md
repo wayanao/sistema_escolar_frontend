@@ -2,6 +2,36 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-13 - Navbar animado de escritorio para admin y profesor
+
+Se agrego un navbar animado reutilizable para escritorio, inspirado en el
+modelo visual de borde/indicador sobre la pestaña activa.
+
+Archivos modificados/agregados:
+
+- `src/components/DesktopAnimatedNav.jsx`
+- `src/components/NavAdmin.jsx`
+- `src/components/NavProfesor.jsx`
+- `src/index.css`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `NavAdmin` y `NavProfesor` usan el nuevo componente solo desde breakpoint
+  `lg`.
+- Los menus moviles se mantienen con el comportamiento colapsable existente.
+- El indicador se calcula segun el elemento activo o en hover, por lo que no
+  depende de `nth-child` ni de una cantidad fija de pestañas.
+- Se conserva `translate="no"` para `Nómina`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
 ## 2026-06-13 - Organizacion de documentacion frontend SaaS
 
 Se reorganizo y actualizo la documentacion del frontend para mejorar el control

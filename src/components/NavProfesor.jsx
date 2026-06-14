@@ -1,6 +1,31 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../utils/api";
+import DesktopAnimatedNav from "./DesktopAnimatedNav";
+
+const profesorDesktopItems = [
+  { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
+  {
+    id: "control",
+    type: "group",
+    label: "Control Académico",
+    children: [
+      { id: "planilla", label: "Planilla", to: "/planilla" },
+      { id: "asistencia", label: "Asistencia", to: "/asistencia" },
+      { id: "observaciones", label: "Observaciones", to: "/Formulario" },
+    ],
+  },
+  {
+    id: "planeacion",
+    type: "group",
+    label: "Planeación Académica",
+    children: [
+      { id: "plan-clases", label: "Plan de Clases", to: "/plan-de-clases" },
+      { id: "malla", label: "Malla Curricular", to: "/planeador-anual" },
+    ],
+  },
+  { id: "boletin", type: "link", label: "Boletín Final", to: "/ingreso-boletin" },
+];
 
 function NavProfesor() {
   const navigate = useNavigate();
@@ -31,11 +56,6 @@ function NavProfesor() {
   const nombreUsuario = currentUser
     ? `${currentUser.nombre || ""} ${currentUser.apellido || ""}`.trim()
     : "";
-
-  const topLinkClass = ({ isActive }) =>
-    isActive
-      ? "rounded-md bg-blue-50 px-3 py-1.5 font-semibold text-blue-900 transition"
-      : "text-white hover:text-blue-100 transition";
 
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2 text-sm " +
@@ -81,7 +101,7 @@ function NavProfesor() {
         {/* Mobile menu button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-white hover:text-blue-100 focus:outline-none"
+          className="lg:hidden text-white hover:text-blue-100 focus:outline-none"
           aria-label="Abrir menu de profesor"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,43 +114,20 @@ function NavProfesor() {
         </button>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-4">
-          <NavLink className={topLinkClass} to="/">Dashboard</NavLink>
-
-          {/* Dropdown Control Académico */}
-          <div className="relative group py-2">
-            <span className="text-white hover:text-blue-100 transition cursor-pointer font-medium flex items-center gap-1">
-              Control Académico
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </span>
-            <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[180px] z-50 border border-gray-100">
-              <NavLink className={dropdownLinkClass} to="/planilla">Planilla</NavLink>
-              <NavLink className={dropdownLinkClass} to="/asistencia">Asistencia</NavLink>
-              <NavLink className={dropdownLinkClass} to="/Formulario">Observaciones</NavLink>
-            </div>
-          </div>
-
-          {/* Dropdown Planeación Académica */}
-          <div className="relative group py-2">
-            <span className="text-white hover:text-blue-100 transition cursor-pointer font-medium flex items-center gap-1">
-              Planeación Académica
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </span>
-            <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[190px] z-50 border border-gray-100">
-              <NavLink className={dropdownLinkClass} to="/plan-de-clases">Plan de Clases</NavLink>
-              <NavLink className={dropdownLinkClass} to="/planeador-anual">Malla Curricular</NavLink>
-            </div>
-          </div>
-
-          <NavLink className={topLinkClass} to="/ingreso-boletin">Boletín Final</NavLink>
-
+        <div className="hidden lg:flex items-center gap-3">
+          <DesktopAnimatedNav
+            items={profesorDesktopItems}
+            variant="profesor"
+            dropdownLinkClass={dropdownLinkClass}
+            ariaLabel="Navegación principal de profesor"
+          />
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesion</button>
-        </nav>
+        </div>
       </div>
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/">Dashboard</NavLink>
 
           {/* Grupo móvil: Control Académico */}

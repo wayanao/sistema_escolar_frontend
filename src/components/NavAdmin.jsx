@@ -1,6 +1,41 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../utils/api";
+import DesktopAnimatedNav from "./DesktopAnimatedNav";
+
+const adminDesktopItems = [
+  { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
+  {
+    id: "academica",
+    type: "group",
+    label: "Gestión Académica",
+    children: [
+      { id: "horarios", label: "Horarios Asignados", to: "/admin/horarios" },
+      { id: "planeadores", label: "Planeadores de Clases", to: "/admin/planeadores-clases" },
+      { id: "certificados", label: "Certificados", to: "/admin/certificados" },
+      { id: "boletines", label: "Gestión Boletines", to: "/boletin" },
+      { id: "diseno-impresos", label: "Diseño de impresos", to: "/admin/diseno-impresos" },
+    ],
+  },
+  {
+    id: "cartera",
+    type: "group",
+    label: "Cartera",
+    children: [
+      { id: "pagos", label: "Gestión de Pagos", to: "/admin/pagos" },
+      { id: "tipos-pagos", label: "Tipos de Pago", to: "/admin/tipos-pagos" },
+      { id: "cartera-vencida", label: "Cartera Vencida", to: "/admin/cartera-vencida" },
+      { id: "inventario", label: "Inventario", to: "/admin/inventario" },
+      { id: "ventas", label: "Punto de Venta", to: "/admin/ventas" },
+      { id: "egresos", label: "Egresos", to: "/admin/egresos" },
+      { id: "prestamos", label: "Préstamos", to: "/admin/prestamos" },
+      { id: "nomina", label: "Nómina", to: "/admin/nomina", translate: "no" },
+    ],
+  },
+  { id: "administracion", type: "link", label: "Administración", to: "/admin", end: true },
+  { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes" },
+  { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes" },
+];
 
 function NavAdmin() {
   const navigate = useNavigate();
@@ -27,14 +62,6 @@ function NavAdmin() {
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const nombreUsuario = usuario ? usuario.nombre : "";
-  const topLinkClass = ({ isActive }) =>
-    isActive
-      ? "rounded-md bg-purple-50 px-3 py-1.5 font-semibold text-purple-900 transition"
-      : "text-white hover:text-purple-100 transition";
-  const exactTopLinkClass = ({ isActive }) =>
-    isActive
-      ? "rounded-md bg-purple-50 px-3 py-1.5 font-semibold text-purple-900 transition"
-      : "text-white hover:text-purple-100 transition";
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2 text-sm " +
     (isActive
@@ -77,7 +104,7 @@ function NavAdmin() {
         {/* Mobile menu button */}
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-white hover:text-purple-100 focus:outline-none"
+          className="lg:hidden text-white hover:text-purple-100 focus:outline-none"
           aria-label="Abrir menu de administrador"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,51 +117,20 @@ function NavAdmin() {
         </button>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-4">
-          <NavLink className={topLinkClass} to="/dashboard-admin">Dashboard</NavLink>
-          
-          {/* Dropdown Gestión Académica */}
-          <div className="relative group py-2">
-            <span className="text-white hover:text-purple-100 transition cursor-pointer font-medium flex items-center gap-1">
-              Gestión Académica 
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </span>
-            <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[170px] z-50 border border-gray-100">
-                <NavLink className={dropdownLinkClass} to="/admin/horarios">Horarios Asignados</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/planeadores-clases">Planeadores de Clases</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/certificados">Certificados</NavLink>
-                <NavLink className={dropdownLinkClass} to="/boletin">Gestión Boletines</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
-            </div>
-          </div>
-
-          {/* Dropdown Cartera */}
-          <div className="relative group py-2">
-            <span className="text-white hover:text-purple-100 transition cursor-pointer font-medium flex items-center gap-1">
-              Cartera 
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </span>
-            <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 py-2 rounded shadow-lg min-w-[170px] z-50 border border-gray-100">
-                <NavLink className={dropdownLinkClass} to="/admin/pagos">Gestión de Pagos</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/tipos-pagos">Tipos de Pago</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/cartera-vencida">Cartera Vencida</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/inventario">Inventario</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/ventas">Punto de Venta</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/egresos">Egresos</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/prestamos">Préstamos</NavLink>
-                <NavLink className={dropdownLinkClass} to="/admin/nomina" translate="no">Nómina</NavLink>
-              </div>
-          </div>
-          <NavLink end className={exactTopLinkClass} to="/admin">Administración</NavLink>
-          <NavLink className={topLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
-          <NavLink className={topLinkClass} to="/admin/reportes">Reportes</NavLink>
+        <div className="hidden lg:flex items-center gap-3">
+          <DesktopAnimatedNav
+            items={adminDesktopItems}
+            variant="admin"
+            dropdownLinkClass={dropdownLinkClass}
+            ariaLabel="Navegación principal de administrador"
+          />
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesión</button>
-        </nav>
+        </div>
       </div>
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 md:hidden">
+        <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/dashboard-admin">Dashboard</NavLink>
 
           <button

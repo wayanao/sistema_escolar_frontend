@@ -9,6 +9,9 @@ Estado actual de componentes y paginas del frontend.
   y protege etiquetas como `Nómina` con `translate="no"`.
 - `NavProfesor.jsx`: menu principal para profesor; en movil separa control
   academico y planeacion.
+- `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
+  usa indicador animado medido por elemento activo/hover, sin depender de
+  `nth-child` ni de una cantidad fija de pestañas.
 - `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
