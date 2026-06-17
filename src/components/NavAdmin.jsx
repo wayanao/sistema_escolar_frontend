@@ -124,6 +124,7 @@ function NavAdmin() {
             dropdownLinkClass={dropdownLinkClass}
             ariaLabel="Navegación principal de administrador"
           />
+          <span className="h-6 w-px shrink-0 bg-white/35" aria-hidden="true" />
           <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesión</button>
         </div>
       </div>
