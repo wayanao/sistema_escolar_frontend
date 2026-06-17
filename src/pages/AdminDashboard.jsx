@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
 import api from "../utils/api";
 
 const formatMoney = (v) =>
@@ -102,7 +103,11 @@ const dashboardCardStyles = `
 function Admin() {
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const usuarioRol = usuario?.rol;
   const [resumenCartera, setResumenCartera] = useState(null);
+  const [cumpleanos, setCumpleanos] = useState([]);
+  const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
+  const [errorCumpleanos, setErrorCumpleanos] = useState("");
 
   useEffect(() => {
     if (!usuario || usuario.rol !== "admin") return;
@@ -113,7 +118,34 @@ function Admin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!usuario || usuario.rol !== "admin") {
+  useEffect(() => {
+    if (usuarioRol !== "admin") return;
+
+    let activo = true;
+    setLoadingCumpleanos(true);
+    setErrorCumpleanos("");
+
+    api
+      .get("/dashboard/cumpleanos/admin", { params: { dias: 7 } })
+      .then((res) => {
+        if (!activo) return;
+        setCumpleanos(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((err) => {
+        if (!activo) return;
+        console.error("Error cargando cumpleaños:", err);
+        setErrorCumpleanos("No se pudieron cargar los cumpleaños de la semana.");
+      })
+      .finally(() => {
+        if (activo) setLoadingCumpleanos(false);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [usuarioRol]);
+
+  if (!usuario || usuarioRol !== "admin") {
     navigate("/login");
     return null;
   }
@@ -166,6 +198,7 @@ function Admin() {
   ];
 
   const hayMora = resumenCartera && resumenCartera.total_estudiantes > 0;
+  const primerNombreAdmin = (usuario.nombre || "Admin").trim().split(/\s+/)[0];
   const handleCardKeyDown = (event, path) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -179,7 +212,14 @@ function Admin() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
-        <p className="text-gray-600">Bienvenido, {usuario.nombre}</p>
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
+          <span>
+            Hola, <strong className="font-bold text-gray-950">{primerNombreAdmin}</strong>
+          </span>
+          <span className="text-sm text-gray-600">
+            🚀 Organiza tu colegio y toma buenas decisiones hoy.
+          </span>
+        </p>
       </div>
 
       {/* Card destacada: Cartera Vencida */}
@@ -282,6 +322,15 @@ function Admin() {
           </div>
         ))}
       </div>
+
+      <CumpleanosSemana
+        className="mt-6"
+        estudiantes={cumpleanos}
+        loading={loadingCumpleanos}
+        error={errorCumpleanos}
+        diasRango={7}
+        emptyText="Esta semana no hay estudiantes activos de cumpleaños."
+      />
     </div>
   );
 }

@@ -30,15 +30,22 @@ Estado actual de componentes y paginas del frontend.
   cancelacion con tiempo limite para no dejar el badge en `Verificando`
   indefinidamente.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
+- `dashboard/CumpleanosSemana.jsx`: panel reutilizable para mostrar cumpleaños
+  de estudiantes de los proximos 7 dias en dashboards con estados de carga,
+  error y lista vacia.
 
 ## Dashboard admin
 
 - `pages/AdminDashboard.jsx`: panel inicial del perfil admin en
   `/dashboard-admin`.
+- El encabezado saluda con `Hola`, primer nombre del admin en negrita y una
+  frase corta de inicio de labor al lado del nombre.
 - La card destacada de cartera mantiene su presencia visual original.
 - Las cards principales de pagos, estudiantes, gestion academica y reportes son
   accesos compactos con fondo tintado, franja lateral de color, burbuja visual
   suave y elevacion en hover/focus.
+- Debajo de las cards muestra `Cumpleaños de la semana` consumiendo
+  `/dashboard/cumpleanos/admin?dias=7`.
 - La animacion respeta `prefers-reduced-motion` y no cambia rutas, permisos ni
   carga de datos.
 - Este cambio no aplica al dashboard profesor ni a la pagina academica
@@ -47,6 +54,11 @@ Estado actual de componentes y paginas del frontend.
 ## Dashboard profesor
 
 - `pages/DashboardProfesor.jsx`: panel inicial del perfil profesor.
+- El encabezado saluda con `Hola`, primer nombre del profesor en negrita y una
+  frase corta para iniciar la jornada docente al lado del nombre.
+- Muestra `Cumpleaños de la semana` con estudiantes activos de cursos
+  asignados al profesor, consumiendo
+  `/dashboard/cumpleanos/profesor/{profesor_id}?dias=7`.
 - Carga `GET /mis-clases/{profesor_id}` una sola vez y reutiliza esa respuesta
   para selector de clases y horario semanal.
 - La pantalla ya no depende de un `loading` global. Cada bloque muestra su

@@ -2,6 +2,76 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-17 - Cumpleanos de estudiantes en dashboards
+
+Se agrego un panel visual de cumpleaños de estudiantes en los dashboards de
+admin y profesor.
+
+Archivos modificados:
+
+- `src/components/dashboard/CumpleanosSemana.jsx`
+- `src/pages/AdminDashboard.jsx`
+- `src/pages/DashboardProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- El dashboard admin muestra debajo de las cards un bloque `Cumpleaños de la
+  semana` con los estudiantes activos que cumplen anos en los proximos 7 dias.
+- El dashboard profesor muestra el mismo bloque con estudiantes de sus cursos
+  asignados.
+- El panel muestra nombre, curso, si cumple hoy/manana/en cuantos dias, edad
+  cuando se puede calcular y estados de carga, error o lista vacia.
+- Se consume el nuevo backend de dashboard para no cargar todos los estudiantes
+  en el navegador.
+
+Alcance tecnico:
+
+- No se cambia navegacion, permisos visuales ni formularios.
+- Requiere los endpoints backend:
+  `/dashboard/cumpleanos/admin` y
+  `/dashboard/cumpleanos/profesor/{profesor_id}`.
+- Ambos se consumen con `dias=7`.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-17 - Saludo personalizado en dashboards admin y profesor
+
+Se ajusto el saludo inicial de los dashboards principales para que sea mas
+cercano y directo.
+
+Archivos modificados:
+
+- `src/pages/AdminDashboard.jsx`
+- `src/pages/DashboardProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- El dashboard admin ya no muestra `Bienvenido`; ahora muestra `Hola` y el
+  primer nombre del usuario admin en negrita.
+- El dashboard profesor ya no muestra `Bienvenida/o`; ahora muestra `Hola` y
+  el primer nombre del profesor en negrita.
+- Cada dashboard muestra la frase corta con emoji al lado del nombre, como un
+  mensaje de inicio.
+
+Alcance tecnico:
+
+- Cambio visual y de texto en frontend.
+- No cambia rutas, permisos, carga de datos, endpoints ni backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-17 - Animacion de cards en dashboard admin
 
 Se agrego una animacion visual suave solamente al dashboard principal de admin.

@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
@@ -37,6 +38,9 @@ function DashboardProfesor() {
   const [loadingClases, setLoadingClases] = useState(true);
   const [loadingInasistencias, setLoadingInasistencias] = useState(true);
   const [loadingRendimiento, setLoadingRendimiento] = useState(false);
+  const [cumpleanos, setCumpleanos] = useState([]);
+  const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
+  const [errorCumpleanos, setErrorCumpleanos] = useState("");
 
   const handleAsignacionChange = (e) => {
     const value = e.target.value;
@@ -60,6 +64,7 @@ function DashboardProfesor() {
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
   const profesorId = profesor?.id;
   const nombreProfesor = profesor ? `${profesor.nombre || ""} ${profesor.apellido || ""}`.trim() : "";
+  const primerNombreProfesor = (profesor?.nombre || nombreProfesor || "profe").trim().split(/\s+/)[0];
   const clasesUnicas = useMemo(() => {
     const vistos = new Map();
     for (const clase of clases) {
@@ -157,6 +162,25 @@ function DashboardProfesor() {
     }
   }, [profesorId]);
 
+  const cargarCumpleanos = useCallback(async () => {
+    if (!profesorId) return;
+
+    setLoadingCumpleanos(true);
+    setErrorCumpleanos("");
+
+    try {
+      const res = await api.get(`/dashboard/cumpleanos/profesor/${profesorId}`, {
+        params: { dias: 7 },
+      });
+      setCumpleanos(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error cargando cumpleaños", error);
+      setErrorCumpleanos("No se pudieron cargar los cumpleaños de la semana.");
+    } finally {
+      setLoadingCumpleanos(false);
+    }
+  }, [profesorId]);
+
   const cargarRendimiento = useCallback(async () => {
     if (!profesorId) return;
     if (!cursoFiltroRendimiento) {
@@ -190,7 +214,8 @@ function DashboardProfesor() {
     }
     cargarClases();
     cargarInasistencias();
-  }, [cargarClases, cargarInasistencias, profesorId]);
+    cargarCumpleanos();
+  }, [cargarClases, cargarCumpleanos, cargarInasistencias, profesorId]);
 
   useEffect(() => {
     if (!cursosProfesor.length || cursoFiltroRendimiento) return;
@@ -216,8 +241,13 @@ function DashboardProfesor() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Panel del Profesor
         </h1>
-        <p className="text-gray-600">
-          Bienvenida/o,  {nombreProfesor}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
+          <span>
+            Hola, <strong className="font-bold text-gray-950">{primerNombreProfesor}</strong>
+          </span>
+          <span className="text-sm text-gray-600">
+            📚 Prepara tu jornada y acompaña cada avance con calma.
+          </span>
         </p>
       </div>
 
@@ -261,6 +291,15 @@ function DashboardProfesor() {
           />
         </div>
       </div>
+
+      <CumpleanosSemana
+        className="mb-6"
+        estudiantes={cumpleanos}
+        loading={loadingCumpleanos}
+        error={errorCumpleanos}
+        diasRango={7}
+        emptyText="Esta semana no hay estudiantes de tus cursos asignados cumpliendo años."
+      />
 
       <section className="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
         <div className="border-b border-gray-200 bg-white px-4 py-4 sm:px-5">
