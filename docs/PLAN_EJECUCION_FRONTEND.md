@@ -2,7 +2,7 @@
 
 Plan de ejecucion basado en `docs/CHECKLIST_PRODUCCION_FRONTEND.md`. Este archivo no cambia codigo; ordena el trabajo futuro del frontend.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-06-17.
 
 ## 1. Seguridad frontend
 
@@ -167,6 +167,54 @@ Ultima revision documental: 2026-06-13.
   - Probar login contra ambiente correcto.
 - Cuando hacer commit:
   - Despues de build exitoso y prueba manual de login, rutas protegidas y una ruta admin/profesor.
+
+## 8. Futuro - Malla curricular como origen del plan diario
+
+- Objetivo: reemplazar plantillas genericas por sugerencias nacidas desde la
+  Malla Curricular real de la clase, manteniendo el Plan de Clases alineado con
+  curso, materia, periodo y fechas.
+- Idea base:
+  - El profesor diligencia la Malla Curricular en `PlaneadorAnual.jsx`.
+  - Cada fila de la malla funciona como consecutivo curricular del periodo
+    usando `slot` como orden.
+  - Al crear un plan diario, `PlanDeClases.jsx` lee la malla de la asignacion y
+    periodo seleccionados.
+  - El sistema compara la fecha del plan diario con la fecha estimada/limite de
+    la malla y sugiere el tema correspondiente o el mas cercano.
+  - El profesor puede usar una fila sugerida para rellenar campos vacios del
+    plan diario y luego editar antes de guardar.
+- Mapeo inicial sin cambiar backend:
+  - `unidad_tematica` -> `unidad`
+  - `contenido` -> `tema`
+  - `estandar_competencia` -> `estandar`
+  - `actividades_recursos` -> `clase` o `competencias`
+  - `fecha` -> fecha estimada/limite para sugerencia
+- UI futura sugerida:
+  - Panel `Sugerido desde la malla`.
+  - Buscador por unidad, contenido o estandar.
+  - Chips de `Periodo`, `Consecutivo`, `Fecha estimada`.
+  - Accion `Usar en plan` con relleno solo de campos vacios.
+- Fase posterior:
+  - Agregar campos mas especificos en backend si el flujo se valida:
+    `fecha_inicio`, `fecha_limite`, `codigo_consecutivo`, `tema`, `logro`.
+  - Conectar una biblioteca pedagogica opcional por nivel/curso/area solo como
+    apoyo, no como fuente oficial.
+- Archivos probables:
+  - `src/pages/PlanDeClases.jsx`
+  - `src/pages/PlaneadorAnual.jsx`
+  - `docs/COMPONENTES.md`
+  - backend solo si se decide formalizar campos nuevos.
+- Riesgo: MEDIO; usar la malla como fuente mejora coherencia, pero una mala
+  sugerencia por fecha puede confundir al profesor.
+- Como probar:
+  - Crear malla con 8 filas, fechas estimadas y contenidos claros.
+  - Abrir Plan de Clases para la misma asignacion y periodo.
+  - Cambiar fecha del plan y confirmar que la sugerencia avanza segun la malla.
+  - Usar una sugerencia y confirmar que no sobrescribe campos ya escritos.
+  - Guardar el plan y verificar que admin lo recibe igual.
+- Cuando hacer commit:
+  - Despues de probar una clase real con periodo completo y al menos tres
+    fechas diferentes.
 
 ## Completado 2026-06-11 - UX movil admin e impresos
 

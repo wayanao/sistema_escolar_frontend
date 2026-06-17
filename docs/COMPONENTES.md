@@ -31,6 +31,19 @@ Estado actual de componentes y paginas del frontend.
   indefinidamente.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 
+## Dashboard admin
+
+- `pages/AdminDashboard.jsx`: panel inicial del perfil admin en
+  `/dashboard-admin`.
+- La card destacada de cartera mantiene su presencia visual original.
+- Las cards principales de pagos, estudiantes, gestion academica y reportes son
+  accesos compactos con fondo tintado, franja lateral de color, burbuja visual
+  suave y elevacion en hover/focus.
+- La animacion respeta `prefers-reduced-motion` y no cambia rutas, permisos ni
+  carga de datos.
+- Este cambio no aplica al dashboard profesor ni a la pagina academica
+  `pages/Admin.jsx`.
+
 ## Dashboard profesor
 
 - `pages/DashboardProfesor.jsx`: panel inicial del perfil profesor.
@@ -86,6 +99,42 @@ Estado actual de componentes y paginas del frontend.
   el boton principal a `Actualizar Asistencia`.
 - Mientras el historial esta cargando, las filas muestran
   `Cargando historial...` en lugar de un contador provisional.
+
+## Plan de clases profesor
+
+- `pages/PlanDeClases.jsx`: pantalla de elaboracion diaria de planes de clase
+  del perfil profesor.
+- Mantiene el guardado existente hacia `POST /plan-de-clases` con los mismos
+  campos y evidencia visual opcional.
+- La interfaz se organiza como taller docente: contexto de clase, estado de
+  guardado, guia didactica y evidencias.
+- Los planes recientes permiten cambiar a una fecha ya guardada o usar un plan
+  anterior como base local para una nueva planeacion.
+- Los apoyos laterales de plantillas rapidas e ideas para enriquecer fueron
+  retirados temporalmente; el trabajo futuro es sugerir contenido desde la
+  Malla Curricular de la asignacion y periodo.
+
+## Planeadores admin
+
+- `pages/PlaneadoresClasesAdmin.jsx`: bandeja administrativa de planes enviados
+  por profesores.
+- Consume `GET /admin/plan-de-clases` con filtros de profesor, fechas y
+  busqueda, ademas de `limit` y `offset` para paginacion.
+- Muestra resumen operativo de total, elementos cargados y envios con
+  evidencia.
+- La lista carga inicialmente 20 registros y permite traer mas con `Cargar más
+  planeaciones`.
+- El detalle conserva revision completa del plan y gestion de imagenes
+  adjuntas sin cambiar permisos ni contrato de backend.
+- El cuerpo del plan seleccionado se presenta como reporte visual: encabezado
+  con chips de contexto, fundamentos pedagogicos en bloques, ruta de clase
+  destacada, actividades separadas y evidencias al final.
+- Solo la lista de envios tiene scroll interno; el detalle del plan crece con
+  la pagina para evitar doble scroll.
+- En escritorio, la lista conserva ancho lateral y su scroll interno se estira
+  a la altura del detalle.
+- La carga inicial se mantiene en 20 envios y los siguientes registros se
+  solicitan con `Cargar más planeaciones`.
 
 ## Comportamiento UX movil documentado
 

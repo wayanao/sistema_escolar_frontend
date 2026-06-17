@@ -24,6 +24,12 @@ const nombreMes = (mes) =>
     month: "long",
   });
 
+const finDeMesISO = (mes) => {
+  const [year, month] = mes.split("-").map(Number);
+  const ultimoDia = new Date(year, month, 0).getDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+};
+
 const normalizarLista = (response) => (Array.isArray(response) ? response : response?.items || []);
 
 function ReportesAdmin() {
@@ -107,6 +113,9 @@ function ReportesAdmin() {
   };
 
   const cargarDetalleMes = async (tipo, mes) => {
+    const inicioMes = `${mes}-01`;
+    const finMes = finDeMesISO(mes);
+
     if (tipo === "ingresos") {
       try {
         setLoadingDetalle(true);
@@ -114,7 +123,7 @@ function ReportesAdmin() {
         setDetalle(normalizarLista(res.data));
         setDetalleTipo("ingresos");
         setDetalleTitulo(nombreMes(mes));
-        setRangoActivo({ inicio: `${mes}-01`, fin: `${mes}-31` });
+        setRangoActivo({ inicio: inicioMes, fin: finMes });
         setFiltroMedioIngreso("todos");
       } catch (error) {
         console.error("Error cargando ingresos del mes:", error);
@@ -127,8 +136,8 @@ function ReportesAdmin() {
 
     await cargarDetalle({
       tipo: "egresos",
-      inicio: `${mes}-01`,
-      fin: `${mes}-31`,
+      inicio: inicioMes,
+      fin: finMes,
       titulo: nombreMes(mes),
     });
   };
@@ -211,35 +220,6 @@ function ReportesAdmin() {
           <p className="mt-1 text-sm text-gray-600">Panel financiero y operativo del colegio</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => {
-              cargarDetalle({
-                tipo: "ingresos",
-                inicio: fechaInicio,
-                fin: fechaFin,
-                titulo: `${fechaInicio} a ${fechaFin}`,
-              });
-            }}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-          >
-            Ver ingresos
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setDetalleTipo("egresos");
-              cargarDetalle({
-                tipo: "egresos",
-                inicio: fechaInicio,
-                fin: fechaFin,
-                titulo: `${fechaInicio} a ${fechaFin}`,
-              });
-            }}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-          >
-            Ver egresos
-          </button>
           <button
             type="button"
             onClick={cargarDatosIniciales}

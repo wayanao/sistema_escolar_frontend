@@ -322,145 +322,208 @@ function PlanDeClases() {
 
   const estadoVisual = obtenerEstadoVisual();
 
+  const usarPlanComoBase = (plan) => {
+    setPlanActualId(null);
+    setImagenes([]);
+    setImagenesGuardadas({ imagen1: null, imagen2: null });
+    if (imagenInputRef.current) imagenInputRef.current.value = "";
+    setPeriodo(String(plan.periodo || periodo));
+    setForm({
+      unidad: plan.unidad || "",
+      proposito: plan.proposito || "",
+      clase: plan.clase || "",
+      estandar: plan.estandar || "",
+      dba: plan.dba || "",
+      competencias: plan.competencias || "",
+      actividad_casa: plan.actividad_casa || "",
+      tema: plan.tema || "",
+    });
+    setEstadoGuardado({
+      cargando: false,
+      guardado: false,
+      modificado: true,
+      guardadoEn: null,
+    });
+    setMensaje("Plan reciente usado como base. Revisa la fecha antes de guardar.");
+  };
+
   return (
-    <div className="space-y-6 p-2 sm:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Plan de clases</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Prepara el plan diario y déjalo disponible para seguimiento administrativo.
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm md:items-end">
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
-            <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
-            {estadoVisual.label}
-          </span>
-          <span className="text-xs font-medium text-gray-500">{estadoVisual.detail}</span>
-          <span className="text-xs text-gray-500">
-            {planActualId ? `Plan #${planActualId}` : "Nuevo plan para la fecha seleccionada"}
-          </span>
-        </div>
-      </div>
-
-      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700">Clase asignada</label>
-            <select
-              value={asignacionId}
-              onChange={(e) => setAsignacionId(e.target.value)}
-              className={campoBase}
-            >
-              <option value="">Selecciona una clase</option>
-              {clasesUnicas.map((claseItem) => (
-                <option key={claseItem.id} value={claseItem.id}>
-                  {claseItem.materia} - {claseItem.curso}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Periodo</label>
-            <select value={periodo} onChange={(e) => actualizarPeriodo(e.target.value)} className={campoBase}>
-              <option value="1">Periodo 1</option>
-              <option value="2">Periodo 2</option>
-              <option value="3">Periodo 3</option>
-              <option value="4">Periodo 4</option>
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Fecha</label>
-            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={campoBase} />
-          </div>
-        </div>
-
-        {selectedClase && (
-          <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg bg-gray-50 p-4 text-sm md:grid-cols-3">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50/50 p-2 sm:p-6">
+      <div className="space-y-6">
+        <section className="rounded-lg border border-sky-100 bg-white/90 p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="font-medium text-gray-600">Materia</span>
-              <p className="text-gray-900">{selectedClase.materia}</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-sky-700">Taller docente</p>
+              <h1 className="mt-1 text-2xl font-bold text-gray-950 sm:text-3xl">Plan de clases</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+                Diseña la clase del día con propósito, actividades y evidencias claras para tu grupo.
+              </p>
             </div>
-            <div>
-              <span className="font-medium text-gray-600">Curso</span>
-              <p className="text-gray-900">{selectedClase.curso}</p>
+            <div className="flex flex-col items-start gap-2 rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-sm md:items-end">
+              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
+                <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
+                {estadoVisual.label}
+              </span>
+              <span className="text-xs font-medium text-gray-600">{estadoVisual.detail}</span>
+              <span className="text-xs text-gray-500">
+                {planActualId ? `Plan #${planActualId}` : "Nuevo plan para la fecha seleccionada"}
+              </span>
             </div>
-            <div>
-              <span className="font-medium text-gray-600">Estado</span>
-              <p className="text-gray-900">{estadoVisual.label}</p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Detalles del plan</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CampoTextarea label="Unidad" value={form.unidad} onChange={(valor) => actualizarCampo("unidad", valor)} />
-          <CampoInput label="Tema" value={form.tema} onChange={(valor) => actualizarCampo("tema", valor)} />
-          <CampoTextarea label="Logro" value={form.proposito} onChange={(valor) => actualizarCampo("proposito", valor)} />
-          <CampoTextarea label="Clase" value={form.clase} onChange={(valor) => actualizarCampo("clase", valor)} />
-          <CampoTextarea label="Estándar" value={form.estandar} onChange={(valor) => actualizarCampo("estandar", valor)} />
-          <CampoTextarea label="Desarrollo cognitivo" value={form.dba} onChange={(valor) => actualizarCampo("dba", valor)} />
-          <CampoTextarea
-            label="Actividad en clase"
-            value={form.competencias}
-            onChange={(valor) => actualizarCampo("competencias", valor)}
-          />
-          <CampoTextarea
-            label="Actividad en casa"
-            value={form.actividad_casa}
-            onChange={(valor) => actualizarCampo("actividad_casa", valor)}
-          />
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="w-full">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">Imágenes</h2>
-            <input
-              ref={imagenInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageChange}
-              className={campoBase}
-            />
-            <ImagenesSeleccionadas imagenes={imagenesSeleccionadas} />
-            <ImagenesGuardadas imagenes={imagenesGuardadas} onEliminarImagen={eliminarImagenGuardada} />
-          </div>
-          <button
-            onClick={guardarPlan}
-            disabled={guardando || cargando}
-            className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 md:w-auto"
-          >
-            {guardando ? "Guardando..." : estadoVisual.buttonText}
-          </button>
-        </div>
-        {mensaje && <p className="mt-3 text-sm text-gray-700">{mensaje}</p>}
-      </section>
-
-      {historial.length > 0 && (
-        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Planes recientes de esta clase</h2>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {historial.map((plan) => (
-              <button
-                key={plan.id}
-                onClick={() => setFecha(plan.fecha)}
-                className="rounded-lg border border-gray-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold text-gray-900">{plan.tema}</span>
-                  <span className="text-xs text-gray-500">{plan.fecha}</span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">{plan.unidad}</p>
-              </button>
-            ))}
           </div>
         </section>
-      )}
+
+        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-gray-700">Clase asignada</label>
+              <select
+                value={asignacionId}
+                onChange={(e) => setAsignacionId(e.target.value)}
+                className={campoBase}
+              >
+                <option value="">Selecciona una clase</option>
+                {clasesUnicas.map((claseItem) => (
+                  <option key={claseItem.id} value={claseItem.id}>
+                    {claseItem.materia} - {claseItem.curso}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Periodo</label>
+              <select value={periodo} onChange={(e) => actualizarPeriodo(e.target.value)} className={campoBase}>
+                <option value="1">Periodo 1</option>
+                <option value="2">Periodo 2</option>
+                <option value="3">Periodo 3</option>
+                <option value="4">Periodo 4</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Fecha</label>
+              <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={campoBase} />
+            </div>
+          </div>
+
+          {selectedClase && (
+            <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg bg-slate-50 p-4 text-sm md:grid-cols-3">
+              <DatoClase label="Materia" value={selectedClase.materia} />
+              <DatoClase label="Curso" value={selectedClase.curso} />
+              <DatoClase label="Estado" value={estadoVisual.label} />
+            </div>
+          )}
+        </section>
+
+        <div className="space-y-6">
+          <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <div className="mb-4 flex flex-col gap-1">
+              <h2 className="text-lg font-semibold text-gray-950">Guía didáctica</h2>
+              <p className="text-sm text-gray-600">Organiza la intención, la ruta de clase y las evidencias de aprendizaje.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <CampoTextarea
+                label="Unidad"
+                value={form.unidad}
+                onChange={(valor) => actualizarCampo("unidad", valor)}
+                placeholder="Nombre de la unidad o eje de trabajo"
+              />
+              <CampoInput
+                label="Tema"
+                value={form.tema}
+                onChange={(valor) => actualizarCampo("tema", valor)}
+                placeholder="Tema central de la clase"
+              />
+              <CampoTextarea
+                label="Logro"
+                value={form.proposito}
+                onChange={(valor) => actualizarCampo("proposito", valor)}
+                placeholder="Qué se espera que logren los estudiantes"
+              />
+              <CampoTextarea
+                label="Clase"
+                value={form.clase}
+                onChange={(valor) => actualizarCampo("clase", valor)}
+                placeholder="Apertura, desarrollo y cierre"
+              />
+              <CampoTextarea
+                label="Estándar"
+                value={form.estandar}
+                onChange={(valor) => actualizarCampo("estandar", valor)}
+                placeholder="Estándar o referente curricular"
+              />
+              <CampoTextarea
+                label="Desarrollo cognitivo"
+                value={form.dba}
+                onChange={(valor) => actualizarCampo("dba", valor)}
+                placeholder="Proceso, habilidad o DBA relacionado"
+              />
+              <CampoTextarea
+                label="Actividad en clase"
+                value={form.competencias}
+                onChange={(valor) => actualizarCampo("competencias", valor)}
+                placeholder="Trabajo individual, grupal, práctica o evidencia"
+              />
+              <CampoTextarea
+                label="Actividad en casa"
+                value={form.actividad_casa}
+                onChange={(valor) => actualizarCampo("actividad_casa", valor)}
+                placeholder="Refuerzo, consulta o producción para casa"
+              />
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="w-full">
+                <h2 className="mb-2 text-lg font-semibold text-gray-950">Evidencias visuales</h2>
+                <input
+                  ref={imagenInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className={campoBase}
+                />
+                <ImagenesSeleccionadas imagenes={imagenesSeleccionadas} />
+                <ImagenesGuardadas imagenes={imagenesGuardadas} onEliminarImagen={eliminarImagenGuardada} />
+              </div>
+              <button
+                onClick={guardarPlan}
+                disabled={guardando || cargando}
+                className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 md:w-auto"
+              >
+                {guardando ? "Guardando..." : estadoVisual.buttonText}
+              </button>
+            </div>
+            {mensaje && <p className="mt-3 text-sm text-gray-700">{mensaje}</p>}
+          </section>
+        </div>
+
+        {historial.length > 0 && (
+          <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold text-gray-950">Planes recientes de esta clase</h2>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {historial.map((plan) => (
+                <div key={plan.id} className="rounded-lg border border-gray-200 p-4 transition hover:border-blue-300 hover:bg-blue-50">
+                  <button type="button" onClick={() => setFecha(plan.fecha)} className="w-full text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-gray-950">{plan.tema}</span>
+                      <span className="text-xs text-gray-500">{plan.fecha}</span>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm text-gray-600">{plan.unidad}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => usarPlanComoBase(plan)}
+                    className="mt-3 rounded-md border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-white"
+                  >
+                    Usar como base
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
@@ -555,20 +618,35 @@ function ImagenGuardadaCard({ imagen, alt, onEliminarImagen }) {
   );
 }
 
-function CampoInput({ label, value, onChange }) {
+function DatoClase({ label, value }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} />
+      <span className="font-medium text-gray-600">{label}</span>
+      <p className="text-gray-950">{value}</p>
     </div>
   );
 }
 
-function CampoTextarea({ label, value, onChange }) {
+function CampoInput({ label, value, onChange, placeholder }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} rows="4" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function CampoTextarea({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={campoBase}
+        rows="4"
+        placeholder={placeholder}
+      />
     </div>
   );
 }

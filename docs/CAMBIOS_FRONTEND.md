@@ -2,6 +2,212 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-17 - Animacion de cards en dashboard admin
+
+Se agrego una animacion visual suave solamente al dashboard principal de admin.
+
+Archivos modificados:
+
+- `src/pages/AdminDashboard.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- Las cards secundarias del dashboard admin ahora son accesos compactos con
+  fondo tintado por modulo, franja lateral de color y una burbuja visual suave.
+- Se organizan en una grilla mas densa en escritorio para evitar tarjetas
+  demasiado grandes.
+- En hover y foco de teclado elevan la tarjeta y refuerzan el color del modulo.
+- La card destacada de cartera vuelve a conservar su estilo visual anterior.
+- El icono de cada card mantiene una microinteraccion leve para dar sensacion
+  de respuesta.
+- Se agrego soporte para `prefers-reduced-motion` para usuarios que reduzcan
+  animaciones del sistema.
+
+Alcance tecnico:
+
+- Cambio limitado a `/dashboard-admin`.
+- No modifica dashboard profesor, rutas, permisos, endpoints ni contratos de
+  backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-17 - Correccion de egresos en movimiento mensual
+
+Se corrigio la consulta de egresos desde `Movimiento mensual` en
+`ReportesAdmin`.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El detalle mensual de egresos ya no arma el rango con `YYYY-MM-31`.
+- Ahora calcula el ultimo dia real del mes antes de llamar
+  `/reportes/egresos-rango`.
+- El rango activo de ingresos mensuales tambien conserva la fecha final real
+  del mes.
+
+Motivo:
+
+- En meses sin dia 31, como febrero, abril, junio, septiembre o noviembre, el
+  rango podia quedar invalido y el panel hacia scroll pero no mostraba egresos.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-17 - Reportes sin accesos rapidos redundantes
+
+Se simplifico el encabezado de `ReportesAdmin` retirando los botones `Ver
+ingresos` y `Ver egresos` que estaban junto a `Actualizar`.
+
+Archivo modificado:
+
+- `src/pages/ReportesAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El encabezado conserva solo el boton `Actualizar`.
+- Los botones `Ingresos` y `Egresos` del panel `Rango de fechas` se mantienen
+  como accion principal para consultar movimientos del rango seleccionado.
+- No se cambio la carga de detalle, filtros, cards financieros ni endpoints.
+
+Alcance tecnico:
+
+- Cambio visual en frontend.
+- No cambia backend, permisos, payload ni base de datos.
+
+## 2026-06-17 - Retiro temporal de apoyos laterales en Plan de Clases
+
+Se retiraron los bloques laterales de `Plantillas rápidas` e `Ideas para
+enriquecer` del perfil profesor para evitar ayudas genericas poco claras
+mientras se diseña un flujo mas util basado en Malla Curricular.
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+- `docs/PLAN_EJECUCION_FRONTEND.md`
+
+Cambio:
+
+- Se eliminaron las plantillas rapidas y su accion de autorrelleno local.
+- Se elimino el panel `Ideas para enriquecer`.
+- El formulario principal de guia didactica y evidencias ocupa todo el ancho
+  disponible.
+- Se mantiene el flujo de `Usar como base` desde planes recientes.
+- Se documento como trabajo futuro conectar Plan de Clases con la Malla
+  Curricular para sugerir temas por asignacion, periodo, consecutivo y fecha.
+
+Alcance tecnico:
+
+- No cambia endpoints, permisos, payload ni base de datos.
+- El retiro es solo visual/funcional en frontend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-17 - Detalle visual de planeaciones recibidas admin
+
+Se mejoro la lectura del plan seleccionado en `PlaneadoresClasesAdmin` para
+que el cuerpo enviado por el profesor se vea como un reporte academico mas
+claro y dinamico.
+
+Archivo modificado:
+
+- `src/pages/PlaneadoresClasesAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- El detalle del plan ahora muestra encabezado de `Reporte recibido` con tema,
+  profesor y chips de materia, curso, periodo y fecha.
+- Se agregaron bloques visuales para fundamentos pedagogicos: unidad, logro,
+  estandar y desarrollo cognitivo.
+- La ruta de clase queda destacada en una seccion propia para mejorar lectura
+  de textos largos.
+- Actividad en clase y actividad en casa se muestran como bloques separados.
+- Las evidencias se mantienen al final del reporte con la misma logica de
+  visualizacion y borrado.
+- Se quito el scroll interno del panel de detalle; el scroll propio queda solo
+  en la lista de `Envíos recibidos`.
+- En escritorio, la lista de envios conserva ancho lateral y su area de scroll
+  se estira con la altura del detalle para evitar un panel cortado.
+- La lista mantiene scroll interno y la carga inicial sigue limitada a 20
+  envios; el historico completo se trae solo al usar `Cargar más planeaciones`.
+
+Alcance tecnico:
+
+- No cambia endpoints, permisos, payload ni base de datos.
+- El cambio es solo UI del detalle admin de planeaciones recibidas.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-17 - Planeadores admin paginados y taller docente profesor
+
+Se ajustaron las pantallas de plan de clases para que el perfil admin revise
+envios de profesores con una bandeja paginada y para que el perfil profesor
+tenga un entorno mas guiado al elaborar sus planes.
+
+Archivos modificados:
+
+- `src/pages/PlaneadoresClasesAdmin.jsx`
+- `src/pages/PlanDeClases.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- `PlaneadoresClasesAdmin` consume `GET /admin/plan-de-clases` con
+  `limit=20` y `offset`, conserva los filtros actuales y agrega boton
+  `Cargar más planeaciones`.
+- La vista admin muestra resumen de `Total`, `Mostrados` y `Con evidencia`,
+  lista de envios mas escaneable y detalle amplio sin scroll interno.
+- `PlanDeClases` mantiene el mismo contrato de guardado, los mismos campos y
+  el mismo envio multipart a `/plan-de-clases`.
+- La vista profesor se reorganizo como taller docente con contexto de clase,
+  guia didactica y opcion `Usar como base` desde planes recientes.
+
+Alcance tecnico:
+
+- No se crearon tablas.
+- No se agregaron migraciones.
+- No se cambio el payload enviado al backend.
+- El endpoint admin ya soporta `limit`, `offset` y respuesta `{ total, items }`;
+  el frontend conserva fallback si recibe una lista simple.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+pnpm run build
+```
+
+Resultado:
+
+- Lint sin errores.
+- Build de produccion OK.
+
 ## 2026-06-13 - Navbar animado de escritorio para admin y profesor
 
 Se agrego un navbar animado reutilizable para escritorio, inspirado en el
