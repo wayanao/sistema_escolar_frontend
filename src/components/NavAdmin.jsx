@@ -60,21 +60,19 @@ function NavAdmin() {
     navigate("/login");
   };
 
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const nombreUsuario = usuario ? usuario.nombre : "";
   const dropdownLinkClass = ({ isActive }) =>
-    "block px-4 py-2 text-sm " +
+    "block px-4 py-2.5 text-[15px] " +
     (isActive
       ? "text-purple-900 bg-purple-50 font-semibold border-l-4 border-purple-600"
       : "hover:bg-gray-100 hover:text-purple-700 border-l-4 border-transparent");
   const mobileLinkClass = ({ isActive }) =>
     isActive
-      ? "block rounded-md bg-white px-3 py-2 font-semibold text-purple-900"
-      : "block rounded-md px-3 py-2 font-medium text-white hover:bg-purple-600 hover:text-white";
+      ? "block rounded-md bg-white px-3 py-2.5 text-base font-semibold text-purple-900"
+      : "block rounded-md px-3 py-2.5 text-base font-medium text-white hover:bg-purple-600 hover:text-white";
   const mobileSubLinkClass = ({ isActive }) =>
     isActive
-      ? "block rounded-md bg-purple-50 px-3 py-2 font-semibold text-purple-900"
-      : "block rounded-md px-3 py-2 text-sm font-medium text-purple-50 hover:bg-purple-600 hover:text-white";
+      ? "block rounded-md bg-purple-50 px-3 py-2.5 text-[15px] font-semibold text-purple-900"
+      : "block rounded-md px-3 py-2.5 text-[15px] font-medium text-purple-50 hover:bg-purple-600 hover:text-white";
 
   const closeMobile = () => {
     setIsMenuOpen(false);
@@ -87,18 +85,13 @@ function NavAdmin() {
 
   return (
     <header className="bg-purple-700 text-white shadow-md relative z-50">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-8">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-2 sm:px-6 xl:px-8">
         <div className="min-w-0">
-          <NavLink to="/dashboard-admin" className="inline-flex flex-col leading-tight hover:opacity-90 transition cursor-pointer">
-            <strong className="text-xl font-black tracking-normal">
+          <NavLink to="/dashboard-admin" className="inline-flex items-center leading-none hover:opacity-90 transition cursor-pointer">
+            <strong className="text-2xl font-black tracking-normal">
               Scholar<span className="text-fuchsia-200">ix</span>
             </strong>
           </NavLink>
-          {nombreUsuario && (
-            <span className="block max-w-[230px] truncate text-xs font-medium text-purple-100 sm:max-w-[320px]">
-              Admin: {nombreUsuario}
-            </span>
-          )}
         </div>
 
         {/* Mobile menu button */}
@@ -137,7 +130,7 @@ function NavAdmin() {
           <button
             type="button"
             onClick={() => toggleMobileGroup("academica")}
-            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left font-semibold transition ${
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-base font-semibold transition ${
               openMobileGroup === "academica"
                 ? "bg-purple-900/35 text-white"
                 : "text-white hover:bg-purple-600 hover:text-white"
@@ -162,7 +155,7 @@ function NavAdmin() {
           <button
             type="button"
             onClick={() => toggleMobileGroup("cartera")}
-            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left font-semibold transition ${
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-base font-semibold transition ${
               openMobileGroup === "cartera"
                 ? "bg-purple-900/35 text-white"
                 : "text-white hover:bg-purple-600 hover:text-white"

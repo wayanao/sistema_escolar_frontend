@@ -86,15 +86,21 @@
   background: transparent;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 650;
   line-height: 1;
-  padding: 0 0.82rem;
+  padding: 0 0.9rem;
   text-decoration: none;
   transition:
     color 160ms ease,
     background-color 160ms ease;
   white-space: nowrap;
+}
+
+.desktop-animated-nav--admin .desktop-nav-item,
+.desktop-animated-nav--profesor .desktop-nav-item {
+  min-height: 2.35rem;
+  padding: 0 0.84rem;
 }
 
 .desktop-nav-item:hover,

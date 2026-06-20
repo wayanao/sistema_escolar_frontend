@@ -5,13 +5,16 @@ Estado actual de componentes y paginas del frontend.
 ## Componentes principales
 
 - `LoginForm.jsx`: formulario de acceso; consume `/login`.
-- `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones
-  y protege etiquetas como `Nómina` con `translate="no"`.
+- `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones,
+  usa etiquetas principales mas legibles, muestra solo la marca mas visible en
+  un encabezado compacto y protege etiquetas como `Nómina` con `translate="no"`.
 - `NavProfesor.jsx`: menu principal para profesor; en movil separa control
-  academico y planeacion.
+  academico y planeacion, con etiquetas principales mas legibles y encabezado
+  compacto con solo la marca visible.
 - `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
   usa indicador animado medido por elemento activo/hover, sin depender de
-  `nth-child` ni de una cantidad fija de pestañas.
+  `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
+  escritorio usan `15px` para mejorar lectura.
 - `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.

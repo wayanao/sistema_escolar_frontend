@@ -2,6 +2,90 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-20 - Navbar admin y profesor mas compacto
+
+Se ajustaron los navbars de administrador y profesor para que el bloque
+superior se vea menos pesado y el nombre del software tenga mas presencia.
+
+Archivos modificados:
+
+- `src/components/NavAdmin.jsx`
+- `src/components/NavProfesor.jsx`
+- `src/index.css`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- Los encabezados admin y profesor reducen su padding vertical para que el
+  cuadro superior se sienta mas compacto.
+- La marca `Scholarix` aumenta de tamaño y queda alineada como una sola linea.
+- El navbar profesor tambien muestra solo la marca en el encabezado, igual que
+  admin.
+- La capsula animada del nav desktop admin/profesor baja ligeramente su altura y
+  padding, sin cambiar rutas, permisos, grupos ni comportamiento del menu.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-20 - Nav admin sin nombre de usuario bajo la marca
+
+Se retiro el texto secundario `Admin: <nombre>` que aparecia debajo del nombre
+del software en el navbar de administrador.
+
+Archivos modificados:
+
+- `src/components/NavAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- El navbar admin muestra solo la marca `Scholarix`.
+- Se elimina el nombre del usuario debajo de la marca para limpiar el encabezado.
+- No se cambia el boton de cerrar sesion, rutas, grupos ni permisos.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
+## 2026-06-20 - Nav con etiquetas mas legibles
+
+Se aumento suavemente el tamaño de las palabras principales del navbar para
+mejorar lectura sin cambiar la estructura de navegacion.
+
+Archivos modificados:
+
+- `src/index.css`
+- `src/components/NavAdmin.jsx`
+- `src/components/NavProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/COMPONENTES.md`
+
+Cambio:
+
+- Las pestañas principales del nav de escritorio pasan a `15px`.
+- Los dropdowns aumentan altura tactil y texto a `15px`.
+- En movil, las opciones principales usan `text-base` y las subopciones quedan
+  en `15px`.
+
+Alcance tecnico:
+
+- Cambio visual de legibilidad.
+- No cambia rutas, permisos, grupos, orden de pestañas ni comportamiento de
+  despliegue.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-17 - Cumpleanos de estudiantes en dashboards
 
 Se agrego un panel visual de cumpleaños de estudiantes en los dashboards de
