@@ -2,6 +2,28 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-20 - Titulo de observador profesor alineado
+
+Se igualo el tamaño del titulo de `Observador del estudiante` en el perfil
+profesor con los encabezados principales de las demas paginas docentes.
+
+Archivo modificado:
+
+- `src/pages/Formulario.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El titulo pasa de `text-xl` a `text-2xl sm:text-3xl`.
+- Se mantiene la logica de busqueda, listado y guardado del observador sin
+  cambios.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm run lint
+```
+
 ## 2026-06-20 - Navbar admin y profesor mas compacto
 
 Se ajustaron los navbars de administrador y profesor para que el bloque

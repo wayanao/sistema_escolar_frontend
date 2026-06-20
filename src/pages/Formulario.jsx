@@ -59,7 +59,7 @@ function ObservacionesPage() {
   return (
     <div className="p-4">
 
-      <h1 className="text-xl font-bold mb-4">
+      <h1 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
         📝 Observador del estudiante
       </h1>
 
