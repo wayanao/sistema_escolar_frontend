@@ -2,6 +2,37 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-23 - Gestion de pagos usa deudas dedicadas
+
+Se ajustaron Gestion de Pagos y el resumen del estudiante para cargar las
+deudas academicas del estudiante desde un endpoint dedicado.
+
+Archivos modificados:
+
+- `src/pages/PagosAdmin.jsx`
+- `src/pages/EstudiantesAdmin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `PagosAdmin` cambia de `GET /estudiantes/{id}/detalles` a
+  `GET /estudiantes/{id}/deudas` para llenar el selector de conceptos
+  pendientes.
+- `EstudiantesAdmin` mantiene el resumen amplio de
+  `GET /estudiantes/{id}/detalles`, pero fusiona las deudas desde
+  `GET /estudiantes/{id}/deudas`.
+- El detalle amplio del estudiante sigue disponible para el modulo de
+  estudiantes, pero ya no bloquea la cobranza si falla una seccion no
+  financiera.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/PagosAdmin.jsx
+pnpm exec eslint src/pages/EstudiantesAdmin.jsx
+```
+
 ## 2026-06-20 - Titulo de observador profesor alineado
 
 Se igualo el tamaño del titulo de `Observador del estudiante` en el perfil

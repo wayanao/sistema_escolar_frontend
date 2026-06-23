@@ -103,6 +103,8 @@ Uso:
 
 ```text
 GET /estudiantes?estado=activo|retirado|egresado|inactivo|todos
+GET /estudiantes/{estudiante_id}/detalles
+GET /estudiantes/{estudiante_id}/deudas
 PATCH /estudiantes/{estudiante_id}/estado
 ```
 
@@ -111,6 +113,9 @@ Uso:
 - Por defecto muestra estudiantes `activo`.
 - Permite filtrar `retirado`, `egresado`, `inactivo` o `todos`.
 - El cambio de estado no borra el estudiante ni su historial.
+- El resumen del estudiante combina el detalle amplio con
+  `/estudiantes/{estudiante_id}/deudas` para que el estado financiero no
+  dependa de notas, observaciones o inventario.
 
 `CrearProfesor.jsx` consume:
 
@@ -207,11 +212,15 @@ Uso:
 `PagosAdmin.jsx` tambien consulta:
 
 ```text
+GET /estudiantes/{estudiante_id}/deudas
 GET /tipos-pagos
 ```
 
 Uso:
 
+- Carga deudas academicas pendientes del estudiante desde un endpoint dedicado
+  para registrar pagos, sin depender del resumen amplio
+  `/estudiantes/{estudiante_id}/detalles`.
 - Solo conserva en memoria conceptos activos para nuevos pagos.
 - Las deudas pendientes ya generadas siguen visibles desde el detalle del
   estudiante aunque el concepto original este inactivo.

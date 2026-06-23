@@ -111,7 +111,7 @@ function PagosAdmin() {
 
   const cargarDeudasEstudiante = async (estudianteId) => {
     try {
-      const res = await api.get(`/estudiantes/${estudianteId}/detalles`);
+      const res = await api.get(`/estudiantes/${estudianteId}/deudas`);
       setDeudasEstudiante(res.data.deudas || []);
     } catch (error) {
       console.error("Error cargando deudas del estudiante:", error);

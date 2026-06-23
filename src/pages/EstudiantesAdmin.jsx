@@ -257,9 +257,39 @@ function EstudiantesAdmin() {
     setSelectedEstudiante(estudiante);
     setLoadingDetalles(true);
     try {
-      const res = await api.get(`/estudiantes/${estudiante.id}/detalles`);
-      const data = res.data;
-      setDetallesEstudiante(data);
+      const [detallesRes, deudasRes] = await Promise.allSettled([
+        api.get(`/estudiantes/${estudiante.id}/detalles`),
+        api.get(`/estudiantes/${estudiante.id}/deudas`),
+      ]);
+
+      if (detallesRes.status === "rejected" && deudasRes.status === "rejected") {
+        throw detallesRes.reason;
+      }
+
+      if (detallesRes.status === "rejected") {
+        console.error("Error al cargar resumen academico del estudiante", detallesRes.reason);
+      }
+      if (deudasRes.status === "rejected") {
+        console.error("Error al cargar deudas del estudiante", deudasRes.reason);
+      }
+
+      const detallesBase = detallesRes.status === "fulfilled" ? detallesRes.value.data : {};
+      const deudasData = deudasRes.status === "fulfilled" ? deudasRes.value.data : {};
+      const deudas = deudasData.deudas || detallesBase.deudas || [];
+
+      setDetallesEstudiante({
+        notas: [],
+        promedio_general: 0,
+        inasistencias: 0,
+        observaciones: [],
+        productos_inventario: [],
+        ...detallesBase,
+        deudas,
+        total_deuda:
+          deudasData.total_deuda ??
+          detallesBase.total_deuda ??
+          deudas.reduce((total, deuda) => total + Number(deuda.deuda || 0), 0),
+      });
     } catch (error) {
       console.error("Error al cargar detalles", error);
     } finally {
