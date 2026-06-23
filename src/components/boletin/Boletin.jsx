@@ -234,7 +234,7 @@ const Boletin = () => {
         titulo="Boletín Académico Informativo"
         subtitulo={`Periodo ${boletinData.periodo} · Año Lectivo ${new Date().getFullYear()}`}
         firmas={[
-          { nombre: "Rector del Colegio" },
+          { nombre: "Director del Colegio" },
           { nombre: "Director de Grupo" },
         ]}
       >
