@@ -60,6 +60,13 @@ export default function DocumentoImprimible({
   const mostrarFirmas = config.mostrar_firmas !== false && Array.isArray(firmas) && firmas.length > 0;
   const bordeado = config.borde_documento === true;
   const abrirDialogoPDF = () => window.print();
+  const datosInstitucionales = [
+    branding?.direccion,
+    branding?.telefono,
+    branding?.email,
+    branding?.nit ? `NIT: ${branding.nit}` : null,
+    branding?.codigo_dane ? `Código DANE: ${branding.codigo_dane}` : null,
+  ].filter(Boolean);
   const clasesDocumento = className.split(" ").filter(Boolean);
   const usaScrollMovil = clasesDocumento.some((clase) =>
     [
@@ -89,12 +96,9 @@ export default function DocumentoImprimible({
       {mostrarEslogan && branding?.eslogan && (
         <p className="di-encabezado__eslogan">{branding.eslogan}</p>
       )}
-      {(branding?.direccion || branding?.telefono || branding?.email) && (
+      {datosInstitucionales.length > 0 && (
         <p className="di-encabezado__contacto">
-          {[branding.direccion, branding.telefono, branding.email]
-            .filter(Boolean)
-            .join("  -  ")}
-          {branding.nit && <span> - NIT: {branding.nit}</span>}
+          {datosInstitucionales.join("  -  ")}
         </p>
       )}
     </div>

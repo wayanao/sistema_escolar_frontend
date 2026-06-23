@@ -2,6 +2,32 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-23 - Codigo DANE en diseno de impresos
+
+Se agrego el Codigo DANE como dato institucional configurable para cada
+colegio desde Diseño de impresos.
+
+Archivos modificados:
+
+- `src/components/admin/IdentidadInstitucional.jsx`
+- `src/components/impresion/DocumentoImprimible.jsx`
+- `docs/API_CLIENT.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El formulario de identidad institucional permite guardar `codigo_dane`.
+- El encabezado comun `DocumentoImprimible` muestra `Codigo DANE` junto a los
+  datos institucionales cuando el colegio lo tiene configurado.
+- El cambio aplica a boletines, certificados, recibos, ventas, cartera,
+  observaciones y planeadores que usan el sistema moderno de impresion.
+
+Verificacion sugerida:
+
+```powershell
+pnpm exec eslint src/components/admin/IdentidadInstitucional.jsx src/components/impresion/DocumentoImprimible.jsx
+```
+
 ## 2026-06-23 - Gestion de pagos usa deudas dedicadas
 
 Se ajustaron Gestion de Pagos y el resumen del estudiante para cargar las

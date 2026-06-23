@@ -454,6 +454,8 @@ Notas frontend sin cambio de API:
 
 - `DocumentoImprimible` consume la configuracion de branding/plantilla y
   despues aplica comportamiento visual segun clase de documento.
+- `codigo_dane` se guarda desde Diseño de impresos > Identidad institucional y
+  se muestra en el encabezado comun de los impresos cuando existe.
 - Boletin, certificados y cartera no requieren endpoints nuevos para el ajuste
   movil; solo agregan scroll lateral en pantalla cuando el documento conserva
   ancho A4.

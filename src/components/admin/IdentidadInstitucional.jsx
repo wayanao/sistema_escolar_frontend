@@ -14,6 +14,13 @@ const CAMPOS_TEXTO = [
   { key: "telefono", label: "Teléfono", placeholder: "+57 300 000 0000" },
   { key: "email", label: "Email", placeholder: "contacto@colegio.edu" },
   { key: "nit", label: "NIT", placeholder: "901.234.567-8" },
+  {
+    key: "codigo_dane",
+    label: "Código DANE",
+    placeholder: "Ej. 105001000123",
+    inputMode: "numeric",
+    maxLength: 20,
+  },
   { key: "sitio_web", label: "Sitio web", placeholder: "www.colegio.edu" },
 ];
 
@@ -38,7 +45,10 @@ export default function IdentidadInstitucional() {
   }, []);
 
   const cambiarCampo = (key, valor) => {
-    setBranding((prev) => ({ ...prev, [key]: valor }));
+    const valorNormalizado = key === "codigo_dane"
+      ? valor.replace(/\D/g, "").slice(0, 20)
+      : valor;
+    setBranding((prev) => ({ ...prev, [key]: valorNormalizado }));
   };
 
   const guardar = async () => {
@@ -149,6 +159,8 @@ export default function IdentidadInstitucional() {
                 type="text"
                 className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder={c.placeholder}
+                inputMode={c.inputMode}
+                maxLength={c.maxLength}
                 value={branding?.[c.key] || ""}
                 onChange={(e) => cambiarCampo(c.key, e.target.value)}
               />
