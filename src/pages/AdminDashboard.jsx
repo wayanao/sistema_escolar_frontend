@@ -10,6 +10,11 @@ const formatMoney = (v) =>
     maximumFractionDigits: 0,
   }).format(Number(v || 0));
 
+const capitalizarInicial = (valor) => {
+  const texto = String(valor || "").trim();
+  return texto ? texto.charAt(0).toLocaleUpperCase("es-CO") + texto.slice(1) : "";
+};
+
 const dashboardCardStyles = `
 @keyframes admin-dashboard-card-in {
   from {
@@ -198,7 +203,7 @@ function Admin() {
   ];
 
   const hayMora = resumenCartera && resumenCartera.total_estudiantes > 0;
-  const primerNombreAdmin = (usuario.nombre || "Admin").trim().split(/\s+/)[0];
+  const primerNombreAdmin = capitalizarInicial((usuario.nombre || "Admin").trim().split(/\s+/)[0]);
   const handleCardKeyDown = (event, path) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
