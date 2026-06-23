@@ -29,7 +29,6 @@ const modulosAdmin = [
 ];
 
 function Admin() {
-    const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     const [moduloActivoId, setModuloActivoId] = useState("profesores");
     const moduloActivo = useMemo(
         () => modulosAdmin.find((modulo) => modulo.id === moduloActivoId) || modulosAdmin[0],
@@ -44,9 +43,6 @@ function Admin() {
                     <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                         Administración académica
                     </h1>
-                    <p className="mt-1 text-sm text-gray-600">
-                        Bienvenido, {usuario?.nombre || "Admin"}.
-                    </p>
                 </header>
 
                 <nav
