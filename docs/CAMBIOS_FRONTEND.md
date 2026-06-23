@@ -2,6 +2,26 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-23 - Mensajes de duplicados en administracion academica
+
+Se ajustaron las pantallas de Profesores, Cursos y Materias para enviar nombres
+en mayuscula y mostrar el mensaje real que devuelve el backend cuando un dato
+esta duplicado.
+
+Archivos modificados:
+
+- `src/components/CrearProfesor.jsx`
+- `src/components/CrearCurso.jsx`
+- `src/components/CrearMateria.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Profesores envia `nombre` y `apellido` en mayuscula.
+- Cursos y materias envian `nombre` en mayuscula.
+- Los errores `409 Conflict` del backend se muestran al usuario con el detalle
+  especifico, por ejemplo documento, email, materia o curso repetido.
+
 ## 2026-06-23 - Codigo DANE en diseno de impresos
 
 Se agrego el Codigo DANE como dato institucional configurable para cada

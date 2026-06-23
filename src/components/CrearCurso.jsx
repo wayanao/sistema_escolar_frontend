@@ -1,12 +1,19 @@
 import { useCallback, useState, useEffect } from "react";
 import api from "../utils/api";
 
-const toTitleCase = (value) =>
+const toUpperText = (value) =>
   String(value || "")
     .trim()
     .replace(/\s+/g, " ")
-    .toLocaleLowerCase("es-CO")
-    .replace(/(^|\s)(\p{L})/gu, (_, space, letter) => `${space}${letter.toLocaleUpperCase("es-CO")}`);
+    .toLocaleUpperCase("es-CO");
+
+const getApiErrorMessage = (error, fallback) => {
+  const detail = error?.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg || item.message || String(item)).join("\n");
+  }
+  return detail || fallback;
+};
 
 const ESTADOS_CURSO = [
   { value: "activo", label: "Activo" },
@@ -60,7 +67,7 @@ function CrearCurso() {
 
     try {
       const payload = {
-        nombre: toTitleCase(nombre),
+        nombre: toUpperText(nombre),
         jornada,
         estado,
       };
@@ -81,7 +88,7 @@ function CrearCurso() {
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión");
+      alert(getApiErrorMessage(error, "No se pudo guardar el curso"));
     }
   };
 
