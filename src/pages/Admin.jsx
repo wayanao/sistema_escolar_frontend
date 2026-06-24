@@ -4,6 +4,7 @@ const CrearProfesor = lazy(() => import("../components/CrearProfesor"));
 const CrearCurso = lazy(() => import("../components/CrearCurso"));
 const CrearMateria = lazy(() => import("../components/CrearMateria"));
 const AsignarClase = lazy(() => import("../components/AsignarClase"));
+const OrdenBoletin = lazy(() => import("../components/OrdenBoletin"));
 
 const modulosAdmin = [
     {
@@ -25,6 +26,11 @@ const modulosAdmin = [
         id: "asignar-clases",
         titulo: "Asignaciones",
         componente: AsignarClase,
+    },
+    {
+        id: "orden-boletin",
+        titulo: "Orden boletín",
+        componente: OrdenBoletin,
     },
 ];
 

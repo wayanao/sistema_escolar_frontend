@@ -215,6 +215,16 @@ const Boletin = () => {
       Object.keys(detalle.valoraciones_por_periodo || {}).length > 0
     )
   );
+  const materiasBoletin = Array.from(
+    (boletinData.materias || []).reduce((mapa, mat) => {
+      const clave = String(mat.materia_id);
+      if (!mapa.has(clave)) {
+        mapa.set(clave, { ...mat, detalles: [] });
+      }
+      mapa.get(clave).detalles.push(...(mat.detalles || []));
+      return mapa;
+    }, new Map()).values()
+  );
 
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
@@ -313,15 +323,7 @@ const Boletin = () => {
 
         {/* Materias */}
         <div className="space-y-3">
-          {Object.values(
-            boletinData.materias.reduce((acc, mat) => {
-              if (!acc[mat.materia_id]) {
-                acc[mat.materia_id] = { ...mat, detalles: [] };
-              }
-              acc[mat.materia_id].detalles.push(...(mat.detalles || []));
-              return acc;
-            }, {})
-          ).map((mat) => {
+          {materiasBoletin.map((mat) => {
             const tipoMateria = mat.detalles?.some(det => det.tipo_evaluacion === "desarrollo") ? "desarrollo" : "numerica";
             const styles = getStyles(mat.definitiva);
             const desempeno = getDesempeno(mat.definitiva);

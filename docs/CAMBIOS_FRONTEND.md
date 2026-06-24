@@ -2,6 +2,31 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-24 - Orden configurable de materias en boletin
+
+Se agrego una pantalla administrativa para ordenar las materias del boletin por
+curso.
+
+Archivos modificados:
+
+- `src/components/OrdenBoletin.jsx`
+- `src/pages/Admin.jsx`
+- `src/components/boletin/Boletin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Administracion academica agrega la pestana `Orden boletin`.
+- El admin selecciona un curso y reorganiza las materias con flechas o numero
+  de posicion.
+- La pantalla es responsive: en movil usa filas tactiles con controles de
+  tamano fijo; en escritorio aprovecha el ancho disponible.
+- El guardado consume `PUT /cursos/{curso_id}/orden-boletin`.
+- El impreso de boletin consolida materias con `Map` para respetar el orden
+  recibido del backend.
+
 ## 2026-06-23 - Mensajes de duplicados en administracion academica
 
 Se ajustaron las pantallas de Profesores, Cursos y Materias para enviar nombres

@@ -23,6 +23,8 @@ Estado actual de componentes y paginas del frontend.
 - `CrearEstudiante.jsx`: creacion/gestion relacionada con estudiantes.
 - `CrearMateria.jsx`: creacion/gestion relacionada con materias.
 - `CrearProfesor.jsx`: creacion/gestion relacionada con profesores.
+- `OrdenBoletin.jsx`: orden responsive de materias por curso para impresion
+  de boletines.
 - `HorariosProfesores.jsx`: vista de horarios por profesor.
 - `HorariosPorCurso.jsx`: vista de horarios por curso.
 - `FacturaModerna.jsx`: componente de factura.
@@ -175,6 +177,9 @@ Estado actual de componentes y paginas del frontend.
 
 - `components/admin/IdentidadInstitucional.jsx`
 - `components/admin/PlantillasAdmin.jsx`
+- `components/OrdenBoletin.jsx`: pestaña de Administracion para definir el
+  orden de materias por curso en boletines, con flechas, posicion numerica y
+  guardado por curso.
 
 ### Boletin
 

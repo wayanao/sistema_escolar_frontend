@@ -159,6 +159,32 @@ Uso:
 - El cambio de estado no borra la materia ni su historial.
 - El backend bloquea nuevas asignaciones para materias `inactivo`.
 
+`OrdenBoletin.jsx` consume:
+
+```text
+GET /cursos
+GET /cursos/{curso_id}/orden-boletin
+PUT /cursos/{curso_id}/orden-boletin
+```
+
+Payload de guardado:
+
+```json
+{
+  "materias": [
+    { "materia_id": 10 },
+    { "materia_id": 12 }
+  ]
+}
+```
+
+Uso:
+
+- Permite ordenar las materias del boletin por curso desde Administracion.
+- El orden de la lista define la posicion de impresion.
+- El backend aplica la misma posicion a todos los horarios activos de esa
+  materia en el curso para no partir el historial academico.
+
 `InventarioAdmin.jsx` consume:
 
 ```text
