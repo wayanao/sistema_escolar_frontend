@@ -132,6 +132,7 @@ function DashboardProfesor() {
       const horarioProfesor = data
         .map((asignacion) => ({
           id: asignacion.id,
+          horario_id: asignacion.horario_id || asignacion.id,
           materia: asignacion.materia,
           curso: asignacion.curso,
           curso_id: asignacion.curso_id,
@@ -347,7 +348,7 @@ function DashboardProfesor() {
                       ) : (
                         clasesDelDia.map((clase) => (
                           <article
-                            key={clase.id}
+                            key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
                             className="rounded-md border-l-4 border-blue-600 bg-white px-2.5 py-2 shadow-sm"
                           >
                             <p className="text-[11px] font-bold leading-tight text-blue-700">
@@ -386,7 +387,7 @@ function DashboardProfesor() {
                         ) : (
                           clasesDelDia.map((clase) => (
                             <article
-                              key={clase.id}
+                              key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
                               className="rounded-md border border-gray-200 border-l-4 border-l-blue-500 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md"
                             >
                               <p className="text-[11px] font-bold leading-tight text-blue-700">
