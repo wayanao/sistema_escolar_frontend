@@ -4,8 +4,8 @@ import api from "../utils/api";
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const MANANA_INICIO = "06:30";
 const MANANA_FIN = "12:30";
-const TARDE_INICIO = "13:00";
-const TARDE_FIN = "18:00";
+const TARDE_INICIO = "12:30";
+const TARDE_FIN = "18:30";
 
 const formatearHora12 = (hora24) => {
     if (!hora24) return "";
