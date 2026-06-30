@@ -4,6 +4,14 @@ import api from "../utils/api";
 
 const LAST_SCHOOL_CODE_KEY = "ultimo_codigo_colegio";
 
+const capitalizarNombreVisible = (valor) =>
+  String(valor || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((palabra) => palabra.charAt(0).toLocaleUpperCase("es-CO") + palabra.slice(1).toLocaleLowerCase("es-CO"))
+    .join(" ");
+
 function leerUltimoCodigoColegio() {
   const codigo = localStorage.getItem(LAST_SCHOOL_CODE_KEY)?.trim().toLowerCase() || "";
   return codigo === "demo" ? "" : codigo;
@@ -62,7 +70,7 @@ function LoginForm() {
       Swal.fire({
         icon: 'success',
         title: '¡Éxito!',
-        text: `Bienvenido ${data.nombre}`,
+        text: `Bienvenido ${capitalizarNombreVisible(data.nombre)}`,
         timer: 1500,
         showConfirmButton: false
       }).then(() => {

@@ -23,6 +23,11 @@ const formatearHora12 = (hora24) => {
 
 const ordenarPorHora = (a, b) => (a.hora_inicio || "").localeCompare(b.hora_inicio || "");
 
+const capitalizarInicial = (valor) => {
+  const texto = String(valor || "").trim();
+  return texto ? texto.charAt(0).toLocaleUpperCase("es-CO") + texto.slice(1).toLocaleLowerCase("es-CO") : "";
+};
+
 function DashboardProfesor() {
   const navigate = useNavigate();
   const [clases, setClases] = useState([]);
@@ -64,7 +69,7 @@ function DashboardProfesor() {
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
   const profesorId = profesor?.id;
   const nombreProfesor = profesor ? `${profesor.nombre || ""} ${profesor.apellido || ""}`.trim() : "";
-  const primerNombreProfesor = (profesor?.nombre || nombreProfesor || "profe").trim().split(/\s+/)[0];
+  const primerNombreProfesor = capitalizarInicial((profesor?.nombre || nombreProfesor || "profe").trim().split(/\s+/)[0]);
   const clasesUnicas = useMemo(() => {
     const vistos = new Map();
     for (const clase of clases) {
