@@ -10,6 +10,8 @@ const PERIODOS = [
   { value: "4", label: "Periodo 4" },
 ];
 const PERIODOS_NUMERICOS = [1, 2, 3, 4];
+const PERIODOS_REPORTE = PERIODOS.filter((item) => item.value !== "todos");
+const MATERIA_TODAS = "todas";
 const ESTADOS = [
   { value: "activo", label: "Activos" },
   { value: "retirado", label: "Retirados" },
@@ -98,19 +100,98 @@ function obtenerFilasMaterias(certificado) {
   });
 }
 
+function getMateriaId(materia) {
+  return materia?.materia_id ?? materia?.id ?? materia?.materia ?? materia?.nombre;
+}
+
+function getNombreMateria(materia) {
+  return normalizarTexto(materia?.materia || materia?.nombre || materia?.nombre_materia, "Materia");
+}
+
+function getDocenteMateria(materia) {
+  return normalizarTexto(`${materia?.profesor_nombre || ""} ${materia?.profesor_apellido || ""}`.trim());
+}
+
+function getValorDetalle(detalle, periodo) {
+  const periodoKey = String(periodo);
+  const valoracion = detalle?.valoraciones_por_periodo?.[periodoKey] ?? detalle?.valoracion;
+  if (valoracion) return String(valoracion);
+
+  const nota = detalle?.notas_por_periodo?.[periodoKey] ?? detalle?.nota;
+  const numero = Number(nota);
+  return Number.isFinite(numero) && numero > 0 ? numero.toFixed(1) : "";
+}
+
+function getDescripcionDetalle(detalle, index) {
+  const texto = String(detalle?.observacion ?? detalle?.descripcion ?? detalle?.tipo_nota ?? "").trim();
+  return texto || `Evaluacion ${index + 1}`;
+}
+
+function getEstadoMateria(materia) {
+  const definitiva = getDefinitiva(materia);
+  const detalles = materia?.detalles || [];
+
+  if (!detalles.length && definitiva === null) return "Sin calificar";
+  if (definitiva === null || detalles.some((detalle, index) => !getValorDetalle(detalle, materia?.periodo || detalle?.periodo || 1) && getDescripcionDetalle(detalle, index))) {
+    return "Con pendientes";
+  }
+  return "Al dia";
+}
+
+function contarAusencias(registro) {
+  return (registro?.historial || []).filter((item) => String(item?.estado || "").toLowerCase() === "ausente").length;
+}
+
+function construirMateriaReporte(materia, periodo, asistenciaPorAsignacion, estudianteId) {
+  const asistenciaAsignacion = asistenciaPorAsignacion.get(Number(materia.asignacion_id)) || [];
+  const registroEstudiante = asistenciaAsignacion.find((item) => Number(item.estudiante_id) === Number(estudianteId));
+  const detalles = (materia.detalles || []).map((detalle, index) => ({
+    descripcion: getDescripcionDetalle(detalle, index),
+    valor: getValorDetalle(detalle, periodo),
+  }));
+  const definitiva = getDefinitiva({ ...materia, periodo });
+
+  return {
+    asignacion_id: materia.asignacion_id,
+    materia_id: getMateriaId(materia),
+    nombre: getNombreMateria(materia),
+    docente: getDocenteMateria(materia),
+    definitiva,
+    desempeno: getDesempeno(definitiva),
+    estado: getEstadoMateria({ ...materia, periodo }),
+    inasistencias: contarAusencias(registroEstudiante),
+    detalles,
+  };
+}
+
+function promedioMaterias(materias) {
+  const notas = materias.map((materia) => materia.definitiva).filter((nota) => nota !== null);
+  if (!notas.length) return null;
+  return notas.reduce((total, nota) => total + nota, 0) / notas.length;
+}
+
+function totalInasistencias(materias) {
+  return materias.reduce((total, materia) => total + (Number(materia.inasistencias) || 0), 0);
+}
+
 export default function CertificadosAdmin() {
   const [tabActiva, setTabActiva] = useState("notas");
   const [cursos, setCursos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
+  const [materias, setMaterias] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("activo");
   const [busqueda, setBusqueda] = useState("");
   const [periodo, setPeriodo] = useState("1");
+  const [periodoReporte, setPeriodoReporte] = useState("1");
+  const [materiaReporte, setMateriaReporte] = useState(MATERIA_TODAS);
   const [anioLectivo, setAnioLectivo] = useState(String(new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
   const [generandoId, setGenerandoId] = useState(null);
+  const [generandoCurso, setGenerandoCurso] = useState(false);
   const [certificado, setCertificado] = useState(null);
   const [certificadoMatricula, setCertificadoMatricula] = useState(null);
+  const [reporteParcial, setReporteParcial] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -118,12 +199,14 @@ export default function CertificadosAdmin() {
       setLoading(true);
       setError("");
       try {
-        const [resCursos, resEstudiantes] = await Promise.all([
+        const [resCursos, resEstudiantes, resMaterias] = await Promise.all([
           api.get("/cursos"),
           api.get("/estudiantes"),
+          api.get("/materias"),
         ]);
         setCursos(resCursos.data || []);
         setEstudiantes(resEstudiantes.data || []);
+        setMaterias(resMaterias.data || []);
       } catch (err) {
         console.error("Error cargando base para certificados", err);
         setError("No se pudo cargar la informacion base.");
@@ -221,9 +304,151 @@ export default function CertificadosAdmin() {
     }
   };
 
+  const construirReporteParcial = async (estudiantesObjetivo, alcance) => {
+    const periodoNumero = Number(periodoReporte);
+    const materiaIdFiltro = materiaReporte === MATERIA_TODAS ? null : Number(materiaReporte);
+    const respuestas = await Promise.allSettled(
+      estudiantesObjetivo.map((estudiante) =>
+        api.get(`/boletines/admin/generar/${estudiante.id}/${periodoNumero}`)
+      )
+    );
+
+    const boletinesValidos = respuestas
+      .map((respuesta, index) => {
+        if (respuesta.status !== "fulfilled") return null;
+        const estudiante = estudiantesObjetivo[index];
+        const data = respuesta.value.data || {};
+        const materiasFiltradas = (data.materias || [])
+          .filter((materia) => (materiaIdFiltro ? Number(getMateriaId(materia)) === materiaIdFiltro : true))
+          .map((materia) => ({ ...materia, periodo: periodoNumero }));
+        return { estudiante, data, materiasFiltradas };
+      })
+      .filter(Boolean);
+
+    if (!boletinesValidos.length) {
+      throw new Error("No se pudo cargar informacion academica para los filtros seleccionados.");
+    }
+
+    const asignacionIds = Array.from(
+      new Set(
+        boletinesValidos
+          .flatMap((item) => item.materiasFiltradas)
+          .map((materia) => Number(materia.asignacion_id))
+          .filter(Boolean)
+      )
+    );
+    const asistenciaPorAsignacion = new Map();
+
+    await Promise.all(
+      asignacionIds.map(async (asignacionId) => {
+        try {
+          const res = await api.get(`/asistencia/historial/${asignacionId}/${periodoNumero}`);
+          asistenciaPorAsignacion.set(asignacionId, Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+          console.error("Error cargando asistencia para reporte parcial", err);
+          asistenciaPorAsignacion.set(asignacionId, []);
+        }
+      })
+    );
+
+    const estudiantesReporte = boletinesValidos.map(({ estudiante, data, materiasFiltradas }) => {
+      const curso = cursosPorId.get(estudiante.curso_id);
+      const materiasReporte = materiasFiltradas.map((materia) =>
+        construirMateriaReporte(materia, periodoNumero, asistenciaPorAsignacion, estudiante.id)
+      );
+
+      return {
+        id: estudiante.id,
+        nombre: nombreEstudiante(estudiante) || normalizarTexto(`${data.estudiante_nombre || ""} ${data.estudiante_apellido || ""}`.trim()),
+        documento: documentoEstudiante(estudiante),
+        curso: data.curso || curso?.nombre || "Sin asignar",
+        estado: estudiante.estado || "activo",
+        promedio: promedioMaterias(materiasReporte),
+        inasistencias: totalInasistencias(materiasReporte),
+        materias: materiasReporte,
+      };
+    });
+
+    const errores = respuestas.filter((respuesta) => respuesta.status === "rejected").length;
+    const cursoSeleccionadoInfo = cursosPorId.get(Number(cursoSeleccionado));
+    const materiaSeleccionadaInfo = materiaIdFiltro
+      ? materias.find((materia) => Number(materia.id) === materiaIdFiltro)
+      : null;
+
+    setReporteParcial({
+      alcance,
+      periodo: periodoNumero,
+      materia: materiaSeleccionadaInfo?.nombre || "Todas las materias",
+      curso: alcance === "curso"
+        ? `${normalizarTexto(cursoSeleccionadoInfo?.nombre, "Curso")} ${cursoSeleccionadoInfo?.jornada ? `- ${cursoSeleccionadoInfo.jornada}` : ""}`.trim()
+        : estudiantesReporte[0]?.curso,
+      fecha: new Date().toLocaleDateString("es-CO", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+      estudiantes: estudiantesReporte,
+      errores,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const generarReporteParcialEstudiante = async (estudianteId) => {
+    setGenerandoId(estudianteId);
+    setError("");
+    try {
+      const estudiante = estudiantes.find((item) => item.id === estudianteId);
+      if (!estudiante) {
+        setError("No se encontro el estudiante seleccionado.");
+        return;
+      }
+      await construirReporteParcial([estudiante], "estudiante");
+    } catch (err) {
+      console.error("Error generando reporte academico parcial", err);
+      setError(err?.response?.data?.detail || err?.message || "No se pudo generar el reporte academico parcial.");
+    } finally {
+      setGenerandoId(null);
+    }
+  };
+
+  const generarReporteParcialCurso = async () => {
+    setGenerandoCurso(true);
+    setError("");
+    try {
+      if (!cursoSeleccionado) {
+        setError("Selecciona un curso para generar el reporte academico parcial del grupo.");
+        return;
+      }
+
+      const estudiantesCurso = estudiantes.filter((estudiante) => {
+        const coincideCurso = estudiante.curso_id === Number(cursoSeleccionado);
+        const estado = estudiante.estado || "activo";
+        const coincideEstado = estadoFiltro === "todos" ? true : estado === estadoFiltro;
+        return coincideCurso && coincideEstado;
+      });
+
+      if (!estudiantesCurso.length) {
+        setError("No hay estudiantes en el curso y estado seleccionados.");
+        return;
+      }
+
+      await construirReporteParcial(estudiantesCurso, "curso");
+    } catch (err) {
+      console.error("Error generando reporte academico parcial por curso", err);
+      setError(err?.response?.data?.detail || err?.message || "No se pudo generar el reporte academico parcial.");
+    } finally {
+      setGenerandoCurso(false);
+    }
+  };
+
   const generarSegunTab = (estudianteId) => {
     if (tabActiva === "matricula") {
       generarCertificadoMatricula(estudianteId);
+      return;
+    }
+
+    if (tabActiva === "reporte-parcial") {
+      generarReporteParcialEstudiante(estudianteId);
       return;
     }
 
@@ -248,9 +473,19 @@ export default function CertificadosAdmin() {
     );
   }
 
+  if (reporteParcial) {
+    return (
+      <ReporteParcialPreview
+        reporte={reporteParcial}
+        onBack={() => setReporteParcial(null)}
+      />
+    );
+  }
+
   const tabs = [
     { id: "notas", label: "Certificado de notas" },
     { id: "matricula", label: "Certificado de matrícula" },
+    { id: "reporte-parcial", label: "Reporte académico parcial" },
   ];
 
   return (
@@ -258,7 +493,7 @@ export default function CertificadosAdmin() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Certificados</h1>
         <p className="text-sm text-slate-600">
-          Genera certificados académicos e institucionales por estudiante.
+          Genera certificados e informes academicos para consulta administrativa e impresion.
         </p>
       </div>
 
@@ -289,7 +524,7 @@ export default function CertificadosAdmin() {
       )}
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_180px_150px]">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_180px_150px]">
           <select
             value={cursoSeleccionado}
             onChange={(event) => setCursoSeleccionado(event.target.value)}
@@ -307,7 +542,7 @@ export default function CertificadosAdmin() {
             type="search"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Buscar por estudiante o documento"
+            placeholder={tabActiva === "reporte-parcial" ? "Buscar alumno para reporte individual" : "Buscar por estudiante o documento"}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
           />
 
@@ -321,7 +556,7 @@ export default function CertificadosAdmin() {
                 <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
-          ) : (
+          ) : tabActiva === "matricula" ? (
             <input
               type="number"
               min="2000"
@@ -331,6 +566,16 @@ export default function CertificadosAdmin() {
               placeholder="Año lectivo"
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
             />
+          ) : (
+            <select
+              value={periodoReporte}
+              onChange={(event) => setPeriodoReporte(event.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
+            >
+              {PERIODOS_REPORTE.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </select>
           )}
 
           <select
@@ -342,6 +587,32 @@ export default function CertificadosAdmin() {
               <option key={item.value} value={item.value}>{item.label}</option>
             ))}
           </select>
+
+          {tabActiva === "reporte-parcial" && (
+            <>
+              <select
+                value={materiaReporte}
+                onChange={(event) => setMateriaReporte(event.target.value)}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100 md:col-span-1 xl:col-span-2"
+              >
+                <option value={MATERIA_TODAS}>Todas las materias</option>
+                {materias.map((materia) => (
+                  <option key={materia.id} value={materia.id}>
+                    {materia.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                disabled={!cursoSeleccionado || generandoCurso || !!generandoId}
+                onClick={generarReporteParcialCurso}
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-1 xl:col-span-2"
+              >
+                {generandoCurso ? "Generando reporte..." : "Generar reporte del curso"}
+              </button>
+            </>
+          )}
         </div>
       </section>
 
@@ -383,11 +654,17 @@ export default function CertificadosAdmin() {
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
-                          disabled={!!generandoId}
+                          disabled={!!generandoId || generandoCurso}
                           onClick={() => generarSegunTab(estudiante.id)}
                           className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {cargando ? "Generando..." : tabActiva === "matricula" ? "Generar matrícula" : "Generar notas"}
+                          {cargando
+                            ? "Generando..."
+                            : tabActiva === "matricula"
+                              ? "Generar matrícula"
+                              : tabActiva === "reporte-parcial"
+                                ? "Ver reporte"
+                                : "Generar notas"}
                         </button>
                       </td>
                     </tr>
@@ -548,6 +825,219 @@ function CertificadoPreview({ certificado, onBack }) {
           </p>
         </section>
       </DocumentoImprimible>
+    </div>
+  );
+}
+
+function ReporteParcialPreview({ reporte, onBack }) {
+  const esCurso = reporte.alcance === "curso";
+  const promedios = reporte.estudiantes
+    .map((estudiante) => estudiante.promedio)
+    .filter((promedio) => promedio !== null);
+  const promedioGeneral = promedios.length
+    ? promedios.reduce((total, promedio) => total + promedio, 0) / promedios.length
+    : null;
+  const totalAusencias = reporte.estudiantes.reduce((total, estudiante) => total + estudiante.inasistencias, 0);
+  const titulo = "Reporte Académico Parcial";
+  const subtitulo = `Periodo ${reporte.periodo} · ${reporte.materia}`;
+
+  return (
+    <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
+      <div className="fixed left-4 top-4 z-50 no-print md:left-6 md:top-6">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
+          title="Atras"
+        >
+          ← Atrás
+        </button>
+      </div>
+
+      <DocumentoImprimible
+        tipo="reporte_estudiante"
+        className="di-documento--certificado"
+        titulo={titulo}
+        subtitulo={subtitulo}
+        firmas={[
+          { nombre: "", cargo: "Coordinacion academica" },
+          { nombre: "", cargo: "Direccion" },
+        ]}
+      >
+        <section className="space-y-5 text-slate-800">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold leading-5 text-amber-900">
+            Informe parcial e informativo generado con las notas registradas hasta la fecha.
+            No reemplaza boletin final, certificado oficial ni cierre academico del periodo.
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <DatoCertificado label="Curso" value={normalizarTexto(reporte.curso)} />
+              <DatoCertificado label="Periodo" value={`Periodo ${reporte.periodo}`} />
+              <DatoCertificado label="Materia" value={normalizarTexto(reporte.materia)} />
+              <DatoCertificado label={esCurso ? "Estudiantes" : "Inasistencias"} value={esCurso ? reporte.estudiantes.length : totalAusencias} />
+              {esCurso && (
+                <>
+                  <DatoCertificado label="Promedio grupo" value={formatoNota(promedioGeneral)} />
+                  <DatoCertificado label="Inasistencias" value={totalAusencias} />
+                  <DatoCertificado label="Fecha" value={reporte.fecha} />
+                  <DatoCertificado label="Alcance" value="Curso" />
+                </>
+              )}
+            </div>
+          </div>
+
+          {reporte.errores > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-500">
+              {reporte.errores} registro(s) no pudieron cargarse y fueron omitidos del reporte.
+            </div>
+          )}
+
+          {esCurso ? (
+            <ReporteParcialCurso estudiantes={reporte.estudiantes} />
+          ) : (
+            <ReporteParcialEstudiante estudiante={reporte.estudiantes[0]} />
+          )}
+        </section>
+      </DocumentoImprimible>
+    </div>
+  );
+}
+
+function ReporteParcialCurso({ estudiantes }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200">
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
+          <tr className="bg-slate-800 text-white">
+            <th className="px-2 py-2 text-left font-semibold uppercase tracking-wide">Estudiante</th>
+            <th className="px-2 py-2 text-left font-semibold uppercase tracking-wide">Materia</th>
+            <th className="px-2 py-2 text-left font-semibold uppercase tracking-wide">Docente</th>
+            <th className="w-20 px-2 py-2 text-center font-semibold uppercase tracking-wide">Nota</th>
+            <th className="w-20 px-2 py-2 text-center font-semibold uppercase tracking-wide">Inas.</th>
+            <th className="w-28 px-2 py-2 text-center font-semibold uppercase tracking-wide">Estado</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 bg-white">
+          {estudiantes.flatMap((estudiante) => {
+            if (!estudiante.materias.length) {
+              return [
+                <tr key={`${estudiante.id}-sin-materias`}>
+                  <td className="px-2 py-2 align-top">
+                    <p className="font-bold uppercase text-slate-900">{estudiante.nombre}</p>
+                    <p className="text-[10px] text-slate-500">{estudiante.documento}</p>
+                  </td>
+                  <td colSpan="5" className="px-2 py-2 text-center font-semibold text-slate-400">
+                    Sin registros academicos para la seleccion actual.
+                  </td>
+                </tr>,
+              ];
+            }
+
+            return estudiante.materias.map((materia, index) => (
+              <tr key={`${estudiante.id}-${materia.asignacion_id}-${index}`} className="page-break-inside-avoid">
+                <td className="px-2 py-2 align-top">
+                  {index === 0 && (
+                    <>
+                      <p className="font-bold uppercase text-slate-900">{estudiante.nombre}</p>
+                      <p className="text-[10px] text-slate-500">{estudiante.documento}</p>
+                      <p className="mt-1 text-[10px] font-semibold text-slate-600">
+                        Promedio: {formatoNota(estudiante.promedio)} · Inasistencias: {estudiante.inasistencias}
+                      </p>
+                    </>
+                  )}
+                </td>
+                <td className="px-2 py-2 font-semibold uppercase text-slate-800">{materia.nombre}</td>
+                <td className="px-2 py-2 text-slate-600">{materia.docente}</td>
+                <td className="px-2 py-2 text-center text-sm font-black text-slate-900">{formatoNota(materia.definitiva)}</td>
+                <td className="px-2 py-2 text-center font-bold text-slate-700">{materia.inasistencias}</td>
+                <td className="px-2 py-2 text-center font-semibold text-slate-700">{materia.estado}</td>
+              </tr>
+            ));
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ReporteParcialEstudiante({ estudiante }) {
+  if (!estudiante) {
+    return (
+      <div className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm font-semibold text-slate-400">
+        No hay datos para mostrar.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <DatoCertificado label="Estudiante" value={estudiante.nombre} />
+          <DatoCertificado label="Documento" value={estudiante.documento} />
+          <DatoCertificado label="Promedio" value={formatoNota(estudiante.promedio)} />
+          <DatoCertificado label="Inasistencias" value={estudiante.inasistencias} />
+        </div>
+      </div>
+
+      {estudiante.materias.map((materia) => (
+        <article key={`${estudiante.id}-${materia.asignacion_id}`} className="page-break-inside-avoid overflow-hidden rounded-lg border border-slate-200">
+          <header className="flex items-start justify-between gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="min-w-0">
+              <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">{materia.nombre}</h3>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Docente: {materia.docente}</p>
+            </div>
+            <div className="grid min-w-[150px] grid-cols-2 gap-1 text-center text-[10px]">
+              <span className="rounded border border-slate-200 bg-white px-2 py-1 font-bold text-slate-600">
+                Nota {formatoNota(materia.definitiva)}
+              </span>
+              <span className="rounded border border-slate-200 bg-white px-2 py-1 font-bold text-slate-600">
+                Inas. {materia.inasistencias}
+              </span>
+            </div>
+          </header>
+
+          <div className="grid grid-cols-1 gap-0 md:grid-cols-[1fr_140px]">
+            <div className="overflow-hidden">
+              {materia.detalles.length ? (
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-white text-[10px] uppercase tracking-wide text-slate-500">
+                      <th className="border-b border-slate-200 px-3 py-1.5 text-left">Evaluacion / observacion</th>
+                      <th className="w-24 border-b border-slate-200 px-3 py-1.5 text-center">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {materia.detalles.map((detalle, index) => (
+                      <tr key={`${materia.asignacion_id}-detalle-${index}`} className="border-b border-slate-100 last:border-b-0">
+                        <td className="px-3 py-1.5 text-slate-700">{detalle.descripcion}</td>
+                        <td className="px-3 py-1.5 text-center font-bold text-slate-900">{detalle.valor || "---"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="px-3 py-4 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Calificacion y observaciones pendientes por ingresar.
+                </div>
+              )}
+            </div>
+            <aside className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs md:border-l md:border-t-0">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Estado</p>
+              <p className="mt-1 font-black text-slate-800">{materia.estado}</p>
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">Desempeno</p>
+              <p className="mt-1 font-black text-slate-800">{materia.desempeno}</p>
+            </aside>
+          </div>
+        </article>
+      ))}
+
+      {estudiante.materias.length === 0 && (
+        <div className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm font-semibold text-slate-400">
+          Sin registros academicos para la seleccion actual.
+        </div>
+      )}
     </div>
   );
 }

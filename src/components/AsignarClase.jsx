@@ -57,10 +57,6 @@ function AsignarClase() {
             setCursos(c.data);
             setMaterias(m.data);
             setListaAsignaciones(l.data);
-
-            if (!cursoId && c.data.length > 0) {
-                setCursoId(String(c.data[0].id));
-            }
         } catch (error) {
             console.error("Error cargando datos de asignación", error);
         } finally {
@@ -70,7 +66,6 @@ function AsignarClase() {
 
     useEffect(() => {
         cargarDatos();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

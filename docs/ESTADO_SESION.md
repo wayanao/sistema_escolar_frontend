@@ -17,12 +17,16 @@ Claves observadas:
 - `periodo`: periodo seleccionado.
 - `fechaAsistencia`: fecha usada en asistencia.
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
+- `ultimo_codigo_colegio`: ultimo codigo de colegio usado en un login exitoso,
+  solo para precargar el campo visual del formulario.
 
 Separacion importante:
 
 - `usuario`, `profesor` y `super_admin` son datos visuales de sesion.
 - `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion` son
   selecciones de trabajo del perfil profesor.
+- `ultimo_codigo_colegio` es una preferencia local del login; no autoriza,
+  no define tenant y no reemplaza el codigo enviado al backend.
 
 Tambien se usa cookie:
 
@@ -45,10 +49,12 @@ Nota:
 1. Envia credenciales a `POST /login`.
 2. Recibe datos minimos de sesion y la cookie `token` queda configurada por el
    backend.
-3. Si el rol es `super_admin`, guarda `super_admin`.
-4. Si el rol es `admin`, guarda `usuario`.
-5. Si no es admin, guarda `profesor`.
-6. Redirige segun rol y, para admin inicial con password temporal, a
+3. Guarda `ultimo_codigo_colegio` solo despues de un login exitoso para
+   recordar el ultimo codigo real usado. No precarga `demo` por defecto.
+4. Si el rol es `super_admin`, guarda `super_admin`.
+5. Si el rol es `admin`, guarda `usuario`.
+6. Si no es admin, guarda `profesor`.
+7. Redirige segun rol y, para admin inicial con password temporal, a
    `/cambiar-password`.
 
 ## Flujo de logout

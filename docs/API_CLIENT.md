@@ -381,7 +381,9 @@ Uso:
 ```text
 GET /cursos
 GET /estudiantes
+GET /materias
 GET /boletines/admin/generar/{estudiante_id}/{periodo}
+GET /asistencia/historial/{asignacion_id}/{periodo}
 ```
 
 Uso:
@@ -389,9 +391,17 @@ Uso:
 - La pantalla permite filtrar estudiantes por curso, estado, busqueda y periodo.
 - El usuario puede generar un certificado por periodo individual o por todos los
   periodos academicos.
+- Tambien permite generar un reporte academico parcial informativo por curso o
+  por estudiante, filtrado por periodo y por una materia especifica o todas las
+  materias.
 - El certificado de notas reutiliza el consolidado academico del boletin admin.
 - Si la materia no trae definitiva directa, o recibe `0`, la pantalla intenta
   calcularla con las notas numericas mayores que `0` recibidas en `detalles`.
+- El reporte academico parcial reutiliza el consolidado de boletin admin para
+  notas actuales y consulta asistencia por `asignacion_id` para mostrar
+  inasistencias del periodo en las materias incluidas.
+- No cierra periodo ni reemplaza boletin/certificado final; es una foto
+  informativa con los datos registrados hasta el momento.
 - La impresion usa `DocumentoImprimible` con la plantilla de
   `reporte_estudiante`, manteniendo branding, encabezado, firmas y pie de
   pagina del sistema de impresos existente.

@@ -2,15 +2,23 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import api from "../utils/api";
 
+const LAST_SCHOOL_CODE_KEY = "ultimo_codigo_colegio";
+
+function leerUltimoCodigoColegio() {
+  const codigo = localStorage.getItem(LAST_SCHOOL_CODE_KEY)?.trim().toLowerCase() || "";
+  return codigo === "demo" ? "" : codigo;
+}
+
 function LoginForm() {
 
   const [email, setEmail] = useState("");// estado para el email
   const [password, setPassword] = useState("");// estado para la contraseña
-  const [codigoColegio, setCodigoColegio] = useState("demo");// estado para el código del colegio (saas)
+  const [codigoColegio, setCodigoColegio] = useState(leerUltimoCodigoColegio);// estado para el código del colegio (saas)
 
   const iniciarSesion = async () => {
+    const codigoNormalizado = codigoColegio.toLowerCase().trim();
 
-    if (!email || !password || !codigoColegio) {
+    if (!email || !password || !codigoNormalizado) {
         Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completa todos los campos (incluyendo el código de colegio)' });
         return;
     }
@@ -20,11 +28,12 @@ function LoginForm() {
       const res = await api.post(`/login`, { 
         email, 
         password, 
-        codigo_colegio: codigoColegio.toLowerCase().trim() 
+        codigo_colegio: codigoNormalizado
       });
 
           // revisar respuesta
       const data = res.data;
+      localStorage.setItem(LAST_SCHOOL_CODE_KEY, codigoNormalizado);
 
       const sessionData = {
         id: data.id,

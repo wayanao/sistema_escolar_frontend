@@ -24,6 +24,10 @@ La sesion real viaja en cookie `token` emitida por backend; los datos en
 - `password`
 - `codigo_colegio`
 
+El campo `codigo_colegio` ya no inicia con `demo`. El frontend solo precarga el
+ultimo codigo de colegio guardado tras un login exitoso en
+`localStorage.ultimo_codigo_colegio`.
+
 Si la respuesta contiene `rol === "super_admin"`:
 
 - Guarda la respuesta en `localStorage.super_admin`.

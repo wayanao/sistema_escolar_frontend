@@ -19,6 +19,8 @@ Estado actual de componentes y paginas del frontend.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
 - `AsignarClase.jsx` y `AsignarClaseGrid.jsx`: asignacion de clases.
+  `AsignarClase.jsx` no selecciona un curso por defecto al cargar; el admin
+  debe escoger `Seleccionar curso` para fijar el contexto de trabajo.
 - `CrearCurso.jsx`: creacion/gestion relacionada con cursos.
 - `CrearEstudiante.jsx`: creacion/gestion relacionada con estudiantes.
 - `CrearMateria.jsx`: creacion/gestion relacionada con materias.
@@ -163,8 +165,11 @@ Estado actual de componentes y paginas del frontend.
   boletin, certificado o cartera usan root con scroll lateral en movil.
 - `Boletin.jsx`: el impreso final conserva ancho A4 en movil y se desplaza a
   los lados. El boton `Atras` queda arriba a la izquierda.
-- `CertificadosAdmin.jsx`: certificado de notas y certificado de matricula
-  conservan ancho A4 en movil, tienen scroll lateral y boton `Atras` arriba.
+- `CertificadosAdmin.jsx`: certificado de notas, certificado de matricula y
+  reporte academico parcial conservan ancho A4 en movil, tienen scroll lateral
+  y boton `Atras` arriba. El reporte parcial permite imprimir curso completo o
+  estudiante individual por periodo y materia, incluyendo inasistencias del
+  periodo.
 - `CarteraVencidaAdmin.jsx`: los estados de cuenta por estudiante y por curso
   conservan ancho A4 en movil y usan scroll lateral.
 - `EstudiantesAdmin.jsx`: el modal de detalle del estudiante organiza el

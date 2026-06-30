@@ -2,6 +2,100 @@
 
 Registro de documentacion del frontend.
 
+## 2026-06-30 - Asignaciones sin curso por defecto
+
+Se ajusto el asignador de clases del perfil admin para no seleccionar
+automaticamente el primer curso al cargar.
+
+Archivos modificados:
+
+- `src/components/AsignarClase.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `AsignarClase` inicia con el selector en `Seleccionar curso`.
+- El panel de horario muestra el estado vacio hasta que el admin elige un curso.
+- Al editar una asignacion existente, el formulario sigue seleccionando el curso
+  real de esa asignacion.
+- Esto evita que el encabezado o contexto visual diga que se trabaja sobre el
+  primer curso disponible cuando el usuario aun no ha elegido curso.
+- No se cambiaron endpoints, payloads ni backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/components/AsignarClase.jsx
+```
+
+## 2026-06-30 - Login sin codigo demo por defecto
+
+Se ajusto el formulario de login para no precargar `demo` como codigo de
+colegio.
+
+Archivos modificados:
+
+- `src/components/LoginForm.jsx`
+- `docs/ESTADO_SESION.md`
+- `docs/ROLES_UI.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El campo `Codigo del colegio` inicia vacio cuando no existe un codigo real
+  previo.
+- Si existe `localStorage.ultimo_codigo_colegio`, se precarga ese ultimo codigo
+  usado correctamente.
+- El codigo se guarda solo despues de un login exitoso.
+- Si por compatibilidad existe un valor viejo `demo`, se ignora y no se muestra
+  como valor inicial.
+- No se cambio duracion de sesion, cookies, token ni backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/components/LoginForm.jsx
+```
+
+## 2026-06-30 - Reporte academico parcial en certificados
+
+Se agrego una pestaña de reporte academico parcial al modulo de Certificados
+del perfil admin.
+
+Archivos modificados:
+
+- `src/pages/CertificadosAdmin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `CertificadosAdmin` agrega la pestaña `Reporte académico parcial`.
+- El admin puede generar el reporte para un curso completo o para un estudiante
+  individual.
+- El reporte se filtra por periodo y por una materia especifica o todas las
+  materias.
+- El impreso muestra notas actuales, definitiva parcial, estado de la materia e
+  inasistencias del periodo para las materias incluidas.
+- Se reutilizan endpoints existentes: boletin admin para notas y asistencia por
+  asignacion para inasistencias.
+- No se agregaron endpoints ni se cambio el contrato backend.
+- El impreso usa `DocumentoImprimible` para conservar branding, encabezado,
+  firmas, comportamiento A4 y scroll lateral movil.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/CertificadosAdmin.jsx
+pnpm run lint
+pnpm run build
+```
+
+Nota: el build local se relanzo con permisos elevados por el `EPERM` conocido
+de Vite/fnm en esta maquina.
+
 ## 2026-06-24 - Orden configurable de materias en boletin
 
 Se agrego una pantalla administrativa para ordenar las materias del boletin por
