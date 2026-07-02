@@ -2,6 +2,34 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-01 - Bloqueo de traduccion automatica del navegador
+
+Se reforzo la aplicacion para evitar que Chrome, Edge u otros navegadores
+traduzcan automaticamente nombres, cursos, materias, documentos y textos del
+sistema.
+
+Archivos modificados:
+
+- `index.html`
+- `src/App.jsx`
+- `src/pages/Login.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `index.html` ahora declara `lang="es"`, `translate="no"` y clase
+  `notranslate` en `html`, `body` y `#root`.
+- Se agrego `<meta name="google" content="notranslate">`.
+- Los layouts principales y el login heredan `translate="no"` y
+  `notranslate`.
+- No se modificaron datos, endpoints ni logica de negocio.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/App.jsx src/pages/Login.jsx
+```
+
 ## 2026-06-30 - Asignaciones sin curso por defecto
 
 Se ajusto el asignador de clases del perfil admin para no seleccionar

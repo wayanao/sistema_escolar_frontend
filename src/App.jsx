@@ -93,7 +93,7 @@ function App() {
 
 function SuperAdminLayout() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="notranslate min-h-screen bg-slate-50" translate="no">
       <NavSuperAdmin />
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
@@ -114,7 +114,7 @@ function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="notranslate min-h-screen bg-slate-50" translate="no">
       {usuario && usuario.rol === "admin" ? <NavAdmin /> : <NavProfesor />}
       <TenantStatusBanner />
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">

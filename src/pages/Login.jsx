@@ -3,7 +3,7 @@ import fondoLogin from "../assets/fondologin.jpg";
 
 function Login() {
     return (
-        <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="notranslate min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8" translate="no">
             <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center">
                 <div className="grid w-full overflow-hidden rounded-2xl bg-white shadow-2xl lg:grid-cols-[1.05fr_0.95fr]">
                     <section className="relative min-h-[280px] overflow-hidden bg-slate-900 lg:min-h-[720px]">
