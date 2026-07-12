@@ -28,10 +28,10 @@
 }
 
 .desktop-animated-nav--profesor {
-  --nav-accent: rgba(224, 242, 254, 0.95);
-  --nav-accent-soft: rgba(224, 242, 254, 0.18);
-  --nav-accent-glow: rgba(34, 211, 238, 0.22);
-  --nav-active-text: #0c4a6e;
+  --nav-accent: rgba(250, 232, 255, 0.95);
+  --nav-accent-soft: rgba(250, 232, 255, 0.18);
+  --nav-accent-glow: rgba(217, 70, 239, 0.24);
+  --nav-active-text: #581c87;
 }
 
 .desktop-nav-indicator {

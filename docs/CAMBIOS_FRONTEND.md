@@ -2,6 +2,64 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-12 - Colores por dia en horario del profesor
+
+Archivos modificados:
+
+- `src/pages/DashboardProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Las cards de clases dentro de `Horario asignado` ahora diferencian el dia con
+  bordes, encabezado y hora en colores propios por dia.
+- Se mantiene el morado institucional como color base del perfil profesor y se
+  usan acentos suaves para facilitar la lectura del horario: lunes morado,
+  martes esmeralda, miercoles ambar, jueves rosa y viernes slate.
+- Se suavizo el fondo de cada dia y se reforzaron los bordes para diferenciar
+  sin saturar visualmente la seccion.
+- No se modificaron consultas, filtros, seleccion de clase ni datos del horario.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/DashboardProfesor.jsx
+pnpm run build
+```
+
+## 2026-07-12 - Perfil profesor con paleta visual del admin
+
+Archivos modificados:
+
+- `src/components/NavProfesor.jsx`
+- `src/index.css`
+- `src/pages/DashboardProfesor.jsx`
+- `src/pages/Planilla.jsx`
+- `src/pages/Asistencia.jsx`
+- `src/pages/Formulario.jsx`
+- `src/components/Observaciones.jsx`
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/PlaneadorAnual.jsx`
+- `src/pages/RankingRendimiento.jsx`
+- `src/components/boletin/IngresoBoletinProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Se alineo el color predominante del perfil profesor con el perfil admin,
+  usando la misma familia morada para navegacion, estados activos, focos,
+  encabezados, badges y botones principales.
+- Se mantuvieron los colores semanticos existentes: rojo para alertas,
+  verde para exito/guardado y amarillo para bajo rendimiento o pendientes.
+- No se modificaron rutas, endpoints, payloads, permisos ni logica de guardado.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/components/NavProfesor.jsx src/pages/DashboardProfesor.jsx src/pages/Planilla.jsx src/pages/Asistencia.jsx src/pages/Formulario.jsx src/components/Observaciones.jsx src/pages/PlanDeClases.jsx src/pages/PlaneadorAnual.jsx src/pages/RankingRendimiento.jsx src/components/boletin/IngresoBoletinProfesor.jsx
+pnpm run build
+```
+
 ## 2026-07-12 - Validacion de asignacion antes de planilla y asistencia
 
 Archivos modificados:

@@ -73,7 +73,7 @@ function ObservacionesPage() {
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-3 py-2 rounded"
+            className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700"
           >
             Buscar
           </button>

@@ -4,7 +4,7 @@ import api from "../utils/api";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const campoBase =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100";
 
 const estadoInicial = {
   unidad: "",
@@ -350,18 +350,18 @@ function PlanDeClases() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50/50 p-2 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-amber-50/50 p-2 sm:p-6">
       <div className="space-y-6">
-        <section className="rounded-lg border border-sky-100 bg-white/90 p-5 shadow-sm sm:p-6">
+        <section className="rounded-lg border border-purple-100 bg-white/90 p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-sky-700">Taller docente</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-purple-700">Taller docente</p>
               <h1 className="mt-1 text-2xl font-bold text-gray-950 sm:text-3xl">Plan de clases</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
                 Diseña la clase del día con propósito, actividades y evidencias claras para tu grupo.
               </p>
             </div>
-            <div className="flex flex-col items-start gap-2 rounded-lg border border-sky-100 bg-sky-50 px-4 py-3 text-sm md:items-end">
+            <div className="flex flex-col items-start gap-2 rounded-lg border border-purple-100 bg-purple-50 px-4 py-3 text-sm md:items-end">
               <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoVisual.badgeClass}`}>
                 <span className={`h-2 w-2 rounded-full ${estadoVisual.dotClass}`} aria-hidden="true"></span>
                 {estadoVisual.label}
@@ -491,7 +491,7 @@ function PlanDeClases() {
               <button
                 onClick={guardarPlan}
                 disabled={guardando || cargando}
-                className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 md:w-auto"
+                className="w-full rounded-lg bg-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300 md:w-auto"
               >
                 {guardando ? "Guardando..." : estadoVisual.buttonText}
               </button>
@@ -505,7 +505,7 @@ function PlanDeClases() {
             <h2 className="mb-4 text-lg font-semibold text-gray-950">Planes recientes de esta clase</h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {historial.map((plan) => (
-                <div key={plan.id} className="rounded-lg border border-gray-200 p-4 transition hover:border-blue-300 hover:bg-blue-50">
+                <div key={plan.id} className="rounded-lg border border-gray-200 p-4 transition hover:border-purple-300 hover:bg-purple-50">
                   <button type="button" onClick={() => setFecha(plan.fecha)} className="w-full text-left">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold text-gray-950">{plan.tema}</span>
@@ -516,7 +516,7 @@ function PlanDeClases() {
                   <button
                     type="button"
                     onClick={() => usarPlanComoBase(plan)}
-                    className="mt-3 rounded-md border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-white"
+                    className="mt-3 rounded-md border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-white"
                   >
                     Usar como base
                   </button>
@@ -538,9 +538,9 @@ function ImagenesSeleccionadas({ imagenes }) {
       <h3 className="text-sm font-semibold text-gray-700">Imágenes por subir</h3>
       <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {imagenes.map((imagen) => (
-          <div key={imagen.url} className="overflow-hidden rounded-lg border border-blue-100 bg-blue-50">
+          <div key={imagen.url} className="overflow-hidden rounded-lg border border-purple-100 bg-purple-50">
             <img src={imagen.url} alt={imagen.nombre} className="h-36 w-full object-contain sm:h-40" />
-            <div className="border-t border-blue-100 bg-white px-3 py-2 text-xs font-medium text-gray-700">
+            <div className="border-t border-purple-100 bg-white px-3 py-2 text-xs font-medium text-gray-700">
               {imagen.nombre}
             </div>
           </div>
@@ -603,7 +603,7 @@ function ImagenGuardadaCard({ imagen, alt, onEliminarImagen }) {
             type="button"
             onClick={abrirImagen}
             disabled={!url}
-            className="text-xs font-medium text-blue-700 disabled:text-gray-400"
+            className="text-xs font-medium text-purple-700 disabled:text-gray-400"
           >
             Ver imagen completa
           </button>

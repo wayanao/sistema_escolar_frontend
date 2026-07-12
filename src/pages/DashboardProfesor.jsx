@@ -6,6 +6,54 @@ import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodo
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
+const HORARIO_DIA_ESTILOS = {
+  Lunes: {
+    panel: "border-purple-400 bg-purple-50/20",
+    header: "bg-purple-700",
+    headerMobile: "text-purple-900",
+    card: "border-l-purple-600 hover:border-purple-300",
+    time: "text-purple-700",
+  },
+  Martes: {
+    panel: "border-emerald-400 bg-emerald-50/20",
+    header: "bg-emerald-700",
+    headerMobile: "text-emerald-900",
+    card: "border-l-emerald-600 hover:border-emerald-300",
+    time: "text-emerald-700",
+  },
+  Miércoles: {
+    panel: "border-amber-400 bg-amber-50/20",
+    header: "bg-amber-600",
+    headerMobile: "text-amber-900",
+    card: "border-l-amber-600 hover:border-amber-300",
+    time: "text-amber-700",
+  },
+  Jueves: {
+    panel: "border-rose-400 bg-rose-50/20",
+    header: "bg-rose-700",
+    headerMobile: "text-rose-900",
+    card: "border-l-rose-600 hover:border-rose-300",
+    time: "text-rose-700",
+  },
+  Viernes: {
+    panel: "border-slate-400 bg-slate-50/40",
+    header: "bg-slate-700",
+    headerMobile: "text-slate-900",
+    card: "border-l-slate-600 hover:border-slate-400",
+    time: "text-slate-700",
+  },
+};
+
+const HORARIO_DIA_ESTILO_BASE = {
+  panel: "border-gray-200 bg-gray-50",
+  header: "bg-purple-700",
+  headerMobile: "text-gray-800",
+  card: "border-l-purple-500 hover:border-purple-200",
+  time: "text-purple-700",
+};
+
+const obtenerEstiloHorarioDia = (dia) => HORARIO_DIA_ESTILOS[dia] || HORARIO_DIA_ESTILO_BASE;
+
 const obtenerOrdenDia = (dia) => {
   const orden = DIAS_SEMANA.indexOf(dia);
   return orden === -1 ? DIAS_SEMANA.length : orden;
@@ -265,7 +313,7 @@ function DashboardProfesor() {
             value={asignacionId}
             onChange={handleAsignacionChange}
             disabled={loadingClases}
-            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="">{loadingClases ? "Cargando salones..." : "Todos los salones"}</option>
             {clasesUnicas.map(clase => (
@@ -280,7 +328,7 @@ function DashboardProfesor() {
           <select
             value={periodo}
             onChange={handlePeriodoChange}
-            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="1">Período 1</option>
             <option value="2">Período 2</option>
@@ -294,7 +342,7 @@ function DashboardProfesor() {
             type="date"
             value={fecha}
             onChange={handleFechaChange}
-            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
       </div>
@@ -312,14 +360,14 @@ function DashboardProfesor() {
         <div className="border-b border-gray-200 bg-white px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
+              <p className="text-sm font-semibold uppercase tracking-wide text-purple-700">
                 Horario asignado
               </p>
               <h2 className="mt-1 text-lg font-bold text-gray-900 sm:text-xl">
                 Tus clases de la semana
               </h2>
             </div>
-            <span className="w-max rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+            <span className="w-max rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700">
               {clasesConHorario.length} {clasesConHorario.length === 1 ? "clase" : "clases"}
             </span>
           </div>
@@ -338,11 +386,12 @@ function DashboardProfesor() {
             <div className="grid grid-cols-1 gap-2.5 p-3 sm:grid-cols-2 lg:hidden">
               {DIAS_SEMANA.map((dia) => {
                 const clasesDelDia = horarioPorDia[dia];
+                const estiloDia = obtenerEstiloHorarioDia(dia);
 
                 return (
-                  <div key={dia} className="rounded-lg border border-gray-200 bg-gray-50">
+                  <div key={dia} className={`rounded-lg border ${estiloDia.panel}`}>
                     <div className="border-b border-gray-200 px-3 py-2">
-                      <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
+                      <h3 className={`text-sm font-bold uppercase tracking-wide ${estiloDia.headerMobile}`}>
                         {dia}
                       </h3>
                     </div>
@@ -355,9 +404,9 @@ function DashboardProfesor() {
                         clasesDelDia.map((clase) => (
                           <article
                             key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                            className="rounded-md border-l-4 border-blue-600 bg-white px-2.5 py-2 shadow-sm"
+                            className={`rounded-md border border-gray-100 border-l-4 bg-white px-2.5 py-2 shadow-sm ${estiloDia.card}`}
                           >
-                            <p className="text-[11px] font-bold leading-tight text-blue-700">
+                            <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
                               {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
                             </p>
                             <h4 className="mt-1 text-xs font-semibold leading-tight text-gray-900">
@@ -379,10 +428,11 @@ function DashboardProfesor() {
               <div className="grid min-w-[860px] grid-cols-5 gap-2.5">
                 {DIAS_SEMANA.map((dia) => {
                   const clasesDelDia = horarioPorDia[dia];
+                  const estiloDia = obtenerEstiloHorarioDia(dia);
 
                   return (
-                    <div key={dia} className="flex min-h-[240px] flex-col rounded-lg border border-gray-200 bg-gray-50">
-                      <div className="rounded-t-lg bg-blue-700 px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white">
+                    <div key={dia} className={`flex min-h-[240px] flex-col rounded-lg border ${estiloDia.panel}`}>
+                      <div className={`rounded-t-lg px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white ${estiloDia.header}`}>
                         {dia}
                       </div>
                       <div className="flex flex-1 flex-col gap-2 p-2.5">
@@ -394,9 +444,9 @@ function DashboardProfesor() {
                           clasesDelDia.map((clase) => (
                             <article
                               key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                              className="rounded-md border border-gray-200 border-l-4 border-l-blue-500 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md"
+                              className={`rounded-md border border-gray-200 border-l-4 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md ${estiloDia.card}`}
                             >
-                              <p className="text-[11px] font-bold leading-tight text-blue-700">
+                              <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
                                 {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
                               </p>
                               <h4 className="mt-1 text-xs font-bold leading-tight text-gray-900">
@@ -437,7 +487,7 @@ function DashboardProfesor() {
                 setMateriaFiltroRendimiento("todas");
               }}
               disabled={loadingClases || cursosProfesor.length === 0}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               {loadingClases && <option value="">Cargando cursos...</option>}
               {!loadingClases && cursosProfesor.length > 0 && <option value="" disabled>Selecciona un curso</option>}
@@ -457,7 +507,7 @@ function DashboardProfesor() {
               value={materiaFiltroRendimiento}
               onChange={(e) => setMateriaFiltroRendimiento(e.target.value)}
               disabled={loadingClases || !cursoFiltroRendimiento}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:text-gray-500"
             >
               <option value="todas">Todas las materias del curso</option>
               {materiasDelCursoFiltro.map((clase) => (

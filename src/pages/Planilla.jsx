@@ -130,7 +130,7 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
                                                     ? est.notas[col]
                                                     : ""
                                             }
-                                            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                                             translate="no"
                                             onBlur={(e) =>
                                                 guardarNota(est.estudiante_id, col, e.target.value)
@@ -320,7 +320,7 @@ function Planilla() {
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de calificación</label>
                     <select
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:w-auto"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:w-auto"
                         value={tipoEvaluacion}
                         onChange={(e) => {
                             setTipoEvaluacion(e.target.value);
@@ -343,7 +343,7 @@ function Planilla() {
                     <input
                         type="text"
                         placeholder="Ej: Quiz, Taller..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         value={nuevoTipo}
                         onChange={(e) => setNuevoTipo(e.target.value)}
                     />
@@ -351,7 +351,7 @@ function Planilla() {
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Eliminar Tipo</label>
                     <select
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         value={tipoEliminar}
                         onChange={(e) => setTipoEliminar(e.target.value)}
                     >

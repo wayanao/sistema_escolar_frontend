@@ -261,7 +261,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">Dimensión Conductual</label>
           <textarea
             placeholder="Observaciones sobre el comportamiento del estudiante..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={conductual}
             onChange={(e) => marcarModificado(setConductual)(e.target.value)}
@@ -272,7 +272,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">Dimensión Cognitiva</label>
           <textarea
             placeholder="Observaciones sobre el desarrollo cognitivo..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={cognitivo}
             onChange={(e) => marcarModificado(setCognitivo)(e.target.value)}
@@ -283,7 +283,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">Dimensión del Lenguaje</label>
           <textarea
             placeholder="Observaciones sobre el desarrollo del lenguaje..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={lenguaje}
             onChange={(e) => marcarModificado(setLenguaje)(e.target.value)}
@@ -294,7 +294,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
       <div className="flex gap-4">
         <button
           onClick={guardar}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
         >
           {estadoVisual.buttonText}
         </button>

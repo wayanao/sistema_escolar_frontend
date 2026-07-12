@@ -323,7 +323,7 @@ function IngresoBoletinProfesor() {
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide truncate max-w-[120px]" title={etiquetaNota} translate="no">{etiquetaNota}</span>
                                                     {nota.tipo_evaluacion === "numerica" ? (
-                                                        <span className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">Nota: {nota.valor}</span>
+                                                        <span className="bg-purple-100 text-purple-800 text-sm font-bold px-3 py-1 rounded-full">Nota: {nota.valor}</span>
                                                     ) : (
                                                         <span className="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full">
                                                             {VALORACIONES_DESARROLLO.find(op => op.value === nota.valoracion)?.emoji || "—"}

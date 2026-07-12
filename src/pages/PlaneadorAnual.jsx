@@ -229,7 +229,7 @@ function PlaneadorAnual() {
   if (loading) {
     return (
       <div className="flex bg-white items-center justify-center p-8 rounded-xl shadow-sm border border-slate-200">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         <span className="ml-3 text-slate-600">Cargando...</span>
       </div>
     );
@@ -298,7 +298,7 @@ function PlaneadorAnual() {
       <style>
         {`
           .planeador-header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
             color: white;
             padding: 2rem;
             border-radius: 12px;
@@ -361,7 +361,7 @@ function PlaneadorAnual() {
           }
           
           .planeador-textarea:focus {
-            background-color: rgba(59, 130, 246, 0.05);
+            background-color: rgba(126, 34, 206, 0.06);
             border-radius: 4px;
           }
           
@@ -375,8 +375,8 @@ function PlaneadorAnual() {
           }
           
           .planeador-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: #7e22ce;
+            box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.12);
           }
 
           @media screen and (max-width: 640px) {
@@ -417,8 +417,8 @@ function PlaneadorAnual() {
             }
             .no-print { display: none !important; }
             .planeador-header {
-              background: #e0f2fe !important;
-              color: #1e40af !important;
+              background: #faf5ff !important;
+              color: #581c87 !important;
               -webkit-print-color-adjust: exact;
               margin-bottom: 1rem;
               padding: 1rem;
@@ -454,14 +454,14 @@ function PlaneadorAnual() {
       
       <div className="planeador-header">
         <h1 className="text-2xl font-bold mb-2 sm:text-4xl">Planeador Anual de Clases</h1>
-        <p className="text-blue-100 text-base sm:text-lg">Planificación académica institucional</p>
+        <p className="text-purple-100 text-base sm:text-lg">Planificación académica institucional</p>
       </div>
 
       {asignacion && (
         <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+              <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
               <div>
                 <p className="text-sm text-gray-500 uppercase tracking-wide">Curso</p>
                 <p className="text-lg font-semibold text-gray-900">{asignacion.curso}</p>
@@ -491,7 +491,7 @@ function PlaneadorAnual() {
           <select
             value={periodo}
             onChange={handlePeriodoChange}
-            className="w-full max-w-md border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-200"
+            className="w-full max-w-md border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition duration-200"
           >
             <option value="1">Período 1</option>
             <option value="2">Período 2</option>
@@ -504,11 +504,11 @@ function PlaneadorAnual() {
       <div className="space-y-4 sm:hidden">
         {planeadores.map((planeador, index) => (
           <section key={index} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-100 bg-blue-50 px-4 py-3">
-              <h2 className="text-sm font-black uppercase tracking-wide text-blue-900">
+            <div className="flex items-center justify-between border-b border-gray-100 bg-purple-50 px-4 py-3">
+              <h2 className="text-sm font-black uppercase tracking-wide text-purple-900">
                 Fila {index + 1}
               </h2>
-              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-purple-700 ring-1 ring-purple-100">
                 Periodo {periodo}
               </span>
             </div>
@@ -655,7 +655,7 @@ function PlaneadorAnual() {
         <button
           onClick={guardarPlaneadores}
           disabled={guardando || estadoGuardado.cargando}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300 disabled:hover:scale-100"
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-purple-300 disabled:hover:scale-100"
         >
           <span className="flex items-center justify-center">
             <span className="mr-2">💾</span>

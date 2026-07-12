@@ -53,18 +53,18 @@ function NavProfesor() {
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2.5 text-[15px] " +
     (isActive
-      ? "text-blue-900 bg-blue-50 font-semibold border-l-4 border-blue-600"
-      : "hover:bg-gray-100 hover:text-blue-700 border-l-4 border-transparent");
+      ? "text-purple-900 bg-purple-50 font-semibold border-l-4 border-purple-600"
+      : "hover:bg-gray-100 hover:text-purple-700 border-l-4 border-transparent");
 
   const mobileLinkClass = ({ isActive }) =>
     isActive
-      ? "block rounded-md bg-blue-50 px-3 py-2.5 text-base font-semibold text-blue-900"
-      : "block px-2 py-2.5 text-base text-white hover:text-blue-100";
+      ? "block rounded-md bg-white px-3 py-2.5 text-base font-semibold text-purple-900"
+      : "block rounded-md px-3 py-2.5 text-base font-medium text-white hover:bg-purple-600 hover:text-white";
 
   const mobileSubLinkClass = ({ isActive }) =>
     isActive
-      ? "ml-4 block rounded-md bg-blue-50 px-3 py-2.5 text-[15px] font-semibold text-blue-900"
-      : "ml-4 block px-2 py-2.5 text-[15px] text-white hover:text-blue-100";
+      ? "block rounded-md bg-purple-50 px-3 py-2.5 text-[15px] font-semibold text-purple-900"
+      : "block rounded-md px-3 py-2.5 text-[15px] font-medium text-purple-50 hover:bg-purple-600 hover:text-white";
 
   const closeMobile = () => {
     setIsMenuOpen(false);
@@ -76,12 +76,12 @@ function NavProfesor() {
   };
 
   return (
-    <header className="bg-blue-700 text-white shadow-md relative z-50">
+    <header className="bg-purple-700 text-white shadow-md relative z-50">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-2 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink to="/" className="inline-flex items-center leading-none hover:opacity-90 transition cursor-pointer">
             <strong className="text-2xl font-black tracking-normal">
-              Scholar<span className="text-cyan-200">ix</span>
+              Scholar<span className="text-fuchsia-200">ix</span>
             </strong>
           </NavLink>
         </div>
@@ -89,7 +89,7 @@ function NavProfesor() {
         {/* Mobile menu button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="lg:hidden text-white hover:text-blue-100 focus:outline-none"
+          className="lg:hidden text-white hover:text-purple-100 focus:outline-none"
           aria-label="Abrir menu de profesor"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,11 @@ function NavProfesor() {
           <button
             type="button"
             onClick={() => toggleMobileGroup("control")}
-            className="flex w-full items-center justify-between px-2 py-2.5 text-left text-base font-medium text-white hover:text-blue-100"
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-base font-semibold transition ${
+              openMobileGroup === "control"
+                ? "bg-purple-900/35 text-white"
+                : "text-white hover:bg-purple-600 hover:text-white"
+            }`}
             aria-expanded={openMobileGroup === "control"}
           >
             <span>Control Académico</span>
@@ -132,7 +136,7 @@ function NavProfesor() {
             </svg>
           </button>
           {openMobileGroup === "control" && (
-            <div className="flex flex-col gap-1">
+            <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/planilla">Planilla</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/asistencia">Asistencia</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/Formulario">Observaciones</NavLink>
@@ -143,7 +147,11 @@ function NavProfesor() {
           <button
             type="button"
             onClick={() => toggleMobileGroup("planeacion")}
-            className="flex w-full items-center justify-between px-2 py-2.5 text-left text-base font-medium text-white hover:text-blue-100"
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-base font-semibold transition ${
+              openMobileGroup === "planeacion"
+                ? "bg-purple-900/35 text-white"
+                : "text-white hover:bg-purple-600 hover:text-white"
+            }`}
             aria-expanded={openMobileGroup === "planeacion"}
           >
             <span>Planeación Académica</span>
@@ -152,7 +160,7 @@ function NavProfesor() {
             </svg>
           </button>
           {openMobileGroup === "planeacion" && (
-            <div className="flex flex-col gap-1">
+            <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/plan-de-clases">Plan de Clases</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/planeador-anual">Malla Curricular</NavLink>
             </div>
