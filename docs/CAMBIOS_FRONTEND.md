@@ -2,6 +2,66 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-12 - Validacion de asignacion antes de planilla y asistencia
+
+Archivos modificados:
+
+- `src/pages/Planilla.jsx`
+- `src/pages/Asistencia.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Planilla y Asistencia ahora validan que exista una asignacion seleccionada
+  antes de cargar sus datos.
+- Si el profesor entra sin seleccionar asignacion, se muestra el mismo aviso
+  usado en Observaciones y se redirige a la pagina principal para escogerla.
+- Se evita que el aviso se repita mas de una vez durante el mismo montaje de la
+  pantalla.
+- No se modificaron endpoints, payloads ni guardados existentes.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/Planilla.jsx src/pages/Asistencia.jsx
+```
+
+## 2026-07-12 - Periodo recordado por profesor
+
+Archivos modificados:
+
+- `src/utils/periodoProfesor.js`
+- `src/pages/DashboardProfesor.jsx`
+- `src/pages/Planilla.jsx`
+- `src/pages/Asistencia.jsx`
+- `src/pages/Formulario.jsx`
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/PlaneadorAnual.jsx`
+- `src/pages/RankingRendimiento.jsx`
+- `src/pages/RankingMejorRendimiento.jsx`
+- `src/components/Observaciones.jsx`
+- `src/components/boletin/IngresoBoletinProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+- `docs/ESTADO_SESION.md`
+
+Cambio:
+
+- Se agrego `src/utils/periodoProfesor.js` para leer y guardar el periodo como
+  preferencia local por docente (`periodo_profesor_<id>`).
+- Las pantallas del perfil profesor leen el periodo recordado por profesor y
+  usan `1` como respaldo.
+- Al cambiar el selector de periodo, la pantalla guarda el valor por profesor y
+  mantiene `localStorage.periodo` como compatibilidad para el flujo actual.
+- El logout puede seguir limpiando `localStorage.periodo` sin borrar el ultimo
+  periodo recordado de cada profesor en ese navegador.
+- No se modificaron endpoints, payloads ni backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/utils/periodoProfesor.js src/pages/DashboardProfesor.jsx src/pages/Planilla.jsx src/pages/Asistencia.jsx src/pages/Formulario.jsx src/pages/PlanDeClases.jsx src/pages/PlaneadorAnual.jsx src/pages/RankingRendimiento.jsx src/pages/RankingMejorRendimiento.jsx src/components/Observaciones.jsx src/components/boletin/IngresoBoletinProfesor.jsx
+```
+
 ## 2026-07-01 - Bloqueo de traduccion automatica del navegador
 
 Se reforzo la aplicacion para evitar que Chrome, Edge u otros navegadores

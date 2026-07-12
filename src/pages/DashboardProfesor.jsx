@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect, useMemo } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
+import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
@@ -33,7 +34,7 @@ function DashboardProfesor() {
   const [clases, setClases] = useState([]);
   const [horarioAsignado, setHorarioAsignado] = useState([]);
   const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
-  const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
+  const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
   const [inasistencias, setInasistencias] = useState([]);
   const [notasBajas, setNotasBajas] = useState([]);
@@ -56,7 +57,7 @@ function DashboardProfesor() {
   const handlePeriodoChange = (e) => {
     const value = e.target.value;
     setPeriodo(value);
-    localStorage.setItem("periodo", value);
+    guardarPeriodoProfesor(value);
   };
 
   const handleFechaChange = (e) => {

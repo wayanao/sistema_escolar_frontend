@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
+import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const campoBase =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
@@ -23,7 +24,7 @@ function PlanDeClases() {
 
   const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
   const [clases, setClases] = useState([]);
-  const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
+  const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [form, setForm] = useState(estadoInicial);
   const [imagenes, setImagenes] = useState([]);
@@ -79,6 +80,7 @@ function PlanDeClases() {
 
   const actualizarPeriodo = (valor) => {
     setPeriodo(valor);
+    guardarPeriodoProfesor(valor);
     setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
@@ -229,7 +231,7 @@ function PlanDeClases() {
   }, [asignacionId, fecha, cargarPlanDelDia, cargarHistorial]);
 
   useEffect(() => {
-    localStorage.setItem("periodo", String(periodo));
+    guardarPeriodoProfesor(periodo);
   }, [periodo]);
 
   const handleImageChange = (e) => {

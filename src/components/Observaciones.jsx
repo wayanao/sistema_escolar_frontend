@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../utils/api";
 import DocumentoImprimible from "./impresion/DocumentoImprimible";
+import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 function Observaciones({ estudiante, asignacionId, periodo }) {
   const [conductual, setConductual] = useState("");
@@ -15,7 +16,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
   });
 
   const profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
-  const periodoActivo = parseInt(localStorage.getItem("periodo"), 10) || 1;
+  const periodoActivo = parseInt(obtenerPeriodoProfesor(periodo || "1"), 10) || 1;
 
   useEffect(() => {
     let activo = true;

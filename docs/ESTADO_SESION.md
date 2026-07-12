@@ -15,6 +15,8 @@ Claves observadas:
 - `super_admin`: datos del usuario de plataforma autenticado.
 - `asignacionId`: seleccion academica usada por modulos de profesor.
 - `periodo`: periodo seleccionado.
+- `periodo_profesor_<id>`: ultimo periodo seleccionado por cada profesor en
+  este navegador.
 - `fechaAsistencia`: fecha usada en asistencia.
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
 - `ultimo_codigo_colegio`: ultimo codigo de colegio usado en un login exitoso,
@@ -25,6 +27,9 @@ Separacion importante:
 - `usuario`, `profesor` y `super_admin` son datos visuales de sesion.
 - `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion` son
   selecciones de trabajo del perfil profesor.
+- `periodo_profesor_<id>` es una preferencia local por docente. Permite que un
+  profesor vuelva a entrar y recupere su ultimo periodo aunque el logout haya
+  limpiado `periodo`.
 - `ultimo_codigo_colegio` es una preferencia local del login; no autoriza,
   no define tenant y no reemplaza el codigo enviado al backend.
 
@@ -75,6 +80,8 @@ compatibilidad para desarrollo y redirigen a `/login`.
 
 Nota operativa:
 
+- `periodo_profesor_<id>` no se elimina en logout. Es una preferencia local por
+  profesor, no una autorizacion ni un dato sensible.
 - `fechaAsistencia` y `planillaTipoEvaluacion` pueden quedar como preferencias
   locales de trabajo si no se limpian explicitamente en el logout. Si se
   observan selecciones antiguas al cambiar de usuario, conviene centralizar una

@@ -1,6 +1,7 @@
 import { useState,useEffect } from "react";
 import Observaciones from "../components/Observaciones";
 import api from "../utils/api";
+import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 function ObservacionesPage() {
 
@@ -10,7 +11,7 @@ function ObservacionesPage() {
   const [filtrados, setFiltrados] = useState([]);
   
   const asignacionId = localStorage.getItem("asignacionId");
-  const periodo = localStorage.getItem("periodo") || "1";
+  const periodo = obtenerPeriodoProfesor();
   const cargarEstudiantes = async () => {
 
   const asignacionId = localStorage.getItem("asignacionId");

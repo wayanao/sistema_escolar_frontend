@@ -1,8 +1,9 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import PlanillaRow from "../components/PlanillaRow";
 import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
 import api from "../utils/api";
+import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
 
@@ -148,6 +149,7 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
 
 function Planilla() {
 
+    const avisoSeleccionRef = useRef(false);
     const [asignacionId] = useState(
         localStorage.getItem("asignacionId") || ""
     ); 
@@ -156,9 +158,7 @@ function Planilla() {
     const [nuevoTipo, setNuevoTipo] = useState("");
     const [tipoEliminar, setTipoEliminar] = useState("");
     const [clases, setClases] = useState([]);
-    const [periodo] = useState(
-    localStorage.getItem("periodo") || "1"
-    );
+    const [periodo] = useState(() => obtenerPeriodoProfesor());
     const [fecha] = useState(
     localStorage.getItem("fechaAsistencia") || ""
     );
@@ -169,6 +169,14 @@ function Planilla() {
     const profesorStorage = localStorage.getItem("profesor");
     const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
     const profesorId = profesor?.id;
+
+    const pedirSeleccionClase = useCallback(() => {
+        if (avisoSeleccionRef.current) return;
+
+        avisoSeleccionRef.current = true;
+        alert("Selecciona una asignación primero en la página principal");
+        window.location.href = "/";
+    }, []);
 
 
 
@@ -199,11 +207,16 @@ function Planilla() {
         return;
         }
 
+        if (!asignacionId || !periodo) {
+        pedirSeleccionClase();
+        return;
+        }
+
         if (profesorId) {
         cargarClases();
         }
 
-    }, [profesorId, cargarClases]);
+    }, [asignacionId, periodo, profesorId, cargarClases, pedirSeleccionClase]);
 
     // 🔥 Auto-cargar planilla cuando asignacionId o periodo cambie
     useEffect(() => {

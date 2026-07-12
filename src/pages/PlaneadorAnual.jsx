@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../utils/api";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
+import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 function PlaneadorAnual() {
   const [planeadores, setPlaneadores] = useState(Array(8).fill({
@@ -10,7 +11,7 @@ function PlaneadorAnual() {
     actividades_recursos: "",
     fecha: ""
   }));
-  const [periodo, setPeriodo] = useState(localStorage.getItem("periodo") || "1");
+  const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [asignacion, setAsignacion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -194,7 +195,7 @@ function PlaneadorAnual() {
   const handlePeriodoChange = (e) => {
     const value = e.target.value;
     setPeriodo(value);
-    localStorage.setItem("periodo", value);
+    guardarPeriodoProfesor(value);
   };
 
   const handleChange = (index, field, value) => {

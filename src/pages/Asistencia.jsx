@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import AsistenciaRow from "../components/AsistenciaRow";
 import api from "../utils/api";
+import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const normalizarFecha = (valor) => {
   if (!valor) return "";
@@ -19,6 +20,7 @@ const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function Asistencia() {
 
+const avisoSeleccionRef = useRef(false);
 const [fecha] = useState(localStorage.getItem("fechaAsistencia") || "");
 const [asistencia, setAsistencia] = useState({});
 const [historial, setHistorial] = useState([]);
@@ -27,18 +29,25 @@ const [errorHistorial, setErrorHistorial] = useState("");
 const [estudiantes, setEstudiantes] = useState([]);
 const [clases, setClases] = useState([]);
 const asignacionId = localStorage.getItem("asignacionId");
-const periodo = localStorage.getItem("periodo") || "1";
+const periodo = obtenerPeriodoProfesor();
 
 const profesorStorage = localStorage.getItem("profesor");
 const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
 const profesorId = profesor?.id;
 
 
+const pedirSeleccionClase = useCallback(() => {
+  if (avisoSeleccionRef.current) return;
+
+  avisoSeleccionRef.current = true;
+  alert("Selecciona una asignación primero en la página principal");
+  window.location.href = "/";
+}, []);
+
 
 const cargarEstudiantes = useCallback(async () => {
   if (!asignacionId) {
-    alert("No hay asignación seleccionada. Ve al Dashboard.");
-    window.location.href = "/";
+    pedirSeleccionClase();
     return;
   }
   try {
@@ -48,10 +57,10 @@ const cargarEstudiantes = useCallback(async () => {
 
     setEstudiantes(data.data || []);
     console.log("DATA.DATA:", data.data);
-    } catch (error) {
+  } catch (error) {
     console.error("Error cargando estudiantes", error);
   }
-}, [asignacionId, periodo]);
+}, [asignacionId, periodo, pedirSeleccionClase]);
 
 const cargarClases = useCallback(async () => {
   if (!profesorId) return;
@@ -104,6 +113,11 @@ const cargarHistorial = useCallback(async () => {
       window.location.href = "/login";
       return;
     }
+
+    if (!asignacionId || !periodo) {
+      pedirSeleccionClase();
+      return;
+    }
   
     if (asignacionId && periodo) {
       cargarEstudiantes();
@@ -112,7 +126,7 @@ const cargarHistorial = useCallback(async () => {
   
     cargarClases();
   
-  }, [asignacionId, periodo, profesorId, cargarEstudiantes, cargarHistorial, cargarClases]);
+  }, [asignacionId, periodo, profesorId, cargarEstudiantes, cargarHistorial, cargarClases, pedirSeleccionClase]);
 
 
 

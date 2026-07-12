@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 function RankingBajoRendimiento() {
   const [ranking, setRanking] = useState([]);
@@ -8,7 +9,7 @@ function RankingBajoRendimiento() {
   const navigate = useNavigate();
 
   const asignacionId = localStorage.getItem("asignacionId");
-  const periodo = localStorage.getItem("periodo") || "1";
+  const periodo = obtenerPeriodoProfesor();
 
   const profesorStorage = localStorage.getItem("profesor");
 

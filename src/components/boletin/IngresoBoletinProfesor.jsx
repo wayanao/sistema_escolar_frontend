@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import api from "../../utils/api";
+import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
 
 const VALORACIONES_DESARROLLO = [
     { value: "destacado", label: "Destacado", emoji: "⭐" },
@@ -28,7 +29,7 @@ function IngresoBoletinProfesor() {
         localStorage.getItem("asignacionId") || ""
     );
     const [clases, setClases] = useState([]);
-    const [periodo, setPeriodo] = useState(1);
+    const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
     const [estudiantes, setEstudiantes] = useState([]);
     const [cargando, setCargando] = useState(false);
 
@@ -126,6 +127,12 @@ function IngresoBoletinProfesor() {
     useEffect(() => {
         if (asignacionId) cargarAlumnos();
     }, [asignacionId, cargarAlumnos]);
+
+    const handlePeriodoChange = (e) => {
+        const value = e.target.value;
+        setPeriodo(value);
+        guardarPeriodoProfesor(value);
+    };
 
     const handleObservacionChange = (estId, index, texto) => {
         setDatosBoletin(prev => {
@@ -245,7 +252,7 @@ function IngresoBoletinProfesor() {
                     <select
                         className="p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         value={periodo}
-                        onChange={(e) => setPeriodo(e.target.value)}
+                        onChange={handlePeriodoChange}
                     >
                         <option value="1">1</option>
                         <option value="2">2</option>
