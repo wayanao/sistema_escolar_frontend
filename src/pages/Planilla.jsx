@@ -27,10 +27,23 @@ const formatearEtiquetaColumna = (valor) => {
 const esColumnaInterna = (valor) =>
     COLUMNAS_INTERNAS_OCULTAS.has(String(valor || "").trim().toLowerCase());
 
-const calcularPromedioNotas = (notas) => {
-    const valores = Object.values(notas || {})
+const obtenerNotasVisibles = (notas, columnasVisibles) => {
+    const columnas = Array.isArray(columnasVisibles) ? columnasVisibles : [];
+    if (columnas.length === 0) return {};
+
+    return columnas.reduce((acumulado, col) => {
+        if (Object.prototype.hasOwnProperty.call(notas || {}, col)) {
+            acumulado[col] = notas[col];
+        }
+        return acumulado;
+    }, {});
+};
+
+const calcularPromedioNotas = (notas, columnasVisibles) => {
+    const valores = (Array.isArray(columnasVisibles) ? columnasVisibles.map((col) => notas?.[col]) : Object.values(notas || {}))
+        .filter((valor) => valor !== null && valor !== undefined && String(valor).trim() !== "")
         .map((valor) => Number(valor))
-        .filter((valor) => !Number.isNaN(valor));
+        .filter((valor) => Number.isFinite(valor));
 
     if (valores.length === 0) return "";
 
@@ -39,6 +52,16 @@ const calcularPromedioNotas = (notas) => {
 };
 
 const normalizarNumeroNota = (valor) => Number(String(valor).replace(",", "."));
+
+const normalizarEstudiantesPlanilla = (estudiantes, columnasVisibles) =>
+    (estudiantes || []).map((est) => {
+        const notasVisibles = obtenerNotasVisibles(est.notas || {}, columnasVisibles);
+        return {
+            ...est,
+            notas: notasVisibles,
+            promedio: calcularPromedioNotas(notasVisibles, columnasVisibles),
+        };
+    });
 
 function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
@@ -198,7 +221,7 @@ function Planilla() {
     const columnasVisibles = (data.columnas || []).filter((col) => !esColumnaInterna(col));
 
     setColumnas(columnasVisibles);
-    setEstudiantes(data.data || []);
+    setEstudiantes(normalizarEstudiantesPlanilla(data.data || [], columnasVisibles));
     }, [asignacionId, periodo]);
 
     useEffect(() => {
@@ -230,9 +253,11 @@ function Planilla() {
             // 🔥 Guardar nota por celda
     const guardarNota = async (estudiante_id, descripcion, valor) => {
     
-        if (!valor) return;// si el input quedó vacío, no hacer nada
-        const numero = normalizarNumeroNota(valor);
-        const actualizarNotaLocal = () => {
+        const valorLimpio = String(valor ?? "").trim();
+        if (!valorLimpio && tipoEvaluacion !== "numerica") return;
+
+        const numero = normalizarNumeroNota(valorLimpio);
+        const actualizarNotaLocal = (notaActualizada) => {
             setEstudiantes((actuales) =>
                 actuales.map((est) => {
                     if (Number(est.estudiante_id) !== Number(estudiante_id)) return est;
@@ -249,17 +274,39 @@ function Planilla() {
 
                     const notasActualizadas = {
                         ...(est.notas || {}),
-                        [descripcion]: numero,
                     };
+
+                    if (notaActualizada === null) {
+                        delete notasActualizadas[descripcion];
+                    } else {
+                        notasActualizadas[descripcion] = notaActualizada;
+                    }
 
                     return {
                         ...est,
                         notas: notasActualizadas,
-                        promedio: calcularPromedioNotas(notasActualizadas),
+                        promedio: calcularPromedioNotas(notasActualizadas, columnas),
                     };
                 })
             );
         };
+
+        if (tipoEvaluacion === "numerica" && !valorLimpio) {
+            actualizarNotaLocal(null);
+
+            await api.post(`/planilla/nota`, {
+                estudiante_id,
+                asignacion_id: parseInt(asignacionId),
+                nota: null,
+                descripcion,
+                periodo: parseInt(periodo),
+                tipo_evaluacion: tipoEvaluacion,
+                valoracion: null
+            });
+
+            await cargarPlanilla();
+            return;
+        }
 
         if (tipoEvaluacion === "numerica") {
             if (Number.isNaN(numero) || numero < 1 || numero > 5) {
@@ -268,7 +315,7 @@ function Planilla() {
             }
         }
 
-        actualizarNotaLocal();
+        actualizarNotaLocal(tipoEvaluacion === "numerica" ? numero : valorLimpio);
 
         await api.post(`/planilla/nota`, {// revisar body
                 estudiante_id,
@@ -282,7 +329,6 @@ function Planilla() {
 
           // 🔄 recargar datos
         await cargarPlanilla();
-        actualizarNotaLocal();
     };
 
     const selectedClase = clases.find(c => c.id == asignacionId);   
@@ -419,8 +465,22 @@ function Planilla() {
                         if (!result.isConfirmed) return;
 
                         await api.delete(`/planilla/tipo?asignacion_id=${asignacionId}&descripcion=${encodeURIComponent(tipoEliminar)}&periodo=${periodo}`);
+                        const columnasActualizadas = columnas.filter((col) => col !== tipoEliminar);
+                        setColumnas(columnasActualizadas);
+                        setEstudiantes((actuales) =>
+                            actuales.map((est) => {
+                                const notasActualizadas = { ...(est.notas || {}) };
+                                delete notasActualizadas[tipoEliminar];
+
+                                return {
+                                    ...est,
+                                    notas: notasActualizadas,
+                                    promedio: calcularPromedioNotas(notasActualizadas, columnasActualizadas),
+                                };
+                            })
+                        );
                         setTipoEliminar("");
-                        cargarPlanilla();
+                        await cargarPlanilla();
                         Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El tipo de evaluación fue eliminado', timer: 1500, showConfirmButton: false });
                     }}
                 >

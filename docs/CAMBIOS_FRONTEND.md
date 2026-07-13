@@ -2,6 +2,30 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-13 - Promedio de planilla al borrar notas
+
+Archivos modificados:
+
+- `src/pages/Planilla.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Al borrar el valor de una nota numerica, la planilla ahora envia `nota: null`
+  y recalcula el promedio sin esa celda.
+- Al eliminar un tipo de evaluacion, el promedio local se recalcula quitando esa
+  columna antes de recargar la planilla.
+- Al cargar la planilla, el promedio visible se recalcula usando solo las
+  columnas activas para evitar que una columna eliminada siga afectando el
+  resultado mostrado.
+- No se modificaron rutas ni pantallas fuera de Planilla.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/Planilla.jsx
+```
+
 ## 2026-07-12 - Colores por dia en horario del profesor
 
 Archivos modificados:
