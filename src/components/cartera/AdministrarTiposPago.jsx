@@ -86,13 +86,9 @@ function BadgeEstado({ activo }) {
  * Reglas para considerar un concepto "publicado":
  *  - activo = true
  *  - tipo_cobro != 'opcional'
- *  - al menos un curso asignado (o es un concepto legacy del colegio)
+ *  - al menos un curso asignado
  */
-const NOMBRES_LEGACY = new Set(["matricula", "matrícula", "pension", "pensión", "mensualidad", "colegiatura"]);
-
 function evaluarEstadoCartera(tp) {
-    const nombre = (tp.nombre || "").toLowerCase();
-    const esLegacy = NOMBRES_LEGACY.has(nombre);
     const tipoCobro = tp.tipo_cobro || "unico";
     const activo = tp.activo !== false;
     const cursosAsignados = (tp.cursos || []).length;
@@ -100,11 +96,10 @@ function evaluarEstadoCartera(tp) {
     const razones = [];
     if (!activo) razones.push("está inactivo");
     if (tipoCobro === "opcional") razones.push("es opcional (se cobra solo bajo demanda)");
-    if (!esLegacy && cursosAsignados === 0) razones.push("no tiene cursos asignados");
+    if (cursosAsignados === 0) razones.push("no tiene cursos asignados");
 
     return {
         publicado: razones.length === 0,
-        esLegacy,
         razones,
     };
 }
@@ -150,6 +145,7 @@ function AdministrarTiposPago() {
     const [loadingDetalle, setLoadingDetalle] = useState(false);
     const [guardandoConfig, setGuardandoConfig] = useState(false);
     const [guardandoCursos, setGuardandoCursos] = useState(false);
+    const [cursosAsignadosDirty, setCursosAsignadosDirty] = useState(false);
 
     const cargarTiposPagos = useCallback(async () => {
         try {
@@ -253,6 +249,7 @@ function AdministrarTiposPago() {
                     activo: c.activo !== false,
                 }))
             );
+            setCursosAsignadosDirty(false);
         } catch (error) {
             console.error(error);
             Swal.fire("Error", "No se pudo cargar el detalle del tipo de pago", "error");
@@ -354,6 +351,7 @@ function AdministrarTiposPago() {
                 activo: true,
             },
         ]);
+        setCursosAsignadosDirty(true);
         setCursoAAgregar("");
         setValorCursoAAgregar("");
     };
@@ -370,23 +368,27 @@ function AdministrarTiposPago() {
                     valor: valorBase,
                     activo: true,
                 }));
+            if (nuevos.length > 0) setCursosAsignadosDirty(true);
             return [...prev, ...nuevos];
         });
     };
 
     const actualizarValorCurso = (curso_id, valor) => {
+        setCursosAsignadosDirty(true);
         setCursosAsignados((prev) =>
             prev.map((c) => (c.curso_id === curso_id ? { ...c, valor: Number(valor) || 0 } : c))
         );
     };
 
     const toggleActivoCurso = (curso_id) => {
+        setCursosAsignadosDirty(true);
         setCursosAsignados((prev) =>
             prev.map((c) => (c.curso_id === curso_id ? { ...c, activo: !c.activo } : c))
         );
     };
 
     const quitarCurso = (curso_id) => {
+        setCursosAsignadosDirty(true);
         setCursosAsignados((prev) => prev.filter((c) => c.curso_id !== curso_id));
     };
 
@@ -402,6 +404,7 @@ function AdministrarTiposPago() {
                 })),
             };
             await api.put(`/tipos-pagos/${selectedTipoId}/cursos`, payload);
+            setCursosAsignadosDirty(false);
             Swal.fire("Guardado", "Cursos asignados correctamente", "success");
             await cargarTiposPagos();
         } catch (error) {
@@ -418,6 +421,16 @@ function AdministrarTiposPago() {
     // -------------------------------------------------------------------------
     const esMensual = config.tipo_cobro === "mensual";
     const esAnual = config.tipo_cobro === "anual";
+    const cursosActivos = useMemo(
+        () => cursos.filter((curso) => curso.estado !== "inactivo"),
+        [cursos]
+    );
+    const cursosAsignadosActivos = useMemo(
+        () => cursosAsignados.filter((curso) => curso.activo !== false).length,
+        [cursosAsignados]
+    );
+    const totalCursosActivos = cursosActivos.length;
+    const cursosPendientes = Math.max(0, totalCursosActivos - cursosAsignadosActivos);
 
     // Vista previa del estado de cartera con la configuración actual (no guardada).
     const carteraPreview = useMemo(() => {
@@ -846,17 +859,43 @@ function AdministrarTiposPago() {
                             {/* --- Panel: asignación a cursos --- */}
                             <section className="border-t border-gray-200 pt-6">
                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
-                                        Asignación por cursos
-                                    </h3>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                            Asignación por cursos
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            {cursosAsignadosActivos} de {totalCursosActivos} cursos activos asignados.
+                                            {cursosPendientes > 0 && ` Faltan ${cursosPendientes}.`}
+                                        </p>
+                                    </div>
                                     <button
                                         onClick={agregarTodosLosCursos}
                                         disabled={cursosDisponibles.length === 0}
                                         className="text-xs font-semibold text-purple-700 hover:text-purple-900 disabled:text-gray-400"
                                     >
-                                        + Asignar a todos los cursos
+                                        + Agregar todos los cursos
                                     </button>
                                 </div>
+
+                                {cursosAsignadosDirty && (
+                                    <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                                        <p className="font-semibold">Cambios de cursos pendientes por guardar</p>
+                                        <p className="mt-1 text-xs">
+                                            Los cursos agregados, quitados o modificados no generan deuda hasta presionar
+                                            <strong> Guardar asignación de cursos</strong>.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {!cursosAsignadosDirty && cursosPendientes > 0 && config.tipo_cobro !== "opcional" && (
+                                    <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm text-purple-900">
+                                        <p className="font-semibold">Este concepto no está en todos los cursos activos</p>
+                                        <p className="mt-1 text-xs">
+                                            Solo genera deuda en los cursos asignados y activos. Usa
+                                            <strong> Agregar todos los cursos</strong> si aplica para todo el colegio.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="flex flex-wrap gap-2 mb-4 items-end">
                                     <div className="flex-1 min-w-[180px]">
@@ -945,10 +984,14 @@ function AdministrarTiposPago() {
                                 <div className="flex justify-end mt-4">
                                     <button
                                         onClick={guardarAsignacionCursos}
-                                        disabled={guardandoCursos}
-                                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50"
+                                        disabled={guardandoCursos || !cursosAsignadosDirty}
+                                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {guardandoCursos ? "Guardando..." : "Guardar asignación de cursos"}
+                                        {guardandoCursos
+                                            ? "Guardando..."
+                                            : cursosAsignadosDirty
+                                                ? "Guardar asignación de cursos"
+                                                : "Asignación de cursos guardada"}
                                     </button>
                                 </div>
                             </section>

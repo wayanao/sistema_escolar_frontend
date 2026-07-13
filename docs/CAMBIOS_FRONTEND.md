@@ -2,6 +2,30 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-13 - Claridad al asignar conceptos de cartera a cursos
+
+Archivos modificados:
+
+- `src/components/cartera/AdministrarTiposPago.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- La pantalla de Tipos de Pago ahora muestra cuántos cursos activos tienen el
+  concepto asignado y cuántos faltan.
+- Al agregar, quitar o modificar cursos, aparece un aviso de cambios pendientes
+  indicando que no generan deuda hasta presionar `Guardar asignación de cursos`.
+- El botón de guardado queda deshabilitado cuando no hay cambios pendientes.
+- La etiqueta de cartera ya no considera conceptos legacy como publicados si no
+  tienen cursos asignados, alineando la UI con el cálculo real de deuda.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/components/cartera/AdministrarTiposPago.jsx
+pnpm run build
+```
+
 ## 2026-07-13 - Guardar plan de clases con campos vacios
 
 Archivos modificados:
