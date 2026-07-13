@@ -1029,7 +1029,7 @@ function EstudiantesAdmin() {
 
                             <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3">
                               <ObservacionDimension
-                                titulo="Conductual"
+                                titulo="Conductual / Disciplinario"
                                 texto={obs.conductual}
                                 className="border-purple-100 bg-purple-50 text-purple-900"
                               />

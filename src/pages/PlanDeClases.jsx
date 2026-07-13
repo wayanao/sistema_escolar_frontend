@@ -7,6 +7,9 @@ const campoBase =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100";
 
 const LIMITE_TEXTO_CORTO = 255;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+const PREFIJO_CAMPOS_RECORDADOS = "plan_clases_defaults";
 
 const estadoInicial = {
   unidad: "",
@@ -19,6 +22,46 @@ const estadoInicial = {
   tema: "",
 };
 
+function crearClaveCamposRecordados(profesorId, asignacionId) {
+  if (!profesorId || !asignacionId) return "";
+  return `${PREFIJO_CAMPOS_RECORDADOS}_${profesorId}_${asignacionId}`;
+}
+
+function obtenerCamposRecordados(profesorId, asignacionId) {
+  const clave = crearClaveCamposRecordados(profesorId, asignacionId);
+  if (!clave) return {};
+
+  try {
+    const guardado = localStorage.getItem(clave);
+    if (!guardado) return {};
+    const data = JSON.parse(guardado);
+
+    return {
+      unidad: typeof data.unidad === "string" ? data.unidad : "",
+      estandar: typeof data.estandar === "string" ? data.estandar : "",
+    };
+  } catch {
+    return {};
+  }
+}
+
+function guardarCamposRecordados(profesorId, asignacionId, form) {
+  const clave = crearClaveCamposRecordados(profesorId, asignacionId);
+  if (!clave) return;
+
+  try {
+    localStorage.setItem(
+      clave,
+      JSON.stringify({
+        unidad: form.unidad || "",
+        estandar: form.estandar || "",
+      }),
+    );
+  } catch {
+    // El guardado del plan no debe fallar si el navegador bloquea localStorage.
+  }
+}
+
 function PlanDeClases() {
   const profesorStorage = localStorage.getItem("profesor");
   const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
@@ -29,7 +72,7 @@ function PlanDeClases() {
   const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [form, setForm] = useState(estadoInicial);
-  const [imagenes, setImagenes] = useState([]);
+  const [imagenes, setImagenes] = useState({ imagen1: null, imagen2: null });
   const [imagenesGuardadas, setImagenesGuardadas] = useState({ imagen1: null, imagen2: null });
   const [historial, setHistorial] = useState([]);
   const [planActualId, setPlanActualId] = useState(null);
@@ -42,7 +85,7 @@ function PlanDeClases() {
     modificado: false,
     guardadoEn: null,
   });
-  const imagenInputRef = useRef(null);
+  const imagenInputRefs = useRef({ imagen1: null, imagen2: null });
 
   const selectedClase = useMemo(
     () => clases.find((claseItem) => String(claseItem.id) === String(asignacionId)),
@@ -65,15 +108,25 @@ function PlanDeClases() {
   }, [clases, asignacionId]);
 
   const imagenesSeleccionadas = useMemo(
-    () => imagenes.map((imagen) => ({ nombre: imagen.name, url: URL.createObjectURL(imagen) })),
+    () =>
+      Object.entries(imagenes).reduce((acc, [slot, imagen]) => {
+        if (imagen) acc[slot] = { nombre: imagen.name, url: URL.createObjectURL(imagen) };
+        return acc;
+      }, {}),
     [imagenes],
   );
 
   useEffect(() => {
     return () => {
-      imagenesSeleccionadas.forEach((imagen) => URL.revokeObjectURL(imagen.url));
+      Object.values(imagenesSeleccionadas).forEach((imagen) => URL.revokeObjectURL(imagen.url));
     };
   }, [imagenesSeleccionadas]);
+
+  const limpiarInputsImagen = useCallback(() => {
+    Object.values(imagenInputRefs.current).forEach((input) => {
+      if (input) input.value = "";
+    });
+  }, []);
 
   const actualizarCampo = (campo, valor) => {
     setForm((actual) => ({ ...actual, [campo]: valor }));
@@ -179,8 +232,8 @@ function PlanDeClases() {
           actividad_casa: plan.actividad_casa || "",
           tema: plan.tema || "",
         });
-        setImagenes([]);
-        if (imagenInputRef.current) imagenInputRef.current.value = "";
+        setImagenes({ imagen1: null, imagen2: null });
+        limpiarInputsImagen();
         setEstadoGuardado({
           cargando: false,
           guardado: true,
@@ -191,9 +244,9 @@ function PlanDeClases() {
       } else {
         setPlanActualId(null);
         setImagenesGuardadas({ imagen1: null, imagen2: null });
-        setImagenes([]);
-        if (imagenInputRef.current) imagenInputRef.current.value = "";
-        setForm(estadoInicial);
+        setImagenes({ imagen1: null, imagen2: null });
+        limpiarInputsImagen();
+        setForm({ ...estadoInicial, ...obtenerCamposRecordados(profesorId, asignacionId) });
         setEstadoGuardado({
           cargando: false,
           guardado: false,
@@ -214,7 +267,7 @@ function PlanDeClases() {
     } finally {
       setCargando(false);
     }
-  }, [asignacionId, fecha]);
+  }, [asignacionId, fecha, limpiarInputsImagen, profesorId]);
 
   const cargarHistorial = useCallback(async () => {
     if (!asignacionId) return;
@@ -245,26 +298,35 @@ function PlanDeClases() {
     guardarPeriodoProfesor(periodo);
   }, [periodo]);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 2) {
-      alert("Solo puedes seleccionar hasta 2 imágenes");
+  const handleImageChange = (slot, e) => {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) {
+      setImagenes((actual) => ({ ...actual, [slot]: null }));
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      alert("Solo se permiten imagenes PNG, JPG, JPEG o WEBP.");
       e.target.value = "";
       return;
     }
-    setImagenes(files);
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      alert("La imagen no puede superar 5MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setImagenes((actual) => ({ ...actual, [slot]: file }));
     setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
   const guardarPlan = async () => {
-    const incompleto =
-      !asignacionId ||
-      !periodo ||
-      !fecha ||
-      Object.values(form).some((valor) => !String(valor).trim());
+    const incompleto = !asignacionId || !periodo || !fecha;
 
     if (incompleto) {
-      alert("Completa todos los campos obligatorios");
+      alert("Selecciona la clase, el periodo y la fecha antes de guardar.");
       return;
     }
 
@@ -279,17 +341,18 @@ function PlanDeClases() {
     formData.append("periodo", periodo);
     formData.append("fecha", fecha);
     Object.entries(form).forEach(([campo, valor]) => formData.append(campo, valor));
-    if (imagenes[0]) formData.append("imagen1", imagenes[0]);
-    if (imagenes[1]) formData.append("imagen2", imagenes[1]);
+    if (imagenes.imagen1) formData.append("imagen1", imagenes.imagen1);
+    if (imagenes.imagen2) formData.append("imagen2", imagenes.imagen2);
 
     setGuardando(true);
     try {
       const res = await api.post("/plan-de-clases", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      guardarCamposRecordados(profesorId, asignacionId, form);
       setPlanActualId(res.data.id);
-      setImagenes([]);
-      if (imagenInputRef.current) imagenInputRef.current.value = "";
+      setImagenes({ imagen1: null, imagen2: null });
+      limpiarInputsImagen();
       await cargarPlanDelDia();
       setEstadoGuardado({
         cargando: false,
@@ -313,7 +376,7 @@ function PlanDeClases() {
   const eliminarImagenGuardada = async (slot) => {
     if (!planActualId) return;
 
-    const nombreImagen = slot === "imagen1" ? "imagen 1" : "imagen 2";
+    const nombreImagen = slot === "imagen1" ? "evidencia de desarrollo cognitivo" : "evidencia de actividad en casa";
     const confirmar = window.confirm(`¿Quieres borrar la ${nombreImagen} de este plan?`);
     if (!confirmar) return;
 
@@ -343,9 +406,9 @@ function PlanDeClases() {
 
   const usarPlanComoBase = (plan) => {
     setPlanActualId(null);
-    setImagenes([]);
+    setImagenes({ imagen1: null, imagen2: null });
     setImagenesGuardadas({ imagen1: null, imagen2: null });
-    if (imagenInputRef.current) imagenInputRef.current.value = "";
+    limpiarInputsImagen();
     setPeriodo(String(plan.periodo || periodo));
     setForm({
       unidad: plan.unidad || "",
@@ -468,16 +531,10 @@ function PlanDeClases() {
                 placeholder="Apertura, desarrollo y cierre"
               />
               <CampoTextarea
-                label="Estándar"
+                label="Estándar / Lineamientos curriculares"
                 value={form.estandar}
                 onChange={(valor) => actualizarCampo("estandar", valor)}
-                placeholder="Estándar o referente curricular"
-              />
-              <CampoTextarea
-                label="Desarrollo cognitivo"
-                value={form.dba}
-                onChange={(valor) => actualizarCampo("dba", valor)}
-                placeholder="Proceso, habilidad o DBA relacionado"
+                placeholder="Estándar, lineamientos curriculares o referente curricular"
               />
               <CampoTextarea
                 label="Actividad en clase"
@@ -485,29 +542,62 @@ function PlanDeClases() {
                 onChange={(valor) => actualizarCampo("competencias", valor)}
                 placeholder="Trabajo individual, grupal, práctica o evidencia"
               />
-              <CampoTextarea
-                label="Actividad en casa"
-                value={form.actividad_casa}
-                onChange={(valor) => actualizarCampo("actividad_casa", valor)}
-                placeholder="Refuerzo, consulta o producción para casa"
-              />
+              <div className="space-y-3 rounded-lg border border-purple-200 border-l-4 border-l-purple-500 bg-purple-50/60 p-3 shadow-sm">
+                <div>
+                  <p className="text-sm font-semibold text-purple-950">Desarrollo cognitivo</p>
+                  <p className="text-xs text-purple-700/80">Texto principal y evidencia asociada.</p>
+                </div>
+                <CampoTextarea
+                  label="Descripción"
+                  value={form.dba}
+                  onChange={(valor) => actualizarCampo("dba", valor)}
+                  placeholder="Proceso, habilidad o DBA relacionado"
+                />
+                <EvidenciaCampo
+                  label="Evidencia de desarrollo cognitivo"
+                  descripcion="Adjunta una foto relacionada con este desarrollo."
+                  inputRef={(el) => {
+                    imagenInputRefs.current.imagen1 = el;
+                  }}
+                  seleccionada={imagenesSeleccionadas.imagen1}
+                  guardada={imagenesGuardadas.imagen1}
+                  onChange={(e) => handleImageChange("imagen1", e)}
+                  onEliminarImagen={() => eliminarImagenGuardada("imagen1")}
+                />
+              </div>
+              <div className="space-y-3 rounded-lg border border-amber-200 border-l-4 border-l-amber-500 bg-amber-50/60 p-3 shadow-sm">
+                <div>
+                  <p className="text-sm font-semibold text-amber-950">Actividad en casa</p>
+                  <p className="text-xs text-amber-700/80">Texto para el hogar y evidencia asociada.</p>
+                </div>
+                <CampoTextarea
+                  label="Descripción"
+                  value={form.actividad_casa}
+                  onChange={(valor) => actualizarCampo("actividad_casa", valor)}
+                  placeholder="Refuerzo, consulta o producción para casa"
+                />
+                <EvidenciaCampo
+                  label="Evidencia de actividad en casa"
+                  descripcion="Adjunta una foto relacionada con la actividad enviada."
+                  inputRef={(el) => {
+                    imagenInputRefs.current.imagen2 = el;
+                  }}
+                  seleccionada={imagenesSeleccionadas.imagen2}
+                  guardada={imagenesGuardadas.imagen2}
+                  onChange={(e) => handleImageChange("imagen2", e)}
+                  onEliminarImagen={() => eliminarImagenGuardada("imagen2")}
+                />
+              </div>
             </div>
           </section>
 
           <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div className="w-full">
-                <h2 className="mb-2 text-lg font-semibold text-gray-950">Evidencias visuales</h2>
-                <input
-                  ref={imagenInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className={campoBase}
-                />
-                <ImagenesSeleccionadas imagenes={imagenesSeleccionadas} />
-                <ImagenesGuardadas imagenes={imagenesGuardadas} onEliminarImagen={eliminarImagenGuardada} />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-950">Guardar plan</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Revisa los textos y las evidencias adjuntas antes de enviarlo a administracion.
+                </p>
               </div>
               <button
                 onClick={guardarPlan}
@@ -551,48 +641,40 @@ function PlanDeClases() {
   );
 }
 
-function ImagenesSeleccionadas({ imagenes }) {
-  if (imagenes.length === 0) return null;
-
+function EvidenciaCampo({ label, descripcion, inputRef, seleccionada, guardada, onChange, onEliminarImagen }) {
   return (
-    <div className="mt-4">
-      <h3 className="text-sm font-semibold text-gray-700">Imágenes por subir</h3>
-      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {imagenes.map((imagen) => (
-          <div key={imagen.url} className="overflow-hidden rounded-lg border border-purple-100 bg-purple-50">
-            <img src={imagen.url} alt={imagen.nombre} className="h-36 w-full object-contain sm:h-40" />
-            <div className="border-t border-purple-100 bg-white px-3 py-2 text-xs font-medium text-gray-700">
-              {imagen.nombre}
-            </div>
-          </div>
-        ))}
+    <div className="rounded-lg border border-purple-100 bg-white p-3">
+      <div className="mb-2">
+        <p className="text-sm font-semibold text-gray-800">{label}</p>
+        <p className="text-xs text-gray-600">{descripcion}</p>
       </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        onChange={onChange}
+        className={campoBase}
+      />
+      {seleccionada && <ImagenSeleccionadaCard imagen={seleccionada} />}
+      {guardada ? (
+        <ImagenGuardadaCard
+          imagen={{ path: guardada, label }}
+          alt={label}
+          onEliminarImagen={onEliminarImagen}
+        />
+      ) : (
+        <p className="mt-2 text-xs text-gray-500">Sin evidencia guardada para este campo.</p>
+      )}
     </div>
   );
 }
 
-function ImagenesGuardadas({ imagenes, onEliminarImagen }) {
-  const imagenesDisponibles = [
-    { slot: "imagen1", path: imagenes.imagen1, label: "Imagen 1" },
-    { slot: "imagen2", path: imagenes.imagen2, label: "Imagen 2" },
-  ].filter((imagen) => Boolean(imagen.path));
-
-  if (imagenesDisponibles.length === 0) {
-    return <p className="mt-3 text-sm text-gray-600">Este plan todavía no tiene imágenes guardadas.</p>;
-  }
-
+function ImagenSeleccionadaCard({ imagen }) {
   return (
-    <div className="mt-4">
-      <h3 className="text-sm font-semibold text-gray-700">Imágenes guardadas</h3>
-      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {imagenesDisponibles.map((imagen, index) => (
-          <ImagenGuardadaCard
-            key={imagen.slot}
-            imagen={imagen}
-            alt={`${imagen.label} del plan de clases ${index + 1}`}
-            onEliminarImagen={() => onEliminarImagen(imagen.slot)}
-          />
-        ))}
+    <div className="mt-3 overflow-hidden rounded-lg border border-purple-100 bg-white">
+      <img src={imagen.url} alt={imagen.nombre} className="h-32 w-full object-contain sm:h-36" />
+      <div className="border-t border-purple-100 px-3 py-2 text-xs font-medium text-gray-700">
+        Por subir: {imagen.nombre}
       </div>
     </div>
   );
@@ -606,7 +688,7 @@ function ImagenGuardadaCard({ imagen, alt, onEliminarImagen }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+    <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
       <button
         type="button"
         onClick={abrirImagen}

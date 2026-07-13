@@ -129,6 +129,14 @@ Estado actual de componentes y paginas del frontend.
   guardado, guia didactica y evidencias.
 - `Unidad` y `Tema` muestran contador y limite de 255 caracteres para respetar
   el limite real de base de datos antes de enviar el formulario.
+- `Unidad` y `Estándar` se recuerdan en `localStorage` por profesor y
+  asignacion despues de un guardado correcto, y se precargan al crear otro plan
+  nuevo para esa misma clase.
+- El guardado permite campos academicos vacios; solo requiere clase/asignacion,
+  periodo y fecha para ubicar el plan.
+- Las evidencias visuales ya no se muestran en una seccion general: `imagen1`
+  se presenta como evidencia de `Desarrollo cognitivo` e `imagen2` como
+  evidencia de `Actividad en casa`, usando el contrato actual del backend.
 - Los planes recientes permiten cambiar a una fecha ya guardada o usar un plan
   anterior como base local para una nueva planeacion.
 - Los apoyos laterales de plantillas rapidas e ideas para enriquecer fueron
@@ -147,6 +155,8 @@ Estado actual de componentes y paginas del frontend.
   planeaciones`.
 - El detalle conserva revision completa del plan y gestion de imagenes
   adjuntas sin cambiar permisos ni contrato de backend.
+- Las evidencias del plan se etiquetan por campo: desarrollo cognitivo y
+  actividad en casa.
 - El cuerpo del plan seleccionado se presenta como reporte visual: encabezado
   con chips de contexto, fundamentos pedagogicos en bloques, ruta de clase
   destacada, actividades separadas y evidencias al final.

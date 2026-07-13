@@ -2,6 +2,82 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-13 - Guardar plan de clases con campos vacios
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- El Plan de clases del profesor ya permite guardar aunque los campos
+  academicos de texto esten vacios.
+- La validacion previa al envio solo exige clase/asignacion, periodo y fecha.
+- Se mantiene la validacion de longitud de `Unidad` y `Tema` si el profesor
+  escribe contenido en esos campos.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/PlanDeClases.jsx
+```
+
+## 2026-07-13 - Recordar unidad y estandar en plan de clases
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- `Unidad` y `Estándar` se guardan aparte en `localStorage` por profesor y
+  asignacion despues de guardar correctamente un plan de clases.
+- Al crear otro plan nuevo para la misma clase, esos dos campos se precargan
+  con el ultimo valor guardado por el profesor.
+- Si existe un plan para la fecha seleccionada, se respetan los datos guardados
+  de ese plan y no se reemplazan por los valores recordados.
+- No se cambiaron endpoints ni base de datos.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/PlanDeClases.jsx
+pnpm run build
+```
+
+## 2026-07-13 - Evidencias por campo en plan de clases
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/PlaneadoresClasesAdmin.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Se retiro la seccion general `Evidencias visuales` del Plan de clases del
+  profesor.
+- `imagen1` se muestra y se guarda desde `Desarrollo cognitivo`.
+- `imagen2` se muestra y se guarda desde `Actividad en casa`.
+- La vista admin etiqueta esas mismas imagenes por campo para revisar y borrar
+  con el mismo contexto.
+- Se ajusto la composicion visual para que los dos campos con evidencia queden
+  emparejados y no generen espacios blancos grandes en la grilla.
+- Se mantuvo el contrato actual del backend y sus restricciones: imagenes PNG,
+  JPG/JPEG o WEBP de maximo 5MB.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/PlanDeClases.jsx src/pages/PlaneadoresClasesAdmin.jsx
+pnpm run build
+```
+
 ## 2026-07-13 - Limite visible en plan de clases
 
 Archivos modificados:

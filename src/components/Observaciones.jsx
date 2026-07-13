@@ -211,7 +211,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           <div className="space-y-4">
             <section>
               <h3 className="font-bold uppercase text-sm tracking-wider text-slate-700 mb-2">
-                Dimensión Conductual
+                Dimensión Conductual / Disciplinario
               </h3>
               <div className="border border-slate-300 rounded p-3 bg-slate-50 whitespace-pre-wrap text-sm min-h-[60px]">
                 {conductual || "---"}
@@ -258,7 +258,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
 
       <div className="space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Dimensión Conductual</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Dimensión Conductual / Disciplinario</label>
           <textarea
             placeholder="Observaciones sobre el comportamiento del estudiante..."
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"

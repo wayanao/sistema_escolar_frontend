@@ -118,7 +118,7 @@ function PlaneadoresClasesAdmin() {
   };
 
   const eliminarImagen = async (planId, slot) => {
-    const nombreImagen = slot === "imagen1" ? "imagen 1" : "imagen 2";
+    const nombreImagen = slot === "imagen1" ? "evidencia de desarrollo cognitivo" : "evidencia de actividad en casa";
     const confirmar = window.confirm(`¿Quieres borrar la ${nombreImagen} de este planeador?`);
     if (!confirmar) return;
 
@@ -428,8 +428,8 @@ function ResumenDato({ label, value }) {
 
 function Evidencias({ plan, onEliminarImagen }) {
   const imagenes = [
-    { slot: "imagen1", path: plan.imagen1, label: "Imagen 1" },
-    { slot: "imagen2", path: plan.imagen2, label: "Imagen 2" },
+    { slot: "imagen1", path: plan.imagen1, label: "Evidencia de desarrollo cognitivo" },
+    { slot: "imagen2", path: plan.imagen2, label: "Evidencia de actividad en casa" },
   ].filter((imagen) => Boolean(imagen.path));
 
   if (imagenes.length === 0) {
@@ -445,11 +445,11 @@ function Evidencias({ plan, onEliminarImagen }) {
     <div>
       <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Imágenes enviadas</h3>
       <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {imagenes.map((imagen, index) => (
+        {imagenes.map((imagen) => (
           <ImagenPlanCard
             key={imagen.slot}
             imagen={imagen}
-            alt={`Imagen ${index + 1} del plan de clases`}
+            alt={imagen.label}
             onEliminarImagen={() => onEliminarImagen(plan.id, imagen.slot)}
           />
         ))}

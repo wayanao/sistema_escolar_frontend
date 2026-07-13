@@ -20,7 +20,7 @@ function ReporteEstudiante({ estudiante, observacion, profesorNombre }) {
       <section className="space-y-4">
         <div>
           <h3 className="text-red-600 font-bold uppercase tracking-wide">
-            Dimensión Conductual
+            Dimensión Conductual / Disciplinario
           </h3>
           <p className="whitespace-pre-wrap mt-1">{observacion?.conductual || "---"}</p>
         </div>
