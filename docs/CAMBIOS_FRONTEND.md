@@ -2,6 +2,57 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-13 - Limite visible en plan de clases
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Se agrego contador y `maxLength` de 255 caracteres para `Unidad` y `Tema`
+  en el Plan de clases del perfil profesor.
+- Se agrego una validacion defensiva antes de guardar para evitar enviar textos
+  que excedan el limite real de base de datos.
+- No se cambiaron endpoints ni campos enviados al backend.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/pages/PlanDeClases.jsx
+pnpm run build
+```
+
+## 2026-07-13 - Aplicar logros a todos en boletin profesor
+
+Archivos modificados:
+
+- `src/components/boletin/IngresoBoletinProfesor.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- Se agrego la accion `Aplicar logros a todos` en el Boletin Final del perfil
+  profesor.
+- El profesor puede copiar los logros escritos en el primer estudiante al resto
+  del grupo del curso y periodo actual desde un panel general.
+- La accion permite aplicar solo en campos vacios o sobrescribir todos, con
+  confirmacion previa.
+- La copia solo modifica los datos en pantalla; no guarda automaticamente y el
+  profesor puede editar estudiantes individuales antes de guardar.
+- Se agrego `Guardar todo` para guardar el grupo completo respetando los textos
+  actuales de cada estudiante, incluidas modificaciones individuales.
+- No se modificaron endpoints ni flujos del perfil admin.
+
+Verificacion ejecutada:
+
+```powershell
+pnpm exec eslint src/components/boletin/IngresoBoletinProfesor.jsx
+pnpm run build
+```
+
 ## 2026-07-13 - Promedio de planilla al borrar notas
 
 Archivos modificados:

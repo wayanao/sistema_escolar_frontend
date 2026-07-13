@@ -127,6 +127,8 @@ Estado actual de componentes y paginas del frontend.
   campos y evidencia visual opcional.
 - La interfaz se organiza como taller docente: contexto de clase, estado de
   guardado, guia didactica y evidencias.
+- `Unidad` y `Tema` muestran contador y limite de 255 caracteres para respetar
+  el limite real de base de datos antes de enviar el formulario.
 - Los planes recientes permiten cambiar a una fecha ya guardada o usar un plan
   anterior como base local para una nueva planeacion.
 - Los apoyos laterales de plantillas rapidas e ideas para enriquecer fueron

@@ -6,6 +6,8 @@ import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodo
 const campoBase =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100";
 
+const LIMITE_TEXTO_CORTO = 255;
+
 const estadoInicial = {
   unidad: "",
   proposito: "",
@@ -76,6 +78,15 @@ function PlanDeClases() {
   const actualizarCampo = (campo, valor) => {
     setForm((actual) => ({ ...actual, [campo]: valor }));
     setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
+  };
+
+  const validarLimitesTexto = () => {
+    const camposLimitados = [
+      { campo: "unidad", label: "Unidad", max: LIMITE_TEXTO_CORTO },
+      { campo: "tema", label: "Tema", max: LIMITE_TEXTO_CORTO },
+    ];
+
+    return camposLimitados.find(({ campo, max }) => String(form[campo] || "").length > max);
   };
 
   const actualizarPeriodo = (valor) => {
@@ -257,6 +268,12 @@ function PlanDeClases() {
       return;
     }
 
+    const campoExcedido = validarLimitesTexto();
+    if (campoExcedido) {
+      alert(`${campoExcedido.label} permite maximo ${campoExcedido.max} caracteres.`);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("asignacion_id", asignacionId);
     formData.append("periodo", periodo);
@@ -427,12 +444,16 @@ function PlanDeClases() {
                 value={form.unidad}
                 onChange={(valor) => actualizarCampo("unidad", valor)}
                 placeholder="Nombre de la unidad o eje de trabajo"
+                maxLength={LIMITE_TEXTO_CORTO}
+                mostrarContador
               />
               <CampoInput
                 label="Tema"
                 value={form.tema}
                 onChange={(valor) => actualizarCampo("tema", valor)}
                 placeholder="Tema central de la clase"
+                maxLength={LIMITE_TEXTO_CORTO}
+                mostrarContador
               />
               <CampoTextarea
                 label="Logro"
@@ -629,16 +650,38 @@ function DatoClase({ label, value }) {
   );
 }
 
-function CampoInput({ label, value, onChange, placeholder }) {
+function ContadorCaracteres({ value, maxLength }) {
+  if (!maxLength) return null;
+
+  const longitud = String(value || "").length;
+  const cercaDelLimite = longitud >= maxLength * 0.9;
+  const alLimite = longitud >= maxLength;
+  const color = alLimite ? "text-red-600" : cercaDelLimite ? "text-amber-600" : "text-gray-500";
+
+  return (
+    <p className={`mt-1 text-right text-xs font-medium ${color}`}>
+      {longitud}/{maxLength} caracteres
+    </p>
+  );
+}
+
+function CampoInput({ label, value, onChange, placeholder, maxLength, mostrarContador = false }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} className={campoBase} placeholder={placeholder} />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={campoBase}
+        placeholder={placeholder}
+        maxLength={maxLength}
+      />
+      {mostrarContador && <ContadorCaracteres value={value} maxLength={maxLength} />}
     </div>
   );
 }
 
-function CampoTextarea({ label, value, onChange, placeholder }) {
+function CampoTextarea({ label, value, onChange, placeholder, maxLength, mostrarContador = false }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
@@ -648,7 +691,9 @@ function CampoTextarea({ label, value, onChange, placeholder }) {
         className={campoBase}
         rows="4"
         placeholder={placeholder}
+        maxLength={maxLength}
       />
+      {mostrarContador && <ContadorCaracteres value={value} maxLength={maxLength} />}
     </div>
   );
 }

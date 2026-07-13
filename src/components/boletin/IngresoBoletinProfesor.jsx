@@ -24,6 +24,11 @@ const formatearEtiquetaNota = (valor) =>
         .trim()
         .replace(/\b\w/g, (letra) => letra.toUpperCase());
 
+const obtenerTextoLimpio = (valor) => String(valor || "").trim();
+
+const crearClaveObservacion = (observacion) =>
+    `${String(observacion?.referencia || "").trim().toLowerCase()}|${observacion?.tipo_evaluacion || "numerica"}`;
+
 function IngresoBoletinProfesor() {
     const [asignacionId, setAsignacionId] = useState(
         localStorage.getItem("asignacionId") || ""
@@ -32,6 +37,7 @@ function IngresoBoletinProfesor() {
     const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
     const [estudiantes, setEstudiantes] = useState([]);
     const [cargando, setCargando] = useState(false);
+    const [guardandoTodos, setGuardandoTodos] = useState(false);
 
     // Estado local para almacenar lo que el profesor digita
     const [datosBoletin, setDatosBoletin] = useState({});
@@ -51,6 +57,11 @@ function IngresoBoletinProfesor() {
 
         return Array.from(clasesPorCursoMateria.values());
     }, [clases, asignacionId]);
+
+    const primerEstudianteConFormulario = useMemo(
+        () => estudiantes.find((est) => datosBoletin[est.estudiante_id]),
+        [datosBoletin, estudiantes]
+    );
 
     useEffect(() => {
         const cargarClases = async () => {
@@ -154,6 +165,119 @@ function IngresoBoletinProfesor() {
         }));
     };
 
+    const aplicarLogrosATodos = async (estudianteIdOrigen) => {
+        const origen = datosBoletin[estudianteIdOrigen];
+        const observacionesOrigen = origen?.observaciones || [];
+        const observacionesConTexto = observacionesOrigen.filter((obs) => obtenerTextoLimpio(obs.observacion));
+
+        if (observacionesConTexto.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Sin logros para copiar",
+                text: "Escribe al menos un logro en este estudiante antes de aplicarlo al grupo.",
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: "Aplicar logros al grupo",
+            text: "Se copiarán los logros de este estudiante a los demás estudiantes del periodo actual. Luego podrás modificar casos individuales antes de guardar.",
+            icon: "question",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Solo campos vacíos",
+            denyButtonText: "Sobrescribir todos",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#7c3aed",
+            denyButtonColor: "#475569",
+        });
+
+        if (!result.isConfirmed && !result.isDenied) return;
+
+        const soloVacios = result.isConfirmed;
+        const logrosPorClave = new Map();
+        const logrosPorIndice = new Map();
+
+        observacionesOrigen.forEach((obs, index) => {
+            const texto = obtenerTextoLimpio(obs.observacion);
+            if (!texto) return;
+
+            logrosPorClave.set(crearClaveObservacion(obs), texto);
+            logrosPorIndice.set(index, texto);
+        });
+
+        const nuevosDatosBoletin = {};
+        const estudiantesModificados = [];
+
+        Object.entries(datosBoletin).forEach(([estudianteId, data]) => {
+            let tuvoCambios = false;
+            const nuevasObservaciones = (data.observaciones || []).map((obs, index) => {
+                const textoOrigen = logrosPorClave.get(crearClaveObservacion(obs)) || logrosPorIndice.get(index) || "";
+                if (!textoOrigen) return obs;
+
+                const textoActual = obtenerTextoLimpio(obs.observacion);
+                if (soloVacios && textoActual) return obs;
+                if (obs.observacion === textoOrigen) return obs;
+
+                tuvoCambios = true;
+                return {
+                    ...obs,
+                    observacion: textoOrigen,
+                };
+            });
+
+            nuevosDatosBoletin[estudianteId] = tuvoCambios
+                ? { ...data, observaciones: nuevasObservaciones }
+                : data;
+
+            if (tuvoCambios) estudiantesModificados.push(estudianteId);
+        });
+
+        if (estudiantesModificados.length === 0) {
+            Swal.fire({
+                icon: "info",
+                title: "Sin cambios",
+                text: soloVacios
+                    ? "No había campos vacíos para completar."
+                    : "Los estudiantes ya tienen esos mismos logros.",
+            });
+            return;
+        }
+
+        setDatosBoletin(nuevosDatosBoletin);
+        setEstadoGuardado((prev) => {
+            const nuevo = { ...prev };
+            estudiantesModificados.forEach((estudianteId) => {
+                nuevo[estudianteId] = {
+                    ...(nuevo[estudianteId] || {}),
+                    modificado: true,
+                };
+            });
+            return nuevo;
+        });
+
+        Swal.fire({
+            icon: "success",
+            title: "Logros aplicados",
+            text: `Se actualizaron ${estudiantesModificados.length} estudiante(s). Puedes revisar y modificar casos especiales antes de guardar.`,
+            timer: 2200,
+            showConfirmButton: false,
+        });
+    };
+
+    const aplicarLogrosDelPrimerEstudiante = async () => {
+        if (!primerEstudianteConFormulario) {
+            Swal.fire({
+                icon: "warning",
+                title: "Sin estudiante base",
+                text: "Carga un curso con estudiantes antes de aplicar logros al grupo.",
+            });
+            return;
+        }
+
+        await aplicarLogrosATodos(primerEstudianteConFormulario.estudiante_id);
+    };
+
     const obtenerEstadoVisual = (estudianteId) => {
         const estado = estadoGuardado[estudianteId] || {};
 
@@ -186,12 +310,12 @@ function IngresoBoletinProfesor() {
         };
     };
 
-    const guardarBoletinEstudiante = async (estudiante_id) => {
+    const construirPayloadBoletin = (estudiante_id) => {
         const data = datosBoletin[estudiante_id];
-        if (!data) return;
+        if (!data) return null;
         const esDesarrollo = data.observaciones.some(obs => obs.tipo_evaluacion === "desarrollo");
 
-        const payload = {
+        return {
             estudiante_id: estudiante_id,
             asignacion_id: parseInt(asignacionId),
             periodo: parseInt(periodo),
@@ -203,6 +327,11 @@ function IngresoBoletinProfesor() {
                 valoracion: obs.tipo_evaluacion === "desarrollo" ? obs.valoracion : null
             }))
         };
+    };
+
+    const guardarBoletinEstudiante = async (estudiante_id) => {
+        const payload = construirPayloadBoletin(estudiante_id);
+        if (!payload) return;
 
         try {
             await api.post("/boletines/guardar", payload);
@@ -221,6 +350,75 @@ function IngresoBoletinProfesor() {
         } catch (error) {
             Swal.fire("Error", "No se pudo guardar la información del boletín", "error");
             console.error(error);
+        }
+    };
+
+    const guardarTodosBoletines = async () => {
+        const estudiantesConDatos = estudiantes.filter((est) => datosBoletin[est.estudiante_id]);
+
+        if (estudiantesConDatos.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Sin estudiantes para guardar",
+                text: "Carga un curso con estudiantes antes de guardar.",
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: "Guardar todo el grupo",
+            text: "Se guardará la información actual de cada estudiante. Las modificaciones individuales se conservarán.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, guardar todo",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#7c3aed",
+        });
+
+        if (!result.isConfirmed) return;
+
+        setGuardandoTodos(true);
+
+        try {
+            let guardados = 0;
+
+            for (const estudiante of estudiantesConDatos) {
+                const payload = construirPayloadBoletin(estudiante.estudiante_id);
+                if (!payload) continue;
+
+                await api.post("/boletines/guardar", payload);
+                guardados += 1;
+            }
+
+            const guardadoEn = new Date().toLocaleTimeString("es-CO", {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+
+            setEstadoGuardado((prev) => {
+                const nuevo = { ...prev };
+                estudiantesConDatos.forEach((estudiante) => {
+                    nuevo[estudiante.estudiante_id] = {
+                        guardado: true,
+                        modificado: false,
+                        guardadoEn,
+                    };
+                });
+                return nuevo;
+            });
+
+            Swal.fire({
+                icon: "success",
+                title: "Grupo guardado",
+                text: `Se guardaron ${guardados} estudiante(s).`,
+                timer: 2200,
+                showConfirmButton: false,
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Error", "No se pudo guardar todo el grupo. Revisa la conexión e intenta nuevamente.", "error");
+        } finally {
+            setGuardandoTodos(false);
         }
     };
 
@@ -266,6 +464,39 @@ function IngresoBoletinProfesor() {
                 <p className="text-gray-500 text-center py-10">Cargando información del curso...</p>
             ) : estudiantes.length > 0 ? (
                 <div className="space-y-6">
+                    <div className="rounded-lg border border-purple-100 bg-purple-50/60 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wide text-purple-700">
+                                    Acciones del grupo
+                                </p>
+                                <h2 className="mt-1 text-lg font-bold text-gray-950">
+                                    Logros generales del periodo
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Usa el primer estudiante como plantilla, luego ajusta los casos individuales y guarda todo el grupo.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <button
+                                    type="button"
+                                    onClick={aplicarLogrosDelPrimerEstudiante}
+                                    className="rounded-md border border-purple-200 bg-white px-4 py-2.5 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-50"
+                                >
+                                    Aplicar logros del primer estudiante
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={guardarTodosBoletines}
+                                    disabled={guardandoTodos}
+                                    className="rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+                                >
+                                    {guardandoTodos ? "Guardando grupo..." : "Guardar todo"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     {estudiantes.map((est) => {
                         const form = datosBoletin[est.estudiante_id];
                         if (!form) return null;
