@@ -11,6 +11,8 @@ const obtenerFechaLocal = () => {
   return local.toISOString().split('T')[0];
 };
 
+const formatearMoneda = (valor) => `$${Number(valor || 0).toLocaleString()}`;
+
 function PagosAdmin() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +23,13 @@ function PagosAdmin() {
   const [tiposPagos, setTiposPagos] = useState([]);
   const [ventasPendientes, setVentasPendientes] = useState([]);
   const [deudasEstudiante, setDeudasEstudiante] = useState([]);
+  const [valoresPersonalizados, setValoresPersonalizados] = useState([]);
+  const [valorPersonalizadoData, setValorPersonalizadoData] = useState({
+    tipo_pago_id: "",
+    valor: "",
+    motivo: ""
+  });
+  const [guardandoValorPersonalizado, setGuardandoValorPersonalizado] = useState(false);
   const [selectedEstudiante, setSelectedEstudiante] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -104,9 +113,11 @@ function PagosAdmin() {
   const handleEstudianteSelect = (estudiante) => {
     setSelectedEstudiante(estudiante);
     setPagoData({ ...pagoData, estudiante_id: estudiante.id, venta_id: null });
+    setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
     cargarHistorialPagos(estudiante.id);
     cargarVentasPendientes(estudiante.id);
     cargarDeudasEstudiante(estudiante.id);
+    cargarValoresPersonalizados(estudiante.id);
   };
 
   const cargarDeudasEstudiante = async (estudianteId) => {
@@ -154,6 +165,94 @@ function PagosAdmin() {
     }
 
     return true;
+  };
+
+  const cargarValoresPersonalizados = async (estudianteId) => {
+    try {
+      const res = await api.get(`/estudiantes/${estudianteId}/valores-pago-personalizados`);
+      setValoresPersonalizados(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error cargando valores personalizados:", error);
+      setValoresPersonalizados([]);
+    }
+  };
+
+  const handleTipoValorPersonalizadoChange = (tipoPagoId) => {
+    const existente = valoresPersonalizados.find(
+      (valor) => Number(valor.tipo_pago_id) === Number(tipoPagoId)
+    );
+
+    setValorPersonalizadoData({
+      tipo_pago_id: tipoPagoId,
+      valor: existente ? String(existente.valor) : "",
+      motivo: existente?.motivo || ""
+    });
+  };
+
+  const guardarValorPersonalizado = async () => {
+    if (!selectedEstudiante) return;
+
+    const tipoPagoId = Number(valorPersonalizadoData.tipo_pago_id);
+    const valor = Number(valorPersonalizadoData.valor);
+
+    if (!tipoPagoId || valorPersonalizadoData.valor === "" || Number.isNaN(valor) || valor < 0) {
+      Swal.fire("Datos incompletos", "Selecciona un concepto y escribe un valor válido.", "warning");
+      return;
+    }
+
+    setGuardandoValorPersonalizado(true);
+    try {
+      const res = await api.put(
+        `/estudiantes/${selectedEstudiante.id}/valores-pago-personalizados/${tipoPagoId}`,
+        {
+          valor,
+          motivo: valorPersonalizadoData.motivo,
+          activo: true
+        }
+      );
+      setValoresPersonalizados(res.data.valores || []);
+      setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
+      cargarDeudasEstudiante(selectedEstudiante.id);
+      Swal.fire("Guardado", "El valor personalizado quedó aplicado para este estudiante.", "success");
+    } catch (error) {
+      console.error("Error guardando valor personalizado:", error);
+      const detalle = error.response?.data?.detail;
+      Swal.fire("Error", detalle || "No se pudo guardar el valor personalizado.", "error");
+    } finally {
+      setGuardandoValorPersonalizado(false);
+    }
+  };
+
+  const quitarValorPersonalizado = async (valorPersonalizado) => {
+    if (!selectedEstudiante) return;
+
+    const result = await Swal.fire({
+      title: "Quitar valor personalizado",
+      text: `El estudiante volverá al valor del curso para ${valorPersonalizado.tipo_pago_nombre}.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Quitar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#dc2626",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await api.delete(
+        `/estudiantes/${selectedEstudiante.id}/valores-pago-personalizados/${valorPersonalizado.tipo_pago_id}`
+      );
+      setValoresPersonalizados((actuales) =>
+        actuales.filter((item) => Number(item.tipo_pago_id) !== Number(valorPersonalizado.tipo_pago_id))
+      );
+      setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
+      cargarDeudasEstudiante(selectedEstudiante.id);
+      Swal.fire("Actualizado", "El valor personalizado fue retirado.", "success");
+    } catch (error) {
+      console.error("Error quitando valor personalizado:", error);
+      const detalle = error.response?.data?.detail;
+      Swal.fire("Error", detalle || "No se pudo quitar el valor personalizado.", "error");
+    }
   };
 
   const handlePagoSubmit = async (e) => {
@@ -312,6 +411,103 @@ function PagosAdmin() {
                   {showForm ? "Cancelar" : "+ Nuevo Pago/Factura"}
                 </button>
               </div>
+
+              <section className="mb-6 rounded-lg border border-purple-100 bg-purple-50/50 p-4">
+                <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">Valores personalizados</h3>
+                    <p className="text-sm text-slate-600">
+                      Ajusta el valor de un concepto solo para este estudiante.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_0.8fr] xl:grid-cols-[1fr_0.7fr_1.3fr_auto]">
+                  <select
+                    value={valorPersonalizadoData.tipo_pago_id}
+                    onChange={(e) => handleTipoValorPersonalizadoChange(e.target.value)}
+                    className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  >
+                    <option value="">Selecciona concepto</option>
+                    {tiposPagos.map((tipoPago) => (
+                      <option key={tipoPago.id} value={tipoPago.id}>
+                        {tipoPago.nombre} - base {formatearMoneda(tipoPago.valor)}
+                      </option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={valorPersonalizadoData.valor}
+                    onChange={(e) => setValorPersonalizadoData({ ...valorPersonalizadoData, valor: e.target.value })}
+                    className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    placeholder="Valor personalizado"
+                  />
+
+                  <input
+                    type="text"
+                    value={valorPersonalizadoData.motivo}
+                    onChange={(e) => setValorPersonalizadoData({ ...valorPersonalizadoData, motivo: e.target.value })}
+                    className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    placeholder="Motivo o acuerdo"
+                    maxLength={250}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={guardarValorPersonalizado}
+                    disabled={guardandoValorPersonalizado}
+                    className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+                  >
+                    {guardandoValorPersonalizado ? "Guardando..." : "Guardar valor"}
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-2">
+                  {valoresPersonalizados.length === 0 ? (
+                    <p className="rounded-lg border border-dashed border-purple-200 bg-white/70 p-3 text-sm text-slate-500">
+                      Este estudiante usa los valores normales de su curso.
+                    </p>
+                  ) : (
+                    valoresPersonalizados.map((valorPersonalizado) => (
+                      <div
+                        key={valorPersonalizado.id}
+                        className="flex flex-col gap-3 rounded-lg border border-purple-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold text-slate-900">{valorPersonalizado.tipo_pago_nombre}</p>
+                          <p className="text-sm text-slate-600">
+                            Personalizado: <span className="font-semibold text-purple-700">{formatearMoneda(valorPersonalizado.valor)}</span>
+                            {" · "}
+                            Curso/base: {formatearMoneda(valorPersonalizado.valor_curso ?? valorPersonalizado.valor_base)}
+                          </p>
+                          {valorPersonalizado.motivo && (
+                            <p className="text-xs text-slate-500">Motivo: {valorPersonalizado.motivo}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleTipoValorPersonalizadoChange(valorPersonalizado.tipo_pago_id)}
+                            className="rounded-lg border border-purple-200 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => quitarValorPersonalizado(valorPersonalizado)}
+                            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </section>
 
               {showForm && (
                 <form onSubmit={handlePagoSubmit} className="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">

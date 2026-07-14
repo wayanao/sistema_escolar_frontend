@@ -2,6 +2,24 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-13 - Valores personalizados en Gestion de Pagos
+
+Archivos modificados:
+
+- `src/pages/PagosAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambio:
+
+- En Gestion de Pagos, al seleccionar un estudiante, el admin puede crear,
+  editar o quitar valores personalizados por concepto.
+- El formulario permite seleccionar tipo de pago, valor individual y motivo del
+  acuerdo.
+- La lista muestra el valor personalizado y el valor normal del curso/base para
+  comparar rapidamente.
+- Al guardar o quitar una excepcion se recargan las deudas del estudiante para
+  reflejar el nuevo calculo.
+
 ## 2026-07-13 - Claridad al asignar conceptos de cartera a cursos
 
 Archivos modificados:
