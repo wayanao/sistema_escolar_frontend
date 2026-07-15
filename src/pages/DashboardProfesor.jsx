@@ -5,6 +5,22 @@ import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+const JORNADAS = ["Mañana", "Tarde"];
+
+const JORNADA_ESTILOS = {
+  Mañana: {
+    panel: "border-sky-200",
+    header: "bg-sky-50 text-sky-900",
+    badge: "bg-sky-100 text-sky-800",
+    rango: "06:30 - 12:30",
+  },
+  Tarde: {
+    panel: "border-orange-200",
+    header: "bg-orange-50 text-orange-900",
+    badge: "bg-orange-100 text-orange-800",
+    rango: "12:30 - 18:30",
+  },
+};
 
 const HORARIO_DIA_ESTILOS = {
   Lunes: {
@@ -72,6 +88,21 @@ const formatearHora12 = (hora24) => {
 
 const ordenarPorHora = (a, b) => (a.hora_inicio || "").localeCompare(b.hora_inicio || "");
 
+const obtenerJornadaClase = (clase) => {
+  const jornada = String(clase?.jornada || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (jornada.includes("manan")) return "Mañana";
+  if (jornada.includes("tarde")) return "Tarde";
+
+  const [hora = "0", minuto = "0"] = String(clase?.hora_inicio || "").split(":");
+  const minutosInicio = Number(hora) * 60 + Number(minuto);
+  return minutosInicio < 12 * 60 + 30 ? "Mañana" : "Tarde";
+};
+
 const capitalizarInicial = (valor) => {
   const texto = String(valor || "").trim();
   return texto ? texto.charAt(0).toLocaleUpperCase("es-CO") + texto.slice(1).toLocaleLowerCase("es-CO") : "";
@@ -95,6 +126,7 @@ function DashboardProfesor() {
   const [cumpleanos, setCumpleanos] = useState([]);
   const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
   const [errorCumpleanos, setErrorCumpleanos] = useState("");
+  const [filtroJornada, setFiltroJornada] = useState("Ambas");
 
   const handleAsignacionChange = (e) => {
     const value = e.target.value;
@@ -122,7 +154,8 @@ function DashboardProfesor() {
   const clasesUnicas = useMemo(() => {
     const vistos = new Map();
     for (const clase of clases) {
-      const key = `${(clase.materia || "").trim().toLowerCase()}|${(clase.curso || "").trim().toLowerCase()}`;
+      const cursoKey = clase.curso_id || `${(clase.curso || "").trim().toLowerCase()}|${obtenerJornadaClase(clase)}`;
+      const key = `${cursoKey}|${(clase.materia || "").trim().toLowerCase()}`;
       if (!vistos.has(key)) {
         vistos.set(key, clase);
       }
@@ -135,13 +168,14 @@ function DashboardProfesor() {
       if (!clase.curso_id) continue;
       const key = String(clase.curso_id);
       if (!vistos.has(key)) {
-        vistos.set(key, { id: clase.curso_id, nombre: clase.curso });
+        vistos.set(key, { id: clase.curso_id, nombre: clase.curso, jornada: obtenerJornadaClase(clase) });
       }
     }
     return Array.from(vistos.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [clases]);
   const cursoFiltroNombre = useMemo(() => {
-    return cursosProfesor.find((curso) => String(curso.id) === String(cursoFiltroRendimiento))?.nombre || "Curso";
+    const curso = cursosProfesor.find((item) => String(item.id) === String(cursoFiltroRendimiento));
+    return curso ? `${curso.nombre} - ${curso.jornada}` : "Curso";
   }, [cursoFiltroRendimiento, cursosProfesor]);
   const materiasDelCursoFiltro = useMemo(
     () =>
@@ -167,14 +201,30 @@ function DashboardProfesor() {
         }),
     [horarioAsignado]
   );
-  const horarioPorDia = useMemo(
+  const clasesPorJornada = useMemo(
     () =>
-      DIAS_SEMANA.reduce((acc, dia) => {
-        acc[dia] = clasesConHorario.filter((clase) => clase.dia === dia);
+      JORNADAS.reduce((acc, jornada) => {
+        acc[jornada] = clasesConHorario.filter((clase) => obtenerJornadaClase(clase) === jornada);
         return acc;
       }, {}),
     [clasesConHorario]
   );
+  const horarioPorJornada = useMemo(
+    () =>
+      JORNADAS.reduce((acc, jornada) => {
+        acc[jornada] = DIAS_SEMANA.reduce((dias, dia) => {
+          dias[dia] = clasesPorJornada[jornada].filter((clase) => clase.dia === dia);
+          return dias;
+        }, {});
+        return acc;
+      }, {}),
+    [clasesPorJornada]
+  );
+  const tieneDosJornadas = JORNADAS.every((jornada) => clasesPorJornada[jornada].length > 0);
+  const jornadasDisponibles = JORNADAS.filter((jornada) => clasesPorJornada[jornada].length > 0);
+  const jornadasVisibles = filtroJornada === "Ambas" || !clasesPorJornada[filtroJornada]?.length
+    ? jornadasDisponibles
+    : [filtroJornada];
 
   const cargarClases = useCallback(async () => {
     if (!profesorId) return;
@@ -196,6 +246,7 @@ function DashboardProfesor() {
           materia: asignacion.materia,
           curso: asignacion.curso,
           curso_id: asignacion.curso_id,
+          jornada: asignacion.jornada,
           dia: asignacion.dia,
           hora_inicio: asignacion.hora_inicio,
           hora_fin: asignacion.hora_fin,
@@ -296,6 +347,108 @@ function DashboardProfesor() {
     navigate(ruta);
   };
 
+  const renderHorarioJornada = (jornada) => {
+    const clasesJornada = clasesPorJornada[jornada];
+    const horarioJornada = horarioPorJornada[jornada];
+    const estiloJornada = JORNADA_ESTILOS[jornada];
+
+    return (
+      <section key={jornada} className={`overflow-hidden rounded-lg border ${estiloJornada.panel}`}>
+        <div className={`flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${estiloJornada.header} ${estiloJornada.panel}`}>
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide">Jornada {jornada.toLowerCase()}</h3>
+            <p className="mt-0.5 text-xs font-medium opacity-75">Horario institucional: {estiloJornada.rango}</p>
+          </div>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${estiloJornada.badge}`}>
+            {clasesJornada.length} {clasesJornada.length === 1 ? "clase" : "clases"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5 bg-white p-3 sm:grid-cols-2 lg:hidden">
+          {DIAS_SEMANA.map((dia) => {
+            const clasesDelDia = horarioJornada[dia];
+            const estiloDia = obtenerEstiloHorarioDia(dia);
+
+            return (
+              <div key={dia} className={`rounded-lg border ${estiloDia.panel}`}>
+                <div className="border-b border-gray-200 px-3 py-2">
+                  <h4 className={`text-sm font-bold uppercase tracking-wide ${estiloDia.headerMobile}`}>
+                    {dia}
+                  </h4>
+                </div>
+                <div className="space-y-2 p-2.5">
+                  {clasesDelDia.length === 0 ? (
+                    <p className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-3 text-center text-sm text-gray-500">
+                      Sin clases
+                    </p>
+                  ) : (
+                    clasesDelDia.map((clase) => (
+                      <article
+                        key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
+                        className={`rounded-md border border-gray-100 border-l-4 bg-white px-2.5 py-2 shadow-sm ${estiloDia.card}`}
+                      >
+                        <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
+                          {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
+                        </p>
+                        <h5 className="mt-1 text-xs font-semibold leading-tight text-gray-900">
+                          {clase.materia}
+                        </h5>
+                        <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
+                          Curso: {clase.curso}
+                        </p>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-x-auto bg-white p-3 lg:block">
+          <div className="grid min-w-[860px] grid-cols-5 gap-2.5">
+            {DIAS_SEMANA.map((dia) => {
+              const clasesDelDia = horarioJornada[dia];
+              const estiloDia = obtenerEstiloHorarioDia(dia);
+
+              return (
+                <div key={dia} className={`flex min-h-[220px] flex-col rounded-lg border ${estiloDia.panel}`}>
+                  <div className={`rounded-t-lg px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white ${estiloDia.header}`}>
+                    {dia}
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2 p-2.5">
+                    {clasesDelDia.length === 0 ? (
+                      <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-200 bg-white px-3 text-sm italic text-gray-400">
+                        Sin clases
+                      </div>
+                    ) : (
+                      clasesDelDia.map((clase) => (
+                        <article
+                          key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
+                          className={`rounded-md border border-gray-200 border-l-4 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md ${estiloDia.card}`}
+                        >
+                          <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
+                            {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
+                          </p>
+                          <h5 className="mt-1 text-xs font-bold leading-tight text-gray-900">
+                            {clase.materia}
+                          </h5>
+                          <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
+                            Curso: {clase.curso}
+                          </p>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
       <div className="mb-8">
@@ -324,7 +477,7 @@ function DashboardProfesor() {
             <option value="">{loadingClases ? "Cargando salones..." : "Todos los salones"}</option>
             {clasesUnicas.map(clase => (
               <option key={clase.id} value={clase.id}>
-                {clase.materia} - {clase.curso}
+                {clase.materia} - {clase.curso} - {obtenerJornadaClase(clase)}
               </option>
             ))}
           </select>
@@ -372,11 +525,48 @@ function DashboardProfesor() {
               <h2 className="mt-1 text-lg font-bold text-gray-900 sm:text-xl">
                 Tus clases de la semana
               </h2>
+              {!loadingClases && clasesConHorario.length > 0 && (
+                <p className="mt-1 text-sm text-gray-600">
+                  {clasesPorJornada.Mañana.length} en la mañana · {clasesPorJornada.Tarde.length} en la tarde
+                </p>
+              )}
             </div>
             <span className="w-max rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700">
               {clasesConHorario.length} {clasesConHorario.length === 1 ? "clase" : "clases"}
             </span>
           </div>
+          {!loadingClases && clasesConHorario.length > 0 && (
+            tieneDosJornadas ? (
+              <div className="mt-4 inline-flex w-full rounded-lg border border-gray-200 bg-gray-50 p-1 sm:w-auto" role="group" aria-label="Filtrar horario por jornada">
+                {["Ambas", ...JORNADAS].map((jornada) => {
+                  const activo = filtroJornada === jornada;
+                  return (
+                    <button
+                      key={jornada}
+                      type="button"
+                      aria-pressed={activo}
+                      onClick={() => setFiltroJornada(jornada)}
+                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition sm:flex-none ${
+                        activo
+                          ? "bg-purple-700 text-white shadow-sm"
+                          : "text-gray-600 hover:bg-white hover:text-gray-900"
+                      }`}
+                    >
+                      {jornada}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                clasesPorJornada.Mañana.length > 0
+                  ? JORNADA_ESTILOS.Mañana.badge
+                  : JORNADA_ESTILOS.Tarde.badge
+              }`}>
+                Jornada {clasesPorJornada.Mañana.length > 0 ? "mañana" : "tarde"}
+              </span>
+            )
+          )}
         </div>
 
         {loadingClases ? (
@@ -388,89 +578,9 @@ function DashboardProfesor() {
             No tienes clases con horario asignado todavía.
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 gap-2.5 p-3 sm:grid-cols-2 lg:hidden">
-              {DIAS_SEMANA.map((dia) => {
-                const clasesDelDia = horarioPorDia[dia];
-                const estiloDia = obtenerEstiloHorarioDia(dia);
-
-                return (
-                  <div key={dia} className={`rounded-lg border ${estiloDia.panel}`}>
-                    <div className="border-b border-gray-200 px-3 py-2">
-                      <h3 className={`text-sm font-bold uppercase tracking-wide ${estiloDia.headerMobile}`}>
-                        {dia}
-                      </h3>
-                    </div>
-                    <div className="space-y-2 p-2.5">
-                      {clasesDelDia.length === 0 ? (
-                        <p className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-3 text-center text-sm text-gray-500">
-                          Sin clases
-                        </p>
-                      ) : (
-                        clasesDelDia.map((clase) => (
-                          <article
-                            key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                            className={`rounded-md border border-gray-100 border-l-4 bg-white px-2.5 py-2 shadow-sm ${estiloDia.card}`}
-                          >
-                            <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
-                              {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
-                            </p>
-                            <h4 className="mt-1 text-xs font-semibold leading-tight text-gray-900">
-                              {clase.materia}
-                            </h4>
-                            <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
-                              Curso: {clase.curso}
-                            </p>
-                          </article>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="hidden overflow-x-auto p-3 lg:block">
-              <div className="grid min-w-[860px] grid-cols-5 gap-2.5">
-                {DIAS_SEMANA.map((dia) => {
-                  const clasesDelDia = horarioPorDia[dia];
-                  const estiloDia = obtenerEstiloHorarioDia(dia);
-
-                  return (
-                    <div key={dia} className={`flex min-h-[240px] flex-col rounded-lg border ${estiloDia.panel}`}>
-                      <div className={`rounded-t-lg px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white ${estiloDia.header}`}>
-                        {dia}
-                      </div>
-                      <div className="flex flex-1 flex-col gap-2 p-2.5">
-                        {clasesDelDia.length === 0 ? (
-                          <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-200 bg-white px-3 text-sm italic text-gray-400">
-                            Sin clases
-                          </div>
-                        ) : (
-                          clasesDelDia.map((clase) => (
-                            <article
-                              key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                              className={`rounded-md border border-gray-200 border-l-4 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md ${estiloDia.card}`}
-                            >
-                              <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
-                                {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
-                              </p>
-                              <h4 className="mt-1 text-xs font-bold leading-tight text-gray-900">
-                                {clase.materia}
-                              </h4>
-                              <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
-                                Curso: {clase.curso}
-                              </p>
-                            </article>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </>
+          <div className="space-y-4 bg-gray-50/60 p-3 sm:p-4">
+            {jornadasVisibles.map(renderHorarioJornada)}
+          </div>
         )}
       </section>
 
@@ -500,7 +610,7 @@ function DashboardProfesor() {
               {!loadingClases && cursosProfesor.length === 0 && <option value="">Sin cursos asignados</option>}
               {cursosProfesor.map((curso) => (
                 <option key={curso.id} value={curso.id}>
-                  {curso.nombre}
+                  {curso.nombre} - {curso.jornada}
                 </option>
               ))}
             </select>

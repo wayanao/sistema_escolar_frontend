@@ -2,6 +2,37 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-15 - Horario del profesor separado por jornadas
+
+Se mejoro el horario semanal del dashboard para profesores que trabajan en
+las jornadas de mañana y tarde.
+
+Archivos modificados:
+
+- `src/pages/DashboardProfesor.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- El horario se agrupa por jornada y luego por dia y hora.
+- Si el profesor tiene clases en ambas jornadas, puede alternar entre
+  `Ambas`, `Mañana` y `Tarde`; `Ambas` es la vista inicial.
+- Si solo tiene una jornada, se muestra directamente sin controles
+  innecesarios.
+- Los selectores de clase y curso incluyen la jornada para diferenciar cursos
+  con nombres iguales.
+- La deduplicacion de clases usa `curso_id` y materia, evitando mezclar cursos
+  homonimos de jornadas diferentes.
+- Se conserva una clasificacion temporal por hora como compatibilidad durante
+  un despliegue escalonado del backend.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-15 - Limpieza de asignacion obsoleta del profesor
 
 Se agrego una defensa para que el navegador no conserve un `asignacionId`

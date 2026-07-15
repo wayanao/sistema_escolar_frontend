@@ -68,6 +68,11 @@ Estado actual de componentes y paginas del frontend.
   `/dashboard/cumpleanos/profesor/{profesor_id}?dias=7`.
 - Carga `GET /mis-clases/{profesor_id}` una sola vez y reutiliza esa respuesta
   para selector de clases y horario semanal.
+- El horario semanal se divide en jornada mañana y tarde. Cuando existen ambas,
+  ofrece el filtro `Ambas | Mañana | Tarde`; cuando solo existe una, la muestra
+  directamente.
+- Los selectores muestran la jornada y deduplican las clases por `curso_id` y
+  materia para no mezclar cursos homonimos.
 - La pantalla ya no depende de un `loading` global. Cada bloque muestra su
   propio estado de carga:
   - horario/clases;

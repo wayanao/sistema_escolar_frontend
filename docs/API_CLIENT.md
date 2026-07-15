@@ -346,6 +346,8 @@ Uso:
 
 - `GET /mis-clases/{profesor_id}` se consulta una sola vez y alimenta selector
   de clases y horario.
+- Cada clase incluye `jornada`, tomada del curso. El dashboard la usa para
+  separar el horario en mañana y tarde y para diferenciar cursos homonimos.
 - Inasistencias y rendimiento cargan como secciones independientes para no
   bloquear el layout inicial.
 - Cumpleanos carga estudiantes activos de los cursos asignados al profesor.
