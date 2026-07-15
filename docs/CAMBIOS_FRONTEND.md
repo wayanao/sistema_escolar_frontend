@@ -2,6 +2,101 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-15 - Fecha limite obligatoria en Malla Curricular
+
+Se corrigio el guardado y la recuperacion de las filas de la Malla Curricular
+del profesor.
+
+Archivos modificados:
+
+- `src/pages/PlaneadorAnual.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- Una fila puede guardarse con uno o varios campos academicos diligenciados,
+  pero exige una fecha limite.
+- Una fecha sin ningun contenido tambien se valida antes de enviar.
+- Las filas completamente vacias envian `fecha: null` y ya no generan el error
+  de validacion causado por una cadena vacia.
+- La respuesta se ubica por `slot`, por lo que las filas conservan su posicion
+  aunque existan espacios vacios entre ellas.
+- El guardado recarga la informacion persistida y muestra resultado de exito o
+  error mediante SweetAlert2.
+- El boton muestra spinner y queda deshabilitado mientras responde el backend.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
+## 2026-07-15 - Observador permite guardado parcial con confirmacion
+
+Se simplifico el registro de observaciones del estudiante para que el profesor
+no tenga que diligenciar las tres dimensiones al mismo tiempo.
+
+Archivos modificados:
+
+- `src/components/Observaciones.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- Basta con escribir contenido en una de las dimensiones conductual, cognitiva
+  o de lenguaje.
+- Las dimensiones no diligenciadas se envian como texto vacio.
+- Una observacion parcial cargada desde backend se reconoce como `Guardado`.
+- El boton muestra spinner y texto `Guardando...`, queda deshabilitado durante
+  la peticion y bloquea temporalmente la edicion de los campos.
+- SweetAlert2 informa validacion, confirmacion exitosa y errores de conexion.
+- El modal de exito indica cuantas de las tres dimensiones fueron guardadas y
+  para que estudiante.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
+## 2026-07-15 - Marcacion rapida y edicion segura de asistencia
+
+Se simplifico la toma de asistencia del profesor sin cambiar la fecha elegida
+en el dashboard.
+
+Archivos modificados:
+
+- `src/pages/Asistencia.jsx`
+- `src/components/AsistenciaRow.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- `Marcar todos presentes` completa el grupo y permite cambiar solo las
+  ausencias.
+- La pantalla muestra contadores de presentes, ausentes y pendientes.
+- Los botones por estudiante son mas grandes y muestran texto en movil y
+  escritorio.
+- Una asistencia guardada se precarga, puede editarse y muestra
+  `Cambios sin guardar` hasta confirmar la actualizacion.
+- `Restaurar guardado` deshace cambios locales de una asistencia existente;
+  en una asistencia nueva, `Limpiar seleccion` vuelve al estado inicial.
+- El guardado exige cero pendientes, confirma el resumen y permanece
+  deshabilitado cuando no hay cambios.
+- La confirmacion, el estado de carga y el resultado del guardado usan modales
+  de SweetAlert2 con resumen visual de presentes y ausentes.
+- La fecha continua siendo de solo lectura en esta pantalla y se obtiene desde
+  `localStorage.fechaAsistencia`, seleccionada en el dashboard.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-15 - Horario del profesor separado por jornadas
 
 Se mejoro el horario semanal del dashboard para profesores que trabajan en

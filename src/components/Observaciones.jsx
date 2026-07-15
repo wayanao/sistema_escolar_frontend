@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import api from "../utils/api";
 import DocumentoImprimible from "./impresion/DocumentoImprimible";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
@@ -8,6 +9,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
   const [cognitivo, setCognitivo] = useState("");
   const [lenguaje, setLenguaje] = useState("");
   const [vistaImpresion, setVistaImpresion] = useState(false);
+  const [guardando, setGuardando] = useState(false);
   const [estadoGuardado, setEstadoGuardado] = useState({
     cargando: true,
     guardado: false,
@@ -59,7 +61,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             const conductualGuardado = data.conductual || "";
             const cognitivoGuardado = data.cognitivo || "";
             const lenguajeGuardado = data.lenguaje || "";
-            const tieneObservacionCompleta = [conductualGuardado, cognitivoGuardado, lenguajeGuardado].every(
+            const tieneObservacion = [conductualGuardado, cognitivoGuardado, lenguajeGuardado].some(
               (valor) => String(valor || "").trim().length > 0
             );
 
@@ -68,7 +70,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             setLenguaje(lenguajeGuardado);
             setEstadoGuardado({
               cargando: false,
-              guardado: tieneObservacionCompleta,
+              guardado: tieneObservacion,
               modificado: false,
               guardadoEn: null,
             });
@@ -150,23 +152,39 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
   };
 
   const guardar = async () => {
-    if (!conductual || !cognitivo || !lenguaje) {
-      alert("Completa todas las observaciones");
+    const valores = {
+      conductual: conductual.trim(),
+      cognitivo: cognitivo.trim(),
+      lenguaje: lenguaje.trim(),
+    };
+    const dimensionesDiligenciadas = Object.values(valores).filter(Boolean).length;
+
+    if (dimensionesDiligenciadas === 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Escribe una observación",
+        text: "Puedes guardar una sola dimensión, pero al menos una debe tener contenido.",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
       return;
     }
+
+    setGuardando(true);
     try {
       const res = await api.post(`/observaciones`, {
         estudiante_id: estudiante.estudiante_id,
         asignacion_id: parseInt(asignacionId),
-        periodo: parseInt(periodo),
-        conductual,
-        cognitivo,
-        lenguaje,
+        periodo: periodoActivo,
+        ...valores,
       });
       if (!(res.status >= 200 && res.status < 300)) {
-        alert("Error al guardar");
-        return;
+        throw new Error("El servidor no confirmó el guardado.");
       }
+
+      setConductual(valores.conductual);
+      setCognitivo(valores.cognitivo);
+      setLenguaje(valores.lenguaje);
       setEstadoGuardado({
         cargando: false,
         guardado: true,
@@ -176,10 +194,25 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
           minute: "2-digit",
         }),
       });
-      alert("Observación guardada/actualizada");
+      await Swal.fire({
+        icon: "success",
+        title: "Observación guardada",
+        text: `Se guardaron ${dimensionesDiligenciadas} de 3 dimensiones para ${estudiante.nombre} ${estudiante.apellido}.`,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
     } catch (err) {
       console.error(err);
-      alert("Error de conexión");
+      const detalle = err.response?.data?.detail;
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo guardar",
+        text: typeof detalle === "string" ? detalle : "Revisa la conexión e intenta nuevamente.",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -264,6 +297,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={conductual}
+            disabled={guardando}
             onChange={(e) => marcarModificado(setConductual)(e.target.value)}
           />
         </div>
@@ -275,6 +309,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={cognitivo}
+            disabled={guardando}
             onChange={(e) => marcarModificado(setCognitivo)(e.target.value)}
           />
         </div>
@@ -286,6 +321,7 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             rows="3"
             value={lenguaje}
+            disabled={guardando}
             onChange={(e) => marcarModificado(setLenguaje)(e.target.value)}
           />
         </div>
@@ -293,14 +329,24 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
 
       <div className="flex gap-4">
         <button
+          type="button"
           onClick={guardar}
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          disabled={guardando || estadoGuardado.cargando}
+          className="inline-flex min-w-44 items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
         >
-          {estadoVisual.buttonText}
+          {guardando && (
+            <span
+              className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+              aria-hidden="true"
+            />
+          )}
+          {guardando ? "Guardando..." : estadoVisual.buttonText}
         </button>
 
         <button
+          type="button"
           onClick={() => setVistaImpresion(true)}
+          disabled={guardando}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
         >
           Imprimir Reporte

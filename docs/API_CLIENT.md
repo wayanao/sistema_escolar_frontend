@@ -396,6 +396,14 @@ Uso:
 - Muestra estado visual mientras carga historial de inasistencias.
 - Si existe asistencia guardada para la fecha seleccionada, precarga estados y
   muestra aviso `Asistencia del día ya tomada`.
+- La fecha no se modifica en esta pagina: se conserva desde el dashboard en
+  `localStorage.fechaAsistencia`.
+- El mismo `POST /asistencia` crea o actualiza el registro completo de los
+  estudiantes activos; la UI permite marcar todos presentes, corregir ausentes
+  y editar una asistencia previamente guardada.
+- El guardado solo se habilita cuando todos tienen estado y existen cambios.
+- Antes del `POST`, un modal confirma el total de presentes y ausentes; durante
+  la peticion evita cierres accidentales y luego informa exito o error.
 - Si el historial falla, muestra mensaje y permite `Reintentar`.
 
 ### Observador del estudiante
@@ -412,10 +420,35 @@ Uso:
 
 - `Formulario.jsx` lista estudiantes de la asignacion seleccionada.
 - `Observaciones.jsx` carga/guarda dimensiones conductual, cognitiva y lenguaje.
+- `POST /observaciones` permite una o varias dimensiones; exige que al menos
+  una tenga contenido y envia las restantes como texto vacio.
 - La verificacion inicial del estado tiene cancelacion con tiempo limite para
   no dejar el badge en `Verificando` indefinidamente en movil.
 - El estado visible puede ser `Verificando`, `Pendiente`, `Guardado` o
   `Cambios sin guardar`.
+- Durante el guardado, el boton muestra spinner y el resultado se confirma con
+  un modal de SweetAlert2.
+
+### Malla Curricular
+
+`PlaneadorAnual.jsx` consume:
+
+```text
+GET /planeador-anual/{asignacion_id}/{periodo}
+PUT /planeador-anual/{asignacion_id}/{periodo}
+```
+
+Uso:
+
+- Cada fila puede contener uno o varios de los campos `unidad_tematica`,
+  `estandar_competencia`, `contenido` y `actividades_recursos`.
+- Toda fila con contenido exige `fecha` como fecha limite; una fecha aislada
+  sin contenido tampoco se envia.
+- Las filas vacias se normalizan con textos vacios y `fecha: null`.
+- Los registros recibidos se ubican mediante `slot`, manteniendo su posicion
+  cuando existen filas intermedias vacias.
+- Al guardar se recarga lo persistido, el boton muestra spinner y SweetAlert2
+  informa validaciones, exito o error.
 
 ### Ingreso de boletin final
 

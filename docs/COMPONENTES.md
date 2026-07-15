@@ -35,7 +35,8 @@ Estado actual de componentes y paginas del frontend.
   contador de inasistencias cuando el historial ya cargo.
 - `Observaciones.jsx`: manejo de observaciones; su verificacion inicial usa
   cancelacion con tiempo limite para no dejar el badge en `Verificando`
-  indefinidamente.
+  indefinidamente. Permite guardar con una sola dimension diligenciada,
+  muestra spinner durante la peticion y confirma el resultado con SweetAlert2.
 - `ReporteEstudiante.jsx`: reporte individual de estudiante.
 - `dashboard/CumpleanosSemana.jsx`: panel reutilizable para mostrar cumpleaños
   de estudiantes de los proximos 7 dias en dashboards con estados de carga,
@@ -119,8 +120,16 @@ Estado actual de componentes y paginas del frontend.
 - El historial se organiza en un mapa por estudiante para que el conteo de
   inasistencias no dependa de busquedas repetidas durante el render.
 - Si existe registro para la fecha seleccionada, muestra aviso
-  `Asistencia del día ya tomada`, precarga los botones presente/ausente y cambia
-  el boton principal a `Actualizar Asistencia`.
+  `Asistencia del día ya tomada`, precarga los botones presente/ausente y
+  permite editarlo con estado visible de cambios pendientes.
+- La fecha sigue dependiendo de la seleccion realizada en el dashboard; en
+  Asistencia se muestra como dato de solo lectura.
+- Incluye `Marcar todos presentes`, contadores de presentes/ausentes/pendientes,
+  restauracion del estado guardado y confirmacion del resumen antes de guardar.
+- La confirmacion de guardado usa un modal con resumen visual, bloqueo mientras
+  responde el backend y resultado claro de exito o error.
+- Los controles `Presente` y `Ausente` usan botones grandes con texto para
+  facilitar la captura desde movil.
 - Mientras el historial esta cargando, las filas muestran
   `Cargando historial...` en lugar de un contador provisional.
 
@@ -147,6 +156,21 @@ Estado actual de componentes y paginas del frontend.
 - Los apoyos laterales de plantillas rapidas e ideas para enriquecer fueron
   retirados temporalmente; el trabajo futuro es sugerir contenido desde la
   Malla Curricular de la asignacion y periodo.
+
+## Malla Curricular profesor
+
+- `pages/PlaneadorAnual.jsx`: organiza hasta ocho filas curriculares por
+  asignacion y periodo.
+- Cada fila admite uno o varios campos academicos, pero requiere una fecha
+  limite cuando contiene informacion.
+- Rechaza en la interfaz tanto contenido sin fecha como fecha sin contenido y
+  explica la fila que debe corregirse.
+- Las filas completamente vacias son validas y no crean registros; si una fila
+  guardada se vacia, el backend elimina ese `slot` al actualizar.
+- La carga respeta el `slot` retornado por el backend, evitando mover contenido
+  cuando hay filas vacias entre registros.
+- El boton muestra spinner durante el guardado y SweetAlert2 confirma el
+  resultado.
 
 ## Planeadores admin
 

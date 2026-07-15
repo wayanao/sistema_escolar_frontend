@@ -1,16 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import Swal from "sweetalert2";
 import api from "../utils/api";
 import DocumentoImprimible from "../components/impresion/DocumentoImprimible";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
+const CAMPOS_CONTENIDO = [
+  "unidad_tematica",
+  "estandar_competencia",
+  "contenido",
+  "actividades_recursos",
+];
+
+const crearFilaVacia = () => ({
+  unidad_tematica: "",
+  estandar_competencia: "",
+  contenido: "",
+  actividades_recursos: "",
+  fecha: "",
+});
+
+const filaTieneContenido = (fila) => CAMPOS_CONTENIDO.some(
+  (campo) => String(fila?.[campo] || "").trim().length > 0
+);
+
 function PlaneadorAnual() {
-  const [planeadores, setPlaneadores] = useState(Array(8).fill({
-    unidad_tematica: "",
-    estandar_competencia: "",
-    contenido: "",
-    actividades_recursos: "",
-    fecha: ""
-  }));
+  const [planeadores, setPlaneadores] = useState(() => Array.from({ length: 8 }, crearFilaVacia));
   const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [asignacion, setAsignacion] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,28 +85,24 @@ function PlaneadorAnual() {
       const res = await api.get(`/planeador-anual/${asignacionId}/${periodo}`);
       const data = res.data;
       const planeadoresData = data.planeadores || [];
-      const updatedPlaneadores = Array(8).fill({
-        unidad_tematica: "",
-        estandar_competencia: "",
-        contenido: "",
-        actividades_recursos: "",
-        fecha: ""
-      });
+      const updatedPlaneadores = Array.from({ length: 8 }, crearFilaVacia);
       planeadoresData.forEach((p, index) => {
-        if (index < 8) {
-          updatedPlaneadores[index] = {
+        const slotIndex = Number(p.slot) - 1;
+        const targetIndex = Number.isInteger(slotIndex) && slotIndex >= 0 && slotIndex < 8 ? slotIndex : index;
+        if (targetIndex < 8) {
+          updatedPlaneadores[targetIndex] = {
             unidad_tematica: p.unidad_tematica || "",
             estandar_competencia: p.estandar_competencia || "",
             contenido: p.contenido || "",
             actividades_recursos: p.actividades_recursos || "",
-            fecha: p.fecha || ""
+            fecha: p.fecha ? String(p.fecha).slice(0, 10) : ""
           };
         }
       });
       setPlaneadores(updatedPlaneadores);
       setEstadoGuardado({
         cargando: false,
-        guardado: planeadoresData.length > 0,
+        guardado: planeadoresData.some((fila) => filaTieneContenido(fila) && Boolean(fila.fecha)),
         modificado: false,
         guardadoEn: null,
       });
@@ -152,41 +162,73 @@ function PlaneadorAnual() {
   const guardarPlaneadores = async () => {
     if (!asignacionId || !periodo) return;
 
-    const filaSinFecha = planeadores.findIndex((planeador) => {
-      const tieneContenido = [
-        planeador.unidad_tematica,
-        planeador.estandar_competencia,
-        planeador.contenido,
-        planeador.actividades_recursos,
-      ].some((valor) => String(valor || "").trim());
-
-      return tieneContenido && !planeador.fecha;
-    });
+    const payload = planeadores.map((planeador) => ({
+      unidad_tematica: String(planeador.unidad_tematica || "").trim(),
+      estandar_competencia: String(planeador.estandar_competencia || "").trim(),
+      contenido: String(planeador.contenido || "").trim(),
+      actividades_recursos: String(planeador.actividades_recursos || "").trim(),
+      fecha: planeador.fecha || null,
+    }));
+    const filaSinFecha = payload.findIndex((planeador) => filaTieneContenido(planeador) && !planeador.fecha);
+    const filaSoloConFecha = payload.findIndex((planeador) => !filaTieneContenido(planeador) && planeador.fecha);
+    const filasDiligenciadas = payload.filter(filaTieneContenido).length;
 
     if (filaSinFecha !== -1) {
-      alert(`Debes seleccionar la fecha en la fila ${filaSinFecha + 1} antes de guardar.`);
+      await Swal.fire({
+        icon: "warning",
+        title: `Falta la fecha en la fila ${filaSinFecha + 1}`,
+        text: "Cada fila con contenido debe tener una fecha límite antes de guardarse.",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
+      return;
+    }
+
+    if (filaSoloConFecha !== -1) {
+      await Swal.fire({
+        icon: "warning",
+        title: `Falta contenido en la fila ${filaSoloConFecha + 1}`,
+        text: "Escribe al menos un campo de contenido para conservar esa fecha límite.",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
       return;
     }
 
     setGuardando(true);
     try {
-      const res = await api.put(`/planeador-anual/${asignacionId}/${periodo}`, planeadores);
+      const res = await api.put(`/planeador-anual/${asignacionId}/${periodo}`, payload);
       if (res.status >= 200 && res.status < 300) {
+        await cargarPlaneadores();
         setEstadoGuardado({
           cargando: false,
-          guardado: true,
+          guardado: filasDiligenciadas > 0,
           modificado: false,
           guardadoEn: new Date().toLocaleTimeString("es-CO", {
             hour: "2-digit",
             minute: "2-digit",
           }),
         });
-        alert("Planeador guardado correctamente");
+        await Swal.fire({
+          icon: "success",
+          title: "Malla curricular guardada",
+          text: `${filasDiligenciadas} fila${filasDiligenciadas === 1 ? "" : "s"} quedaron guardadas con su fecha límite.`,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#6d28d9",
+        });
       } else {
-        alert("Error al guardar/debe completar todos los campos");
+        throw new Error("El servidor no confirmó el guardado.");
       }
     } catch (error) {
       console.error("Error guardando planeadores", error);
+      const detalle = error.response?.data?.detail;
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo guardar la malla",
+        text: typeof detalle === "string" ? detalle : "Revisa las filas e intenta nuevamente.",
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#6d28d9",
+      });
     } finally {
       setGuardando(false);
     }
@@ -501,6 +543,10 @@ function PlaneadorAnual() {
         </div>
       </div>
 
+      <p className="mb-4 rounded-lg border border-purple-100 bg-purple-50 px-4 py-3 text-sm font-medium text-purple-900 no-print">
+        Puedes diligenciar uno o varios campos por fila. Si una fila tiene contenido, su fecha límite es obligatoria.
+      </p>
+
       <div className="space-y-4 sm:hidden">
         {planeadores.map((planeador, index) => (
           <section key={index} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -558,12 +604,14 @@ function PlaneadorAnual() {
                 />
               </CampoMallaMovil>
 
-              <CampoMallaMovil label="Fecha estimada">
+              <CampoMallaMovil label="Fecha límite *">
                 <input
                   name={`fecha-mobile-${index}`}
                   type="date"
                   value={planeador.fecha}
                   onChange={(e) => handleChange(index, "fecha", e.target.value)}
+                  required={filaTieneContenido(planeador)}
+                  aria-required={filaTieneContenido(planeador)}
                   className="planeador-input"
                 />
               </CampoMallaMovil>
@@ -587,7 +635,7 @@ function PlaneadorAnual() {
               <th>Estándar/competencia</th>
               <th>Contenido</th>
               <th>Actividades y recursos</th>
-              <th>Fecha estimada</th>
+              <th>Fecha límite *</th>
             </tr>
           </thead>
           <tbody>
@@ -643,6 +691,8 @@ function PlaneadorAnual() {
                     type="date"
                     value={planeador.fecha}
                     onChange={(e) => handleChange(index, "fecha", e.target.value)}
+                    required={filaTieneContenido(planeador)}
+                    aria-required={filaTieneContenido(planeador)}
                     className="planeador-input"
                   />
                 </td>
@@ -658,7 +708,14 @@ function PlaneadorAnual() {
           className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-purple-300 disabled:hover:scale-100"
         >
           <span className="flex items-center justify-center">
-            <span className="mr-2">💾</span>
+            {guardando ? (
+              <span
+                className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                aria-hidden="true"
+              />
+            ) : (
+              <span className="mr-2">💾</span>
+            )}
             {guardando ? "Guardando..." : estadoVisual.buttonText}
           </span>
         </button>
