@@ -2,6 +2,113 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-15 - Limpieza de asignacion obsoleta del profesor
+
+Se agrego una defensa para que el navegador no conserve un `asignacionId`
+viejo cuando el backend ya devuelve otro ID academico seguro.
+
+Archivos modificados:
+
+- `src/pages/DashboardProfesor.jsx`
+- `src/pages/PlanDeClases.jsx`
+- `src/pages/Planilla.jsx`
+- `src/pages/Asistencia.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- El dashboard limpia `localStorage.asignacionId` si el ID guardado ya no
+  pertenece a las clases actuales del profesor.
+- Plan de clases reemplaza un ID guardado invalido por una asignacion valida
+  devuelta por `/mis-clases/{profesor_id}`.
+- Planilla y Asistencia limpian el ID guardado y redirigen al dashboard si el
+  backend responde `403` por una asignacion que ya no pertenece al profesor.
+
+Verificacion:
+
+- Se ejecuto `pnpm run lint`.
+
+## 2026-07-15 - Curso visible en estudiantes de Gestion de Pagos
+
+Se agrego el curso del estudiante en el listado lateral de Gestion de Pagos.
+
+Archivos modificados:
+
+- `src/pages/PagosAdmin.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- La pantalla carga el catalogo de cursos junto con estudiantes y tipos de pago.
+- Cada estudiante muestra el curso en la linea de metadatos, junto al documento
+  y separado por `|`.
+- El boton `Nuevo Pago/Factura` usa color verde para diferenciarse de
+  `Guardar valor`.
+- El boton `Registrar Pago` muestra un spinner y queda deshabilitado mientras
+  el backend confirma el pago; el aviso de exito aparece apenas confirma y la
+  recarga de historial, ventas y deudas queda en segundo plano.
+- En el formulario de nuevo pago, `Concepto de Pago` queda arriba de fecha y
+  monto para que el flujo de captura sea mas claro.
+- El formulario de pago se reinicia conservando el estudiante seleccionado, de
+  modo que se puedan registrar varios pagos seguidos sin salir del estudiante.
+- El helper usa `curso_nombre`, `curso` o `curso_id` contra el catalogo de
+  cursos para tolerar distintas respuestas del backend.
+
+Verificacion:
+
+- Revision estatica del render del listado para confirmar que la etiqueta usa
+  texto pequeno, `truncate` y no cambia la estructura principal de la tarjeta.
+
+## 2026-07-15 - Plan de clases sin bloqueo por longitud
+
+Se retiro el bloqueo por maximo de caracteres en las cajas del plan diario del
+profesor.
+
+Archivos modificados:
+
+- `src/pages/PlanDeClases.jsx`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- `Unidad` y `Tema` ya no tienen `maxLength` de 255 caracteres.
+- Se elimino la validacion que impedia guardar cuando esos campos superaban el
+  limite anterior.
+- Desarrollo cognitivo y Actividad en casa se mantienen como cajas libres.
+
+Verificacion:
+
+- Se reviso que el bloqueo de longitud solo existia en `Unidad` y `Tema`.
+
+## 2026-07-15 - Documentacion frontend sincronizada con backend
+
+Se actualizo la documentacion operativa del frontend para reflejar los
+endpoints y rutas que ya consume el codigo actual.
+
+Archivos modificados:
+
+- `docs/API_CLIENT.md`
+- `docs/RUTAS_FRONTEND.md`
+- `docs/README.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- Se corrigieron los endpoints de rendimiento del dashboard profesor:
+  `/dashboard/notas-bajas/{profesor_id}` y
+  `/dashboard/notas-altas/{profesor_id}` con parametros de filtro.
+- Se agregaron al contrato API los endpoints de cartera vencida, ventas,
+  pagos, anulaciones y valores personalizados por estudiante.
+- Se completo el listado de operaciones CRUD usadas por estudiantes,
+  profesores, cursos, materias e inventario.
+- Se ubico `/cambiar-password` como ruta superior protegida por
+  `PasswordChangeRoute`, no como ruta de super admin.
+
+Verificacion:
+
+- Se contrasto `docs/API_CLIENT.md` contra llamadas reales con `api` en `src/`.
+- Se contrasto `docs/RUTAS_FRONTEND.md` contra `src/App.jsx`.
+
 ## 2026-07-13 - Valores personalizados en Gestion de Pagos
 
 Archivos modificados:

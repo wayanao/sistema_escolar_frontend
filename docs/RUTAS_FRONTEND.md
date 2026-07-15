@@ -2,13 +2,18 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-07-15.
 
 ## Rutas publicas
 
 | Ruta | Componente | Observacion |
 | --- | --- | --- |
 | `/login` | `Login` | Pantalla de acceso. |
+| `/cambiar-password` | `CambiarPassword` | `PasswordChangeRoute`: solo admin con `debe_cambiar_password = true`. |
+
+`/cambiar-password` es una ruta superior fuera del layout autenticado normal.
+Si no existe `localStorage.usuario` con rol `admin`, redirige a `/login`; si el
+admin ya no tiene cambio obligatorio, redirige a `/dashboard-admin`.
 
 ## Rutas dentro del layout autenticado
 
@@ -57,7 +62,6 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 | Ruta | Componente |
 | --- | --- |
 | `/super-admin` | `SuperAdminDashboard` |
-| `/cambiar-password` | `CambiarPassword` |
 
 ## Navegacion de administrador
 

@@ -13,12 +13,22 @@ const obtenerFechaLocal = () => {
 
 const formatearMoneda = (valor) => `$${Number(valor || 0).toLocaleString()}`;
 
+const crearPagoInicial = (estudianteId = "") => ({
+  estudiante_id: estudianteId,
+  descripcion: "",
+  fecha: obtenerFechaLocal(),
+  monto: "",
+  venta_id: null,
+  metodos: []
+});
+
 function PagosAdmin() {
   const navigate = useNavigate();
   const location = useLocation();
   // Si llegamos desde Cartera Vencida / Resumen estudiante con un id preseleccionado
   const estudianteIdPreseleccionado = location.state?.estudiante_id ?? null;
   const [estudiantes, setEstudiantes] = useState([]);
+  const [cursos, setCursos] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [tiposPagos, setTiposPagos] = useState([]);
   const [ventasPendientes, setVentasPendientes] = useState([]);
@@ -30,6 +40,7 @@ function PagosAdmin() {
     motivo: ""
   });
   const [guardandoValorPersonalizado, setGuardandoValorPersonalizado] = useState(false);
+  const [registrandoPago, setRegistrandoPago] = useState(false);
   const [selectedEstudiante, setSelectedEstudiante] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,19 +48,13 @@ function PagosAdmin() {
   const [pagoAImprimir, setPagoAImprimir] = useState(null);
 
   // Formulario de pago mixto
-  const [pagoData, setPagoData] = useState({
-    estudiante_id: "",
-    descripcion: "",
-    fecha: obtenerFechaLocal(),
-    monto: "",
-    venta_id: null,
-    metodos: [] // [{ tipo: 'efectivo', monto: '' }, ...]
-  });
+  const [pagoData, setPagoData] = useState(crearPagoInicial());
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
   useEffect(() => {
     cargarEstudiantes();
+    cargarCursos();
     cargarTiposPagos();
   }, []);
 
@@ -112,12 +117,22 @@ function PagosAdmin() {
 
   const handleEstudianteSelect = (estudiante) => {
     setSelectedEstudiante(estudiante);
-    setPagoData({ ...pagoData, estudiante_id: estudiante.id, venta_id: null });
+    setPagoData(crearPagoInicial(estudiante.id));
     setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
     cargarHistorialPagos(estudiante.id);
     cargarVentasPendientes(estudiante.id);
     cargarDeudasEstudiante(estudiante.id);
     cargarValoresPersonalizados(estudiante.id);
+  };
+
+  const toggleFormularioPago = () => {
+    if (!selectedEstudiante) return;
+    setShowForm((abierto) => {
+      if (!abierto) {
+        setPagoData(crearPagoInicial(selectedEstudiante.id));
+      }
+      return !abierto;
+    });
   };
 
   const cargarDeudasEstudiante = async (estudianteId) => {
@@ -165,6 +180,16 @@ function PagosAdmin() {
     }
 
     return true;
+  };
+
+  const cargarCursos = async () => {
+    try {
+      const res = await api.get("/cursos");
+      setCursos(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error cargando cursos:", error);
+      setCursos([]);
+    }
   };
 
   const cargarValoresPersonalizados = async (estudianteId) => {
@@ -257,6 +282,12 @@ function PagosAdmin() {
 
   const handlePagoSubmit = async (e) => {
     e.preventDefault();
+    if (registrandoPago) return;
+    if (!selectedEstudiante) {
+      Swal.fire('Error', 'Selecciona un estudiante antes de registrar el pago', 'error');
+      return;
+    }
+
     if (!pagoData.metodos.length || pagoData.metodos.some(m => !m.monto || m.monto <= 0)) {
       Swal.fire('Error', 'Debe ingresar al menos un método y monto válido', 'error');
       return;
@@ -269,24 +300,24 @@ function PagosAdmin() {
     if (!validarMontoContraSaldo(total)) {
       return;
     }
+
+    setRegistrandoPago(true);
     try {
-      const payload = { ...pagoData };
+      const estudianteId = selectedEstudiante.id;
+      const payload = { ...pagoData, estudiante_id: pagoData.estudiante_id || estudianteId };
       if (!payload.venta_id) delete payload.venta_id;
       const res = await api.post("/pagos", payload);
       if (res.status >= 200 && res.status < 300) {
-        Swal.fire('¡Éxito!', 'Pago registrado correctamente', 'success');
         setShowForm(false);
-        setPagoData({
-          estudiante_id: "",
-          descripcion: "",
-          fecha: obtenerFechaLocal(),
-          monto: "",
-          venta_id: null,
-          metodos: []
+        setPagoData(crearPagoInicial(estudianteId));
+        Swal.fire('¡Éxito!', 'Pago registrado correctamente', 'success');
+        Promise.all([
+          cargarHistorialPagos(estudianteId),
+          cargarVentasPendientes(estudianteId),
+          cargarDeudasEstudiante(estudianteId),
+        ]).catch((reloadError) => {
+          console.error("Error recargando datos despues del pago:", reloadError);
         });
-        cargarHistorialPagos(selectedEstudiante.id);
-        cargarVentasPendientes(selectedEstudiante.id);
-        cargarDeudasEstudiante(selectedEstudiante.id);
       } else {
         Swal.fire('Error', 'Error al registrar pago', 'error');
       }
@@ -300,6 +331,8 @@ function PagosAdmin() {
             ? "El servidor rechazó el pago. Revisa los datos e intenta nuevamente."
             : "No se pudo conectar con el servidor. Verifica que el backend esté encendido.";
       Swal.fire('Error', mensaje, 'error');
+    } finally {
+      setRegistrandoPago(false);
     }
   };
 
@@ -353,6 +386,16 @@ function PagosAdmin() {
     (est.nombre + " " + est.apellido).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const obtenerNombreCurso = (estudiante) => {
+    if (typeof estudiante.curso_nombre === "string" && estudiante.curso_nombre.trim()) {
+      return estudiante.curso_nombre;
+    }
+    if (typeof estudiante.curso === "string" && estudiante.curso.trim()) {
+      return estudiante.curso;
+    }
+    return cursos.find((curso) => Number(curso.id) === Number(estudiante.curso_id))?.nombre || "Sin curso";
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -388,8 +431,16 @@ function PagosAdmin() {
                       : "bg-gray-50 border-gray-200 hover:bg-gray-100")
                   }
                 >
-                  <div className="font-medium capitalize">{estudiante.apellido} {estudiante.nombre}</div>
-                  <div className="text-sm text-gray-500">Doc: {estudiante.documento || 'N/A'}</div>
+                  <div className="font-medium capitalize leading-snug">
+                    {estudiante.apellido} {estudiante.nombre}
+                  </div>
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-gray-500">
+                    <span>Doc: {estudiante.documento || 'N/A'}</span>
+                    <span className="text-gray-300" aria-hidden="true">|</span>
+                    <span className="max-w-full truncate text-xs font-semibold uppercase tracking-wide text-purple-700">
+                      {obtenerNombreCurso(estudiante)}
+                    </span>
+                  </div>
                 </div>
               ))
             )}
@@ -405,8 +456,8 @@ function PagosAdmin() {
                   Pagos de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
                 </h2>
                 <button
-                  onClick={() => setShowForm(!showForm)}
-                  className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  onClick={toggleFormularioPago}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                 >
                   {showForm ? "Cancelar" : "+ Nuevo Pago/Factura"}
                 </button>
@@ -511,7 +562,61 @@ function PagosAdmin() {
 
               {showForm && (
                 <form onSubmit={handlePagoSubmit} className="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
+                    <select
+                      value={pagoData.venta_id ? `CargoVenta_${pagoData.venta_id}` : pagoData.descripcion}
+                      onChange={(e) => {
+                        const selectedVal = e.target.value;
+                        if (selectedVal.startsWith("CargoVenta_")) {
+                          const id = parseInt(selectedVal.split("_")[1]);
+                          const ventaObj = ventasPendientes.find(v => v.id === id);
+                          if (ventaObj) {
+                            setPagoData({
+                              ...pagoData,
+                              descripcion: ventaObj.descripcion,
+                              monto: ventaObj.total,
+                              venta_id: id
+                            });
+                          }
+                        } else {
+                          const deudaObj = deudasEstudiante.find(d => d.concepto === selectedVal);
+                          const defaultMonto = deudaObj ? deudaObj.deuda : (tiposPagos.find(tp => tp.nombre === selectedVal)?.valor || "");
+                          setPagoData({
+                            ...pagoData,
+                            descripcion: selectedVal,
+                            monto: defaultMonto,
+                            venta_id: null
+                          });
+                        }
+                      }}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      required
+                    >
+                      <option value="">-- Seleccione un Concepto --</option>
+
+                      {ventasPendientes.length > 0 && (
+                        <optgroup label="Cargos de Inventario (Pendientes)">
+                          {ventasPendientes.map(vp => (
+                            <option key={`venta_${vp.id}`} value={`CargoVenta_${vp.id}`}>
+                              {vp.descripcion} (${vp.total.toLocaleString()})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+
+                      <optgroup label="Pensiones, Matrícula y Colegiatura">
+                        {deudasEstudiante.length > 0 ? deudasEstudiante.map((d, index) => (
+                          <option key={`deuda_${index}`} value={d.concepto}>
+                            {d.concepto} (${d.deuda.toLocaleString()}) {d.pagado > 0 ? '- Saldo' : ''}
+                          </option>
+                        )) : (
+                          <option disabled>No hay deudas pendientes</option>
+                        )}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
                       <input
@@ -537,60 +642,6 @@ function PagosAdmin() {
                         placeholder="0.00"
                       />
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
-                    <select
-                      value={pagoData.venta_id ? `CargoVenta_${pagoData.venta_id}` : pagoData.descripcion}
-                      onChange={(e) => {
-                        const selectedVal = e.target.value;
-                        if (selectedVal.startsWith("CargoVenta_")) {
-                          const id = parseInt(selectedVal.split("_")[1]);
-                          const ventaObj = ventasPendientes.find(v => v.id === id);
-                          if (ventaObj) {
-                            setPagoData({ 
-                              ...pagoData,
-                              descripcion: ventaObj.descripcion,
-                              monto: ventaObj.total,
-                              venta_id: id
-                            });
-                          }
-                        } else {
-                          const deudaObj = deudasEstudiante.find(d => d.concepto === selectedVal);
-                          const defaultMonto = deudaObj ? deudaObj.deuda : (tiposPagos.find(tp => tp.nombre === selectedVal)?.valor || "");
-                          setPagoData({ 
-                            ...pagoData,
-                            descripcion: selectedVal,
-                            monto: defaultMonto,
-                            venta_id: null
-                          });
-                        }
-                      }}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-                      required
-                    >
-                      <option value="">-- Seleccione un Concepto --</option>
-                      
-                      {ventasPendientes.length > 0 && (
-                        <optgroup label="Cargos de Inventario (Pendientes)">
-                          {ventasPendientes.map(vp => (
-                            <option key={`venta_${vp.id}`} value={`CargoVenta_${vp.id}`}>
-                              {vp.descripcion} (${vp.total.toLocaleString()})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-
-                      <optgroup label="Pensiones, Matrícula y Colegiatura">
-                        {deudasEstudiante.length > 0 ? deudasEstudiante.map((d, index) => (
-                          <option key={`deuda_${index}`} value={d.concepto}>
-                            {d.concepto} (${d.deuda.toLocaleString()}) {d.pagado > 0 ? '- Saldo' : ''}
-                          </option>
-                        )) : (
-                          <option disabled>No hay deudas pendientes</option>
-                        )}
-                      </optgroup>
-                    </select>
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Métodos de Pago (puede elegir varios)</label>
@@ -654,8 +705,18 @@ function PagosAdmin() {
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
-                    <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                      Registrar Pago
+                    <button
+                      type="submit"
+                      disabled={registrandoPago}
+                      className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-green-300"
+                    >
+                      {registrandoPago && (
+                        <span
+                          className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {registrandoPago ? "Registrando..." : "Registrar Pago"}
                     </button>
                     <button type="button" onClick={() => setShowForm(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
                       Cancelar

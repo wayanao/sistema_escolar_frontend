@@ -2,7 +2,7 @@
 
 Indice operativo de la documentacion del frontend `frontend-react`.
 
-Ultima organizacion: 2026-06-13.
+Ultima organizacion: 2026-07-15.
 
 ## Lectura rapida
 
@@ -16,7 +16,8 @@ Ultima organizacion: 2026-06-13.
 ## Control SaaS
 
 - `API_CLIENT.md`: contrato frontend con backend, endpoints consumidos y
-  responsabilidades por modulo.
+  responsabilidades por modulo, incluyendo cartera, ventas, dashboard y valores
+  personalizados de pago por estudiante.
 - `ESTADO_SESION.md`: claves de `localStorage`, cookie de sesion y riesgos.
 - `ROLES_UI.md`: roles visibles en frontend, guards y limites de seguridad.
 - `DEPLOY_GRATIS.md`: guia de despliegue con Vercel, Render y Neon.
@@ -52,4 +53,3 @@ Ultima organizacion: 2026-06-13.
 5. Si cambia login, cookies, roles o tenant, actualizar `ESTADO_SESION.md`,
    `ROLES_UI.md`, `PRODUCCION_FRONTEND.md` y el checklist.
 6. Antes de desplegar, revisar `CHECKLIST_PRODUCCION_FRONTEND.md`.
-

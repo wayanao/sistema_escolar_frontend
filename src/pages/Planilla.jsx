@@ -216,12 +216,21 @@ function Planilla() {
 
         // 🔥 Cargar planilla
     const cargarPlanilla = useCallback(async () => {
-    const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
-    const data = res.data;
-    const columnasVisibles = (data.columnas || []).filter((col) => !esColumnaInterna(col));
+    try {
+        const res = await api.get(`/planilla-excel/${asignacionId}/${periodo}`);
+        const data = res.data;
+        const columnasVisibles = (data.columnas || []).filter((col) => !esColumnaInterna(col));
 
-    setColumnas(columnasVisibles);
-    setEstudiantes(normalizarEstudiantesPlanilla(data.data || [], columnasVisibles));
+        setColumnas(columnasVisibles);
+        setEstudiantes(normalizarEstudiantesPlanilla(data.data || [], columnasVisibles));
+    } catch (error) {
+        console.error("Error cargando planilla", error);
+        if (error.response?.status === 403) {
+            localStorage.removeItem("asignacionId");
+            alert("La clase seleccionada ya no está disponible. Selecciónala nuevamente.");
+            window.location.href = "/";
+        }
+    }
     }, [asignacionId, periodo]);
 
     useEffect(() => {

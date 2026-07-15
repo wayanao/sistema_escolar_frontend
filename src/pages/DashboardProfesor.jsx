@@ -183,6 +183,12 @@ function DashboardProfesor() {
       const res = await api.get(`/mis-clases/${profesorId}`);
       const data = res.data || [];
       setClases(data);
+      const idsClases = new Set(data.map((clase) => String(clase.id)));
+      const asignacionGuardada = localStorage.getItem("asignacionId") || "";
+      if (asignacionGuardada && !idsClases.has(String(asignacionGuardada))) {
+        localStorage.removeItem("asignacionId");
+        setAsignacionId("");
+      }
       const horarioProfesor = data
         .map((asignacion) => ({
           id: asignacion.id,

@@ -59,6 +59,11 @@ const cargarEstudiantes = useCallback(async () => {
     console.log("DATA.DATA:", data.data);
   } catch (error) {
     console.error("Error cargando estudiantes", error);
+    if (error.response?.status === 403) {
+      localStorage.removeItem("asignacionId");
+      alert("La clase seleccionada ya no está disponible. Selecciónala nuevamente.");
+      window.location.href = "/";
+    }
   }
 }, [asignacionId, periodo, pedirSeleccionClase]);
 
@@ -100,6 +105,12 @@ const cargarHistorial = useCallback(async () => {
       setHistorial(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando historial de asistencia", error);
+      if (error.response?.status === 403) {
+        localStorage.removeItem("asignacionId");
+        alert("La clase seleccionada ya no está disponible. Selecciónala nuevamente.");
+        window.location.href = "/";
+        return;
+      }
       setHistorial([]);
       setErrorHistorial("No se pudo cargar el historial de inasistencias. Intenta recargar.");
     } finally {

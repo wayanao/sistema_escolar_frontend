@@ -2,6 +2,8 @@
 
 Estado actual del consumo de API desde el frontend.
 
+Ultima revision documental: 2026-07-15.
+
 ## Cliente Axios principal
 
 El cliente compartido esta en:
@@ -102,7 +104,11 @@ Uso:
 `EstudiantesAdmin.jsx` consume:
 
 ```text
+GET /estudiantes
 GET /estudiantes?estado=activo|retirado|egresado|inactivo|todos
+POST /estudiantes
+GET /estudiantes/{estudiante_id}
+PUT /estudiantes/{estudiante_id}
 GET /estudiantes/{estudiante_id}/detalles
 GET /estudiantes/{estudiante_id}/deudas
 PATCH /estudiantes/{estudiante_id}/estado
@@ -120,7 +126,10 @@ Uso:
 `CrearProfesor.jsx` consume:
 
 ```text
+GET /profesores
 GET /profesores?estado=activo|inactivo|todos
+POST /profesores
+PUT /profesores/{profesor_id}
 PATCH /profesores/{profesor_id}/estado
 ```
 
@@ -134,7 +143,10 @@ Uso:
 `CrearCurso.jsx` consume:
 
 ```text
+GET /cursos
 GET /cursos?estado=activo|inactivo|todos
+POST /cursos
+PUT /cursos/{curso_id}
 PATCH /cursos/{curso_id}/estado
 ```
 
@@ -148,7 +160,10 @@ Uso:
 `CrearMateria.jsx` consume:
 
 ```text
+GET /materias
 GET /materias?estado=activo|inactivo|todos
+POST /materia
+PUT /materias/{materia_id}
 PATCH /materias/{materia_id}/estado
 ```
 
@@ -189,6 +204,8 @@ Uso:
 
 ```text
 GET /inventario?estado=activo|inactivo|todos
+POST /inventario
+PUT /inventario/{item_id}
 PATCH /inventario/{item_id}/estado
 ```
 
@@ -199,11 +216,22 @@ Uso:
 - El cambio de estado no borra el producto ni su historial de ventas.
 - El backend bloquea ventas nuevas para productos `inactivo`.
 
-`VentasAdmin.jsx` consume productos activos con:
+`VentasAdmin.jsx` consume:
 
 ```text
+GET /api/ventas/
 GET /inventario?estado=activo
+GET /estudiantes
+POST /api/ventas/
+POST /api/ventas/{venta_id}/anular
 ```
+
+Uso:
+
+- Lista ventas recientes y permite registrar cargos de inventario.
+- Solo muestra productos activos para nuevas ventas.
+- La anulacion conserva trazabilidad y el backend revierte stock/pagos cuando
+  aplica.
 
 ## Tipos de pago
 
@@ -238,8 +266,16 @@ Uso:
 `PagosAdmin.jsx` tambien consulta:
 
 ```text
+GET /estudiantes
+GET /pagos/{estudiante_id}
 GET /estudiantes/{estudiante_id}/deudas
+GET /api/ventas/pendientes/{estudiante_id}
+GET /estudiantes/{estudiante_id}/valores-pago-personalizados
+PUT /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
+DELETE /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 GET /tipos-pagos
+POST /pagos
+POST /pagos/{pago_id}/anular
 ```
 
 Uso:
@@ -250,6 +286,27 @@ Uso:
 - Solo conserva en memoria conceptos activos para nuevos pagos.
 - Las deudas pendientes ya generadas siguen visibles desde el detalle del
   estudiante aunque el concepto original este inactivo.
+- Permite ajustar un valor personalizado por estudiante y concepto sin cambiar
+  el valor base del curso ni del tipo de pago.
+- Las ventas pendientes pueden asociarse al registrar pagos.
+- La anulacion de pagos pide motivo y depende del endpoint auditado del backend.
+
+## Cartera vencida
+
+`AdminDashboard.jsx` y `CarteraVencidaAdmin.jsx` consumen:
+
+```text
+GET /cartera/mora/resumen
+GET /cartera/mora
+```
+
+Uso:
+
+- El dashboard admin muestra una tarjeta resumida de cartera vencida.
+- La pantalla de cartera vencida carga KPIs, filtros y reportes imprimibles por
+  estudiante o curso.
+- La informacion respeta la regla central de cobros del backend, incluyendo
+  valores personalizados por estudiante cuando existan.
 
 ## Reportes
 
@@ -280,8 +337,9 @@ Uso:
 ```text
 GET /mis-clases/{profesor_id}
 GET /dashboard/inasistencias/{profesor_id}
-GET /dashboard/notas-bajas/{asignacion_id}/{periodo}
-GET /dashboard/notas-altas/{asignacion_id}/{periodo}
+GET /dashboard/cumpleanos/profesor/{profesor_id}?dias=7
+GET /dashboard/notas-bajas/{profesor_id}?curso_id={curso_id}&asignacion_id={asignacion_id}
+GET /dashboard/notas-altas/{profesor_id}?curso_id={curso_id}&asignacion_id={asignacion_id}
 ```
 
 Uso:
@@ -290,7 +348,9 @@ Uso:
   de clases y horario.
 - Inasistencias y rendimiento cargan como secciones independientes para no
   bloquear el layout inicial.
-- Notas bajas y altas se consultan en paralelo cuando hay asignacion y periodo.
+- Cumpleanos carga estudiantes activos de los cursos asignados al profesor.
+- Notas bajas y altas se consultan en paralelo cuando hay curso seleccionado.
+- `asignacion_id` se envia solo si el filtro de materia no esta en `todas`.
 
 ### Planilla de notas
 

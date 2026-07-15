@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Swal from "sweetalert2";
 import { useImagenProtegida } from "../components/ImagenProtegida";
 import api from "../utils/api";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
@@ -6,7 +7,6 @@ import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodo
 const campoBase =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100";
 
-const LIMITE_TEXTO_CORTO = 255;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 const PREFIJO_CAMPOS_RECORDADOS = "plan_clases_defaults";
@@ -133,15 +133,6 @@ function PlanDeClases() {
     setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
   };
 
-  const validarLimitesTexto = () => {
-    const camposLimitados = [
-      { campo: "unidad", label: "Unidad", max: LIMITE_TEXTO_CORTO },
-      { campo: "tema", label: "Tema", max: LIMITE_TEXTO_CORTO },
-    ];
-
-    return camposLimitados.find(({ campo, max }) => String(form[campo] || "").length > max);
-  };
-
   const actualizarPeriodo = (valor) => {
     setPeriodo(valor);
     guardarPeriodoProfesor(valor);
@@ -195,7 +186,12 @@ function PlanDeClases() {
       const data = res.data || [];
       setClases(data);
       setAsignacionId((actual) => {
-        if (actual || data.length === 0) return actual;
+        const existeAsignacionActual = data.some((claseItem) => String(claseItem.id) === String(actual));
+        if (actual && existeAsignacionActual) return actual;
+        if (data.length === 0) {
+          localStorage.removeItem("asignacionId");
+          return "";
+        }
         const primeraAsignacion = String(data[0].id);
         localStorage.setItem("asignacionId", primeraAsignacion);
         return primeraAsignacion;
@@ -330,12 +326,6 @@ function PlanDeClases() {
       return;
     }
 
-    const campoExcedido = validarLimitesTexto();
-    if (campoExcedido) {
-      alert(`${campoExcedido.label} permite maximo ${campoExcedido.max} caracteres.`);
-      return;
-    }
-
     const formData = new FormData();
     formData.append("asignacion_id", asignacionId);
     formData.append("periodo", periodo);
@@ -349,25 +339,41 @@ function PlanDeClases() {
       const res = await api.post("/plan-de-clases", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      const guardadoEn = new Date().toLocaleTimeString("es-CO", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const mensajeExito = res.data.mensaje || "Plan guardado y enviado a administración.";
+
       guardarCamposRecordados(profesorId, asignacionId, form);
       setPlanActualId(res.data.id);
       setImagenes({ imagen1: null, imagen2: null });
       limpiarInputsImagen();
-      await cargarPlanDelDia();
       setEstadoGuardado({
         cargando: false,
         guardado: true,
         modificado: false,
-        guardadoEn: new Date().toLocaleTimeString("es-CO", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        guardadoEn,
       });
-      setMensaje(res.data.mensaje || "Plan guardado y enviado a administración.");
-      await cargarHistorial();
+      setMensaje(mensajeExito);
+      Swal.fire("Guardado", "Plan de clases guardado correctamente.", "success");
+
+      Promise.all([cargarPlanDelDia(), cargarHistorial()])
+        .then(() => {
+          setEstadoGuardado({
+            cargando: false,
+            guardado: true,
+            modificado: false,
+            guardadoEn,
+          });
+          setMensaje(mensajeExito);
+        })
+        .catch((reloadError) => {
+          console.error("Error recargando plan despues de guardar", reloadError);
+        });
     } catch (error) {
       console.error("Error guardando plan", error);
-      alert(error.response?.data?.detail || "Error al guardar");
+      Swal.fire("Error", error.response?.data?.detail || "Error al guardar", "error");
     } finally {
       setGuardando(false);
     }
@@ -507,16 +513,12 @@ function PlanDeClases() {
                 value={form.unidad}
                 onChange={(valor) => actualizarCampo("unidad", valor)}
                 placeholder="Nombre de la unidad o eje de trabajo"
-                maxLength={LIMITE_TEXTO_CORTO}
-                mostrarContador
               />
               <CampoInput
                 label="Tema"
                 value={form.tema}
                 onChange={(valor) => actualizarCampo("tema", valor)}
                 placeholder="Tema central de la clase"
-                maxLength={LIMITE_TEXTO_CORTO}
-                mostrarContador
               />
               <CampoTextarea
                 label="Logro"
@@ -732,22 +734,7 @@ function DatoClase({ label, value }) {
   );
 }
 
-function ContadorCaracteres({ value, maxLength }) {
-  if (!maxLength) return null;
-
-  const longitud = String(value || "").length;
-  const cercaDelLimite = longitud >= maxLength * 0.9;
-  const alLimite = longitud >= maxLength;
-  const color = alLimite ? "text-red-600" : cercaDelLimite ? "text-amber-600" : "text-gray-500";
-
-  return (
-    <p className={`mt-1 text-right text-xs font-medium ${color}`}>
-      {longitud}/{maxLength} caracteres
-    </p>
-  );
-}
-
-function CampoInput({ label, value, onChange, placeholder, maxLength, mostrarContador = false }) {
+function CampoInput({ label, value, onChange, placeholder }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
@@ -756,14 +743,12 @@ function CampoInput({ label, value, onChange, placeholder, maxLength, mostrarCon
         onChange={(e) => onChange(e.target.value)}
         className={campoBase}
         placeholder={placeholder}
-        maxLength={maxLength}
       />
-      {mostrarContador && <ContadorCaracteres value={value} maxLength={maxLength} />}
     </div>
   );
 }
 
-function CampoTextarea({ label, value, onChange, placeholder, maxLength, mostrarContador = false }) {
+function CampoTextarea({ label, value, onChange, placeholder }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
@@ -773,9 +758,7 @@ function CampoTextarea({ label, value, onChange, placeholder, maxLength, mostrar
         className={campoBase}
         rows="4"
         placeholder={placeholder}
-        maxLength={maxLength}
       />
-      {mostrarContador && <ContadorCaracteres value={value} maxLength={maxLength} />}
     </div>
   );
 }
