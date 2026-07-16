@@ -13,6 +13,17 @@ const obtenerFechaLocal = () => {
 
 const formatearMoneda = (valor) => `$${Number(valor || 0).toLocaleString()}`;
 
+const formatearPeriodo = (periodo) => {
+  if (!periodo) return "";
+  const [anio, mes] = periodo.split("-").map(Number);
+  const etiqueta = new Intl.DateTimeFormat("es-CO", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(anio, mes - 1, 1)));
+  return etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1);
+};
+
 const crearPagoInicial = (estudianteId = "") => ({
   estudiante_id: estudianteId,
   descripcion: "",
@@ -22,6 +33,7 @@ const crearPagoInicial = (estudianteId = "") => ({
   metodos: [],
   tipo_pago_id_adelanto: "",
   cantidad_meses: 1,
+  aplicaciones: [],
 });
 
 function PagosAdmin() {
@@ -52,6 +64,10 @@ function PagosAdmin() {
   const [opcionesAdelanto, setOpcionesAdelanto] = useState([]);
   const [loadingOpcionesAdelanto, setLoadingOpcionesAdelanto] = useState(false);
   const [errorOpcionesAdelanto, setErrorOpcionesAdelanto] = useState("");
+  const [opcionesVencidas, setOpcionesVencidas] = useState([]);
+  const [loadingOpcionesVencidas, setLoadingOpcionesVencidas] = useState(false);
+  const [errorOpcionesVencidas, setErrorOpcionesVencidas] = useState("");
+  const [abonoLibre, setAbonoLibre] = useState(false);
 
   // Formulario de pago mixto
   const [pagoData, setPagoData] = useState(crearPagoInicial());
@@ -81,6 +97,45 @@ function PagosAdmin() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estudiantes, estudianteIdPreseleccionado]);
+
+  useEffect(() => {
+    if (
+      modoPago !== "normal" ||
+      abonoLibre ||
+      !pagoData.descripcion ||
+      pagoData.aplicaciones.length > 0
+    ) return;
+
+    const deuda = deudasEstudiante.find(
+      (item) => item.concepto === pagoData.descripcion && item.tipo_cobro === "mensual"
+    );
+    const opcion = opcionesVencidas.find(
+      (item) => Number(item.tipo_pago_id) === Number(deuda?.concepto_id)
+    );
+    const primeraCuota = opcion?.cuotas?.[0];
+    if (!primeraCuota) return;
+
+    const monto = String(primeraCuota.saldo);
+    setPagoData((actual) => ({
+      ...actual,
+      monto,
+      aplicaciones: [{
+        tipo_pago_id: Number(opcion.tipo_pago_id),
+        periodo: primeraCuota.periodo,
+        monto: Number(primeraCuota.saldo || 0),
+      }],
+      metodos: actual.metodos.length === 1
+        ? [{ ...actual.metodos[0], monto }]
+        : actual.metodos,
+    }));
+  }, [
+    abonoLibre,
+    deudasEstudiante,
+    modoPago,
+    opcionesVencidas,
+    pagoData.aplicaciones.length,
+    pagoData.descripcion,
+  ]);
 
   if (!usuario || usuario.rol !== "admin") {
     navigate("/login");
@@ -127,10 +182,14 @@ function PagosAdmin() {
     setModoPago("normal");
     setOpcionesAdelanto([]);
     setErrorOpcionesAdelanto("");
+    setOpcionesVencidas([]);
+    setErrorOpcionesVencidas("");
+    setAbonoLibre(false);
     setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
     cargarHistorialPagos(estudiante.id);
     cargarVentasPendientes(estudiante.id);
     cargarDeudasEstudiante(estudiante.id);
+    cargarOpcionesVencidas(estudiante.id);
     cargarValoresPersonalizados(estudiante.id);
   };
 
@@ -142,6 +201,8 @@ function PagosAdmin() {
         setModoPago("normal");
         setOpcionesAdelanto([]);
         setErrorOpcionesAdelanto("");
+        setAbonoLibre(false);
+        cargarOpcionesVencidas(selectedEstudiante.id);
       }
       return !abierto;
     });
@@ -194,6 +255,99 @@ function PagosAdmin() {
     return true;
   };
 
+  const cargarOpcionesVencidas = async (estudianteId = selectedEstudiante?.id) => {
+    if (!estudianteId) return;
+    setLoadingOpcionesVencidas(true);
+    setErrorOpcionesVencidas("");
+    try {
+      const res = await api.get(`/pagos/vencidos/opciones/${estudianteId}`);
+      setOpcionesVencidas(Array.isArray(res.data?.opciones) ? res.data.opciones : []);
+    } catch (error) {
+      console.error("Error cargando cuotas vencidas:", error);
+      setOpcionesVencidas([]);
+      setErrorOpcionesVencidas(
+        error.response?.data?.detail || "No se pudieron consultar los meses vencidos."
+      );
+    } finally {
+      setLoadingOpcionesVencidas(false);
+    }
+  };
+
+  const actualizarCuotasSeleccionadas = (opcion, periodos) => {
+    const seleccionadas = (opcion?.cuotas || []).filter((cuota) => periodos.includes(cuota.periodo));
+    const aplicaciones = seleccionadas.map((cuota) => ({
+      tipo_pago_id: Number(opcion.tipo_pago_id),
+      periodo: cuota.periodo,
+      monto: Number(cuota.saldo || 0),
+    }));
+    const total = aplicaciones.reduce((acumulado, item) => acumulado + item.monto, 0);
+    setAbonoLibre(false);
+    setPagoData((actual) => ({
+      ...actual,
+      aplicaciones,
+      monto: aplicaciones.length ? String(total) : "",
+      metodos: actual.metodos.length === 1
+        ? [{ ...actual.metodos[0], monto: aplicaciones.length ? String(total) : "" }]
+        : actual.metodos,
+    }));
+  };
+
+  const seleccionarConceptoPendiente = (selectedVal) => {
+    if (selectedVal.startsWith("CargoVenta_")) {
+      const id = parseInt(selectedVal.split("_")[1]);
+      const ventaObj = ventasPendientes.find((venta) => Number(venta.id) === Number(id));
+      if (!ventaObj) return;
+      setAbonoLibre(false);
+      setPagoData((actual) => ({
+        ...actual,
+        descripcion: ventaObj.descripcion,
+        monto: ventaObj.total,
+        venta_id: id,
+        aplicaciones: [],
+        metodos: [],
+      }));
+      return;
+    }
+
+    const deudaObj = deudasEstudiante.find((deuda) => deuda.concepto === selectedVal);
+    const opcion = opcionesVencidas.find(
+      (item) => Number(item.tipo_pago_id) === Number(deudaObj?.concepto_id)
+    );
+    const defaultMonto = deudaObj
+      ? deudaObj.deuda
+      : (tiposPagos.find((tipo) => tipo.nombre === selectedVal)?.valor || "");
+    const primeraCuota = opcion?.cuotas?.[0];
+    const aplicaciones = primeraCuota ? [{
+      tipo_pago_id: Number(opcion.tipo_pago_id),
+      periodo: primeraCuota.periodo,
+      monto: Number(primeraCuota.saldo || 0),
+    }] : [];
+    const monto = primeraCuota ? String(primeraCuota.saldo) : defaultMonto;
+    setAbonoLibre(Boolean(deudaObj?.tipo_cobro === "mensual" && !primeraCuota));
+    setPagoData((actual) => ({
+      ...actual,
+      descripcion: selectedVal,
+      monto,
+      venta_id: null,
+      aplicaciones,
+      metodos: [],
+    }));
+  };
+
+  const activarAbonoLibre = () => {
+    const deuda = deudasEstudiante.find((item) => item.concepto === pagoData.descripcion);
+    const monto = deuda ? String(deuda.deuda || "") : pagoData.monto;
+    setAbonoLibre(true);
+    setPagoData((actual) => ({
+      ...actual,
+      aplicaciones: [],
+      monto,
+      metodos: actual.metodos.length === 1
+        ? [{ ...actual.metodos[0], monto }]
+        : actual.metodos,
+    }));
+  };
+
   const cargarOpcionesAdelanto = async () => {
     if (!selectedEstudiante) return;
     setLoadingOpcionesAdelanto(true);
@@ -216,6 +370,10 @@ function PagosAdmin() {
     if (!selectedEstudiante || modo === modoPago) return;
     setModoPago(modo);
     setPagoData(crearPagoInicial(selectedEstudiante.id));
+    setAbonoLibre(false);
+    if (modo === "normal") {
+      cargarOpcionesVencidas(selectedEstudiante.id);
+    }
     if (modo === "adelantado" && opcionesAdelanto.length === 0) {
       cargarOpcionesAdelanto();
     }
@@ -309,6 +467,7 @@ function PagosAdmin() {
       setValoresPersonalizados(res.data.valores || []);
       setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
       cargarDeudasEstudiante(selectedEstudiante.id);
+      cargarOpcionesVencidas(selectedEstudiante.id);
       Swal.fire("Guardado", "El valor personalizado quedó aplicado para este estudiante.", "success");
     } catch (error) {
       console.error("Error guardando valor personalizado:", error);
@@ -343,6 +502,7 @@ function PagosAdmin() {
       );
       setValorPersonalizadoData({ tipo_pago_id: "", valor: "", motivo: "" });
       cargarDeudasEstudiante(selectedEstudiante.id);
+      cargarOpcionesVencidas(selectedEstudiante.id);
       Swal.fire("Actualizado", "El valor personalizado fue retirado.", "success");
     } catch (error) {
       console.error("Error quitando valor personalizado:", error);
@@ -372,6 +532,36 @@ function PagosAdmin() {
       return;
     }
 
+    const deudaMensualSeleccionada = deudasEstudiante.find(
+      (deuda) => deuda.concepto === pagoData.descripcion && deuda.tipo_cobro === "mensual"
+    );
+    const opcionMensualSeleccionada = opcionesVencidas.find(
+      (item) => Number(item.tipo_pago_id) === Number(deudaMensualSeleccionada?.concepto_id)
+    );
+    if (
+      modoPago === "normal" &&
+      opcionMensualSeleccionada &&
+      !abonoLibre &&
+      pagoData.aplicaciones.length === 0
+    ) {
+      Swal.fire("Selecciona un mes", "Elige al menos una cuota vencida o utiliza Abono libre.", "warning");
+      return;
+    }
+
+    if (modoPago === "normal" && pagoData.aplicaciones.length > 0) {
+      const meses = pagoData.aplicaciones.map((item) => formatearPeriodo(item.periodo)).join(", ");
+      const confirmacion = await Swal.fire({
+        title: "Confirmar meses del pago",
+        text: `Se aplicarán ${formatearMoneda(total)} a: ${meses}.`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, registrar pago",
+        cancelButtonText: "Revisar",
+        confirmButtonColor: "#16a34a",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     setRegistrandoPago(true);
     try {
       const estudianteId = selectedEstudiante.id;
@@ -395,6 +585,12 @@ function PagosAdmin() {
         const payload = { ...pagoData, estudiante_id: pagoData.estudiante_id || estudianteId };
         delete payload.tipo_pago_id_adelanto;
         delete payload.cantidad_meses;
+        payload.aplicaciones = (payload.aplicaciones || []).map((aplicacion) => ({
+          ...aplicacion,
+          tipo_pago_id: Number(aplicacion.tipo_pago_id),
+          monto: Number(aplicacion.monto),
+        }));
+        if (payload.aplicaciones.length === 0) delete payload.aplicaciones;
         if (!payload.venta_id) delete payload.venta_id;
         res = await api.post("/pagos", payload);
       }
@@ -403,10 +599,13 @@ function PagosAdmin() {
         setPagoData(crearPagoInicial(estudianteId));
         setModoPago("normal");
         setOpcionesAdelanto([]);
+        setAbonoLibre(false);
         Swal.fire(
           '¡Éxito!',
           modoPago === "adelantado"
             ? `${res.data.periodos?.length || 0} meses adelantados quedaron registrados correctamente.`
+            : pagoData.aplicaciones.length > 0
+              ? `Pago aplicado a ${pagoData.aplicaciones.map((item) => formatearPeriodo(item.periodo)).join(", ")}.`
             : 'Pago registrado correctamente',
           'success'
         );
@@ -414,6 +613,7 @@ function PagosAdmin() {
           cargarHistorialPagos(estudianteId),
           cargarVentasPendientes(estudianteId),
           cargarDeudasEstudiante(estudianteId),
+          cargarOpcionesVencidas(estudianteId),
         ]).catch((reloadError) => {
           console.error("Error recargando datos despues del pago:", reloadError);
         });
@@ -474,6 +674,7 @@ function PagosAdmin() {
       cargarHistorialPagos(selectedEstudiante.id);
       cargarVentasPendientes(selectedEstudiante.id);
       cargarDeudasEstudiante(selectedEstudiante.id);
+      cargarOpcionesVencidas(selectedEstudiante.id);
     } catch (error) {
       console.error("Error anulando pago:", error);
       const detail = error?.response?.data?.detail;
@@ -502,6 +703,19 @@ function PagosAdmin() {
     0,
     Number(pagoData.cantidad_meses || 0)
   ) || [];
+  const deudaPendienteSeleccionada = deudasEstudiante.find(
+    (deuda) => deuda.concepto === pagoData.descripcion
+  );
+  const opcionVencidaSeleccionada = opcionesVencidas.find(
+    (item) => Number(item.tipo_pago_id) === Number(deudaPendienteSeleccionada?.concepto_id)
+  );
+  const periodosVencidosSeleccionados = new Set(
+    (pagoData.aplicaciones || []).map((item) => item.periodo)
+  );
+  const todasLasCuotasSeleccionadas = Boolean(
+    opcionVencidaSeleccionada?.cuotas?.length &&
+    opcionVencidaSeleccionada.cuotas.every((cuota) => periodosVencidosSeleccionados.has(cuota.periodo))
+  );
 
   return (
     <div className="p-6">
@@ -699,30 +913,7 @@ function PagosAdmin() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
                       <select
                         value={pagoData.venta_id ? `CargoVenta_${pagoData.venta_id}` : pagoData.descripcion}
-                        onChange={(e) => {
-                          const selectedVal = e.target.value;
-                          if (selectedVal.startsWith("CargoVenta_")) {
-                            const id = parseInt(selectedVal.split("_")[1]);
-                            const ventaObj = ventasPendientes.find(v => v.id === id);
-                            if (ventaObj) {
-                              setPagoData({
-                                ...pagoData,
-                                descripcion: ventaObj.descripcion,
-                                monto: ventaObj.total,
-                                venta_id: id
-                              });
-                            }
-                          } else {
-                            const deudaObj = deudasEstudiante.find(d => d.concepto === selectedVal);
-                            const defaultMonto = deudaObj ? deudaObj.deuda : (tiposPagos.find(tp => tp.nombre === selectedVal)?.valor || "");
-                            setPagoData({
-                              ...pagoData,
-                              descripcion: selectedVal,
-                              monto: defaultMonto,
-                              venta_id: null
-                            });
-                          }
-                        }}
+                        onChange={(e) => seleccionarConceptoPendiente(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                         required
                       >
@@ -748,6 +939,159 @@ function PagosAdmin() {
                           )}
                         </optgroup>
                       </select>
+
+                      {deudaPendienteSeleccionada?.tipo_cobro === "mensual" && (
+                        <section className="mt-4 overflow-hidden rounded-xl border border-purple-200 bg-purple-50/60">
+                          <div className="flex flex-col gap-3 border-b border-purple-100 bg-white/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="font-bold text-purple-950">Meses pendientes</h3>
+                                {opcionVencidaSeleccionada?.cuotas?.length > 0 && (
+                                  <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+                                    {opcionVencidaSeleccionada.cuotas.length} {opcionVencidaSeleccionada.cuotas.length === 1 ? "mes" : "meses"}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-gray-600">
+                                El mes más antiguo se selecciona primero. Puedes elegir varios.
+                              </p>
+                            </div>
+                            {opcionVencidaSeleccionada?.cuotas?.length > 0 && !abonoLibre && (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => actualizarCuotasSeleccionadas(
+                                    opcionVencidaSeleccionada,
+                                    [opcionVencidaSeleccionada.cuotas[0].periodo]
+                                  )}
+                                  className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-xs font-bold text-purple-700 hover:bg-purple-50"
+                                >
+                                  Más antiguo
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => actualizarCuotasSeleccionadas(
+                                    opcionVencidaSeleccionada,
+                                    todasLasCuotasSeleccionadas
+                                      ? [opcionVencidaSeleccionada.cuotas[0].periodo]
+                                      : opcionVencidaSeleccionada.cuotas.map((cuota) => cuota.periodo)
+                                  )}
+                                  className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-xs font-bold text-purple-700 hover:bg-purple-50"
+                                >
+                                  {todasLasCuotasSeleccionadas ? "Solo el más antiguo" : "Seleccionar todos"}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="p-4">
+                            {loadingOpcionesVencidas ? (
+                              <div className="flex items-center gap-2 rounded-lg bg-white p-3 text-sm font-medium text-purple-800">
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-600" aria-hidden="true" />
+                                Consultando cuotas vencidas...
+                              </div>
+                            ) : errorOpcionesVencidas ? (
+                              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                                <p>{errorOpcionesVencidas}</p>
+                                <button
+                                  type="button"
+                                  onClick={() => cargarOpcionesVencidas()}
+                                  className="mt-2 font-bold underline"
+                                >
+                                  Reintentar
+                                </button>
+                              </div>
+                            ) : abonoLibre ? (
+                              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                <p className="text-sm font-semibold text-amber-900">Abono libre sin asignación mensual</p>
+                                <p className="mt-1 text-xs text-amber-800">El monto seguirá siendo editable y se aplicará con la regla anterior.</p>
+                                {opcionVencidaSeleccionada?.cuotas?.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => actualizarCuotasSeleccionadas(
+                                      opcionVencidaSeleccionada,
+                                      [opcionVencidaSeleccionada.cuotas[0].periodo]
+                                    )}
+                                    className="mt-2 text-sm font-bold text-purple-700 underline"
+                                  >
+                                    Volver a seleccionar meses
+                                  </button>
+                                )}
+                              </div>
+                            ) : opcionVencidaSeleccionada?.cuotas?.length > 0 ? (
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {opcionVencidaSeleccionada.cuotas.map((cuota) => {
+                                  const seleccionada = periodosVencidosSeleccionados.has(cuota.periodo);
+                                  return (
+                                    <label
+                                      key={cuota.periodo}
+                                      className={`cursor-pointer rounded-xl border p-3 transition ${
+                                        seleccionada
+                                          ? "border-purple-500 bg-purple-100 shadow-sm ring-1 ring-purple-300"
+                                          : "border-gray-200 bg-white hover:border-purple-300"
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={seleccionada}
+                                          onChange={() => {
+                                            const siguientes = new Set(periodosVencidosSeleccionados);
+                                            if (seleccionada) siguientes.delete(cuota.periodo);
+                                            else siguientes.add(cuota.periodo);
+                                            if (siguientes.size === 0) return;
+                                            actualizarCuotasSeleccionadas(opcionVencidaSeleccionada, [...siguientes]);
+                                          }}
+                                          className="mt-1 h-4 w-4 accent-purple-700"
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                          <span className="flex flex-wrap items-center justify-between gap-2">
+                                            <span className="font-bold text-gray-900">{formatearPeriodo(cuota.periodo)}</span>
+                                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                                              cuota.estado === "parcial"
+                                                ? "bg-amber-100 text-amber-800"
+                                                : "bg-red-100 text-red-700"
+                                            }`}>
+                                              {cuota.estado === "parcial" ? "Abono parcial" : "Vencido"}
+                                            </span>
+                                          </span>
+                                          <span className="mt-2 flex items-end justify-between gap-2 text-sm">
+                                            <span className="text-gray-500">Saldo de la cuota</span>
+                                            <strong className="text-gray-900">{formatearMoneda(cuota.saldo)}</strong>
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="rounded-lg border border-dashed border-gray-300 bg-white p-3 text-sm text-gray-600">
+                                No hay meses vencidos disponibles para este concepto.
+                              </p>
+                            )}
+
+                            {!abonoLibre && opcionVencidaSeleccionada?.cuotas?.length > 0 && (
+                              <div className="mt-3 flex flex-col gap-2 rounded-lg bg-purple-900 p-3 text-white sm:flex-row sm:items-center sm:justify-between">
+                                <span className="text-sm">
+                                  {pagoData.aplicaciones.length} {pagoData.aplicaciones.length === 1 ? "mes seleccionado" : "meses seleccionados"}
+                                </span>
+                                <strong className="text-lg">Total: {formatearMoneda(pagoData.monto)}</strong>
+                              </div>
+                            )}
+
+                            {!abonoLibre && (
+                              <button
+                                type="button"
+                                onClick={activarAbonoLibre}
+                                className="mt-3 text-xs font-semibold text-gray-600 underline hover:text-purple-700"
+                              >
+                                Registrar un abono libre sin seleccionar mes
+                              </button>
+                            )}
+                          </div>
+                        </section>
+                      )}
                     </div>
                   ) : (
                     <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
@@ -843,21 +1187,34 @@ function PagosAdmin() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {modoPago === "adelantado" ? "Total calculado ($)" : "Monto ($)"}
+                        {modoPago === "adelantado" || pagoData.aplicaciones.length > 0
+                          ? "Total calculado ($)"
+                          : "Monto ($)"}
                       </label>
                       <input
                         type="number"
                         step="0.01"
                         value={pagoData.monto}
-                        onChange={(e) => setPagoData({ ...pagoData, monto: e.target.value })}
+                        onChange={(e) => {
+                          const monto = e.target.value;
+                          setPagoData((actual) => ({
+                            ...actual,
+                            monto,
+                            metodos: actual.metodos.length === 1
+                              ? [{ ...actual.metodos[0], monto }]
+                              : actual.metodos,
+                          }));
+                        }}
                         onBlur={(e) => {
                           if (modoPago === "normal" && e.target.value) validarMontoContraSaldo(Number(e.target.value));
                         }}
-                        readOnly={modoPago === "adelantado"}
+                        readOnly={modoPago === "adelantado" || pagoData.aplicaciones.length > 0}
                         className={`w-full rounded-lg border p-2 focus:border-transparent focus:ring-2 ${
                           modoPago === "adelantado"
                             ? "border-emerald-200 bg-emerald-50 font-bold text-emerald-950 focus:ring-emerald-300"
-                            : "border-gray-300 bg-white focus:ring-purple-500"
+                            : pagoData.aplicaciones.length > 0
+                              ? "border-purple-200 bg-purple-50 font-bold text-purple-950 focus:ring-purple-300"
+                              : "border-gray-300 bg-white focus:ring-purple-500"
                         }`}
                         required
                         placeholder="0.00"

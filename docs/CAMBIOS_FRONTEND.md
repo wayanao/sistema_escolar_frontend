@@ -2,6 +2,22 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-16 - Selector de meses vencidos en Gestion de Pagos
+
+- Los conceptos mensuales muestran cuotas vencidas en tarjetas responsive con
+  mes, estado y saldo.
+- El mes mas antiguo se selecciona por defecto; existen acciones para elegir
+  todos o volver al primero.
+- El total y el primer metodo de pago se completan automaticamente.
+- Una confirmacion previa enumera los meses y el valor que se registrara.
+- `Abono libre` conserva el flujo compatible sin asignacion mensual.
+- Se documentaron estados de carga, error, reintento y ausencia de cuotas.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-16 - Registro opcional de meses adelantados
 
 Se amplio Gestion de Pagos sin reemplazar el flujo existente de pagos

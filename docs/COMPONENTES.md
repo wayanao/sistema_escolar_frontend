@@ -262,6 +262,12 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/PagosAdmin.jsx` conserva el registro normal de deudas y cargos de
   inventario mediante `POST /pagos`.
+- En conceptos mensuales, `Pago pendiente` muestra tarjetas seleccionables por
+  mes, saldo y estado vencido/parcial; el mes mas antiguo inicia seleccionado.
+- Se puede elegir todos los meses, volver al mas antiguo o usar `Abono libre`
+  para mantener el registro anterior sin periodo.
+- El total y el primer metodo se sincronizan con los meses seleccionados y una
+  confirmacion resume periodos y valor antes de guardar.
 - El formulario ofrece de forma separada `Meses adelantados`, disponible solo
   para conceptos mensuales asignados al estudiante.
 - El modo adelantado muestra los meses futuros libres, cantidad, valor por

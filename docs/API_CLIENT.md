@@ -275,6 +275,7 @@ PUT /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 DELETE /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 GET /tipos-pagos
 POST /pagos
+GET /pagos/vencidos/opciones/{estudiante_id}
 GET /pagos/adelanto/opciones/{estudiante_id}
 POST /pagos/adelanto
 POST /pagos/{pago_id}/anular
@@ -293,6 +294,11 @@ Uso:
 - Las ventas pendientes pueden asociarse al registrar pagos.
 - El modo `Pago pendiente` conserva `POST /pagos` y su validacion contra la
   deuda actual.
+- Para conceptos mensuales, `GET /pagos/vencidos/opciones/{estudiante_id}`
+  devuelve los saldos por mes. El cliente preselecciona el mas antiguo y puede
+  enviar una o varias `aplicaciones` dentro de `POST /pagos`.
+- Si se elige `Abono libre`, el cliente omite `aplicaciones` y conserva el
+  comportamiento anterior.
 - `GET /pagos/adelanto/opciones/{estudiante_id}` devuelve conceptos mensuales,
   valor unitario y meses futuros disponibles del año lectivo actual.
 - `POST /pagos/adelanto` recibe `tipo_pago_id`, `cantidad_meses`, `fecha` y los
