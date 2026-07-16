@@ -2,7 +2,7 @@
 
 Estado actual del consumo de API desde el frontend.
 
-Ultima revision documental: 2026-07-15.
+Ultima revision documental: 2026-07-16.
 
 ## Cliente Axios principal
 
@@ -275,6 +275,8 @@ PUT /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 DELETE /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 GET /tipos-pagos
 POST /pagos
+GET /pagos/adelanto/opciones/{estudiante_id}
+POST /pagos/adelanto
 POST /pagos/{pago_id}/anular
 ```
 
@@ -289,6 +291,13 @@ Uso:
 - Permite ajustar un valor personalizado por estudiante y concepto sin cambiar
   el valor base del curso ni del tipo de pago.
 - Las ventas pendientes pueden asociarse al registrar pagos.
+- El modo `Pago pendiente` conserva `POST /pagos` y su validacion contra la
+  deuda actual.
+- `GET /pagos/adelanto/opciones/{estudiante_id}` devuelve conceptos mensuales,
+  valor unitario y meses futuros disponibles del año lectivo actual.
+- `POST /pagos/adelanto` recibe `tipo_pago_id`, `cantidad_meses`, `fecha` y los
+  metodos de pago. El total se calcula y valida nuevamente en backend.
+- Los adelantos no se mezclan con cargos de inventario ni conceptos unicos.
 - La anulacion de pagos pide motivo y depende del endpoint auditado del backend.
 
 ## Cartera vencida

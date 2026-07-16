@@ -258,6 +258,18 @@ Estado actual de componentes y paginas del frontend.
 
 - `components/cartera/AdministrarTiposPago.jsx`
 
+### Pagos administrativos
+
+- `pages/PagosAdmin.jsx` conserva el registro normal de deudas y cargos de
+  inventario mediante `POST /pagos`.
+- El formulario ofrece de forma separada `Meses adelantados`, disponible solo
+  para conceptos mensuales asignados al estudiante.
+- El modo adelantado muestra los meses futuros libres, cantidad, valor por
+  cuota y total antes de registrar; no permite editar manualmente ese total.
+- Los metodos de pago deben sumar el total calculado y el backend vuelve a
+  validar meses, asignacion y valor vigente.
+- Un error al consultar adelantos no impide usar el pago normal.
+
 ### Impresion
 
 - `components/impresion/DocumentoImprimible.jsx`

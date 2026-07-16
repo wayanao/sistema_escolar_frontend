@@ -2,6 +2,40 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-16 - Registro opcional de meses adelantados
+
+Se amplio Gestion de Pagos sin reemplazar el flujo existente de pagos
+pendientes.
+
+Archivos modificados:
+
+- `src/pages/PagosAdmin.jsx`
+- `docs/API_CLIENT.md`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- El formulario permite alternar entre `Pago pendiente` y `Meses adelantados`.
+- `Pago pendiente` conserva el selector, monto editable, abonos, inventario y
+  endpoint anteriores.
+- El modo adelantado consulta solamente conceptos mensuales asignados al
+  estudiante.
+- El profesor administrativo elige cantidad de meses; la interfaz muestra los
+  periodos exactos y calcula el total con el valor vigente del estudiante,
+  curso o concepto.
+- Al elegir un unico metodo, su monto se completa con el total calculado; se
+  siguen admitiendo metodos combinados si su suma coincide.
+- Estados de carga, error, reintento y ausencia de meses disponibles no
+  bloquean el formulario normal.
+- El historial y el recibo muestran los meses dentro de la descripcion del
+  pago registrada por el backend.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-15 - Contexto de trabajo responsive en dashboard profesor
 
 Se mejoro la presentacion del selector de clase, periodo y fecha sin cambiar su
