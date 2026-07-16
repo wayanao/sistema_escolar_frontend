@@ -26,6 +26,8 @@ Cambios:
   curso o concepto.
 - Al elegir un unico metodo, su monto se completa con el total calculado; se
   siguen admitiendo metodos combinados si su suma coincide.
+- En `Pago pendiente`, el primer metodo seleccionado tambien recibe
+  automaticamente el saldo mostrado y sigue siendo editable para abonos.
 - Estados de carga, error, reintento y ausencia de meses disponibles no
   bloquean el formulario normal.
 - El historial y el recibo muestran los meses dentro de la descripcion del

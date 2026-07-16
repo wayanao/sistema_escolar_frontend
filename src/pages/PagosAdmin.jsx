@@ -881,7 +881,7 @@ function PagosAdmin() {
                                 if (e.target.checked) {
                                   nuevosMetodos.push({
                                     tipo,
-                                    monto: modoPago === "adelantado" && nuevosMetodos.length === 0
+                                    monto: nuevosMetodos.length === 0
                                       ? pagoData.monto
                                       : '',
                                     nota: ''
