@@ -69,6 +69,17 @@ Estado actual de componentes y paginas del frontend.
   `/dashboard/cumpleanos/profesor/{profesor_id}?dias=7`.
 - Carga `GET /mis-clases/{profesor_id}` una sola vez y reutiliza esa respuesta
   para selector de clases y horario semanal.
+- El bloque `Contexto de trabajo` conserva los selectores nativos de clase y
+  periodo junto con la fecha, pero los presenta en una tarjeta responsive con
+  controles tactiles, foco visible y estados de carga o lista vacia.
+- El bloque termina al finalizar los controles; no repite la clase seleccionada
+  en un resumen inferior. La opcion general conserva el valor vacio usado por
+  los filtros existentes.
+- Clase, periodo y fecha usan respectivamente fondos morado, verde y azul para
+  corresponder con sus iconos. El selector de clase no agrega indicadores junto
+  a la flecha; las opciones nativas conservan el simbolo de jornada.
+- La distribucion usa una columna en movil, dos en tablet y da mayor espacio a
+  la clase en escritorio.
 - El horario semanal se divide en jornada mañana y tarde. Cuando existen ambas,
   ofrece el filtro `Ambas | Mañana | Tarde`; cuando solo existe una, la muestra
   directamente.

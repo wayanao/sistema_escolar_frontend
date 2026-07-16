@@ -2,6 +2,45 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-15 - Contexto de trabajo responsive en dashboard profesor
+
+Se mejoro la presentacion del selector de clase, periodo y fecha sin cambiar su
+comportamiento ni las claves compartidas con los demas modulos del profesor.
+
+Archivos modificados:
+
+- `src/pages/DashboardProfesor.jsx`
+- `docs/COMPONENTES.md`
+- `docs/CAMBIOS_FRONTEND.md`
+
+Cambios:
+
+- Los tres controles se agrupan en una tarjeta `Contexto de trabajo` con
+  jerarquia visual, ayudas breves e iconos.
+- Se mantiene el selector nativo de asignacion y el mismo `asignacionId`.
+- La opcion general se presenta como `Vista general de clases` y se contemplan
+  estados de carga y ausencia de asignaciones.
+- Se retiro el resumen redundante que aparecia debajo de los selectores para
+  mantener el bloque compacto y enfocado en los controles.
+- Los controles usan una paleta simetrica con sus iconos: clase en morado,
+  periodo en verde y fecha en azul.
+- Se retiro el indicador circular de jornada ubicado junto a la flecha del
+  selector de clase para mantener el control limpio.
+- Las opciones incluyen un simbolo de sol o media jornada junto al texto para
+  diferenciarlas en navegadores que no permiten estilizar partes de un
+  `<option>` nativo.
+- En movil los controles se apilan; en tablet periodo y fecha comparten fila;
+  en escritorio la clase ocupa el espacio principal.
+- Los campos tienen mayor area tactil, foco visible y etiquetas asociadas para
+  mejorar accesibilidad.
+- Se conservan `localStorage.asignacionId`, el periodo compartido y
+  `localStorage.fechaAsistencia`; no cambia el contrato del backend.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-15 - Fecha limite obligatoria en Malla Curricular
 
 Se corrigio el guardado y la recuperacion de las filas de la Malla Curricular
