@@ -347,6 +347,9 @@ Uso:
 - La comparacion mensual usa `ingresos_mensuales` y `egresos_mensuales` de
   `/reportes/general`.
 - El panel de detalle alterna entre tabla de ingresos y tabla de egresos.
+- El detalle de ingresos permite filtrar por efectivo, transferencia, tarjeta
+  o subsidio. Las referencias libres de subsidios se conservan en la etiqueta
+  visible y tambien se reconocen en pagos mixtos.
 
 ## Modulos del perfil profesor
 

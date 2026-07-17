@@ -1499,7 +1499,8 @@ function PagosAdmin() {
                                 {(tipo === 'transferencia' || tipo === 'subsidio') && (
                                   <input
                                     type="text"
-                                    placeholder={tipo === 'subsidio' ? "Entidad o referencia" : "Banco o plataforma"}
+                                    placeholder={tipo === 'subsidio' ? "Escribe la referencia del subsidio" : "Banco o plataforma"}
+                                    aria-label={tipo === 'subsidio' ? "Referencia del subsidio" : "Banco o plataforma"}
                                     className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white w-full sm:w-56"
                                     value={pagoData.metodos[idx]?.nota || ''}
                                     onChange={e => {

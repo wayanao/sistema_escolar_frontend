@@ -276,10 +276,13 @@ Estado actual de componentes y paginas del frontend.
   un monto`; la segunda opcion esta pensada para subsidios y remanentes.
 - La vista previa detalla monto aplicado y saldo restante por mes, advierte si
   existe deuda vencida y bloquea valores que no caben antes de diciembre.
-- `Subsidio` se ofrece como metodo identificable con entidad o referencia.
+- `Subsidio` se ofrece como metodo identificable y deja la referencia como
+  texto libre escrito por el usuario, sin entidades predefinidas.
 - Los metodos de pago deben sumar el total calculado y el backend vuelve a
   validar meses, asignacion y valor vigente.
 - Un error al consultar adelantos no impide usar el pago normal.
+- `pages/ReportesAdmin.jsx` permite filtrar el detalle de ingresos por
+  `Subsidio` y muestra su referencia, incluso dentro de pagos mixtos.
 
 ### Impresion
 

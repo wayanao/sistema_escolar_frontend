@@ -2,6 +2,21 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-17 - Filtro de subsidios en reportes de ingresos
+
+- Se agrego `Subsidio` al selector de medios del detalle de ingresos.
+- El normalizador reconoce registros como `subsidio - referencia` y conserva
+  la referencia visible escrita por el usuario.
+- Los pagos mixtos separados por `+` muestran cada medio con su etiqueta
+  correcta y se pueden filtrar individualmente.
+- Gestion de Pagos mantiene la referencia del subsidio como texto libre, sin
+  una entidad predefinida.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-16 - Subsidios y abonos en pagos adelantados
 
 - `Meses adelantados` permite alternar entre meses completos y distribucion de

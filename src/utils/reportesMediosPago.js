@@ -3,6 +3,7 @@ export const MEDIOS_PAGO_INGRESO = [
   { value: "efectivo", label: "Efectivo" },
   { value: "transferencia", label: "Transferencia" },
   { value: "tarjeta", label: "Tarjeta" },
+  { value: "subsidio", label: "Subsidio" },
 ];
 
 const textoMedioPago = (valor) =>
@@ -14,6 +15,31 @@ const textoMedioPago = (valor) =>
     .toLowerCase();
 
 const detectarKeysMedioPago = (valor) => {
+  const original = String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+  const prefijos = [
+    ["subsidio", ["subsidio", "subsidy"]],
+    ["efectivo", ["efectivo", "cash"]],
+    ["transferencia", ["transferencia bancaria", "transferencia", "transfer", "pse"]],
+    ["tarjeta", ["tarjeta credito", "tarjeta debito", "tarjeta", "targeta", "datafono", "pos"]],
+  ];
+
+  for (const [key, alias] of prefijos) {
+    if (
+      alias.some(
+        (nombre) =>
+          original === nombre ||
+          original.startsWith(`${nombre} -`) ||
+          original.startsWith(`${nombre}:`)
+      )
+    ) {
+      return [key];
+    }
+  }
+
   const texto = textoMedioPago(valor);
   if (!texto) return [];
 
@@ -40,6 +66,9 @@ const detectarKeysMedioPago = (valor) => {
   ) {
     keys.push("tarjeta");
   }
+  if (texto.includes("subsidio") || texto.includes("subsidy")) {
+    keys.push("subsidio");
+  }
 
   return Array.from(new Set(keys));
 };
@@ -58,6 +87,7 @@ const normalizarMedioPago = (valor) => {
     efectivo: "Efectivo",
     transferencia: "Transferencia",
     tarjeta: "Tarjeta",
+    subsidio: "Subsidio",
   };
   return nombres[key] || (key ? key.charAt(0).toUpperCase() + key.slice(1) : "No especificado");
 };
@@ -95,6 +125,7 @@ const extraerDetalleDesdeValorMetodo = (valor, key) => {
     efectivo: ["efectivo", "cash"],
     transferencia: ["transferencia bancaria", "transferencia", "transfer", "pse"],
     tarjeta: ["tarjeta credito", "tarjeta debito", "tarjeta", "targeta", "datafono", "pos"],
+    subsidio: ["subsidio", "subsidy"],
   };
 
   for (const alias of aliasPorKey[key] || []) {
@@ -129,6 +160,7 @@ const etiquetaVisibleMedioPago = (valor, keyFallback = "") => {
   }
 
   if (texto.includes("efectivo") || texto.includes("cash")) return "Efectivo";
+  if (texto.includes("subsidio") || texto.includes("subsidy")) return "Subsidio";
   return capitalizarTexto(valor);
 };
 
@@ -287,6 +319,13 @@ const obtenerMontoPagoPorCampo = (pago, key) => {
       "datafono",
       "pos",
     ],
+    subsidio: [
+      "monto_subsidio",
+      "valor_subsidio",
+      "subsidio",
+      "monto_aporte",
+      "valor_aporte",
+    ],
   };
 
   for (const campo of camposPorKey[key] || []) {
@@ -382,11 +421,27 @@ export const obtenerMediosPago = (pago) => {
     typeof pago.formas_pago === "string" ? pago.formas_pago : "",
     typeof pago.detalle_metodos === "string" ? pago.detalle_metodos : "",
   ].find((valor) => String(valor || "").trim());
+  const segmentosMedio = String(valorMedio || "")
+    .split(/\s*\+\s*/)
+    .map((segmento) => segmento.trim())
+    .filter(Boolean);
+
+  if (segmentosMedio.length > 1) {
+    return segmentosMedio.map((segmento) => {
+      const key = keyMedioPago(segmento);
+      return {
+        key,
+        tipo: nombreVisibleMetodoPago(segmento, key),
+        monto: obtenerMontoPagoPorCampo(pago, key),
+      };
+    });
+  }
+
   const keysDetectadas = detectarKeysMedioPago(valorMedio);
   if (keysDetectadas.length > 1) {
     return keysDetectadas.map((key) => ({
       key,
-      tipo: etiquetaVisibleMedioPago(valorMedio, key),
+      tipo: normalizarMedioPago(key),
       monto: obtenerMontoPagoPorCampo(pago, key),
     }));
   }
