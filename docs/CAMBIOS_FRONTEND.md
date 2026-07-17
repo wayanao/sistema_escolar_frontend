@@ -2,6 +2,25 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-16 - Subsidios y abonos en pagos adelantados
+
+- `Meses adelantados` permite alternar entre meses completos y distribucion de
+  un monto recibido.
+- La distribucion cubre cronologicamente cada saldo y muestra el remanente como
+  abono parcial del siguiente mes.
+- Se informa la capacidad disponible hasta diciembre y se bloquean valores sin
+  periodo asignable.
+- Si el concepto conserva deuda vencida, aparece una advertencia antes de
+  confirmar el adelanto.
+- Se agrego `Subsidio` como metodo con campo de entidad o referencia.
+- El cliente normaliza respuestas del backend anterior para conservar una
+  transicion segura durante el despliegue.
+
+Verificacion:
+
+- `pnpm run lint`.
+- `pnpm run build`.
+
 ## 2026-07-16 - Selector de meses vencidos en Gestion de Pagos
 
 - Los conceptos mensuales muestran cuotas vencidas en tarjetas responsive con

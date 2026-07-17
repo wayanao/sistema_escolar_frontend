@@ -272,6 +272,11 @@ Estado actual de componentes y paginas del frontend.
   para conceptos mensuales asignados al estudiante.
 - El modo adelantado muestra los meses futuros libres, cantidad, valor por
   cuota y total antes de registrar; no permite editar manualmente ese total.
+- Dentro de adelantos se puede alternar entre `Meses completos` y `Distribuir
+  un monto`; la segunda opcion esta pensada para subsidios y remanentes.
+- La vista previa detalla monto aplicado y saldo restante por mes, advierte si
+  existe deuda vencida y bloquea valores que no caben antes de diciembre.
+- `Subsidio` se ofrece como metodo identificable con entidad o referencia.
 - Los metodos de pago deben sumar el total calculado y el backend vuelve a
   validar meses, asignacion y valor vigente.
 - Un error al consultar adelantos no impide usar el pago normal.

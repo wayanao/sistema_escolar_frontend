@@ -303,6 +303,11 @@ Uso:
   valor unitario y meses futuros disponibles del año lectivo actual.
 - `POST /pagos/adelanto` recibe `tipo_pago_id`, `cantidad_meses`, `fecha` y los
   metodos de pago. El total se calcula y valida nuevamente en backend.
+- Como alternativa a `cantidad_meses`, envia `monto_distribuir` para subsidios
+  o valores no divisibles exactamente por la mensualidad.
+- La respuesta de opciones incluye el saldo futuro por periodo. La interfaz
+  muestra cuantos meses quedan completos, el abono parcial final y cualquier
+  monto que no pueda asignarse dentro del año.
 - Los adelantos no se mezclan con cargos de inventario ni conceptos unicos.
 - La anulacion de pagos pide motivo y depende del endpoint auditado del backend.
 

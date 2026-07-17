@@ -24,6 +24,24 @@ const formatearPeriodo = (periodo) => {
   return etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1);
 };
 
+const distribuirMontoEnPeriodos = (periodos = [], monto = 0) => {
+  let restante = Math.max(0, Math.round(Number(monto || 0) * 100));
+  const distribucion = [];
+  for (const periodo of periodos) {
+    if (restante <= 0) break;
+    const saldo = Math.max(0, Math.round(Number(periodo.saldo || 0) * 100));
+    const aplicado = Math.min(restante, saldo);
+    if (aplicado <= 0) continue;
+    distribucion.push({
+      ...periodo,
+      monto_aplicado: aplicado / 100,
+      saldo_restante: (saldo - aplicado) / 100,
+    });
+    restante -= aplicado;
+  }
+  return { distribucion, sinDistribuir: restante / 100 };
+};
+
 const crearPagoInicial = (estudianteId = "") => ({
   estudiante_id: estudianteId,
   descripcion: "",
@@ -33,6 +51,8 @@ const crearPagoInicial = (estudianteId = "") => ({
   metodos: [],
   tipo_pago_id_adelanto: "",
   cantidad_meses: 1,
+  modalidad_adelanto: "meses",
+  monto_distribuir: "",
   aplicaciones: [],
 });
 
@@ -354,7 +374,22 @@ function PagosAdmin() {
     setErrorOpcionesAdelanto("");
     try {
       const res = await api.get(`/pagos/adelanto/opciones/${selectedEstudiante.id}`);
-      setOpcionesAdelanto(Array.isArray(res.data?.opciones) ? res.data.opciones : []);
+      const opciones = (Array.isArray(res.data?.opciones) ? res.data.opciones : []).map((opcion) => {
+        const periodos = (opcion.periodos_disponibles || []).map((periodo) => ({
+          ...periodo,
+          saldo: Number(periodo.saldo ?? opcion.valor_unitario ?? 0),
+          estado: periodo.estado || "disponible",
+        }));
+        return {
+          ...opcion,
+          periodos_disponibles: periodos,
+          total_disponible: Number(
+            opcion.total_disponible ??
+            periodos.reduce((total, periodo) => total + periodo.saldo, 0)
+          ),
+        };
+      });
+      setOpcionesAdelanto(opciones);
     } catch (error) {
       console.error("Error cargando opciones de adelanto:", error);
       setOpcionesAdelanto([]);
@@ -384,12 +419,14 @@ function PagosAdmin() {
       (item) => Number(item.tipo_pago_id) === Number(tipoPagoId)
     );
     const cantidad = opcion?.max_meses > 0 ? 1 : 0;
+    const totalInicial = Number(opcion?.periodos_disponibles?.[0]?.saldo || 0);
     setPagoData((actual) => ({
       ...actual,
       tipo_pago_id_adelanto: tipoPagoId,
       cantidad_meses: cantidad,
       descripcion: opcion?.concepto || "",
-      monto: opcion ? String(Number(opcion.valor_unitario || 0) * cantidad) : "",
+      monto: actual.modalidad_adelanto === "meses" && opcion ? String(totalInicial) : "",
+      monto_distribuir: "",
       venta_id: null,
       metodos: [],
     }));
@@ -400,13 +437,41 @@ function PagosAdmin() {
     const opcion = opcionesAdelanto.find(
       (item) => Number(item.tipo_pago_id) === Number(pagoData.tipo_pago_id_adelanto)
     );
-    const total = Number(opcion?.valor_unitario || 0) * cantidad;
+    const total = (opcion?.periodos_disponibles || [])
+      .slice(0, cantidad)
+      .reduce((acumulado, periodo) => acumulado + Number(periodo.saldo || 0), 0);
     setPagoData((actual) => ({
       ...actual,
       cantidad_meses: cantidad,
       monto: String(total),
       metodos: actual.metodos.length === 1
         ? [{ ...actual.metodos[0], monto: String(total) }]
+        : actual.metodos,
+    }));
+  };
+
+  const cambiarModalidadAdelanto = (modalidad) => {
+    const opcion = opcionesAdelanto.find(
+      (item) => Number(item.tipo_pago_id) === Number(pagoData.tipo_pago_id_adelanto)
+    );
+    const totalInicial = Number(opcion?.periodos_disponibles?.[0]?.saldo || 0);
+    setPagoData((actual) => ({
+      ...actual,
+      modalidad_adelanto: modalidad,
+      cantidad_meses: opcion?.max_meses > 0 ? 1 : 0,
+      monto_distribuir: "",
+      monto: modalidad === "meses" && opcion ? String(totalInicial) : "",
+      metodos: [],
+    }));
+  };
+
+  const cambiarMontoDistribuir = (valor) => {
+    setPagoData((actual) => ({
+      ...actual,
+      monto_distribuir: valor,
+      monto: valor,
+      metodos: actual.metodos.length === 1
+        ? [{ ...actual.metodos[0], monto: valor }]
         : actual.metodos,
     }));
   };
@@ -519,6 +584,30 @@ function PagosAdmin() {
       return;
     }
 
+    const esDistribucionAdelanto =
+      modoPago === "adelantado" && pagoData.modalidad_adelanto === "monto";
+    if (modoPago === "adelantado" && !pagoData.tipo_pago_id_adelanto) {
+      Swal.fire("Datos incompletos", "Selecciona el concepto mensual.", "warning");
+      return;
+    }
+    if (esDistribucionAdelanto) {
+      if (Number(pagoData.monto_distribuir) <= 0) {
+        Swal.fire("Monto requerido", "Escribe el valor recibido que deseas distribuir.", "warning");
+        return;
+      }
+      if (saldoAdelantoSinDistribuir > 0) {
+        Swal.fire(
+          "Monto fuera del año actual",
+          `${formatearMoneda(saldoAdelantoSinDistribuir)} quedarían sin un mes asignado. Reduce el monto.`,
+          "warning"
+        );
+        return;
+      }
+    } else if (modoPago === "adelantado" && Number(pagoData.cantidad_meses) < 1) {
+      Swal.fire("Datos incompletos", "Selecciona la cantidad de meses a adelantar.", "warning");
+      return;
+    }
+
     if (!pagoData.metodos.length || pagoData.metodos.some(m => !m.monto || m.monto <= 0)) {
       Swal.fire('Error', 'Debe ingresar al menos un método y monto válido', 'error');
       return;
@@ -562,19 +651,36 @@ function PagosAdmin() {
       if (!confirmacion.isConfirmed) return;
     }
 
+    if (esDistribucionAdelanto) {
+      const detalle = periodosAdelantoSeleccionados
+        .map((item) => `${item.etiqueta}: ${formatearMoneda(item.monto_aplicado)}`)
+        .join("; ");
+      const advertenciaDeuda = Number(deudaDelConceptoAdelantado?.deuda || 0) > 0
+        ? ` El estudiante conserva una deuda vencida de ${formatearMoneda(deudaDelConceptoAdelantado.deuda)}.`
+        : "";
+      const confirmacion = await Swal.fire({
+        title: "Confirmar distribución del adelanto",
+        text: `Se distribuirán ${formatearMoneda(total)} así: ${detalle}.${advertenciaDeuda}`,
+        icon: advertenciaDeuda ? "warning" : "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, distribuir monto",
+        cancelButtonText: "Revisar",
+        confirmButtonColor: "#059669",
+      });
+      if (!confirmacion.isConfirmed) return;
+    }
+
     setRegistrandoPago(true);
     try {
       const estudianteId = selectedEstudiante.id;
       let res;
       if (modoPago === "adelantado") {
-        if (!pagoData.tipo_pago_id_adelanto || Number(pagoData.cantidad_meses) < 1) {
-          Swal.fire("Datos incompletos", "Selecciona el concepto y los meses a adelantar.", "warning");
-          return;
-        }
         res = await api.post("/pagos/adelanto", {
           estudiante_id: estudianteId,
           tipo_pago_id: Number(pagoData.tipo_pago_id_adelanto),
-          cantidad_meses: Number(pagoData.cantidad_meses),
+          ...(esDistribucionAdelanto
+            ? { monto_distribuir: Number(pagoData.monto_distribuir) }
+            : { cantidad_meses: Number(pagoData.cantidad_meses) }),
           fecha: pagoData.fecha,
           metodos: pagoData.metodos.map((metodo) => ({
             ...metodo,
@@ -585,6 +691,8 @@ function PagosAdmin() {
         const payload = { ...pagoData, estudiante_id: pagoData.estudiante_id || estudianteId };
         delete payload.tipo_pago_id_adelanto;
         delete payload.cantidad_meses;
+        delete payload.modalidad_adelanto;
+        delete payload.monto_distribuir;
         payload.aplicaciones = (payload.aplicaciones || []).map((aplicacion) => ({
           ...aplicacion,
           tipo_pago_id: Number(aplicacion.tipo_pago_id),
@@ -602,7 +710,9 @@ function PagosAdmin() {
         setAbonoLibre(false);
         Swal.fire(
           '¡Éxito!',
-          modoPago === "adelantado"
+          esDistribucionAdelanto
+            ? `El monto quedó distribuido en ${res.data.periodos?.length || 0} meses.`
+            : modoPago === "adelantado"
             ? `${res.data.periodos?.length || 0} meses adelantados quedaron registrados correctamente.`
             : pagoData.aplicaciones.length > 0
               ? `Pago aplicado a ${pagoData.aplicaciones.map((item) => formatearPeriodo(item.periodo)).join(", ")}.`
@@ -699,10 +809,29 @@ function PagosAdmin() {
   const opcionAdelantoSeleccionada = opcionesAdelanto.find(
     (item) => Number(item.tipo_pago_id) === Number(pagoData.tipo_pago_id_adelanto)
   );
-  const periodosAdelantoSeleccionados = opcionAdelantoSeleccionada?.periodos_disponibles?.slice(
-    0,
-    Number(pagoData.cantidad_meses || 0)
-  ) || [];
+  const periodosAdelantoPorCantidad = (
+    opcionAdelantoSeleccionada?.periodos_disponibles?.slice(
+      0,
+      Number(pagoData.cantidad_meses || 0)
+    ) || []
+  ).map((periodo) => ({
+    ...periodo,
+    monto_aplicado: Number(periodo.saldo || 0),
+    saldo_restante: 0,
+  }));
+  const resultadoDistribucionAdelanto = distribuirMontoEnPeriodos(
+    opcionAdelantoSeleccionada?.periodos_disponibles || [],
+    pagoData.monto_distribuir
+  );
+  const periodosAdelantoSeleccionados = pagoData.modalidad_adelanto === "monto"
+    ? resultadoDistribucionAdelanto.distribucion
+    : periodosAdelantoPorCantidad;
+  const saldoAdelantoSinDistribuir = pagoData.modalidad_adelanto === "monto"
+    ? resultadoDistribucionAdelanto.sinDistribuir
+    : 0;
+  const deudaDelConceptoAdelantado = deudasEstudiante.find(
+    (deuda) => Number(deuda.concepto_id) === Number(pagoData.tipo_pago_id_adelanto)
+  );
   const deudaPendienteSeleccionada = deudasEstudiante.find(
     (deuda) => deuda.concepto === pagoData.descripcion
   );
@@ -1137,36 +1266,136 @@ function PagosAdmin() {
 
                           {opcionAdelantoSeleccionada && opcionAdelantoSeleccionada.max_meses > 0 && (
                             <>
-                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div>
-                                  <label className="mb-1 block text-sm font-semibold text-gray-700">Cantidad de meses</label>
-                                  <select
-                                    value={pagoData.cantidad_meses}
-                                    onChange={(e) => cambiarCantidadAdelanto(e.target.value)}
-                                    className="w-full rounded-lg border border-emerald-200 bg-white p-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                                  >
-                                    {Array.from({ length: opcionAdelantoSeleccionada.max_meses }, (_, index) => index + 1).map((cantidad) => (
-                                      <option key={cantidad} value={cantidad}>
-                                        {cantidad} {cantidad === 1 ? "mes" : "meses"}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div className="rounded-lg border border-emerald-200 bg-white p-3">
-                                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Total del adelanto</p>
-                                  <p className="mt-1 text-xl font-black text-emerald-950">{formatearMoneda(pagoData.monto)}</p>
-                                </div>
+                              <div className="grid grid-cols-2 rounded-xl border border-emerald-200 bg-white p-1" role="group" aria-label="Forma de calcular el adelanto">
+                                <button
+                                  type="button"
+                                  onClick={() => cambiarModalidadAdelanto("meses")}
+                                  className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                                    pagoData.modalidad_adelanto === "meses"
+                                      ? "bg-emerald-600 text-white shadow-sm"
+                                      : "text-gray-600 hover:bg-emerald-50"
+                                  }`}
+                                >
+                                  Meses completos
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => cambiarModalidadAdelanto("monto")}
+                                  className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                                    pagoData.modalidad_adelanto === "monto"
+                                      ? "bg-amber-500 text-amber-950 shadow-sm"
+                                      : "text-gray-600 hover:bg-amber-50"
+                                  }`}
+                                >
+                                  Distribuir un monto
+                                </button>
                               </div>
 
-                              <div>
-                                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Meses que quedarán cubiertos</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {periodosAdelantoSeleccionados.map((periodo) => (
-                                    <span key={periodo.periodo} className="rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-sm font-bold text-emerald-800">
-                                      {periodo.etiqueta}
-                                    </span>
-                                  ))}
+                              {Number(deudaDelConceptoAdelantado?.deuda || 0) > 0 && (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                                  <strong>Hay deuda vencida por {formatearMoneda(deudaDelConceptoAdelantado.deuda)}.</strong>
+                                  <span className="mt-1 block">Este adelanto se aplicará a meses futuros y no cancelará esa deuda.</span>
                                 </div>
+                              )}
+
+                              {pagoData.modalidad_adelanto === "meses" ? (
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                  <div>
+                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Cantidad de meses</label>
+                                    <select
+                                      value={pagoData.cantidad_meses}
+                                      onChange={(e) => cambiarCantidadAdelanto(e.target.value)}
+                                      className="w-full rounded-lg border border-emerald-200 bg-white p-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                                    >
+                                      {Array.from({ length: opcionAdelantoSeleccionada.max_meses }, (_, index) => index + 1).map((cantidad) => (
+                                        <option key={cantidad} value={cantidad}>
+                                          {cantidad} {cantidad === 1 ? "mes" : "meses"}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div className="rounded-lg border border-emerald-200 bg-white p-3">
+                                    <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Total del adelanto</p>
+                                    <p className="mt-1 text-xl font-black text-emerald-950">{formatearMoneda(pagoData.monto)}</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                  <div>
+                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Monto recibido o subsidio</label>
+                                    <input
+                                      type="number"
+                                      min="0.01"
+                                      max={opcionAdelantoSeleccionada.total_disponible}
+                                      step="0.01"
+                                      value={pagoData.monto_distribuir}
+                                      onChange={(e) => cambiarMontoDistribuir(e.target.value)}
+                                      className={`w-full rounded-lg border bg-white p-2.5 focus:ring-2 ${
+                                        saldoAdelantoSinDistribuir > 0
+                                          ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                                          : "border-amber-300 focus:border-amber-500 focus:ring-amber-200"
+                                      }`}
+                                      placeholder="Ej: 80000"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-600">
+                                      Disponible hasta diciembre: {formatearMoneda(opcionAdelantoSeleccionada.total_disponible)}
+                                    </p>
+                                  </div>
+                                  <div className={`rounded-lg border p-3 ${
+                                    saldoAdelantoSinDistribuir > 0
+                                      ? "border-red-200 bg-red-50"
+                                      : "border-amber-200 bg-white"
+                                  }`}>
+                                    <p className={`text-xs font-bold uppercase tracking-wide ${
+                                      saldoAdelantoSinDistribuir > 0 ? "text-red-700" : "text-amber-700"
+                                    }`}>
+                                      {saldoAdelantoSinDistribuir > 0 ? "Monto sin asignar" : "Monto a distribuir"}
+                                    </p>
+                                    <p className={`mt-1 text-xl font-black ${
+                                      saldoAdelantoSinDistribuir > 0 ? "text-red-900" : "text-amber-950"
+                                    }`}>
+                                      {formatearMoneda(saldoAdelantoSinDistribuir > 0 ? saldoAdelantoSinDistribuir : pagoData.monto)}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div>
+                                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                                  {pagoData.modalidad_adelanto === "monto" ? "Distribución prevista" : "Meses que quedarán cubiertos"}
+                                </p>
+                                {periodosAdelantoSeleccionados.length > 0 ? (
+                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                  {periodosAdelantoSeleccionados.map((periodo) => (
+                                    <div key={periodo.periodo} className="rounded-lg border border-emerald-200 bg-white p-3">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <strong className="text-emerald-950">{periodo.etiqueta}</strong>
+                                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                                          periodo.saldo_restante > 0
+                                            ? "bg-amber-100 text-amber-800"
+                                            : "bg-emerald-100 text-emerald-800"
+                                        }`}>
+                                          {periodo.saldo_restante > 0 ? "Abono parcial" : "Queda cubierto"}
+                                        </span>
+                                      </div>
+                                      <div className="mt-2 flex items-center justify-between text-sm">
+                                        <span className="text-gray-500">Se aplicará</span>
+                                        <strong>{formatearMoneda(periodo.monto_aplicado)}</strong>
+                                      </div>
+                                      {periodo.saldo_restante > 0 && (
+                                        <div className="mt-1 flex items-center justify-between text-xs text-amber-800">
+                                          <span>Saldo para completar</span>
+                                          <strong>{formatearMoneda(periodo.saldo_restante)}</strong>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                  </div>
+                                ) : (
+                                  <p className="rounded-lg border border-dashed border-emerald-300 bg-white p-3 text-sm text-gray-600">
+                                    Escribe el monto para ver cómo se distribuirá.
+                                  </p>
+                                )}
                               </div>
                             </>
                           )}
@@ -1224,7 +1453,7 @@ function PagosAdmin() {
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Métodos de Pago (puede elegir varios)</label>
                     <div className="flex flex-col gap-2">
-                      {['efectivo', 'tarjeta', 'transferencia'].map((tipo) => {
+                      {['efectivo', 'tarjeta', 'transferencia', 'subsidio'].map((tipo) => {
                         const idx = pagoData.metodos.findIndex(m => m.tipo === tipo);
                         const checked = idx !== -1;
                         return (
@@ -1267,10 +1496,10 @@ function PagosAdmin() {
                                   }}
                                   required
                                 />
-                                {tipo === 'transferencia' && (
+                                {(tipo === 'transferencia' || tipo === 'subsidio') && (
                                   <input
                                     type="text"
-                                    placeholder="Banco o plataforma"
+                                    placeholder={tipo === 'subsidio' ? "Entidad o referencia" : "Banco o plataforma"}
                                     className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white w-full sm:w-56"
                                     value={pagoData.metodos[idx]?.nota || ''}
                                     onChange={e => {
@@ -1296,7 +1525,9 @@ function PagosAdmin() {
                         (modoPago === "adelantado" && (
                           loadingOpcionesAdelanto ||
                           !pagoData.tipo_pago_id_adelanto ||
-                          Number(pagoData.cantidad_meses) < 1
+                          (pagoData.modalidad_adelanto === "monto"
+                            ? Number(pagoData.monto_distribuir) <= 0 || saldoAdelantoSinDistribuir > 0
+                            : Number(pagoData.cantidad_meses) < 1)
                         ))
                       }
                       className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-green-300"
