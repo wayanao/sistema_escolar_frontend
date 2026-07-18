@@ -1,25 +1,48 @@
 import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
 
-function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
         ? "text-gray-900"
         : promedioNumerico >= 3
             ? "text-emerald-600"
             : "text-red-600";
+    const guardarNotaNumerica = async (event, columna) => {
+        const input = event.currentTarget;
+        const notaAnterior = est.notas?.[columna];
+        const valorAnterior = notaAnterior !== null && notaAnterior !== undefined
+            ? String(notaAnterior)
+            : "";
+        const guardadoExitoso = await guardarNota(est.estudiante_id, columna, input.value);
+
+        if (guardadoExitoso === false) {
+            input.value = valorAnterior;
+            input.focus();
+            input.select();
+        }
+    };
 
     return (
         <tr className="hover:bg-gray-50">
-            <td className="sticky left-0 bg-white z-10 px-6 py-4 truncate">
+            <td className="sticky left-0 z-20 w-16 min-w-16 max-w-16 border-b border-r border-b-gray-100/70 border-r-purple-300 bg-purple-200 px-3 py-4 text-center">
+                <span className="text-sm font-semibold tabular-nums text-purple-700">
+                    {numero}
+                </span>
+            </td>
+            <td className="sticky left-16 z-10 border-b border-r border-b-gray-100/70 border-r-violet-100/50 bg-white px-6 py-4 truncate">
                 <div className="text-sm font-medium text-gray-900 capitalize" title={`${est.apellido} ${est.nombre}`} translate="no">
                     {est.apellido} {est.nombre}
                 </div>
             </td>
 
-                {columnas.map((col) => (
+                {columnas.map((col, index) => (
                     <td
                         key={`${est.estudiante_id}-${col}`}
-                        className="px-2 py-4 text-center min-w-[100px]"
+                        className={`min-w-[100px] border-b border-b-gray-100/70 px-2 py-4 text-center ${
+                            index < columnas.length - 1
+                                ? "border-r border-violet-100/50"
+                                : ""
+                        }`}
                     >
                         {tipoEvaluacion === "desarrollo" ? (
                             <div className="grid grid-cols-2 gap-1">
@@ -58,15 +81,13 @@ function PlanillaRow({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiq
                                 }
                                 className="w-full max-w-[70px] px-1 py-1 border border-gray-300 rounded text-center text-sm"
                                 translate="no"
-                                onBlur={(e) =>
-                                    guardarNota(est.estudiante_id, col, e.target.value)
-                                }
+                                onBlur={(event) => guardarNotaNumerica(event, col)}
                             />
                         )}
                     </td>
                 ))}
 
-            <td className="md:sticky md:right-0 bg-white md:z-10 px-6 py-4 text-center ">
+            <td className="border-b border-l border-b-gray-100/70 border-l-emerald-100/50 bg-white px-6 py-4 text-center md:sticky md:right-0 md:z-10">
                 <span className={`text-sm font-semibold ${promedioClass}`}>
                     {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
                 </span>

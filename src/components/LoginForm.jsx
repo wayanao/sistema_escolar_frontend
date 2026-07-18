@@ -22,14 +22,27 @@ function LoginForm() {
   const [email, setEmail] = useState("");// estado para el email
   const [password, setPassword] = useState("");// estado para la contraseña
   const [codigoColegio, setCodigoColegio] = useState(leerUltimoCodigoColegio);// estado para el código del colegio (saas)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTakingLong, setIsTakingLong] = useState(false);
+  const [loginSucceeded, setLoginSucceeded] = useState(false);
 
   const iniciarSesion = async () => {
+    if (isSubmitting) return;
+
     const codigoNormalizado = codigoColegio.toLowerCase().trim();
 
     if (!email || !password || !codigoNormalizado) {
         Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completa todos los campos (incluyendo el código de colegio)' });
         return;
     }
+
+    setIsSubmitting(true);
+    setIsTakingLong(false);
+    setLoginSucceeded(false);
+    let accesoConfirmado = false;
+    const slowRequestTimer = window.setTimeout(() => {
+      setIsTakingLong(true);
+    }, 3000);
 
         // 🔥 enviar al backend
     try {
@@ -67,24 +80,28 @@ function LoginForm() {
         localStorage.removeItem("usuario"); // Limpiar sesión de admin
       }
 
-      Swal.fire({
+      accesoConfirmado = true;
+      setLoginSucceeded(true);
+      setIsTakingLong(false);
+
+      await Swal.fire({
         icon: 'success',
         title: '¡Éxito!',
         text: `Bienvenido ${capitalizarNombreVisible(data.nombre)}`,
-        timer: 1500,
+        timer: 1000,
         showConfirmButton: false
-      }).then(() => {
-        // 🔥 redirigir según rol
-        if (data.rol === "super_admin") {
-          window.location.href = "/super-admin";
-        } else if (data.rol === "admin" && data.debe_cambiar_password) {
-          window.location.href = "/cambiar-password";
-        } else if (data.rol === "admin") {
-          window.location.href = "/dashboard-admin";
-        } else {
-          window.location.href = "/";
-        }
       });
+
+      // 🔥 redirigir según rol
+      if (data.rol === "super_admin") {
+        window.location.href = "/super-admin";
+      } else if (data.rol === "admin" && data.debe_cambiar_password) {
+        window.location.href = "/cambiar-password";
+      } else if (data.rol === "admin") {
+        window.location.href = "/dashboard-admin";
+      } else {
+        window.location.href = "/";
+      }
     } catch (error) {
       if (error.response && error.response.status === 401) {
           Swal.fire({ icon: 'error', title: 'Error', text: 'Credenciales incorrectas' });
@@ -100,6 +117,12 @@ function LoginForm() {
           });
       } else {
           Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo conectar con el servidor' });
+      }
+    } finally {
+      window.clearTimeout(slowRequestTimer);
+      if (!accesoConfirmado) {
+        setIsSubmitting(false);
+        setIsTakingLong(false);
       }
     }
   };
@@ -137,6 +160,7 @@ return (
           style={{textTransform: 'lowercase'}}
           value={codigoColegio}
           onChange={(e) => setCodigoColegio(e.target.value)}
+          disabled={isSubmitting}
         />
       </div>
 
@@ -149,6 +173,7 @@ return (
           className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={isSubmitting}
         />
       </div>
     
@@ -161,17 +186,32 @@ return (
           className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 shadow-sm outline-none transition focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          disabled={isSubmitting}
         />
       </div>
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-purple-700 px-4 py-3.5 font-bold text-white shadow-lg shadow-purple-200 transition hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-200"
+        disabled={isSubmitting}
+        aria-busy={isSubmitting}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 font-bold text-white shadow-lg shadow-purple-200 transition hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:cursor-wait disabled:bg-purple-600 disabled:shadow-none"
         >
-        Ingresar
+        {isSubmitting && !loginSucceeded && (
+          <span
+            className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            aria-hidden="true"
+          />
+        )}
+        {loginSucceeded ? "Acceso correcto" : isSubmitting ? "Verificando acceso..." : "Ingresar"}
       </button>
 
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-xs font-medium text-slate-500">
+      <div className="mt-3 min-h-5 text-center text-sm font-medium text-slate-500" aria-live="polite">
+        {isTakingLong && !loginSucceeded
+          ? "Estamos conectando con el servidor. Puede tardar un momento."
+          : ""}
+      </div>
+
+      <div className="mt-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-xs font-medium text-slate-500">
         Plataforma segura para administradores y profesores.
       </div>
     </form>

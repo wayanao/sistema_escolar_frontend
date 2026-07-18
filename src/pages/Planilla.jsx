@@ -63,7 +63,7 @@ const normalizarEstudiantesPlanilla = (estudiantes, columnasVisibles) =>
         };
     });
 
-function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
@@ -76,21 +76,40 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
         : Number.isNaN(promedioNumerico)
             ? est.promedio
             : promedioNumerico.toFixed(2);
+    const guardarNotaNumerica = async (event, columna) => {
+        const input = event.currentTarget;
+        const notaAnterior = est.notas?.[columna];
+        const valorAnterior = notaAnterior !== null && notaAnterior !== undefined
+            ? String(notaAnterior)
+            : "";
+        const guardadoExitoso = await guardarNota(est.estudiante_id, columna, input.value);
+
+        if (guardadoExitoso === false) {
+            input.value = valorAnterior;
+            input.focus();
+            input.select();
+        }
+    };
 
     return (
         <article className="border-b border-gray-200 last:border-b-0">
             <div className="p-4">
-                <div className="mb-4">
-                    <p
-                        className="text-base font-semibold leading-snug text-gray-900 capitalize"
-                        title={nombreCompleto}
-                        translate="no"
-                    >
-                        {nombreCompleto}
-                    </p>
-                    <p className={`mt-1 text-xs font-bold uppercase ${promedioClass}`}>
-                        Promedio: {promedioMostrado}
-                    </p>
+                <div className="mb-4 flex items-start gap-3">
+                    <span className="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg border border-purple-200 bg-purple-50 px-2 text-sm font-bold tabular-nums text-purple-700">
+                        {numero}
+                    </span>
+                    <div className="min-w-0">
+                        <p
+                            className="text-base font-semibold leading-snug text-gray-900 capitalize"
+                            title={nombreCompleto}
+                            translate="no"
+                        >
+                            {nombreCompleto}
+                        </p>
+                        <p className={`mt-1 text-xs font-bold uppercase ${promedioClass}`}>
+                            Promedio: {promedioMostrado}
+                        </p>
+                    </div>
                 </div>
 
                 {columnas.length === 0 ? (
@@ -155,9 +174,7 @@ function PlanillaMobileCard({ est, columnas, guardarNota, tipoEvaluacion, format
                                             }
                                             className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                                             translate="no"
-                                            onBlur={(e) =>
-                                                guardarNota(est.estudiante_id, col, e.target.value)
-                                            }
+                                            onBlur={(event) => guardarNotaNumerica(event, col)}
                                         />
                                     )}
                                 </div>
@@ -180,6 +197,7 @@ function Planilla() {
     const [columnas, setColumnas] = useState([]);
     const [nuevoTipo, setNuevoTipo] = useState("");
     const [tipoEliminar, setTipoEliminar] = useState("");
+    const [accionTipoEnCurso, setAccionTipoEnCurso] = useState(null);
     const [clases, setClases] = useState([]);
     const [periodo] = useState(() => obtenerPeriodoProfesor());
     const [fecha] = useState(
@@ -314,13 +332,13 @@ function Planilla() {
             });
 
             await cargarPlanilla();
-            return;
+            return true;
         }
 
         if (tipoEvaluacion === "numerica") {
             if (Number.isNaN(numero) || numero < 1 || numero > 5) {
-                Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
-                return;
+                await Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
+                return false;
             }
         }
 
@@ -338,6 +356,114 @@ function Planilla() {
 
           // 🔄 recargar datos
         await cargarPlanilla();
+        return true;
+    };
+
+    const agregarTipoEvaluacion = async () => {
+        if (accionTipoEnCurso) return;
+
+        const tipoLimpio = nuevoTipo.trim();
+        if (!tipoLimpio) return;
+        if (esColumnaInterna(tipoLimpio)) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Ese nombre está reservado por el sistema.' });
+            return;
+        }
+
+        const existe = columnas.some(col => col.trim().toLowerCase() === tipoLimpio.toLowerCase());
+        if (existe) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'El tipo de evaluación ya existe' });
+            return;
+        }
+
+        setAccionTipoEnCurso("agregar");
+        try {
+            await api.post(`/planilla/nota`, {
+                estudiante_id: estudiantes[0]?.estudiante_id,
+                asignacion_id: parseInt(asignacionId),
+                nota: null,
+                descripcion: tipoLimpio,
+                periodo: parseInt(periodo),
+                tipo_evaluacion: tipoEvaluacion,
+                valoracion: null
+            });
+            setNuevoTipo("");
+            await cargarPlanilla();
+            await Swal.fire({
+                icon: 'success',
+                title: 'Guardado',
+                text: `El tipo de evaluación "${formatearEtiquetaColumna(tipoLimpio)}" fue agregado correctamente.`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Error agregando tipo de evaluación", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo agregar',
+                text: 'Intenta nuevamente en un momento.'
+            });
+        } finally {
+            setAccionTipoEnCurso(null);
+        }
+    };
+
+    const eliminarTipoEvaluacion = async () => {
+        if (accionTipoEnCurso) return;
+        if (!tipoEliminar) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Selecciona un tipo a eliminar' });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        const tipoAEliminar = tipoEliminar;
+        setAccionTipoEnCurso("eliminar");
+        try {
+            await api.delete(`/planilla/tipo?asignacion_id=${asignacionId}&descripcion=${encodeURIComponent(tipoAEliminar)}&periodo=${periodo}`);
+            const columnasActualizadas = columnas.filter((col) => col !== tipoAEliminar);
+            setColumnas(columnasActualizadas);
+            setEstudiantes((actuales) =>
+                actuales.map((est) => {
+                    const notasActualizadas = { ...(est.notas || {}) };
+                    delete notasActualizadas[tipoAEliminar];
+
+                    return {
+                        ...est,
+                        notas: notasActualizadas,
+                        promedio: calcularPromedioNotas(notasActualizadas, columnasActualizadas),
+                    };
+                })
+            );
+            setTipoEliminar("");
+            await cargarPlanilla();
+            await Swal.fire({
+                icon: 'success',
+                title: 'Eliminado',
+                text: 'El tipo de evaluación fue eliminado',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error("Error eliminando tipo de evaluación", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo eliminar',
+                text: 'Intenta nuevamente en un momento.'
+            });
+        } finally {
+            setAccionTipoEnCurso(null);
+        }
     };
 
     const selectedClase = clases.find(c => c.id == asignacionId);   
@@ -354,7 +480,7 @@ function Planilla() {
 
         {/* Información del curso */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Información del Curso</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Información Del Curso</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <p className="text-sm font-medium text-gray-700">Materia</p>
@@ -393,7 +519,7 @@ function Planilla() {
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Gestión de Tipos de Evaluación</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo Tipo</label>
                     <input
                         type="text"
@@ -401,14 +527,43 @@ function Planilla() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         value={nuevoTipo}
                         onChange={(e) => setNuevoTipo(e.target.value)}
+                        disabled={Boolean(accionTipoEnCurso)}
                     />
+                    <button
+                        type="button"
+                        disabled={Boolean(accionTipoEnCurso)}
+                        aria-busy={accionTipoEnCurso === "agregar"}
+                        className="mt-3 flex w-full items-center justify-center gap-2 self-stretch rounded-lg border border-purple-300 bg-white px-3 py-2 text-sm font-semibold text-purple-700 shadow-sm transition-colors hover:border-purple-400 hover:bg-purple-50 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:self-start"
+                        onClick={agregarTipoEvaluacion}
+                    >
+                        {accionTipoEnCurso === "agregar" && (
+                            <span
+                                className="h-4 w-4 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700"
+                                aria-hidden="true"
+                            />
+                        )}
+                        {accionTipoEnCurso !== "agregar" && (
+                            <svg
+                                className="h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden="true"
+                            >
+                                <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                            </svg>
+                        )}
+                        {accionTipoEnCurso === "agregar" ? "Agregando..." : "Agregar Tipo"}
+                    </button>
                 </div>
-                <div>
+                <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Eliminar Tipo</label>
                     <select
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         value={tipoEliminar}
                         onChange={(e) => setTipoEliminar(e.target.value)}
+                        disabled={Boolean(accionTipoEnCurso)}
                     >
                         <option value="">Seleccionar tipo</option>
                         {columnas.map((col, i) => (
@@ -417,99 +572,50 @@ function Planilla() {
                             </option>
                         ))}
                     </select>
+                    <button
+                        type="button"
+                        disabled={Boolean(accionTipoEnCurso)}
+                        aria-busy={accionTipoEnCurso === "eliminar"}
+                        className="mt-3 flex w-full items-center justify-center gap-2 self-stretch rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:border-red-400 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:self-start"
+                        onClick={eliminarTipoEvaluacion}
+                    >
+                        {accionTipoEnCurso === "eliminar" && (
+                            <span
+                                className="h-4 w-4 animate-spin rounded-full border-2 border-red-200 border-t-red-700"
+                                aria-hidden="true"
+                            />
+                        )}
+                        {accionTipoEnCurso !== "eliminar" && (
+                            <svg
+                                className="h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                aria-hidden="true"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 .4 8m5.2 0L15 9m-8.5-3h11M10 6V4.75h4V6m-6.5 0 .7 14h7.6l.7-14" />
+                            </svg>
+                        )}
+                        {accionTipoEnCurso === "eliminar" ? "Eliminando..." : "Eliminar Tipo"}
+                    </button>
                 </div>
-            </div>
-            <div className="flex flex-col gap-3 mt-4 sm:flex-row sm:gap-4">
-                <button
-                    type="button"
-                    className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors sm:w-auto"
-                    onClick={async () => {
-                        const tipoLimpio = nuevoTipo.trim();
-                        if (!tipoLimpio) return;
-                        if (esColumnaInterna(tipoLimpio)) {
-                            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Ese nombre está reservado por el sistema.' });
-                            return;
-                        }
-                        
-                        const existe = columnas.some(col => col.trim().toLowerCase() === tipoLimpio.toLowerCase());
-                        if (existe) {
-                            Swal.fire({ icon: 'warning', title: 'Atención', text: 'El tipo de evaluación ya existe' });
-                            return;
-                        }
-                        
-                        await api.post(`/planilla/nota`, {
-                                estudiante_id: estudiantes[0]?.estudiante_id,
-                                asignacion_id: parseInt(asignacionId),
-                                nota: null,
-                                descripcion: tipoLimpio,
-                                periodo: parseInt(periodo),
-                                tipo_evaluacion: tipoEvaluacion,
-                                valoracion: null
-                            });
-                        setNuevoTipo("");
-                        cargarPlanilla();
-                    }}
-                >
-                    Agregar Tipo
-                </button>
-                <button
-                    type="button"
-                    className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors sm:w-auto"
-                    onClick={async () => {
-                        if (!tipoEliminar) {
-                            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Selecciona un tipo a eliminar' });
-                            return;
-                        }
-                        const result = await Swal.fire({
-                            title: '¿Estás seguro?',
-                            text: "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Sí, eliminar',
-                            cancelButtonText: 'Cancelar'
-                        });
-                        
-                        if (!result.isConfirmed) return;
-
-                        await api.delete(`/planilla/tipo?asignacion_id=${asignacionId}&descripcion=${encodeURIComponent(tipoEliminar)}&periodo=${periodo}`);
-                        const columnasActualizadas = columnas.filter((col) => col !== tipoEliminar);
-                        setColumnas(columnasActualizadas);
-                        setEstudiantes((actuales) =>
-                            actuales.map((est) => {
-                                const notasActualizadas = { ...(est.notas || {}) };
-                                delete notasActualizadas[tipoEliminar];
-
-                                return {
-                                    ...est,
-                                    notas: notasActualizadas,
-                                    promedio: calcularPromedioNotas(notasActualizadas, columnasActualizadas),
-                                };
-                            })
-                        );
-                        setTipoEliminar("");
-                        await cargarPlanilla();
-                        Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El tipo de evaluación fue eliminado', timer: 1500, showConfirmButton: false });
-                    }}
-                >
-                    Eliminar Tipo
-                </button>
             </div>
         </div>
 
         {/* Tabla de Notas */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200">
-            <div className="p-4 sm:p-6 border-b border-gray-200">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+            <div className="border-b border-gray-200 bg-white p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Notas de Estudiantes</h2>
             </div>
 
             <div className="md:hidden">
                 {estudiantes.length > 0 ? (
-                    estudiantes.map((est) => (
+                    estudiantes.map((est, index) => (
                         <PlanillaMobileCard
                             key={`${est.estudiante_id}-mobile`}
                             est={est}
+                            numero={index + 1}
                             columnas={columnas}
                             guardarNota={guardarNota}
                             tipoEvaluacion={tipoEvaluacion}
@@ -524,29 +630,103 @@ function Planilla() {
             </div>
 
             <div className="hidden w-full overflow-auto md:block">
-                <table className="min-w-max w-full">
-                    <thead className="bg-gray-50">
+                <table className="w-full min-w-max border-separate border-spacing-0">
+                    <thead className="shadow-sm">
                         <tr>
-                            <th className="sticky left-0 bg-gray-50 z-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Nombre
+                            <th
+                                className="sticky left-0 top-0 z-40 w-16 min-w-16 max-w-16 rounded-tl-lg border-b border-r border-b-purple-300 border-r-purple-400 bg-purple-200 px-3 py-4 text-center text-purple-800"
+                                title="Número de estudiante"
+                            >
+                                <svg
+                                    className="mx-auto h-6 w-6 drop-shadow-sm"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.75"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M10 3.5 8 20.5M16 3.5l-2 17M4.5 9h15M3.5 15h15" />
+                                </svg>
+                                <span className="sr-only">Número</span>
+                            </th>
+                            <th className="sticky left-16 top-0 z-30 border-b border-b-gray-200 bg-white px-6 py-4 text-left text-purple-950">
+                                <span className="inline-flex min-h-8 items-center gap-3 align-middle">
+                                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-purple-400 bg-white/55 text-purple-700 shadow-sm ring-1 ring-purple-300/50">
+                                        <svg
+                                            className="h-[18px] w-[18px]"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            aria-hidden="true"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.1a7.5 7.5 0 0 1 15 0A17.9 17.9 0 0 1 12 21.75 17.9 17.9 0 0 1 4.5 20.1Z" />
+                                        </svg>
+                                    </span>
+                                    <span className="text-base font-bold leading-none text-purple-700">
+                                        Estudiante
+                                    </span>
+                                </span>
                             </th>
                             {columnas.map((col) => (
-                                <th key={col} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                                    <div className="whitespace-nowrap" title={formatearEtiquetaColumna(col)} translate="no">
-                                        {formatearEtiquetaColumna(col)}
+                                <th
+                                    key={col}
+                                    className="sticky top-0 z-20 min-w-[120px] border-b border-l border-b-gray-200 border-l-violet-300 bg-white px-4 py-4 text-center align-middle before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-violet-200/70 before:to-transparent before:content-['']"
+                                >
+                                    <div
+                                        className="inline-flex min-h-8 items-center justify-center gap-3 whitespace-nowrap text-purple-950 align-middle"
+                                        title={formatearEtiquetaColumna(col)}
+                                    >
+                                        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-violet-700 shadow-sm ring-1 ring-violet-300/70">
+                                            <svg
+                                                className="h-[18px] w-[18px]"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                aria-hidden="true"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5.25H6.75A2.25 2.25 0 0 0 4.5 7.5v11.25A2.25 2.25 0 0 0 6.75 21h10.5a2.25 2.25 0 0 0 2.25-2.25V7.5a2.25 2.25 0 0 0-2.25-2.25H15M9 5.25A3 3 0 0 1 12 2.25a3 3 0 0 1 3 3M9 5.25A3 3 0 0 0 12 8.25a3 3 0 0 0 3-3m-6 7.5 2 2 4-4" />
+                                            </svg>
+                                        </span>
+                                        <span
+                                            className="text-base font-bold leading-none text-purple-950"
+                                            translate="no"
+                                        >
+                                            {formatearEtiquetaColumna(col)}
+                                        </span>
                                     </div>
                                 </th>
                             ))}
-                            <th className="md:sticky md:right-0 bg-gray-50 md:z-20 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                                Promedio
+                            <th className="sticky right-0 top-0 z-30 w-36 rounded-tr-lg border-b border-l border-b-gray-200 border-l-emerald-300 bg-white px-5 py-4 text-emerald-950 before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-emerald-200/70 before:to-transparent before:content-['']">
+                                <span className="inline-flex min-h-8 items-center justify-center gap-3">
+                                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-emerald-700 shadow-sm ring-1 ring-emerald-300/70">
+                                        <svg
+                                            className="h-[18px] w-[18px]"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            aria-hidden="true"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5V12m5 7.5V8m5 11.5V4.5m5 15v-10" />
+                                        </svg>
+                                    </span>
+                                    <span className="text-base font-bold leading-none text-emerald-950">
+                                        Promedio
+                                    </span>
+                                </span>
                             </th>
                         </tr> 
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {estudiantes.map((est) => (
+                    <tbody className="bg-white">
+                        {estudiantes.map((est, index) => (
                             <PlanillaRow
                                 key={est.estudiante_id}
                                 est={est}
+                                numero={index + 1}
                                 columnas={columnas}
                                 guardarNota={guardarNota}
                                 tipoEvaluacion={tipoEvaluacion}

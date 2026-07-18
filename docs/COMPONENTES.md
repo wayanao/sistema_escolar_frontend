@@ -4,7 +4,9 @@ Estado actual de componentes y paginas del frontend.
 
 ## Componentes principales
 
-- `LoginForm.jsx`: formulario de acceso; consume `/login`.
+- `LoginForm.jsx`: formulario de acceso; consume `/login`, muestra respuesta
+  inmediata al enviar, bloquea envios duplicados y avisa cuando la conexion
+  tarda mas de lo esperado.
 - `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones,
   usa etiquetas principales mas legibles, muestra solo la marca mas visible en
   un encabezado compacto y protege etiquetas como `Nómina` con `translate="no"`.
@@ -97,12 +99,46 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/Planilla.jsx`: pantalla de captura y gestion de notas del perfil
   profesor.
+- Las acciones para agregar o eliminar tipos de evaluacion muestran spinner,
+  bloquean temporalmente los controles y evitan envios duplicados mientras
+  responde el backend. Cada boton aparece inmediatamente debajo de su campo
+  correspondiente; usa fondo blanco, borde de color y ancho compacto en
+  escritorio, alineado al lado izquierdo.
+- Al completar `Agregar Tipo`, un modal breve confirma que el nuevo tipo de
+  evaluacion fue guardado.
 - En escritorio conserva la tabla tradicional con estudiantes en filas, tipos
   de evaluacion en columnas y promedio al final, con color verde desde `3.0` y
-  rojo por debajo de `3.0`.
+  rojo por debajo de `3.0`. Una columna compacta `N.º` numera los estudiantes
+  segun su orden actual; permanece fija junto con `Estudiante` al desplazar la
+  tabla horizontalmente. Toda la columna usa un fondo morado suave y plano, sin
+  degradado. Su encabezado muestra un simbolo numeral vectorial de trazo grueso
+  y extremos redondeados, sin capsula ni recuadro, y comparte el mismo fondo de
+  las celdas numeradas. Una linea morada continua recorre el borde derecho de la
+  columna hasta la ultima fila. La celda `Estudiante` permanece completamente
+  blanca y sin degradado lateral.
+- El encabezado de escritorio mantiene fondo blanco en `Estudiante`, tipos de
+  evaluacion y `Promedio`. La diferenciacion usa texto, iconos lineales,
+  contenedores de icono y una linea horizontal gris continua. Los separadores
+  verticales de los tipos de nota usan una linea violeta visible al inicio de
+  cada columna y un degradado que se desvanece solo hacia la derecha.
+  `Estudiante` permanece blanco y sin degradado lateral. En `Promedio`, el
+  separador cambia a verde esmeralda y continua por todas sus celdas hasta la
+  ultima fila. El degradado verde se limita a la celda del encabezado
+  `Promedio`; las celdas con valores mantienen fondo blanco. Lineas horizontales
+  grises de alta transparencia separan cada fila de forma continua desde
+  `Estudiante`, atraviesan las notas y llegan hasta `Promedio`. Los nombres
+  conservan colores planos y `Estudiante` usa un morado mas visible, cercano al
+  tono de su icono. Los tipos de nota centran verticalmente icono y nombre con
+  la misma altura de `Promedio`. Las cabeceras permanecen visibles durante el
+  desplazamiento.
+- Lineas verticales de un pixel y alta transparencia separan `Estudiante`, cada
+  columna de nota y `Promedio` sin generar bordes dominantes. La division de
+  `Promedio` conserva verde esmeralda, pero con la misma intensidad tenue.
+- La franja `Notas de Estudiantes` conserva fondo blanco; la tabla separa los
+  bordes para renderizar las curvas de los extremos sin artefactos visuales.
 - En movil usa tarjetas por estudiante para evitar que el nombre y las columnas
-  queden comprimidos. Cada tarjeta lista los tipos de evaluacion de forma
-  vertical.
+  queden comprimidos. Cada tarjeta muestra la numeracion en una insignia junto
+  al nombre y lista los tipos de evaluacion de forma vertical.
 - En calificacion numerica, la vista movil usa inputs de ancho completo con
   `inputMode="decimal"` para facilitar captura desde teclado movil.
 - El promedio de cada tarjeta movil se pinta verde desde `3.0` y rojo por
@@ -111,6 +147,9 @@ Estado actual de componentes y paginas del frontend.
   mientras la planilla se sincroniza con el backend.
 - La captura numerica normaliza coma decimal de teclado movil a punto para que
   el calculo local y el envio al backend usen el mismo valor.
+- Si se escribe una nota fuera del rango de `1` a `5`, la celda restaura la
+  ultima nota valida; si antes estaba vacia, vuelve a quedar vacia. El valor
+  invalido no se envia al backend.
 - En desarrollo infantil, reutiliza las opciones compartidas desde
   `constants/valoracionesDesarrollo.js` y muestra botones tactiles con
   etiqueta humana.

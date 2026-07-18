@@ -2,6 +2,128 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-18 - Encabezado diferenciado en tabla de planilla
+
+- La planilla agrega una columna compacta `N.º` antes de `Estudiante`, calculada
+  con el orden actual de la lista y fija durante el desplazamiento horizontal.
+- El encabezado de numeracion usa nuevamente un simbolo numeral vectorial, ahora
+  mas grande, grueso y con extremos redondeados, sin capsula ni recuadro.
+- Toda la columna de numeracion, incluida su celda superior, usa un fondo
+  `purple-200` plano y sin degradado.
+- La linea morada se ubica en el borde derecho de la numeracion y continua por
+  todas las filas. La celda `Estudiante` queda blanca y sin degradado lateral.
+- En movil, el numero aparece como una insignia discreta junto al nombre del
+  estudiante.
+- El titulo `Información Del Curso` usa mayuscula inicial en cada palabra para
+  mantener el formato solicitado en los encabezados de la vista.
+- El encabezado de la tabla de escritorio usa una franja visual en tonos morado,
+  indigo y verde para separarse claramente de las filas.
+- La primera columna cambia de `Nombre` a `Estudiante` y usa fondo blanco,
+  texto morado oscuro e icono lineal.
+- Los tipos de evaluacion se presentan como encabezados planos y modernos, con
+  fondo blanco e icono lineal de evaluacion.
+- El icono de `Estudiante` queda centrado dentro de un contenedor propio y el
+  texto aumenta de tamano para mejorar alineacion y lectura; el contenedor usa
+  borde morado visible para conservar la misma definicion de los demas iconos.
+- Los nombres de notas reemplazan el punto decorativo por un icono SVG para
+  mantener consistencia con `Estudiante` y `Promedio`.
+- Los iconos y nombres de los tipos de nota igualan altura, tamano y centrado
+  vertical de `Promedio`.
+- La division inferior del encabezado queda como una linea gris continua y los
+  extremos mantienen separadores grises; se retiran los bordes fuertes morado,
+  violeta y verde de las celdas.
+- Cada encabezado, incluidos `Estudiante` y `Promedio`, inicia con una linea
+  vertical violeta mas visible y un degradado que parte de ella y se desvanece
+  unicamente hacia la derecha, sin recuperar fondos intensos.
+- En `Promedio`, la linea y el degradado usan verde esmeralda para coincidir con
+  el color de su icono.
+- La linea esmeralda de `Promedio` continua por el borde izquierdo de todas sus
+  celdas hasta la ultima fila de la tabla. El degradado verde permanece solo en
+  la celda del encabezado con el nombre `Promedio`.
+- Las lineas horizontales bajan a gris de alta transparencia y recorren cada
+  fila desde `Estudiante`, pasando por las notas, hasta `Promedio`. Se retira el
+  divisor general mas fuerte del `tbody` para evitar superposicion.
+- Lineas violetas muy tenues separan verticalmente `Estudiante` y cada columna
+  de nota a lo largo de todas las filas. La division verde de `Promedio` baja
+  al mismo nivel de transparencia.
+- En `Estudiante`, la linea y el degradado usan el morado de su icono para
+  diferenciar esa columna de los nombres de tipos de nota.
+- El texto `Estudiante` usa un morado mas visible y cercano al color del icono.
+- Los nombres del encabezado conservan sus colores planos y los fondos
+  permanecen blancos.
+- `Estudiante` y `Promedio` conservan esquinas superiores curvas para mantener
+  la forma visual elegida en los extremos del encabezado.
+- La franja superior `Notas de Estudiantes` conserva fondo blanco.
+  `border-separate` evita artefactos visuales en las curvas y el contenedor
+  recorta el contenido al borde general.
+- La columna `Promedio` usa fondo blanco, icono de resultados y texto de mayor
+  tamano; conserva la linea inferior verde y su posicion fija a la derecha.
+- Las cabeceras permanecen visibles durante el desplazamiento de la tabla.
+- No se modificaron la vista movil, las notas ni las llamadas al backend.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/Planilla.jsx`.
+- `pnpm run build`.
+
+## 2026-07-18 - Restauracion de notas fuera de rango
+
+- Cuando el profesor escribe una nota menor que `1` o mayor que `5`, se conserva
+  la alerta de validacion y el valor invalido no se envia al backend.
+- Al cerrar la alerta, la celda restaura inmediatamente la ultima nota valida.
+- Si la celda no tenia una nota previa, vuelve a quedar vacia.
+- El campo recupera el foco y selecciona su contenido para facilitar la
+  correccion.
+- El comportamiento se aplica tanto a la tabla de escritorio como a las
+  tarjetas de la planilla movil.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/Planilla.jsx src/components/PlanillaRow.jsx`.
+- `pnpm run build`.
+
+## 2026-07-18 - Spinners al gestionar tipos de evaluacion
+
+- `Agregar Tipo` muestra spinner y cambia a `Agregando...` mientras se registra
+  la nueva columna de la planilla.
+- Al finalizar correctamente, un modal `Guardado` confirma el nombre del tipo
+  de evaluacion agregado.
+- `Eliminar Tipo` conserva su confirmacion y, al aceptarla, muestra spinner con
+  el texto `Eliminando...` hasta completar la operacion.
+- Durante cualquiera de las dos acciones se bloquean los controles relacionados
+  para evitar envios duplicados o acciones simultaneas.
+- Cada boton se ubica inmediatamente debajo de su input o selector y ambos
+  usan ancho compacto y alineacion izquierda en escritorio; en movil ocupan el
+  ancho disponible y los dos grupos se apilan.
+- Los botones usan fondo blanco con borde e icono de color, sin reutilizar los
+  fondos del encabezado de la tabla.
+- Si la operacion falla, los controles se habilitan nuevamente y se muestra un
+  mensaje de error.
+- No se modificaron los endpoints, payloads ni el guardado de notas.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/Planilla.jsx`.
+- `pnpm run build`.
+
+## 2026-07-18 - Respuesta visual al ingresar
+
+- El boton `Ingresar` confirma inmediatamente el clic con un spinner y el texto
+  `Verificando acceso...`.
+- Los campos y el boton quedan deshabilitados mientras responde el servidor,
+  evitando envios duplicados.
+- Si la respuesta tarda mas de tres segundos, se muestra un mensaje de espera
+  sin bloquear el formulario con un modal adicional.
+- Al confirmar las credenciales, el boton muestra `Acceso correcto` antes de
+  la redireccion.
+- Ante un error, el formulario recupera automaticamente su estado editable.
+- No se modificaron el endpoint, el payload, la cookie, la sesion ni las rutas.
+
+Verificacion:
+
+- `pnpm exec eslint src/components/LoginForm.jsx`.
+- `pnpm run build`.
+
 ## 2026-07-17 - Filtro de subsidios en reportes de ingresos
 
 - Se agrego `Subsidio` al selector de medios del detalle de ingresos.
