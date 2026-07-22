@@ -35,7 +35,7 @@ function NavSuperAdmin() {
             <img
               src={auligoLogoNav}
               alt="Auligo"
-              className="h-9 w-auto object-contain"
+              className="nav-brand-logo h-9 w-auto object-contain"
             />
           </NavLink>
           {superAdmin?.nombre && (

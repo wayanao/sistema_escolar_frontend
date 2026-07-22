@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+.nav-brand-logo {
+  filter:
+    drop-shadow(0 4px 4px rgb(24 7 58 / 70%))
+    drop-shadow(0 0 7px rgb(255 255 255 / 22%));
+  transition: filter 220ms ease, transform 220ms ease;
+}
+
+.nav-brand-logo:hover {
+  filter:
+    drop-shadow(0 5px 5px rgb(24 7 58 / 78%))
+    drop-shadow(0 0 9px rgb(255 255 255 / 28%));
+  transform: translateY(-1px);
+}
+
 .desktop-animated-nav {
   --nav-accent: rgba(255, 255, 255, 0.86);
   --nav-accent-soft: rgba(255, 255, 255, 0.16);

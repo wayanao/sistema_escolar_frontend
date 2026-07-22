@@ -21,7 +21,9 @@ Estado actual de componentes y paginas del frontend.
 - `NavAdmin.jsx`, `NavProfesor.jsx` y `NavSuperAdmin.jsx` muestran el logotipo
   transparente de `Auligo` en lugar del texto `Scholarix`; la marca conserva su
   enlace al inicio correspondiente de cada perfil. Sus elementos verdes usan
-  mayor brillo y saturacion para conservar contraste sobre el navbar.
+  mayor brillo y saturacion para conservar contraste sobre el navbar. Una
+  sombra visible aplicada al contorno y un brillo discreto le dan profundidad
+  aun sin interaccion, sin agregar una tarjeta o fondo.
 - `index.html` declara el favicon de Auligo en formatos ICO, PNG de `16x16` y
   `32x32`, ademas del icono Apple de `180x180`. Usa una `A` morada minimalista
   sobre tarjeta blanca redondeada, sin elementos adicionales ni contorno de

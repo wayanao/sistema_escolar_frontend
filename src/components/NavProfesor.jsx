@@ -88,7 +88,7 @@ function NavProfesor() {
             <img
               src={auligoLogoNav}
               alt="Auligo"
-              className="h-9 w-auto object-contain sm:h-10"
+              className="nav-brand-logo h-9 w-auto object-contain sm:h-10"
             />
           </NavLink>
         </div>

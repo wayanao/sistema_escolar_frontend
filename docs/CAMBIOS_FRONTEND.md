@@ -2,6 +2,21 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-22 - Profundidad visual para el logo del navbar
+
+- El logotipo de Auligo incorpora una sombra visible desde el estado normal
+  sobre su propia silueta y un brillo blanco moderado, conservando el fondo
+  transparente.
+- Al pasar el cursor se eleva un pixel y aumenta ligeramente la profundidad.
+- El tratamiento se comparte en los navbars de administrador, profesor y
+  superadministrador.
+
+Verificacion:
+
+- `pnpm exec eslint src/components/NavAdmin.jsx src/components/NavProfesor.jsx
+  src/components/NavSuperAdmin.jsx`.
+- `pnpm run build`.
+
 ## 2026-07-20 - Marca Auligo en los navbars
 
 - Los encabezados de administrador, profesor y superadministrador reemplazan el
