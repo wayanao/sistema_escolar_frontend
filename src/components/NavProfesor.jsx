@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../utils/api";
+import auligoLogoNav from "../assets/auligo-logo-nav.png";
 import DesktopAnimatedNav from "./DesktopAnimatedNav";
 
 const profesorDesktopItems = [
@@ -79,10 +80,16 @@ function NavProfesor() {
     <header className="bg-purple-700 text-white shadow-md relative z-50">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-2 sm:px-6 xl:px-8">
         <div className="min-w-0">
-          <NavLink to="/" className="inline-flex items-center leading-none hover:opacity-90 transition cursor-pointer">
-            <strong className="text-2xl font-black tracking-normal">
-              Scholar<span className="text-fuchsia-200">ix</span>
-            </strong>
+          <NavLink
+            to="/"
+            className="inline-flex items-center transition hover:opacity-90"
+            aria-label="Ir al inicio de Auligo"
+          >
+            <img
+              src={auligoLogoNav}
+              alt="Auligo"
+              className="h-9 w-auto object-contain sm:h-10"
+            />
           </NavLink>
         </div>
 

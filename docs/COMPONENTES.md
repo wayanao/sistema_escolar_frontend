@@ -18,6 +18,14 @@ Estado actual de componentes y paginas del frontend.
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
   escritorio usan `15px` para mejorar lectura.
 - `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
+- `NavAdmin.jsx`, `NavProfesor.jsx` y `NavSuperAdmin.jsx` muestran el logotipo
+  transparente de `Auligo` en lugar del texto `Scholarix`; la marca conserva su
+  enlace al inicio correspondiente de cada perfil. Sus elementos verdes usan
+  mayor brillo y saturacion para conservar contraste sobre el navbar.
+- `index.html` declara el favicon de Auligo en formatos ICO, PNG de `16x16` y
+  `32x32`, ademas del icono Apple de `180x180`. Usa una `A` morada minimalista
+  sobre tarjeta blanca redondeada, sin elementos adicionales ni contorno de
+  color, y con exterior transparente.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
 - `AsignarClase.jsx` y `AsignarClaseGrid.jsx`: asignacion de clases.

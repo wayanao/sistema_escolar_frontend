@@ -2,6 +2,30 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-20 - Marca Auligo en los navbars
+
+- Los encabezados de administrador, profesor y superadministrador reemplazan el
+  texto `Scholarix` por el logotipo transparente de `Auligo`.
+- Se preparo una version recortada del logo para evitar margenes transparentes
+  excesivos y conservar una altura compacta dentro del navbar.
+- El verde del logotipo del navbar aumenta moderadamente su brillo y saturacion
+  para mejorar el contraste sobre el fondo morado.
+- El logotipo mantiene el enlace al inicio correspondiente de cada perfil.
+- El favicon usa una version minimalista del isotipo: una `A` morada centrada
+  sobre una tarjeta blanca de esquinas ampliamente redondeadas, sin birrete,
+  borla, boton ni contorno de color. El exterior de la tarjeta permanece
+  transparente.
+- Se incluyen versiones PNG de `16x16`, `32x32`, `512x512`, un icono Apple de
+  `180x180` y un `favicon.ico` compatible con navegadores tradicionales.
+- El titulo de la pestaña y las demas apariciones del nombre anterior no cambian
+  en esta etapa.
+
+Verificacion:
+
+- `pnpm exec eslint src/components/NavAdmin.jsx src/components/NavProfesor.jsx
+  src/components/NavSuperAdmin.jsx`.
+- `pnpm run build`.
+
 ## 2026-07-18 - Encabezado diferenciado en tabla de planilla
 
 - La planilla agrega una columna compacta `N.º` antes de `Estudiante`, calculada
