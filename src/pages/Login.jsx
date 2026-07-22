@@ -1,46 +1,59 @@
 import LoginForm from "../components/LoginForm";
-import fondoLogin from "../assets/fondologin.jpg";
+import auligoLogoNav from "../assets/auligo-logo-nav.png";
+import fondoLogin from "../assets/login-auligo-original.jpg";
 
 function Login() {
-    return (
-        <div className="notranslate min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8" translate="no">
-            <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center">
-                <div className="grid w-full overflow-hidden rounded-2xl bg-white shadow-2xl lg:grid-cols-[1.05fr_0.95fr]">
-                    <section className="relative min-h-[280px] overflow-hidden bg-slate-900 lg:min-h-[720px]">
-                        <div
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${fondoLogin})` }}
-                            aria-hidden="true"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-950/45 to-purple-950/65" />
-                        <div className="relative flex h-full min-h-[280px] flex-col justify-between p-6 text-white sm:p-8 lg:min-h-[720px] lg:p-10">
-                            <div className="w-max rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur">
-                                Scholarix
-                            </div>
+  return (
+    <main
+      className="notranslate relative min-h-[100svh] overflow-hidden bg-slate-950"
+      translate="no"
+    >
+      <img
+        src={fondoLogin}
+        alt="Comunidad educativa reunida en una celebración escolar"
+        className="absolute inset-0 h-full w-full scale-[1.035] object-cover object-center brightness-[0.76] contrast-[1.08] saturate-[0.86] blur-[1.2px]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-950/95 via-purple-950/72 to-slate-950/60" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/25" />
+      <div className="absolute -left-24 top-1/4 h-96 w-96 rounded-full bg-purple-600/20 blur-3xl" />
+      <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-lime-400/10 blur-3xl" />
 
-                            <div className="max-w-xl">
-                                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-purple-100">
-                                    Gestion academica inteligente
-                                </p>
-                                <h1 className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-                                    Organizando el futuro academico.
-                                </h1>
-                                <p className="mt-5 max-w-lg text-base leading-7 text-slate-100 sm:text-lg">
-                                    Administra clases, estudiantes, pagos, reportes y procesos docentes desde un entorno claro, moderno y seguro.
-                                </p>
-                            </div>
-                        </div>
-                    </section>
+      <div className="relative mx-auto grid min-h-[100svh] w-full max-w-[1440px] items-center gap-10 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[1fr_500px] lg:gap-16 lg:px-10 xl:px-16">
+        <section className="hidden max-w-2xl text-white lg:block">
+          <img
+            src={auligoLogoNav}
+            alt="Auligo"
+            className="nav-brand-logo h-16 w-auto object-contain xl:h-[72px]"
+          />
 
-                    <section className="flex items-center justify-center bg-slate-50 px-5 py-8 sm:px-8 lg:px-12">
-                        <LoginForm />
-                    </section>
-                </div>
-            </div>
-        </div>
-    );
+          <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-purple-50 backdrop-blur-md">
+            <span className="h-2 w-2 rounded-full bg-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.85)]" />
+            Gestión escolar en un solo lugar
+          </div>
+
+          <h1 className="mt-7 max-w-xl text-5xl font-black leading-[1.06] tracking-tight text-white xl:text-6xl">
+            Tu aula,
+            <span className="block text-purple-100">tu camino,</span>
+            <span className="block text-lime-300">tu futuro.</span>
+          </h1>
+
+          <p className="mt-6 max-w-xl text-base leading-7 text-slate-100/90 xl:text-lg">
+            Una experiencia clara y segura para conectar la gestión académica,
+            los docentes y cada proceso de tu institución.
+          </p>
+        </section>
+
+        <section className="relative isolate mx-auto w-full max-w-[500px] overflow-hidden rounded-[30px] border border-white/60 bg-white/70 p-5 shadow-[0_30px_90px_rgba(15,5,35,0.38),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150 sm:p-7 lg:justify-self-end lg:p-8">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/80 via-white/50 to-purple-100/30" />
+          <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-purple-300/20 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
+          <div className="relative">
+            <LoginForm />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }
 
 export default Login;
-
-

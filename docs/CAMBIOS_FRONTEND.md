@@ -2,6 +2,39 @@
 
 Registro de documentacion del frontend.
 
+## 2026-07-22 - Renovacion visual del login de Auligo
+
+- Se reemplaza la identidad anterior del acceso por el logotipo e isotipo de
+  `Auligo` y se incorpora el eslogan oficial `Tu aula, tu camino, tu futuro.`.
+- El login adopta una composicion inmersiva y adaptable con la fotografia
+  institucional original como fondo. El tratamiento profesional se realiza
+  mediante filtros de color, iluminacion, desenfoque sutil y capas CSS para
+  conservar sin modificaciones a todas las personas de la imagen.
+- El formulario usa una tarjeta clara de alto contraste, campos con iconos,
+  validacion visible de datos requeridos y control para mostrar u ocultar la
+  contrasena.
+- La tarjeta se refina con cristal translucido y desenfoque del fondo, sin
+  modificar el resto de la composicion del login. El encabezado pequeño se
+  reemplaza por el logotipo completo de Auligo con fondo transparente.
+- Los tres campos incorporan iconos contenidos, profundidad suave, foco morado
+  y una correccion especifica para evitar el fondo azul del autocompletado del
+  navegador. El boton de entrada usa degradado, relieve y un indicador de
+  avance, conservando sus estados de carga y exito.
+- Se compacta la altura de la tarjeta reduciendo su espacio interior, el logo y
+  las separaciones superiores. El titulo cambia a `Qué bueno tenerte aquí`, con
+  peso moderado y un acento morado en la ultima palabra para ofrecer una
+  bienvenida mas calida sin repetir el nombre visible en el logotipo.
+- Se conservan el indicador de carga, el bloqueo de envios duplicados, el aviso
+  de conexion lenta, las alertas de autenticacion y las redirecciones existentes
+  por rol.
+- En pantallas pequenas se prioriza el formulario; en escritorio se muestra el
+  bloque completo de marca y mensaje institucional.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/Login.jsx src/components/LoginForm.jsx`.
+- `pnpm run build`.
+
 ## 2026-07-22 - Profundidad visual para el logo del navbar
 
 - El logotipo de Auligo incorpora una sombra visible desde el estado normal

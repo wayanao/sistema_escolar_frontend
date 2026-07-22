@@ -4,9 +4,18 @@ Estado actual de componentes y paginas del frontend.
 
 ## Componentes principales
 
-- `LoginForm.jsx`: formulario de acceso; consume `/login`, muestra respuesta
-  inmediata al enviar, bloquea envios duplicados y avisa cuando la conexion
-  tarda mas de lo esperado.
+- `Login.jsx`: acceso inmersivo y responsive de Auligo. Usa la fotografia
+  institucional original como fondo y mejora su integracion mediante filtros y
+  capas CSS, sin alterar las personas de la imagen. Presenta el eslogan oficial
+  `Tu aula, tu camino, tu futuro.` y concentra el formulario en una tarjeta de
+  cristal translucido con desenfoque y contraste de lectura.
+- `LoginForm.jsx`: formulario de acceso con identidad visual de Auligo; consume
+  `/login`, valida los campos requeridos, permite mostrar u ocultar la
+  contrasena, muestra respuesta inmediata al enviar, bloquea envios duplicados
+  y avisa cuando la conexion tarda mas de lo esperado. El encabezado usa el
+  logotipo completo transparente; los campos incluyen contenedores de iconos,
+  foco morado y correccion visual del autocompletado, y el boton principal usa
+  degradado con indicador de avance.
 - `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones,
   usa etiquetas principales mas legibles, muestra solo la marca mas visible en
   un encabezado compacto y protege etiquetas como `Nómina` con `translate="no"`.
