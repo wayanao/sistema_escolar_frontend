@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
+import EncabezadoContextoCurso from "../components/EncabezadoContextoCurso";
 import PlanillaRow from "../components/PlanillaRow";
 import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
 import api from "../utils/api";
@@ -469,39 +470,21 @@ function Planilla() {
     const selectedClase = clases.find(c => c.id == asignacionId);   
     return (
     <div className="p-3 sm:p-6">
-        <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                📋 Planilla de Notas
-            </h1>
-            <p className="text-gray-600">
-                Gestiona las calificaciones de tus estudiantes
-            </p>
-        </div>
-
-        {/* Información del curso */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Información Del Curso</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p className="text-sm font-medium text-gray-700">Materia</p>
-                    <p className="text-gray-900" translate="no">{selectedClase ? selectedClase.materia : "No seleccionada"}</p>
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-700">Salón</p>
-                    <p className="text-gray-900" translate="no">{selectedClase ? selectedClase.curso : "No seleccionado"}</p>
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-700">Período</p>
-                    <p className="text-gray-900">{periodo}</p>
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-700">Fecha</p>
-                    <p className="text-gray-900">{fecha || "No especificada"}</p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de calificación</label>
+        <EncabezadoContextoCurso
+            titulo="Planilla de notas"
+            etiqueta="Evaluación académica"
+            descripcion="Registra y organiza las calificaciones de tus estudiantes."
+            materia={selectedClase?.materia}
+            curso={selectedClase?.curso}
+            periodo={periodo}
+            fecha={fecha}
+        >
+                <div className="min-w-0 py-1 sm:col-span-2 xl:col-span-1">
+                    <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-fuchsia-700">
+                        Tipo de calificación
+                    </label>
                     <select
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:w-auto"
+                        className="mt-1 w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-bold text-slate-900 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
                         value={tipoEvaluacion}
                         onChange={(e) => {
                             setTipoEvaluacion(e.target.value);
@@ -512,8 +495,7 @@ function Planilla() {
                         <option value="desarrollo">Caritas / Desarrollo infantil</option>
                     </select>
                 </div>
-            </div>
-        </div>
+        </EncabezadoContextoCurso>
 
         {/* Gestión de Columnas */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">

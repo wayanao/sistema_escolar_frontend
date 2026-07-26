@@ -109,6 +109,20 @@ Los scripts actuales de `package.json` son:
 - `pnpm run dev`: inicia Vite.
 - `pnpm run build`: ejecuta `vite build`.
 - `pnpm run lint`: ejecuta ESLint.
+- `pnpm run test`: ejecuta una vez las pruebas automáticas con Vitest.
+- `pnpm run check:deploy`: ejecuta pruebas, lint y build.
 - `pnpm run preview`: sirve el build con Vite preview.
 
-El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`, `prebuild`, `prelint` y `prepreview`.
+El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
+`prebuild`, `prelint`, `pretest` y `prepreview`.
+
+## Pruebas del frontend
+
+- Vitest reutiliza la configuración de Vite y ejecuta componentes sobre JSDOM.
+- React Testing Library comprueba el comportamiento visible y las acciones del
+  usuario sin depender de la estructura interna de los componentes.
+- `src/test/setup.js` registra los matchers de interfaz y limpia el DOM después
+  de cada caso.
+- `src/pages/PlanDeClases.test.jsx` simula la API y SweetAlert2 para verificar
+  guardado, control de versión, desconexión y reintento sin conectarse a un
+  tenant real.

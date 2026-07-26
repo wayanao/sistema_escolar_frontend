@@ -18,10 +18,20 @@ Estado actual de componentes y paginas del frontend.
   degradado con indicador de avance.
 - `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones,
   usa etiquetas principales mas legibles, muestra solo la marca mas visible en
-  un encabezado compacto y protege etiquetas como `Nómina` con `translate="no"`.
+  un encabezado compacto, protege etiquetas como `Nómina` con
+  `translate="no"` y mantiene visible la campana de planeaciones.
 - `NavProfesor.jsx`: menu principal para profesor; en movil separa control
-  academico y planeacion, con etiquetas principales mas legibles y encabezado
-  compacto con solo la marca visible.
+  academico y planeacion, con etiquetas principales mas legibles, encabezado
+  compacto con solo la marca visible y campana para observaciones nuevas.
+- `NotificacionesPlaneadores.jsx`: campana compartida por admin y profesor.
+  Consulta `GET /notificaciones/planeadores`, muestra contador y hasta ocho
+  pendientes para profesor; en admin consulta hasta veinte envíos recientes y
+  recibe un resumen por docente. Cada tarjeta muestra la cantidad total y abre
+  directamente la bandeja `Todas + Pendiente`, filtrada con el identificador
+  exacto del profesor; ya no despliega las clases dentro de la campana. Se
+  refresca cada 60 segundos/foco/evento local. La notificacion administrativa
+  permanece hasta aprobar o solicitar un ajuste; una observacion del profesor
+  no se marca como leida hasta abrir su historial.
 - `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
@@ -93,6 +103,11 @@ Estado actual de componentes y paginas del frontend.
 - El bloque `Contexto de trabajo` conserva los selectores nativos de clase y
   periodo junto con la fecha, pero los presenta en una tarjeta responsive con
   controles tactiles, foco visible y estados de carga o lista vacia.
+- Al seleccionar una clase, debajo del control principal aparece un selector
+  de las cinco planeaciones más recientes de esa materia y curso. La consulta
+  es independiente, limitada y reutiliza una caché temporal por asignación;
+  elegir una opción abre el plan de la fecha correspondiente directamente en
+  `Presentación de clase`, una vez terminada la carga de sus datos.
 - El bloque termina al finalizar los controles; no repite la clase seleccionada
   en un resumen inferior. La opcion general conserva el valor vacio usado por
   los filtros existentes.
@@ -118,6 +133,9 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/Planilla.jsx`: pantalla de captura y gestion de notas del perfil
   profesor.
+- `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
+  composición compacta del encabezado y el contexto de materia, salón, período
+  y fecha. Planilla agrega allí mismo `Tipo de calificación`.
 - Las acciones para agregar o eliminar tipos de evaluacion muestran spinner,
   bloquean temporalmente los controles y evitan envios duplicados mientras
   responde el backend. Cada boton aparece inmediatamente debajo de su campo
@@ -182,6 +200,9 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/Asistencia.jsx`: pantalla para registrar asistencia por fecha,
   asignacion y periodo.
+- Reutiliza `components/EncabezadoContextoCurso.jsx` para mostrar en una sola
+  tarjeta el encabezado y la información de materia, salón, período y fecha,
+  sin alterar la marcación.
 - Carga estudiantes desde `GET /planilla-excel/{asignacion_id}/{periodo}`.
 - Carga historial desde `GET /asistencia/historial/{asignacion_id}/{periodo}`
   con estado visual de carga, reintento corto y mensaje de error con accion
@@ -206,12 +227,55 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/PlanDeClases.jsx`: pantalla de elaboracion diaria de planes de clase
   del perfil profesor.
-- Mantiene el guardado existente hacia `POST /plan-de-clases` con los mismos
-  campos y evidencia visual opcional.
+- El encabezado utiliza una composición compacta: título y contexto a la
+  izquierda, con el estado de guardado en una cápsula horizontal adaptable.
+- Al guardar correctamente, la vista vuelve al encabezado y la cápsula
+  `Guardado` se balancea una sola vez como confirmación no bloqueante. El
+  movimiento se omite cuando el sistema solicita reducir animaciones.
+- La acción final `Guardar plan` utiliza una tarjeta violeta destacada con
+  icono, mensaje contextual y botón de alto contraste. El estado permanece
+  únicamente en el encabezado principal para evitar duplicados.
+- La configuración de la planeación distribuye clase, periodo y fecha en una
+  barra `50 / 20 / 30`. Sus etiquetas reutilizan los iconos lineales y fondos
+  suaves del dashboard del profesor.
+- El cuadro `Guia didactica` presenta un spinner durante la carga inicial de
+  clases y la consulta del plan de la fecha; los campos aparecen únicamente
+  cuando los datos ya están listos para editar.
+- Su encabezado muestra materia, curso y jornada en una cápsula verde
+  adaptable; se oculta cuando todavía no se ha elegido una clase. Este resumen
+  reemplaza la barra secundaria de clase seleccionada.
+- El mismo encabezado ofrece `Presentación de clase`, una vista continua de
+  lectura que utiliza el estado actual del formulario y conserva los cambios
+  sin guardar al regresar. Organiza únicamente los bloques con contenido y
+  muestra las dos evidencias actuales solo como imágenes, con apertura a tamaño
+  completo; no incluye historial, guardado ni seguimiento administrativo. La
+  vista se monta en una capa opaca independiente sobre toda la aplicación para
+  ocultar correctamente el nav y bloquear la página de fondo.
+- Toda la guía utiliza un fondo lavanda repetible con útiles escolares medianos
+  en los bordes. Los bloques internos usan transparencias suaves para que la
+  ilustración también se insinúe detrás de las superficies sin reducir la
+  legibilidad.
+- La guía inicia con un bloque de `Contexto pedagógico` que agrupa unidad, tema,
+  logro y estándar sin volver obligatorios los campos ni limitar la longitud
+  del contenido. Este bloque usa una superficie neutral sin fondo propio.
+- `Clase` y `Actividad en clase` se presentan dentro de un bloque de
+  `Desarrollo de la clase`, con seis líneas visibles y longitud de contenido
+  indefinida.
+- Desarrollo cognitivo y actividad en casa se agrupan en `Evidencias y
+  continuidad`, con tarjetas morada y ámbar, descripciones amplias y selectores
+  de archivo accesibles.
+- Mantiene el guardado hacia `POST /plan-de-clases` con los campos y la
+  evidencia visual opcional, y agrega `version_esperada` para impedir que una
+  pestaña atrasada sobrescriba un guardado más reciente.
+- Ante un conflicto `409`, ofrece cargar la versión actual del servidor o
+  conservar temporalmente los cambios locales visibles para poder revisarlos
+  antes de recargar.
+- Si el guardado falla sin obtener una respuesta HTTP, distingue entre
+  desconexión confirmada y servidor inaccesible. El modal permite reintentar o
+  seguir editando sin limpiar textos ni imágenes.
 - La interfaz se organiza como taller docente: contexto de clase, estado de
   guardado, guia didactica y evidencias.
-- `Unidad` y `Tema` muestran contador y limite de 255 caracteres para respetar
-  el limite real de base de datos antes de enviar el formulario.
+- `Unidad` y `Tema` no aplican contador ni límite de caracteres en el frontend.
 - `Unidad` y `Estándar` se recuerdan en `localStorage` por profesor y
   asignacion despues de un guardado correcto, y se precargan al crear otro plan
   nuevo para esa misma clase.
@@ -220,11 +284,36 @@ Estado actual de componentes y paginas del frontend.
 - Las evidencias visuales ya no se muestran en una seccion general: `imagen1`
   se presenta como evidencia de `Desarrollo cognitivo` e `imagen2` como
   evidencia de `Actividad en casa`, usando el contrato actual del backend.
-- Los planes recientes permiten cambiar a una fecha ya guardada o usar un plan
-  anterior como base local para una nueva planeacion.
+- El historial permanece al final de la pantalla y muestra como máximo tres
+  tarjetas por vista. Cada tarjeta presenta fecha, periodo, tema, unidad,
+  estado de revisión y comentarios nuevos; su única acción es abrir la fecha
+  seleccionada.
+- La navegación consulta tres planes más recientes o más antiguos sin acumular
+  tarjetas. Solicita un cuarto registro como indicador de continuación y no
+  vuelve a cargar el historial cuando solo cambia la fecha abierta.
 - Los apoyos laterales de plantillas rapidas e ideas para enriquecer fueron
   retirados temporalmente; el trabajo futuro es sugerir contenido desde la
   Malla Curricular de la asignacion y periodo.
+- Un bloque independiente de `Seguimiento administrativo` aparece cuando la
+  fecha seleccionada ya tiene un plan guardado. No reemplaza el indicador local
+  de guardado del formulario. Se presenta como una barra compacta con estado,
+  versión, fecha relevante y acceso desplegable a los comentarios; usa fondo
+  lavanda, contorno violeta y un acento morado izquierdo para destacar su
+  aparición sin aumentar el tamaño.
+- El profesor distingue `Pendiente de revision`, `Revisado` y `Revisado con
+  observacion`; esta ultima etiqueta se calcula por la existencia real de
+  comentarios administrativos. Abrir el plan desde administracion no muestra
+  un estado intermedio al profesor.
+- Las observaciones permanecen cerradas hasta que el profesor pulsa `Ver`;
+  solo entonces se consultan y se confirma su lectura en el backend.
+- El historial conserva la version sobre la cual se escribio cada observacion.
+  Una correccion solicitada aumenta la version sin volver a pendiente ni
+  reenviarse a administracion.
+- El plan correspondiente a la fecha activa se identifica en verde como
+  `Plan en edición` y no permite volver a ejecutar la misma carga. Al elegir
+  otra tarjeta, la vista sube para mostrar la clase seleccionada.
+- Eliminar una evidencia recarga el plan y su historial porque esa accion crea
+  una nueva version pendiente de revision.
 
 ## Malla Curricular profesor
 
@@ -243,27 +332,84 @@ Estado actual de componentes y paginas del frontend.
 
 ## Planeadores admin
 
-- `pages/PlaneadoresClasesAdmin.jsx`: bandeja administrativa de planes enviados
-  por profesores.
-- Consume `GET /admin/plan-de-clases` con filtros de profesor, fechas y
-  busqueda, ademas de `limit` y `offset` para paginacion.
-- Muestra resumen operativo de total, elementos cargados y envios con
-  evidencia.
-- La lista carga inicialmente 20 registros y permite traer mas con `Cargar más
-  planeaciones`.
-- El detalle conserva revision completa del plan y gestion de imagenes
-  adjuntas sin cambiar permisos ni contrato de backend.
+- `pages/PlaneadoresClasesAdmin.jsx`: bandeja administrativa a ancho completo
+  de planes enviados por profesores.
+- La columna lateral `Envios recibidos` y su scroll vertical interno fueron
+  retirados. La lista usa todo el ancho disponible y el desplazamiento normal
+  de la pagina.
+- Al entrar, `Hoy y próximas` queda seleccionado por defecto. El administrador
+  puede cambiar a `Anteriores` o `Todas`; `Anteriores` usa fechas previas al
+  dia actual y la fecha de hoy pertenece a `Hoy y próximas`.
+- El selector `Vista por fecha` se diferencia del resto de la cabecera con una
+  paleta esmeralda y turquesa; la opción activa usa fondo esmeralda sólido y
+  contraste blanco.
+- El selector explica el alcance temporal elegido y reemplaza los antiguos
+  contadores de resultados, elementos por pagina y evidencias.
+- El filtro visible ofrece solamente `Pendiente` y `Revisado` y permite
+  desactivar la selección al pulsarla otra vez. Para conservar compatibilidad,
+  `Pendiente` agrupa el estado interno `visto` y `Revisado` agrupa
+  `con_observaciones`.
+- La bandeja no consulta ni muestra filas hasta que el administrador tiene una
+  vista por fecha y un estado de revisión. `Hoy y próximas` completa la vista
+  inicial; el estado guiado solicita elegir el estado pendiente. Al regresar de
+  un detalle ambos valores se recuperan desde la URL.
+- Al volver del detalle o actualizar los filtros, el área de resultados muestra
+  un spinner centrado y un mensaje acorde con el estado seleccionado; la
+  cabecera, el profesor, los estados y la búsqueda permanecen visibles.
+- La tarjeta de filtros alinea en una misma fila de escritorio el selector de
+  profesor y las cápsulas compactas de estado, sin numeración. Las cápsulas
+  conservan su tamaño original, flotan con separación uniforme y pueden
+  reorganizarse debajo del profesor en móvil. Las burbujas de conteo mantienen
+  sin cambios su apariencia flotante. El profesor se aplica inmediatamente.
+  La búsqueda por materia o clase vive dentro de la tarjeta del historial y se
+  aplica automáticamente tras 120 milisegundos desde dos caracteres; al
+  vaciarla se restauran inmediatamente los resultados sin modificar los demás
+  filtros.
+- Solo `Pendiente` muestra un contador tipo notificación, calculado según la
+  vista temporal, el profesor y la búsqueda aplicados. `Revisado` permanece sin
+  contador para reducir ruido visual.
+- Cada fila presenta el tema con un peso visual moderado, diferencia la materia
+  del curso para facilitar la lectura y muestra `Revisión N` en lugar de la
+  etiqueta técnica `Versión N`. La misma jerarquía se conserva en móvil.
+- Consume `GET /admin/plan-de-clases` con profesor, búsqueda por materia o
+  tema, estado, `limit` y `offset`. Los límites de fecha se generan desde la
+  vista temporal superior; no existen campos manuales `Desde` y `Hasta`.
+- Usa paginas de 12 registros con controles `Anterior` y `Siguiente`; ya no
+  acumula resultados mediante `Cargar mas`.
+- Cada planeacion abre una vista independiente en
+  `/admin/planeadores-clases/:planId`. Los filtros y la pagina se conservan en
+  la URL para regresar al mismo punto de la bandeja.
+- El detalle consume `GET /admin/plan-de-clases/{plan_id}` sin cambiar el
+  estado por la simple apertura y presenta una sola caja de comentario con dos
+  decisiones: solicitar un ajuste obligatorio o aprobar con reconocimiento
+  opcional, hasta 3000 caracteres.
+- La aprobación con comentario agrega el mensaje al historial y conserva el
+  estado `revisado`; la solicitud de ajuste usa internamente
+  `con_observaciones`, pero se presenta dentro de `Revisado`.
+- Después de aprobar o solicitar un ajuste con éxito, la vista vuelve
+  automáticamente al inicio del detalle para mostrar el estado y la
+  confirmación.
+- La confirmación exitosa entra con una animación breve y muestra
+  `Actualización nueva`; el movimiento ocurre una sola vez y respeta la
+  preferencia de reducción de movimiento del dispositivo.
+- Si el profesor guarda otra version mientras el admin revisa, el conflicto
+  `409` recarga el contenido reciente y evita aprobar u observar datos viejos.
+- El historial identifica la version observada y si el profesor ya confirmo
+  su lectura.
+- El detalle conserva la gestion de imagenes adjuntas.
 - Las evidencias del plan se etiquetan por campo: desarrollo cognitivo y
   actividad en casa.
 - El cuerpo del plan seleccionado se presenta como reporte visual: encabezado
-  con chips de contexto, fundamentos pedagogicos en bloques, ruta de clase
-  destacada, actividades separadas y evidencias al final.
-- Solo la lista de envios tiene scroll interno; el detalle del plan crece con
-  la pagina para evitar doble scroll.
-- En escritorio, la lista conserva ancho lateral y su scroll interno se estira
-  a la altura del detalle.
-- La carga inicial se mantiene en 20 envios y los siguientes registros se
-  solicitan con `Cargar más planeaciones`.
+  compacto con estado y revisión debajo del tema y el docente destacado a la
+  derecha con separación adicional del borde, cuadrícula de materia, curso,
+  periodo, fecha, evidencias y `Comentarios de admin`, fundamentos pedagogicos
+  en bloques, ruta de clase destacada, actividades separadas y evidencias al
+  final. Si falta el tema, usa materia y curso como título y muestra un aviso
+  secundario.
+- Dentro de los bloques del detalle solo aparece el nombre real del campo en
+  violeta; se omiten etiquetas auxiliares como `Eje de trabajo`, `Proceso`,
+  `Durante la jornada` o `Continuidad`. Los campos pedagógicos comienzan
+  directamente, sin los encabezados `Fundamentos` y `Base pedagógica del plan`.
 
 ## Comportamiento UX movil documentado
 

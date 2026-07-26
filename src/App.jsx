@@ -134,6 +134,7 @@ function Layout() {
             <Route path="/admin/reportes" element={<AdminRoute><ReportesAdmin /></AdminRoute>} />
             <Route path="/admin/horarios" element={<AdminRoute><HorariosAdmin /></AdminRoute>} />
             <Route path="/admin/planeadores-clases" element={<AdminRoute><PlaneadoresClasesAdmin /></AdminRoute>} />
+            <Route path="/admin/planeadores-clases/:planId" element={<AdminRoute><PlaneadoresClasesAdmin /></AdminRoute>} />
             <Route path="/admin/certificados" element={<AdminRoute><CertificadosAdmin /></AdminRoute>} />
             <Route path="/admin/diseno-impresos" element={<AdminRoute><BrandingAdmin /></AdminRoute>} />
             <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />

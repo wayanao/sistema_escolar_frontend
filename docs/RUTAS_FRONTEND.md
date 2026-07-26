@@ -2,7 +2,7 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
-Ultima revision documental: 2026-07-15.
+Ultima revision documental: 2026-07-22.
 
 ## Rutas publicas
 
@@ -51,6 +51,7 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | `/admin/reportes` | `ReportesAdmin` |
 | `/admin/horarios` | `HorariosAdmin` |
 | `/admin/planeadores-clases` | `PlaneadoresClasesAdmin` |
+| `/admin/planeadores-clases/:planId` | `PlaneadoresClasesAdmin` |
 | `/admin/certificados` | `CertificadosAdmin` |
 | `/admin/diseno-impresos` | `BrandingAdmin` |
 | `/boletin` | `Boletin` |
@@ -106,6 +107,9 @@ Notas de UX por ruta admin:
   legibles en movil.
 - `/admin/diseno-impresos`: tabs y controles de plantillas se ajustan para uso
   en pantallas estrechas.
+- `/admin/planeadores-clases`: bandeja completa y paginada de planeaciones.
+- `/admin/planeadores-clases/:planId`: detalle directo, revision y
+  observaciones de una planeacion; es el destino de la campana administrativa.
 
 ## Navegacion de profesor
 
@@ -129,6 +133,9 @@ Notas de UX por ruta profesor:
   del dia ya fue tomada.
 - `/Formulario`: monta el Observador del estudiante; la verificacion inicial no
   debe quedarse indefinidamente en `Verificando`.
+- `/plan-de-clases?asignacion_id=<id>&fecha=<AAAA-MM-DD>&plan_id=<id>&observaciones=1`:
+  enlace de la campana del profesor; selecciona el plan exacto y abre su
+  historial para confirmar la lectura de las observaciones.
 - `/ingreso-boletin`: oculta notas internas como `mas_alto` y protege tipos de
   nota con `translate="no"`.
 

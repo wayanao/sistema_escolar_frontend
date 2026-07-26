@@ -3,6 +3,7 @@ import { useState } from "react";
 import api from "../utils/api";
 import auligoLogoNav from "../assets/auligo-logo-nav.png";
 import DesktopAnimatedNav from "./DesktopAnimatedNav";
+import NotificacionesPlaneadores from "./NotificacionesPlaneadores";
 
 const profesorDesktopItems = [
   { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
@@ -93,13 +94,28 @@ function NavProfesor() {
           </NavLink>
         </div>
 
+        {/* Desktop Navigation */}
+        <div className="ml-auto hidden lg:flex lg:items-center">
+          <DesktopAnimatedNav
+            items={profesorDesktopItems}
+            variant="profesor"
+            dropdownLinkClass={dropdownLinkClass}
+            ariaLabel="Navegación principal de profesor"
+          />
+        </div>
+        <div className="ml-auto lg:ml-0">
+          <NotificacionesPlaneadores rol="profesor" onNavigate={closeMobile} />
+        </div>
+        <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
+        <button onClick={handleLogout} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesion</button>
+
         {/* Mobile menu button */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="lg:hidden text-white hover:text-purple-100 focus:outline-none"
+          className="text-white hover:text-purple-100 focus:outline-none lg:hidden"
           aria-label="Abrir menu de profesor"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMenuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -107,18 +123,6 @@ function NavProfesor() {
             )}
           </svg>
         </button>
-
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-3">
-          <DesktopAnimatedNav
-            items={profesorDesktopItems}
-            variant="profesor"
-            dropdownLinkClass={dropdownLinkClass}
-            ariaLabel="Navegación principal de profesor"
-          />
-          <span className="h-6 w-px shrink-0 bg-white/35" aria-hidden="true" />
-          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">Cerrar sesion</button>
-        </div>
       </div>
 
       {/* Mobile Navigation Menu */}

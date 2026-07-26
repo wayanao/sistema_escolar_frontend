@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import AsistenciaRow from "../components/AsistenciaRow";
+import EncabezadoContextoCurso from "../components/EncabezadoContextoCurso";
 import api from "../utils/api";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
@@ -351,38 +352,15 @@ const cargarHistorial = useCallback(async () => {
 
     return (
       <div className="w-full p-4 sm:p-6 md:p-8">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            📅 Gestión de Asistencia
-          </h1>
-          <p className="text-gray-600">
-            Registra la asistencia de tus estudiantes
-          </p>
-        </div>
-
-        {/* Información del curso */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border border-gray-200">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Información del Curso</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Materia</p>
-              <p className="text-gray-900">{selectedClase ? selectedClase.materia : "No seleccionada"}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700">Salón</p>
-              <p className="text-gray-900">{selectedClase ? selectedClase.curso : "No seleccionado"}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700">Período</p>
-              <p className="text-gray-900">{periodo}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700">Fecha</p>
-              <p className="text-gray-900">{fecha || "No especificada"}</p>
-              <p className="mt-1 text-xs text-gray-500">La fecha se selecciona desde el dashboard.</p>
-            </div>
-          </div>
-        </div>
+        <EncabezadoContextoCurso
+          titulo="Gestión de asistencia"
+          etiqueta="Control diario"
+          descripcion="Registra la asistencia y acompaña el seguimiento de tus estudiantes."
+          materia={selectedClase?.materia}
+          curso={selectedClase?.curso}
+          periodo={periodo}
+          fecha={fecha}
+        />
 
         {asistenciaDelDiaTomada && (
           <div className={`mb-6 rounded-lg border px-4 py-3 shadow-sm ${

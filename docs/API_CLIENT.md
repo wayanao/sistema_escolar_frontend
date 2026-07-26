@@ -452,6 +452,31 @@ Uso:
 - Durante el guardado, el boton muestra spinner y el resultado se confirma con
   un modal de SweetAlert2.
 
+### Plan de clases
+
+`PlanDeClases.jsx` consume:
+
+```text
+GET /plan-de-clases/{asignacion_id}?fecha=YYYY-MM-DD
+GET /plan-de-clases/{asignacion_id}?limit=4&offset=N
+POST /plan-de-clases
+```
+
+Uso:
+
+- La consulta con `fecha` carga únicamente el plan abierto en la guía.
+- El historial solicita cuatro elementos ordenados por fecha, muestra tres y
+  usa el cuarto para habilitar la navegación hacia planes más antiguos.
+- `offset` avanza en bloques de tres; cambiar solo la fecha del formulario no
+  repite la consulta del historial.
+- `POST /plan-de-clases` envía `version_esperada` dentro del multipart: `0`
+  para crear el plan de la fecha o el valor de `version_revision` recibido al
+  abrir un plan existente.
+- Si la versión cambió en otra pestaña o dispositivo, recibe `409` con
+  `detail.mensaje` y `detail.version_actual`. La interfaz no reemplaza los
+  cambios locales hasta que el profesor confirma que desea cargar la versión
+  reciente.
+
 ### Malla Curricular
 
 `PlaneadorAnual.jsx` consume:

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
@@ -117,6 +117,18 @@ const capitalizarInicial = (valor) => {
   return texto ? texto.charAt(0).toLocaleUpperCase("es-CO") + texto.slice(1).toLocaleLowerCase("es-CO") : "";
 };
 
+const formatearFechaPlaneacion = (valor) => {
+  if (!valor) return "Sin fecha";
+  const fechaPlaneacion = new Date(String(valor).includes("T") ? valor : `${valor}T00:00:00`);
+  if (Number.isNaN(fechaPlaneacion.getTime())) return String(valor);
+
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(fechaPlaneacion);
+};
+
 function DashboardProfesor() {
   const navigate = useNavigate();
   const [clases, setClases] = useState([]);
@@ -136,6 +148,10 @@ function DashboardProfesor() {
   const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
   const [errorCumpleanos, setErrorCumpleanos] = useState("");
   const [filtroJornada, setFiltroJornada] = useState("Ambas");
+  const [planeacionesRecientes, setPlaneacionesRecientes] = useState([]);
+  const [loadingPlaneacionesRecientes, setLoadingPlaneacionesRecientes] = useState(false);
+  const [errorPlaneacionesRecientes, setErrorPlaneacionesRecientes] = useState("");
+  const cachePlaneacionesRecientesRef = useRef(new Map());
 
   const handleAsignacionChange = (e) => {
     const value = e.target.value;
@@ -171,6 +187,10 @@ function DashboardProfesor() {
     }
     return Array.from(vistos.values());
   }, [clases]);
+  const claseSeleccionada = useMemo(
+    () => clasesUnicas.find((clase) => String(clase.id) === String(asignacionId)) || null,
+    [asignacionId, clasesUnicas],
+  );
   const cursosProfesor = useMemo(() => {
     const vistos = new Map();
     for (const clase of clases) {
@@ -347,6 +367,75 @@ function DashboardProfesor() {
     if (!profesorId) return;
     cargarRendimiento();
   }, [profesorId, cargarRendimiento]);
+
+  useEffect(() => {
+    let activo = true;
+
+    if (loadingClases) return () => {
+      activo = false;
+    };
+
+    if (!asignacionId || !claseSeleccionada) {
+      setPlaneacionesRecientes([]);
+      setLoadingPlaneacionesRecientes(false);
+      setErrorPlaneacionesRecientes("");
+      return () => {
+        activo = false;
+      };
+    }
+
+    const cacheKey = String(asignacionId);
+    const planeacionesEnCache = cachePlaneacionesRecientesRef.current.get(cacheKey);
+    if (planeacionesEnCache) {
+      setPlaneacionesRecientes(planeacionesEnCache);
+      setLoadingPlaneacionesRecientes(false);
+      setErrorPlaneacionesRecientes("");
+      return () => {
+        activo = false;
+      };
+    }
+
+    const cargarPlaneacionesRecientes = async () => {
+      setLoadingPlaneacionesRecientes(true);
+      setErrorPlaneacionesRecientes("");
+      setPlaneacionesRecientes([]);
+
+      try {
+        const response = await api.get(`/plan-de-clases/${asignacionId}`, {
+          params: { limit: 5, offset: 0 },
+        });
+        const recientes = Array.isArray(response.data) ? response.data.slice(0, 5) : [];
+        cachePlaneacionesRecientesRef.current.set(cacheKey, recientes);
+        if (activo) setPlaneacionesRecientes(recientes);
+      } catch (error) {
+        console.error("Error cargando planeaciones recientes", error);
+        if (activo) setErrorPlaneacionesRecientes("No se pudieron cargar las planeaciones recientes.");
+      } finally {
+        if (activo) setLoadingPlaneacionesRecientes(false);
+      }
+    };
+
+    cargarPlaneacionesRecientes();
+
+    return () => {
+      activo = false;
+    };
+  }, [asignacionId, claseSeleccionada, loadingClases]);
+
+  const abrirPlaneacionReciente = (event) => {
+    const planId = event.target.value;
+    if (!planId) return;
+
+    const plan = planeacionesRecientes.find((item) => String(item.id) === String(planId));
+    if (!plan?.fecha) return;
+
+    const params = new URLSearchParams({
+      asignacion_id: String(asignacionId),
+      fecha: String(plan.fecha).split("T")[0],
+      presentacion: "1",
+    });
+    navigate(`/plan-de-clases?${params.toString()}`);
+  };
 
   const irARanking = (ruta) => {
     if (!asignacionId) {
@@ -527,6 +616,63 @@ function DashboardProfesor() {
                 <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
               </svg>
             </div>
+            {asignacionId && claseSeleccionada && !loadingClases && (
+              <div className="mt-3 rounded-xl border border-violet-100 bg-violet-50/55 p-3">
+                <label
+                  htmlFor="planeacion-reciente-profesor"
+                  className="mb-1.5 flex min-w-0 items-center gap-2 text-xs font-bold text-violet-900"
+                  title={`Planeaciones recientes de ${claseSeleccionada.materia}`}
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-violet-700 shadow-sm ring-1 ring-violet-100" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M12 8v5l3 2M3 12a9 9 0 1 0 3-6.7" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M3 4v5h5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <span className="truncate">Planeaciones recientes de {claseSeleccionada.materia}</span>
+                </label>
+                <div className="relative">
+                  <select
+                    id="planeacion-reciente-profesor"
+                    value=""
+                    onChange={abrirPlaneacionReciente}
+                    disabled={loadingPlaneacionesRecientes || planeacionesRecientes.length === 0}
+                    aria-busy={loadingPlaneacionesRecientes}
+                    className="min-h-10 w-full appearance-none rounded-lg border border-violet-200 bg-white py-2 pl-3 pr-10 text-sm font-semibold text-slate-800 shadow-sm outline-none transition hover:border-violet-300 focus:border-violet-500 focus:ring-3 focus:ring-violet-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+                  >
+                    <option value="">
+                      {loadingPlaneacionesRecientes
+                        ? "Cargando planeaciones recientes..."
+                        : errorPlaneacionesRecientes
+                          ? "No se pudieron cargar"
+                          : planeacionesRecientes.length > 0
+                            ? "Selecciona una planeación"
+                            : "Sin planeaciones recientes"}
+                    </option>
+                    {planeacionesRecientes.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.tema || "Sin tema registrado"} — {formatearFechaPlaneacion(plan.fecha)}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingPlaneacionesRecientes ? (
+                    <span className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-violet-200 border-t-violet-700" aria-hidden="true"></span>
+                  ) : (
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-600"
+                      aria-hidden="true"
+                    >
+                      <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                {errorPlaneacionesRecientes && (
+                  <p className="mt-1.5 text-xs font-semibold text-rose-700">{errorPlaneacionesRecientes}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div>

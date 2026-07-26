@@ -1,5 +1,1070 @@
 # Cambios Frontend
 
+## 2026-07-25 - Información de trabajo integrada al encabezado
+
+- Materia, salón, período y fecha dejan de mostrarse como mini tarjetas
+  separadas en `Planilla de notas` y `Gestión de asistencia`.
+- Toda la información forma un único bloque continuo dentro de la tarjeta
+  principal, sin una división horizontal entre el encabezado y el contexto.
+- Una sola línea morada vertical redondeada recorre el título, la descripción y
+  toda la información de trabajo para reforzar que pertenecen a la misma card.
+- Los datos se organizan a la derecha de la línea en una cuadrícula adaptable,
+  sin bordes, sombras ni fondos individuales.
+- `Tipo de calificación`, exclusivo de Planilla, queda integrado en la misma
+  composición sin una tarjeta propia.
+- No se cambiaron consultas, estados, notas, asistencia ni guardado.
+
+Verificación:
+
+- `pnpm exec eslint src/components/EncabezadoContextoCurso.jsx
+  src/pages/Planilla.jsx src/pages/Asistencia.jsx` correcto.
+- `pnpm run test` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-25 - Primeras pruebas automáticas del planeador del profesor
+
+- Se incorpora Vitest con React Testing Library y un navegador simulado
+  mediante JSDOM.
+- Las pruebas de `PlanDeClases` simulan la API y no se conectan a ningún tenant,
+  backend, base de datos ni almacenamiento R2.
+- Se comprueba que un plan nuevo envíe `version_esperada = 0`.
+- Se verifica que un conflicto `409` envíe la versión abierta y conserve el
+  texto local cuando el profesor decide seguir editando.
+- Se verifica que la pérdida de conexión muestre el aviso específico sin
+  limpiar el formulario.
+- Se comprueba que `Intentar de nuevo` repita el envío y permita completar el
+  guardado después de recuperar la conexión.
+- `pnpm run test` ejecuta la suite una vez y `check:deploy` incluye ahora
+  pruebas, lint y build.
+- Las nuevas librerías son dependencias exclusivas de desarrollo y no aumentan
+  el JavaScript enviado a los usuarios.
+
+Verificación:
+
+- 1 archivo de pruebas y 4 casos correctos.
+- `pnpm run lint` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-25 - Aviso de conexión al guardar una planeación
+
+- Si el guardado no obtiene respuesta de red, el profesor recibe un modal
+  específico en lugar del mensaje genérico de error.
+- Cuando el navegador confirma que está desconectado, el aviso indica
+  `Sin conexión a internet`; si el navegador figura conectado pero la API no
+  responde, informa `No pudimos conectar con el servidor`.
+- En ambos casos los textos, las imágenes seleccionadas y el estado de edición
+  permanecen intactos.
+- `Intentar de nuevo` repite el guardado con los mismos datos y `Seguir
+  editando` cierra el aviso sin descartar el trabajo.
+- Los errores con respuesta HTTP, incluido el conflicto de versión `409`,
+  conservan su manejo independiente.
+- No se modificaron el backend, la base de datos ni el contrato del endpoint.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-25 - Guardado de planeaciones protegido entre pestañas
+
+- El profesor envía `version_esperada` al guardar: usa `0` cuando el plan aún
+  no existe y la `version_revision` cargada cuando está editando uno.
+- Si otra pestaña o dispositivo guardó primero, el backend responde `409` y la
+  interfaz informa que los cambios locales no sobrescribieron la versión más
+  reciente.
+- El aviso permite cargar inmediatamente el plan actualizado o conservar en
+  pantalla los cambios locales para revisarlos o copiarlos antes de recargar.
+- La recarga solo reemplaza el formulario después de la confirmación explícita
+  del profesor.
+- El flujo normal, los campos opcionales, las imágenes y la conservación del
+  estado de revisión permanecen sin cambios.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+- 26 pruebas enfocadas del backend correctas.
+
+## 2026-07-25 - Encabezado e información del curso en una sola tarjeta
+
+- `Planilla de notas` y `Gestión de asistencia` fusionan el encabezado y la
+  antigua tarjeta independiente `Información del curso`.
+- La tarjeta única conserva el título compacto en la parte superior y presenta
+  debajo materia, salón, período y fecha como datos destacados con acentos de
+  color diferenciados.
+- La fecha utiliza una lectura corta y natural en español, manteniendo el valor
+  recibido desde el dashboard.
+- En Planilla, `Tipo de calificación` se integra como quinto control dentro del
+  mismo contexto académico, conservando su estado y funcionamiento.
+- Ambas páginas reutilizan `components/EncabezadoContextoCurso.jsx` para
+  mantener la misma distribución responsive y evitar divergencias visuales.
+- No se modificaron consultas, estudiantes, notas, asistencia ni guardado.
+
+Verificación:
+
+- `pnpm exec eslint src/components/EncabezadoContextoCurso.jsx
+  src/pages/Planilla.jsx src/pages/Asistencia.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Encabezados académicos unificados
+
+- `Planilla de notas` y `Gestión de asistencia` adoptan el encabezado compacto
+  utilizado en `Plan de clases`.
+- Ambos usan tarjeta blanca, borde morado suave, acento vertical, título con
+  jerarquía equilibrada, etiqueta pequeña del módulo y descripción breve.
+- Se eliminan los emojis grandes de los títulos para conservar el lenguaje
+  visual profesional usado en el taller docente.
+- La altura y el margen inferior se reducen para aprovechar mejor el primer
+  tramo de la página en móvil y escritorio.
+- No se modificaron la información del curso, las tablas, la marcación, los
+  filtros ni las acciones de guardado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/Planilla.jsx src/pages/Asistencia.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Apertura directa de recientes en presentación
+
+- Las planeaciones recientes seleccionadas desde el dashboard ahora incluyen
+  la intención de abrirse directamente en `Presentación de clase`.
+- `Plan de clases` espera a que la planeación solicitada termine de cargar antes
+  de mostrar la presentación, evitando una vista vacía o con información de la
+  fecha anterior.
+- `Volver a editar` conserva el comportamiento actual y permite continuar en
+  el formulario de la misma materia y fecha.
+- Las imágenes protegidas mantienen su indicador propio mientras terminan de
+  mostrarse dentro de la presentación.
+- No se agregaron consultas ni cambios de backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/DashboardProfesor.jsx src/pages/PlanDeClases.jsx`
+  correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Planeaciones recientes por materia en el dashboard
+
+- Debajo del selector `Clase / grupo` se agrega un filtro dependiente de
+  planeaciones recientes.
+- El filtro solo aparece cuando existe una materia y curso seleccionados, y
+  consulta exclusivamente las cinco planeaciones más recientes de esa
+  asignación.
+- Cada opción muestra el tema y la fecha de la planeación. Al elegirla, se abre
+  directamente `Plan de clases` con la materia, el curso y la fecha
+  correspondientes.
+- La consulta se ejecuta de forma independiente después de seleccionar la
+  clase, presenta su propio spinner y no bloquea los demás datos del dashboard.
+- Los resultados se conservan temporalmente por asignación durante la sesión
+  del dashboard para evitar consultas repetidas al alternar entre materias.
+- No se modificaron el guardado de planeaciones ni los demás filtros del
+  contexto de trabajo.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/DashboardProfesor.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Presentación aislada del menú principal
+
+- La presentación de clase ahora se monta directamente sobre la aplicación en
+  una capa independiente, evitando que el nav quede cortado o visible detrás.
+- Su barra superior cambia a una superficie blanca completamente opaca para
+  eliminar la transparencia sobre el menú principal.
+- Mientras la presentación está abierta se bloquean el desplazamiento y el
+  rebote de la página de fondo tanto en escritorio como en móvil.
+- No se modificaron el contenido, las imágenes ni el guardado del plan.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Presentación continua del plan de clase
+
+- Se agrega el botón `Presentación de clase` al encabezado de la guía
+  didáctica.
+- La presentación se abre como una vista continua de lectura, no como
+  diapositivas, y organiza tema, materia, curso, jornada, periodo, fecha y los
+  bloques diligenciados de la planeación.
+- La vista utiliza directamente el estado actual del formulario, por lo que
+  permite revisar también cambios todavía no guardados sin perderlos al volver
+  a editar.
+- Los campos vacíos se omiten para mantener una lectura limpia y los textos
+  conservan su longitud completa, saltos de línea y palabras extensas.
+- Las dos evidencias actuales se presentan exclusivamente como imágenes. Se
+  prioriza la imagen nueva seleccionada y, cuando no existe, se carga la imagen
+  protegida ya guardada.
+- Cada evidencia puede abrirse en tamaño completo. No se agregaron PDF, video,
+  nuevos tipos de archivo ni cambios de almacenamiento o backend.
+- La vista bloquea el desplazamiento de la página de edición mientras está
+  abierta, se adapta a móvil y escritorio, y puede cerrarse con `Volver a
+  editar` o la tecla Escape.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Una sola acción en las tarjetas del historial
+
+- Las tarjetas de planes guardados conservan únicamente el botón principal
+  `Abrir plan`.
+- Se retiran el botón `Usar como base` y la lógica local asociada para evitar
+  dos acciones visualmente similares.
+- El botón restante ocupa todo el ancho de la tarjeta; cuando corresponde a la
+  fecha activa continúa deshabilitado con el texto `En edición`.
+- No se modificaron la apertura, la paginación ni el guardado de planeaciones.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Selección visible desde el historial de planes
+
+- La tarjeta correspondiente a la fecha cargada cambia la etiqueta
+  `Plan abierto` por `Plan en edición`, indicando que es el contenido activo
+  para trabajar.
+- Su botón deshabilitado cambia de `Abierto` a `En edición`.
+- Al abrir otra planeación desde el historial, la vista vuelve suavemente al
+  inicio para mostrar la clase seleccionada y el proceso de carga.
+- El desplazamiento respeta la preferencia del sistema para reducir movimiento.
+- No se modificaron la consulta, la edición ni el guardado del plan.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Estado duplicado retirado de Guardar plan
+
+- Se elimina la cápsula de estado ubicada junto al botón de la tarjeta
+  `Guardar plan`.
+- El estado de guardado continúa disponible en el encabezado principal, sin
+  repetir la misma información al final de la guía.
+- El botón ocupa el espacio de acción con mayor claridad y conserva su icono,
+  spinner, bloqueo y texto dinámico.
+- No se modificaron el mensaje contextual ni el funcionamiento del guardado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Tarjeta principal de guardado más visible
+
+- `Guardar plan` se rediseña como el último paso destacado de la guía mediante
+  una superficie violeta suave, contorno, sombra y acento superior.
+- Un icono de guardado y la etiqueta `Último paso` refuerzan la ubicación y la
+  función de la tarjeta sin aumentar excesivamente su altura.
+- La tarjeta incorpora el estado actual del plan con su color semántico,
+  descripción y punto indicador.
+- El botón principal utiliza mayor contraste, icono de guardado y spinner
+  durante el envío; conserva su bloqueo mientras existe otra carga.
+- El mensaje contextual se presenta dentro de una franja inferior separada.
+- En móvil, estado y acción se apilan y el botón ocupa todo el ancho.
+- Se mantienen la ubicación, las reglas de campos opcionales y el flujo de
+  guardado existente.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Historial de planeaciones paginado de tres en tres
+
+- El historial permanece al final de la pantalla y conserva las acciones para
+  abrir un plan o usarlo como base.
+- Cada vista muestra un máximo de tres tarjetas modernas con fecha, periodo,
+  tema, unidad, estado de revisión y comentarios nuevos.
+- El plan correspondiente a la fecha abierta se identifica en verde y su
+  acción de apertura permanece deshabilitada para evitar cargas innecesarias.
+- Los controles `Más recientes` y `Cargar 3 más antiguas` reemplazan las
+  tarjetas visibles en lugar de acumular resultados.
+- La consulta solicita cuatro registros paginados: presenta tres y usa el
+  cuarto solamente para conocer si existe otra página.
+- Cambiar la fecha ya no vuelve a consultar el historial completo; este se
+  actualiza al cambiar la clase asignada, guardar o eliminar una evidencia.
+- El historial incluye esqueletos durante la carga, mensaje de error y acción
+  de reintento.
+- No se modificaron el guardado ni el uso de planes anteriores como base.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+- Backend: 20 pruebas enfocadas de integridad y revisión correctas.
+
+## 2026-07-24 - Confirmación de guardado visible al inicio
+
+- Después de guardar correctamente un plan, la pantalla del profesor vuelve
+  suavemente al encabezado para mostrar el estado actualizado.
+- La cápsula `Guardado` realiza una animación breve de balanceo tipo campana una
+  sola vez por cada guardado exitoso.
+- La animación se ejecuta cuando finaliza la actualización silenciosa de los
+  datos, evitando destacar el estado intermedio de verificación.
+- La ventana emergente de éxito se reemplaza por esta confirmación integrada y
+  no bloqueante; las alertas de error se conservan.
+- El desplazamiento y la animación respetan la preferencia del sistema para
+  reducir movimiento.
+- No se modificaron el contenido enviado ni las solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Identificación completa de la clase en la guía
+
+- La cápsula del encabezado de `Guía didáctica` cambia de morado a tonos
+  verdes para diferenciarla del resto de los títulos.
+- La identificación reúne materia, curso y jornada en una sola cápsula
+  adaptable.
+- Cuando la asignación no contiene jornada se muestra `Sin jornada` en lugar de
+  dejar el dato vacío.
+- Se elimina la barra secundaria `Clase seleccionada` para evitar información
+  duplicada y recuperar espacio vertical.
+- No se modificaron la selección ni el guardado de la planeación.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Materia y curso visibles en la guía didáctica
+
+- El encabezado de `Guía didáctica` incorpora una cápsula compacta con la
+  materia y el curso de la clase seleccionada.
+- La cápsula se actualiza al cambiar la clase asignada y permanece oculta
+  mientras no exista una selección.
+- En pantallas pequeñas se acomoda debajo del título y recorta únicamente los
+  nombres de materia demasiado extensos.
+- No se modificaron el guardado ni las reglas de los campos de la planeación.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Transparencia suave restaurada en la guía
+
+- Los bloques internos recuperan las transparencias usadas antes del último
+  ajuste de opacidad.
+- Contexto pedagógico y las zonas de evidencia vuelven a blanco al 90 %.
+- Desarrollo de la clase recupera su degradado azul y morado translúcido.
+- Evidencias y continuidad vuelve a usar gris claro al 60 %.
+- El fondo de útiles escolares vuelve a insinuarse detrás de las tarjetas sin
+  cambiar su tamaño ni posición.
+- No se modificaron contenido, distribución ni funcionamiento.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Fondos sólidos en los bloques de la guía
+
+- El encabezado y los bloques de contexto pedagógico, desarrollo de la clase y
+  evidencias cambian de superficies translúcidas a fondos sólidos.
+- Se conservan los tonos blanco, azul, morado y ámbar establecidos en el
+  rediseño.
+- Las zonas de carga de evidencias también usan fondo blanco opaco.
+- La ilustración de útiles permanece visible en los márgenes y separaciones,
+  pero deja de mezclarse detrás de campos y contenidos.
+- No se modificaron colores principales, tamaños, distribución ni
+  funcionamiento.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Mayor presencia cromática del seguimiento
+
+- La barra compacta de seguimiento cambia su fondo blanco por un lavanda muy
+  claro para distinguirse al aparecer.
+- El contorno usa violeta suave y agrega un acento morado en el borde izquierdo.
+- El icono adopta fondo violeta claro y el resultado de la revisión utiliza
+  morado oscuro para mejorar su contraste.
+- La versión y la fecha relevante usan tonos violetas secundarios.
+- Las cápsulas conservan los colores semánticos: ámbar para pendiente, verde
+  para revisado y rojo suave cuando existen comentarios nuevos.
+- No se modificaron dimensiones, textos, distribución ni comportamiento.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Seguimiento administrativo compacto
+
+- La tarjeta de seguimiento del profesor se convierte en una barra compacta y
+  neutral que ocupa menos altura.
+- Se retiraron el círculo difuminado, el icono grande y la tipografía de alto
+  contraste que competían con la guía didáctica.
+- Estado, versión, resultado de la revisión y fecha relevante se presentan en
+  pocas líneas con jerarquía secundaria.
+- La barra muestra la fecha de revisión cuando existe; en caso contrario,
+  conserva la fecha de envío.
+- El acceso a comentarios utiliza rojo suave únicamente cuando hay novedades y
+  un borde morado discreto para el historial ya conocido.
+- Al expandirse, el historial conserva su funcionamiento con un encabezado y
+  espaciado más ligeros.
+- No se modificaron estados, lectura de comentarios ni solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Fondo escolar para toda la guía didáctica
+
+- La ilustración exclusiva de `Contexto pedagógico` se retiró y ese bloque
+  vuelve a usar una superficie blanca y neutral.
+- Toda la sección `Guía didáctica` incorpora un nuevo fondo original inspirado
+  en la referencia compartida por el usuario.
+- Cuadernos, lápices, colores, reglas, borradores, notas y mochilas se
+  distribuyen con tamaño intermedio a ambos lados, dejando el centro libre.
+- El fondo se adapta a cualquier altura repitiéndose verticalmente sin deformar
+  los útiles y mantiene una capa clara para proteger la legibilidad.
+- El nuevo recurso se optimizó a aproximadamente 87 KB; el fondo panorámico
+  anterior fue retirado del proyecto.
+- Se conservan la disposición responsive, los campos opcionales, la longitud
+  indefinida y la recuperación de valores existentes.
+- No se modificaron el guardado ni las solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto; Vite incluyó el nuevo fondo con un peso de
+  87.37 KB.
+
+## 2026-07-24 - Guía didáctica por bloques: evidencias y continuidad
+
+- Tercera etapa del rediseño de la guía didáctica del profesor.
+- Desarrollo cognitivo y actividad en casa se agrupan dentro de un bloque común
+  de `Evidencias y continuidad`.
+- Cada contenido conserva una tarjeta diferenciada: morada para desarrollo
+  cognitivo y ámbar para la continuidad en casa.
+- Las descripciones aumentan de cuatro a cinco líneas visibles sin limitar la
+  cantidad de caracteres.
+- Los selectores de archivo se presentan como zonas punteadas con botones y
+  colores relacionados con cada tarjeta.
+- Las etiquetas de las evidencias quedaron vinculadas con sus controles para
+  mejorar la accesibilidad.
+- Textos e imágenes continúan siendo opcionales y se conservan las evidencias
+  cargadas previamente.
+- No se modificaron formatos permitidos, límite de 5 MB, guardado ni solicitudes
+  al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Guía didáctica por bloques: desarrollo de la clase
+
+- Segunda etapa del rediseño de la guía didáctica del profesor.
+- `Clase` y `Actividad en clase` se agrupan en un bloque propio con una
+  superficie clara, acento azul y una descripción breve de su propósito.
+- Ambos campos aumentan de cuatro a seis líneas visibles para ofrecer un área de
+  escritura más cómoda.
+- El número de líneas solo modifica la altura inicial: los campos continúan sin
+  límite de caracteres y pueden ampliarse.
+- No se agregaron encabezados numerados ni contadores.
+- Los campos siguen siendo opcionales y conservan los datos cargados de la
+  planeación existente.
+- No se modificaron el guardado ni las solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Fondo educativo en contexto pedagógico
+
+- El bloque `Contexto pedagógico` incorpora una ilustración panorámica original
+  con libro, lápiz, elementos geométricos, bombillo, cuaderno y globo.
+- Los elementos se concentran en los extremos y el centro permanece despejado
+  para proteger la legibilidad de los campos.
+- La imagen se presenta como fondo decorativo con baja intensidad, una capa
+  clara de contraste y sin interacción con el formulario.
+- El recurso se carga de forma diferida, se optimizó de aproximadamente 1.2 MB
+  a 80 KB y no contiene personas, texto ni marcas.
+- Se conserva el comportamiento responsive, la longitud indefinida, los campos
+  opcionales y la recuperación de valores existentes.
+- No se modificaron el guardado ni las solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto; Vite incluyó el fondo optimizado con un peso de
+  79.72 KB.
+
+## 2026-07-24 - Guía didáctica por bloques: contexto pedagógico
+
+- Primera etapa del rediseño de la guía didáctica del profesor.
+- Unidad, tema, logro y estándar se agrupan en un bloque de `Contexto
+  pedagógico` con una superficie neutra y un acento morado.
+- Los campos se distribuyen en dos columnas en escritorio y una columna en
+  pantallas pequeñas.
+- Unidad y tema usan una altura inicial compacta; logro y estándar disponen de
+  mayor espacio inicial. Ninguno tiene límite de caracteres.
+- No se agregaron encabezados numerados ni contadores de diligenciamiento.
+- Todos los campos continúan siendo opcionales y el plan puede guardarse aunque
+  alguno permanezca vacío.
+- Se conserva sin cambios la carga del plan existente y los campos recordados
+  de la última actualización.
+- No se modificaron solicitudes ni validaciones del backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+- Se confirmó que el guardado solo exige clase, periodo y fecha; los campos de
+  la guía permanecen opcionales.
+
+## 2026-07-24 - Iconos del dashboard en los controles del planeador
+
+- Las etiquetas de clase asignada, periodo y fecha incorporan los mismos iconos
+  lineales de libro y calendario usados en el dashboard del profesor.
+- Cada icono se presenta sobre un fondo morado, verde o azul suave acorde con
+  el lenguaje visual del dashboard.
+- Los iconos son decorativos para lectores de pantalla y las etiquetas quedaron
+  vinculadas explícitamente con sus respectivos controles.
+- No se modificaron las opciones ni el comportamiento de los campos.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Barra compacta para configurar la clase
+
+- La selección de clase, periodo y fecha se organiza en una barra de
+  configuración con proporciones `50 / 20 / 30`.
+- `Clase asignada` conserva la mayor jerarquía visual, mientras periodo y fecha
+  mantienen el mismo alto y una alineación uniforme.
+- Durante la consulta inicial, el selector indica `Cargando clases...` y evita
+  cambios hasta que las asignaciones estén disponibles.
+- La clase seleccionada se resume en una franja ligera con cápsulas para
+  materia, curso y jornada cuando esta última está disponible.
+- Se retiró de esta sección el estado de guardado duplicado, porque ya aparece
+  en el encabezado principal.
+- En pantallas pequeñas los campos y el resumen se reorganizan sin
+  desbordamientos.
+- No se modificaron la selección, el periodo recordado ni la carga del plan.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Encabezado compacto en el planeador del profesor
+
+- El encabezado de `Plan de clases` reduce su altura y aprovecha el ancho
+  disponible con una composición horizontal.
+- El título, el contexto de taller docente y la descripción se agrupan en un
+  bloque visual más ligero.
+- El estado de guardado se presenta como una cápsula alargada que reúne el
+  indicador, el estado, su detalle y el número del plan cuando existe.
+- La cápsula mantiene los colores de verificación, cambios pendientes y
+  guardado, además de anunciar sus actualizaciones a lectores de pantalla.
+- En pantallas pequeñas el estado se ubica debajo del título y limita el texto
+  largo para evitar desbordamientos.
+- No se modificaron la lógica de guardado ni las solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Carga visible en la guía didáctica
+
+- Al entrar a Plan de clases del profesor, el cuadro `Guía didáctica` muestra
+  un spinner mientras carga las clases asignadas y consulta el plan de la fecha.
+- Los campos permanecen ocultos durante la consulta para evitar que el profesor
+  escriba sobre información que todavía será reemplazada.
+- El mensaje explica que se están cargando la clase y la planeación
+  seleccionada.
+- El indicador está contenido dentro de la guía, no bloquea el resto de la
+  pantalla y cuenta con semántica accesible de estado.
+- No se modificaron campos, guardado, imágenes ni solicitudes al backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Acceso directo desde notificaciones por profesor
+
+- La campana administrativa conserva una tarjeta por profesor y muestra la
+  cantidad total de planeaciones pendientes que envió.
+- Al pulsar la tarjeta ya no se despliega una lista secundaria de clases.
+- La tarjeta abre inmediatamente la bandeja de planeaciones con `Todas`,
+  `Pendiente` y el profesor correspondiente seleccionados.
+- El filtro utiliza `profesor_id` para evitar coincidencias incorrectas entre
+  docentes con nombres parecidos.
+- Las notificaciones del profesor continúan abriendo directamente el plan y sus
+  comentarios.
+
+Verificación:
+
+- `pnpm exec eslint src/components/NotificacionesPlaneadores.jsx
+  src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Confirmación animada de revisión
+
+- Después de aprobar una planeación o solicitar un ajuste, el aviso de éxito
+  entra con un desplazamiento y realce breve cuando la vista vuelve al inicio.
+- El mensaje incluye un icono de confirmación y la etiqueta `Actualización
+  nueva` para diferenciarlo claramente del contenido anterior.
+- La animación ocurre una sola vez, no bloquea acciones y se desactiva cuando el
+  sistema solicita reducir movimiento.
+- Los avisos de error y advertencia conservan su comportamiento directo y sin
+  animación decorativa.
+- No se modificaron decisiones administrativas, estados ni solicitudes al
+  backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-24 - Carga visible al volver a planeaciones
+
+- Al regresar desde el detalle de una clase, la tarjeta del historial conserva
+  visibles el encabezado, los filtros y la búsqueda mientras actualiza los
+  resultados.
+- El área de filas muestra un spinner violeta centrado en lugar del anterior
+  bloque de carga poco evidente.
+- El mensaje diferencia `Actualizando planeaciones pendientes` de
+  `Actualizando planeaciones revisadas` según el filtro seleccionado.
+- El indicador usa semántica de estado y anuncia la actualización sin bloquear
+  el resto de la página.
+- No se modificaron consultas, filtros, paginación ni estados administrativos.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Estados de revisión simplificados
+
+- La bandeja administrativa muestra únicamente los filtros `Pendiente` y
+  `Revisado`; se elimina `Con observaciones` como opción independiente.
+- Los registros internos `visto` se presentan como pendientes y
+  `con_observaciones` como revisados, sin alterar el historial existente.
+- Solo `Pendiente` conserva el contador rojo. `Revisado` permanece sin
+  contador.
+- En el perfil del profesor, una planeación terminada muestra `Revisado con
+  observación` cuando tiene comentarios administrativos y `Revisado` cuando no
+  los tiene.
+- Las tarjetas del historial del profesor aplican el mismo criterio según su
+  contador real de comentarios.
+- Cuando el profesor guarda una corrección solicitada, aumenta la revisión pero
+  no vuelve a pendiente ni genera otra notificación para administración.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx
+  src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Hoy y próximas como vista inicial
+
+- Al entrar a Planeadores de clases sin parámetros previos, `Hoy y próximas`
+  queda seleccionado automáticamente.
+- La vista incluye las clases con fecha de hoy y las programadas para fechas
+  futuras.
+- El estado de revisión continúa sin selección, por lo que las filas no se
+  cargan hasta que el administrador elige un estado.
+- Al regresar desde un detalle o entrar mediante una URL con filtros, se
+  respeta la vista indicada en la dirección.
+- No se modificaron rangos de fecha, estados ni endpoints.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Jerarquía intercambiada en cabecera del planeador
+
+- El estado administrativo y `Revisión N` se ubican debajo del tema de la
+  planeación para asociar la decisión directamente con la clase.
+- El nombre del docente y sus iniciales pasan al espacio derecho de la cabecera
+  que antes ocupaban las cápsulas.
+- En escritorio el bloque docente baja ligeramente y suma separación interna a
+  la derecha para evitar que el nombre quede pegado al borde.
+- En móvil ambos grupos conservan el mismo orden de lectura sin superponerse ni
+  truncar nombres largos.
+- No se modificaron datos, estados ni acciones administrativas.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Resumen moderno del detalle del planeador
+
+- El encabezado del detalle se reorganiza en una sola tarjeta que aprovecha
+  todo el ancho disponible y elimina datos repetidos.
+- Cuando no existe tema, el título se construye con materia y curso y se muestra
+  `Sin tema registrado` como aviso secundario, en lugar de destacar `Plan sin
+  tema`.
+- El nombre del docente se presenta con iniciales y capitalización visual más
+  suave cuando el backend lo entrega completamente en mayúsculas.
+- Estado y `Revisión N` se agrupan en la cabecera; se elimina el duplicado
+  `Versión revisada`.
+- Materia, curso, periodo, fecha, evidencias y `Comentarios de admin` comparten
+  una cuadrícula responsive de seis datos que utiliza todo el espacio.
+- No se modificaron los datos, estados ni contratos del backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Retorno al inicio después de revisar una clase
+
+- Al aprobar una planeación o solicitar un ajuste correctamente, el detalle
+  vuelve automáticamente al inicio.
+- El desplazamiento permite ver de inmediato el estado actualizado y el mensaje
+  de confirmación sin tener que subir manualmente.
+- Se utiliza movimiento suave y se respeta la preferencia del sistema para
+  reducir animaciones.
+- Los errores no cambian la posición de lectura, para que el administrador
+  pueda corregir el comentario o reintentar desde el mismo punto.
+- No se modificaron las decisiones administrativas ni sus solicitudes al
+  backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Nombres directos en el detalle del planeador
+
+- Los bloques del detalle muestran únicamente el nombre real del campo:
+  `Unidad`, `Logro`, `Estándar`, `Desarrollo cognitivo`, `Clase`, `Actividad en
+  clase` y `Actividad en casa`.
+- Se retiran las etiquetas auxiliares `Eje de trabajo`, `Intención`,
+  `Referente`, `Proceso`, `Ruta de clase`, `Durante la jornada` y `Continuidad`.
+- Los nombres que antes se presentaban en negro adoptan el violeta como color
+  común para mantener una jerarquía directa y consistente.
+- Se retiran también los encabezados `Fundamentos` y `Base pedagógica del plan`
+  para que el detalle comience directamente con los campos diligenciados.
+- El contenido diligenciado por el profesor, la estructura y las acciones del
+  detalle permanecen sin cambios.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Estados compactos junto al filtro de profesor
+
+- El selector de profesor permanece a la izquierda y los estados se muestran a
+  su lado dentro de la misma barra de filtros en escritorio.
+- `Pendiente`, `Con observaciones` y `Revisado` recuperan su tamaño compacto y
+  forma de cápsula original, sin estirarse para ocupar columnas completas.
+- Las cápsulas flotan con separación uniforme y pueden reorganizarse en móvil
+  sin perder su tamaño.
+- Las burbujas de conteo conservan exactamente su apariencia y comportamiento.
+- No se modificaron la carga, los valores seleccionados ni la lógica de
+  filtrado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Barra unificada de filtros de planeaciones
+
+- Se retira la numeración de profesor y estado para evitar que los filtros se
+  perciban como pasos obligatorios.
+- El selector de profesor y el control de estados comparten etiquetas, altura,
+  bordes y proporciones consistentes dentro de una barra responsive.
+- Los estados se distribuyen en tres segmentos del mismo ancho; la opción
+  activa utiliza violeta sólido para facilitar su reconocimiento.
+- Las burbujas de conteo mantienen exactamente sus colores, tamaño, posición y
+  formato anteriores.
+- No se modificaron la carga, los valores seleccionados ni la lógica de
+  filtrado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Profesor y estado alineados en planeaciones
+
+- `Elegir profesor` y `Estado de revisión` comparten una misma fila en
+  escritorio para aprovechar mejor el ancho y formar un bloque visual uniforme.
+- Los estados se presentan dentro de un control con el mismo alto y tratamiento
+  de borde que el selector de profesor.
+- En pantallas pequeñas ambos filtros permanecen apilados para conservar espacio
+  táctil, legibilidad y los contadores de notificación.
+- No se modificaron la carga, los valores seleccionados ni la lógica de
+  filtrado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Búsqueda automática en historial de planeaciones
+
+- La búsqueda por materia o clase se aplica automáticamente después de una
+  pausa de 120 milisegundos al escribir, sin necesidad de pulsar un botón.
+- El filtro comienza desde dos caracteres, por lo que términos parciales como
+  `mate` encuentran inmediatamente materias como Matemáticas.
+- El campo incluye ejemplos breves y una ayuda contextual; al dejar solo un
+  carácter indica el mínimo necesario para buscar.
+- Al borrar el texto se retiran inmediatamente los términos aplicados y se
+  restaura el historial completo con sus contadores, conservando el profesor,
+  la vista por fecha y el estado elegidos.
+- Si una búsqueda no devuelve coincidencias, la acción `Quitar búsqueda`
+  recupera el historial sin reiniciar los demás filtros.
+- No se modificaron endpoints ni parámetros del backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Jerarquía de filtros en planeaciones administrativas
+
+- La tarjeta de filtros muestra primero `Elegir profesor` y después `Estado de
+  revisión`, siguiendo el orden natural de la consulta administrativa.
+- Cambiar de profesor aplica el filtro inmediatamente y actualiza los
+  contadores correspondientes.
+- La búsqueda se mueve dentro del historial con la etiqueta `Buscar materia o
+  clase`, separada de los filtros de contexto.
+- `Limpiar` dentro del historial borra únicamente la búsqueda; no modifica el
+  profesor, la vista temporal ni el estado seleccionados.
+- La organización se conserva en escritorio y móvil sin cambiar endpoints ni
+  parámetros.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Notificaciones administrativas agrupadas por profesor
+
+- La campana del admin reemplaza las entradas repetidas por una sola tarjeta
+  para cada profesor.
+- Cada tarjeta informa cuántas planeaciones pendientes envió el docente y
+  permite desplegar el detalle de todos sus envíos recientes.
+- Cada planeación del grupo conserva acceso directo a su detalle y la acción
+  general abre la bandeja en `Todas`, `Pendiente` y con búsqueda por profesor.
+- El frontend solicita hasta veinte notificaciones administrativas recientes;
+  si existen más, informa el total y dirige a la bandeja para consultar el
+  resto.
+- Las notificaciones del profesor conservan su comportamiento individual para
+  comentarios administrativos.
+- No se modificó el contrato del backend.
+
+Verificación:
+
+- `pnpm exec eslint src/components/NotificacionesPlaneadores.jsx
+  src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Carga de planeaciones bajo selección explícita
+
+- La bandeja administrativa inicia con `Hoy y próximas` como vista temporal y
+  sin un estado preseleccionado.
+- Las clases no se consultan ni se muestran hasta elegir una opción de `Vista
+  por fecha` y un `Estado de revisión`; la vista inicial ya completa el primer
+  requisito.
+- Un estado inicial guiado indica los dos pasos pendientes y confirma
+  visualmente cada selección.
+- Los contadores pueden consultarse después de elegir la vista por fecha, pero
+  las filas permanecen vacías hasta completar ambas selecciones.
+- Al volver desde el detalle se conservan la fecha, el estado, los filtros y la
+  página mediante la URL.
+- No se modificaron endpoints ni la lógica de paginación.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Planeación pendiente hasta decisión administrativa
+
+- Abrir el detalle de una planeación ya no cambia automáticamente su estado a
+  `visto`.
+- La planeación conserva `Pendiente` y su contador administrativo hasta que el
+  admin aprueba o solicita un ajuste.
+- El perfil profesor deja de mostrar `Visto por administración` y la fecha de
+  apertura; solo comunica `Pendiente de revisión`, `Con observaciones` o
+  `Revisado`.
+- Las notificaciones administrativas permanecen activas hasta completar una
+  decisión, reforzando que abrir el documento no equivale a revisarlo.
+- No se modificaron endpoints, migraciones ni el historial de comentarios.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx
+  src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Contadores de seguimiento en estados de planeación
+
+- Las cápsulas `Pendiente` y `Con observaciones` muestran una notificación con
+  la cantidad de planeaciones de cada estado.
+- El contador de pendientes usa una burbuja roja y el de observaciones una
+  burbuja ámbar; `Revisado` no muestra contador.
+- Las cantidades respetan la vista `Anteriores`, `Hoy y próximas` o `Todas`,
+  además del profesor y la búsqueda aplicados.
+- Al volver del detalle administrativo, los contadores se consultan nuevamente
+  para reflejar las planeaciones que todavía requieren atención.
+- Se reutiliza el contrato paginado existente de
+  `GET /admin/plan-de-clases`; no cambia el backend.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Selector temporal con contraste esmeralda
+
+- El bloque `Vista por fecha` adopta un fondo suave esmeralda y turquesa para
+  diferenciarse de la cabecera morada de seguimiento académico.
+- El icono de calendario y la opción activa usan verde esmeralda sólido con
+  texto blanco; las opciones inactivas conservan contraste legible y estados
+  visibles de interacción y foco.
+- No se modificaron las vistas, los filtros ni la lógica de paginación.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-23 - Filas más legibles en el historial de planeaciones
+
+- La vista `Todas las planeaciones` reduce el peso visual del tema para que el
+  nombre de la clase no domine la fila.
+- La materia recibe un tratamiento visual propio, sin una etiqueta redundante,
+  y el curso queda separado como dato contextual.
+- `Versión N` cambia a `Revisión N`, con una presentación tipo píldora que
+  comunica mejor cuántas revisiones ha tenido la planeación.
+- La vista móvil incorpora la misma información y jerarquía visual que la
+  tabla de escritorio.
+- No se modificaron endpoints, filtros, estados ni la lógica de versionado.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-22 - Aprobar planeación con reconocimiento opcional
+
+- El detalle administrativo reemplaza las dos tarjetas de decisión por una
+  sola experiencia de revisión con `Comentario para el profesor`.
+- `Solicitar ajuste` exige texto y conserva el estado `Con observaciones`.
+- `Aprobar planeación` permite un comentario opcional; si existe, guarda el
+  reconocimiento, marca la misma versión como `Revisada` y notifica al
+  profesor en una sola acción.
+- Una planeación que ya estaba revisada permite escribir y enviar un nuevo
+  reconocimiento sin cambiar su estado.
+- Los dos botones muestran progreso independiente y bloquean envíos duplicados.
+- El historial y la campana del profesor usan el término neutral `Comentarios
+  de administración`, ya que pueden contener reconocimientos o indicaciones.
+
+Verificación:
+
+- ESLint correcto en el detalle administrativo, plan del profesor y campana.
+- `pnpm run build` correcto.
+
+## 2026-07-22 - Selector temporal integrado en la bandeja administrativa
+
+- El selector por fecha se mueve a la cabecera de `Seguimiento académico`, en
+  el espacio que ocupaban los contadores `Resultados`, `En esta página` y
+  `Con evidencia`; esos tres resúmenes se retiran.
+- Las opciones se presentan como `Anteriores`, `Hoy y próximas` y `Todas`, con
+  una explicación contextual que aclara qué contiene cada vista.
+- `Anteriores` termina ayer. Las planeaciones con fecha de hoy ahora pertenecen
+  a `Hoy y próximas`, junto con las clases futuras pendientes de impartir.
+- Se retiran los campos manuales `Desde` y `Hasta`; la fecha depende
+  exclusivamente de `Anteriores`, `Hoy y próximas` o `Todas`.
+- Los filtros de búsqueda quedan reducidos a profesor y texto por materia o
+  tema, además del estado de revisión.
+- El filtro visible de revisión se simplifica a `Pendiente`, `Con
+  observaciones` y `Revisado`; se retiran `Todos los estados` y `Visto por
+  administración`.
+- Pulsar nuevamente el estado activo lo desactiva. El estado interno `visto`
+  se conserva para la trazabilidad del profesor.
+
+Verificación:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-22 - Notificaciones de planeadores con acceso directo
+
+- `NavAdmin` y `NavProfesor` incorporan una campana compartida, siempre
+  visible tanto en escritorio como en movil, con contador de pendientes.
+- Administracion recibe cada nueva version enviada y abre directamente el
+  detalle `/admin/planeadores-clases/:planId`; la primera apertura la marca
+  como vista y actualiza el contador.
+- El profesor recibe las observaciones nuevas y entra al plan, fecha y clase
+  exactos mediante parametros de URL. El historial se abre automaticamente y
+  solo entonces se confirma la lectura.
+- El panel se actualiza al iniciar, cada 60 segundos, al recuperar foco y
+  despues de acciones locales que cambian el estado de lectura.
+- El desplegable maneja carga, reintento, estado vacio, cierre al navegar,
+  clic externo y tecla Escape.
+
+Verificacion:
+
+- `pnpm run lint` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-22 - Seguimiento administrativo para el profesor
+
+- `PlanDeClases` separa el estado local del formulario del estado de revision
+  administrativa.
+- Los planes guardados muestran si estan pendientes, vistos, observados o
+  revisados, con version y fechas de seguimiento.
+- Las observaciones nuevas se resaltan y se marcan como leidas solamente
+  cuando el profesor abre su historial.
+- El historial identifica la version observada y conserva indicaciones de
+  versiones anteriores.
+- Los planes recientes incluyen estado y contador de observaciones pendientes.
+- Guardar cambios o eliminar una evidencia vuelve a sincronizar la version y
+  el estado desde el backend.
+- La capa posterior agrega los contadores al navbar sin cambiar este contrato
+  de lectura explicita.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/PlanDeClases.jsx` correcto.
+- `pnpm run build` correcto.
+
+## 2026-07-22 - Bandeja administrativa de planeaciones a ancho completo
+
+- Se retiro la columna lateral de envios y el scroll vertical interno.
+- La bandeja ocupa todo el ancho y separa `Realizadas`, `Programadas` y `Todas`.
+- Se agregaron filtros por estado de revision y paginacion de 12 registros.
+- Cada plan abre en `/admin/planeadores-clases/:planId`, conservando filtros y
+  pagina en la URL al regresar.
+- Abrir el detalle registra el estado `visto`; el admin puede marcar la version
+  como revisada, escribir observaciones y consultar su historial versionado.
+- Los conflictos `409` recargan el plan para impedir acciones administrativas
+  sobre una version antigua.
+- La ruta es el destino directo de las notificaciones administrativas.
+- No se modifico todavia el navbar ni la pantalla del profesor.
+
+Verificacion:
+
+- `pnpm exec eslint src/pages/PlaneadoresClasesAdmin.jsx src/App.jsx` correcto.
+- `pnpm run build` correcto.
+
 Registro de documentacion del frontend.
 
 ## 2026-07-22 - Renovacion visual del login de Auligo
