@@ -912,7 +912,7 @@ function PlanRecibidoDetalle({ plan, onEliminarImagen, eliminandoImagen }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-700 text-sm font-black text-white">1</div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-black text-violet-800">Clase</h3>
+            <h3 className="text-lg font-black text-violet-800">Ambientación</h3>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-800">{plan.clase || "Sin información"}</p>
           </div>
         </div>

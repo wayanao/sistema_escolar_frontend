@@ -1406,7 +1406,7 @@ function PresentacionClase({
             tono="sky"
           >
             <div className="grid gap-4 lg:grid-cols-2">
-              {tieneTexto(form.clase) && <CampoPresentacion label="Clase" contenido={form.clase} />}
+              {tieneTexto(form.clase) && <CampoPresentacion label="Ambientación" contenido={form.clase} />}
               {tieneTexto(form.competencias) && (
                 <CampoPresentacion label="Actividad en clase" contenido={form.competencias} />
               )}
