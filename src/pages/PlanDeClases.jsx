@@ -926,7 +926,7 @@ function PlanDeClases() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <CampoTextarea
-                      label="Clase"
+                      label="Ambientación"
                       value={form.clase}
                       onChange={(valor) => actualizarCampo("clase", valor)}
                       placeholder="Apertura, desarrollo y cierre"
