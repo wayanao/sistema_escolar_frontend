@@ -31,7 +31,11 @@ Estado actual de componentes y paginas del frontend.
   exacto del profesor; ya no despliega las clases dentro de la campana. Se
   refresca cada 60 segundos/foco/evento local. La notificacion administrativa
   permanece hasta aprobar o solicitar un ajuste; una observacion del profesor
-  no se marca como leida hasta abrir su historial.
+  no se marca como leida hasta abrir su historial. En móvil y tablet, la
+  ventana se contiene dentro del viewport con márgenes laterales seguros y una
+  altura máxima dinámica; encabezado y acción inferior permanecen visibles
+  mientras la lista central hace scroll. En escritorio continúa anclada a la
+  campana.
 - `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de

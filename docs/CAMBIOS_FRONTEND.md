@@ -1,5 +1,24 @@
 # Cambios Frontend
 
+## 2026-07-27 - Notificaciones contenidas en móvil y tablet
+
+- La ventana compartida de notificaciones se posiciona respecto al viewport en
+  móvil y tablet, en lugar de calcular su ancho desde la campana.
+- En teléfonos conserva márgenes laterales simétricos; desde `sm` usa un ancho
+  controlado y se alinea al borde derecho de la pantalla.
+- En escritorio mantiene el comportamiento original anclado debajo de la
+  campana.
+- La altura total respeta el alto dinámico del dispositivo. El encabezado y la
+  acción inferior permanecen visibles y solo la lista central hace scroll.
+- El ajuste aplica por igual a los perfiles administrador y profesor, sin
+  cambiar carga, agrupación, contador ni navegación de las notificaciones.
+
+Verificación:
+
+- `pnpm run test`: 4 pruebas correctas.
+- `pnpm run lint`: correcto.
+- `pnpm run build`: correcto.
+
 ## 2026-07-25 - Información de trabajo integrada al encabezado
 
 - Materia, salón, período y fecha dejan de mostrarse como mini tarjetas

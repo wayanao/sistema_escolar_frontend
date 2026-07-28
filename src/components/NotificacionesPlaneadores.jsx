@@ -169,8 +169,8 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
       </button>
 
       {abierto && (
-        <div className="absolute right-0 top-12 z-[80] w-[min(92vw,390px)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5">
+        <div className="fixed left-3 right-3 top-[3.75rem] z-[80] flex max-h-[calc(100dvh-4.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:left-auto sm:right-6 sm:w-[390px] lg:absolute lg:left-auto lg:right-0 lg:top-12 lg:max-h-none">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5">
             <div>
               <p className="text-sm font-black text-slate-950">Notificaciones</p>
               <p className="mt-0.5 text-xs font-semibold text-slate-500">
@@ -180,7 +180,7 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
             {total > 0 && <span className="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-black text-rose-700">{total} nueva{total === 1 ? "" : "s"}</span>}
           </div>
 
-          <div className="max-h-[min(420px,62vh)] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto lg:max-h-[min(420px,62vh)]">
             {cargando ? (
               <div className="flex items-center gap-2 p-5 text-sm font-semibold text-slate-500"><Spinner /> Actualizando...</div>
             ) : error ? (
@@ -220,7 +220,7 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
             )}
           </div>
 
-          <button type="button" onClick={verTodos} className="block w-full border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-xs font-black text-violet-700 transition hover:bg-violet-50">
+          <button type="button" onClick={verTodos} className="block w-full shrink-0 border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-xs font-black text-violet-700 transition hover:bg-violet-50">
             {rol === "admin" ? "Abrir bandeja de planeaciones" : "Abrir plan de clases"}
           </button>
         </div>
