@@ -49,11 +49,10 @@ El flujo de planeaciones es la referencia arquitectónica.
 - Composición: `src/pages/PlanDeClases.jsx` y
   `src/pages/PlaneadoresClasesAdmin.jsx`.
 - Verificación registrada: 98 pruebas, lint y build correctos.
+- Commit de referencia: `fd9ed72`.
 
-Al crear este documento, los cambios de planeaciones siguen presentes en el
-working tree y todavía no aparecen en un commit. Antes de iniciar el primer
-módulo de esta hoja de ruta debe existir un commit independiente de
-planeaciones y `git status` debe quedar limpio.
+Planeaciones y este plan maestro quedaron publicados juntos en `main`. Ese
+commit constituye la línea base del primer módulo pendiente.
 
 ## Arquitectura objetivo
 
@@ -201,24 +200,53 @@ Un módulo está terminado cuando:
 
 ## Estrategia de Git
 
+El flujo oficial del proyecto trabaja directamente sobre `main`:
+
+```text
+main limpio y actualizado
+→ modularizar un solo módulo
+→ verificar
+→ crear un commit del módulo
+→ push a origin/main
+→ deploy de producción
+→ verificación manual
+```
+
 Antes de comenzar un módulo:
 
 1. Confirmar `git status` limpio.
-2. Confirmar `pnpm run check:deploy` correcto.
-3. Crear una rama dedicada, por ejemplo `refactor/asistencia`.
-4. No incluir archivos de otro dominio.
+2. Confirmar que `main` contiene el último commit publicado.
+3. Confirmar `pnpm run check:deploy` correcto.
+4. Registrar el commit base en el documento del módulo.
+5. No incluir archivos de otro dominio.
 
 Durante el módulo:
 
-- realizar un commit por capa verificada cuando se necesiten puntos seguros;
-- usar mensajes como `refactor(asistencia): extraer contrato HTTP`;
-- no mezclar correcciones o mejoras funcionales.
+- trabajar localmente sobre `main` sin publicar capas incompletas;
+- ejecutar pruebas específicas al cerrar cada capa;
+- actualizar el documento del módulo para conservar continuidad entre chats;
+- detenerse al cerrar cada capa y esperar la orden explícita del usuario antes
+  de iniciar la siguiente;
+- no mezclar correcciones, mejoras funcionales ni otros dominios;
+- no crear el commit final mientras quede una capa requerida pendiente.
 
 Al terminar:
 
-- conservar los commits atómicos o hacer squash a un único commit del módulo;
-- registrar el hash final en su documento;
-- volver a dejar el working tree limpio.
+1. Actualizar documentación específica y global.
+2. Ejecutar `pnpm run check:deploy`.
+3. Ejecutar `git diff --check`.
+4. Revisar `git status` y confirmar que el diff pertenece solo al módulo.
+5. Crear un único commit, por ejemplo:
+   `refactor(asistencia): modularizar el flujo completo`.
+6. Ejecutar `git push origin main`.
+7. Esperar el deploy y realizar la verificación manual de producción.
+8. Si producción falla, corregir con un commit nuevo. No reescribir ni forzar
+   el historial publicado.
+9. Confirmar que el working tree queda limpio antes del siguiente módulo.
+
+Codex no debe crear commits, hacer push ni desplegar salvo que el usuario lo
+autorice explícitamente. Su entrega normal deja el módulo implementado,
+documentado y verificado para que el usuario ejecute el commit y la publicación.
 
 ## Estrategia de chats
 
@@ -239,12 +267,30 @@ Lee docs/modularizacion/README.md y
 docs/modularizacion/<MODULO>.md.
 
 Trabaja únicamente en <MODULO>.
-Continúa desde la primera capa pendiente.
-No cambies diseño, rutas ni comportamiento.
+Verifica primero que estamos en main, que el working tree está limpio y que el
+commit base coincide con el documento. Si no coincide, informa y no mezcles
+cambios anteriores.
+
+Trabaja únicamente en la primera capa pendiente. Al terminarla, ejecuta sus
+pruebas específicas, actualiza el documento del módulo y detente. No inicies la
+siguiente capa hasta que yo lo ordene explícitamente.
+Esta es una migración arquitectónica: conserva diseño, textos, rutas,
+comportamiento y contratos del backend.
+No agregues funciones nuevas ni corrijas asuntos ajenos.
 No modifiques otros módulos.
-Ejecuta las verificaciones correspondientes y actualiza el documento del
-módulo antes de terminar.
+
+Agrega pruebas proporcionales al riesgo y actualiza el documento del módulo al
+cerrar la capa. Si esta es la última capa del módulo, ejecuta además
+pnpm run check:deploy y git diff --check.
+
+No hagas commit, push ni deploy.
+Déjame un resumen de la capa terminada, sus verificaciones y la siguiente capa
+pendiente. Cuando se complete la última capa, déjame el módulo listo para que
+yo haga un único commit y lo publique en producción.
 ```
+
+La versión extensa lista para copiar se conserva en
+[PROMPT_INICIO_MODULO.md](./PROMPT_INICIO_MODULO.md).
 
 Si un módulo grande necesita varios chats, el documento del módulo debe
 registrar al final:
@@ -259,7 +305,7 @@ registrar al final:
 
 | Orden | Módulo | Estado | Documento |
 |---:|---|---|---|
-| Referencia | Planeaciones | Terminado; pendiente de commit | Documentación global existente |
+| Referencia | Planeaciones | Terminado en `fd9ed72` | Documentación global existente |
 | 1 | Asistencia | Pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
 | 2 | Planilla | Pendiente | [PLANILLA.md](./PLANILLA.md) |
 | 3 | Malla curricular | Pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |

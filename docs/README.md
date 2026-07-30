@@ -13,6 +13,8 @@ Ultima organizacion: 2026-07-30.
 - `PLAN_EJECUCION_FRONTEND.md`: trabajo futuro ordenado por prioridad.
 - `modularizacion/README.md`: migración arquitectónica por módulos, capas,
   chats y commits independientes.
+- `modularizacion/PROMPT_INICIO_MODULO.md`: prompt reutilizable para comenzar
+  cada módulo en un chat nuevo.
 - `CAMBIOS_FRONTEND.md`: historial cronologico de cambios realizados.
 
 ## Control SaaS

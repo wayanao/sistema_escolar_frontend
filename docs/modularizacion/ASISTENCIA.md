@@ -5,8 +5,9 @@
 - Estado: Pendiente.
 - Orden: 1.
 - Riesgo inicial: Medio.
-- Rama: No creada.
-- Commit base y final: Pendientes.
+- Flujo Git: `main` directo.
+- Commit base: `fd9ed72`.
+- Commit final: Pendiente.
 - Última actualización: 2026-07-30.
 
 ## Objetivo

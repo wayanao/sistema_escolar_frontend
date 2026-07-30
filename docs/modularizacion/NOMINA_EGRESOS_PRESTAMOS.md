@@ -5,8 +5,9 @@
 - Estado: Pendiente.
 - Orden: 11.
 - Riesgo inicial: Alto.
-- Rama: No creada.
-- Commit base y final: Pendientes.
+- Flujo Git: `main` directo.
+- Commit base: Por registrar al iniciar.
+- Commit final: Pendiente.
 - Última actualización: 2026-07-30.
 
 ## Objetivo
@@ -39,8 +40,8 @@ de negocio ni alterar montos, estados o trazabilidad.
 
 ## Estrategia adicional
 
-La capa 0 debe evaluar si conviene ejecutar tres secuencias internas dentro de
-la misma rama. Las utilidades solo se comparten cuando exista un contrato
+La capa 0 debe evaluar si conviene ejecutar tres secuencias internas dentro del
+mismo ciclo de módulo. Las utilidades solo se comparten cuando exista un contrato
 idéntico comprobado.
 
 ## Seguimiento por capas

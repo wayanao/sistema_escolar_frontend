@@ -5,7 +5,7 @@
 - Estado: Pendiente.
 - Prioridad: Por definir.
 - Riesgo: Por evaluar.
-- Rama: No creada.
+- Flujo Git: `main` directo.
 - Commit base: Por registrar.
 - Commit final: Pendiente.
 - Última actualización: AAAA-MM-DD.
