@@ -2,7 +2,7 @@
 
 Indice operativo de la documentacion del frontend `frontend-react`.
 
-Ultima organizacion: 2026-07-15.
+Ultima organizacion: 2026-07-30.
 
 ## Lectura rapida
 
@@ -11,6 +11,8 @@ Ultima organizacion: 2026-07-15.
 - `CHECKLIST_PRODUCCION_FRONTEND.md`: riesgos, pruebas manuales y checklist
   antes/despues de liberar.
 - `PLAN_EJECUCION_FRONTEND.md`: trabajo futuro ordenado por prioridad.
+- `modularizacion/README.md`: migración arquitectónica por módulos, capas,
+  chats y commits independientes.
 - `CAMBIOS_FRONTEND.md`: historial cronologico de cambios realizados.
 
 ## Control SaaS

@@ -1,5 +1,386 @@
 # Cambios Frontend
 
+## 2026-07-29 - Decimosexta capa: detalle visual y consolidación administrativa
+
+- Los estados de carga y error, el reporte del plan, el formulario de revisión,
+  el historial de comentarios y las evidencias se trasladan a
+  `components/planeaciones/admin/DetallePlaneacionAdmin.jsx`.
+- El componente recibe datos y acciones mediante props. No conoce rutas,
+  parámetros de URL ni servicios de planeaciones; reutiliza únicamente el hook
+  visual compartido para resolver imágenes protegidas.
+- `PlaneadoresClasesAdmin.jsx` queda como raíz de composición del flujo
+  administrativo: decide entre bandeja y detalle, conecta los hooks y conserva
+  la navegación con filtros.
+- La página pasa de 435 a 154 líneas y deja de contener bloques visuales
+  extensos o utilidades de presentación.
+- Se agregaron seis pruebas para carga, error, contenido, revisión, historial y
+  evidencias protegidas.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 98 pruebas correctas.
+- Lint y build correctos.
+
+Resultado:
+
+- El refactor por capas del flujo administrativo de planeaciones queda
+  consolidado.
+- Las responsabilidades quedan delimitadas entre servicios, utilidades, hooks,
+  componentes presentacionales y la página de composición.
+
+## 2026-07-29 - Decimoquinta capa: resultados de la bandeja administrativa
+
+- La cabecera de resultados, búsqueda automática, tabla de escritorio,
+  tarjetas móviles, paginación y estados de selección, carga, error y vacío se
+  trasladan a
+  `components/planeaciones/admin/ResultadosPlaneacionesAdmin.jsx`.
+- El componente recibe datos y callbacks mediante props; no consulta
+  servicios, no sincroniza la URL y no administra el estado de filtros o
+  navegación.
+- La apertura de cada planeación continúa en la página para conservar la ruta y
+  los parámetros actuales de la bandeja.
+- Se elimina de `PlaneadoresClasesAdmin.jsx` toda la presentación duplicada del
+  listado. La página pasa de 700 a 435 líneas.
+- Se agregaron cinco pruebas para selección guiada, búsqueda, estados
+  prioritarios, resultados responsive, apertura y paginación acotada.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 92 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Decimocuarta capa: presentación de la bandeja administrativa
+
+- El encabezado y el selector temporal de la bandeja se trasladan a
+  `components/planeaciones/admin/EncabezadoPlaneacionesAdmin.jsx`.
+- El selector de profesor, los estados de revisión y el contador pendiente se
+  trasladan a
+  `components/planeaciones/admin/FiltrosPlaneacionesAdmin.jsx`.
+- Badges, mensajes accesibles, spinner y la clase compartida de campos se
+  centralizan en
+  `components/planeaciones/admin/ElementosPlaneacionAdmin.jsx`.
+- Los componentes reciben valores y callbacks mediante props; no sincronizan
+  la URL, no consultan servicios y no administran el estado de la bandeja.
+- Se elimina de `PlaneadoresClasesAdmin.jsx` la presentación duplicada que ya
+  vive en esos componentes. La página pasa de 838 a 700 líneas.
+- Se agregaron siete pruebas para alcance temporal, cambios de vista,
+  selección de profesor, activación de estados, límite del contador, badges,
+  mensajes accesibles y carga.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 87 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Decimotercera capa: detalle y revisión administrativa
+
+- La carga paralela del plan y sus comentarios, el estado del detalle, la
+  aprobación, los reconocimientos, las solicitudes de ajuste y los conflictos
+  de versión se trasladan a
+  `hooks/planeaciones/useDetallePlaneacionAdmin.js`.
+- La eliminación administrativa de evidencias se aísla en
+  `hooks/planeaciones/useEliminacionImagenPlaneacionAdmin.js`.
+- El hook de detalle ignora respuestas antiguas si cambia el plan antes de
+  terminar la consulta.
+- Se conservan los payloads de versión, mensajes, actualización local,
+  notificaciones, desplazamiento superior y recarga ante conflicto `409`.
+- `PlaneadoresClasesAdmin.jsx` deja de importar servicios de planeaciones y pasa
+  de 954 a 838 líneas.
+- Se agregaron ocho pruebas para carga, aprobación, ajuste, conflicto, error,
+  confirmación y eliminación de imágenes.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 80 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Duodécima capa: bandeja administrativa y utils por dominio
+
+- Las utilidades de planeaciones se organizan en `src/utils/planeaciones/`,
+  separadas como `profesor.js` y `admin.js`, con sus pruebas junto al archivo
+  correspondiente.
+- Se actualizan todas las importaciones del profesor y administrador; no quedan
+  referencias a las rutas anteriores de `utils`.
+- Filtros, búsqueda con debounce, profesores, sincronización de URL, consultas,
+  contador pendiente y paginación de la bandeja se trasladan a
+  `hooks/planeaciones/useListadoPlaneacionesAdmin.js`.
+- `PlaneadoresClasesAdmin.jsx` conserva la presentación y navegación al detalle,
+  pero deja de llamar directamente los servicios de listado y profesores.
+- La restauración de `pagina` desde la URL espera ahora la respuesta antes de
+  ajustar el límite, evitando regresar prematuramente a la página 1.
+- La pantalla administrativa pasa de 1.129 a 954 líneas.
+- Se agregaron cuatro pruebas para carga paginada, conteos, filtros, debounce y
+  errores controlados.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 72 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Undécima capa: consolidación final del profesor
+
+- La carga, selección, deduplicación y persistencia de clases asignadas se
+  trasladan a
+  `hooks/planeaciones/useClasesPlaneacionProfesor.js`.
+- La normalización del seguimiento, actualización de lecturas y apertura de
+  comentarios solicitados por URL se trasladan a
+  `hooks/planeaciones/useSeguimientoPlaneacionProfesor.js`.
+- La confirmación, eliminación y sincronización posterior de evidencias
+  guardadas se trasladan a
+  `hooks/planeaciones/useEliminacionImagenPlanProfesor.js`.
+- `normalizarSeguimientoPlanProfesor`, en `utils/planeaciones/profesor.js`,
+  establece un contrato puro para los datos administrativos del plan.
+- `PlanDeClases.jsx` deja de importar servicios y queda dedicado a componer
+  hooks y componentes. Pasa de 398 a 281 líneas.
+- Se conservan redirección de sesión, parámetros de URL, selección recordada,
+  actualización del historial y mensajes existentes.
+- Se agregaron diez pruebas para clases duplicadas o ausentes, errores de
+  carga, seguimiento, enlaces de comentarios y eliminación de evidencias.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 68 pruebas correctas.
+- Lint y build correctos.
+
+Resultado:
+
+- El refactor por capas del flujo del profesor queda consolidado.
+- La página no contiene endpoints, transporte HTTP ni bloques visuales
+  extensos; esas responsabilidades quedan delimitadas entre servicios, hooks,
+  utilidades y componentes.
+
+## 2026-07-29 - Décima capa: panel final de guardado
+
+- El panel de confirmación se traslada a
+  `components/planeaciones/profesor/GuardadoPlanProfesor.jsx`.
+- El componente presenta el texto correspondiente al estado, el progreso, la
+  desactivación temporal y el mensaje resultante.
+- La construcción multipart, validación del contexto, conflictos de versión,
+  recuperación de red y reintentos permanecen en
+  `hooks/planeaciones/useGuardadoPlaneacionProfesor.js`.
+- `PlanDeClases.jsx` únicamente conecta el estado visual y la acción del hook,
+  y pasa de 444 a 398 líneas.
+- Se conservan diseño, mensajes, accesibilidad y comportamiento del botón.
+- Se agregaron tres pruebas para ejecución, progreso, bloqueo durante carga y
+  presentación del mensaje.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 58 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Novena capa: encabezado y configuración
+
+- El encabezado del planeador y su indicador de estado se trasladan a
+  `components/planeaciones/profesor/EncabezadoPlanProfesor.jsx`.
+- La selección de clase, periodo y fecha se traslada a
+  `components/planeaciones/profesor/ConfiguracionPlanProfesor.jsx`.
+- Ambos componentes reciben datos y callbacks mediante props; la página
+  conserva la selección, carga y sincronización con la URL y `localStorage`.
+- El mapeo puro de estados pendiente, cargando, modificado y guardado se
+  centraliza en `obtenerEstadoGuardadoVisual`, dentro de
+  `utils/planeaciones/profesor.js`.
+- Se mantienen opciones, textos, estilos, animación de confirmación y
+  desactivación del selector durante la carga.
+- `PlanDeClases.jsx` pasa de 579 a 444 líneas.
+- Se agregaron seis pruebas para estados visuales, identificación del plan,
+  selección de contexto y carga de clases.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 55 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-29 - Octava capa: presentación de clase
+
+- La vista de presentación se traslada a
+  `components/planeaciones/profesor/PresentacionClaseProfesor.jsx`.
+- El componente encapsula su portal, bloqueo temporal del scroll, cierre con
+  Escape, secciones condicionales y visualización de evidencias.
+- La página conserva únicamente el estado que decide cuándo abrir o cerrar la
+  presentación y le entrega los datos mediante props.
+- Se mantienen el diseño, los textos, el aviso de cambios sin guardar, los
+  valores alternativos y la apertura de imágenes locales o protegidas.
+- `PlanDeClases.jsx` deja de importar `createPortal`, `useImagenProtegida` y el
+  formateador de fecha, y pasa de 869 a 579 líneas.
+- Se agregaron cinco pruebas para contenido completo y vacío, cierre por botón
+  y teclado, restauración del scroll e imágenes locales y guardadas.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 49 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Séptima capa: guía editable y evidencias
+
+- La guía didáctica editable se traslada a
+  `components/planeaciones/profesor/GuiaDidacticaProfesor.jsx`.
+- Los campos de texto y las evidencias nuevas o guardadas se dividen en
+  `CampoTextareaPlanProfesor.jsx` y `EvidenciasPlanProfesor.jsx`.
+- Los componentes son presentacionales: reciben el formulario, las imágenes y
+  las acciones mediante props; no consultan servicios ni duplican estado.
+- Se conservan la estructura visual, los límites de texto, la previsualización,
+  la eliminación de evidencias y el acceso al modo presentación.
+- `PlanDeClases.jsx` queda como coordinador y pasa de 1.179 a 869 líneas.
+- Se agregaron tres pruebas de componente para carga, edición, presentación y
+  eliminación de evidencia guardada.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 44 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Sexta capa: componentes de seguimiento e historial
+
+- Se crea `src/components/planeaciones/profesor/` como carpeta de presentación
+  del planeador docente.
+- `SeguimientoPlanProfesor.jsx` contiene el estado administrativo, el acceso a
+  comentarios y el historial visual de observaciones por versión.
+- `HistorialPlanesProfesor.jsx` contiene tarjetas, estados de carga y error,
+  paginación y selección visual del plan activo.
+- `EstadoRevisionBadge.jsx` centraliza la insignia reutilizada por ambos
+  componentes.
+- Los componentes reciben datos y acciones mediante props; no consultan la API
+  ni administran el estado de dominio.
+- `PlanDeClases.jsx` deja de contener esos bloques e iconos auxiliares y se
+  limita a conectarlos con sus hooks.
+- Se agregaron cuatro pruebas de componentes para estados de revisión,
+  comentarios, selección del plan y reintento del historial.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 41 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Quinta capa: guardado resiliente del profesor
+
+- El envío del plan y sus estados de ejecución se trasladan a
+  `src/hooks/planeaciones/useGuardadoPlaneacionProfesor.js`.
+- El hook administra validación de contexto, construcción del multipart,
+  guardado, recarga posterior, conflicto de versión `409`, fallos de conexión y
+  reintento solicitado por el profesor.
+- La construcción de `FormData` se concentra en
+  `crearFormDataPlanProfesor`, dentro de
+  `src/utils/planeaciones/profesor.js`.
+- `PlanDeClases.jsx` deja de importar SweetAlert2 y la operación HTTP de
+  guardado; solo coordina los resultados con sus indicadores visuales.
+- Se mantienen los mismos textos, botones, encabezado multipart,
+  `version_esperada`, imágenes opcionales y conservación de cambios locales.
+- Se agregaron cinco pruebas para el contrato multipart, éxito, las dos
+  decisiones ante conflicto y la continuidad sin conexión.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 37 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Cuarta capa: formulario y carga del plan diario
+
+- El estado editable del plan del profesor se traslada a
+  `src/hooks/planeaciones/useFormularioPlaneacionProfesor.js`.
+- El hook concentra fecha, periodo, campos pedagógicos, imágenes nuevas,
+  imágenes guardadas, vistas previas, valores recordados y estado local de
+  guardado.
+- La consulta automática y la recarga del plan correspondiente a la clase y
+  fecha activas se trasladan a
+  `src/hooks/planeaciones/useCargaPlanDiarioProfesor.js`.
+- La carga ignora respuestas antiguas si el profesor cambia de clase o fecha
+  antes de que termine una solicitud.
+- `PlanDeClases.jsx` conserva el guardado remoto, los conflictos `409`, los
+  reintentos por conexión, las alertas y la coordinación visual.
+- No se modificaron endpoints, `FormData`, validaciones de imágenes,
+  `localStorage` ni comportamiento visible.
+- Se agregaron siete pruebas para cambios del formulario, recuperación de
+  valores, carga de planes, errores y respuestas obsoletas.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 32 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Tercera capa: hooks de historial y observaciones
+
+- El historial del profesor se traslada a
+  `src/hooks/planeaciones/useHistorialPlaneacionesProfesor.js`.
+- El hook administra carga, paginación de tres registros, indicador de
+  continuación, reintentos, errores y actualización local de un plan.
+- La apertura y lectura de observaciones se traslada a
+  `src/hooks/planeaciones/useObservacionesPlaneacionProfesor.js`.
+- El segundo hook conserva la lectura explícita de comentarios, actualiza el
+  contador pendiente y solicita la actualización de notificaciones.
+- Ambos hooks ignoran respuestas antiguas cuando cambia la asignación o el plan,
+  evitando que una solicitud anterior sobrescriba la selección vigente.
+- `PlanDeClases.jsx` conserva todavía el formulario, la carga del plan diario,
+  el guardado, las imágenes y la presentación.
+- No se modificaron endpoints, payloads, permisos ni comportamiento visible.
+- Se agregaron seis pruebas de hooks para paginación, actualización local,
+  cambio de asignación, lectura correcta, lectura parcial y cambio de plan.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 25 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Segunda capa de modularización: servicio de planeaciones
+
+- Las rutas y configuraciones HTTP utilizadas por las pantallas de planeaciones
+  se centralizan en `src/services/planeacionesApi.js`.
+- El servicio cubre clases asignadas, plan diario, historial, guardado
+  multipart, observaciones, confirmación de lectura, bandeja administrativa,
+  detalle, revisión e imágenes.
+- `PlanDeClases.jsx` y `PlaneadoresClasesAdmin.jsx` dejan de importar el cliente
+  Axios directamente. Las páginas continúan coordinando estado, efectos,
+  alertas, navegación y presentación.
+- El servicio devuelve el cuerpo `data` y propaga los errores originales sin
+  transformarlos. Así se conservan la cancelación con `AbortController`, los
+  conflictos `409` y la detección de fallos de conexión.
+- No se modificaron endpoints, parámetros, payloads, encabezados, permisos ni
+  comportamiento visible.
+- Se agregaron seis pruebas de contrato para proteger las trece operaciones
+  HTTP encapsuladas.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 19 pruebas correctas.
+- Lint y build correctos.
+
+## 2026-07-28 - Primera capa de modularización de planeaciones
+
+- Se inicia la separación controlada de las pantallas extensas de planeaciones
+  del profesor y del administrador.
+- Las constantes, estados iniciales, normalización de respuestas, construcción
+  de filtros y formateadores puros se trasladan a
+  `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`.
+- `PlanDeClases.jsx` y `PlaneadoresClasesAdmin.jsx` consumen estas utilidades,
+  pero conservan por ahora el estado de React, los efectos, las solicitudes API
+  y toda la presentación.
+- No se modificaron endpoints, payloads, permisos, almacenamiento local ni
+  comportamiento visible. Esta capa sirve como contrato estable antes de
+  extraer servicios, hooks y componentes.
+- Se agregaron nueve pruebas unitarias para proteger estados, fechas, filtros,
+  paginación, normalización de respuestas y mensajes de error.
+
+Verificación:
+
+- `pnpm run check:deploy`: correcto.
+- 13 pruebas correctas.
+- Lint y build correctos.
+
 ## 2026-07-27 - Notificaciones contenidas en móvil y tablet
 
 - La ventana compartida de notificaciones se posiciona respecto al viewport en

@@ -36,12 +36,27 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/boletin/`: componentes del modulo de boletines.
 - `src/components/cartera/`: componentes del modulo de cartera.
 - `src/components/impresion/`: componentes de documentos imprimibles.
+- `src/components/planeaciones/admin/`: componentes presentacionales de la
+  bandeja administrativa y elementos visuales compartidos de revisión.
+- `src/components/planeaciones/profesor/`: componentes presentacionales del
+  flujo docente de planeaciones.
 - `src/constants/`: constantes compartidas entre paginas/componentes.
 - `src/hooks/`: hooks propios del frontend.
+- `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
+  planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
-- `src/services/`: servicios de frontend.
+- `src/services/`: fronteras HTTP del frontend. Los servicios encapsulan rutas
+  y configuración de transporte, devuelven datos y no administran estado de
+  React ni decisiones de interfaz.
+- `src/services/planeacionesApi.js`: contrato HTTP compartido por los flujos de
+  planeaciones del profesor y del administrador.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
+- `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
+  y acompañados por sus pruebas unitarias.
+- `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`:
+  contratos y transformaciones puras del módulo de planeaciones. No realizan
+  solicitudes, no acceden al DOM y no administran estado de React.
 
 ## Entrada de la aplicacion
 
@@ -126,3 +141,83 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
 - `src/pages/PlanDeClases.test.jsx` simula la API y SweetAlert2 para verificar
   guardado, control de versión, desconexión y reintento sin conectarse a un
   tenant real.
+- `src/utils/planeaciones/profesor.test.js` y
+  `src/utils/planeaciones/admin.test.js` protegen las transformaciones puras
+  extraídas antes de continuar con servicios, hooks y componentes.
+- `src/services/planeacionesApi.test.js` verifica rutas, parámetros, payloads,
+  configuración multipart, señales de cancelación y propagación de errores del
+  contrato HTTP.
+- Los tests de `src/hooks/planeaciones/` comprueban paginación, aislamiento
+  entre selecciones y lectura de observaciones sin renderizar la página
+  completa.
+- Los hooks de formulario y carga diaria separan el estado editable de la
+  consulta remota. Sus pruebas protegen recuperación local, mapeo de planes,
+  errores y descarte de respuestas obsoletas.
+- `useGuardadoPlaneacionProfesor` encapsula el comando de guardado y sus
+  recuperaciones. La construcción del multipart permanece como utilidad pura
+  comprobable y el servicio conserva el transporte HTTP.
+- Seguimiento, comentarios e historial del profesor se renderizan desde
+  componentes sin acceso a servicios. La página y los hooks les entregan datos
+  y acciones mediante props.
+- La guía editable del profesor sigue el mismo límite: sus campos y evidencias
+  viven en componentes presentacionales, mientras `PlanDeClases.jsx` conserva
+  únicamente la coordinación con formulario, carga y guardado.
+- Las pruebas de `GuiaDidacticaProfesor` cubren el estado de carga, la edición,
+  la apertura de la presentación y la eliminación de evidencias guardadas.
+- `PresentacionClaseProfesor` encapsula la vista en portal y sus efectos
+  exclusivamente visuales. No conoce endpoints ni actualiza el estado del
+  planeador; recibe contenido y acciones desde la página y reutiliza el hook
+  compartido de imágenes protegidas.
+- Sus pruebas protegen renderizado condicional, cierre accesible, restauración
+  del documento y resolución de evidencias locales o protegidas.
+- Encabezado y configuración del planeador son componentes controlados: reciben
+  valores y acciones de la página y no sincronizan por sí mismos URL,
+  almacenamiento ni consultas.
+- `obtenerEstadoGuardadoVisual` mantiene en una utilidad pura la representación
+  compartida por el encabezado y la acción de guardado. Las pruebas comprueban
+  sus cuatro estados y las interacciones de los selectores.
+- `GuardadoPlanProfesor` representa el comando sin implementarlo: renderiza el
+  estado y delega la acción recibida. El hook de guardado conserva validaciones,
+  transporte, conflictos de versión y recuperación de conectividad.
+- Sus pruebas de componente cubren disponibilidad, progreso y mensajes; las
+  pruebas de página y hook mantienen la cobertura del flujo completo.
+- El flujo del profesor cierra su separación con hooks para clases, seguimiento
+  y eliminación de evidencias. Cada comando remoto queda detrás de un servicio
+  y un hook; `PlanDeClases.jsx` no importa transporte HTTP.
+- La página funciona como raíz de composición y conserva únicamente estado
+  local de pantalla, conexión entre contratos y renderizado de componentes.
+- Las pruebas adicionales verifican deduplicación y persistencia de clases,
+  normalización y lectura del seguimiento, enlaces profundos y eliminación
+  sincronizada de imágenes.
+- `useListadoPlaneacionesAdmin` encapsula el estado de la bandeja, URL, debounce
+  y consultas cancelables. La página administrativa recibe datos y acciones
+  sin conocer los servicios de listado.
+- Sus pruebas cubren paginación restaurada desde URL, carga de profesores,
+  conteos pendientes, filtros, búsqueda diferida y errores de consulta.
+- `useDetallePlaneacionAdmin` coordina plan, comentarios y decisiones de
+  revisión, incluyendo recuperación ante conflicto y descarte de respuestas
+  antiguas.
+- `useEliminacionImagenPlaneacionAdmin` mantiene el borrado de evidencias como
+  comando aislado. La página administrativa ya no importa el servicio HTTP.
+- Las pruebas de ambos hooks protegen cargas, actualizaciones locales,
+  notificaciones, errores, conflictos y confirmaciones destructivas.
+- El encabezado temporal y los filtros administrativos son componentes
+  controlados. Reciben estado y acciones desde la página, sin conocer URL,
+  consultas ni servicios.
+- Badges, mensajes y spinners del módulo administrativo se comparten desde
+  `components/planeaciones/admin/ElementosPlaneacionAdmin.jsx`.
+- Las pruebas de estos componentes protegen selección temporal, profesor,
+  estados, contador pendiente, mensajes accesibles y carga.
+- `ResultadosPlaneacionesAdmin` concentra la presentación completa del
+  historial: búsqueda, tabla, tarjetas móviles, estados y paginación. Recibe
+  datos y acciones desde la página y no conoce servicios, URL ni navegación.
+- Sus pruebas cubren selección guiada, búsqueda controlada, prioridad de
+  estados, renderizado responsive, apertura y límites de paginación.
+- `DetallePlaneacionAdmin` concentra carga, fallo, reporte pedagógico,
+  decisiones de revisión, historial y evidencias. Recibe datos y comandos
+  mediante props y reutiliza el hook compartido de imágenes protegidas.
+- `PlaneadoresClasesAdmin.jsx` funciona como raíz de composición: selecciona
+  bandeja o detalle, conecta los hooks con los componentes y conserva la
+  navegación. No contiene transporte HTTP ni bloques visuales extensos.
+- Las pruebas del detalle protegen estados de apertura, contenido, edición,
+  aprobación, solicitudes de ajuste, trazabilidad y evidencias.

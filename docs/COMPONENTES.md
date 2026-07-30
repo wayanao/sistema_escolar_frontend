@@ -231,6 +231,78 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/PlanDeClases.jsx`: pantalla de elaboracion diaria de planes de clase
   del perfil profesor.
+- La primera capa de modularización delega estados iniciales, estados visuales,
+  claves recordadas y formateo de fechas en
+  `utils/planeaciones/profesor.js`. En esa etapa el componente mantuvo intactos
+  el estado, los efectos, las llamadas API y la presentación.
+- La segunda capa consume `services/planeacionesApi.js` y deja de conocer rutas
+  HTTP o configuraciones de Axios. Conserva el armado de `FormData`, las
+  decisiones ante conflictos, el estado de React y la presentación.
+- La tercera capa delega paginación, carga y actualización del historial en
+  `hooks/planeaciones/useHistorialPlaneacionesProfesor.js`, y la apertura,
+  lectura y errores de comentarios en
+  `hooks/planeaciones/useObservacionesPlaneacionProfesor.js`.
+- En la tercera capa, el formulario, la carga del plan diario, el guardado, las
+  imágenes y la presentación permanecieron coordinados por la página.
+- La cuarta capa delega campos, periodo, fecha, imágenes, valores recordados y
+  estado local de guardado en
+  `hooks/planeaciones/useFormularioPlaneacionProfesor.js`.
+- `hooks/planeaciones/useCargaPlanDiarioProfesor.js` administra la consulta y
+  recarga del plan activo, descartando respuestas de una selección anterior.
+- En la cuarta capa, la página conservó el envío remoto, la resolución de
+  conflictos, los reintentos y las decisiones asociadas al guardado.
+- La quinta capa delega esas responsabilidades en
+  `hooks/planeaciones/useGuardadoPlaneacionProfesor.js`, incluyendo el multipart
+  y la recuperación ante conflicto o conexión interrumpida.
+- La página recibe el resultado para actualizar el identificador, el mensaje y
+  la confirmación visual, sin conocer SweetAlert2 ni ejecutar el `POST`.
+- La sexta capa incorpora
+  `components/planeaciones/profesor/SeguimientoPlanProfesor.jsx` para estado y
+  comentarios administrativos.
+- `components/planeaciones/profesor/HistorialPlanesProfesor.jsx` presenta los
+  planes guardados, su paginación y la selección activa.
+- `components/planeaciones/profesor/EstadoRevisionBadge.jsx` es la insignia
+  compartida por seguimiento e historial. Los tres componentes son
+  presentacionales y reciben datos y callbacks mediante props.
+- La séptima capa traslada toda la guía editable a
+  `components/planeaciones/profesor/GuiaDidacticaProfesor.jsx`.
+- `components/planeaciones/profesor/CampoTextareaPlanProfesor.jsx` unifica los
+  campos con contador y límite de caracteres.
+- `components/planeaciones/profesor/EvidenciasPlanProfesor.jsx` presenta la
+  carga, previsualización y eliminación de imágenes nuevas o guardadas.
+- Estos componentes no administran el formulario ni consultan la API:
+  `PlanDeClases.jsx` continúa coordinando los hooks y entrega valores y
+  callbacks mediante props.
+- La octava capa extrae la ventana completa a
+  `components/planeaciones/profesor/PresentacionClaseProfesor.jsx`.
+- La presentación administra únicamente efectos de interfaz propios del modal:
+  portal al `body`, bloqueo y restauración del scroll, cierre con Escape y
+  apertura segura de evidencias.
+- Su contenido se deriva de props, delega la resolución protegida de imágenes
+  al hook compartido y no modifica el formulario. La página mantiene solo el
+  estado de apertura y cierre.
+- La novena capa incorpora
+  `components/planeaciones/profesor/EncabezadoPlanProfesor.jsx` para el título,
+  la identificación del plan y el estado visual del guardado.
+- `components/planeaciones/profesor/ConfiguracionPlanProfesor.jsx` presenta los
+  selectores de clase y periodo junto con la fecha activa.
+- La página conserva los estados seleccionados y entrega callbacks a la
+  configuración. La traducción del estado de guardado a textos y estilos se
+  resuelve en `utils/planeaciones/profesor.js`.
+- La décima capa traslada la confirmación visual a
+  `components/planeaciones/profesor/GuardadoPlanProfesor.jsx`.
+- El panel recibe progreso, texto, mensaje y acción mediante props. No construye
+  el multipart, no muestra alertas de conflicto y no ejecuta directamente el
+  servicio de planeaciones.
+- El hook `useGuardadoPlaneacionProfesor` continúa siendo el único responsable
+  del comando remoto y sus recuperaciones.
+- La undécima capa completa la consolidación del profesor con
+  `useClasesPlaneacionProfesor`, `useSeguimientoPlaneacionProfesor` y
+  `useEliminacionImagenPlanProfesor`.
+- Estos hooks aíslan respectivamente el contexto de clases, la coordinación de
+  revisión/comentarios y el comando de eliminación de evidencias.
+- `pages/PlanDeClases.jsx` queda como raíz de composición: conecta hooks con
+  componentes y no importa el servicio HTTP de planeaciones.
 - El encabezado utiliza una composición compacta: título y contexto a la
   izquierda, con el estado de guardado en una cápsula horizontal adaptable.
 - Al guardar correctamente, la vista vuelve al encabezado y la cápsula
@@ -338,6 +410,51 @@ Estado actual de componentes y paginas del frontend.
 
 - `pages/PlaneadoresClasesAdmin.jsx`: bandeja administrativa a ancho completo
   de planes enviados por profesores.
+- La primera capa de modularización delega constantes de filtros, fechas,
+  normalización de respuestas, parámetros de consulta y mensajes de error en
+  `utils/planeaciones/admin.js`. En esa etapa el componente mantuvo intactos el
+  estado, los efectos, las llamadas API y la presentación.
+- La segunda capa consume `services/planeacionesApi.js` para bandeja, conteos,
+  profesores, detalle, revisión, comentarios e imágenes. La pantalla mantiene
+  la coordinación de esas operaciones y sus estados visuales.
+- La tercera capa administrativa traslada filtros, búsqueda, profesores,
+  consultas, contador pendiente, URL y paginación a
+  `hooks/planeaciones/useListadoPlaneacionesAdmin.js`.
+- La bandeja recibe del hook datos y acciones preparados, conserva el render y
+  navega al detalle sin importar los servicios de listado.
+- Las utilidades del profesor y administrador viven bajo
+  `utils/planeaciones/`, organizadas por dominio en lugar de acumular archivos
+  en la raíz de `utils`.
+- La cuarta capa administrativa traslada carga del detalle, revisión,
+  comentarios y conflictos a
+  `hooks/planeaciones/useDetallePlaneacionAdmin.js`.
+- `hooks/planeaciones/useEliminacionImagenPlaneacionAdmin.js` encapsula la
+  confirmación y el comando de borrado de evidencias.
+- La página recibe estados y acciones de ambos hooks y deja de importar
+  directamente cualquier operación del servicio de planeaciones.
+- La quinta capa administrativa traslada el encabezado y selector temporal a
+  `components/planeaciones/admin/EncabezadoPlaneacionesAdmin.jsx`, y los
+  filtros de profesor y revisión a
+  `components/planeaciones/admin/FiltrosPlaneacionesAdmin.jsx`.
+- `components/planeaciones/admin/ElementosPlaneacionAdmin.jsx` concentra
+  badges, mensajes accesibles, spinner y la clase visual compartida de campos.
+- Los componentes administrativos reciben valores y callbacks mediante props.
+  La página conserva la composición, navegación y conexión con los hooks, sin
+  duplicar esos bloques presentacionales.
+- La sexta capa administrativa traslada búsqueda, cabecera de resultados,
+  tabla, tarjetas móviles, estados y paginación a
+  `components/planeaciones/admin/ResultadosPlaneacionesAdmin.jsx`.
+- El componente de resultados recibe planes, filtros visibles, estado de carga
+  y callbacks. La página conserva el hook de listado y la navegación al
+  detalle, incluyendo los parámetros actuales de la URL.
+- La séptima capa administrativa traslada carga, error, reporte del plan,
+  revisión, historial y evidencias a
+  `components/planeaciones/admin/DetallePlaneacionAdmin.jsx`.
+- El detalle recibe estado y acciones desde el hook de la página, y reutiliza
+  `useImagenProtegida` para mostrar adjuntos autenticados sin conocer los
+  servicios de planeaciones.
+- `pages/PlaneadoresClasesAdmin.jsx` queda como raíz de composición de la
+  bandeja y el detalle, responsable únicamente de hooks, rutas y navegación.
 - La columna lateral `Envios recibidos` y su scroll vertical interno fueron
   retirados. La lista usa todo el ancho disponible y el desplazamiento normal
   de la pagina.
