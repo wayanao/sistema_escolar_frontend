@@ -66,8 +66,8 @@ Estado actual de componentes y paginas del frontend.
 - `HorariosPorCurso.jsx`: vista de horarios por curso.
 - `FacturaModerna.jsx`: componente de factura.
 - `PlanillaRow.jsx`: fila de planilla.
-- `AsistenciaRow.jsx`: fila de asistencia; muestra botones presente/ausente y
-  contador de inasistencias cuando el historial ya cargo.
+- `components/asistencia/AsistenciaRow.jsx`: fila de asistencia; muestra botones
+  presente/ausente y contador de inasistencias cuando el historial ya cargó.
 - `Observaciones.jsx`: manejo de observaciones; su verificacion inicial usa
   cancelacion con tiempo limite para no dejar el badge en `Verificando`
   indefinidamente. Permite guardar con una sola dimension diligenciada,
@@ -202,17 +202,30 @@ Estado actual de componentes y paginas del frontend.
 
 ## Asistencia profesor
 
-- `pages/Asistencia.jsx`: pantalla para registrar asistencia por fecha,
-  asignacion y periodo.
+- `pages/Asistencia.jsx`: raíz de composición para registrar asistencia por
+  fecha, asignación y período. Lee el contexto superior, conserva navegación y
+  conecta hooks con componentes; no conoce rutas HTTP ni contiene comandos o
+  bloques visuales extensos.
 - Reutiliza `components/EncabezadoContextoCurso.jsx` para mostrar en una sola
   tarjeta el encabezado y la información de materia, salón, período y fecha,
   sin alterar la marcación.
-- Carga estudiantes desde `GET /planilla-excel/{asignacion_id}/{periodo}`.
-- Carga historial desde `GET /asistencia/historial/{asignacion_id}/{periodo}`
-  con estado visual de carga, reintento corto y mensaje de error con accion
-  `Reintentar`.
-- El historial se organiza en un mapa por estudiante para que el conteo de
-  inasistencias no dependa de busquedas repetidas durante el render.
+- `services/asistenciaApi.js` encapsula planilla, clases, historial y guardado;
+  acepta señales de cancelación y propaga errores sin decidir interfaz.
+- `utils/asistencia/profesor.js` contiene normalización de fechas, índice del
+  historial, resumen, detección de cambios, marcación masiva y payload.
+- `hooks/asistencia/useConsultasAsistenciaProfesor.js` carga estudiantes,
+  clases e historial, conserva el reintento corto y descarta respuestas
+  obsoletas.
+- `hooks/asistencia/useComandosAsistenciaProfesor.js` administra hidratación,
+  edición, validaciones, confirmaciones, guardado y recarga posterior.
+- `components/asistencia/AvisoRegistroAsistencia.jsx` muestra registro guardado
+  o edición pendiente.
+- `components/asistencia/PanelAsistenciaProfesor.jsx` presenta carga/error,
+  reintento, marcación rápida, resumen, filas y estado vacío.
+- `components/asistencia/BarraGuardadoAsistencia.jsx` presenta el resumen
+  inferior y delega el comando de guardado.
+- `components/asistencia/AsistenciaRow.jsx` conserva los controles accesibles y
+  el contador histórico por estudiante.
 - Si existe registro para la fecha seleccionada, muestra aviso
   `Asistencia del día ya tomada`, precarga los botones presente/ausente y
   permite editarlo con estado visible de cambios pendientes.
@@ -555,6 +568,13 @@ Estado actual de componentes y paginas del frontend.
 
 ## Componentes por modulo
 
+### Asistencia
+
+- `components/asistencia/AvisoRegistroAsistencia.jsx`
+- `components/asistencia/BarraGuardadoAsistencia.jsx`
+- `components/asistencia/PanelAsistenciaProfesor.jsx`
+- `components/asistencia/AsistenciaRow.jsx`
+
 ### Admin
 
 - `components/admin/IdentidadInstitucional.jsx`
@@ -654,6 +674,11 @@ Notas:
 
 ## Hooks y servicios
 
+- `hooks/asistencia/useConsultasAsistenciaProfesor.js`: carga cancelable de
+  estudiantes, clases e historial.
+- `hooks/asistencia/useComandosAsistenciaProfesor.js`: estado editable y ciclo
+  de guardado de asistencia.
+- `services/asistenciaApi.js`: frontera HTTP del módulo de asistencia.
 - `hooks/usePrintConfig.js`: hook relacionado con configuracion de impresion.
 - `services/printingService.js`: servicio para branding, plantillas e impresion.
 - `utils/api.js`: cliente Axios compartido.

@@ -36,12 +36,16 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/boletin/`: componentes del modulo de boletines.
 - `src/components/cartera/`: componentes del modulo de cartera.
 - `src/components/impresion/`: componentes de documentos imprimibles.
+- `src/components/asistencia/`: componentes presentacionales del flujo docente
+  de asistencia, sin acceso a hooks ni transporte HTTP.
 - `src/components/planeaciones/admin/`: componentes presentacionales de la
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
   flujo docente de planeaciones.
 - `src/constants/`: constantes compartidas entre paginas/componentes.
 - `src/hooks/`: hooks propios del frontend.
+- `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
+  de asistencia, separados entre estado remoto y marcación editable.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -50,6 +54,8 @@ Estado documentado del frontend `frontend-react`.
   React ni decisiones de interfaz.
 - `src/services/planeacionesApi.js`: contrato HTTP compartido por los flujos de
   planeaciones del profesor y del administrador.
+- `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
+  y guardado de asistencia del profesor.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
@@ -57,6 +63,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`:
   contratos y transformaciones puras del módulo de planeaciones. No realizan
   solicitudes, no acceden al DOM y no administran estado de React.
+- `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
+  incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
 
 ## Entrada de la aplicacion
 
@@ -221,3 +229,16 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   navegación. No contiene transporte HTTP ni bloques visuales extensos.
 - Las pruebas del detalle protegen estados de apertura, contenido, edición,
   aprobación, solicitudes de ajuste, trazabilidad y evidencias.
+- `src/pages/Asistencia.test.jsx` conserva la caracterización integrada de
+  carga, marcación, pendientes, edición, guardado y reintento.
+- `src/utils/asistencia/profesor.test.js` y
+  `src/services/asistenciaApi.test.js` protegen transformaciones, payload, rutas,
+  señales de cancelación y propagación de errores del módulo.
+- Los hooks de `src/hooks/asistencia/` separan consultas cancelables y comandos
+  editables. Sus pruebas cubren respuestas obsoletas, reintento, errores,
+  hidratación, confirmaciones y bloqueo de guardados simultáneos.
+- Los componentes de `src/components/asistencia/` reciben datos y acciones por
+  props. Sus pruebas protegen estados de historial, resumen, filas, vacío,
+  aviso de edición y barra de guardado.
+- `Asistencia.jsx` funciona como raíz de composición: lee el contexto superior,
+  conserva navegación y conecta ambos hooks con componentes presentacionales.

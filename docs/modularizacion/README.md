@@ -306,7 +306,7 @@ registrar al final:
 | Orden | Módulo | Estado | Documento |
 |---:|---|---|---|
 | Referencia | Planeaciones | Terminado en `fd9ed72` | Documentación global existente |
-| 1 | Asistencia | Pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
+| 1 | Asistencia | Terminado; commit pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
 | 2 | Planilla | Pendiente | [PLANILLA.md](./PLANILLA.md) |
 | 3 | Malla curricular | Pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
 | 4 | Boletines | Pendiente | [BOLETINES.md](./BOLETINES.md) |

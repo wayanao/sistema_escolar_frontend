@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-07-31 - Modularización completa de asistencia profesor
+
+- El flujo conserva textos, diseño, ruta `/asistencia`, almacenamiento y
+  contratos del backend, sin agregar funciones ni rediseños.
+- Las transformaciones puras y el payload viven en
+  `utils/asistencia/profesor.js`.
+- `services/asistenciaApi.js` centraliza planilla, clases, historial y guardado.
+- Los hooks de `hooks/asistencia/` separan consultas cancelables de marcación y
+  comandos editables.
+- Los bloques visuales viven en `components/asistencia/` y reciben datos y
+  acciones mediante props.
+- `pages/Asistencia.jsx` queda como raíz de composición, contexto y navegación.
+- Se conservan el reintento del historial, la edición segura, la restauración,
+  las validaciones de pendientes y el detalle de errores del backend.
+
+Verificación final:
+
+- 35 pruebas específicas de asistencia correctas.
+- `pnpm run check:deploy`: correcto; 133 pruebas globales, lint y build
+  correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, alcance y duplicados: correcta.
+
 ## 2026-07-29 - Decimosexta capa: detalle visual y consolidación administrativa
 
 - Los estados de carga y error, el reporte del plan, el formulario de revisión,
