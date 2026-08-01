@@ -53,17 +53,22 @@ Estado actual de componentes y paginas del frontend.
   color, y con exterior transparente.
 - `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
-- `AsignarClase.jsx` y `AsignarClaseGrid.jsx`: asignacion de clases.
-  `AsignarClase.jsx` no selecciona un curso por defecto al cargar; el admin
-  debe escoger `Seleccionar curso` para fijar el contexto de trabajo.
-- `CrearCurso.jsx`: creacion/gestion relacionada con cursos.
+- `components/administracionAcademica/asignaciones/AsignarClase.jsx`:
+  contenedor de asignaciones; conecta consultas, disponibilidad y comandos con
+  selector, formulario y calendarios presentacionales. No selecciona un curso
+  por defecto al cargar.
+- `components/administracionAcademica/cursos/CrearCurso.jsx`: contenedor de
+  creación, edición, estado y listado de cursos.
 - `CrearEstudiante.jsx`: creacion/gestion relacionada con estudiantes.
-- `CrearMateria.jsx`: creacion/gestion relacionada con materias.
-- `CrearProfesor.jsx`: creacion/gestion relacionada con profesores.
+- `components/administracionAcademica/materias/CrearMateria.jsx`: contenedor de
+  creación, edición, estado y listado de materias.
+- `components/administracionAcademica/profesores/CrearProfesor.jsx`: contenedor
+  de creación, edición, búsqueda, estado y listado de profesores.
 - `OrdenBoletin.jsx`: orden responsive de materias por curso para impresion
   de boletines.
-- `HorariosProfesores.jsx`: vista de horarios por profesor.
-- `HorariosPorCurso.jsx`: vista de horarios por curso.
+- `components/administracionAcademica/horarios/HorariosProfesores.jsx` y
+  `HorariosPorCurso.jsx`: contenedores de consulta para calendarios por profesor
+  y curso; delegan toda la presentación a componentes del mismo dominio.
 - `FacturaModerna.jsx`: componente de factura.
 - `PlanillaRow.jsx`: fila de planilla.
 - `components/asistencia/AsistenciaRow.jsx`: fila de asistencia; muestra botones
@@ -654,7 +659,6 @@ Notas:
 - `EgresosAdmin.jsx`
 - `EstudiantesAdmin.jsx`
 - `Formulario.jsx`
-- `GestionAcademica.jsx`
 - `HorariosAdmin.jsx`
 - `InventarioAdmin.jsx`
 - `Login.jsx`
@@ -679,6 +683,12 @@ Notas:
 - `hooks/asistencia/useComandosAsistenciaProfesor.js`: estado editable y ciclo
   de guardado de asistencia.
 - `services/asistenciaApi.js`: frontera HTTP del módulo de asistencia.
+- `hooks/administracionAcademica/`: consultas, disponibilidad, formularios y
+  comandos de profesores, cursos, materias, asignaciones y horarios.
+- `services/asignacionesApi.js`, `profesoresApi.js`, `cursosApi.js`,
+  `materiasApi.js` y `horariosApi.js`: fronteras HTTP del módulo académico.
+- `utils/administracionAcademica/`: contratos y transformaciones puras del
+  módulo, con pruebas junto a cada entidad.
 - `hooks/usePrintConfig.js`: hook relacionado con configuracion de impresion.
 - `services/printingService.js`: servicio para branding, plantillas e impresion.
 - `utils/api.js`: cliente Axios compartido.

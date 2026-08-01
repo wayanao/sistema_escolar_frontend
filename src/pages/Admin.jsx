@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 
-const CrearProfesor = lazy(() => import("../components/CrearProfesor"));
-const CrearCurso = lazy(() => import("../components/CrearCurso"));
-const CrearMateria = lazy(() => import("../components/CrearMateria"));
-const AsignarClase = lazy(() => import("../components/AsignarClase"));
+const CrearProfesor = lazy(() => import("../components/administracionAcademica/profesores/CrearProfesor"));
+const CrearCurso = lazy(() => import("../components/administracionAcademica/cursos/CrearCurso"));
+const CrearMateria = lazy(() => import("../components/administracionAcademica/materias/CrearMateria"));
+const AsignarClase = lazy(() => import("../components/administracionAcademica/asignaciones/AsignarClase"));
 const OrdenBoletin = lazy(() => import("../components/OrdenBoletin"));
 
 const modulosAdmin = [

@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-08-01 - Modularización completa de administración académica y horarios
+
+- Se conservaron diseño, textos, rutas, comportamiento y contratos del backend
+  en profesores, cursos, materias, asignaciones y horarios.
+- `utils/administracionAcademica/` concentra contratos y transformaciones puras;
+  cinco servicios separan el transporte HTTP y los hooks controlan consultas,
+  formularios y comandos.
+- Los componentes de `components/administracionAcademica/` quedan limitados a
+  presentación y contenedores; `Admin.jsx` y `HorariosAdmin.jsx` son las raíces
+  activas de composición.
+- Se retiraron los componentes de las ubicaciones antiguas y
+  `GestionAcademica.jsx`, raíz histórica sin rutas, imports ni consumidores.
+- No se modificó Orden boletín ni ningún otro dominio administrativo.
+
+Verificación final:
+
+- `pnpm run check:deploy`: correcto; 77 archivos, 287 pruebas, lint y build de
+  producción correctos.
+- `git diff --check`: correcto; los 94 archivos pertenecen al módulo o a su
+  documentación autorizada.
+- Auditoría de rutas, imports, alcance e implementaciones duplicadas: correcta.
+
 ## 2026-07-31 - Modularización completa de asistencia profesor
 
 - El flujo conserva textos, diseño, ruta `/asistencia`, almacenamiento y

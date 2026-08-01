@@ -1,5 +1,5 @@
-import HorariosProfesores from "../components/HorariosProfesores";
-import HorariosPorCurso from "../components/HorariosPorCurso";
+import HorariosProfesores from "../components/administracionAcademica/horarios/HorariosProfesores";
+import HorariosPorCurso from "../components/administracionAcademica/horarios/HorariosPorCurso";
 
 function HorariosAdmin() {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
