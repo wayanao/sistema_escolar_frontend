@@ -33,7 +33,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/assets/`: imagenes y recursos estaticos del frontend.
 - `src/components/`: componentes reutilizables y componentes por modulo.
 - `src/components/admin/`: componentes administrativos de branding/plantillas.
-- `src/components/boletin/`: componentes del modulo de boletines.
+- `src/components/boletin/`: vistas presentacionales de generación,
+  impresión, ingreso docente y orden del módulo de boletines.
 - `src/components/cartera/`: componentes del modulo de cartera.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
@@ -48,6 +49,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
   de asistencia, separados entre estado remoto y marcación editable.
+- `src/hooks/boletines/`: consultas cancelables y comandos editables de
+  generación administrativa, ingreso docente y orden de materias.
 - `src/hooks/administracionAcademica/`: consultas cancelables, formularios y
   comandos de administración académica; Horarios conserva dos consultas de
   solo lectura independientes.
@@ -61,6 +64,8 @@ Estado documentado del frontend `frontend-react`.
   planeaciones del profesor y del administrador.
 - `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
   y guardado de asistencia del profesor.
+- `src/services/boletinesApi.js`: contrato HTTP de cursos, estudiantes,
+  generación, referencia y guardado docente y orden de materias.
 - `src/services/asignacionesApi.js`, `profesoresApi.js`, `cursosApi.js`,
   `materiasApi.js` y `horariosApi.js`: contratos HTTP de administración
   académica y horarios.
@@ -73,6 +78,8 @@ Estado documentado del frontend `frontend-react`.
   solicitudes, no acceden al DOM y no administran estado de React.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
+- `src/utils/boletines/`: contratos y transformaciones puras de generación,
+  ingreso docente y orden de materias, con pruebas adyacentes.
 - `src/utils/administracionAcademica/`: contratos, validaciones, payloads,
   filtros, estados y transformaciones puras del módulo académico.
 
@@ -108,6 +115,22 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   cambian.
 - Las páginas conectan contenedores de `components/administracionAcademica/`;
   no realizan HTTP ni conservan implementaciones antiguas paralelas.
+
+## Boletines
+
+- `/boletin` monta `pages/Boletin.jsx` bajo `AdminRoute`; conecta la consulta
+  administrativa con la selección y el documento imprimible.
+- `/ingreso-boletin` monta `pages/IngresoBoletinProfesor.jsx` bajo
+  `ProtectedRoute`; conecta consultas y comandos docentes con su vista.
+- La pestaña `orden-boletin` de `/admin` carga `pages/OrdenBoletin.jsx` y
+  conserva el orden configurable por curso.
+- `services/boletinesApi.js` es la única frontera HTTP del módulo. Utilidades,
+  hooks y componentes se separan bajo sus carpetas de dominio.
+- Las páginas son raíces de composición y los componentes reciben datos y
+  callbacks por props. No quedan conectores ni implementaciones legacy
+  paralelas.
+- El impreso conserva `DocumentoImprimible`, formato A4, identidad
+  institucional y desplazamiento horizontal móvil.
 
 ## Criterios de UX responsive
 
@@ -267,3 +290,7 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `src/hooks/administracionAcademica/`, sus cinco servicios y utilidades
   protegen contratos, consultas, comandos y presentación. `Admin.test.jsx` y
   `HorariosAdmin.test.jsx` protegen las dos raíces de composición.
+- Las pruebas de `src/utils/boletines/`, `src/services/boletinesApi.test.js`,
+  `src/hooks/boletines/`, `src/components/boletin/` y sus tres páginas protegen
+  cálculos, payloads, cancelación, comandos, presentación e integración. La
+  prueba de `Admin` incluye la composición de la pestaña de orden.

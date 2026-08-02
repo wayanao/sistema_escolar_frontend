@@ -8,14 +8,14 @@ import TenantStatusBanner from "./components/TenantStatusBanner";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
 const Asistencia = lazy(() => import("./pages/Asistencia"));
-const Boletin = lazy(() => import("./components/boletin/Boletin"));
+const Boletin = lazy(() => import("./pages/Boletin"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Formulario = lazy(() => import("./pages/Formulario"));
 const PlanDeClases = lazy(() => import("./pages/PlanDeClases"));
 const DashboardProfesor = lazy(() => import("./pages/DashboardProfesor"));
 const PlaneadorAnual = lazy(() => import("./pages/PlaneadorAnual"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const IngresoBoletinProfesor = lazy(() => import("./components/boletin/IngresoBoletinProfesor"));
+const IngresoBoletinProfesor = lazy(() => import("./pages/IngresoBoletinProfesor"));
 const RankingRendimiento = lazy(() => import("./pages/RankingRendimiento"));
 const RankingMejorRendimiento = lazy(() => import("./pages/RankingMejorRendimiento"));
 const PagosAdmin = lazy(() => import("./pages/PagosAdmin"));

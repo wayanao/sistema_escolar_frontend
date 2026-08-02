@@ -64,8 +64,8 @@ Estado actual de componentes y paginas del frontend.
   creación, edición, estado y listado de materias.
 - `components/administracionAcademica/profesores/CrearProfesor.jsx`: contenedor
   de creación, edición, búsqueda, estado y listado de profesores.
-- `OrdenBoletin.jsx`: orden responsive de materias por curso para impresion
-  de boletines.
+- `pages/OrdenBoletin.jsx`: raíz de composición del orden responsive de
+  materias por curso para impresión de boletines.
 - `components/administracionAcademica/horarios/HorariosProfesores.jsx` y
   `HorariosPorCurso.jsx`: contenedores de consulta para calendarios por profesor
   y curso; delegan toda la presentación a componentes del mismo dominio.
@@ -558,8 +558,9 @@ Estado actual de componentes y paginas del frontend.
 - `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
   necesitan comportamiento especial de pantalla. Los documentos marcados como
   boletin, certificado o cartera usan root con scroll lateral en movil.
-- `Boletin.jsx`: el impreso final conserva ancho A4 en movil y se desplaza a
-  los lados. El boton `Atras` queda arriba a la izquierda.
+- `components/boletin/BoletinImprimible.jsx`: el impreso final conserva ancho
+  A4 en movil y se desplaza a los lados. El boton `Atras` queda arriba a la
+  izquierda.
 - `CertificadosAdmin.jsx`: certificado de notas, certificado de matricula y
   reporte academico parcial conservan ancho A4 en movil, tienen scroll lateral
   y boton `Atras` arriba. El reporte parcial permite imprimir curso completo o
@@ -584,19 +585,30 @@ Estado actual de componentes y paginas del frontend.
 
 - `components/admin/IdentidadInstitucional.jsx`
 - `components/admin/PlantillasAdmin.jsx`
-- `components/OrdenBoletin.jsx`: pestaña de Administracion para definir el
-  orden de materias por curso en boletines, con flechas, posicion numerica y
+- `pages/OrdenBoletin.jsx`: raíz cargada por la pestaña de Administración para
+  definir el orden de materias por curso, con flechas, posición numérica y
   guardado por curso.
 
 ### Boletin
 
-- `components/boletin/Boletin.jsx`
-- `components/boletin/Header.jsx`
-- `components/boletin/IngresoBoletinProfesor.jsx`: ingreso de observaciones de
-  boletin final; oculta notas tecnicas como `mas_alto` y muestra los tipos de
-  nota con etiquetas humanas marcadas con `translate="no"`.
-- `components/boletin/Materia.jsx`
-- `components/boletin/TablaNotas.jsx`
+- `components/boletin/SeleccionBoletinAdministrativo.jsx`: filtros, tabla de
+  estudiantes y acción para generar el boletín administrativo.
+- `components/boletin/BoletinImprimible.jsx`: documento A4 con escalas,
+  promedio, materias, observaciones y contrato de `DocumentoImprimible`.
+- `components/boletin/VistaIngresoBoletinProfesor.jsx`: ingreso de
+  observaciones del boletín final; oculta notas técnicas como `mas_alto` y
+  protege etiquetas humanas con `translate="no"`. Durante un cambio de clase,
+  espera que notas y observaciones pertenezcan a la misma consulta antes de
+  mostrar cada tarjeta.
+- `components/boletin/VistaOrdenBoletin.jsx`: controles y lista presentacional
+  del orden de materias por curso.
+- `pages/Boletin.jsx`, `pages/IngresoBoletinProfesor.jsx` y
+  `pages/OrdenBoletin.jsx`: raíces de composición que conectan hooks y vistas.
+- `hooks/boletines/`: consultas cancelables, edición, acciones masivas y
+  comandos de guardado u orden.
+- `services/boletinesApi.js`: frontera HTTP única del módulo.
+- `utils/boletines/`: cálculos, normalización, filtros, movimientos y payloads
+  puros.
 
 ### Constantes
 
@@ -651,6 +663,7 @@ Notas:
 - `Admin.jsx`
 - `AdminDashboard.jsx`
 - `Asistencia.jsx`
+- `Boletin.jsx`
 - `BrandingAdmin.jsx`
 - `CarteraVencidaAdmin.jsx`
 - `CertificadosAdmin.jsx`
@@ -661,8 +674,10 @@ Notas:
 - `Formulario.jsx`
 - `HorariosAdmin.jsx`
 - `InventarioAdmin.jsx`
+- `IngresoBoletinProfesor.jsx`
 - `Login.jsx`
 - `NominaAdmin.jsx`
+- `OrdenBoletin.jsx`
 - `PagosAdmin.jsx`
 - `PlanDeClases.jsx`
 - `PlaneadorAnual.jsx`
@@ -683,6 +698,9 @@ Notas:
 - `hooks/asistencia/useComandosAsistenciaProfesor.js`: estado editable y ciclo
   de guardado de asistencia.
 - `services/asistenciaApi.js`: frontera HTTP del módulo de asistencia.
+- `hooks/boletines/`: consultas y comandos de los tres flujos de boletines.
+- `services/boletinesApi.js`: frontera HTTP del módulo de boletines.
+- `utils/boletines/`: contratos y transformaciones puras del módulo.
 - `hooks/administracionAcademica/`: consultas, disponibilidad, formularios y
   comandos de profesores, cursos, materias, asignaciones y horarios.
 - `services/asignacionesApi.js`, `profesoresApi.js`, `cursosApi.js`,

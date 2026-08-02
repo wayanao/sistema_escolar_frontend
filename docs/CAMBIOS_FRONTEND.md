@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-08-02 - Modularización completa de boletines
+
+- Se conservaron diseño, textos, rutas, protecciones, comportamiento,
+  almacenamiento local, payloads y contratos del backend en generación
+  administrativa, ingreso docente y orden de materias.
+- `utils/boletines/` concentra filtros, consolidación, cálculos, normalización,
+  copia masiva, movimientos y construcción de payloads puros.
+- `services/boletinesApi.js` centraliza el transporte HTTP; los hooks separan
+  consultas cancelables de edición, guardados y orden.
+- Las vistas de `components/boletin/` reciben datos y callbacks por props;
+  `pages/Boletin.jsx`, `IngresoBoletinProfesor.jsx` y `OrdenBoletin.jsx` son las
+  raíces de composición.
+- Se conservaron `/boletin`, `/ingreso-boletin`, sus guards y la pestaña
+  `orden-boletin` de `/admin`.
+- Se retiraron los conectores anteriores y `Header.jsx`, `Materia.jsx` y
+  `TablaNotas.jsx`, que no tenían consumidores activos y duplicaban un contrato
+  de impreso distinto al vigente.
+- El boletín mantiene `DocumentoImprimible`, formato A4, escalas numérica y de
+  desarrollo y desplazamiento horizontal móvil.
+- Al cambiar entre clases con el mismo estudiante, la vista espera que notas y
+  observaciones correspondan a la consulta activa antes de mostrar la tarjeta;
+  esto evita la pantalla blanca cuando se regresa a una materia con más notas.
+
+Verificación final:
+
+- 17 archivos y 44 pruebas específicas de boletines correctas.
+- `pnpm run check:deploy`: correcto; 93 archivos, 330 pruebas, lint y build de
+  producción correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-01 - Modularización completa de administración académica y horarios
 
 - Se conservaron diseño, textos, rutas, comportamiento y contratos del backend

@@ -14,14 +14,14 @@ vi.mock("../components/administracionAcademica/materias/CrearMateria", () => ({
 vi.mock("../components/administracionAcademica/asignaciones/AsignarClase", () => ({
     default: () => <div>Contenido de asignaciones</div>,
 }));
-vi.mock("../components/OrdenBoletin", () => ({
+vi.mock("./OrdenBoletin", () => ({
     default: () => <div>Contenido de orden boletín</div>,
 }));
 
 import Admin from "./Admin";
 
 describe("composición de administración académica", () => {
-    it("conserva pestañas, selección inicial y carga diferida de cursos, materias y asignaciones", async () => {
+    it("conserva pestañas, selección inicial y carga diferida de los módulos académicos", async () => {
         const user = userEvent.setup();
         render(<Admin />);
 
@@ -32,10 +32,12 @@ describe("composición de administración académica", () => {
         const cursos = screen.getByRole("button", { name: "Cursos" });
         const materias = screen.getByRole("button", { name: "Materias" });
         const asignaciones = screen.getByRole("button", { name: "Asignaciones" });
+        const ordenBoletin = screen.getByRole("button", { name: "Orden boletín" });
         expect(profesores).toHaveAttribute("aria-current", "page");
         expect(cursos).not.toHaveAttribute("aria-current");
         expect(materias).not.toHaveAttribute("aria-current");
         expect(asignaciones).not.toHaveAttribute("aria-current");
+        expect(ordenBoletin).not.toHaveAttribute("aria-current");
 
         await user.click(cursos);
 
@@ -58,5 +60,11 @@ describe("composición de administración académica", () => {
         expect(cursos).not.toHaveAttribute("aria-current");
         expect(profesores).not.toHaveAttribute("aria-current");
         expect(screen.getByRole("navigation", { name: "Módulos de administración" })).toBeInTheDocument();
+
+        await user.click(ordenBoletin);
+
+        expect(await screen.findByText("Contenido de orden boletín")).toBeInTheDocument();
+        expect(ordenBoletin).toHaveAttribute("aria-current", "page");
+        expect(asignaciones).not.toHaveAttribute("aria-current");
     });
 });

@@ -4,7 +4,7 @@ const CrearProfesor = lazy(() => import("../components/administracionAcademica/p
 const CrearCurso = lazy(() => import("../components/administracionAcademica/cursos/CrearCurso"));
 const CrearMateria = lazy(() => import("../components/administracionAcademica/materias/CrearMateria"));
 const AsignarClase = lazy(() => import("../components/administracionAcademica/asignaciones/AsignarClase"));
-const OrdenBoletin = lazy(() => import("../components/OrdenBoletin"));
+const OrdenBoletin = lazy(() => import("./OrdenBoletin"));
 
 const modulosAdmin = [
     {

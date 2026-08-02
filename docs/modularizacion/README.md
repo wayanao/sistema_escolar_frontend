@@ -3,7 +3,7 @@
 Hoja de ruta para migrar el frontend por módulos y capas sin cambiar el
 comportamiento funcional existente.
 
-Última revisión: 2026-08-01.
+Última revisión: 2026-08-02.
 
 ## Objetivo
 
@@ -309,7 +309,7 @@ registrar al final:
 | 1 | Asistencia | Terminado; commit pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
 | 2 | Planilla | Pendiente | [PLANILLA.md](./PLANILLA.md) |
 | 3 | Malla curricular | Pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
-| 4 | Boletines | Pendiente | [BOLETINES.md](./BOLETINES.md) |
+| 4 | Boletines | Terminado; commit pendiente | [BOLETINES.md](./BOLETINES.md) |
 | 5 | Estudiantes y observador | Pendiente | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
 | 6 | Certificados e impresión | Pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
 | 7 | Pagos | Pendiente | [PAGOS.md](./PAGOS.md) |
