@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   generarBoletinCertificado,
+  generarReporteParcialCertificado,
   listarCursosCertificados,
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
@@ -189,7 +190,7 @@ export default function useConsultasCertificadosAdmin() {
       : Number(materiaReporte);
     const respuestas = await Promise.allSettled(
       estudiantesObjetivo.map((estudiante) =>
-        generarBoletinCertificado(estudiante.id, periodoNumero, {
+        generarReporteParcialCertificado(estudiante.id, periodoNumero, {
           signal: controller.signal,
         })),
     );

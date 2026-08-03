@@ -1,5 +1,23 @@
 # Cambios Frontend
 
+## 2026-08-03 - Reporte académico parcial en tiempo real
+
+- El reporte parcial dejó de reutilizar el contrato del boletín oficial y ahora
+  consume `GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}`.
+- Las notas y promedios reflejan la planilla vigente aunque exista un boletín
+  enviado anteriormente.
+- Cada fila muestra primero la descripción guardada por el profesor en la
+  planilla, por ejemplo `Evaluación oral`, y conserva nota o valoración.
+- El certificado de notas continúa usando
+  `/boletines/admin/generar/{estudiante_id}/{periodo}` sin cambios.
+
+Verificación:
+
+- 17 archivos y 62 pruebas específicas de certificados e impresión correctas.
+- `pnpm run check:deploy`: correcto; 126 archivos, 441 pruebas, ESLint y build
+  de producción de 252 módulos correctos.
+- `git diff --check`: correcto.
+
 ## 2026-08-03 - Modularización completa de certificados e impresión
 
 - Se conservaron diseño, textos, rutas, permisos, formato A4, experiencia

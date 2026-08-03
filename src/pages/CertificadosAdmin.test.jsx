@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { certificadosApiMock } = vi.hoisted(() => ({
   certificadosApiMock: {
     generarBoletinCertificado: vi.fn(),
+    generarReporteParcialCertificado: vi.fn(),
     listarCursosCertificados: vi.fn(),
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
@@ -71,6 +72,23 @@ function boletin(periodo) {
   };
 }
 
+function reportePlanilla(periodo) {
+  const data = boletin(periodo);
+  return {
+    ...data,
+    materias: data.materias.map((materia) => ({
+      ...materia,
+      detalles: [
+        {
+          descripcion: "Evaluación oral",
+          nota: notasPorPeriodo[periodo],
+          tipo_evaluacion: "numerica",
+        },
+      ],
+    })),
+  };
+}
+
 describe("CertificadosAdmin", () => {
   beforeEach(() => {
     Object.defineProperty(window, "scrollTo", {
@@ -90,6 +108,9 @@ describe("CertificadosAdmin", () => {
     ]);
     certificadosApiMock.generarBoletinCertificado.mockImplementation(
       (_estudianteId, periodo) => Promise.resolve(boletin(periodo)),
+    );
+    certificadosApiMock.generarReporteParcialCertificado.mockImplementation(
+      (_estudianteId, periodo) => Promise.resolve(reportePlanilla(periodo)),
     );
     certificadosApiMock.listarHistorialAsistenciaCertificados.mockResolvedValue([
       {
@@ -151,11 +172,14 @@ describe("CertificadosAdmin", () => {
     await user.click(screen.getByRole("button", { name: "Ver reporte" }));
 
     expect(await screen.findByText("Evaluación oral")).toBeInTheDocument();
-    expect(certificadosApiMock.generarBoletinCertificado).toHaveBeenCalledWith(
+    expect(
+      certificadosApiMock.generarReporteParcialCertificado,
+    ).toHaveBeenCalledWith(
       8,
       1,
       { signal: expect.any(AbortSignal) },
     );
+    expect(certificadosApiMock.generarBoletinCertificado).not.toHaveBeenCalled();
     expect(
       certificadosApiMock.listarHistorialAsistenciaCertificados,
     ).toHaveBeenCalledWith(44, 1, { signal: expect.any(AbortSignal) });

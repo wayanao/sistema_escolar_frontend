@@ -526,6 +526,7 @@ GET /cursos
 GET /estudiantes
 GET /materias
 GET /boletines/admin/generar/{estudiante_id}/{periodo}
+GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}
 GET /asistencia/historial/{asignacion_id}/{periodo}
 ```
 
@@ -540,8 +541,10 @@ Uso:
 - El certificado de notas reutiliza el consolidado academico del boletin admin.
 - Si la materia no trae definitiva directa, o recibe `0`, la pantalla intenta
   calcularla con las notas numericas mayores que `0` recibidas en `detalles`.
-- El reporte academico parcial reutiliza el consolidado de boletin admin para
-  notas actuales y consulta asistencia por `asignacion_id` para mostrar
+- El reporte academico parcial usa su endpoint propio para leer en tiempo real
+  `notas_detalle`, incluyendo el nombre de cada evaluacion, su nota o
+  valoracion y el promedio vigente. No espera el envio del boletin al admin.
+- El reporte consulta además asistencia por `asignacion_id` para mostrar
   inasistencias del periodo en las materias incluidas.
 - No cierra periodo ni reemplaza boletin/certificado final; es una foto
   informativa con los datos registrados hasta el momento.

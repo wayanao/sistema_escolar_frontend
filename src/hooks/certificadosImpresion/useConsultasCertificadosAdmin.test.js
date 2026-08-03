@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { apiMock } = vi.hoisted(() => ({
   apiMock: {
     generarBoletinCertificado: vi.fn(),
+    generarReporteParcialCertificado: vi.fn(),
     listarCursosCertificados: vi.fn(),
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
@@ -46,6 +47,24 @@ function crearBoletin(periodo, curso = "Quinto") {
   };
 }
 
+function crearReportePlanilla(periodo, curso = "Quinto") {
+  return {
+    ...crearBoletin(periodo, curso),
+    materias: [
+      {
+        ...crearBoletin(periodo, curso).materias[0],
+        detalles: [
+          {
+            descripcion: "Evaluación oral",
+            nota: 4.2,
+            tipo_evaluacion: "numerica",
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function crearPendiente() {
   let resolve;
   const promise = new Promise((resolver) => {
@@ -80,6 +99,9 @@ beforeEach(() => {
   ]);
   apiMock.generarBoletinCertificado.mockImplementation(
     (_estudianteId, periodo) => Promise.resolve(crearBoletin(periodo)),
+  );
+  apiMock.generarReporteParcialCertificado.mockImplementation(
+    (_estudianteId, periodo) => Promise.resolve(crearReportePlanilla(periodo)),
   );
   apiMock.listarHistorialAsistenciaCertificados.mockResolvedValue([
     {
@@ -190,6 +212,15 @@ describe("useConsultasCertificadosAdmin", () => {
       promedio: 4.2,
       inasistencias: 1,
     });
+    expect(apiMock.generarReporteParcialCertificado).toHaveBeenCalledWith(
+      8,
+      1,
+      { signal: expect.any(AbortSignal) },
+    );
+    expect(apiMock.generarBoletinCertificado).not.toHaveBeenCalled();
+    expect(respuesta.data.estudiantes[0].materias[0].detalles).toEqual([
+      { descripcion: "Evaluación oral", valor: "4.2" },
+    ]);
     expect(
       apiMock.listarHistorialAsistenciaCertificados,
     ).toHaveBeenCalledWith(44, 1, { signal: expect.any(AbortSignal) });

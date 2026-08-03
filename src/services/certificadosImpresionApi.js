@@ -16,3 +16,15 @@ export async function listarMateriasCertificados({ signal } = {}) {
     : await api.get("/materias");
   return respuesta.data;
 }
+
+export async function generarReporteParcialCertificado(
+  estudianteId,
+  periodo,
+  { signal } = {},
+) {
+  const ruta = `/boletines/admin/reporte-parcial/${estudianteId}/${periodo}`;
+  const respuesta = signal
+    ? await api.get(ruta, { signal })
+    : await api.get(ruta);
+  return respuesta.data;
+}

@@ -181,7 +181,11 @@ describe("utilidades puras de certificados", () => {
       profesor_apellido: "Ruiz",
       definitiva: 4.2,
       detalles: [
-        { observacion: "Evaluación oral", notas_por_periodo: { 1: 4.2 } },
+        {
+          descripcion: "Evaluación oral",
+          observacion: "Logro escrito para el boletín",
+          notas_por_periodo: { 1: 4.2 },
+        },
       ],
     }, 1, asistencia, 8);
 

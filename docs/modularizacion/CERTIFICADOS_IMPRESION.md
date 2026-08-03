@@ -661,6 +661,22 @@ caracterización para la construcción de reportes y el wrapper imprimible.
 
 `refactor(certificados): modularizar certificados e impresion`
 
+## Ajuste funcional posterior al cierre: reporte parcial en tiempo real
+
+- Después del commit de modularización, el reporte académico parcial se separó
+  del contrato del certificado oficial.
+- `GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}` lee la
+  planilla vigente desde `notas_detalle`, conserva la descripción de cada nota
+  y recalcula el promedio actual aunque exista un boletín enviado previamente.
+- El certificado de notas conserva `/boletines/admin/generar` y no fue alterado
+  por este ajuste.
+- Verificación frontend: 17 archivos y 62 pruebas específicas; `check:deploy`
+  correcto con 126 archivos, 441 pruebas, ESLint y build de 252 módulos.
+- Verificación backend: 3 pruebas nuevas y Ruff correctos. La suite completa
+  fuera del sandbox obtuvo 189 pruebas correctas y mantuvo 3 fallos
+  preexistentes de Super Admin por fechas fijas ya vencidas, ajenos a
+  boletines.
+
 ## Entrega para el siguiente chat
 
 - Última capa terminada: Capa 7, cierre. Módulo completo.

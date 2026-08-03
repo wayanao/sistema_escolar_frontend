@@ -196,7 +196,7 @@ export function getValorDetalle(detalle, periodo) {
 
 export function getDescripcionDetalle(detalle, index) {
   const texto = String(
-    detalle?.observacion ?? detalle?.descripcion ?? detalle?.tipo_nota ?? "",
+    detalle?.descripcion ?? detalle?.tipo_nota ?? detalle?.observacion ?? "",
   ).trim();
   return texto || `Evaluacion ${index + 1}`;
 }

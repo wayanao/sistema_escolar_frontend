@@ -12,6 +12,7 @@ vi.mock("../utils/api", () => ({
 
 import {
   generarBoletinCertificado,
+  generarReporteParcialCertificado,
   listarCursosCertificados,
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
@@ -43,12 +44,17 @@ describe("contrato HTTP de certificados", () => {
 
   it("conserva las rutas de boletines e historial y devuelve solo los datos", async () => {
     const boletin = { estudiante_nombre: "Sara", periodo: 2 };
+    const reporteParcial = { estudiante_nombre: "Sara", periodo: 2 };
     const historial = [{ estudiante_id: 8, historial: [] }];
     apiMock.get
       .mockResolvedValueOnce({ data: boletin })
+      .mockResolvedValueOnce({ data: reporteParcial })
       .mockResolvedValueOnce({ data: historial });
 
     await expect(generarBoletinCertificado(8, 2)).resolves.toBe(boletin);
+    await expect(
+      generarReporteParcialCertificado(8, 2),
+    ).resolves.toBe(reporteParcial);
     await expect(
       listarHistorialAsistenciaCertificados(44, 2),
     ).resolves.toBe(historial);
@@ -59,7 +65,25 @@ describe("contrato HTTP de certificados", () => {
     );
     expect(apiMock.get).toHaveBeenNthCalledWith(
       2,
+      "/boletines/admin/reporte-parcial/8/2",
+    );
+    expect(apiMock.get).toHaveBeenNthCalledWith(
+      3,
       "/asistencia/historial/44/2",
+    );
+  });
+
+  it("propaga la señal al reporte parcial en tiempo real", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValueOnce({ data: { materias: [] } });
+
+    await generarReporteParcialCertificado(8, 3, {
+      signal: controller.signal,
+    });
+
+    expect(apiMock.get).toHaveBeenCalledWith(
+      "/boletines/admin/reporte-parcial/8/3",
+      { signal: controller.signal },
     );
   });
 
