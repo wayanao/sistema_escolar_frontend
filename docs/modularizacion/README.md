@@ -308,7 +308,7 @@ registrar al final:
 | Referencia | Planeaciones | Terminado en `fd9ed72` | Documentación global existente |
 | 1 | Asistencia | Terminado; commit pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
 | 2 | Planilla | Pendiente | [PLANILLA.md](./PLANILLA.md) |
-| 3 | Malla curricular | Pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
+| 3 | Malla curricular | Terminado; commit pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
 | 4 | Boletines | Terminado; commit pendiente | [BOLETINES.md](./BOLETINES.md) |
 | 5 | Estudiantes y observador | Terminado; commit pendiente | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
 | 6 | Certificados e impresión | Terminado; commit pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |

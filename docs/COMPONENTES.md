@@ -410,8 +410,28 @@ Estado actual de componentes y paginas del frontend.
 
 ## Malla Curricular profesor
 
-- `pages/PlaneadorAnual.jsx`: organiza hasta ocho filas curriculares por
-  asignacion y periodo.
+- `pages/PlaneadorAnual.jsx`: raíz de composición de la ruta
+  `/planeador-anual`; conecta hooks, contexto e impresión sin conocer endpoints,
+  payloads ni bloques visuales extensos.
+- `services/mallaCurricularApi.js`: frontera HTTP única para asignaciones,
+  consulta por período y guardado posicional.
+- `utils/mallaCurricular/planeadorAnual.js`: contrato puro de ocho filas,
+  mapeo por `slot`, normalización, validaciones y payload.
+- `hooks/mallaCurricular/useConsultasMallaCurricular.js`: administra período,
+  persistencia, asignación, carga, recarga y descarte de respuestas antiguas.
+- `hooks/mallaCurricular/useComandosMallaCurricular.js`: administra filas
+  editables, validaciones, progreso, guardado, confirmaciones y errores.
+- `components/mallaCurricular/EncabezadoMallaCurricular.jsx`: título, contexto,
+  estado y selector controlado de período.
+- `components/mallaCurricular/EditorMallaCurricular.jsx`: ocho tarjetas móviles
+  y tabla de escritorio, campos obligatorios y autoajuste de textareas.
+- `components/mallaCurricular/AccionesMallaCurricular.jsx`: progreso y acciones
+  controladas de guardar e imprimir.
+- `components/mallaCurricular/EstadosMallaCurricular.jsx` y
+  `VistaImprimibleMallaCurricular.jsx`: carga, ausencia de asignación e impreso
+  contextual con regreso al editor.
+- `components/mallaCurricular/estadoVisualMallaCurricular.js`: representación
+  única de “Verificando”, “Cambios sin guardar”, “Guardado” y “Pendiente”.
 - Cada fila admite uno o varios campos academicos, pero requiere una fecha
   limite cuando contiene informacion.
 - Rechaza en la interfaz tanto contenido sin fecha como fecha sin contenido y
@@ -422,6 +442,8 @@ Estado actual de componentes y paginas del frontend.
   cuando hay filas vacias entre registros.
 - El boton muestra spinner durante el guardado y SweetAlert2 confirma el
   resultado.
+- Los componentes reciben valores y callbacks mediante props y no conocen el
+  transporte ni el almacenamiento del dominio.
 
 ## Planeadores admin
 

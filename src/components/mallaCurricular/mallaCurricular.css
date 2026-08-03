@@ -1,0 +1,160 @@
+.planeador-header {
+  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.planeador-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.planeador-table th {
+  background-color: #f3f4f6;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+}
+
+.planeador-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.planeador-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.planeador-table tr:hover {
+  background-color: #f3f4f6;
+}
+
+.planeador-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  background: transparent;
+  min-height: 2.5rem;
+}
+
+.planeador-textarea:focus {
+  background-color: rgba(126, 34, 206, 0.06);
+  border-radius: 4px;
+}
+
+.planeador-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.planeador-input:focus {
+  border-color: #7e22ce;
+  box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.12);
+}
+
+@media screen and (max-width: 640px) {
+  .planeador-header {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+
+  .planeador-header h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .planeador-header p {
+    font-size: 0.95rem;
+  }
+
+  .planeador-textarea {
+    min-height: 5.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    background: #ffffff;
+  }
+
+  .planeador-input {
+    min-height: 2.75rem;
+    border-radius: 0.5rem;
+  }
+}
+
+@media print {
+  body {
+    font-size: 11px;
+    margin: 0;
+    background: white !important;
+  }
+
+  .no-print { display: none !important; }
+
+  .planeador-header {
+    background: #faf5ff !important;
+    color: #581c87 !important;
+    -webkit-print-color-adjust: exact;
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+
+  .planeador-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: none;
+    page-break-inside: auto;
+  }
+
+  .planeador-table th,
+  .planeador-table td {
+    border: 1px solid #9ca3af;
+    padding: 0.5rem;
+    page-break-inside: avoid;
+  }
+
+  .planeador-table th {
+    background-color: #f3f4f6 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .planeador-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .planeador-textarea,
+  .planeador-input {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+}

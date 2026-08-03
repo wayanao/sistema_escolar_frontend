@@ -1,5 +1,32 @@
 # Cambios Frontend
 
+## 2026-08-03 - Modularización completa de malla curricular
+
+- Se conservaron diseño, textos, ruta `/planeador-anual`, protección,
+  almacenamiento local, experiencia responsive, impresión, payloads y
+  contratos del backend.
+- `utils/mallaCurricular/planeadorAnual.js` concentra el contrato puro de ocho
+  filas, normalización por `slot`, validaciones y payload posicional.
+- `services/mallaCurricularApi.js` es la única frontera HTTP; los hooks separan
+  consultas y período del estado editable, validaciones y guardado.
+- Los componentes de `components/mallaCurricular/` reciben datos y callbacks
+  por props y conservan tarjetas móviles, tabla de escritorio, progreso, estados
+  y vista imprimible.
+- `pages/PlaneadorAnual.jsx` queda como raíz de composición de 94 líneas, sin
+  endpoints, payloads, alertas ni bloques visuales extensos.
+- Se preserva el arreglo completo de ocho posiciones para que vaciar una fila
+  guardada solicite su eliminación sin desplazar otros `slot`.
+- No quedan implementaciones antiguas paralelas dentro de la página.
+
+Verificación final:
+
+- 10 archivos y 34 pruebas específicas de malla curricular correctas.
+- `pnpm run check:deploy`: correcto; 136 archivos, 475 pruebas, ESLint y build
+  de producción de 263 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de ruta, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-03 - Reporte académico parcial en tiempo real
 
 - El reporte parcial dejó de reutilizar el contrato del boletín oficial y ahora

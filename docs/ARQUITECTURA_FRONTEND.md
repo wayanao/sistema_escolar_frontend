@@ -40,6 +40,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
   de asistencia, sin acceso a hooks ni transporte HTTP.
+- `src/components/mallaCurricular/`: encabezado, estados, editor responsive,
+  acciones, impresión y contratos visuales de la malla curricular.
 - `src/components/administracionAcademica/`: componentes y contenedores de
   asignaciones, profesores, cursos, materias y horarios, separados por dominio.
 - `src/components/estudiantesObservador/`: vistas presentacionales del listado,
@@ -52,6 +54,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
   de asistencia, separados entre estado remoto y marcación editable.
+- `src/hooks/mallaCurricular/`: consultas con descarte de respuestas antiguas y
+  comandos editables del planeador anual, separados por responsabilidad.
 - `src/hooks/boletines/`: consultas cancelables y comandos editables de
   generación administrativa, ingreso docente y orden de materias.
 - `src/hooks/administracionAcademica/`: consultas cancelables, formularios y
@@ -71,6 +75,8 @@ Estado documentado del frontend `frontend-react`.
   planeaciones del profesor y del administrador.
 - `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
   y guardado de asistencia del profesor.
+- `src/services/mallaCurricularApi.js`: contrato HTTP de asignaciones, consulta
+  y guardado posicional de la malla curricular.
 - `src/services/boletinesApi.js`: contrato HTTP de cursos, estudiantes,
   generación, referencia y guardado docente y orden de materias.
 - `src/services/asignacionesApi.js`, `profesoresApi.js`, `cursosApi.js`,
@@ -91,6 +97,8 @@ Estado documentado del frontend `frontend-react`.
   solicitudes, no acceden al DOM y no administran estado de React.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
+- `src/utils/mallaCurricular/`: filas iniciales, normalización por `slot`,
+  validaciones y construcción del payload posicional de ocho filas.
 - `src/utils/boletines/`: contratos y transformaciones puras de generación,
   ingreso docente y orden de materias, con pruebas adyacentes.
 - `src/utils/administracionAcademica/`: contratos, validaciones, payloads,
@@ -192,6 +200,25 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   `window.print()`.
 - No quedan adaptadores administrativos ni implementaciones antiguas paralelas
   de identidad, plantillas o vistas de certificados.
+
+## Malla curricular
+
+- `/planeador-anual` monta `pages/PlaneadorAnual.jsx` bajo `ProtectedRoute` y
+  conserva la asignación seleccionada y el período persistido del profesor.
+- La página es una raíz de composición: lee el contexto superior, conecta
+  consultas y comandos, alterna impresión y entrega datos y callbacks a los
+  componentes. No contiene transporte, payloads ni bloques visuales extensos.
+- `services/mallaCurricularApi.js` es la única frontera HTTP del módulo para
+  `/mis-clases` y `/planeador-anual`.
+- `utils/mallaCurricular/planeadorAnual.js` conserva el contrato de ocho
+  posiciones, el mapeo por `slot`, las validaciones contenido/fecha y el
+  payload que permite la eliminación implícita de filas vaciadas.
+- `hooks/mallaCurricular/` separa carga, período y descarte de respuestas
+  antiguas del estado editable, validaciones, progreso, guardado y alertas.
+- `components/mallaCurricular/` conserva tarjetas móviles, tabla de escritorio,
+  estados, acciones, autoajuste de textareas y vista imprimible mediante props.
+- No quedan llamadas HTTP directas, transformaciones ni implementaciones
+  visuales antiguas paralelas en `PlaneadorAnual.jsx`.
 
 ## Criterios de UX responsive
 
