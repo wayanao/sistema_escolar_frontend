@@ -560,11 +560,10 @@ Estado actual de componentes y paginas del frontend.
 - `components/boletin/BoletinImprimible.jsx`: el impreso final conserva ancho
   A4 en movil y se desplaza a los lados. El boton `Atras` queda arriba a la
   izquierda.
-- `CertificadosAdmin.jsx`: certificado de notas, certificado de matricula y
-  reporte academico parcial conservan ancho A4 en movil, tienen scroll lateral
-  y boton `Atras` arriba. El reporte parcial permite imprimir curso completo o
-  estudiante individual por periodo y materia, incluyendo inasistencias del
-  periodo.
+- Las vistas imprimibles de `components/certificadosImpresion/` conservan ancho
+  A4 en movil, scroll lateral y boton `Atras` arriba. El reporte parcial permite
+  imprimir curso completo o estudiante individual por periodo y materia,
+  incluyendo inasistencias del periodo.
 - `CarteraVencidaAdmin.jsx`: los estados de cuenta por estudiante y por curso
   conservan ancho A4 en movil y usan scroll lateral.
 - `EstudiantesAdmin.jsx`: el modal de detalle del estudiante organiza el
@@ -582,8 +581,6 @@ Estado actual de componentes y paginas del frontend.
 
 ### Admin
 
-- `components/admin/IdentidadInstitucional.jsx`
-- `components/admin/PlantillasAdmin.jsx`
 - `pages/OrdenBoletin.jsx`: raíz cargada por la pestaña de Administración para
   definir el orden de materias por curso, con flechas, posición numérica y
   guardado por curso.
@@ -608,6 +605,27 @@ Estado actual de componentes y paginas del frontend.
 - `services/boletinesApi.js`: frontera HTTP única del módulo.
 - `utils/boletines/`: cálculos, normalización, filtros, movimientos y payloads
   puros.
+
+### Certificados e impresión
+
+- `components/certificadosImpresion/SeleccionCertificados.jsx`: encabezado,
+  pestañas, filtros, estados y tabla controlada de estudiantes.
+- `CertificadoNotasPreview.jsx`, `CertificadoMatriculaPreview.jsx` y
+  `ReporteParcialPreview.jsx`: vistas A4 de los tres documentos, conectadas al
+  wrapper compartido de impresión.
+- `components/certificadosImpresion/admin/IdentidadInstitucionalView.jsx` y
+  `PlantillasAdminView.jsx`: formularios administrativos controlados por props.
+- `pages/CertificadosAdmin.jsx` y `pages/BrandingAdmin.jsx`: raíces de
+  composición para generación y diseño de impresos. Branding conserva el
+  montaje condicional de cada pestaña.
+- `hooks/certificadosImpresion/`: carga y generación cancelables, comandos de
+  branding y plantillas, y caché compartida de configuración de impresión.
+- `services/certificadosImpresionApi.js`: fachada HTTP propia que reutiliza los
+  contratos compatibles de boletines y asistencia.
+- `services/printingService.js`: transporte compartido de branding, logos y
+  plantillas.
+- `utils/certificadosImpresion/`: filtros, cálculos, consolidación académica y
+  contratos puros de los documentos.
 
 ### Estudiantes y observador
 
@@ -734,8 +752,16 @@ Notas:
   observador.
 - `utils/estudiantesObservador/`: contratos, filtros, normalización y payloads
   puros del módulo.
-- `hooks/usePrintConfig.js`: hook relacionado con configuracion de impresion.
+- `hooks/certificadosImpresion/usePrintConfig.js`: implementación única de la
+  caché de branding y plantilla activa por tipo.
+- `hooks/usePrintConfig.js`: reexportación compatible para consumidores de
+  otros dominios.
+- `hooks/certificadosImpresion/`: consultas y comandos de certificados,
+  identidad institucional y plantillas.
+- `services/certificadosImpresionApi.js`: frontera HTTP propia de certificados.
 - `services/printingService.js`: servicio para branding, plantillas e impresion.
+- `utils/certificadosImpresion/`: contratos y transformaciones puras del
+  módulo.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos

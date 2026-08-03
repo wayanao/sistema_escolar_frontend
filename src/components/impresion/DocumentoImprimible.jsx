@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import usePrintConfig from "../../hooks/usePrintConfig";
+import usePrintConfig from "../../hooks/certificadosImpresion/usePrintConfig";
 import "../../styles/print.css";
 
 /**

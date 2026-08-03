@@ -32,7 +32,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/App.jsx`: define rutas, layouts, lazy loading y guards principales.
 - `src/assets/`: imagenes y recursos estaticos del frontend.
 - `src/components/`: componentes reutilizables y componentes por modulo.
-- `src/components/admin/`: componentes administrativos de branding/plantillas.
+- `src/components/certificadosImpresion/`: selección, vistas imprimibles y
+  formularios presentacionales de identidad y plantillas.
 - `src/components/boletin/`: vistas presentacionales de generación,
   impresión, ingreso docente y orden del módulo de boletines.
 - `src/components/cartera/`: componentes del modulo de cartera.
@@ -58,6 +59,8 @@ Estado documentado del frontend `frontend-react`.
   solo lectura independientes.
 - `src/hooks/estudiantesObservador/`: consultas, formularios y comandos de
   estudiantes y observador, con aislamiento de respuestas obsoletas.
+- `src/hooks/certificadosImpresion/`: consultas cancelables de certificados,
+  comandos administrativos y configuración compartida de impresión.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -75,6 +78,10 @@ Estado documentado del frontend `frontend-react`.
   académica y horarios.
 - `src/services/estudiantesObservadorApi.js`: contrato HTTP de estudiantes,
   cursos, detalle, deudas, planilla y observaciones.
+- `src/services/certificadosImpresionApi.js`: fachada HTTP de certificados que
+  reutiliza contratos compatibles de boletines y asistencia.
+- `src/services/printingService.js`: frontera HTTP compartida de branding,
+  logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
@@ -90,6 +97,8 @@ Estado documentado del frontend `frontend-react`.
   filtros, estados y transformaciones puras del módulo académico.
 - `src/utils/estudiantesObservador/`: formularios, filtros, normalización y
   payloads puros de estudiantes y observaciones.
+- `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
+  académica y transformaciones puras de certificados e impresión.
 
 ## Entrada de la aplicacion
 
@@ -160,6 +169,29 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   activa progresivamente al acercarse al viewport. Un fallo se presenta como
   error recuperable y bloquea la edición hasta reintentar; nunca se interpreta
   como una observación pendiente.
+
+## Certificados e impresión
+
+- `/admin/certificados` monta `pages/CertificadosAdmin.jsx` bajo `AdminRoute` y
+  conserva certificados de notas y matrícula, además del reporte académico
+  parcial individual o por curso.
+- `/admin/diseno-impresos` monta `pages/BrandingAdmin.jsx` bajo `AdminRoute` y
+  conserva las pestañas de identidad institucional y plantillas con carga
+  condicional por sección.
+- Ambas páginas son raíces de composición. Conectan hooks con vistas
+  controladas de `components/certificadosImpresion/` y no contienen transporte
+  HTTP ni bloques visuales extensos.
+- `services/certificadosImpresionApi.js` y `printingService.js` encapsulan el
+  transporte; los hooks separan consultas, comandos y caché compartida, y las
+  utilidades concentran filtros, normalización y construcción de reportes.
+- `hooks/usePrintConfig.js` permanece como reexportación compatible hacia la
+  implementación única de `hooks/certificadosImpresion/usePrintConfig.js`,
+  porque el wrapper imprimible tiene consumidores en otros dominios.
+- `DocumentoImprimible` conserva branding, plantilla activa, firmas, pie,
+  formato A4, desplazamiento horizontal móvil y ambos comandos basados en
+  `window.print()`.
+- No quedan adaptadores administrativos ni implementaciones antiguas paralelas
+  de identidad, plantillas o vistas de certificados.
 
 ## Criterios de UX responsive
 
@@ -324,3 +356,7 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `src/hooks/boletines/`, `src/components/boletin/` y sus tres páginas protegen
   cálculos, payloads, cancelación, comandos, presentación e integración. La
   prueba de `Admin` incluye la composición de la pestaña de orden.
+- Las pruebas de `src/utils/certificadosImpresion/`, servicios, hooks, vistas,
+  `DocumentoImprimible`, `CertificadosAdmin` y `BrandingAdmin` protegen
+  contratos HTTP, consolidación académica, cancelación, caché, comandos,
+  presentación A4 y composición por pestañas.

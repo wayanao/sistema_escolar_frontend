@@ -1,11 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  getBranding,
-  updateBranding,
-  uploadLogo,
-  deleteLogo,
-} from "../../services/printingService";
-import { invalidatePrintCache } from "../../hooks/usePrintConfig";
+import { useRef } from "react";
 
 const CAMPOS_TEXTO = [
   { key: "nombre_institucion", label: "Nombre de la institución", placeholder: "Ej. Colegio San José" },
@@ -24,85 +17,26 @@ const CAMPOS_TEXTO = [
   { key: "sitio_web", label: "Sitio web", placeholder: "www.colegio.edu" },
 ];
 
-export default function IdentidadInstitucional() {
-  const [branding, setBranding] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState(null);
+export default function IdentidadInstitucionalView({
+  branding,
+  guardando,
+  loading,
+  mensaje,
+  onCambiarCampo,
+  onEliminarLogo,
+  onGuardar,
+  onSubirLogo,
+}) {
   const inputPrincipalRef = useRef(null);
   const inputSecundarioRef = useRef(null);
-
-  useEffect(() => {
-    let cancelado = false;
-    getBranding()
-      .then((data) => { if (!cancelado) setBranding(data); })
-      .catch((err) => {
-        console.error(err);
-        setMensaje({ tipo: "error", texto: "No se pudo cargar la identidad institucional." });
-      })
-      .finally(() => { if (!cancelado) setLoading(false); });
-    return () => { cancelado = true; };
-  }, []);
-
-  const cambiarCampo = (key, valor) => {
-    const valorNormalizado = key === "codigo_dane"
-      ? valor.replace(/\D/g, "").slice(0, 20)
-      : valor;
-    setBranding((prev) => ({ ...prev, [key]: valorNormalizado }));
-  };
-
-  const guardar = async () => {
-    if (!branding) return;
-    setGuardando(true);
-    setMensaje(null);
-    try {
-      const data = await updateBranding(branding);
-      setBranding(data);
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: "Datos guardados correctamente." });
-    } catch (err) {
-      console.error(err);
-      const detalle = err?.response?.data?.detail || err.message;
-      setMensaje({ tipo: "error", texto: `Error al guardar: ${detalle}` });
-    } finally {
-      setGuardando(false);
-    }
-  };
 
   const subir = async (e, slot) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setMensaje(null);
     try {
-      const data = await uploadLogo(file, slot);
-      setBranding((prev) => ({
-        ...prev,
-        [slot === "principal" ? "logo_principal_url" : "logo_secundario_url"]: data.url,
-      }));
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: `Logo ${slot} actualizado.` });
-    } catch (err) {
-      console.error(err);
-      const detalle = err?.response?.data?.detail || err.message;
-      setMensaje({ tipo: "error", texto: `Error al subir logo: ${detalle}` });
+      await onSubirLogo(file, slot);
     } finally {
       e.target.value = "";
-    }
-  };
-
-  const borrar = async (slot) => {
-    if (!confirm(`¿Eliminar el logo ${slot}?`)) return;
-    try {
-      await deleteLogo(slot);
-      setBranding((prev) => ({
-        ...prev,
-        [slot === "principal" ? "logo_principal_url" : "logo_secundario_url"]: null,
-      }));
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: `Logo ${slot} eliminado.` });
-    } catch (err) {
-      console.error(err);
-      setMensaje({ tipo: "error", texto: "No se pudo eliminar el logo." });
     }
   };
 
@@ -132,14 +66,14 @@ export default function IdentidadInstitucional() {
             url={branding?.logo_principal_url}
             inputRef={inputPrincipalRef}
             onUpload={(e) => subir(e, "principal")}
-            onDelete={() => borrar("principal")}
+            onDelete={() => onEliminarLogo("principal")}
           />
           <LogoSlot
             label="Logo secundario (opcional)"
             url={branding?.logo_secundario_url}
             inputRef={inputSecundarioRef}
             onUpload={(e) => subir(e, "secundario")}
-            onDelete={() => borrar("secundario")}
+            onDelete={() => onEliminarLogo("secundario")}
           />
         </div>
         <p className="text-xs text-slate-500 mt-4">
@@ -162,7 +96,7 @@ export default function IdentidadInstitucional() {
                 inputMode={c.inputMode}
                 maxLength={c.maxLength}
                 value={branding?.[c.key] || ""}
-                onChange={(e) => cambiarCampo(c.key, e.target.value)}
+                onChange={(e) => onCambiarCampo(c.key, e.target.value)}
               />
             </div>
           ))}
@@ -173,18 +107,18 @@ export default function IdentidadInstitucional() {
           <ColorPicker
             label="Color primario"
             value={branding?.color_primario || "#0f314f"}
-            onChange={(v) => cambiarCampo("color_primario", v)}
+            onChange={(v) => onCambiarCampo("color_primario", v)}
           />
           <ColorPicker
             label="Color secundario"
             value={branding?.color_secundario || "#526775"}
-            onChange={(v) => cambiarCampo("color_secundario", v)}
+            onChange={(v) => onCambiarCampo("color_secundario", v)}
           />
         </div>
 
         <div className="mt-6 flex justify-end">
           <button
-            onClick={guardar}
+            onClick={onGuardar}
             disabled={guardando}
             className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow"
           >

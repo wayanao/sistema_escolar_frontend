@@ -1,6 +1,8 @@
 import { useState } from "react";
-import IdentidadInstitucional from "../components/admin/IdentidadInstitucional";
-import PlantillasAdmin from "../components/admin/PlantillasAdmin";
+import IdentidadInstitucionalView from "../components/certificadosImpresion/admin/IdentidadInstitucionalView";
+import PlantillasAdminView from "../components/certificadosImpresion/admin/PlantillasAdminView";
+import useIdentidadInstitucional from "../hooks/certificadosImpresion/useIdentidadInstitucional";
+import usePlantillasAdmin from "../hooks/certificadosImpresion/usePlantillasAdmin";
 
 const TABS = [
   { key: "identidad", label: "Identidad institucional" },
@@ -35,8 +37,47 @@ export default function BrandingAdmin() {
         ))}
       </div>
 
-      {tab === "identidad" && <IdentidadInstitucional />}
-      {tab === "plantillas" && <PlantillasAdmin />}
+      {tab === "identidad" && <IdentidadInstitucionalPanel />}
+      {tab === "plantillas" && <PlantillasAdminPanel />}
     </div>
+  );
+}
+
+function IdentidadInstitucionalPanel() {
+  const identidad = useIdentidadInstitucional();
+
+  return (
+    <IdentidadInstitucionalView
+      branding={identidad.branding}
+      guardando={identidad.guardando}
+      loading={identidad.loading}
+      mensaje={identidad.mensaje}
+      onCambiarCampo={identidad.cambiarCampo}
+      onEliminarLogo={identidad.eliminarLogo}
+      onGuardar={identidad.guardar}
+      onSubirLogo={identidad.subirLogo}
+    />
+  );
+}
+
+function PlantillasAdminPanel() {
+  const plantillasAdmin = usePlantillasAdmin();
+
+  return (
+    <PlantillasAdminView
+      config={plantillasAdmin.config}
+      loading={plantillasAdmin.loading}
+      mensaje={plantillasAdmin.mensaje}
+      plantillas={plantillasAdmin.plantillas}
+      seleccionada={plantillasAdmin.seleccionada}
+      tipoActivo={plantillasAdmin.tipoActivo}
+      onActivar={plantillasAdmin.activar}
+      onActualizarCampoConfig={plantillasAdmin.actualizarCampoConfig}
+      onDuplicar={plantillasAdmin.duplicar}
+      onEliminar={plantillasAdmin.eliminar}
+      onGuardarConfig={plantillasAdmin.guardarConfig}
+      onSeleccionarPlantilla={plantillasAdmin.seleccionarPlantilla}
+      onCambiarTipoActivo={plantillasAdmin.setTipoActivo}
+    />
   );
 }

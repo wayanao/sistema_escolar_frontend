@@ -1,12 +1,7 @@
 import api from "../utils/api";
-import { API_BASE_URL } from "../config/env";
+import { resolveAssetUrl } from "../utils/certificadosImpresion/impresion";
 
-// Convierte URL relativa del backend ('/uploads/...') a URL absoluta servible.
-export function resolveAssetUrl(url) {
-  if (!url) return null;
-  if (/^https?:\/\//i.test(url)) return url;
-  return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
-}
+export { resolveAssetUrl } from "../utils/certificadosImpresion/impresion";
 
 // ── Branding ───────────────────────────────────────────────────────────────
 export async function getBranding() {

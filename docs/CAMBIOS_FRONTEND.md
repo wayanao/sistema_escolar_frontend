@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-08-03 - Modularización completa de certificados e impresión
+
+- Se conservaron diseño, textos, rutas, permisos, formato A4, experiencia
+  responsive, payloads y contratos del backend para certificados, identidad
+  institucional y plantillas.
+- `utils/certificadosImpresion/` concentra filtros, cálculos, consolidación
+  académica y contratos puros; `services/certificadosImpresionApi.js` delimita
+  el transporte propio y reutiliza los contratos compatibles de boletines y
+  asistencia.
+- `printingService.js` continúa como frontera compartida de branding, logos y
+  plantillas. La implementación única de `usePrintConfig` vive en el dominio y
+  conserva una reexportación compatible para los demás impresos.
+- Los hooks separan carga y generación cancelables, caché de impresión y
+  comandos de identidad o plantillas. Las vistas de
+  `components/certificadosImpresion/` reciben datos y callbacks por props.
+- `pages/CertificadosAdmin.jsx` y `pages/BrandingAdmin.jsx` son las raíces de
+  composición; se conservaron la selección de pestañas y el montaje diferido
+  de plantillas.
+- Se retiraron los adaptadores administrativos anteriores, que ya no tenían
+  consumidores. No quedan implementaciones antiguas paralelas.
+- `DocumentoImprimible` conserva branding, firmas, pie, scroll horizontal
+  móvil y los comandos `Descargar PDF` e `Imprimir` mediante `window.print()`.
+
+Verificación final:
+
+- 17 archivos y 61 pruebas específicas de certificados e impresión correctas.
+- `pnpm run check:deploy`: correcto; 126 archivos, 440 pruebas, ESLint y build
+  de producción de 252 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-02 - Modularización completa de estudiantes y observador
 
 - Se conservaron diseño, textos, rutas, protecciones, experiencia responsive,

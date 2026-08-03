@@ -1,13 +1,3 @@
-import { useEffect, useState } from "react";
-import {
-  listarPlantillas,
-  activarPlantilla,
-  duplicarPlantilla,
-  actualizarPlantilla,
-  eliminarPlantilla,
-} from "../../services/printingService";
-import { invalidatePrintCache } from "../../hooks/usePrintConfig";
-
 const TIPOS = [
   { key: "boletin", label: "Boletín de notas" },
   { key: "voucher_pago", label: "Voucher de pago" },
@@ -35,88 +25,21 @@ const FUENTES = [
   { value: "'Times New Roman', serif", label: "Times New Roman" },
 ];
 
-export default function PlantillasAdmin() {
-  const [tipoActivo, setTipoActivo] = useState(TIPOS[0].key);
-  const [plantillas, setPlantillas] = useState([]);
-  const [seleccionada, setSeleccionada] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mensaje, setMensaje] = useState(null);
-
-  const recargar = async () => {
-    setLoading(true);
-    try {
-      const data = await listarPlantillas(tipoActivo);
-      setPlantillas(data);
-      // Si la seleccionada ya no existe, limpiamos.
-      if (seleccionada && !data.some((p) => p.id === seleccionada.id)) {
-        setSeleccionada(null);
-      }
-    } catch (err) {
-      console.error(err);
-      setMensaje({ tipo: "error", texto: "Error al cargar plantillas." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    recargar();
-    setSeleccionada(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipoActivo]);
-
-  const activar = async (id) => {
-    try {
-      await activarPlantilla(id);
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: "Plantilla activada." });
-      await recargar();
-    } catch (err) {
-      console.error(err);
-      setMensaje({ tipo: "error", texto: "Error al activar." });
-    }
-  };
-
-  const duplicar = async (p) => {
-    const nombre = prompt(`Nombre de la copia:`, `${p.nombre} (mi versión)`);
-    if (!nombre) return;
-    try {
-      await duplicarPlantilla(p.id, nombre);
-      setMensaje({ tipo: "ok", texto: "Plantilla duplicada. Ya puedes editarla." });
-      await recargar();
-    } catch (err) {
-      console.error(err);
-      setMensaje({ tipo: "error", texto: "Error al duplicar." });
-    }
-  };
-
-  const eliminar = async (p) => {
-    if (!confirm(`¿Eliminar la plantilla "${p.nombre}"?`)) return;
-    try {
-      await eliminarPlantilla(p.id);
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: "Plantilla eliminada." });
-      await recargar();
-    } catch (err) {
-      console.error(err);
-      const detalle = err?.response?.data?.detail || err.message;
-      setMensaje({ tipo: "error", texto: `Error: ${detalle}` });
-    }
-  };
-
-  const guardarConfig = async (p, nuevaConfig) => {
-    try {
-      await actualizarPlantilla(p.id, { config_json: nuevaConfig });
-      invalidatePrintCache();
-      setMensaje({ tipo: "ok", texto: "Configuración guardada." });
-      await recargar();
-    } catch (err) {
-      console.error(err);
-      const detalle = err?.response?.data?.detail || err.message;
-      setMensaje({ tipo: "error", texto: `Error al guardar: ${detalle}` });
-    }
-  };
-
+export default function PlantillasAdminView({
+  config,
+  loading,
+  mensaje,
+  plantillas,
+  seleccionada,
+  tipoActivo,
+  onActivar,
+  onActualizarCampoConfig,
+  onCambiarTipoActivo,
+  onDuplicar,
+  onEliminar,
+  onGuardarConfig,
+  onSeleccionarPlantilla,
+}) {
   return (
     <div className="space-y-6">
       {mensaje && (
@@ -137,7 +60,7 @@ export default function PlantillasAdmin() {
           {TIPOS.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTipoActivo(t.key)}
+              onClick={() => onCambiarTipoActivo(t.key)}
               className={`shrink-0 px-3 py-1.5 rounded text-sm font-medium transition ${
                 tipoActivo === t.key
                   ? "bg-purple-600 text-white"
@@ -160,10 +83,10 @@ export default function PlantillasAdmin() {
                 key={p.id}
                 plantilla={p}
                 seleccionada={seleccionada?.id === p.id}
-                onSelect={() => setSeleccionada(p)}
-                onActivar={() => activar(p.id)}
-                onDuplicar={() => duplicar(p)}
-                onEliminar={() => eliminar(p)}
+                onSelect={() => onSeleccionarPlantilla(p)}
+                onActivar={() => onActivar(p.id)}
+                onDuplicar={() => onDuplicar(p)}
+                onEliminar={() => onEliminar(p)}
               />
             ))
           )}
@@ -173,7 +96,9 @@ export default function PlantillasAdmin() {
           {seleccionada ? (
             <EditorPlantilla
               plantilla={seleccionada}
-              onSave={(nuevaConfig) => guardarConfig(seleccionada, nuevaConfig)}
+              config={config}
+              onChange={onActualizarCampoConfig}
+              onSave={onGuardarConfig}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-slate-200 p-6 text-center text-slate-500 sm:p-12">
@@ -246,14 +171,8 @@ function PlantillaCard({ plantilla, seleccionada, onSelect, onActivar, onDuplica
   );
 }
 
-function EditorPlantilla({ plantilla, onSave }) {
-  const [config, setConfig] = useState(plantilla.config_json || {});
-
-  useEffect(() => {
-    setConfig(plantilla.config_json || {});
-  }, [plantilla.id, plantilla.config_json]);
-
-  const set = (k, v) => setConfig((prev) => ({ ...prev, [k]: v }));
+function EditorPlantilla({ plantilla, config, onChange, onSave }) {
+  const set = onChange;
   const bloqueado = plantilla.es_predefinida;
 
   return (
@@ -384,7 +303,7 @@ function EditorPlantilla({ plantilla, onSave }) {
 
         <div className="flex justify-end pt-2">
           <button
-            onClick={() => onSave(config)}
+            onClick={onSave}
             disabled={bloqueado}
             className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow sm:w-auto"
           >

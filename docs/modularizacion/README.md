@@ -311,7 +311,7 @@ registrar al final:
 | 3 | Malla curricular | Pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
 | 4 | Boletines | Terminado; commit pendiente | [BOLETINES.md](./BOLETINES.md) |
 | 5 | Estudiantes y observador | Terminado; commit pendiente | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
-| 6 | Certificados e impresión | Pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
+| 6 | Certificados e impresión | Terminado; commit pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
 | 7 | Pagos | Pendiente | [PAGOS.md](./PAGOS.md) |
 | 8 | Cartera y tipos de pago | Pendiente | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
 | 9 | Reportes financieros | Pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
