@@ -1,5 +1,5 @@
 /**
- * Componente AdministrarTiposPago
+ * VistaAdministrarTiposPago
  *
  * Centro de configuración financiera del sistema escolar.
  * Permite:
@@ -10,55 +10,22 @@
  *  - Asignación a uno o múltiples cursos con valores diferenciados
  *  - Estado activo / inactivo
  *
- * Ubicación: src/components/cartera/AdministrarTiposPago.jsx
+ * Ubicación: src/components/carteraTiposPago/VistaAdministrarTiposPago.jsx
  * Ruta: /admin/tipos-pagos
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import Swal from "sweetalert2";
-import api from "../../utils/api";
-
-const TIPOS_COBRO = [
-    { value: "unico", label: "Único", badge: "bg-blue-100 text-blue-800 border-blue-200" },
-    { value: "mensual", label: "Mensual", badge: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-    { value: "anual", label: "Anual", badge: "bg-purple-100 text-purple-800 border-purple-200" },
-    { value: "opcional", label: "Opcional", badge: "bg-amber-100 text-amber-800 border-amber-200" },
-];
-
-const MESES = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
-
-const FILTROS_ESTADO_CONCEPTO = [
-    { value: "activo", label: "Activos" },
-    { value: "inactivo", label: "Inactivos" },
-    { value: "todos", label: "Todos" },
-];
-
-const CONFIG_DEFAULT = {
-    descripcion: "",
-    tipo_cobro: "unico",
-    fecha_limite: "",
-    dia_limite_mes: "",
-    dias_gracia: 0,
-    mora_tipo: "",
-    mora_valor: 0,
-    mes_inicial: "",
-    frecuencia_meses: 1,
-    generacion_automatica: false,
-    activo: true,
-};
-
-const formatMoney = (v) =>
-    new Intl.NumberFormat("es-CO", {
-        style: "currency",
-        currency: "COP",
-        maximumFractionDigits: 0,
-    }).format(Number(v || 0));
+import { useMemo } from "react";
+import { formatMoney } from "../../utils/carteraTiposPago/formatos";
+import {
+    FILTROS_ESTADO_CONCEPTO,
+    MESES,
+    TIPOS_COBRO,
+    evaluarEstadoCartera,
+    obtenerTipoCobro,
+} from "../../utils/carteraTiposPago/tiposPago";
 
 function BadgeTipoCobro({ tipo }) {
-    const meta = TIPOS_COBRO.find((t) => t.value === tipo) || TIPOS_COBRO[0];
+    const meta = obtenerTipoCobro(tipo);
     return (
         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${meta.badge}`}>
             {meta.label}
@@ -76,32 +43,6 @@ function BadgeEstado({ activo }) {
             ● Inactivo
         </span>
     );
-}
-
-/**
- * Estado de cartera de un tipo de pago:
- *  - "publicado": genera deuda automática a los estudiantes asignados.
- *  - "borrador":  existe pero NO genera cartera porque le falta configuración.
- *
- * Reglas para considerar un concepto "publicado":
- *  - activo = true
- *  - tipo_cobro != 'opcional'
- *  - al menos un curso asignado
- */
-function evaluarEstadoCartera(tp) {
-    const tipoCobro = tp.tipo_cobro || "unico";
-    const activo = tp.activo !== false;
-    const cursosAsignados = (tp.cursos || []).length;
-
-    const razones = [];
-    if (!activo) razones.push("está inactivo");
-    if (tipoCobro === "opcional") razones.push("es opcional (se cobra solo bajo demanda)");
-    if (cursosAsignados === 0) razones.push("no tiene cursos asignados");
-
-    return {
-        publicado: razones.length === 0,
-        razones,
-    };
 }
 
 function BadgeEstadoCartera({ tp }) {
@@ -126,311 +67,50 @@ function BadgeEstadoCartera({ tp }) {
     );
 }
 
-function AdministrarTiposPago() {
-    // Crear/editar conceptos existentes.
-    const [tiposPagos, setTiposPagos] = useState([]);
-    const [nuevoTipoPago, setNuevoTipoPago] = useState("");
-    const [valorTipoPago, setValorTipoPago] = useState("");
-    const [editingTipoId, setEditingTipoId] = useState(null);
-    const [estadoFiltro, setEstadoFiltro] = useState("activo");
-
-    // Avanzado
-    const [cursos, setCursos] = useState([]);
-    const [selectedTipoId, setSelectedTipoId] = useState(null);
-    const [detalle, setDetalle] = useState(null); // tipo seleccionado con config + cursos
-    const [config, setConfig] = useState(CONFIG_DEFAULT);
-    const [cursosAsignados, setCursosAsignados] = useState([]);
-    const [cursoAAgregar, setCursoAAgregar] = useState("");
-    const [valorCursoAAgregar, setValorCursoAAgregar] = useState("");
-    const [loadingDetalle, setLoadingDetalle] = useState(false);
-    const [guardandoConfig, setGuardandoConfig] = useState(false);
-    const [guardandoCursos, setGuardandoCursos] = useState(false);
-    const [cursosAsignadosDirty, setCursosAsignadosDirty] = useState(false);
-
-    const cargarTiposPagos = useCallback(async () => {
-        try {
-            const res = await api.get(`/tipos-pagos/detallado`);
-            setTiposPagos(res.data || []);
-        } catch (error) {
-            console.error("Error cargando tipos de pagos detallado, fallback a básico", error);
-            try {
-                const res = await api.get(`/tipos-pagos`);
-                setTiposPagos(res.data || []);
-            } catch (e) {
-                console.error("Error cargando tipos de pagos:", e);
-            }
-        }
-    }, []);
-
-    const cargarCursos = useCallback(async () => {
-        try {
-            const res = await api.get(`/cursos`);
-            setCursos(res.data || []);
-        } catch (error) {
-            console.error("Error cargando cursos:", error);
-        }
-    }, []);
-
-    useEffect(() => {
-        cargarTiposPagos();
-        cargarCursos();
-    }, [cargarTiposPagos, cargarCursos]);
-
-    // -------------------------------------------------------------------------
-    // Crear/editar conceptos
-    // -------------------------------------------------------------------------
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!nuevoTipoPago.trim()) return;
-
-        try {
-            const isEditing = editingTipoId !== null;
-            const payload = { nombre: nuevoTipoPago.trim(), valor: parseFloat(valorTipoPago) || 0 };
-            const endpoint = isEditing ? `/tipos-pagos/${editingTipoId}` : `/tipos-pagos`;
-            const res = isEditing ? await api.put(endpoint, payload) : await api.post(endpoint, payload);
-
-            if (res.status >= 200 && res.status < 300) {
-                Swal.fire("Éxito", isEditing ? "Tipo de pago actualizado" : "Tipo de pago creado", "success");
-                setNuevoTipoPago("");
-                setValorTipoPago("");
-                setEditingTipoId(null);
-                cargarTiposPagos();
-            } else {
-                Swal.fire("Error", "Error al guardar o ya existe", "error");
-            }
-        } catch (error) {
-            const detail = error?.response?.data?.detail;
-            const status = error?.response?.status;
-            if (status === 409) {
-                Swal.fire("Concepto duplicado", detail || "Ya existe un tipo de pago con ese nombre.", "warning");
-            } else {
-                Swal.fire("Error", detail || "No se pudo guardar el tipo de pago", "error");
-            }
-        }
-    };
-
-    const handleEdit = (tp) => {
-        setEditingTipoId(tp.id);
-        setNuevoTipoPago(tp.nombre);
-        setValorTipoPago(tp.valor);
-    };
-
-    // -------------------------------------------------------------------------
-    // Configuración avanzada
-    // -------------------------------------------------------------------------
-    const seleccionarTipoParaConfigurar = async (tipo) => {
-        setSelectedTipoId(tipo.id);
-        setLoadingDetalle(true);
-        // Pre-cargar datos básicos desde la lista para que el header
-        // muestre nombre y valor aunque /detalle falle.
-        setDetalle({ ...tipo });
-        try {
-            const res = await api.get(`/tipos-pagos/${tipo.id}/detalle`);
-            const data = { ...tipo, ...(res.data || {}) };
-            setDetalle(data);
-            setConfig({
-                descripcion: data.descripcion ?? "",
-                tipo_cobro: data.tipo_cobro ?? "unico",
-                fecha_limite: data.fecha_limite ?? "",
-                dia_limite_mes: data.dia_limite_mes ?? "",
-                dias_gracia: data.dias_gracia ?? 0,
-                mora_tipo: data.mora_tipo ?? "",
-                mora_valor: data.mora_valor ?? 0,
-                mes_inicial: data.mes_inicial ?? "",
-                frecuencia_meses: data.frecuencia_meses ?? 1,
-                generacion_automatica: !!data.generacion_automatica,
-                activo: data.activo !== false,
-            });
-            setCursosAsignados(
-                (data.cursos || []).map((c) => ({
-                    curso_id: c.curso_id,
-                    curso_nombre: c.curso_nombre,
-                    valor: c.valor ?? 0,
-                    activo: c.activo !== false,
-                }))
-            );
-            setCursosAsignadosDirty(false);
-        } catch (error) {
-            console.error(error);
-            Swal.fire("Error", "No se pudo cargar el detalle del tipo de pago", "error");
-        } finally {
-            setLoadingDetalle(false);
-        }
-    };
-
-    const handleConfigChange = (field, value) => {
-        setConfig((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const guardarConfiguracion = async () => {
-        if (!selectedTipoId) return;
-        const estabaActivo = detalle?.activo !== false;
-        const quedaraActivo = !!config.activo;
-        const seDesactiva = estabaActivo && !quedaraActivo;
-        const seReactiva = !estabaActivo && quedaraActivo;
-
-        if (seDesactiva || seReactiva) {
-            const result = await Swal.fire({
-                title: seReactiva ? "Reactivar concepto" : "Desactivar concepto",
-                html: seReactiva
-                    ? "El concepto volverá a estar disponible con su configuración anterior.<br/><br/><strong>No se generarán cobros retroactivos automáticamente.</strong>"
-                    : "El concepto se ocultará de la operación diaria y no generará nuevos cobros.<br/><br/><strong>Las deudas y pagos ya existentes se conservarán.</strong>",
-                icon: seReactiva ? "info" : "warning",
-                showCancelButton: true,
-                confirmButtonText: seReactiva ? "Reactivar" : "Desactivar",
-                cancelButtonText: "Cancelar",
-            });
-            if (!result.isConfirmed) return;
-        }
-
-        setGuardandoConfig(true);
-        try {
-            const payload = {
-                descripcion: config.descripcion?.trim() || null,
-                tipo_cobro: config.tipo_cobro,
-                fecha_limite: config.fecha_limite || null,
-                dia_limite_mes: config.dia_limite_mes === "" ? null : Number(config.dia_limite_mes),
-                dias_gracia: Number(config.dias_gracia) || 0,
-                mora_tipo: config.mora_tipo || null,
-                mora_valor: Number(config.mora_valor) || 0,
-                mes_inicial: config.mes_inicial === "" ? null : Number(config.mes_inicial),
-                frecuencia_meses: Number(config.frecuencia_meses) || 1,
-                generacion_automatica: !!config.generacion_automatica,
-                activo: !!config.activo,
-            };
-            await api.put(`/tipos-pagos/${selectedTipoId}/configuracion`, payload);
-            setDetalle((prev) => (prev ? { ...prev, ...payload } : prev));
-            Swal.fire(
-                "Guardado",
-                seReactiva
-                    ? "Concepto reactivado. Queda disponible sin generar cobros retroactivos."
-                    : seDesactiva
-                        ? "Concepto desactivado. Las deudas existentes siguen pendientes."
-                        : "Configuración actualizada",
-                "success"
-            );
-            await cargarTiposPagos();
-        } catch (error) {
-            console.error(error);
-            const detail = error?.response?.data?.detail;
-            const status = error?.response?.status;
-            if (status === 409) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Migración pendiente",
-                    html: `${detail}<br/><br/><code>python scripts/apply_tipos_pagos_avanzado_migration.py</code>`,
-                });
-            } else {
-                Swal.fire("Error", detail || "No se pudo guardar la configuración", "error");
-            }
-        } finally {
-            setGuardandoConfig(false);
-        }
-    };
-
-    // -------------------------------------------------------------------------
-    // Asignación de cursos
-    // -------------------------------------------------------------------------
-    const cursosDisponibles = useMemo(() => {
-        const asignados = new Set(cursosAsignados.map((c) => c.curso_id));
-        return cursos.filter((c) => !asignados.has(c.id));
-    }, [cursos, cursosAsignados]);
-
-    const agregarCursoLocal = () => {
-        const cid = Number(cursoAAgregar);
-        if (!cid) return;
-        const curso = cursos.find((c) => c.id === cid);
-        if (!curso) return;
-        const valorBase = detalle?.valor ?? 0;
-        setCursosAsignados((prev) => [
-            ...prev,
-            {
-                curso_id: curso.id,
-                curso_nombre: curso.nombre,
-                valor: valorCursoAAgregar !== "" ? Number(valorCursoAAgregar) : valorBase,
-                activo: true,
-            },
-        ]);
-        setCursosAsignadosDirty(true);
-        setCursoAAgregar("");
-        setValorCursoAAgregar("");
-    };
-
-    const agregarTodosLosCursos = () => {
-        const valorBase = detalle?.valor ?? 0;
-        setCursosAsignados((prev) => {
-            const idsActuales = new Set(prev.map((c) => c.curso_id));
-            const nuevos = cursos
-                .filter((c) => !idsActuales.has(c.id))
-                .map((c) => ({
-                    curso_id: c.id,
-                    curso_nombre: c.nombre,
-                    valor: valorBase,
-                    activo: true,
-                }));
-            if (nuevos.length > 0) setCursosAsignadosDirty(true);
-            return [...prev, ...nuevos];
-        });
-    };
-
-    const actualizarValorCurso = (curso_id, valor) => {
-        setCursosAsignadosDirty(true);
-        setCursosAsignados((prev) =>
-            prev.map((c) => (c.curso_id === curso_id ? { ...c, valor: Number(valor) || 0 } : c))
-        );
-    };
-
-    const toggleActivoCurso = (curso_id) => {
-        setCursosAsignadosDirty(true);
-        setCursosAsignados((prev) =>
-            prev.map((c) => (c.curso_id === curso_id ? { ...c, activo: !c.activo } : c))
-        );
-    };
-
-    const quitarCurso = (curso_id) => {
-        setCursosAsignadosDirty(true);
-        setCursosAsignados((prev) => prev.filter((c) => c.curso_id !== curso_id));
-    };
-
-    const guardarAsignacionCursos = async () => {
-        if (!selectedTipoId) return;
-        setGuardandoCursos(true);
-        try {
-            const payload = {
-                cursos: cursosAsignados.map((c) => ({
-                    curso_id: c.curso_id,
-                    valor: Number(c.valor) || 0,
-                    activo: !!c.activo,
-                })),
-            };
-            await api.put(`/tipos-pagos/${selectedTipoId}/cursos`, payload);
-            setCursosAsignadosDirty(false);
-            Swal.fire("Guardado", "Cursos asignados correctamente", "success");
-            await cargarTiposPagos();
-        } catch (error) {
-            console.error(error);
-            const detail = error?.response?.data?.detail;
-            Swal.fire("Error", detail || "No se pudo guardar la asignación", "error");
-        } finally {
-            setGuardandoCursos(false);
-        }
-    };
-
-    // -------------------------------------------------------------------------
-    // Render
-    // -------------------------------------------------------------------------
+function VistaAdministrarTiposPago({
+    tiposPagos,
+    estadoFiltro,
+    setEstadoFiltro,
+    selectedTipoId,
+    detalle,
+    loadingDetalle,
+    cerrarDetalle,
+    resumenEstados,
+    tiposPagosFiltrados,
+    mensajeConceptosVacios,
+    nuevoTipoPago,
+    setNuevoTipoPago,
+    valorTipoPago,
+    setValorTipoPago,
+    editingTipoId,
+    handleSubmit,
+    handleEdit,
+    cancelarEdicion,
+    config,
+    guardandoConfig,
+    handleConfigChange,
+    guardarConfiguracion,
+    cursosAsignados,
+    cursoAAgregar,
+    setCursoAAgregar,
+    valorCursoAAgregar,
+    setValorCursoAAgregar,
+    guardandoCursos,
+    cursosAsignadosDirty,
+    cursosDisponibles,
+    cursosAsignadosActivos,
+    totalCursosActivos,
+    cursosPendientes,
+    agregarCursoLocal,
+    agregarTodosLosCursos,
+    actualizarValorCurso,
+    toggleActivoCurso,
+    quitarCurso,
+    guardarAsignacionCursos,
+    seleccionarTipoParaConfigurar,
+}) {
     const esMensual = config.tipo_cobro === "mensual";
     const esAnual = config.tipo_cobro === "anual";
-    const cursosActivos = useMemo(
-        () => cursos.filter((curso) => curso.estado !== "inactivo"),
-        [cursos]
-    );
-    const cursosAsignadosActivos = useMemo(
-        () => cursosAsignados.filter((curso) => curso.activo !== false).length,
-        [cursosAsignados]
-    );
-    const totalCursosActivos = cursosActivos.length;
-    const cursosPendientes = Math.max(0, totalCursosActivos - cursosAsignadosActivos);
 
     // Vista previa del estado de cartera con la configuración actual (no guardada).
     const carteraPreview = useMemo(() => {
@@ -442,29 +122,6 @@ function AdministrarTiposPago() {
             cursos: cursosAsignados,
         });
     }, [detalle, config.tipo_cobro, config.activo, cursosAsignados]);
-
-    const resumenEstados = useMemo(() => {
-        const activos = tiposPagos.filter((tp) => tp.activo !== false).length;
-        const inactivos = tiposPagos.filter((tp) => tp.activo === false).length;
-        return {
-            activo: activos,
-            inactivo: inactivos,
-            todos: tiposPagos.length,
-        };
-    }, [tiposPagos]);
-
-    const tiposPagosFiltrados = useMemo(() => {
-        if (estadoFiltro === "todos") return tiposPagos;
-        const debeEstarActivo = estadoFiltro === "activo";
-        return tiposPagos.filter((tp) => (tp.activo !== false) === debeEstarActivo);
-    }, [tiposPagos, estadoFiltro]);
-
-    const mensajeConceptosVacios =
-        estadoFiltro === "activo"
-            ? "No hay conceptos activos. Puedes revisar Inactivos o crear un nuevo concepto."
-            : estadoFiltro === "inactivo"
-                ? "No hay conceptos inactivos."
-                : "No hay conceptos registrados.";
 
     return (
         <div className="space-y-6">
@@ -519,11 +176,7 @@ function AdministrarTiposPago() {
                         {editingTipoId && (
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setEditingTipoId(null);
-                                    setNuevoTipoPago("");
-                                    setValorTipoPago("");
-                                }}
+                                onClick={cancelarEdicion}
                                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
                             >
                                 Cancelar
@@ -647,10 +300,7 @@ function AdministrarTiposPago() {
                             </p>
                         </div>
                         <button
-                            onClick={() => {
-                                setSelectedTipoId(null);
-                                setDetalle(null);
-                            }}
+                            onClick={cerrarDetalle}
                             className="text-gray-500 hover:text-gray-700 text-sm"
                         >
                             ✕ Cerrar
@@ -1003,4 +653,4 @@ function AdministrarTiposPago() {
     );
 }
 
-export default AdministrarTiposPago;
+export default VistaAdministrarTiposPago;

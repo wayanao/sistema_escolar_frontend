@@ -36,7 +36,8 @@ Estado documentado del frontend `frontend-react`.
   formularios presentacionales de identidad y plantillas.
 - `src/components/boletin/`: vistas presentacionales de generación,
   impresión, ingreso docente y orden del módulo de boletines.
-- `src/components/cartera/`: componentes del modulo de cartera.
+- `src/components/carteraTiposPago/`: vistas presentacionales de cartera
+  vencida, estados de cuenta y administración de conceptos de pago.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
   de asistencia, sin acceso a hooks ni transporte HTTP.
@@ -65,6 +66,8 @@ Estado documentado del frontend `frontend-react`.
   estudiantes y observador, con aislamiento de respuestas obsoletas.
 - `src/hooks/certificadosImpresion/`: consultas cancelables de certificados,
   comandos administrativos y configuración compartida de impresión.
+- `src/hooks/carteraTiposPago/`: consultas de cartera y conceptos, formulario
+  básico, configuración financiera y asignación editable de cursos.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -86,6 +89,8 @@ Estado documentado del frontend `frontend-react`.
   cursos, detalle, deudas, planilla y observaciones.
 - `src/services/certificadosImpresionApi.js`: fachada HTTP de certificados que
   reutiliza contratos compatibles de boletines y asistencia.
+- `src/services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida,
+  conceptos de pago, configuración y asignación de cursos.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
   logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
@@ -107,6 +112,8 @@ Estado documentado del frontend `frontend-react`.
   payloads puros de estudiantes y observaciones.
 - `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
   académica y transformaciones puras de certificados e impresión.
+- `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de
+  cartera, normalización y payloads puros de conceptos y cursos.
 
 ## Entrada de la aplicacion
 
@@ -219,6 +226,28 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   estados, acciones, autoajuste de textareas y vista imprimible mediante props.
 - No quedan llamadas HTTP directas, transformaciones ni implementaciones
   visuales antiguas paralelas en `PlaneadorAnual.jsx`.
+
+## Cartera y tipos de pago
+
+- `/admin/cartera-vencida` monta `pages/CarteraVencidaAdmin.jsx` y conserva
+  KPIs, filtros, detalle expandible, CSV, navegación a Pagos e impresión A4 por
+  estudiante o curso.
+- `/admin/tipos-pagos` monta `pages/TiposPagosAdmin.jsx` y conserva creación y
+  edición de conceptos, estados activo/inactivo/borrador, configuración de
+  cobro y mora, y reemplazo de asignaciones por curso.
+- Ambas rutas permanecen bajo `AdminRoute`. La navegación `Cobrar` conserva
+  `/admin/pagos` con `{ state: { estudiante_id } }`; `PagosAdmin` no forma parte
+  de este módulo.
+- Las páginas son raíces de composición y conectan los hooks con
+  `components/carteraTiposPago/`. Las vistas reciben datos y callbacks y no
+  conocen servicios, rutas ni estado de dominio.
+- `services/carteraTiposPagoApi.js` es la única frontera HTTP del módulo. Los
+  hooks separan consultas, fallback, detalle, formularios y comandos; las
+  utilidades concentran formatos, filtros, totales, CSV y payloads.
+- `DocumentoImprimible` conserva identidad institucional, formato A4 y scroll
+  horizontal móvil para los estados de cuenta.
+- No queda el controlador anterior `components/cartera/AdministrarTiposPago`
+  ni existen implementaciones HTTP o visuales paralelas.
 
 ## Criterios de UX responsive
 
@@ -387,3 +416,7 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `DocumentoImprimible`, `CertificadosAdmin` y `BrandingAdmin` protegen
   contratos HTTP, consolidación académica, cancelación, caché, comandos,
   presentación A4 y composición por pestañas.
+- Las pruebas de `src/utils/carteraTiposPago/`,
+  `src/services/carteraTiposPagoApi.test.js`, los cinco hooks, las dos vistas y
+  `CarteraVencidaAdmin`/`TiposPagosAdmin` protegen transformaciones, contratos
+  HTTP, fallback, filtros, comandos, impresión y composición del módulo.

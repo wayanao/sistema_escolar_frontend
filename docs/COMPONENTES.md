@@ -679,7 +679,20 @@ Estado actual de componentes y paginas del frontend.
 
 ### Cartera
 
-- `components/cartera/AdministrarTiposPago.jsx`
+- `components/carteraTiposPago/VistaCarteraVencida.jsx`: carga, KPIs,
+  distribución por curso, filtros, totales, tabla expandible y estados de
+  cuenta A4 por estudiante o curso. Recibe datos y callbacks por props.
+- `components/carteraTiposPago/VistaAdministrarTiposPago.jsx`: formulario,
+  listado activo/inactivo, indicadores publicado/borrador, configuración
+  financiera y asignación responsive de cursos. Recibe estado y acciones por
+  props.
+- `pages/CarteraVencidaAdmin.jsx` y `pages/TiposPagosAdmin.jsx`: raíces de
+  composición del módulo.
+- `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
+  formulario básico, configuración y asignación de cursos.
+- `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.
+- `utils/carteraTiposPago/`: formatos, filtros, totales, CSV, contratos y
+  payloads puros.
 
 ### Pagos administrativos
 
@@ -784,6 +797,11 @@ Notas:
 - `services/printingService.js`: servicio para branding, plantillas e impresion.
 - `utils/certificadosImpresion/`: contratos y transformaciones puras del
   módulo.
+- `hooks/carteraTiposPago/`: consultas, fallback, detalle, formularios y
+  comandos de cartera y conceptos.
+- `services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida, tipos de
+  pago, configuración y cursos.
+- `utils/carteraTiposPago/`: transformaciones y payloads puros del módulo.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos

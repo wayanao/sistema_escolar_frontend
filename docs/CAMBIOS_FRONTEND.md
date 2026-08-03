@@ -1,5 +1,34 @@
 # Cambios Frontend
 
+## 2026-08-03 - Modularización completa de cartera y tipos de pago
+
+- Se conservaron diseño, textos, rutas administrativas, protección por rol,
+  experiencia responsive, impresión A4, CSV, navegación a Pagos, payloads y
+  contratos del backend.
+- `utils/carteraTiposPago/` concentra formatos, filtros, totales, CSV, estados
+  publicado/borrador, normalización y payloads puros.
+- `services/carteraTiposPagoApi.js` es la única frontera HTTP para cartera
+  vencida, conceptos, configuración y asignación de cursos.
+- Cinco hooks separan carga/fallback/detalle de los formularios y comandos de
+  creación, configuración y reemplazo de cursos.
+- `components/carteraTiposPago/` contiene las vistas presentacionales de
+  cartera/impresión y administración de conceptos mediante props y callbacks.
+- `pages/CarteraVencidaAdmin.jsx` y `pages/TiposPagosAdmin.jsx` son raíces de
+  composición. Se retiró `components/cartera/AdministrarTiposPago.jsx` y no
+  quedan implementaciones antiguas paralelas.
+- Se preservó el fallback de `/tipos-pagos/detallado` a `/tipos-pagos`, la
+  visibilidad de deudas existentes, las confirmaciones de activación y el
+  reemplazo completo de asignaciones por curso.
+
+Verificación final:
+
+- 14 archivos y 49 pruebas específicas de cartera y tipos de pago correctas.
+- `pnpm run check:deploy`: correcto; 149 archivos, 522 pruebas, ESLint y build
+  de producción de 273 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-03 - Modularización completa de malla curricular
 
 - Se conservaron diseño, textos, ruta `/planeador-anual`, protección,
