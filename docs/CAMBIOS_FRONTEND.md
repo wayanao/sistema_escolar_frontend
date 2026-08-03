@@ -1,5 +1,41 @@
 # Cambios Frontend
 
+## 2026-08-02 - Modularización completa de estudiantes y observador
+
+- Se conservaron diseño, textos, rutas, protecciones, experiencia responsive,
+  almacenamiento local, payloads y contratos del backend en administración de
+  estudiantes y observador del profesor.
+- `utils/estudiantesObservador/` concentra formularios, filtros,
+  normalizaciones y payloads puros; `services/estudiantesObservadorApi.js` es
+  la única frontera HTTP del módulo.
+- Los hooks separan consultas con aislamiento de respuestas obsoletas,
+  formularios y comandos de creación, edición, estado y observaciones.
+- Las vistas de `components/estudiantesObservador/` reciben datos y callbacks;
+  `pages/EstudiantesAdmin.jsx` y `pages/Formulario.jsx` son raíces de
+  composición, y `components/estudiantesObservador/Observaciones.jsx` conserva
+  alertas e impresión.
+- Se conservaron `/admin/estudiantes`, `/Formulario`, sus guards, el detalle
+  tolerante a datos parciales y el guardado parcial del observador.
+- Se retiraron `CrearEstudiante.jsx` y `ReporteEstudiante.jsx`, que no tenían
+  rutas, imports ni consumidores y duplicaban implementaciones activas.
+- La diferencia contractual entre `id` administrativo y `estudiante_id` de
+  planilla permanece explícita y protegida por pruebas.
+- Las tarjetas del observador continúan apareciendo sin exigir búsqueda, pero
+  consultan progresivamente al acercarse al viewport. Buscar un estudiante lo
+  vuelve visible y activa su consulta sin disparar solicitudes para todo el
+  curso al mismo tiempo.
+- Los fallos y tiempos de espera ya no se muestran como `Pendiente`: bloquean
+  edición e impresión y ofrecen una acción explícita para reintentar.
+
+Verificación final:
+
+- 18 archivos y 57 pruebas específicas de estudiantes y observador correctas.
+- `pnpm run check:deploy`: correcto; 111 archivos, 387 pruebas, lint y build de
+  producción de 241 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-02 - Modularización completa de boletines
 
 - Se conservaron diseño, textos, rutas, protecciones, comportamiento,

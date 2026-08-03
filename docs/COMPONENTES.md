@@ -59,7 +59,6 @@ Estado actual de componentes y paginas del frontend.
   por defecto al cargar.
 - `components/administracionAcademica/cursos/CrearCurso.jsx`: contenedor de
   creación, edición, estado y listado de cursos.
-- `CrearEstudiante.jsx`: creacion/gestion relacionada con estudiantes.
 - `components/administracionAcademica/materias/CrearMateria.jsx`: contenedor de
   creación, edición, estado y listado de materias.
 - `components/administracionAcademica/profesores/CrearProfesor.jsx`: contenedor
@@ -73,11 +72,11 @@ Estado actual de componentes y paginas del frontend.
 - `PlanillaRow.jsx`: fila de planilla.
 - `components/asistencia/AsistenciaRow.jsx`: fila de asistencia; muestra botones
   presente/ausente y contador de inasistencias cuando el historial ya cargó.
-- `Observaciones.jsx`: manejo de observaciones; su verificacion inicial usa
-  cancelacion con tiempo limite para no dejar el badge en `Verificando`
-  indefinidamente. Permite guardar con una sola dimension diligenciada,
-  muestra spinner durante la peticion y confirma el resultado con SweetAlert2.
-- `ReporteEstudiante.jsx`: reporte individual de estudiante.
+- `components/estudiantesObservador/Observaciones.jsx`: contenedor del
+  observador por estudiante; conecta el hook editable con SweetAlert2 y
+  `DocumentoImprimible`. Activa la consulta al acercarse al viewport, usa
+  cancelación con tiempo límite, distingue errores de registros pendientes,
+  permite reintentar y conserva el guardado parcial.
 - `dashboard/CumpleanosSemana.jsx`: panel reutilizable para mostrar cumpleaños
   de estudiantes de los proximos 7 dias en dashboards con estados de carga,
   error y lista vacia.
@@ -610,6 +609,28 @@ Estado actual de componentes y paginas del frontend.
 - `utils/boletines/`: cálculos, normalización, filtros, movimientos y payloads
   puros.
 
+### Estudiantes y observador
+
+- `components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin.jsx`:
+  búsqueda, filtro operativo y apertura del formulario.
+- `components/estudiantesObservador/admin/FormularioEstudianteAdmin.jsx`:
+  formulario controlado de creación y edición.
+- `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
+  estado vacío y acciones por estudiante.
+- `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal
+  responsive con resumen, rendimiento, deudas, inventario y observaciones.
+- `components/estudiantesObservador/FormularioObservacionEstudiante.jsx` y
+  `VistaPlanillaObservador.jsx`: formulario individual y planilla visual del
+  observador del profesor.
+- `pages/EstudiantesAdmin.jsx` y `pages/Formulario.jsx`: raíces de composición;
+  `components/estudiantesObservador/Observaciones.jsx` conecta cada tarjeta con
+  alertas e impresión.
+- `hooks/estudiantesObservador/`: consultas aisladas, formularios y comandos.
+  Incluye activación progresiva por visibilidad para evitar consultas masivas
+  del observador.
+- `services/estudiantesObservadorApi.js`: frontera HTTP única del módulo.
+- `utils/estudiantesObservador/`: contratos y transformaciones puras.
+
 ### Constantes
 
 - `constants/valoracionesDesarrollo.js`: opciones compartidas de desarrollo
@@ -707,6 +728,12 @@ Notas:
   `materiasApi.js` y `horariosApi.js`: fronteras HTTP del módulo académico.
 - `utils/administracionAcademica/`: contratos y transformaciones puras del
   módulo, con pruebas junto a cada entidad.
+- `hooks/estudiantesObservador/`: consultas, formularios y comandos del listado,
+  detalle, planilla y observaciones.
+- `services/estudiantesObservadorApi.js`: frontera HTTP única de estudiantes y
+  observador.
+- `utils/estudiantesObservador/`: contratos, filtros, normalización y payloads
+  puros del módulo.
 - `hooks/usePrintConfig.js`: hook relacionado con configuracion de impresion.
 - `services/printingService.js`: servicio para branding, plantillas e impresion.
 - `utils/api.js`: cliente Axios compartido.

@@ -41,6 +41,8 @@ Estado documentado del frontend `frontend-react`.
   de asistencia, sin acceso a hooks ni transporte HTTP.
 - `src/components/administracionAcademica/`: componentes y contenedores de
   asignaciones, profesores, cursos, materias y horarios, separados por dominio.
+- `src/components/estudiantesObservador/`: vistas presentacionales del listado,
+  formulario y detalle administrativo, y del observador del profesor.
 - `src/components/planeaciones/admin/`: componentes presentacionales de la
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
@@ -54,6 +56,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/administracionAcademica/`: consultas cancelables, formularios y
   comandos de administración académica; Horarios conserva dos consultas de
   solo lectura independientes.
+- `src/hooks/estudiantesObservador/`: consultas, formularios y comandos de
+  estudiantes y observador, con aislamiento de respuestas obsoletas.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -69,6 +73,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/services/asignacionesApi.js`, `profesoresApi.js`, `cursosApi.js`,
   `materiasApi.js` y `horariosApi.js`: contratos HTTP de administración
   académica y horarios.
+- `src/services/estudiantesObservadorApi.js`: contrato HTTP de estudiantes,
+  cursos, detalle, deudas, planilla y observaciones.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
@@ -82,6 +88,8 @@ Estado documentado del frontend `frontend-react`.
   ingreso docente y orden de materias, con pruebas adyacentes.
 - `src/utils/administracionAcademica/`: contratos, validaciones, payloads,
   filtros, estados y transformaciones puras del módulo académico.
+- `src/utils/estudiantesObservador/`: formularios, filtros, normalización y
+  payloads puros de estudiantes y observaciones.
 
 ## Entrada de la aplicacion
 
@@ -132,6 +140,27 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - El impreso conserva `DocumentoImprimible`, formato A4, identidad
   institucional y desplazamiento horizontal móvil.
 
+## Estudiantes y observador
+
+- `/admin/estudiantes` monta `pages/EstudiantesAdmin.jsx` bajo `AdminRoute` y
+  conserva listado, filtros, formulario, cambio de estado y detalle parcial.
+- `/Formulario` monta `pages/Formulario.jsx` bajo `ProtectedRoute` y conserva la
+  planilla del observador asociada a la asignación y periodo activos.
+- `services/estudiantesObservadorApi.js` es la única frontera HTTP del módulo;
+  utilidades, hooks y componentes se separan bajo sus carpetas de dominio.
+- `EstudiantesAdmin.jsx` y `Formulario.jsx` son raíces de composición.
+  `components/estudiantesObservador/Observaciones.jsx` conecta el hook editable
+  con alertas e impresión, y delega el formulario a presentación.
+- Los componentes reciben datos y callbacks por props. No quedan componentes
+  legacy ni implementaciones HTTP paralelas.
+- El módulo conserva la diferencia contractual entre `id` administrativo y
+  `estudiante_id` de planilla, el guardado parcial y el aislamiento entre
+  estudiantes.
+- Las tarjetas permanecen visibles sin exigir búsqueda, pero su consulta se
+  activa progresivamente al acercarse al viewport. Un fallo se presenta como
+  error recuperable y bloquea la edición hasta reintentar; nunca se interpreta
+  como una observación pendiente.
+
 ## Criterios de UX responsive
 
 - Los ajustes moviles se concentran en clases responsive de Tailwind y en
@@ -153,8 +182,9 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   internas y evita traduccion automatica de tipos de nota.
 - `Asistencia` muestra estados de carga/reintento para historial y aviso cuando
   la asistencia de la fecha ya fue tomada.
-- `Observaciones` acota la verificacion inicial para evitar estados
-  `Verificando` indefinidos en conexiones moviles lentas.
+- `Observaciones` activa consultas al acercar cada tarjeta al viewport, acota la
+  verificación inicial y ofrece reintento visible cuando no puede recuperar el
+  registro guardado.
 - `EstudiantesAdmin` mantiene el observador dentro del modal de detalle; la UI
   movil usa tarjetas apiladas y la UI de escritorio conserva disposicion amplia.
 
