@@ -3,7 +3,7 @@
 Hoja de ruta para migrar el frontend por módulos y capas sin cambiar el
 comportamiento funcional existente.
 
-Última revisión: 2026-08-03.
+Última revisión: 2026-08-04.
 
 ## Objetivo
 
@@ -312,7 +312,7 @@ registrar al final:
 | 4 | Boletines | Terminado; commit pendiente | [BOLETINES.md](./BOLETINES.md) |
 | 5 | Estudiantes y observador | Terminado; commit pendiente | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
 | 6 | Certificados e impresión | Terminado; commit pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
-| 7 | Pagos | Pendiente | [PAGOS.md](./PAGOS.md) |
+| 7 | Pagos | Terminado; commit pendiente | [PAGOS.md](./PAGOS.md) |
 | 8 | Cartera y tipos de pago | Terminado; commit pendiente | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
 | 9 | Reportes financieros | Pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
 | 10 | Inventario y ventas | Pendiente | [INVENTARIO_VENTAS.md](./INVENTARIO_VENTAS.md) |

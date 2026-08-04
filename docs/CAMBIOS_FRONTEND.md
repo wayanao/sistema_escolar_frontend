@@ -1,5 +1,32 @@
 # Cambios Frontend
 
+## 2026-08-04 - Modularización completa de pagos
+
+- Se conservaron diseño, textos, ruta `/admin/pagos`, protección administrativa,
+  navegación desde cartera, contratos HTTP, payloads y reglas financieras de
+  pagos normales, cuotas vencidas, abonos, adelantos y subsidios.
+- `utils/pagos/` concentra formatos, cálculos en centavos, normalización,
+  estados iniciales y payloads puros; `services/pagosApi.js` es la única
+  frontera HTTP del módulo.
+- Siete hooks separan catálogos, consultas por estudiante, opciones de
+  adelanto, formulario, valores personalizados, registro y anulación.
+- Seis componentes de `components/pagos/` conservan listado, formularios,
+  historial y comprobante mediante props y callbacks.
+- `pages/PagosAdmin.jsx` queda como raíz de composición de ruta, sesión, hooks
+  y componentes, sin endpoints, payloads ni bloques visuales extensos.
+- `FacturaModerna` se trasladó al dominio PAGOS y continúa dentro de
+  `DocumentoImprimible`; no quedan imports ni implementaciones antiguas
+  paralelas.
+
+Verificación final:
+
+- 18 archivos y 70 pruebas específicas de PAGOS correctas.
+- `pnpm run check:deploy`: correcto; 167 archivos, 592 pruebas, ESLint y build
+  de producción de 289 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta.
+
 ## 2026-08-03 - Modularización completa de cartera y tipos de pago
 
 - Se conservaron diseño, textos, rutas administrativas, protección por rol,

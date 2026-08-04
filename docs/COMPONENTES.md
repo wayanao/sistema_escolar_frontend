@@ -68,7 +68,8 @@ Estado actual de componentes y paginas del frontend.
 - `components/administracionAcademica/horarios/HorariosProfesores.jsx` y
   `HorariosPorCurso.jsx`: contenedores de consulta para calendarios por profesor
   y curso; delegan toda la presentación a componentes del mismo dominio.
-- `FacturaModerna.jsx`: componente de factura.
+- `components/pagos/FacturaModerna.jsx`: cuerpo del comprobante de pago,
+  compuesto dentro de `DocumentoImprimible` por `ComprobantePago.jsx`.
 - `PlanillaRow.jsx`: fila de planilla.
 - `components/asistencia/AsistenciaRow.jsx`: fila de asistencia; muestra botones
   presente/ausente y contador de inasistencias cuando el historial ya cargó.
@@ -696,8 +697,25 @@ Estado actual de componentes y paginas del frontend.
 
 ### Pagos administrativos
 
-- `pages/PagosAdmin.jsx` conserva el registro normal de deudas y cargos de
-  inventario mediante `POST /pagos`.
+- `pages/PagosAdmin.jsx` es la raíz de composición protegida para administración
+  de pagos. Conecta hooks con componentes y conserva ruta, sesión, búsqueda,
+  selección e impresión activa.
+- `components/pagos/ListaEstudiantesPagos.jsx` presenta búsqueda controlada,
+  carga, estado vacío y selección con documento y curso.
+- `components/pagos/ValoresPersonalizadosPago.jsx` presenta el formulario y
+  listado de ajustes individuales.
+- `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
+  adelantos, distribución por monto y métodos combinados.
+- `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y
+  delega impresión y anulación.
+- `components/pagos/ComprobantePago.jsx` compone `FacturaModerna.jsx` dentro de
+  `components/impresion/DocumentoImprimible.jsx`.
+- `hooks/pagos/` separa catálogos, consultas por estudiante, opciones de
+  adelanto, estado del formulario y comandos.
+- `services/pagosApi.js` encapsula el transporte HTTP; `utils/pagos/` conserva
+  contratos, formatos, cálculos y payloads puros.
+- El módulo conserva el registro normal de deudas y cargos de inventario
+  mediante `POST /pagos`.
 - En conceptos mensuales, `Pago pendiente` muestra tarjetas seleccionables por
   mes, saldo y estado vencido/parcial; el mes mas antiguo inicia seleccionado.
 - Se puede elegir todos los meses, volver al mas antiguo o usar `Abono libre`
@@ -802,6 +820,9 @@ Notas:
 - `services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida, tipos de
   pago, configuración y cursos.
 - `utils/carteraTiposPago/`: transformaciones y payloads puros del módulo.
+- `hooks/pagos/`: consultas, formularios y comandos del módulo de pagos.
+- `services/pagosApi.js`: frontera HTTP única de pagos.
+- `utils/pagos/`: formatos, cálculos, normalización y payloads puros de pagos.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos

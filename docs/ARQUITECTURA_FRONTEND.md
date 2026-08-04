@@ -38,6 +38,8 @@ Estado documentado del frontend `frontend-react`.
   impresión, ingreso docente y orden del módulo de boletines.
 - `src/components/carteraTiposPago/`: vistas presentacionales de cartera
   vencida, estados de cuenta y administración de conceptos de pago.
+- `src/components/pagos/`: listado, valores personalizados, formulario,
+  historial y comprobante presentacionales del módulo de pagos.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
   de asistencia, sin acceso a hooks ni transporte HTTP.
@@ -68,6 +70,8 @@ Estado documentado del frontend `frontend-react`.
   comandos administrativos y configuración compartida de impresión.
 - `src/hooks/carteraTiposPago/`: consultas de cartera y conceptos, formulario
   básico, configuración financiera y asignación editable de cursos.
+- `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
+  cuotas vencidas, adelantos, valores personalizados y anulación.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -91,6 +95,8 @@ Estado documentado del frontend `frontend-react`.
   reutiliza contratos compatibles de boletines y asistencia.
 - `src/services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida,
   conceptos de pago, configuración y asignación de cursos.
+- `src/services/pagosApi.js`: frontera HTTP de catálogos, historial, deudas,
+  opciones, valores personalizados, registro y anulación de pagos.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
   logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
@@ -114,6 +120,8 @@ Estado documentado del frontend `frontend-react`.
   académica y transformaciones puras de certificados e impresión.
 - `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de
   cartera, normalización y payloads puros de conceptos y cursos.
+- `src/utils/pagos/`: formatos, cálculos financieros, estados iniciales,
+  normalización y payloads puros del módulo de pagos.
 
 ## Entrada de la aplicacion
 
@@ -248,6 +256,28 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   horizontal móvil para los estados de cuenta.
 - No queda el controlador anterior `components/cartera/AdministrarTiposPago`
   ni existen implementaciones HTTP o visuales paralelas.
+
+## Pagos
+
+- `/admin/pagos` monta `pages/PagosAdmin.jsx` bajo `AdminRoute` y conserva
+  pagos normales de deudas o ventas, cuotas vencidas, abonos libres, adelantos
+  por meses o monto, subsidios, métodos combinados, valores personalizados,
+  historial, impresión y anulación.
+- La página es la raíz de composición: lee sesión y `location.state`, conserva
+  navegación, búsqueda e impresión activa, conecta siete hooks y entrega datos
+  y callbacks a `components/pagos/`.
+- `services/pagosApi.js` es la única frontera HTTP. Los hooks separan catálogos,
+  consultas por estudiante, opciones de adelanto, formulario, valores
+  personalizados, registro y anulación.
+- `utils/pagos/` conserva contratos y transformaciones puras, incluidas
+  normalización de opciones, cálculos en centavos y payloads diferentes para
+  pago normal y adelantado.
+- Los componentes presentacionales no conocen servicios. `FacturaModerna` vive
+  dentro del dominio y `ComprobantePago` reutiliza el
+  `components/impresion/DocumentoImprimible.jsx` compartido.
+- No quedan llamadas HTTP, payloads, reglas financieras ni bloques visuales
+  extensos en `PagosAdmin.jsx`; tampoco existe una implementación paralela del
+  comprobante en `src/components/FacturaModerna.jsx`.
 
 ## Criterios de UX responsive
 
@@ -420,3 +450,7 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `src/services/carteraTiposPagoApi.test.js`, los cinco hooks, las dos vistas y
   `CarteraVencidaAdmin`/`TiposPagosAdmin` protegen transformaciones, contratos
   HTTP, fallback, filtros, comandos, impresión y composición del módulo.
+- Las pruebas de `src/utils/pagos/`, `src/services/pagosApi.test.js`, los siete
+  hooks, los seis componentes y `PagosAdmin.test.jsx` protegen formatos,
+  cálculos, payloads, transporte, consultas, comandos, presentación,
+  autorización, navegación y los flujos normal y adelantado.
