@@ -70,7 +70,8 @@ Estado actual de componentes y paginas del frontend.
   y curso; delegan toda la presentación a componentes del mismo dominio.
 - `components/pagos/FacturaModerna.jsx`: cuerpo del comprobante de pago,
   compuesto dentro de `DocumentoImprimible` por `ComprobantePago.jsx`.
-- `PlanillaRow.jsx`: fila de planilla.
+- `components/planilla/PlanillaRow.jsx`: fila de planilla; muestra las notas
+  por columna y el promedio del estudiante.
 - `components/asistencia/AsistenciaRow.jsx`: fila de asistencia; muestra botones
   presente/ausente y contador de inasistencias cuando el historial ya cargó.
 - `components/estudiantesObservador/Observaciones.jsx`: contenedor del
@@ -140,8 +141,28 @@ Estado actual de componentes y paginas del frontend.
 
 ## Planilla de notas profesor
 
-- `pages/Planilla.jsx`: pantalla de captura y gestion de notas del perfil
-  profesor.
+- `pages/Planilla.jsx`: raíz de composición para la captura y gestión de
+  notas del perfil profesor. Lee el contexto superior, conserva navegación y
+  conecta hooks con componentes; no conoce rutas HTTP ni contiene comandos o
+  bloques visuales extensos.
+- `services/planillaApi.js` encapsula clases, planilla, guardado de nota y
+  eliminación de tipo de evaluación; acepta señales de cancelación y propaga
+  errores sin decidir interfaz.
+- `utils/planilla/notas.js` contiene la columna interna reservada, el
+  formateo de etiquetas, las notas visibles, el cálculo de promedio, la
+  normalización de coma decimal y la construcción del payload de nota.
+- `hooks/planilla/useConsultasPlanillaProfesor.js` carga clases y planilla
+  (estudiantes y columnas visibles) y descarta respuestas obsoletas.
+- `hooks/planilla/useComandosPlanillaProfesor.js` administra el guardado y
+  limpieza de notas, las valoraciones de desarrollo y el alta/baja de tipos
+  de evaluación con su progreso.
+- `components/planilla/PlanillaMobileCard.jsx` y
+  `components/planilla/PlanillaRow.jsx` presentan la tarjeta móvil y la fila
+  de escritorio de cada estudiante.
+- `components/planilla/SelectorTipoEvaluacion.jsx` presenta el control
+  `Tipo de calificación`; `components/planilla/GestionTiposEvaluacion.jsx`
+  presenta el alta y baja de tipos; `components/planilla/TablaNotasPlanilla.jsx`
+  compone el título, la lista móvil y la tabla de escritorio.
 - `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
   composición compacta del encabezado y el contexto de materia, salón, período
   y fecha. Planilla agrega allí mismo `Tipo de calificación`.
@@ -602,6 +623,14 @@ Estado actual de componentes y paginas del frontend.
 - `components/asistencia/PanelAsistenciaProfesor.jsx`
 - `components/asistencia/AsistenciaRow.jsx`
 
+### Planilla
+
+- `components/planilla/PlanillaMobileCard.jsx`
+- `components/planilla/PlanillaRow.jsx`
+- `components/planilla/SelectorTipoEvaluacion.jsx`
+- `components/planilla/GestionTiposEvaluacion.jsx`
+- `components/planilla/TablaNotasPlanilla.jsx`
+
 ### Admin
 
 - `pages/OrdenBoletin.jsx`: raíz cargada por la pestaña de Administración para
@@ -790,6 +819,13 @@ Notas:
 - `hooks/asistencia/useComandosAsistenciaProfesor.js`: estado editable y ciclo
   de guardado de asistencia.
 - `services/asistenciaApi.js`: frontera HTTP del módulo de asistencia.
+- `hooks/planilla/useConsultasPlanillaProfesor.js`: carga cancelable de
+  clases y planilla (estudiantes y columnas visibles).
+- `hooks/planilla/useComandosPlanillaProfesor.js`: guardado de notas,
+  valoraciones de desarrollo y alta/baja de tipos de evaluación.
+- `services/planillaApi.js`: frontera HTTP del módulo de planilla.
+- `utils/planilla/notas.js`: contratos y transformaciones puras de la
+  planilla del profesor.
 - `hooks/boletines/`: consultas y comandos de los tres flujos de boletines.
 - `services/boletinesApi.js`: frontera HTTP del módulo de boletines.
 - `utils/boletines/`: contratos y transformaciones puras del módulo.

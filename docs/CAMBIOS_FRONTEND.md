@@ -1,5 +1,38 @@
 # Cambios Frontend
 
+## 2026-08-05 - Modularización completa de planilla de notas
+
+- Se conservaron diseño, textos, ruta `/planilla`, comportamiento responsive
+  (tarjeta móvil / tabla de escritorio), cálculos de promedio, validaciones
+  de rango y contratos del backend, sin agregar funciones ni rediseños.
+- Las transformaciones puras (columna interna reservada, formateo de
+  etiquetas, notas visibles, promedio, coma decimal y payload de nota) viven
+  en `utils/planilla/notas.js`.
+- `services/planillaApi.js` centraliza clases, planilla, guardado de nota y
+  eliminación de tipo de evaluación, con su propio consumo independiente de
+  `services/asistenciaApi.js` aunque comparta dos rutas del backend.
+- Los hooks de `hooks/planilla/` separan consultas cancelables de clases y
+  planilla del estado editable y los comandos de guardado y gestión de
+  tipos de evaluación.
+- Los bloques visuales viven en `components/planilla/` y reciben datos y
+  acciones mediante props; `PlanillaRow.jsx` se trasladó desde
+  `components/` a esa carpeta.
+- `pages/Planilla.jsx` queda como raíz de composición de 127 líneas (antes
+  ~677), sin endpoints, payloads ni bloques visuales extensos.
+- Se conservan la persistencia del tipo de calificación elegido, el bloqueo
+  de nombres de tipo reservados/duplicados, la confirmación antes de
+  eliminar un tipo y el aviso cuando la clase seleccionada ya no está
+  disponible.
+
+Verificación final:
+
+- 45 pruebas específicas de planilla correctas (10 archivos).
+- `pnpm run check:deploy`: correcto; 177 archivos, 637 pruebas, lint y build
+  de producción de 297 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones
+  duplicadas: correcta.
+
 ## 2026-08-04 - Modularización completa de pagos
 
 - Se conservaron diseño, textos, ruta `/admin/pagos`, protección administrativa,

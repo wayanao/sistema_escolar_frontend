@@ -1,4 +1,4 @@
-import { VALORACIONES_DESARROLLO } from "../constants/valoracionesDesarrollo";
+import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
 
 function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const promedioNumerico = Number(est.promedio);

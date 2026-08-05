@@ -43,6 +43,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
   de asistencia, sin acceso a hooks ni transporte HTTP.
+- `src/components/planilla/`: tarjeta móvil, fila de escritorio, selector de
+  tipo de calificación, gestión de tipos de evaluación y tabla de notas de la
+  planilla del profesor, sin acceso a hooks ni transporte HTTP.
 - `src/components/mallaCurricular/`: encabezado, estados, editor responsive,
   acciones, impresión y contratos visuales de la malla curricular.
 - `src/components/administracionAcademica/`: componentes y contenedores de
@@ -57,6 +60,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
   de asistencia, separados entre estado remoto y marcación editable.
+- `src/hooks/planilla/`: consultas cancelables de clases y planilla, y
+  comandos de guardado de notas y de tipos de evaluación, separados entre
+  estado remoto y edición.
 - `src/hooks/mallaCurricular/`: consultas con descarte de respuestas antiguas y
   comandos editables del planeador anual, separados por responsabilidad.
 - `src/hooks/boletines/`: consultas cancelables y comandos editables de
@@ -82,6 +88,9 @@ Estado documentado del frontend `frontend-react`.
   planeaciones del profesor y del administrador.
 - `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
   y guardado de asistencia del profesor.
+- `src/services/planillaApi.js`: contrato HTTP de clases, planilla, guardado
+  de nota y eliminación de tipo de evaluación del profesor; consumo
+  independiente del de `asistenciaApi.js` aunque comparta dos rutas.
 - `src/services/mallaCurricularApi.js`: contrato HTTP de asignaciones, consulta
   y guardado posicional de la malla curricular.
 - `src/services/boletinesApi.js`: contrato HTTP de cursos, estudiantes,
@@ -108,6 +117,9 @@ Estado documentado del frontend `frontend-react`.
   solicitudes, no acceden al DOM y no administran estado de React.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
+- `src/utils/planilla/`: columna interna reservada, formateo de etiquetas,
+  notas visibles, cálculo de promedio, normalización de coma decimal y
+  construcción del payload de nota de la planilla.
 - `src/utils/mallaCurricular/`: filas iniciales, normalización por `slot`,
   validaciones y construcción del payload posicional de ocho filas.
 - `src/utils/boletines/`: contratos y transformaciones puras de generación,
@@ -434,6 +446,23 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   aviso de edición y barra de guardado.
 - `Asistencia.jsx` funciona como raíz de composición: lee el contexto superior,
   conserva navegación y conecta ambos hooks con componentes presentacionales.
+- `src/pages/Planilla.test.jsx` conserva la caracterización integrada de
+  carga, guardado y limpieza de notas, rechazo de notas fuera de rango, alta
+  y baja de tipos de evaluación y valoraciones de desarrollo.
+- `src/utils/planilla/notas.test.js` y `src/services/planillaApi.test.js`
+  protegen transformaciones, el payload de nota, rutas, señales de
+  cancelación y propagación de errores del módulo.
+- Los hooks de `src/hooks/planilla/` separan consultas cancelables de
+  comandos editables. Sus pruebas cubren respuestas obsoletas, delegación de
+  clase no disponible, guardado optimista, validación de rango y bloqueo de
+  acciones de tipo simultáneas.
+- Los componentes de `src/components/planilla/` reciben datos y acciones por
+  props. Sus pruebas protegen límites del input numérico, valoraciones de
+  desarrollo, estados deshabilitado/progreso y el estado vacío.
+- `Planilla.jsx` funciona como raíz de composición de 127 líneas: lee el
+  contexto superior, conserva navegación y conecta ambos hooks con
+  componentes presentacionales, sin transporte, comandos ni bloques
+  visuales propios.
 - Las pruebas de `src/components/administracionAcademica/`,
   `src/hooks/administracionAcademica/`, sus cinco servicios y utilidades
   protegen contratos, consultas, comandos y presentación. `Admin.test.jsx` y
