@@ -21,6 +21,7 @@ function VistaVentas({
     estudiantesFiltrados,
     onSeleccionarEstudiante,
     onProcesarVenta,
+    registrandoVenta,
     hayEstudianteEnHistorial,
     ventasDelEstudiante,
     onAnularVenta,
@@ -126,9 +127,10 @@ return (
                         </div>
                             <button
                                 onClick={onProcesarVenta}
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2"
+                                disabled={registrandoVenta}
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <span>➕</span> Cargar al Estudiante
+                                <span>➕</span> {registrandoVenta ? "Cargando..." : "Cargar al Estudiante"}
                             </button>
                     </div>
                 </div>

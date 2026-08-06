@@ -155,6 +155,63 @@ describe("useCarritoVenta", () => {
         expect(result.current.ventasDelEstudiante.map((v) => v.id)).toEqual([501]);
     });
 
+    it("no registra un segundo cargo si se pulsa mientras el primero está en vuelo", async () => {
+        let resolverVenta;
+        serviceMock.registrarVenta.mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolverVenta = resolve;
+            })
+        );
+        const { result } = renderizar();
+
+        act(() => result.current.agregarAlCarrito(1));
+        act(() => result.current.seleccionarEstudiante(estudiantes[0]));
+
+        let primeraVenta;
+        act(() => {
+            primeraVenta = result.current.procesarVenta();
+        });
+
+        expect(result.current.registrandoVenta).toBe(true);
+
+        await act(async () => {
+            await result.current.procesarVenta();
+        });
+
+        expect(serviceMock.registrarVenta).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolverVenta({ id: 901 });
+            await primeraVenta;
+        });
+
+        expect(serviceMock.registrarVenta).toHaveBeenCalledTimes(1);
+        expect(result.current.registrandoVenta).toBe(false);
+        expect(result.current.carrito).toEqual([]);
+    });
+
+    it("vuelve a habilitar el cargo después de un error para poder reintentar", async () => {
+        serviceMock.registrarVenta.mockRejectedValueOnce(new Error("fallo"));
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = renderizar();
+
+        act(() => result.current.agregarAlCarrito(1));
+        act(() => result.current.seleccionarEstudiante(estudiantes[0]));
+
+        await act(async () => {
+            await result.current.procesarVenta();
+        });
+
+        expect(result.current.registrandoVenta).toBe(false);
+
+        await act(async () => {
+            await result.current.procesarVenta();
+        });
+
+        expect(serviceMock.registrarVenta).toHaveBeenCalledTimes(2);
+        consoleError.mockRestore();
+    });
+
     it("avisa cuando el registro del cargo falla y conserva el carrito", async () => {
         const error = new Error("fallo");
         serviceMock.registrarVenta.mockRejectedValueOnce(error);

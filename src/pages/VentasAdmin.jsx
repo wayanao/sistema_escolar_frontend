@@ -24,6 +24,7 @@ const VentasAdmin = () => {
         hayEstudianteEnHistorial,
         ventasDelEstudiante,
         ultimaVenta,
+        registrandoVenta,
         procesarVenta,
     } = useCarritoVenta({ inventario, estudiantes, ventasAnteriores, cargarDatos });
 
@@ -54,6 +55,7 @@ const VentasAdmin = () => {
             estudiantesFiltrados={estudiantesFiltrados}
             onSeleccionarEstudiante={seleccionarEstudiante}
             onProcesarVenta={procesarVenta}
+            registrandoVenta={registrandoVenta}
             hayEstudianteEnHistorial={hayEstudianteEnHistorial}
             ventasDelEstudiante={ventasDelEstudiante}
             onAnularVenta={anularVenta}

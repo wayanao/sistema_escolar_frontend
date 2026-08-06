@@ -662,6 +662,26 @@ sería una función nueva.
 
 `refactor(inventario): modularizar inventario y ventas`
 
+## Corrección posterior al cierre: doble registro de un cargo
+
+Esta corrección **no forma parte de la migración**. Se documenta aquí porque el
+defecto se detectó durante la capa 0 y se conservó a propósito hasta cerrar el
+módulo.
+
+- Defecto: `procesarVenta` no impedía un segundo envío mientras la petición
+  seguía en vuelo. Un doble clic registraba dos ventas, duplicaba la deuda del
+  estudiante y descontaba el stock dos veces. `POST /api/ventas/` no deduplica.
+- Arreglo: estado `registrandoVenta` en `useCarritoVenta`, con retorno inmediato
+  si ya hay un registro en curso y liberación en `finally`; y botón
+  deshabilitado con texto `Cargando...` en `VistaVentas`.
+- Las validaciones de carrito vacío y estudiante obligatorio siguen antes del
+  bloqueo, para no dejar el botón inutilizable.
+- Un error libera el bloqueo y conserva carrito y estudiante para reintentar.
+- Pruebas nuevas: 3. Suite específica: 13 archivos y 94 pruebas correctas.
+  `pnpm run check:deploy`: correcto; 189 archivos y 729 pruebas.
+- Commit sugerido, separado del de la migración:
+  `fix(ventas): evitar doble registro de un cargo`
+
 ## Primera acción
 
 Cumplida en la capa 0: catálogo, ventas, anulaciones y facturación quedaron
@@ -675,8 +695,7 @@ protegidos por pruebas antes de extraer servicios.
   como raíces de composición, tres vistas presentacionales, cinco hooks,
   `inventarioVentasApi.js` y dos utilidades del dominio. No se eliminó ningún
   archivo porque el módulo no tenía componentes previos.
-- Riesgos abiertos: el botón de cargo no se bloquea durante la petición, así que
-  un doble clic puede registrar dos cargos; la caja no tiene indicador de carga;
+- Riesgos abiertos: la caja no tiene indicador de carga;
   los avisos de la caja usan `alert` mientras inventario usa SweetAlert; y el
   campo `notas` viaja siempre vacío por no tener control en la interfaz. Los
   cuatro son preexistentes y quedan fuera del alcance de la migración.

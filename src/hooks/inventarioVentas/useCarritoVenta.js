@@ -22,6 +22,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
     const [notas, setNotas] = useState("");
     const [estudianteFiltroId, setEstudianteFiltroId] = useState(null);
     const [ultimaVenta, setUltimaVenta] = useState(null);
+    const [registrandoVenta, setRegistrandoVenta] = useState(false);
 
     const agregarAlCarrito = (productoId) => {
         const prod = inventario.find(i => i.id === parseInt(productoId));
@@ -68,6 +69,10 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
     };
 
     const procesarVenta = async () => {
+        // Evita registrar dos cargos si se vuelve a pulsar mientras la
+        // petición sigue en vuelo.
+        if (registrandoVenta) return;
+
         if (carrito.length === 0) {
             alert("El carrito está vacío.");
             return;
@@ -77,6 +82,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
             return;
         }
 
+        setRegistrandoVenta(true);
         try {
             // Siempre a crédito/pendiente
             const payload = construirPayloadVenta({ estudianteId, carrito, notas });
@@ -104,6 +110,8 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
         } catch (err) {
             console.error(err);
             alert("Error procesando la venta");
+        } finally {
+            setRegistrandoVenta(false);
         }
     };
 
@@ -123,6 +131,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
         hayEstudianteEnHistorial,
         ventasDelEstudiante,
         ultimaVenta,
+        registrandoVenta,
         procesarVenta,
     };
 };

@@ -93,6 +93,20 @@ describe("VistaVentas", () => {
         expect(callbacks.onProcesarVenta).toHaveBeenCalled();
     });
 
+    it("bloquea el botón de cargo mientras la venta está en curso", () => {
+        const callbacks = renderizar({
+            carrito,
+            totalVenta: 50000,
+            registrandoVenta: true,
+        });
+
+        const boton = screen.getByRole("button", { name: /Cargando/ });
+        expect(boton).toBeDisabled();
+
+        fireEvent.click(boton);
+        expect(callbacks.onProcesarVenta).not.toHaveBeenCalled();
+    });
+
     it("reporta la búsqueda y la selección del estudiante", () => {
         const callbacks = renderizar({ mostrarDropdownEstudiantes: true });
 

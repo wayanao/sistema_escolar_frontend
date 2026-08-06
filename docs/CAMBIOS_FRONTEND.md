@@ -1,5 +1,34 @@
 # Cambios Frontend
 
+## 2026-08-06 - Corrección: doble registro de un cargo en la caja
+
+Corrección funcional posterior a la modularización de inventario y ventas.
+No es parte de la migración arquitectónica.
+
+- `useCarritoVenta` no impedía un segundo envío mientras la petición seguía en
+  vuelo. Un doble clic en `Cargar al Estudiante` registraba dos ventas, cobraba
+  el doble al estudiante y descontaba el stock dos veces. El backend no
+  deduplica `POST /api/ventas/`.
+- Se agregó el estado `registrandoVenta`: `procesarVenta` retorna de inmediato
+  si ya hay un registro en curso, marca el estado antes de llamar al servicio y
+  lo libera en `finally`.
+- `VistaVentas` recibe `registrandoVenta`, deshabilita el botón con
+  `disabled:opacity-50 disabled:cursor-not-allowed` y muestra `Cargando...`
+  mientras dura la petición.
+- Un error libera el bloqueo para permitir el reintento, y el carrito y el
+  estudiante seleccionado se conservan.
+- Las validaciones de carrito vacío y de estudiante obligatorio siguen
+  ejecutándose antes de bloquear, para no dejar el botón inutilizable.
+- No se modificaron contratos, payloads, rutas ni el resto de la interfaz.
+
+Verificación:
+
+- 3 pruebas nuevas: doble envío bloqueado con una promesa pendiente,
+  rehabilitación tras error y botón deshabilitado en la vista.
+- 94 pruebas específicas de inventario y ventas correctas (13 archivos).
+- `pnpm run check:deploy`: correcto; 189 archivos, 729 pruebas, lint y build
+  de producción de 308 módulos correctos.
+
 ## 2026-08-06 - Modularización completa de inventario y ventas
 
 - Se conservaron diseño, textos, rutas `/admin/inventario` y `/admin/ventas`,
@@ -36,11 +65,12 @@
   ofrece en `/inventario` y `/api/ventas/`; hacerlo habría sido una función
   nueva.
 
-Riesgo conocido que se conserva y queda pendiente en una tarea aparte:
+Riesgo conocido que esta migración conservó a propósito:
 
-- El botón `Cargar al Estudiante` no se bloquea mientras la petición está en
-  vuelo, por lo que un doble clic puede registrar dos cargos. Es un defecto
-  preexistente y corregirlo excede una migración arquitectónica.
+- El botón `Cargar al Estudiante` no se bloqueaba mientras la petición estaba en
+  vuelo, por lo que un doble clic podía registrar dos cargos. Es un defecto
+  preexistente cuya corrección excedía una migración arquitectónica; se atendió
+  por separado en la entrada del mismo día que encabeza este archivo.
 
 Verificación final:
 
