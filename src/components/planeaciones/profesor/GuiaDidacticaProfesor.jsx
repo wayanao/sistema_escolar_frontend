@@ -148,6 +148,15 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
           placeholder="Nombre de la unidad o eje de trabajo"
           rows={2}
         />
+
+        <CampoTextareaPlanProfesor
+          label="Estándar / Lineamientos curriculares"
+          value={form.estandar}
+          onChange={(valor) => onActualizarCampo("estandar", valor)}
+          placeholder="Estándar, lineamientos curriculares o referente curricular"
+          rows={3}
+        />
+
         <CampoTextareaPlanProfesor
           label="Tema"
           value={form.tema}
@@ -155,18 +164,12 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
           placeholder="Tema central de la clase"
           rows={2}
         />
+        
         <CampoTextareaPlanProfesor
           label="Logro"
           value={form.proposito}
           onChange={(valor) => onActualizarCampo("proposito", valor)}
           placeholder="Qué se espera que logren los estudiantes"
-          rows={3}
-        />
-        <CampoTextareaPlanProfesor
-          label="Estándar / Lineamientos curriculares"
-          value={form.estandar}
-          onChange={(valor) => onActualizarCampo("estandar", valor)}
-          placeholder="Estándar, lineamientos curriculares o referente curricular"
           rows={3}
         />
       </div>

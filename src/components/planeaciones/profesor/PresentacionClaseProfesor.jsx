@@ -80,15 +80,15 @@ export default function PresentacionClaseProfesor({
               {tieneTexto(form.unidad) && (
                 <CampoPresentacion label="Unidad" contenido={form.unidad} />
               )}
-              {tieneTexto(form.proposito) && (
-                <CampoPresentacion label="Logro" contenido={form.proposito} />
-              )}
               {tieneTexto(form.estandar) && (
                 <CampoPresentacion
                   label="Estándar / Lineamientos curriculares"
                   contenido={form.estandar}
                   className="md:col-span-2"
                 />
+              )}
+              {tieneTexto(form.proposito) && (
+                <CampoPresentacion label="Logro" contenido={form.proposito} />
               )}
             </div>
           </SeccionPresentacion>
