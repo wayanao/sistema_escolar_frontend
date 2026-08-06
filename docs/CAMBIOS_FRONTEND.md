@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-08-06 - Limpieza: estado muerto `notas` en la caja
+
+Limpieza sin cambio de comportamiento. El payload enviado al backend es
+idéntico antes y después.
+
+- `useCarritoVenta` mantenía el estado `notas`, lo inicializaba en `""` y lo
+  reiniciaba tras cada cargo, pero ninguna vista tenía un control para
+  escribirlo: siempre viajaba vacío.
+- Se retiró el estado y el payload envía `notas: ""` de forma explícita, con un
+  comentario que aclara que el backend acepta el campo y que la caja todavía no
+  lo expone.
+- `construirPayloadVenta` no se modificó: sigue recibiendo `notas` porque
+  representa el contrato real de `POST /api/ventas/`, que sí admite el campo.
+  Quien decide que hoy va vacío es el hook, no el contrato.
+- Exponer el campo en la interfaz queda como funcionalidad pendiente. Requiere
+  decidir dónde se escribe, dónde se muestra —hoy ni el historial ni el volante
+  lo leen— y confirmar que el controlador del backend lo persista.
+
+Verificación:
+
+- Sin pruebas nuevas: la prueba existente del payload ya exigía `notas: ""` y
+  siguió pasando sin modificarse, lo que confirma que el contrato no cambió.
+- `pnpm run check:deploy`: correcto; 189 archivos, 732 pruebas, lint y build
+  de producción de 308 módulos correctos.
+
 ## 2026-08-06 - Retroalimentación de la caja: carga visible y avisos unificados
 
 Corrección funcional posterior a la modularización de inventario y ventas.

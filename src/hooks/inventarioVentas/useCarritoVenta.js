@@ -20,7 +20,6 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
     const [estudianteId, setEstudianteId] = useState("");
     const [busquedaEstudiante, setBusquedaEstudiante] = useState("");
     const [mostrarDropdownEstudiantes, setMostrarDropdownEstudiantes] = useState(false);
-    const [notas, setNotas] = useState("");
     const [estudianteFiltroId, setEstudianteFiltroId] = useState(null);
     const [ultimaVenta, setUltimaVenta] = useState(null);
     const [registrandoVenta, setRegistrandoVenta] = useState(false);
@@ -89,8 +88,9 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
 
         setRegistrandoVenta(true);
         try {
-            // Siempre a crédito/pendiente
-            const payload = construirPayloadVenta({ estudianteId, carrito, notas });
+            // Siempre a crédito/pendiente. El backend acepta `notas`, pero la
+            // caja no tiene control para escribirlas, así que viaja vacío.
+            const payload = construirPayloadVenta({ estudianteId, carrito, notas: "" });
 
             const ventaRegistrada = await registrarVenta(payload);
 
@@ -108,7 +108,6 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
             Swal.fire("Éxito", "Productos cargados a la cuenta del estudiante exitosamente", "success");
             setEstudianteFiltroId(parseInt(estudianteId));
             setCarrito([]);
-            setNotas("");
             setEstudianteId("");
             setBusquedaEstudiante("");
             cargarDatos(); // Refrescar stock e historial

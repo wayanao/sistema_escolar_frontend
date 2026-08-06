@@ -698,6 +698,21 @@ documentó y que se conservaron hasta cerrar el módulo.
   `pnpm run check:deploy`: correcto; 189 archivos y 732 pruebas.
 - Commit sugerido: `fix(ventas): mejorar la retroalimentación de la caja`
 
+## Corrección posterior al cierre: estado muerto `notas`
+
+Última de las cuatro observaciones de la capa 0. Es limpieza, no corrección de
+comportamiento: el payload enviado al backend es idéntico.
+
+- `useCarritoVenta` guardaba y reiniciaba `notas` sin que ninguna vista pudiera
+  escribirlo. Se retiró el estado y el payload envía `notas: ""` explícito.
+- `construirPayloadVenta` no se tocó: sigue modelando el contrato real de
+  `POST /api/ventas/`, que sí admite el campo. La decisión de enviarlo vacío
+  pertenece al hook, no al contrato.
+- La prueba existente del payload ya exigía `notas: ""` y pasó sin modificarse,
+  lo que confirma que el contrato no cambió.
+- `pnpm run check:deploy`: correcto; 189 archivos y 732 pruebas.
+- Commit sugerido: `chore(ventas): retirar el estado muerto de notas`
+
 ## Primera acción
 
 Cumplida en la capa 0: catálogo, ventas, anulaciones y facturación quedaron
@@ -711,9 +726,12 @@ protegidos por pruebas antes de extraer servicios.
   como raíces de composición, tres vistas presentacionales, cinco hooks,
   `inventarioVentasApi.js` y dos utilidades del dominio. No se eliminó ningún
   archivo porque el módulo no tenía componentes previos.
-- Riesgos abiertos: el campo `notas` viaja siempre vacío por no tener control en
-  la interfaz. Los demás defectos preexistentes que esta migración conservó a
-  propósito se atendieron después del cierre, en commits separados.
+- Riesgos abiertos: ninguno. Los cuatro defectos preexistentes que esta
+  migración conservó a propósito se atendieron después del cierre, en commits
+  separados.
+- Queda como funcionalidad pendiente, no como defecto: exponer el campo `notas`
+  de una venta en la interfaz. El backend lo acepta, pero requiere decidir dónde
+  se escribe y dónde se muestra.
 - Siguiente capa pendiente: Ninguna.
 - Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
   a `origin/main`, espera el deploy y ejecuta la verificación manual.
