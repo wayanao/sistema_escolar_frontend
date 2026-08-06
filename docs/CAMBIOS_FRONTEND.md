@@ -1,5 +1,56 @@
 # Cambios Frontend
 
+## 2026-08-06 - Modularización completa de inventario y ventas
+
+- Se conservaron diseño, textos, rutas `/admin/inventario` y `/admin/ventas`,
+  protección `AdminRoute`, comportamiento responsive, contratos HTTP y payloads
+  de productos, cargos y anulaciones, sin agregar funciones ni rediseños.
+- `utils/inventarioVentas/inventario.js` y `ventas.js` concentran estados y
+  payloads de producto, filtros del catálogo, transformaciones inmutables del
+  carrito, totales, contratos de venta y anulación, y las reglas puras de clase
+  por estado y stock.
+- `services/inventarioVentasApi.js` centraliza los ocho contratos del módulo.
+  Las consultas devuelven datos; crear, actualizar y cambiar el estado de un
+  producto devuelven `{ status, data }` porque la interfaz comprueba el rango
+  HTTP. `GET /estudiantes` se consume desde aquí en modo lectura, con el mismo
+  criterio que `pagosApi.js` y `carteraTiposPagoApi.js` con endpoints
+  compartidos.
+- Los hooks de `hooks/inventarioVentas/` separan la consulta del catálogo con su
+  filtro, las tres consultas paralelas de la caja, el formulario de producto, el
+  carrito con el cargo a crédito y la anulación con motivo.
+- Los bloques visuales viven en `components/inventarioVentas/` y reciben datos y
+  acciones mediante props. `VolanteVenta.jsx` conserva la impresión mediante
+  `components/impresion/DocumentoImprimible.jsx` con `tipo="volante_venta"`.
+- `pages/InventarioAdmin.jsx` queda como raíz de composición de 44 líneas (antes
+  283) y `pages/VentasAdmin.jsx` de 66 líneas (antes 430), sin endpoints,
+  payloads ni bloques visuales extensos.
+- Se conservan el filtro activo/inactivo/todos, la actualización local de la
+  lista al cambiar el estado de un producto sin recargar, el spinner solo en la
+  carga inicial, el tope del carrito por existencias, la prohibición de cargos a
+  Público General, el motivo obligatorio de al menos cinco caracteres al anular
+  y la fila anulada con su motivo visible.
+- Se conservan deliberadamente los avisos con `alert` de la caja frente a
+  SweetAlert en inventario, la ausencia de indicador de carga en la caja y el
+  campo `notas` que viaja siempre vacío por no tener control en la interfaz.
+- El módulo no adopta las capacidades de paginación y búsqueda que el backend ya
+  ofrece en `/inventario` y `/api/ventas/`; hacerlo habría sido una función
+  nueva.
+
+Riesgo conocido que se conserva y queda pendiente en una tarea aparte:
+
+- El botón `Cargar al Estudiante` no se bloquea mientras la petición está en
+  vuelo, por lo que un doble clic puede registrar dos cargos. Es un defecto
+  preexistente y corregirlo excede una migración arquitectónica.
+
+Verificación final:
+
+- 91 pruebas específicas de inventario y ventas correctas (13 archivos).
+- `pnpm run check:deploy`: correcto; 189 archivos, 726 pruebas, lint y build
+  de producción de 308 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones
+  duplicadas: correcta.
+
 ## 2026-08-05 - Modularización completa de planilla de notas
 
 - Se conservaron diseño, textos, ruta `/planilla`, comportamiento responsive

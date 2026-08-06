@@ -38,6 +38,8 @@ Estado documentado del frontend `frontend-react`.
   impresión, ingreso docente y orden del módulo de boletines.
 - `src/components/carteraTiposPago/`: vistas presentacionales de cartera
   vencida, estados de cuenta y administración de conceptos de pago.
+- `src/components/inventarioVentas/`: vistas presentacionales del catálogo de
+  productos, la caja y el volante imprimible de un cargo.
 - `src/components/pagos/`: listado, valores personalizados, formulario,
   historial y comprobante presentacionales del módulo de pagos.
 - `src/components/impresion/`: componentes de documentos imprimibles.
@@ -76,6 +78,8 @@ Estado documentado del frontend `frontend-react`.
   comandos administrativos y configuración compartida de impresión.
 - `src/hooks/carteraTiposPago/`: consultas de cartera y conceptos, formulario
   básico, configuración financiera y asignación editable de cursos.
+- `src/hooks/inventarioVentas/`: consulta del catálogo con filtro por estado,
+  consultas paralelas de la caja, formulario de producto, carrito y anulación.
 - `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
   cuotas vencidas, adelantos, valores personalizados y anulación.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
@@ -104,6 +108,8 @@ Estado documentado del frontend `frontend-react`.
   reutiliza contratos compatibles de boletines y asistencia.
 - `src/services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida,
   conceptos de pago, configuración y asignación de cursos.
+- `src/services/inventarioVentasApi.js`: frontera HTTP de catálogo, alta,
+  edición y estado de productos, y de ventas, registro y anulación de cargos.
 - `src/services/pagosApi.js`: frontera HTTP de catálogos, historial, deudas,
   opciones, valores personalizados, registro y anulación de pagos.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
@@ -132,6 +138,9 @@ Estado documentado del frontend `frontend-react`.
   académica y transformaciones puras de certificados e impresión.
 - `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de
   cartera, normalización y payloads puros de conceptos y cursos.
+- `src/utils/inventarioVentas/`: estados y payloads de producto, filtros del
+  catálogo, transformaciones inmutables del carrito, totales, contratos de
+  venta y anulación, y reglas puras de clase por estado y stock.
 - `src/utils/pagos/`: formatos, cálculos financieros, estados iniciales,
   normalización y payloads puros del módulo de pagos.
 
@@ -290,6 +299,33 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - No quedan llamadas HTTP, payloads, reglas financieras ni bloques visuales
   extensos en `PagosAdmin.jsx`; tampoco existe una implementación paralela del
   comprobante en `src/components/FacturaModerna.jsx`.
+
+## Inventario y ventas
+
+- `/admin/inventario` monta `pages/InventarioAdmin.jsx` y conserva el filtro
+  activo/inactivo/todos, el alta y edición de productos, la utilidad y el margen
+  recibidos del backend, y el cambio de estado con confirmación.
+- `/admin/ventas` monta `pages/VentasAdmin.jsx` y conserva el catálogo vendible,
+  el carrito limitado por existencias, el cargo a crédito sobre un estudiante,
+  el historial por estudiante, la anulación con motivo y el volante imprimible.
+- Ambas rutas permanecen bajo `AdminRoute`. Ninguna recibe parámetros de ruta.
+- Las páginas son raíces de composición de 44 y 66 líneas y conectan los hooks
+  con `components/inventarioVentas/`. Las vistas reciben datos y callbacks y no
+  conocen servicios ni estado de dominio.
+- `services/inventarioVentasApi.js` es la única frontera HTTP del módulo y
+  concentra sus ocho contratos. `GET /estudiantes` se consume desde allí en modo
+  lectura, con el mismo criterio que ya aplican `pagosApi.js` y
+  `carteraTiposPagoApi.js` con endpoints compartidos.
+- Los hooks separan la consulta del catálogo, las tres consultas paralelas de la
+  caja, el formulario de producto, el carrito y la anulación. Las utilidades
+  concentran payloads, filtros, totales y reglas de clase puras.
+- Cambiar el estado de un producto actualiza la lista en memoria y descarta las
+  filas que dejan de cumplir el filtro, sin volver a consultar.
+- `DocumentoImprimible` conserva el volante con `tipo="volante_venta"`.
+- El módulo no adopta las capacidades de paginación y búsqueda que el backend ya
+  ofrece en `/inventario` y `/api/ventas/`: siguen sin usarse, como antes.
+- No quedan llamadas HTTP, payloads ni bloques visuales extensos en las dos
+  páginas, ni implementaciones visuales paralelas.
 
 ## Criterios de UX responsive
 
@@ -479,6 +515,11 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `src/services/carteraTiposPagoApi.test.js`, los cinco hooks, las dos vistas y
   `CarteraVencidaAdmin`/`TiposPagosAdmin` protegen transformaciones, contratos
   HTTP, fallback, filtros, comandos, impresión y composición del módulo.
+- Las pruebas de `src/utils/inventarioVentas/`,
+  `src/services/inventarioVentasApi.test.js`, los cinco hooks, las tres vistas y
+  `InventarioAdmin`/`VentasAdmin` protegen contratos HTTP, payloads, filtro por
+  estado, actualización local sin recarga, tope de existencias del carrito,
+  cargo a crédito, anulación con motivo y el volante imprimible.
 - Las pruebas de `src/utils/pagos/`, `src/services/pagosApi.test.js`, los siete
   hooks, los seis componentes y `PagosAdmin.test.jsx` protegen formatos,
   cálculos, payloads, transporte, consultas, comandos, presentación,

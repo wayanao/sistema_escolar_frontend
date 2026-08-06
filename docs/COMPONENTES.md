@@ -724,6 +724,31 @@ Estado actual de componentes y paginas del frontend.
 - `utils/carteraTiposPago/`: formatos, filtros, totales, CSV, contratos y
   payloads puros.
 
+### Inventario y ventas
+
+- `components/inventarioVentas/VistaInventario.jsx`: encabezado, alternancia y
+  formulario de producto, filtro activo/inactivo/todos, tabla con insignias de
+  stock y estado, estado vacío y spinner de carga inicial. Recibe datos y
+  callbacks por props.
+- `components/inventarioVentas/VistaVentas.jsx`: catálogo vendible, carrito con
+  cantidades y subtotales, total, buscador de estudiantes con desplegable,
+  historial de cargos con sus dos estados vacíos y acción de anular.
+- `components/inventarioVentas/VolanteVenta.jsx`: vista imprimible del último
+  cargo dentro de `components/impresion/DocumentoImprimible.jsx` con
+  `tipo="volante_venta"`.
+- `pages/InventarioAdmin.jsx` y `pages/VentasAdmin.jsx`: raíces de composición
+  del módulo. `VentasAdmin` conserva además cuál de las dos pantallas muestra.
+- `hooks/inventarioVentas/`: consulta del catálogo, consultas paralelas de la
+  caja, formulario de producto, carrito y anulación.
+- `services/inventarioVentasApi.js`: frontera HTTP única del módulo.
+- `utils/inventarioVentas/`: contratos, payloads, filtros, totales y reglas de
+  clase puras.
+- El carrito nunca supera el `stock_actual` del producto y todo cargo se
+  registra como `tipo_venta: "Credito"` sobre un estudiante; `Público General`
+  sigue prohibido.
+- Anular exige un motivo de al menos cinco caracteres y conserva la fila con su
+  motivo visible.
+
 ### Pagos administrativos
 
 - `pages/PagosAdmin.jsx` es la raíz de composición protegida para administración
@@ -859,6 +884,11 @@ Notas:
 - `hooks/pagos/`: consultas, formularios y comandos del módulo de pagos.
 - `services/pagosApi.js`: frontera HTTP única de pagos.
 - `utils/pagos/`: formatos, cálculos, normalización y payloads puros de pagos.
+- `hooks/inventarioVentas/`: catálogo con filtro por estado, consultas paralelas
+  de la caja, formulario de producto, carrito y anulación de cargos.
+- `services/inventarioVentasApi.js`: frontera HTTP única de inventario y ventas.
+- `utils/inventarioVentas/`: contratos, payloads, filtros, totales y reglas de
+  clase puras del módulo.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos
