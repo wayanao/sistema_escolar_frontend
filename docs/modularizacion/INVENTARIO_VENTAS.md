@@ -682,6 +682,22 @@ módulo.
 - Commit sugerido, separado del de la migración:
   `fix(ventas): evitar doble registro de un cargo`
 
+## Corrección posterior al cierre: retroalimentación de la caja
+
+Tampoco forma parte de la migración. Atiende dos defectos que la capa 0
+documentó y que se conservaron hasta cerrar el módulo.
+
+- El estado de carga se escribía pero ninguna vista lo leía, así que el catálogo
+  mostraba su estado vacío durante la consulta inicial. `useConsultasVentas`
+  expone `cargando` y `VistaVentas` reutiliza el spinner del inventario.
+- Los seis `window.alert` pasaron a `Swal.fire` conservando los textos exactos.
+  Además del estilo, evita que Chrome silencie los avisos cuando el usuario
+  marca `Impedir que esta página cree diálogos adicionales`, lo que podía
+  ocultar `Error procesando la venta`.
+- Pruebas nuevas: 3. Suite específica: 13 archivos y 97 pruebas correctas.
+  `pnpm run check:deploy`: correcto; 189 archivos y 732 pruebas.
+- Commit sugerido: `fix(ventas): mejorar la retroalimentación de la caja`
+
 ## Primera acción
 
 Cumplida en la capa 0: catálogo, ventas, anulaciones y facturación quedaron
@@ -695,10 +711,9 @@ protegidos por pruebas antes de extraer servicios.
   como raíces de composición, tres vistas presentacionales, cinco hooks,
   `inventarioVentasApi.js` y dos utilidades del dominio. No se eliminó ningún
   archivo porque el módulo no tenía componentes previos.
-- Riesgos abiertos: la caja no tiene indicador de carga;
-  los avisos de la caja usan `alert` mientras inventario usa SweetAlert; y el
-  campo `notas` viaja siempre vacío por no tener control en la interfaz. Los
-  cuatro son preexistentes y quedan fuera del alcance de la migración.
+- Riesgos abiertos: el campo `notas` viaja siempre vacío por no tener control en
+  la interfaz. Los demás defectos preexistentes que esta migración conservó a
+  propósito se atendieron después del cierre, en commits separados.
 - Siguiente capa pendiente: Ninguna.
 - Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
   a `origin/main`, espera el deploy y ejecuta la verificación manual.

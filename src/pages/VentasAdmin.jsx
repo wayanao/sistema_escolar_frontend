@@ -6,7 +6,7 @@ import useCarritoVenta from "../hooks/inventarioVentas/useCarritoVenta";
 import useConsultasVentas from "../hooks/inventarioVentas/useConsultasVentas";
 
 const VentasAdmin = () => {
-    const { inventario, estudiantes, ventasAnteriores, cargarDatos } = useConsultasVentas();
+    const { inventario, estudiantes, ventasAnteriores, cargando, cargarDatos } = useConsultasVentas();
 
     const {
         carrito,
@@ -42,6 +42,7 @@ const VentasAdmin = () => {
     return (
         <VistaVentas
             inventario={inventario}
+            cargando={cargando}
             carrito={carrito}
             totalVenta={totalVenta}
             onAgregarAlCarrito={agregarAlCarrito}

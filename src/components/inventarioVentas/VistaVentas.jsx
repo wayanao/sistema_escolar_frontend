@@ -8,6 +8,7 @@ import {
 
 function VistaVentas({
     inventario,
+    cargando,
     carrito,
     totalVenta,
     onAgregarAlCarrito,
@@ -44,6 +45,10 @@ return (
               {/* Catálogo de ventas a la izquierda */}
                 <div className="lg:col-span-2 bg-white shadow rounded-lg p-6">
                     <h2 className="text-xl font-bold mb-4">Productos en Inventario</h2>
+                    {cargando ? (
+                        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div></div>
+                    ) : (
+                    <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {inventario.map(prod => (
                             <div key={prod.id} className="border rounded p-4 flex justify-between items-center hover:shadow-md transition">
@@ -62,6 +67,8 @@ return (
                         ))}
                     </div>
                     {inventario.length === 0 && <p className="text-gray-500">No hay productos activos con stock actualmente.</p>}
+                    </>
+                    )}
                 </div>
 
               {/* Panel de Carrito de Compras a la derecha */}

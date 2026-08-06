@@ -2,11 +2,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useCarritoVenta from "./useCarritoVenta";
 
-const { serviceMock } = vi.hoisted(() => ({
+const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: { registrarVenta: vi.fn() },
+    swalFireMock: vi.fn(),
 }));
 
 vi.mock("../../services/inventarioVentasApi", () => serviceMock);
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
 const inventario = [
     { id: 1, nombre: "Sudadera", stock_actual: 3, precio_venta: 25000 },
@@ -32,7 +34,6 @@ describe("useCarritoVenta", () => {
         );
 
     beforeEach(() => {
-        window.alert = vi.fn();
         serviceMock.registrarVenta.mockResolvedValue({ id: 901 });
     });
 
@@ -46,8 +47,10 @@ describe("useCarritoVenta", () => {
 
         expect(result.current.carrito[0].cantidad).toBe(3);
         expect(result.current.totalVenta).toBe(75000);
-        expect(window.alert).toHaveBeenCalledWith(
-            "No hay más stock disponible de este producto."
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Atención",
+            "No hay más stock disponible de este producto.",
+            "warning"
         );
     });
 
@@ -92,15 +95,21 @@ describe("useCarritoVenta", () => {
         await act(async () => {
             await result.current.procesarVenta();
         });
-        expect(window.alert).toHaveBeenCalledWith("El carrito está vacío.");
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Atención",
+            "El carrito está vacío.",
+            "warning"
+        );
 
         act(() => result.current.agregarAlCarrito(1));
         await act(async () => {
             await result.current.procesarVenta();
         });
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General."
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Atención",
+            "Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General.",
+            "warning"
         );
         expect(serviceMock.registrarVenta).not.toHaveBeenCalled();
     });
@@ -134,8 +143,10 @@ describe("useCarritoVenta", () => {
         expect(result.current.carrito).toEqual([]);
         expect(result.current.busquedaEstudiante).toBe("");
         expect(cargarDatos).toHaveBeenCalled();
-        expect(window.alert).toHaveBeenCalledWith(
-            "Productos cargados a la cuenta del estudiante exitosamente"
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Éxito",
+            "Productos cargados a la cuenta del estudiante exitosamente",
+            "success"
         );
     });
 
@@ -225,7 +236,11 @@ describe("useCarritoVenta", () => {
             await result.current.procesarVenta();
         });
 
-        expect(window.alert).toHaveBeenCalledWith("Error procesando la venta");
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Error",
+            "Error procesando la venta",
+            "error"
+        );
         expect(result.current.carrito).toHaveLength(1);
         expect(result.current.ultimaVenta).toBeNull();
         expect(consoleError).toHaveBeenCalledWith(error);

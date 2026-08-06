@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import {
     obtenerEstudiantesParaVentas,
     obtenerInventario,
@@ -13,12 +14,11 @@ const useConsultasVentas = () => {
     const [inventario, setInventario] = useState([]);
     const [estudiantes, setEstudiantes] = useState([]);
     const [ventasAnteriores, setVentasAnteriores] = useState([]);
-    // Estado de carga heredado: se escribe pero ninguna vista lo lee.
-    const [, setLoading] = useState(true);
+    const [cargando, setCargando] = useState(true);
 
     const cargarDatos = useCallback(async () => {
         try {
-            setLoading(true);
+            setCargando(true);
             const [ventas, inventarioActivo, listaEstudiantes] = await Promise.all([
                 obtenerVentas(),
                 obtenerInventario(ESTADO_PRODUCTO_POR_DEFECTO),
@@ -30,9 +30,9 @@ const useConsultasVentas = () => {
             setEstudiantes(listaEstudiantes);
         } catch (err) {
             console.error(err);
-            alert("Error cargando base de datos");
+            Swal.fire("Error", "Error cargando base de datos", "error");
         } finally {
-            setLoading(false);
+            setCargando(false);
         }
     }, []);
 
@@ -40,7 +40,7 @@ const useConsultasVentas = () => {
         cargarDatos();
     }, [cargarDatos]);
 
-    return { inventario, estudiantes, ventasAnteriores, cargarDatos };
+    return { inventario, estudiantes, ventasAnteriores, cargando, cargarDatos };
 };
 
 export default useConsultasVentas;

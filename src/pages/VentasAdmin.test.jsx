@@ -93,8 +93,10 @@ describe("VentasAdmin", () => {
         fireEvent.click(anadir);
         fireEvent.click(anadir);
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "No hay más stock disponible de este producto."
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Atención",
+            "No hay más stock disponible de este producto.",
+            "warning"
         );
         expect(screen.getByText("3")).toBeInTheDocument();
         expect(
@@ -109,8 +111,10 @@ describe("VentasAdmin", () => {
         fireEvent.click(screen.getByRole("button", { name: "+ Añadir" }));
         fireEvent.click(screen.getByRole("button", { name: /Cargar al Estudiante/ }));
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General."
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Atención",
+            "Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General.",
+            "warning"
         );
         expect(apiMock.post).not.toHaveBeenCalled();
     });
@@ -142,8 +146,10 @@ describe("VentasAdmin", () => {
                 ],
             });
         });
-        expect(window.alert).toHaveBeenCalledWith(
-            "Productos cargados a la cuenta del estudiante exitosamente"
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Éxito",
+            "Productos cargados a la cuenta del estudiante exitosamente",
+            "success"
         );
         await waitFor(() => {
             expect(apiMock.get).toHaveBeenCalledTimes(6);

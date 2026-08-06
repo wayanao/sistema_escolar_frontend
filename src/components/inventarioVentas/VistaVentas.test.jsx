@@ -40,6 +40,7 @@ const renderizar = (props = {}) => {
     render(
         <VistaVentas
             inventario={inventario}
+            cargando={false}
             carrito={[]}
             totalVenta={0}
             busquedaEstudiante=""
@@ -64,6 +65,23 @@ describe("VistaVentas", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "+ Añadir" }));
         expect(callbacks.onAgregarAlCarrito).toHaveBeenCalledWith(1);
+    });
+
+    it("muestra el spinner mientras carga, sin el estado vacío del catálogo", () => {
+        renderizar({ cargando: true, inventario: [] });
+
+        expect(
+            screen.queryByText("No hay productos activos con stock actualmente.")
+        ).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "+ Añadir" })).not.toBeInTheDocument();
+    });
+
+    it("muestra el estado vacío del catálogo solo cuando terminó de cargar", () => {
+        renderizar({ cargando: false, inventario: [] });
+
+        expect(
+            screen.getByText("No hay productos activos con stock actualmente.")
+        ).toBeInTheDocument();
     });
 
     it("muestra el carrito vacío y luego sus renglones con subtotal", () => {

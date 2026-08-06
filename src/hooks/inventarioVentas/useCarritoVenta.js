@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { registrarVenta } from "../../services/inventarioVentasApi";
 import {
     agregarProductoAlCarrito,
@@ -31,7 +32,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
         // Verificar si ya está en carrito
         const resultado = agregarProductoAlCarrito(carrito, prod);
         if (resultado.sinStock) {
-            alert("No hay más stock disponible de este producto.");
+            Swal.fire("Atención", "No hay más stock disponible de este producto.", "warning");
             return;
         }
         setCarrito(resultado.carrito);
@@ -74,11 +75,15 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
         if (registrandoVenta) return;
 
         if (carrito.length === 0) {
-            alert("El carrito está vacío.");
+            Swal.fire("Atención", "El carrito está vacío.", "warning");
             return;
         }
         if (!estudianteId || estudianteId === "publico") {
-            alert("Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General.");
+            Swal.fire(
+                "Atención",
+                "Por favor selecciona un estudiante válido. Ya no se permiten cargos a Público General.",
+                "warning"
+            );
             return;
         }
 
@@ -100,7 +105,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
                 fecha: new Date().toLocaleDateString()
             }));
 
-            alert("Productos cargados a la cuenta del estudiante exitosamente");
+            Swal.fire("Éxito", "Productos cargados a la cuenta del estudiante exitosamente", "success");
             setEstudianteFiltroId(parseInt(estudianteId));
             setCarrito([]);
             setNotas("");
@@ -109,7 +114,7 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
             cargarDatos(); // Refrescar stock e historial
         } catch (err) {
             console.error(err);
-            alert("Error procesando la venta");
+            Swal.fire("Error", "Error procesando la venta", "error");
         } finally {
             setRegistrandoVenta(false);
         }

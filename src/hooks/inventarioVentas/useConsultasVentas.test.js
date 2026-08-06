@@ -2,15 +2,17 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useConsultasVentas from "./useConsultasVentas";
 
-const { serviceMock } = vi.hoisted(() => ({
+const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: {
         obtenerVentas: vi.fn(),
         obtenerInventario: vi.fn(),
         obtenerEstudiantesParaVentas: vi.fn(),
     },
+    swalFireMock: vi.fn(),
 }));
 
 vi.mock("../../services/inventarioVentasApi", () => serviceMock);
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
 const ventas = [{ id: 501, estudiante_id: 7 }];
 const estudiantes = [{ id: 7, nombre: "Ana", apellido: "Pérez" }];
@@ -21,7 +23,6 @@ const inventario = [
 
 describe("useConsultasVentas", () => {
     beforeEach(() => {
-        window.alert = vi.fn();
         serviceMock.obtenerVentas.mockResolvedValue(ventas);
         serviceMock.obtenerInventario.mockResolvedValue(inventario);
         serviceMock.obtenerEstudiantesParaVentas.mockResolvedValue(estudiantes);
@@ -47,7 +48,7 @@ describe("useConsultasVentas", () => {
         });
     });
 
-    it("avisa con alert cuando falla cualquiera de las consultas", async () => {
+    it("avisa cuando falla cualquiera de las consultas y termina la carga", async () => {
         const error = new Error("fallo");
         serviceMock.obtenerInventario.mockRejectedValueOnce(error);
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -55,12 +56,28 @@ describe("useConsultasVentas", () => {
         const { result } = renderHook(() => useConsultasVentas());
 
         await waitFor(() => {
-            expect(window.alert).toHaveBeenCalledWith("Error cargando base de datos");
+            expect(swalFireMock).toHaveBeenCalledWith(
+                "Error",
+                "Error cargando base de datos",
+                "error"
+            );
         });
+        expect(result.current.cargando).toBe(false);
         expect(result.current.inventario).toEqual([]);
         expect(result.current.ventasAnteriores).toEqual([]);
         expect(consoleError).toHaveBeenCalledWith(error);
         consoleError.mockRestore();
+    });
+
+    it("marca la carga mientras llegan las tres consultas y la termina al final", async () => {
+        const { result } = renderHook(() => useConsultasVentas());
+
+        expect(result.current.cargando).toBe(true);
+
+        await waitFor(() => {
+            expect(result.current.cargando).toBe(false);
+        });
+        expect(result.current.inventario).toEqual([inventario[0]]);
     });
 
     it("permite refrescar stock e historial bajo demanda", async () => {

@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-08-06 - Retroalimentación de la caja: carga visible y avisos unificados
+
+Corrección funcional posterior a la modularización de inventario y ventas.
+No es parte de la migración arquitectónica.
+
+- La caja escribía un estado de carga que ninguna vista leía, así que durante la
+  consulta inicial el catálogo mostraba `No hay productos activos con stock
+  actualmente.`. Ese texto es el estado vacío, no el de carga, y con conexión
+  lenta hacía creer que el inventario estaba agotado.
+- `useConsultasVentas` ahora expone `cargando` y `VistaVentas` muestra el mismo
+  spinner que ya usa el inventario mientras llegan las tres consultas. El estado
+  vacío del catálogo solo aparece cuando la carga terminó.
+- Los seis `window.alert` de la caja pasaron a `Swal.fire`, igual que el resto
+  del módulo y del proyecto. Se conservaron los textos exactos y se les asignó
+  título e ícono según el caso: `Atención`/`warning` para stock agotado, carrito
+  vacío y estudiante obligatorio; `Éxito`/`success` para el cargo registrado; y
+  `Error`/`error` para el fallo de registro y el de carga inicial.
+- El motivo no es solo de estilo: Chrome ofrece `Impedir que esta página cree
+  diálogos adicionales` cuando salen varios `alert` seguidos, y al marcarla el
+  aviso `Error procesando la venta` dejaba de mostrarse, ocultando una venta
+  fallida.
+- No se modificaron contratos, payloads, rutas ni la estructura de las vistas.
+
+Verificación:
+
+- 3 pruebas nuevas: spinner durante la carga sin estado vacío, estado vacío solo
+  al terminar, y ciclo completo de `cargando` en el hook.
+- 97 pruebas específicas de inventario y ventas correctas (13 archivos).
+- `pnpm run check:deploy`: correcto; 189 archivos, 732 pruebas, lint y build
+  de producción de 308 módulos correctos.
+
 ## 2026-08-06 - Corrección: doble registro de un cargo en la caja
 
 Corrección funcional posterior a la modularización de inventario y ventas.
