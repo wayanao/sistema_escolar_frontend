@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { obtenerClasesProfesor } from "../../services/dashboardsApi";
 import {
     FILTRO_JORNADA_AMBAS,
@@ -26,23 +26,31 @@ const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida
     const [loadingClases, setLoadingClases] = useState(true);
     const [errorClases, setErrorClases] = useState("");
     const [filtroJornada, setFiltroJornada] = useState(FILTRO_JORNADA_AMBAS);
+    // Hoy solo carga al montar, pero se numera igual que el resto del módulo:
+    // ninguna respuesta tardía puede pisar a la vigente.
+    const peticionRef = useRef(0);
 
     const cargarClases = useCallback(async () => {
         if (!profesorId) return;
+        const peticion = (peticionRef.current += 1);
+        const vigente = () => peticion === peticionRef.current;
+
         setLoadingClases(true);
         setErrorClases("");
         try {
             const data = normalizarClases(await obtenerClasesProfesor(profesorId));
+            if (!vigente()) return;
             setClases(data);
             descartarAsignacionInvalida(data);
             setHorarioAsignado(construirHorarioProfesor(data));
         } catch (error) {
             console.error("Error cargando clases", error);
+            if (!vigente()) return;
             setClases([]);
             setHorarioAsignado([]);
             setErrorClases(MENSAJE_ERROR_CLASES);
         } finally {
-            setLoadingClases(false);
+            if (vigente()) setLoadingClases(false);
         }
     }, [descartarAsignacionInvalida, profesorId]);
 

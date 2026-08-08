@@ -29,12 +29,20 @@ const useDashboardAdmin = () => {
 
     useEffect(() => {
         if (!esAdmin(usuario)) return;
+
+        let activo = true;
         obtenerResumenCarteraParaDashboard()
-            .then((resumen) => setResumenCartera(resumen))
+            .then((resumen) => {
+                if (activo) setResumenCartera(resumen);
+            })
             .catch((err) => {
                 console.error("Error cargando resumen cartera:", err);
-                setErrorCartera(MENSAJE_ERROR_CARTERA);
+                if (activo) setErrorCartera(MENSAJE_ERROR_CARTERA);
             });
+
+        return () => {
+            activo = false;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

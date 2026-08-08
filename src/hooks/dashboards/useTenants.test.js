@@ -79,6 +79,36 @@ describe("useTenants", () => {
         expect(serviceMock.listarTenants).toHaveBeenCalledTimes(2);
     });
 
+    it("descarta la respuesta lenta de una recarga ya superada", async () => {
+        const listaVieja = [{ id: 9, nombre: "Colegio Viejo", estado: "activo" }];
+        let resolverLenta;
+
+        serviceMock.listarTenants
+            .mockImplementationOnce(
+                () =>
+                    new Promise((resolve) => {
+                        resolverLenta = () => resolve(listaVieja);
+                    }),
+            )
+            .mockResolvedValue(tenants);
+
+        const { result } = renderHook(() => useTenants());
+
+        // Se pulsa `Actualizar` antes de que responda la carga inicial.
+        await act(async () => {
+            await result.current.cargarTenants();
+        });
+        expect(result.current.tenants).toEqual(tenants);
+
+        // Ahora llega, tarde, la respuesta de la primera consulta.
+        await act(async () => {
+            resolverLenta();
+        });
+
+        expect(result.current.tenants).toEqual(tenants);
+        expect(result.current.loading).toBe(false);
+    });
+
     it("agrega el colegio creado al final sin reordenar ni reconsultar", async () => {
         const { result } = await montarCargado();
         const creado = { id: 0, nombre: "AAA Colegio", estado: "activo" };

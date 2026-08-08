@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listarTenants } from "../../services/dashboardsApi";
 import {
     MENSAJE_ERROR_CARGA_TENANTS,
@@ -10,17 +10,26 @@ const useTenants = () => {
     const [tenants, setTenants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    // `Actualizar` puede pulsarse varias veces seguidas. Se numera cada consulta
+    // para que una respuesta tardía no pise a la vigente.
+    const peticionRef = useRef(0);
 
     const cargarTenants = useCallback(async () => {
+        const peticion = (peticionRef.current += 1);
+        const vigente = () => peticion === peticionRef.current;
+
         setLoading(true);
         setError("");
         try {
-            setTenants(normalizarListaTenants(await listarTenants()));
+            const datos = normalizarListaTenants(await listarTenants());
+            if (!vigente()) return;
+            setTenants(datos);
         } catch (err) {
             console.error("Error cargando tenants", err);
+            if (!vigente()) return;
             setError(MENSAJE_ERROR_CARGA_TENANTS);
         } finally {
-            setLoading(false);
+            if (vigente()) setLoading(false);
         }
     }, []);
 

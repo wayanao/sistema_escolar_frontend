@@ -132,6 +132,61 @@ describe("useRendimientoProfesor", () => {
         expect(result.current.errorRendimiento).toBe("No se pudo cargar el rendimiento del curso.");
     });
 
+    it("descarta la respuesta lenta de un curso que ya no está elegido", async () => {
+        const notasDe5A = [{ nombre: "Ana", promedio: 2.3 }];
+        const notasDe6B = [{ nombre: "Beto", promedio: 1.9 }];
+        let resolver5A;
+
+        // La consulta del primer curso queda colgada; la del segundo responde ya.
+        serviceMock.obtenerNotasBajasProfesor.mockImplementation((_id, params) =>
+            params.curso_id === "100"
+                ? new Promise((resolve) => {
+                      resolver5A = () => resolve(notasDe5A);
+                  })
+                : Promise.resolve(notasDe6B),
+        );
+        serviceMock.obtenerNotasAltasProfesor.mockResolvedValue([]);
+
+        const { result } = renderHook(() => useRendimientoProfesor(7, clasesUnicas, cursos));
+        await waitFor(() => expect(result.current.cursoFiltro).toBe("100"));
+
+        act(() => result.current.cambiarCurso("200"));
+        await waitFor(() => expect(result.current.notasBajas).toEqual(notasDe6B));
+
+        // Ahora llega, tarde, la respuesta del curso anterior.
+        await act(async () => {
+            resolver5A();
+        });
+
+        expect(result.current.notasBajas).toEqual(notasDe6B);
+        expect(result.current.cursoFiltro).toBe("200");
+        expect(result.current.loadingRendimiento).toBe(false);
+    });
+
+    it("descarta el fallo tardío de una consulta ya superada", async () => {
+        let rechazar100;
+        serviceMock.obtenerNotasBajasProfesor.mockImplementation((_id, params) =>
+            params.curso_id === "100"
+                ? new Promise((_resolve, reject) => {
+                      rechazar100 = () => reject(new Error("500"));
+                  })
+                : Promise.resolve(notasBajas),
+        );
+
+        const { result } = renderHook(() => useRendimientoProfesor(7, clasesUnicas, cursos));
+        await waitFor(() => expect(result.current.cursoFiltro).toBe("100"));
+
+        act(() => result.current.cambiarCurso("200"));
+        await waitFor(() => expect(result.current.notasBajas).toEqual(notasBajas));
+
+        await act(async () => {
+            rechazar100();
+        });
+
+        expect(result.current.errorRendimiento).toBe("");
+        expect(result.current.notasBajas).toEqual(notasBajas);
+    });
+
     it("limpia el error al volver a consultar con éxito", async () => {
         serviceMock.obtenerNotasBajasProfesor.mockRejectedValueOnce(new Error("500"));
 
@@ -140,7 +195,9 @@ describe("useRendimientoProfesor", () => {
 
         act(() => result.current.cambiarCurso("200"));
 
-        await waitFor(() => expect(result.current.errorRendimiento).toBe(""));
-        expect(result.current.notasBajas).toEqual(notasBajas);
+        // Se espera el estado final. El error se limpia al iniciar la consulta,
+        // así que esperarlo a él dejaría pasar la prueba antes de tener datos.
+        await waitFor(() => expect(result.current.notasBajas).toEqual(notasBajas));
+        expect(result.current.errorRendimiento).toBe("");
     });
 });

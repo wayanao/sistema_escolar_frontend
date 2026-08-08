@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     obtenerNotasAltasProfesor,
     obtenerNotasBajasProfesor,
@@ -22,16 +22,23 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
     const [notasAltas, setNotasAltas] = useState([]);
     const [loadingRendimiento, setLoadingRendimiento] = useState(false);
     const [errorRendimiento, setErrorRendimiento] = useState("");
+    // Cambiar de curso o de materia lanza una consulta nueva sin esperar a la
+    // anterior. Se numeran para que una respuesta tardía no pise a la vigente.
+    const peticionRef = useRef(0);
 
     const cargarRendimiento = useCallback(async () => {
         if (!profesorId) return;
         // Sin curso elegido se vacía la vista sin llamar al backend.
         if (!cursoFiltro) {
+            peticionRef.current += 1;
             setNotasBajas([]);
             setNotasAltas([]);
             setErrorRendimiento("");
             return;
         }
+        const peticion = (peticionRef.current += 1);
+        const vigente = () => peticion === peticionRef.current;
+
         setLoadingRendimiento(true);
         setErrorRendimiento("");
         try {
@@ -40,15 +47,17 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
                 obtenerNotasBajasProfesor(profesorId, params),
                 obtenerNotasAltasProfesor(profesorId, params),
             ]);
+            if (!vigente()) return;
             setNotasBajas(normalizarNotas(bajas));
             setNotasAltas(normalizarNotas(altas));
         } catch (error) {
             console.error("Error cargando rendimiento", error);
+            if (!vigente()) return;
             setNotasBajas([]);
             setNotasAltas([]);
             setErrorRendimiento(MENSAJE_ERROR_RENDIMIENTO);
         } finally {
-            setLoadingRendimiento(false);
+            if (vigente()) setLoadingRendimiento(false);
         }
     }, [cursoFiltro, materiaFiltro, profesorId]);
 

@@ -1,5 +1,38 @@
 # Cambios Frontend
 
+## 2026-08-08 - Los dashboards descartan las respuestas superadas
+
+Corrección del segundo defecto que la modularización del módulo 12 dejó
+registrado. Las consultas no descartaban respuestas obsoletas, así que una
+respuesta lenta podía pisar a una más reciente.
+
+El caso real estaba en el filtro de rendimiento: al cambiar de curso dos veces
+seguidas se lanzaban dos pares de consultas, y si la primera tardaba más que la
+segunda llegaba después y sobrescribía el resultado. El profesor veía **las notas
+del curso anterior bajo la etiqueta del curso nuevo**. El mismo patrón podía
+darse al pulsar `Actualizar` varias veces en el panel de tenants.
+
+- `useRendimientoProfesor` y `useTenants` numeran cada consulta y descartan la
+  respuesta —o el fallo— de las peticiones ya superadas. También evitan que una
+  petición vieja apague el indicador de carga de la vigente.
+- `useClasesProfesor`, `useInasistenciasProfesor` y `useCumpleanosProfesor`
+  adoptan la misma numeración. Hoy solo cargan al montar, así que es preventivo,
+  pero deja una sola regla para todo el módulo en lugar de tres hooks protegidos
+  y cuatro sin proteger.
+- El efecto de cartera de `useDashboardAdmin` gana la bandera `activo` que ya
+  tenía su efecto hermano de cumpleaños.
+
+Las tres pruebas nuevas se verificaron contra el código anterior: fallan sin el
+arreglo y pasan con él.
+
+También se corrigió una prueba inestable introducida en el commit anterior:
+esperaba a que el error se limpiara, cosa que ocurre al **iniciar** la consulta,
+y por eso afirmaba sobre los datos antes de que llegaran. Ahora espera el estado
+final. La suite completa se ejecutó tres veces seguidas sin fallos.
+
+Verificación: 35 archivos y 342 pruebas específicas; `pnpm run check:deploy`
+correcto con 244 archivos y 1225 pruebas.
+
 ## 2026-08-08 - Los dashboards distinguen el fallo de red del dato en cero
 
 Corrección del defecto más grave que la modularización del módulo 12 dejó

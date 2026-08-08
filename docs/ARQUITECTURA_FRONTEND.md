@@ -438,6 +438,10 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   tenants publican su error como estado y sus componentes lo pintan con paleta
   propia. Ninguna pantalla del módulo muestra un estado vacío cuando en realidad
   la consulta falló.
+- Toda consulta del módulo descarta las respuestas superadas: los hooks numeran
+  cada petición y solo la vigente aplica su resultado, su error y su indicador de
+  carga. Así, cambiar de curso o pulsar `Actualizar` dos veces seguidas no puede
+  dejar visible el resultado de la consulta anterior.
 - No quedan llamadas HTTP, payloads ni bloques visuales extensos en las cinco
   páginas, ni implementaciones visuales paralelas.
 

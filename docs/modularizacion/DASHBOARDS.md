@@ -1252,12 +1252,10 @@ extraer nada.
   2. Tres pantallas redirigen con `window.location.href` en lugar del router: el
      panel del profesor y los dos rankings. Provoca una recarga completa.
   3. `AdminDashboard` llama a `navigate` durante el render, no en un efecto.
-  4. La cancelación es inconsistente: solo el efecto de cumpleaños del admin y el
-     de planeaciones recientes usan bandera `activo`. La consecuencia real no es
-     actualizar tras desmontar —inocuo desde React 18— sino la **carrera de
-     respuestas en el filtro de rendimiento**: dos cambios de curso seguidos
-     pueden dejar visibles las notas del curso anterior bajo la etiqueta del
-     nuevo.
+  4. ~~La cancelación es inconsistente y provoca una carrera de respuestas.~~
+     **CORREGIDO** en un commit posterior a la migración. Las siete consultas del
+     módulo numeran sus peticiones y descartan las respuestas superadas, así que
+     una respuesta tardía ya no puede pisar a la vigente.
   5. El efecto de cartera silencia `react-hooks/exhaustive-deps`. El
      `eslint-disable` tapa un problema de identidad: `usuario` es un objeto nuevo
      en cada render, así que obedecer la regla sin rediseñar el hook provocaría
