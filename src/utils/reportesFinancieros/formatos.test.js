@@ -45,28 +45,27 @@ describe("finDeMesISO", () => {
 });
 
 describe("hoyISO", () => {
-  it("devuelve la fecha del instante actual en formato ISO (YYYY-MM-DD, en UTC)", () => {
+  it("devuelve la fecha local del instante actual en formato ISO (YYYY-MM-DD)", () => {
+    vi.stubEnv("TZ", "UTC");
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-08T12:00:00Z"));
 
     expect(hoyISO()).toBe("2026-08-08");
   });
 
-  it("riesgo caracterizado: toma la fecha en UTC, no la fecha local, y puede adelantarse un día", () => {
-    // El backend ya asume America/Bogota (ver reportes_controller.py) y es la
-    // zona horaria real de despliegue. hoyISO() no compensa el desfase antes
-    // de llamar a toISOString(), a diferencia de PAGOS
-    // (docs/modularizacion/PAGOS.md: "la fecha inicial ... compensa el
-    // desfase horario antes de convertir a ISO"). Con la hora local de
-    // Bogotá (UTC-5) a las 11:30 p.m. del 8 de agosto, el instante UTC ya es
-    // 9 de agosto: hoyISO() devuelve "2026-08-09" aunque para el usuario
-    // local todavía es "hoy" 8 de agosto. Esto es comportamiento vigente,
-    // no se corrige en esta migración.
+  it("corrige el defecto histórico: ya no se adelanta un día cerca de medianoche UTC", () => {
+    // El backend asume America/Bogota (ver reportes_controller.py) y es la
+    // zona horaria real de despliegue. Antes de este arreglo, hoyISO() no
+    // compensaba el desfase antes de llamar a toISOString(): con la hora
+    // local de Bogotá (UTC-5) a las 11:30 p.m. del 8 de agosto, el instante
+    // en UTC ya era 9 de agosto y hoyISO() devolvía "2026-08-09" aunque para
+    // el usuario local todavía era "hoy" 8 de agosto. Mismo criterio que
+    // src/utils/pagos/formatos.js (obtenerFechaLocal).
     vi.stubEnv("TZ", "America/Bogota");
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-08T23:30:00-05:00"));
 
-    expect(hoyISO()).toBe("2026-08-09");
+    expect(hoyISO()).toBe("2026-08-08");
   });
 });
 
@@ -76,15 +75,16 @@ describe("nombreMes", () => {
     expect(nombreMes("2026-08")).toBe("agosto de 2026");
   });
 
-  it("riesgo caracterizado: en America/Bogota (zona real de despliegue) muestra el mes anterior", () => {
-    // nombreMes() construye `new Date("2026-08-01")`, que Date interpreta
-    // como medianoche UTC. Al formatear en America/Bogota (UTC-5) esa
-    // medianoche UTC todavía es 31 de julio a las 7:00 p.m., por lo que el
-    // mes mostrado retrocede uno. Es un defecto real y preexistente del
-    // encabezado "Movimiento mensual"; se documenta y protege tal cual está,
-    // sin corregirlo en esta migración (ver documento del módulo).
+  it("corrige el defecto histórico: no retrocede de mes en America/Bogota", () => {
+    // Antes de este arreglo, nombreMes() construía `new Date("2026-08-01")`,
+    // que Date interpreta como medianoche UTC; al formatear en
+    // America/Bogota (UTC-5) esa medianoche UTC todavía era 31 de julio a
+    // las 7:00 p.m., por lo que el mes mostrado retrocedía uno. Ahora se
+    // construye y formatea en UTC explícito (mismo criterio que
+    // src/utils/pagos/formatos.js, formatearPeriodo), así que el resultado
+    // no depende de la zona horaria del navegador.
     vi.stubEnv("TZ", "America/Bogota");
-    expect(nombreMes("2026-08")).toBe("julio de 2026");
+    expect(nombreMes("2026-08")).toBe("agosto de 2026");
   });
 
   it("capitaliza el resultado con la clase visual 'capitalize' de la página, no aquí", () => {

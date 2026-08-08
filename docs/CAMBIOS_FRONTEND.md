@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-08-08 - Reportes financieros: hoyISO y nombreMes ya usan hora local
+
+Corrección de dos de los tres riesgos que la modularización de reportes
+financieros dejó registrados (el tercero, medios de pago combinados sin
+monto por método, requiere un cambio de esquema en el backend y queda
+pendiente).
+
+- **`hoyISO()` tomaba la fecha en UTC**, sin compensar el desfase horario
+  local. En la zona real de despliegue (America/Bogota, UTC-5),
+  aproximadamente desde las 7:00 p.m. hasta medianoche, "Ingresos hoy" y
+  "Egresos hoy" consultaban el día siguiente en vez de hoy. Ahora compensa
+  el offset antes de convertir a ISO, con el mismo criterio que ya usa
+  `utils/pagos/formatos.js` (`obtenerFechaLocal`).
+- **`nombreMes()` mostraba el mes anterior.** Parseaba `"${mes}-01"` como
+  fecha local a partir de una medianoche UTC, así que en America/Bogota el
+  encabezado de "Movimiento mensual" retrocedía un mes. Ahora construye y
+  formatea en UTC explícito, con el mismo criterio que
+  `utils/pagos/formatos.js` (`formatearPeriodo`).
+- Las dos pruebas que caracterizaban el defecto en
+  `utils/reportesFinancieros/formatos.test.js` ahora prueban que ya no
+  ocurre, con el mismo escenario horario.
+- `pages/ReportesAdmin.test.jsx` dejó de duplicar `formatoMoneda`, `hoyISO`
+  y `finDeMesISO`; ahora importa las funciones reales del módulo para que
+  sus aserciones no se desalineen si la implementación vuelve a cambiar.
+
+No hay cambios de firma, de diseño ni de textos. El comportamiento cambia
+solo en el margen horario donde antes era incorrecto.
+
+Verificación: 12 archivos y 114 pruebas específicas de reportes financieros;
+`pnpm run check:deploy` correcto con 256 archivos, 1340 pruebas, ESLint y
+build correctos; `git diff --check` correcto.
+
 ## 2026-08-08 - Modularización completa de reportes financieros
 
 - Se conservaron diseño, textos, ruta `/admin/reportes`, protección

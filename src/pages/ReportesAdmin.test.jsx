@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { finDeMesISO, formatoMoneda as formatoMonedaReal, hoyISO } from "../utils/reportesFinancieros/formatos";
 import ReportesAdmin from "./ReportesAdmin";
 
 const { apiMock, navigateMock } = vi.hoisted(() => ({
@@ -14,27 +15,11 @@ vi.mock("react-router-dom", async (importOriginal) => ({
   useNavigate: () => navigateMock,
 }));
 
-// Réplica de src/pages/ReportesAdmin.jsx#formatoMoneda usada solo para calcular
-// el texto esperado en las aserciones; no se importa desde producción porque
-// hoy no está exportada. El espacio entre "$" y el número es un NBSP que
-// Intl inserta; se normaliza a un espacio simple porque el normalizador por
-// defecto de Testing Library hace lo mismo con el texto del DOM.
-const formatoMoneda = (valor) =>
-  Number(valor || 0)
-    .toLocaleString("es-CO", {
-      style: "currency",
-      currency: "COP",
-      maximumFractionDigits: 0,
-    })
-    .replace(/\s+/g, " ");
-
-const hoyISO = () => new Date().toISOString().split("T")[0];
-
-const finDeMesISO = (mes) => {
-  const [year, month] = mes.split("-").map(Number);
-  const ultimoDia = new Date(year, month, 0).getDate();
-  return `${year}-${String(month).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
-};
+// Se usan las funciones reales de utils/reportesFinancieros/formatos (no una
+// réplica) para calcular el texto/fecha esperados en las aserciones, y así
+// no desalinearse si su implementación cambia (p. ej. el arreglo de zona
+// horaria de hoyISO/nombreMes).
+const formatoMoneda = (valor) => formatoMonedaReal(valor).replace(/\s+/g, " "); // normaliza el NBSP de Intl a un espacio simple, igual que Testing Library
 
 const reporteGeneral = {
   estadisticas_generales: {

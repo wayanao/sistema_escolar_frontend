@@ -255,6 +255,11 @@ migración porque son defectos ajenos al alcance ("no corrijas asuntos
 ajenos"); se recomienda abrirlos como tarea o commit separado dado que
 afectan la exactitud de un reporte financiero.
 
+> **Actualización posterior al cierre (2026-08-08):** ambos defectos se
+> corrigieron en un commit separado, fuera de las capas de esta
+> modularización. Ver "Corrección posterior al cierre" al final de este
+> documento.
+
 ### Verificación de capa 1
 
 - Suite específica:
@@ -582,24 +587,26 @@ capa 1 original solo alcanzó a extraer formateadores y no esta agregación.
 - Un pago con métodos combinados (`tipo_pago` unido con `" + "`) sin monto
   por método muestra, al filtrar por uno de esos medios, el monto **total**
   del pago en vez de una porción. Comportamiento vigente en producción,
-  caracterizado con pruebas explícitas desde la capa 0.
-- `hoyISO()` toma la fecha en UTC sin compensar el desfase local: puede
-  mostrar la fecha de mañana como "hoy" en la zona horaria real de
-  despliegue (America/Bogota, UTC-5), aproximadamente desde las 7:00 p.m.
-  hasta medianoche.
-- `nombreMes()` interpreta `"${mes}-01"` como medianoche UTC y la formatea
-  en la zona horaria local, por lo que muestra el nombre del mes **anterior**
-  en America/Bogota. Afecta los encabezados de "Movimiento mensual".
+  caracterizado con pruebas explícitas desde la capa 0. **No corregido**: no
+  es un defecto de cálculo sino de datos — el backend no persiste el monto
+  por método de un pago combinado en ningún lado, así que el frontend no
+  puede reconstruirlo. Un arreglo real necesitaría un cambio de esquema en
+  `sistema_escolar_api` (columna o tabla nueva) y no tiene datos retroactivos
+  para pagos históricos.
+- ~~`hoyISO()` toma la fecha en UTC sin compensar el desfase local~~ y
+  ~~`nombreMes()` interpreta `"${mes}-01"` como medianoche UTC~~: **corregidos
+  el 2026-08-08** en un commit separado. Ver "Corrección posterior al
+  cierre" al final de este documento.
 - La preasignación optimista de `detalleTipo` en los dos botones del panel
   "Rango de fechas" (antes de que la consulta resuelva) es asimétrica
   respecto a las demás cuatro formas de abrir un detalle; se documentó y
-  preservó tal cual en la capa 3.
+  preservó tal cual en la capa 3. Sin corregir.
 - La etiqueta `Desde`/`Hasta` de `RangoFechasPanel.jsx` no está asociada al
-  input mediante `htmlFor`/`id` (brecha de accesibilidad preexistente).
+  input mediante `htmlFor`/`id` (brecha de accesibilidad preexistente). Sin
+  corregir.
 
-Los cuatro primeros riesgos afectan la exactitud de un reporte financiero y
-se recomiendan como tareas o commits separados, fuera de esta
-modularización.
+El riesgo de medios combinados afecta la exactitud de un reporte financiero
+y se recomienda como tarea aparte que involucra al backend.
 
 ### Verificación manual en producción
 
@@ -673,3 +680,58 @@ backend antes de extraer consultas.
 - Siguiente acción exacta del usuario: revisar el diff, crear el único
   commit sugerido, hacer push a `origin/main`, esperar el deploy y ejecutar
   la verificación manual de producción registrada arriba.
+
+## Corrección posterior al cierre (2026-08-08)
+
+El módulo ya se había cerrado, commiteado (`51824b8`) y publicado en
+`origin/main` cuando se autorizó corregir, como tarea aparte, los dos
+defectos de zona horaria de baja complejidad detectados en la capa 1
+(`hoyISO()` y `nombreMes()`). El tercer riesgo (medios combinados sin monto
+por método) se dejó fuera por requerir un cambio de esquema en el backend.
+
+### Cambios
+
+- `src/utils/reportesFinancieros/formatos.js`:
+  - `hoyISO()` ahora compensa el desfase horario local antes de convertir a
+    ISO (mismo criterio que `src/utils/pagos/formatos.js#obtenerFechaLocal`),
+    en vez de tomar la fecha directamente en UTC.
+  - `nombreMes()` ahora construye la fecha con `Date.UTC(...)` y formatea con
+    `timeZone: "UTC"` explícito (mismo criterio que
+    `src/utils/pagos/formatos.js#formatearPeriodo`), en vez de parsear
+    `"${mes}-01"` como fecha local. Sigue sin capitalizar: la página aplica
+    la clase visual `capitalize`.
+- `src/utils/reportesFinancieros/formatos.test.js`: las dos pruebas que
+  caracterizaban el defecto ("riesgo caracterizado…") ahora prueban que el
+  defecto ya no ocurre, con el mismo escenario (hora de Bogotá cerca de
+  medianoche UTC).
+- `src/pages/ReportesAdmin.test.jsx`: dejó de duplicar `formatoMoneda`,
+  `hoyISO` y `finDeMesISO`; ahora importa las funciones reales de
+  `utils/reportesFinancieros/formatos` para que sus aserciones no se
+  desalineen si la implementación vuelve a cambiar.
+- No se tocó ninguna firma ni punto de llamada: `hoyISO()` y `nombreMes(mes)`
+  conservan los mismos parámetros y tipo de retorno.
+
+### Verificación
+
+- Suite específica:
+  `pnpm exec vitest run src/utils/reportesFinancieros/ src/pages/ReportesAdmin.test.jsx src/hooks/reportesFinancieros/ src/components/reportesFinancieros/ src/services/reportesFinancierosApi.test.js`
+  — 12 archivos, 114 pruebas correctas.
+- `pnpm run check:deploy`: correcto; 256 archivos, 1340 pruebas, ESLint y
+  build correctos.
+- `git diff --check`: correcto.
+- Diff acotado a `src/utils/reportesFinancieros/formatos.js`,
+  `src/utils/reportesFinancieros/formatos.test.js` y
+  `src/pages/ReportesAdmin.test.jsx`.
+
+### Commit sugerido
+
+`fix(reportes): corregir hoyISO y nombreMes para usar hora local`
+
+### Verificación manual adicional en producción
+
+- Un rato antes de medianoche (o cambiando la hora del sistema de prueba a
+  zona horaria Bogotá), confirmar que "Ingresos hoy"/"Egresos hoy" consultan
+  el día calendario correcto y no el del día siguiente.
+- Confirmar que "Movimiento mensual" muestra el nombre del mes correcto para
+  cada bloque (por ejemplo, el bloque más reciente debe decir el mes actual,
+  no el anterior).
