@@ -1,5 +1,39 @@
 # Cambios Frontend
 
+## 2026-08-08 - Los dashboards redirigen con el router
+
+Corrección de los defectos cuarto y quinto que la modularización del módulo 12
+dejó registrados. Los dos van juntos porque son el mismo tema: cómo redirige el
+módulo cuando no hay sesión válida.
+
+- **Tres pantallas recargaban la aplicación entera.** El panel del profesor y los
+  dos rankings hacían `window.location.href = "/login"`, que descarta el bundle
+  ya cargado y arranca React desde cero. Ahora `useContextoProfesor` y
+  `useRankingProfesor` informan `sesionInvalida` y la página devuelve
+  `<Navigate to="/login" />`.
+- **`AdminDashboard` navegaba durante el render.** Llamaba a `navigate("/login")`
+  en el cuerpo del componente y devolvía `null`, o sea un efecto secundario en
+  fase de render que React puede advertir y que con render concurrente no
+  garantiza el momento de la redirección. Ahora devuelve el redirect.
+
+Las cuatro pantallas usan `<Navigate to="/login" />` sin `replace`, exactamente
+el patrón que ya aplican los cinco guardianes de `App.jsx`.
+
+Un hook no puede devolver JSX, así que la frontera queda clara: el hook detecta
+que no hay sesión y la página, que es la raíz de composición, resuelve la
+navegación.
+
+También se quitó el `useCallback` de `exigirClaseElegida`: nunca es dependencia
+de nadie y su memoización manual impedía que el compilador de React optimizara el
+hook.
+
+Siete pruebas se actualizaron —cinco caracterizaciones y dos de hooks— porque
+fijaban `window.location.href`. Las de página comprueban además que **ya no se
+llama a `navigate` durante el render**.
+
+Verificación: 35 archivos y 342 pruebas específicas; `pnpm run check:deploy`
+correcto con 244 archivos y 1225 pruebas.
+
 ## 2026-08-08 - Los avisos del profesor usan SweetAlert
 
 Corrección del tercer defecto que la modularización del módulo 12 dejó

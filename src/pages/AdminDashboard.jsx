@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
 import AccesosAdmin from "../components/dashboards/admin/AccesosAdmin";
 import TarjetaCarteraVencida from "../components/dashboards/admin/TarjetaCarteraVencida";
@@ -18,9 +18,9 @@ function Admin() {
     diasRangoCumpleanos,
   } = useDashboardAdmin();
 
+  // Se devuelve el redirect en vez de llamar a navigate durante el render.
   if (!esAdministrador) {
-    navigate("/login");
-    return null;
+    return <Navigate to="/login" />;
   }
 
   return (

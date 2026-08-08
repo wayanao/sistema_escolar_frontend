@@ -12,6 +12,7 @@ vi.mock("../utils/api", () => ({ default: apiMock }));
 vi.mock("react-router-dom", async (importOriginal) => ({
     ...(await importOriginal()),
     useNavigate: () => navigateMock,
+    Navigate: ({ to }) => <div data-testid="redirect" data-to={to} />,
 }));
 
 const resumenConMora = {
@@ -52,20 +53,21 @@ describe("AdminDashboard", () => {
     });
 
     it("redirige a login y no consulta nada cuando no hay usuario", () => {
-        const { container } = render(<AdminDashboard />);
+        render(<AdminDashboard />);
 
-        expect(navigateMock).toHaveBeenCalledWith("/login");
-        expect(container).toBeEmptyDOMElement();
+        expect(screen.getByTestId("redirect")).toHaveAttribute("data-to", "/login");
+        // El redirect se devuelve; ya no se navega durante el render.
+        expect(navigateMock).not.toHaveBeenCalled();
         expect(apiMock.get).not.toHaveBeenCalled();
     });
 
     it("redirige a login cuando el rol no es admin", () => {
         localStorage.setItem("usuario", JSON.stringify({ id: 2, nombre: "Ana", rol: "profesor" }));
 
-        const { container } = render(<AdminDashboard />);
+        render(<AdminDashboard />);
 
-        expect(navigateMock).toHaveBeenCalledWith("/login");
-        expect(container).toBeEmptyDOMElement();
+        expect(screen.getByTestId("redirect")).toHaveAttribute("data-to", "/login");
+        expect(navigateMock).not.toHaveBeenCalled();
         expect(apiMock.get).not.toHaveBeenCalled();
     });
 

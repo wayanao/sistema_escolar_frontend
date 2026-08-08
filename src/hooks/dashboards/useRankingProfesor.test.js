@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import useRankingProfesor, {
     useRankingBajoRendimiento,
     useRankingMejorRendimiento,
@@ -25,8 +25,6 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 
 const ranking = [{ id: 11, nombre: "Ana", promedio: 2.3 }];
 
-const locationOriginal = window.location;
-
 const consultarRanking = vi.fn();
 
 const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "3" } = {}) => {
@@ -40,20 +38,14 @@ describe("useRankingProfesor", () => {
         localStorage.clear();
         swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
-        delete window.location;
-        window.location = { href: "" };
         consultarRanking.mockReset();
         consultarRanking.mockResolvedValue(ranking);
     });
 
-    afterEach(() => {
-        window.location = locationOriginal;
-    });
+    it("informa que no hay sesión y no consulta", () => {
+        const { result } = renderHook(() => useRankingProfesor(consultarRanking));
 
-    it("redirige a login y no consulta cuando no hay profesor", () => {
-        renderHook(() => useRankingProfesor(consultarRanking));
-
-        expect(window.location.href).toBe("/login");
+        expect(result.current.sesionInvalida).toBe(true);
         expect(consultarRanking).not.toHaveBeenCalled();
         expect(swalFireMock).not.toHaveBeenCalled();
         expect(navigateMock).not.toHaveBeenCalled();

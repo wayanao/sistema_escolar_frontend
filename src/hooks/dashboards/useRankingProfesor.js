@@ -24,13 +24,13 @@ const useRankingProfesor = (consultarRanking) => {
     const asignacionId = localStorage.getItem("asignacionId");
     const periodo = obtenerPeriodoProfesor();
     const profesorStorage = localStorage.getItem("profesor");
+    const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
+    const sesionInvalida = !profesor;
 
     useEffect(() => {
-        const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
-        if (!profesor) {
-            window.location.href = "/login";
-            return;
-        }
+        // Sin sesión no se consulta nada; el redirect lo resuelve la página con
+        // el router.
+        if (sesionInvalida) return;
 
         if (!asignacionId) {
             // Se espera a que el usuario lea el aviso antes de moverlo, igual que
@@ -59,9 +59,9 @@ const useRankingProfesor = (consultarRanking) => {
         };
 
         cargarRanking();
-    }, [asignacionId, consultarRanking, navigate, periodo, profesorStorage]);
+    }, [asignacionId, consultarRanking, navigate, periodo, sesionInvalida]);
 
-    return { ranking, loading, error, periodo };
+    return { ranking, loading, error, periodo, sesionInvalida };
 };
 
 // Cada pantalla usa el suyo, así que las páginas no necesitan conocer el

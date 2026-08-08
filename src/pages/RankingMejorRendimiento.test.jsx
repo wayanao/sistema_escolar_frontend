@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import RankingMejorRendimiento from "./RankingMejorRendimiento";
 
 const { apiMock, navigateMock, swalFireMock } = vi.hoisted(() => ({
@@ -15,6 +15,7 @@ vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 vi.mock("react-router-dom", async (importOriginal) => ({
     ...(await importOriginal()),
     useNavigate: () => navigateMock,
+    Navigate: ({ to }) => <div data-testid="redirect" data-to={to} />,
 }));
 
 const ranking = [
@@ -23,8 +24,6 @@ const ranking = [
     { id: 13, nombre: "Zoe Zapata", promedio: 4.1 },
     { id: 14, nombre: "Iván Ibáñez", promedio: 3.9 },
 ];
-
-const locationOriginal = window.location;
 
 const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "2" } = {}) => {
     localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Ana" }));
@@ -37,19 +36,14 @@ describe("RankingMejorRendimiento", () => {
         localStorage.clear();
         swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
-        delete window.location;
-        window.location = { href: "" };
         apiMock.get.mockResolvedValue({ data: ranking });
-    });
-
-    afterEach(() => {
-        window.location = locationOriginal;
     });
 
     it("redirige a login y no consulta cuando no hay profesor", () => {
         render(<RankingMejorRendimiento />);
 
-        expect(window.location.href).toBe("/login");
+        // Redirect del router, sin recargar la aplicación.
+        expect(screen.getByTestId("redirect")).toHaveAttribute("data-to", "/login");
         expect(apiMock.get).not.toHaveBeenCalled();
         expect(navigateMock).not.toHaveBeenCalled();
     });

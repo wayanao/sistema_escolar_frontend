@@ -1,12 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import useContextoProfesor from "./useContextoProfesor";
 
 const { swalFireMock } = vi.hoisted(() => ({ swalFireMock: vi.fn() }));
 
 vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
-
-const locationOriginal = window.location;
 
 const clases = [{ id: 10 }, { id: 11 }];
 
@@ -17,18 +15,12 @@ const iniciarSesionProfesor = () => {
 describe("useContextoProfesor", () => {
     beforeEach(() => {
         localStorage.clear();
-        delete window.location;
-        window.location = { href: "" };
     });
 
-    afterEach(() => {
-        window.location = locationOriginal;
-    });
-
-    it("redirige a login cuando no hay profesor", () => {
+    it("informa que no hay sesión para que la página redirija", () => {
         const { result } = renderHook(() => useContextoProfesor());
 
-        expect(window.location.href).toBe("/login");
+        expect(result.current.sesionInvalida).toBe(true);
         expect(result.current.profesorId).toBeUndefined();
     });
 
@@ -37,7 +29,7 @@ describe("useContextoProfesor", () => {
 
         const { result } = renderHook(() => useContextoProfesor());
 
-        expect(window.location.href).toBe("");
+        expect(result.current.sesionInvalida).toBe(false);
         expect(result.current.profesorId).toBe(7);
         expect(result.current.nombreProfesor).toBe("Ana");
     });

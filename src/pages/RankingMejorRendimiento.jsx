@@ -1,10 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import TablaRankingMejor from "../components/dashboards/profesor/TablaRankingMejor";
 import { useRankingMejorRendimiento } from "../hooks/dashboards/useRankingProfesor";
 
 function RankingMejorRendimiento() {
   const navigate = useNavigate();
-  const { ranking, loading, error, periodo } = useRankingMejorRendimiento();
+  const { ranking, loading, error, periodo, sesionInvalida } = useRankingMejorRendimiento();
+
+  if (sesionInvalida) {
+    return <Navigate to="/login" />;
+  }
 
   if (loading) {
     return (

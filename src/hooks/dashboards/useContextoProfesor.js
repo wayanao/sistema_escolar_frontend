@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Swal from "sweetalert2";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
 import {
@@ -20,12 +20,6 @@ const useContextoProfesor = () => {
     const profesorStorage = localStorage.getItem("profesor");
     const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
     const profesorId = profesor?.id;
-
-    useEffect(() => {
-        if (!profesorId) {
-            window.location.href = "/login";
-        }
-    }, [profesorId]);
 
     const cambiarAsignacion = useCallback((valor) => {
         setAsignacionId(valor);
@@ -55,7 +49,9 @@ const useContextoProfesor = () => {
     // Los rankings exigen una clase elegida. Avisa y responde si se puede seguir.
     // El aviso no se espera: quien llama necesita la respuesta de inmediato para
     // decidir si navega.
-    const exigirClaseElegida = useCallback(() => {
+    // Sin `useCallback`: solo se invoca dentro de un manejador, nunca es
+    // dependencia de nadie, y memoizarla a mano impide optimizar el hook.
+    const exigirClaseElegida = () => {
         if (asignacionId) return true;
         Swal.fire({
             icon: "warning",
@@ -64,9 +60,12 @@ const useContextoProfesor = () => {
             confirmButtonColor: "#059669",
         });
         return false;
-    }, [asignacionId]);
+    };
 
     return {
+        // Un hook no puede devolver JSX: informa que no hay sesión y la página
+        // decide el redirect con el router, sin recargar la aplicación.
+        sesionInvalida: !profesorId,
         profesorId,
         nombreProfesor: primerNombreProfesor(profesor),
         asignacionId,

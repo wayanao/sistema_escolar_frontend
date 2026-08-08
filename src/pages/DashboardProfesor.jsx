@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import ContextoTrabajoProfesor from "../components/dashboards/profesor/ContextoTrabajoProfesor";
 import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
 import FiltroRendimiento from "../components/dashboards/profesor/FiltroRendimiento";
@@ -17,6 +17,7 @@ import { RUTA_RANKING_BAJO, RUTA_RANKING_MEJOR } from "../utils/dashboards/profe
 function DashboardProfesor() {
   const navigate = useNavigate();
   const {
+    sesionInvalida,
     profesorId,
     nombreProfesor,
     asignacionId,
@@ -79,6 +80,10 @@ function DashboardProfesor() {
   const irARanking = (ruta) => {
     if (exigirClaseElegida()) navigate(ruta);
   };
+
+  if (sesionInvalida) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6">

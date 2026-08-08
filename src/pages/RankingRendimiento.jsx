@@ -1,10 +1,14 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import TablaRankingBajo from "../components/dashboards/profesor/TablaRankingBajo";
 import { useRankingBajoRendimiento } from "../hooks/dashboards/useRankingProfesor";
 
 function RankingBajoRendimiento() {
   const navigate = useNavigate();
-  const { ranking, loading, error, periodo } = useRankingBajoRendimiento();
+  const { ranking, loading, error, periodo, sesionInvalida } = useRankingBajoRendimiento();
+
+  if (sesionInvalida) {
+    return <Navigate to="/login" />;
+  }
 
   if (loading) {
     return (

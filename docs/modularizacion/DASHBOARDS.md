@@ -1249,9 +1249,13 @@ extraer nada.
      componentes lo pintan con paleta propia. Las cuatro caracterizaciones que
      fijaban el comportamiento silencioso se actualizaron a propósito, que es
      justo para lo que se escribieron.
-  2. Tres pantallas redirigen con `window.location.href` en lugar del router: el
-     panel del profesor y los dos rankings. Provoca una recarga completa.
-  3. `AdminDashboard` llama a `navigate` durante el render, no en un efecto.
+  2. ~~Tres pantallas redirigen con `window.location.href`.~~ **CORREGIDO** en
+     un commit posterior a la migración. Los hooks informan `sesionInvalida` y
+     las páginas devuelven `<Navigate to="/login" />`, igual que los guardianes
+     de `App.jsx`. Ya no hay recarga completa de la aplicación.
+  3. ~~`AdminDashboard` llama a `navigate` durante el render.~~ **CORREGIDO** en
+     el mismo commit: devuelve `<Navigate to="/login" />` en vez de provocar un
+     efecto secundario en fase de render.
   4. ~~La cancelación es inconsistente y provoca una carrera de respuestas.~~
      **CORREGIDO** en un commit posterior a la migración. Las siete consultas del
      módulo numeran sus peticiones y descartan las respuestas superadas, así que
