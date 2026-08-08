@@ -1,5 +1,35 @@
 # Cambios Frontend
 
+## 2026-08-08 - El panel de admin ya no silencia la regla de dependencias
+
+Corrección del sexto defecto que la modularización del módulo 12 dejó
+registrado. El efecto que carga la cartera vencida llevaba un
+`eslint-disable-next-line react-hooks/exhaustive-deps` con dependencias vacías.
+
+El `disable` no era un descuido: estaba tapando un problema de identidad.
+`usuario` se relee de `localStorage` en cada render, así que es un objeto nuevo
+cada vez. Obedecer la regla y ponerlo como dependencia habría disparado una
+petición a `/cartera/mora/resumen` **en cada render**. La supresión funcionaba,
+pero dejaba una trampa: quien intentara «arreglar el lint» sin entender por qué
+estaba ahí tumbaría el backend.
+
+- El hook calcula una sola vez `esAdministrador`, un booleano cuya identidad sí
+  es estable entre renders.
+- Los dos efectos hermanos —cartera y cumpleaños— dependen ahora de ese mismo
+  booleano. Antes uno usaba `usuario` con dependencias vacías y el otro
+  `usuarioRol`; ahora tienen exactamente la misma forma.
+- El `eslint-disable` desapareció. **No queda ninguno en todo el módulo.**
+
+La prueba nueva rerenderiza el hook tres veces y comprueba que sigue habiendo una
+sola petición por sección. Se verificó contra la versión con `usuario` como
+dependencia: ahí detecta seis peticiones en lugar de una.
+
+No hay cambios visibles ni de comportamiento: el número de consultas y el momento
+en que se lanzan son los mismos que antes.
+
+Verificación: 35 archivos y 343 pruebas específicas; `pnpm run check:deploy`
+correcto con 244 archivos y 1226 pruebas.
+
 ## 2026-08-08 - Los dashboards redirigen con el router
 
 Corrección de los defectos cuarto y quinto que la modularización del módulo 12

@@ -5,7 +5,6 @@ import {
 } from "../../services/dashboardsApi";
 import {
     MENSAJE_ERROR_CARTERA,
-    ROL_ADMIN,
     esAdmin,
     primerNombreAdmin,
 } from "../../utils/dashboards/admin";
@@ -20,7 +19,10 @@ import {
 // propio efecto y el fallo de una no afecta a la otra ni a los accesos.
 const useDashboardAdmin = () => {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-    const usuarioRol = usuario?.rol;
+    // `usuario` se relee del almacenamiento en cada render, así que es un objeto
+    // nuevo cada vez y no sirve como dependencia. Los dos efectos dependen de
+    // este booleano, cuya identidad sí es estable.
+    const esAdministrador = esAdmin(usuario);
     const [resumenCartera, setResumenCartera] = useState(null);
     const [errorCartera, setErrorCartera] = useState("");
     const [cumpleanos, setCumpleanos] = useState([]);
@@ -28,7 +30,7 @@ const useDashboardAdmin = () => {
     const [errorCumpleanos, setErrorCumpleanos] = useState("");
 
     useEffect(() => {
-        if (!esAdmin(usuario)) return;
+        if (!esAdministrador) return;
 
         let activo = true;
         obtenerResumenCarteraParaDashboard()
@@ -43,11 +45,10 @@ const useDashboardAdmin = () => {
         return () => {
             activo = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [esAdministrador]);
 
     useEffect(() => {
-        if (usuarioRol !== ROL_ADMIN) return;
+        if (!esAdministrador) return;
 
         let activo = true;
         setLoadingCumpleanos(true);
@@ -70,10 +71,10 @@ const useDashboardAdmin = () => {
         return () => {
             activo = false;
         };
-    }, [usuarioRol]);
+    }, [esAdministrador]);
 
     return {
-        esAdministrador: esAdmin(usuario),
+        esAdministrador,
         nombreAdmin: primerNombreAdmin(usuario?.nombre),
         resumenCartera,
         errorCartera,

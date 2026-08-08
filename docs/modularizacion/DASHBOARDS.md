@@ -1260,10 +1260,11 @@ extraer nada.
      **CORREGIDO** en un commit posterior a la migración. Las siete consultas del
      módulo numeran sus peticiones y descartan las respuestas superadas, así que
      una respuesta tardía ya no puede pisar a la vigente.
-  5. El efecto de cartera silencia `react-hooks/exhaustive-deps`. El
-     `eslint-disable` tapa un problema de identidad: `usuario` es un objeto nuevo
-     en cada render, así que obedecer la regla sin rediseñar el hook provocaría
-     un bucle infinito de peticiones.
+  5. ~~El efecto de cartera silencia `react-hooks/exhaustive-deps`.~~
+     **CORREGIDO** en un commit posterior a la migración. Los dos efectos
+     hermanos dependen ahora del booleano `esAdministrador`, cuya identidad sí es
+     estable, y el `eslint-disable` desapareció. Una prueba rerenderiza el hook y
+     comprueba que sigue habiendo una sola petición por sección.
   6. La caché de planeaciones recientes nunca se invalida, aunque su alcance real
      es estrecho: crear una planeación desmonta el dashboard y al volver se
      vuelve a consultar. La ventana de datos viejos se limita a otra pestaña,

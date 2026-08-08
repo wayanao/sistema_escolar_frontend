@@ -65,6 +65,23 @@ describe("useDashboardAdmin", () => {
         expect(serviceMock.obtenerCumpleanosAdmin).toHaveBeenCalledWith({ dias: 7 });
     });
 
+    it("no vuelve a consultar aunque el componente se rerenderice", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+
+        const { result, rerender } = renderHook(() => useDashboardAdmin());
+        await waitFor(() => expect(result.current.loadingCumpleanos).toBe(false));
+
+        // `usuario` se relee del almacenamiento en cada render y es un objeto
+        // nuevo cada vez. Si los efectos dependieran de él, cada render
+        // dispararía otra petición.
+        rerender();
+        rerender();
+        rerender();
+
+        expect(serviceMock.obtenerResumenCarteraParaDashboard).toHaveBeenCalledTimes(1);
+        expect(serviceMock.obtenerCumpleanosAdmin).toHaveBeenCalledTimes(1);
+    });
+
     it("protege la lista de cumpleaños ante una respuesta que no es arreglo", async () => {
         localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
         serviceMock.obtenerCumpleanosAdmin.mockResolvedValue(null);
