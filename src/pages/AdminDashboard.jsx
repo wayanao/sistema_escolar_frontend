@@ -11,6 +11,7 @@ function Admin() {
     esAdministrador,
     nombreAdmin,
     resumenCartera,
+    errorCartera,
     cumpleanos,
     loadingCumpleanos,
     errorCumpleanos,
@@ -38,6 +39,7 @@ function Admin() {
 
       <TarjetaCarteraVencida
         resumen={resumenCartera}
+        error={errorCartera}
         onAbrir={() => navigate(RUTA_CARTERA_VENCIDA)}
       />
 

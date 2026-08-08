@@ -5,6 +5,7 @@ import {
 } from "../../services/dashboardsApi";
 import {
     MATERIA_TODAS,
+    MENSAJE_ERROR_RENDIMIENTO,
     construirParametrosRendimiento,
     nombreCursoFiltro,
     nombreMateriaFiltro,
@@ -20,6 +21,7 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
     const [notasBajas, setNotasBajas] = useState([]);
     const [notasAltas, setNotasAltas] = useState([]);
     const [loadingRendimiento, setLoadingRendimiento] = useState(false);
+    const [errorRendimiento, setErrorRendimiento] = useState("");
 
     const cargarRendimiento = useCallback(async () => {
         if (!profesorId) return;
@@ -27,9 +29,11 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
         if (!cursoFiltro) {
             setNotasBajas([]);
             setNotasAltas([]);
+            setErrorRendimiento("");
             return;
         }
         setLoadingRendimiento(true);
+        setErrorRendimiento("");
         try {
             const params = construirParametrosRendimiento(cursoFiltro, materiaFiltro);
             const [bajas, altas] = await Promise.all([
@@ -40,6 +44,9 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
             setNotasAltas(normalizarNotas(altas));
         } catch (error) {
             console.error("Error cargando rendimiento", error);
+            setNotasBajas([]);
+            setNotasAltas([]);
+            setErrorRendimiento(MENSAJE_ERROR_RENDIMIENTO);
         } finally {
             setLoadingRendimiento(false);
         }
@@ -84,6 +91,7 @@ const useRendimientoProfesor = (profesorId, clasesUnicas, cursosProfesor) => {
         notasBajas,
         notasAltas,
         loadingRendimiento,
+        errorRendimiento,
         cambiarCurso,
         setMateriaFiltro,
     };

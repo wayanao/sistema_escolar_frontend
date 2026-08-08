@@ -25,6 +25,15 @@ describe("TablaRankingBajo", () => {
         expect(screen.getAllByText("Critico")).toHaveLength(2);
     });
 
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(<TablaRankingBajo ranking={[]} error="No se pudo cargar el ranking." />);
+
+        expect(screen.getByText("No se pudo cargar el ranking.")).toBeInTheDocument();
+        expect(screen.getByText("⛔")).toBeInTheDocument();
+        expect(screen.queryByText(/No hay estudiantes con bajo rendimiento/)).not.toBeInTheDocument();
+        expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío sin tabla", () => {
         render(<TablaRankingBajo ranking={[]} />);
 

@@ -1240,16 +1240,15 @@ extraer nada.
   catorce componentes presentacionales, once hooks, `dashboardsApi.js` y cuatro
   utilidades de dominio. Se eliminó `src/pages/DashboardAdmin.jsx` y se renombró
   `src/components/dashboard/` a `src/components/dashboards/`.
-- Riesgos abiertos: ninguno dentro del alcance. Quedan pendientes, **fuera de la
-  migración**, los ocho defectos preexistentes que esta conservó a propósito y
-  que conviene atender en commits separados:
-  1. **Un fallo de red se ve igual que un dato en cero.** Ocurre en **cinco**
-     sitios: las clases del profesor, la cartera, las inasistencias, el
-     rendimiento y los dos rankings. El error solo llega a `console.error` y la
-     pantalla muestra su estado vacío. Es el más grave, y el de
-     `/mis-clases/:id` es el peor de los cinco porque encadena: sin clases no hay
-     cursos y sin cursos el rendimiento ni siquiera consulta, así que un solo
-     fallo apaga tres secciones a la vez.
+- Riesgos abiertos: ninguno dentro del alcance. De los ocho defectos
+  preexistentes que la migración conservó a propósito, **el primero ya está
+  corregido** en un commit posterior; los otros siete siguen pendientes:
+  1. ~~Un fallo de red se ve igual que un dato en cero.~~ **CORREGIDO** en un
+     commit posterior a la migración. Los cinco hooks afectados —clases, cartera,
+     inasistencias, rendimiento y rankings— publican su error como estado y sus
+     componentes lo pintan con paleta propia. Las cuatro caracterizaciones que
+     fijaban el comportamiento silencioso se actualizaron a propósito, que es
+     justo para lo que se escribieron.
   2. Tres pantallas redirigen con `window.location.href` en lugar del router: el
      panel del profesor y los dos rankings. Provoca una recarga completa.
   3. `AdminDashboard` llama a `navigate` durante el render, no en un efecto.

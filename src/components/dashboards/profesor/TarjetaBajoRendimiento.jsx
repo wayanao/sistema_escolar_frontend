@@ -5,6 +5,7 @@ import { claseNotaBaja, formatearPromedio } from "../../../utils/dashboards/prof
 function TarjetaBajoRendimiento({
   notasBajas,
   loading,
+  error = "",
   cursoFiltroNombre,
   materiaFiltroNombre,
   onVerRanking,
@@ -46,6 +47,10 @@ function TarjetaBajoRendimiento({
               </div>
             ))}
           </div>
+        ) : error ? (
+          <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+            {error}
+          </p>
         ) : (
           <p className="text-gray-600">No hay estudiantes con bajo rendimiento</p>
         )}

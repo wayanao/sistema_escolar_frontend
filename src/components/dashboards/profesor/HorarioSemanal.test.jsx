@@ -92,6 +92,19 @@ describe("HorarioSemanal", () => {
         ).not.toBeInTheDocument();
     });
 
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(
+            <HorarioSemanal
+                {...propiedades([], { errorClases: "No se pudieron cargar tus clases." })}
+            />,
+        );
+
+        expect(screen.getByText("No se pudieron cargar tus clases.")).toBeInTheDocument();
+        expect(
+            screen.queryByText("No tienes clases con horario asignado todavía."),
+        ).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío sin clases con horario", () => {
         render(<HorarioSemanal {...propiedades([])} />);
 

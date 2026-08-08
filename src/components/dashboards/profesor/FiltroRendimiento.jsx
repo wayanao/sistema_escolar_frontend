@@ -4,6 +4,7 @@ import { MATERIA_TODAS } from "../../../utils/dashboards/profesor";
 // «todas»; esa regla vive en el hook.
 function FiltroRendimiento({
   loadingClases,
+  errorClases = "",
   cursosProfesor,
   cursoFiltro,
   onCambiarCurso,
@@ -32,7 +33,11 @@ function FiltroRendimiento({
           >
             {loadingClases && <option value="">Cargando cursos...</option>}
             {!loadingClases && cursosProfesor.length > 0 && <option value="" disabled>Selecciona un curso</option>}
-            {!loadingClases && cursosProfesor.length === 0 && <option value="">Sin cursos asignados</option>}
+            {!loadingClases && cursosProfesor.length === 0 && (
+              <option value="">
+                {errorClases ? "No se pudieron cargar los cursos" : "Sin cursos asignados"}
+              </option>
+            )}
             {cursosProfesor.map((curso) => (
               <option key={curso.id} value={curso.id}>
                 {curso.nombre} - {curso.jornada}

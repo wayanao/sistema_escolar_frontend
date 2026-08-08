@@ -3,7 +3,12 @@ import {
     obtenerCumpleanosAdmin,
     obtenerResumenCarteraParaDashboard,
 } from "../../services/dashboardsApi";
-import { ROL_ADMIN, esAdmin, primerNombreAdmin } from "../../utils/dashboards/admin";
+import {
+    MENSAJE_ERROR_CARTERA,
+    ROL_ADMIN,
+    esAdmin,
+    primerNombreAdmin,
+} from "../../utils/dashboards/admin";
 import {
     DIAS_RANGO_CUMPLEANOS,
     MENSAJE_ERROR_CUMPLEANOS,
@@ -17,6 +22,7 @@ const useDashboardAdmin = () => {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     const usuarioRol = usuario?.rol;
     const [resumenCartera, setResumenCartera] = useState(null);
+    const [errorCartera, setErrorCartera] = useState("");
     const [cumpleanos, setCumpleanos] = useState([]);
     const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
     const [errorCumpleanos, setErrorCumpleanos] = useState("");
@@ -25,7 +31,10 @@ const useDashboardAdmin = () => {
         if (!esAdmin(usuario)) return;
         obtenerResumenCarteraParaDashboard()
             .then((resumen) => setResumenCartera(resumen))
-            .catch((err) => console.error("Error cargando resumen cartera:", err));
+            .catch((err) => {
+                console.error("Error cargando resumen cartera:", err);
+                setErrorCartera(MENSAJE_ERROR_CARTERA);
+            });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -59,6 +68,7 @@ const useDashboardAdmin = () => {
         esAdministrador: esAdmin(usuario),
         nombreAdmin: primerNombreAdmin(usuario?.nombre),
         resumenCartera,
+        errorCartera,
         cumpleanos,
         loadingCumpleanos,
         errorCumpleanos,

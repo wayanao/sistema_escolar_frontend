@@ -1,5 +1,46 @@
 # Cambios Frontend
 
+## 2026-08-08 - Los dashboards distinguen el fallo de red del dato en cero
+
+Corrección del defecto más grave que la modularización del módulo 12 dejó
+registrado. Hasta ahora, cuando una consulta fallaba, el error solo llegaba a
+`console.error` y la pantalla pintaba el mismo estado vacío que cuando el
+backend respondía correctamente con cero resultados. Un administrador podía leer
+`Cartera al día` con el backend caído, y un profesor podía creer que había
+perdido sus asignaciones.
+
+Ocurría en cinco sitios, ahora los cinco publican su error:
+
+- `useClasesProfesor` → `errorClases`. Era el peor porque encadenaba: sin clases
+  no hay cursos, y sin cursos el rendimiento ni siquiera consultaba, así que un
+  solo fallo apagaba tres secciones del panel del profesor.
+- `useDashboardAdmin` → `errorCartera`.
+- `useInasistenciasProfesor` → `errorInasistencias`.
+- `useRendimientoProfesor` → `errorRendimiento`.
+- `useRankingProfesor` → `error`.
+
+Cambios visibles:
+
+- La tarjeta de cartera gana un tercer estado: fondo gris pizarra, icono `⛔`,
+  `Sin datos` y el motivo. Ya no puede leerse `Cartera al día` tras un fallo.
+- Las tres tarjetas del profesor y el horario semanal pintan un aviso rojo en
+  lugar de su texto de estado vacío.
+- Las dos tablas de ranking sustituyen el emoji de celebración por `⛔` y el
+  motivo del fallo.
+- El selector de clases muestra `No se pudieron cargar las clases` y el de cursos
+  `No se pudieron cargar los cursos`, en vez de `Sin clases asignadas` y
+  `Sin cursos asignados`.
+
+Los mensajes siguen el patrón que el módulo ya usaba y viven como constantes en
+`utils/dashboards/`. Cada carga limpia el error anterior antes de reintentar.
+
+Cuatro caracterizaciones de la capa 0 se actualizaron **a propósito**: fijaban el
+comportamiento silencioso y eran exactamente la red que debía avisar de este
+cambio. Se añadieron 11 pruebas nuevas entre hooks y componentes.
+
+Verificación: 35 archivos y 339 pruebas específicas; `pnpm run check:deploy`
+correcto con 244 archivos y 1222 pruebas.
+
 ## 2026-08-08 - Modularización de dashboards y rankings
 
 Migración arquitectónica del módulo 12 del plan de modularización. No cambia

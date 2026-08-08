@@ -100,6 +100,7 @@ describe("useRankingProfesor", () => {
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.ranking).toEqual([]);
+        expect(result.current.error).toBe("No se pudo cargar el ranking.");
     });
 
     it("cada pantalla usa su propio contrato sin conocer el servicio", async () => {

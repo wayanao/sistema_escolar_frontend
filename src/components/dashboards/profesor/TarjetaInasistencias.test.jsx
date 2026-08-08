@@ -34,4 +34,17 @@ describe("TarjetaInasistencias", () => {
 
         expect(screen.getByText("No hay datos disponibles")).toBeInTheDocument();
     });
+
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(
+            <TarjetaInasistencias
+                inasistencias={[]}
+                loading={false}
+                error="No se pudieron cargar las inasistencias."
+            />,
+        );
+
+        expect(screen.getByText("No se pudieron cargar las inasistencias.")).toBeInTheDocument();
+        expect(screen.queryByText("No hay datos disponibles")).not.toBeInTheDocument();
+    });
 });

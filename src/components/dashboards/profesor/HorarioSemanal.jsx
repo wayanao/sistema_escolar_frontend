@@ -10,6 +10,7 @@ import {
 // muestra su insignia.
 function HorarioSemanal({
   loadingClases,
+  errorClases = "",
   clasesConHorario,
   clasesPorJornada,
   horarioPorJornada,
@@ -74,6 +75,12 @@ function HorarioSemanal({
       {loadingClases ? (
         <div className="p-6 text-sm font-medium text-gray-500">
           Cargando horario asignado...
+        </div>
+      ) : errorClases ? (
+        <div className="p-6">
+          <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+            {errorClases}
+          </p>
         </div>
       ) : clasesConHorario.length === 0 ? (
         <div className="p-6 text-gray-600">

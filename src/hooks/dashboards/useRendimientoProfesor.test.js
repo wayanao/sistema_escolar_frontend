@@ -129,5 +129,18 @@ describe("useRendimientoProfesor", () => {
         await waitFor(() => expect(result.current.loadingRendimiento).toBe(false));
         expect(result.current.notasBajas).toEqual([]);
         expect(result.current.notasAltas).toEqual([]);
+        expect(result.current.errorRendimiento).toBe("No se pudo cargar el rendimiento del curso.");
+    });
+
+    it("limpia el error al volver a consultar con éxito", async () => {
+        serviceMock.obtenerNotasBajasProfesor.mockRejectedValueOnce(new Error("500"));
+
+        const { result } = renderHook(() => useRendimientoProfesor(7, clasesUnicas, cursos));
+        await waitFor(() => expect(result.current.errorRendimiento).toBeTruthy());
+
+        act(() => result.current.cambiarCurso("200"));
+
+        await waitFor(() => expect(result.current.errorRendimiento).toBe(""));
+        expect(result.current.notasBajas).toEqual(notasBajas);
     });
 });

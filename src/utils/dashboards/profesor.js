@@ -26,6 +26,14 @@ export const PARAMETROS_PLANEACIONES_RECIENTES = {
 export const MENSAJE_ERROR_PLANEACIONES_RECIENTES =
     "No se pudieron cargar las planeaciones recientes.";
 
+export const MENSAJE_ERROR_CLASES = "No se pudieron cargar tus clases.";
+
+export const MENSAJE_ERROR_INASISTENCIAS = "No se pudieron cargar las inasistencias.";
+
+export const MENSAJE_ERROR_RENDIMIENTO = "No se pudo cargar el rendimiento del curso.";
+
+export const MENSAJE_ERROR_RANKING = "No se pudo cargar el ranking.";
+
 export const MENSAJE_RANKING_SIN_CLASE =
     "Por favor, selecciona un salón (materia) primero para ver el ranking.";
 

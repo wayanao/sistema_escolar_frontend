@@ -132,7 +132,12 @@ describe("AdminDashboard", () => {
         render(<AdminDashboard />);
 
         expect(await screen.findByText("Ana Arias")).toBeInTheDocument();
-        expect(screen.getByText("Cartera al día")).toBeInTheDocument();
+        // El fallo se distingue de una cartera sana: nunca dice «Cartera al día».
+        expect(
+            await screen.findByText("No se pudo cargar la cartera vencida."),
+        ).toBeInTheDocument();
+        expect(screen.getByText("Sin datos")).toBeInTheDocument();
+        expect(screen.queryByText("Cartera al día")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Abrir Gestión de Pagos" })).toBeInTheDocument();
     });
 

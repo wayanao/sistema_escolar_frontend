@@ -5,7 +5,10 @@ import {
     obtenerRankingMejorRendimiento,
 } from "../../services/dashboardsApi";
 import { obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
-import { MENSAJE_RANKING_SIN_ASIGNACION } from "../../utils/dashboards/profesor";
+import {
+    MENSAJE_ERROR_RANKING,
+    MENSAJE_RANKING_SIN_ASIGNACION,
+} from "../../utils/dashboards/profesor";
 
 // Las dos páginas de ranking comparten guardián, origen del contexto, estado de
 // carga y manejo del error; solo cambia la consulta. `consultarRanking` debe ser
@@ -13,6 +16,7 @@ import { MENSAJE_RANKING_SIN_ASIGNACION } from "../../utils/dashboards/profesor"
 const useRankingProfesor = (consultarRanking) => {
     const [ranking, setRanking] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
     // Se leen una sola vez, en el render, igual que antes de la migración.
@@ -35,10 +39,13 @@ const useRankingProfesor = (consultarRanking) => {
 
         const cargarRanking = async () => {
             setLoading(true);
+            setError("");
             try {
                 setRanking(await consultarRanking(asignacionId, periodo));
-            } catch (error) {
-                console.error("Error cargando el ranking", error);
+            } catch (err) {
+                console.error("Error cargando el ranking", err);
+                setRanking([]);
+                setError(MENSAJE_ERROR_RANKING);
             } finally {
                 setLoading(false);
             }
@@ -47,7 +54,7 @@ const useRankingProfesor = (consultarRanking) => {
         cargarRanking();
     }, [asignacionId, consultarRanking, navigate, periodo, profesorStorage]);
 
-    return { ranking, loading, periodo };
+    return { ranking, loading, error, periodo };
 };
 
 // Cada pantalla usa el suyo, así que las páginas no necesitan conocer el

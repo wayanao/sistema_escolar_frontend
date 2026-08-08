@@ -95,6 +95,7 @@ describe("useClasesProfesor", () => {
         expect(result.current.cursosProfesor).toEqual([]);
         expect(result.current.clasesConHorario).toEqual([]);
         expect(result.current.hayDosJornadas).toBe(false);
+        expect(result.current.errorClases).toBe("No se pudieron cargar tus clases.");
         expect(descartar).not.toHaveBeenCalled();
     });
 });

@@ -1,22 +1,28 @@
 import { useCallback, useEffect, useState } from "react";
 import { obtenerInasistenciasProfesor } from "../../services/dashboardsApi";
-import { normalizarInasistencias } from "../../utils/dashboards/profesor";
+import {
+    MENSAJE_ERROR_INASISTENCIAS,
+    normalizarInasistencias,
+} from "../../utils/dashboards/profesor";
 
-// Sección independiente. El error solo llega a la consola: la tarjeta muestra
-// el mismo estado vacío que cuando de verdad no hay datos. Es comportamiento
-// vigente y está registrado como defecto preexistente en el documento.
+// Sección independiente. Publica su error como estado para que un fallo de red
+// no se confunda con la ausencia de inasistencias.
 const useInasistenciasProfesor = (profesorId) => {
     const [inasistencias, setInasistencias] = useState([]);
     const [loadingInasistencias, setLoadingInasistencias] = useState(true);
+    const [errorInasistencias, setErrorInasistencias] = useState("");
 
     const cargarInasistencias = useCallback(async () => {
         if (!profesorId) return;
         setLoadingInasistencias(true);
+        setErrorInasistencias("");
         try {
             const data = await obtenerInasistenciasProfesor(profesorId);
             setInasistencias(normalizarInasistencias(data));
         } catch (error) {
             console.error("Error cargando inasistencias", error);
+            setInasistencias([]);
+            setErrorInasistencias(MENSAJE_ERROR_INASISTENCIAS);
         } finally {
             setLoadingInasistencias(false);
         }
@@ -26,7 +32,7 @@ const useInasistenciasProfesor = (profesorId) => {
         cargarInasistencias();
     }, [cargarInasistencias]);
 
-    return { inasistencias, loadingInasistencias };
+    return { inasistencias, loadingInasistencias, errorInasistencias };
 };
 
 export default useInasistenciasProfesor;

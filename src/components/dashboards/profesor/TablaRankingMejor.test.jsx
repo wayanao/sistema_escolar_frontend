@@ -30,6 +30,15 @@ describe("TablaRankingMejor", () => {
         expect(screen.getAllByText("Excelente")).toHaveLength(4);
     });
 
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(<TablaRankingMejor ranking={[]} error="No se pudo cargar el ranking." />);
+
+        expect(screen.getByText("No se pudo cargar el ranking.")).toBeInTheDocument();
+        expect(screen.getByText("⛔")).toBeInTheDocument();
+        expect(screen.queryByText(/No hay estudiantes con promedio/)).not.toBeInTheDocument();
+        expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío sin tabla", () => {
         render(<TablaRankingMejor ranking={[]} />);
 

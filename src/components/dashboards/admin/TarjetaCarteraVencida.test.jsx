@@ -37,6 +37,35 @@ describe("TarjetaCarteraVencida", () => {
         expect(screen.getByText("Cartera al día")).toBeInTheDocument();
     });
 
+    it("muestra el fallo de carga con su propia paleta, sin decir Cartera al día", () => {
+        render(
+            <TarjetaCarteraVencida
+                resumen={null}
+                error="No se pudo cargar la cartera vencida."
+                onAbrir={vi.fn()}
+            />,
+        );
+
+        expect(screen.getByText("Sin datos")).toBeInTheDocument();
+        expect(screen.getByText("No se pudo cargar la cartera vencida.")).toBeInTheDocument();
+        expect(screen.getByText("⛔")).toBeInTheDocument();
+        expect(screen.queryByText("Cartera al día")).not.toBeInTheDocument();
+        expect(screen.queryByText("✅")).not.toBeInTheDocument();
+    });
+
+    it("el error gana sobre un resumen con mora", () => {
+        render(
+            <TarjetaCarteraVencida
+                resumen={resumenConMora}
+                error="No se pudo cargar la cartera vencida."
+                onAbrir={vi.fn()}
+            />,
+        );
+
+        expect(screen.getByText("Sin datos")).toBeInTheDocument();
+        expect(screen.queryByText("3 en mora")).not.toBeInTheDocument();
+    });
+
     it("informa la apertura con clic, Enter y espacio, e ignora otras teclas", () => {
         const onAbrir = vi.fn();
         render(<TarjetaCarteraVencida resumen={resumenConMora} onAbrir={onAbrir} />);

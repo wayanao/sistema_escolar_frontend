@@ -4,7 +4,7 @@ import { useRankingBajoRendimiento } from "../hooks/dashboards/useRankingProfeso
 
 function RankingBajoRendimiento() {
   const navigate = useNavigate();
-  const { ranking, loading, periodo } = useRankingBajoRendimiento();
+  const { ranking, loading, error, periodo } = useRankingBajoRendimiento();
 
   if (loading) {
     return (
@@ -33,7 +33,7 @@ function RankingBajoRendimiento() {
         </button>
       </div>
 
-      <TablaRankingBajo ranking={ranking} />
+      <TablaRankingBajo ranking={ranking} error={error} />
     </div>
   );
 }

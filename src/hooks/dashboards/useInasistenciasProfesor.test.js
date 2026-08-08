@@ -50,5 +50,8 @@ describe("useInasistenciasProfesor", () => {
 
         await waitFor(() => expect(result.current.loadingInasistencias).toBe(false));
         expect(result.current.inasistencias).toEqual([]);
+        expect(result.current.errorInasistencias).toBe(
+            "No se pudieron cargar las inasistencias.",
+        );
     });
 });

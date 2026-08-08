@@ -5,10 +5,15 @@ import {
 
 // Hermano de TablaRankingBajo: comparte estructura pero no colores, columna de
 // puesto, insignia ni estado vacío.
-function TablaRankingMejor({ ranking }) {
+function TablaRankingMejor({ ranking, error = "" }) {
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      {ranking.length > 0 ? (
+      {error ? (
+        <div className="p-8 text-center">
+          <span className="text-4xl mb-3 block">⛔</span>
+          <p className="text-lg font-semibold text-red-700">{error}</p>
+        </div>
+      ) : ranking.length > 0 ? (
         <table className="w-full text-left text-sm text-gray-700">
           <thead className="bg-gray-100 text-gray-700 uppercase">
             <tr>

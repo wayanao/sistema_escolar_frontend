@@ -6,6 +6,8 @@ export const ROL_ADMIN = "admin";
 
 export const RUTA_CARTERA_VENCIDA = "/admin/cartera-vencida";
 
+export const MENSAJE_ERROR_CARTERA = "No se pudo cargar la cartera vencida.";
+
 export const ACCESOS_ADMIN = [
     {
         title: "Gestión de Pagos",

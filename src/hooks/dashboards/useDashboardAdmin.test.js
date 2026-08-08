@@ -83,6 +83,7 @@ describe("useDashboardAdmin", () => {
 
         await waitFor(() => expect(result.current.cumpleanos).toEqual(cumpleanos));
         expect(result.current.resumenCartera).toBeNull();
+        expect(result.current.errorCartera).toBe("No se pudo cargar la cartera vencida.");
         expect(result.current.errorCumpleanos).toBe("");
     });
 

@@ -5,10 +5,10 @@ import {
   textoResumenMora,
 } from "../../../utils/dashboards/admin";
 
-// Un fallo de la consulta deja el resumen en nulo y la tarjeta muestra
-// «Cartera al día», igual que cuando de verdad no hay mora. Es comportamiento
-// vigente y está registrado como defecto preexistente en el documento.
-function TarjetaCarteraVencida({ resumen, onAbrir }) {
+// Tres estados excluyentes: error de carga, mora y cartera al día. El error se
+// pinta con su propia paleta para que un fallo de red no se lea como una
+// cartera sana.
+function TarjetaCarteraVencida({ resumen, error = "", onAbrir }) {
   const hayMora = hayMoraEnCartera(resumen);
 
   const manejarTecla = (event) => {
@@ -26,9 +26,11 @@ function TarjetaCarteraVencida({ resumen, onAbrir }) {
       onClick={onAbrir}
       onKeyDown={manejarTecla}
       className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer mb-6 transition-transform hover:scale-[1.01] focus-visible:ring-4 focus-visible:ring-rose-200 outline-none ${
-        hayMora
-          ? "bg-gradient-to-r from-rose-600 via-red-600 to-orange-600"
-          : "bg-gradient-to-r from-emerald-600 to-teal-600"
+        error
+          ? "bg-gradient-to-r from-slate-600 to-slate-700"
+          : hayMora
+            ? "bg-gradient-to-r from-rose-600 via-red-600 to-orange-600"
+            : "bg-gradient-to-r from-emerald-600 to-teal-600"
       }`}
     >
       <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10" />
@@ -36,22 +38,30 @@ function TarjetaCarteraVencida({ resumen, onAbrir }) {
       <div className="relative p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
         <div className="flex items-center gap-4">
           <div className="bg-white/20 rounded-xl w-14 h-14 flex items-center justify-center text-3xl">
-            {hayMora ? "⚠️" : "✅"}
+            {error ? "⛔" : hayMora ? "⚠️" : "✅"}
           </div>
           <div>
             <p className="text-xs uppercase tracking-wider font-semibold opacity-90">
               Cartera vencida
             </p>
             <h3 className="text-xl sm:text-2xl font-bold">
-              {hayMora ? formatearMoneda(resumen.total_deuda) : "Cartera al día"}
+              {error
+                ? "Sin datos"
+                : hayMora
+                  ? formatearMoneda(resumen.total_deuda)
+                  : "Cartera al día"}
             </h3>
             <p className="text-sm opacity-90 mt-1">
-              {hayMora ? textoResumenMora(resumen) : "No hay estudiantes en mora actualmente."}
+              {error
+                ? error
+                : hayMora
+                  ? textoResumenMora(resumen)
+                  : "No hay estudiantes en mora actualmente."}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {hayMora && (
+          {!error && hayMora && (
             <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
               {resumen.total_estudiantes} en mora
             </span>

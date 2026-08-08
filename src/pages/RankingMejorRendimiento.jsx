@@ -4,7 +4,7 @@ import { useRankingMejorRendimiento } from "../hooks/dashboards/useRankingProfes
 
 function RankingMejorRendimiento() {
   const navigate = useNavigate();
-  const { ranking, loading, periodo } = useRankingMejorRendimiento();
+  const { ranking, loading, error, periodo } = useRankingMejorRendimiento();
 
   if (loading) {
     return (
@@ -33,7 +33,7 @@ function RankingMejorRendimiento() {
         </button>
       </div>
 
-      <TablaRankingMejor ranking={ranking} />
+      <TablaRankingMejor ranking={ranking} error={error} />
     </div>
   );
 }

@@ -10,6 +10,7 @@ function ContextoTrabajoProfesor({
   asignacionId,
   onCambiarAsignacion,
   loadingClases,
+  errorClases = "",
   clasesUnicas,
   claseSeleccionada,
   planeacionesRecientes,
@@ -53,9 +54,11 @@ function ContextoTrabajoProfesor({
               <option value="">
                 {loadingClases
                   ? "Cargando clases..."
-                  : clasesUnicas.length > 0
-                    ? "Vista general de clases"
-                    : "Sin clases asignadas"}
+                  : errorClases
+                    ? "No se pudieron cargar las clases"
+                    : clasesUnicas.length > 0
+                      ? "Vista general de clases"
+                      : "Sin clases asignadas"}
               </option>
               {clasesUnicas.map((clase) => {
                 const jornada = obtenerJornadaClase(clase);

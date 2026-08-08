@@ -433,11 +433,11 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
   usó: un rango de cumpleaños distinto de siete días, el parámetro `fecha` y el
   `limit` de hasta cincuenta de las planeaciones, ni las consultas de
   rendimiento sin `curso_id`.
-- Un fallo de red en las clases del profesor, la cartera, las inasistencias, el
-  rendimiento o los rankings se muestra igual que un dato en cero. El de
-  `/mis-clases/:id` encadena: sin clases no hay cursos y sin cursos el
-  rendimiento ni siquiera consulta. Es comportamiento previo a la migración,
-  está fijado por pruebas y se atiende en un commit aparte.
+- Cada sección distingue el fallo de red del dato en cero: los hooks de clases,
+  cartera, inasistencias, rendimiento, cumpleaños, planeaciones, rankings y
+  tenants publican su error como estado y sus componentes lo pintan con paleta
+  propia. Ninguna pantalla del módulo muestra un estado vacío cuando en realidad
+  la consulta falló.
 - No quedan llamadas HTTP, payloads ni bloques visuales extensos en las cinco
   páginas, ni implementaciones visuales paralelas.
 

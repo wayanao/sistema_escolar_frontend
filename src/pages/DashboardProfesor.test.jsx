@@ -289,7 +289,9 @@ describe("DashboardProfesor", () => {
         expect(
             await screen.findByText("No se pudieron cargar los cumpleaños de la semana."),
         ).toBeInTheDocument();
-        expect(screen.getByText("No hay datos disponibles")).toBeInTheDocument();
+        // El fallo de inasistencias se distingue de la ausencia de datos.
+        expect(screen.getByText("No se pudieron cargar las inasistencias.")).toBeInTheDocument();
+        expect(screen.queryByText("No hay datos disponibles")).not.toBeInTheDocument();
         expect(await screen.findByText("2.35")).toBeInTheDocument();
     });
 

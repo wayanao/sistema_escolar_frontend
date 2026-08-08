@@ -31,6 +31,7 @@ function DashboardProfesor() {
 
   const {
     loadingClases,
+    errorClases,
     clasesUnicas,
     claseSeleccionada,
     cursosProfesor,
@@ -43,7 +44,8 @@ function DashboardProfesor() {
     jornadasVisibles,
   } = useClasesProfesor(profesorId, asignacionId, descartarAsignacionInvalida);
 
-  const { inasistencias, loadingInasistencias } = useInasistenciasProfesor(profesorId);
+  const { inasistencias, loadingInasistencias, errorInasistencias } =
+    useInasistenciasProfesor(profesorId);
 
   const { cumpleanos, loadingCumpleanos, errorCumpleanos, diasRangoCumpleanos } =
     useCumpleanosProfesor(profesorId);
@@ -57,6 +59,7 @@ function DashboardProfesor() {
     notasBajas,
     notasAltas,
     loadingRendimiento,
+    errorRendimiento,
     cambiarCurso,
     setMateriaFiltro,
   } = useRendimientoProfesor(profesorId, clasesUnicas, cursosProfesor);
@@ -97,6 +100,7 @@ function DashboardProfesor() {
         asignacionId={asignacionId}
         onCambiarAsignacion={cambiarAsignacion}
         loadingClases={loadingClases}
+        errorClases={errorClases}
         clasesUnicas={clasesUnicas}
         claseSeleccionada={claseSeleccionada}
         planeacionesRecientes={planeacionesRecientes}
@@ -120,6 +124,7 @@ function DashboardProfesor() {
 
       <HorarioSemanal
         loadingClases={loadingClases}
+        errorClases={errorClases}
         clasesConHorario={clasesConHorario}
         clasesPorJornada={clasesPorJornada}
         horarioPorJornada={horarioPorJornada}
@@ -131,6 +136,7 @@ function DashboardProfesor() {
 
       <FiltroRendimiento
         loadingClases={loadingClases}
+        errorClases={errorClases}
         cursosProfesor={cursosProfesor}
         cursoFiltro={cursoFiltro}
         onCambiarCurso={cambiarCurso}
@@ -143,11 +149,13 @@ function DashboardProfesor() {
         <TarjetaInasistencias
           inasistencias={inasistencias}
           loading={loadingInasistencias}
+          error={errorInasistencias}
         />
 
         <TarjetaBajoRendimiento
           notasBajas={notasBajas}
           loading={loadingRendimiento}
+          error={errorRendimiento}
           cursoFiltroNombre={cursoFiltroNombre}
           materiaFiltroNombre={materiaFiltroNombre}
           onVerRanking={() => irARanking(RUTA_RANKING_BAJO)}
@@ -156,6 +164,7 @@ function DashboardProfesor() {
         <TarjetaMejorRendimiento
           notasAltas={notasAltas}
           loading={loadingRendimiento}
+          error={errorRendimiento}
           cursoFiltroNombre={cursoFiltroNombre}
           materiaFiltroNombre={materiaFiltroNombre}
           onVerRanking={() => irARanking(RUTA_RANKING_MEJOR)}

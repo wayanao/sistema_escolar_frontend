@@ -59,6 +59,24 @@ describe("ContextoTrabajoProfesor", () => {
         expect(screen.getByRole("option", { name: "Sin clases asignadas" })).toBeInTheDocument();
     });
 
+    it("distingue el fallo de carga de la ausencia de clases", () => {
+        render(
+            <ContextoTrabajoProfesor
+                {...propiedades({
+                    clasesUnicas: [],
+                    errorClases: "No se pudieron cargar tus clases.",
+                })}
+            />,
+        );
+
+        expect(
+            screen.getByRole("option", { name: "No se pudieron cargar las clases" }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("option", { name: "Sin clases asignadas" }),
+        ).not.toBeInTheDocument();
+    });
+
     it("informa los tres cambios del contexto de trabajo", () => {
         const onCambiarAsignacion = vi.fn();
         const onCambiarPeriodo = vi.fn();

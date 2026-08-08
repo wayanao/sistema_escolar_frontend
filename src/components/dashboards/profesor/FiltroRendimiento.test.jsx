@@ -63,6 +63,26 @@ describe("FiltroRendimiento", () => {
         expect(screen.getByRole("option", { name: "Cargando cursos..." })).toBeInTheDocument();
     });
 
+    it("distingue el fallo de carga de la ausencia de cursos", () => {
+        render(
+            <FiltroRendimiento
+                {...propiedades({
+                    cursosProfesor: [],
+                    cursoFiltro: "",
+                    materiasDelCurso: [],
+                    errorClases: "No se pudieron cargar tus clases.",
+                })}
+            />,
+        );
+
+        expect(
+            screen.getByRole("option", { name: "No se pudieron cargar los cursos" }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("option", { name: "Sin cursos asignados" }),
+        ).not.toBeInTheDocument();
+    });
+
     it("avisa cuando el profesor no tiene cursos y bloquea la materia", () => {
         render(
             <FiltroRendimiento

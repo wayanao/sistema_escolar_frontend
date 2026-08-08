@@ -1,7 +1,6 @@
-// Un fallo de la consulta muestra el mismo «No hay datos disponibles» que una
-// respuesta vacía. Es comportamiento vigente y está registrado como defecto
-// preexistente en el documento del módulo.
-function TarjetaInasistencias({ inasistencias, loading }) {
+// El error se pinta distinto del estado vacío: «no hay inasistencias» y «no se
+// pudieron cargar» son dos cosas diferentes.
+function TarjetaInasistencias({ inasistencias, loading, error = "" }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
       <div className="p-6">
@@ -35,6 +34,10 @@ function TarjetaInasistencias({ inasistencias, loading }) {
               </div>
             ))}
           </div>
+        ) : error ? (
+          <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+            {error}
+          </p>
         ) : (
           <p className="text-gray-600">No hay datos disponibles</p>
         )}

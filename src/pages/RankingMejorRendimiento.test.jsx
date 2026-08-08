@@ -116,17 +116,18 @@ describe("RankingMejorRendimiento", () => {
         expect(screen.queryByRole("table")).not.toBeInTheDocument();
     });
 
-    it("deja el estado vacío cuando la consulta falla", async () => {
+    it("avisa del fallo en vez de mostrar el estado vacío", async () => {
         iniciarSesionProfesor();
         apiMock.get.mockRejectedValue(new Error("500"));
 
         render(<RankingMejorRendimiento />);
 
+        expect(await screen.findByText("No se pudo cargar el ranking.")).toBeInTheDocument();
         expect(
-            await screen.findByText(
+            screen.queryByText(
                 "No hay estudiantes con promedio entre 3.0 y 5.0 en esta clase para el periodo seleccionado.",
             ),
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
     });
 
     it("vuelve al dashboard desde el botón del encabezado", async () => {

@@ -49,6 +49,24 @@ describe("TarjetaBajoRendimiento", () => {
         expect(screen.queryByText("2.35")).not.toBeInTheDocument();
     });
 
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(
+            <TarjetaBajoRendimiento
+                {...propiedades({
+                    notasBajas: [],
+                    error: "No se pudo cargar el rendimiento del curso.",
+                })}
+            />,
+        );
+
+        expect(
+            screen.getByText("No se pudo cargar el rendimiento del curso."),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText("No hay estudiantes con bajo rendimiento"),
+        ).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío y conserva el acceso al ranking", () => {
         const onVerRanking = vi.fn();
         render(<TarjetaBajoRendimiento {...propiedades({ notasBajas: [], onVerRanking })} />);

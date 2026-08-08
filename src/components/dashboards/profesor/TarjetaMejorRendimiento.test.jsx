@@ -39,6 +39,24 @@ describe("TarjetaMejorRendimiento", () => {
         expect(screen.queryByText("4.88")).not.toBeInTheDocument();
     });
 
+    it("distingue el fallo de carga del estado vacío", () => {
+        render(
+            <TarjetaMejorRendimiento
+                {...propiedades({
+                    notasAltas: [],
+                    error: "No se pudo cargar el rendimiento del curso.",
+                })}
+            />,
+        );
+
+        expect(
+            screen.getByText("No se pudo cargar el rendimiento del curso."),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText("No hay estudiantes con notas altas aún"),
+        ).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío y conserva el acceso al ranking", () => {
         const onVerRanking = vi.fn();
         render(<TarjetaMejorRendimiento {...propiedades({ notasAltas: [], onVerRanking })} />);
