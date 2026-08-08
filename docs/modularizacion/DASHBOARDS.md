@@ -2,13 +2,29 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 12.
 - Riesgo inicial: Medio/alto.
 - Flujo Git: `main` directo.
 - Commit base: `a80cca4a9b2c1865147ec4a9e328aa2009fb7826`.
-- Commit final: Pendiente.
-- Última actualización: 2026-08-08 (capa 7, cierre).
+- Commit final: `8195b29` — `refactor(dashboards): modularizar dashboards y rankings`.
+- Última actualización: 2026-08-08 (cierre del listado de defectos).
+
+### Commits posteriores a la migración
+
+Los defectos preexistentes que la migración conservó a propósito se atendieron
+después, uno por commit, para que cada corrección sea reversible por separado:
+
+| Commit | Defecto |
+|---|---|
+| `9d15b0c` | 1 — distinguir el fallo de red del dato en cero |
+| `f5247fb` | 4 — descartar las respuestas superadas de las consultas |
+| `651a049` | 7 — usar SweetAlert en los avisos del profesor |
+| `a9189f0` | 2 y 3 — redirigir con el router en vez de recargar |
+| `dd67002` | 5 — quitar la supresión de dependencias del efecto de cartera |
+
+Los defectos 6 y 8 se aceptaron sin corregir, con su razón registrada al final
+de este documento.
 
 ## Objetivo
 
@@ -1240,9 +1256,10 @@ extraer nada.
   catorce componentes presentacionales, once hooks, `dashboardsApi.js` y cuatro
   utilidades de dominio. Se eliminó `src/pages/DashboardAdmin.jsx` y se renombró
   `src/components/dashboard/` a `src/components/dashboards/`.
-- Riesgos abiertos: ninguno dentro del alcance. De los ocho defectos
-  preexistentes que la migración conservó a propósito, **el primero ya está
-  corregido** en un commit posterior; los otros siete siguen pendientes:
+- Riesgos abiertos: ninguno. De los ocho defectos preexistentes que la migración
+  conservó a propósito, **seis se corrigieron** en commits posteriores y **dos se
+  aceptaron de forma explícita**, con su razón registrada abajo. El listado queda
+  cerrado:
   1. ~~Un fallo de red se ve igual que un dato en cero.~~ **CORREGIDO** en un
      commit posterior a la migración. Los cinco hooks afectados —clases, cartera,
      inasistencias, rendimiento y rankings— publican su error como estado y sus
@@ -1265,19 +1282,73 @@ extraer nada.
      hermanos dependen ahora del booleano `esAdministrador`, cuya identidad sí es
      estable, y el `eslint-disable` desapareció. Una prueba rerenderiza el hook y
      comprueba que sigue habiendo una sola petición por sección.
-  6. La caché de planeaciones recientes nunca se invalida, aunque su alcance real
-     es estrecho: crear una planeación desmonta el dashboard y al volver se
-     vuelve a consultar. La ventana de datos viejos se limita a otra pestaña,
-     otro dispositivo o un cambio del administrador. Gravedad baja.
+  6. **ACEPTADO sin corregir.** La caché de planeaciones recientes nunca se
+     invalida. Su alcance real es estrecho: crear una planeación exige navegar a
+     `/plan-de-clases`, y ese cambio de ruta desmonta `DashboardProfesor`, así
+     que al volver la caché ya no existe y se vuelve a consultar. La ventana de
+     datos viejos se limita a otra pestaña, otro dispositivo o un cambio del
+     administrador con el panel abierto. Añadir invalidación sería complejidad
+     para un caso que casi no ocurre.
   7. ~~El panel del profesor y los rankings usan `window.alert`.~~ **CORREGIDO**
      en un commit posterior a la migración. Los dos avisos son SweetAlert, como
      el resto del sistema, así que Chrome ya no puede silenciarlos.
-  8. `crearColegio` lee sus valores del DOM con `document.getElementById`, ahora
-     aislado en trece líneas dentro de su hook.
+  8. **ACEPTADO sin corregir.** `crearColegio` lee sus valores del DOM con
+     `document.getElementById`, porque el formulario lo pinta SweetAlert como
+     una cadena de HTML. Los nueve identificadores están escritos dos veces
+     —en `htmlFormularioTenant` y en `leerCamposTenant`— sin que nada obligue a
+     que coincidan. La razón de aceptarlo está detallada abajo.
 - Diferencia conocida que no es defecto: las dos `capitalizarInicial` divergen a
   propósito —la del admin conserva el resto del nombre y la del profesor lo baja
   a minúsculas—, y las tablas de ranking y las tarjetas de rendimiento son
   hermanas por diseño, no variantes de un componente común.
 - Siguiente capa pendiente: Ninguna.
+
+### Por qué se aceptó el defecto 8 sin corregirlo
+
+El alta de colegios es la operación más consecuente del sistema: crea el esquema
+`tenant_<codigo>` en la base de datos, clona las tablas de la plantilla, copia
+las plantillas de impresión, crea la cuenta del primer administrador del colegio
+y registra su suscripción. Aun así, la decisión fue no tocarla ahora.
+
+**El impacto real es mucho menor de lo que sugiere el enunciado.** Se revisó
+campo por campo, contra el backend, qué pasaría si alguien renombra un `id` en
+un archivo y no en el otro:
+
+- Nombre, código, admin nombre, admin correo y contraseña: la validación del
+  formulario los bloquea con `Completa colegio, codigo y admin inicial.`.
+- Fecha de inicio y próximo pago: bloqueadas con
+  `Completa las fechas de suscripcion.`. Además `TenantCreate` las declara
+  obligatorias y el controlador valida el formato, así que aunque se colaran el
+  backend respondería `422` y el diálogo mostraría el motivo.
+- **Días de gracia**: es el único con consecuencia silenciosa.
+  `Number(undefined || 0)` da `0`, y la validación acepta el cero, así que el
+  colegio quedaría sin período de gracia y se suspendería al primer pago
+  vencido. Se ve en la tabla (`0 dias`) justo después, pero no hay pantalla para
+  corregirlo: el único comando disponible es el cambio de estado.
+- **Notas**: se perderían en silencio. Cosmético.
+
+O sea: siete de nueve campos fallan a la vista y uno solo puede tomar un valor
+incorrecto sin avisar. Y ese riesgo ya está mitigado, porque la prueba unitaria
+de `htmlFormularioTenant` fija los nueve identificadores: un renombrado rompe la
+prueba antes de llegar a producción.
+
+**Las dos alternativas evaluadas y descartadas:**
+
+- *Generar el HTML y la lectura desde un único descriptor de campos.* Elimina la
+  duplicación de los nueve `id`, pero los campos no son uniformes —ocho `input` y
+  un `textarea`, cinco tipos distintos, un `min`, tres valores por defecto y una
+  clase de dos columnas—, así que el generador necesitaría unas seis ramas
+  condicionales. Cambia HTML plano y legible por un pequeño motor de plantillas,
+  para cerrar un riesgo que la prueba ya cubre.
+- *Sustituir SweetAlert por un modal React con campos controlados,* como los
+  otros siete modales del proyecto. Es la solución de fondo y dejaría el diálogo
+  consistente con el resto de la aplicación, pero **cambia su aspecto** y obliga
+  a reponer a mano lo que SweetAlert da hecho: trampa de foco, cierre con `Esc`,
+  clic en el fondo y accesibilidad. Eso es un rediseño, no una corrección de
+  deuda.
+
+**Cuándo reabrirlo:** el día que ese formulario cambie por una razón de producto
+—añadir un campo, modificar el flujo de alta—, hacerlo entonces como modal React.
+Así el rediseño se paga una sola vez y con una justificación funcional detrás.
 - Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
   a `origin/main`, espera el deploy y ejecuta la verificación manual.
