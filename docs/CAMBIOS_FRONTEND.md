@@ -1,5 +1,59 @@
 # Cambios Frontend
 
+## 2026-08-08 - Modularización de dashboards y rankings
+
+Migración arquitectónica del módulo 12 del plan de modularización. No cambia
+diseño, textos, rutas, comportamiento ni contratos del backend.
+
+El módulo eran siete archivos y 2188 líneas sin ninguna prueba:
+`DashboardProfesor.jsx` con 1005 líneas, `SuperAdminDashboard.jsx` con 431,
+`AdminDashboard.jsx` con 343, los dos rankings con 108 y 112,
+`CumpleanosSemana.jsx` con 118, y `DashboardAdmin.jsx` con 71 que no estaba
+enrutado.
+
+- `src/utils/dashboards/`: cuatro archivos por subdominio. Accesos, moneda,
+  saludo y regla de mora del admin; jornadas, horario, deduplicación de clases,
+  filtros, planeaciones y rankings del profesor; estados, validaciones del alta
+  y marcado de diálogos del super admin; y el cálculo de días y edad de
+  cumpleaños, compartido por dos roles. Incluye las reglas puras de clase.
+- `src/services/dashboardsApi.js`: frontera HTTP única con los catorce contratos
+  del módulo. Ninguna página importa ya `utils/api.js`.
+- `src/hooks/dashboards/`: once hooks, uno por sección independiente, más los
+  tres del super admin. Cada sección tiene su propia carga y su propio error, de
+  modo que el fallo de una no bloquea a las demás.
+- `src/components/dashboards/`: catorce componentes presentacionales separados en
+  `admin/`, `profesor/` y `superAdmin/`, con `CumpleanosSemana` en la raíz por
+  ser el único compartido entre dos roles.
+- Las cinco páginas quedaron como raíces de composición de 58, 168, 63, 41 y 41
+  líneas.
+- Se eliminó `src/pages/DashboardAdmin.jsx`, una versión anterior y duplicada del
+  panel de administración que no enrutaba `App.jsx` y que nadie importaba.
+
+Decisiones registradas:
+
+- El módulo posee su transporte de `GET /mis-clases/:id`,
+  `GET /plan-de-clases/:id` y `GET /cartera/mora/resumen` en lugar de reutilizar
+  el de planeaciones y cartera. Las llamadas Axios eran idénticas, así que
+  reutilizarlas no habría roto ninguna prueba, pero habría acoplado los
+  dashboards a servicios de otros dominios. Es el criterio que ya aplican
+  `pagosApi.js`, `carteraTiposPagoApi.js` e `inventarioVentasApi.js`.
+- No se fusionaron contratos entre roles. Admin, profesor y super admin no
+  comparten endpoints, forma de respuesta ni permisos.
+- Las dos tablas de ranking y las dos tarjetas de rendimiento quedaron como
+  componentes hermanos. Unificarlas habría exigido pasar sus siete diferencias
+  visuales por props, la mayoría cadenas de clases.
+- Las dos funciones `capitalizarInicial` no se unificaron: la del admin conserva
+  el resto del nombre y la del profesor lo baja a minúsculas. Fusionarlas
+  cambiaría un saludo visible.
+- `utils/periodoProfesor.js` no se tocó: es transversal y lo usan siete módulos.
+- Se conservan sin corregir los ocho defectos previos a la migración, fijados por
+  pruebas para que su corrección futura sea deliberada. El principal es que un
+  fallo de red se muestra igual que un dato en cero en cinco sitios: las clases
+  del profesor, la cartera, las inasistencias, el rendimiento y los rankings.
+
+Verificación: 35 archivos y 328 pruebas específicas; `pnpm run check:deploy`
+correcto.
+
 ## 2026-08-07 - Modularización de nómina, egresos y préstamos
 
 Migración arquitectónica del módulo 11 del plan de modularización. No cambia

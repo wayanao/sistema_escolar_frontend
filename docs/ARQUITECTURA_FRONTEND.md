@@ -61,6 +61,15 @@ Estado documentado del frontend `frontend-react`.
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
   flujo docente de planeaciones.
+- `src/components/dashboards/`: `CumpleanosSemana`, el único componente
+  compartido por dos roles del módulo de dashboards.
+- `src/components/dashboards/admin/`: tarjeta de cartera vencida y rejilla de
+  accesos principales del panel de administración.
+- `src/components/dashboards/profesor/`: contexto de trabajo, horario semanal
+  por jornada, filtro de rendimiento, las tres tarjetas de resultados y las dos
+  tablas de ranking.
+- `src/components/dashboards/superAdmin/`: resumen por estado y tabla de tenants
+  de la plataforma.
 - `src/constants/`: constantes compartidas entre paginas/componentes.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
@@ -86,6 +95,11 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/nominaEgresosPrestamos/`: consultas paralelas de nómina, consulta
   de egresos por rango de fechas, carga de profesores con historial de préstamos
   bajo demanda, y los tres comandos de pago, egreso y préstamo.
+- `src/hooks/dashboards/`: un hook por sección independiente —cartera y
+  cumpleaños del admin; contexto de trabajo, clases, inasistencias, cumpleaños,
+  rendimiento y planeaciones recientes del profesor; rankings; y la lista,
+  alta y cambio de estado de tenants—, de modo que el fallo de una sección no
+  bloquee a las demás.
 - `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
   cuotas vencidas, adelantos, valores personalizados y anulación.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
@@ -119,6 +133,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/services/nominaEgresosPrestamosApi.js`: frontera HTTP de empleados,
   historial y pago de nómina; egresos por rango, alta y edición; y préstamos por
   profesor, alta y saldado.
+- `src/services/dashboardsApi.js`: frontera HTTP de los catorce contratos de los
+  dashboards por rol y de los dos rankings del profesor.
 - `src/services/pagosApi.js`: frontera HTTP de catálogos, historial, deudas,
   opciones, valores personalizados, registro y anulación de pagos.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
@@ -153,6 +169,11 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/nominaEgresosPrestamos/`: cálculo del neto y contratos de nómina,
   fecha local, categorías, normalización y contratos de egresos, estados,
   contratos y totales de préstamos, y reglas puras de clase por saldo y estado.
+- `src/utils/dashboards/`: un archivo por subdominio —accesos, moneda y regla de
+  mora del admin; jornadas, horario, deduplicación de clases, filtros y rankings
+  del profesor; estados, validaciones y marcado de diálogos del super admin; y
+  el cálculo de días y edad de cumpleaños, compartido por dos roles—, con sus
+  reglas puras de clase.
 - `src/utils/pagos/`: formatos, cálculos financieros, estados iniciales,
   normalización y payloads puros del módulo de pagos.
 
@@ -373,6 +394,53 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - No quedan llamadas HTTP, payloads ni bloques visuales extensos en las tres
   páginas, ni implementaciones visuales paralelas.
 
+## Dashboards y rankings
+
+- `/` monta `pages/DashboardProfesor.jsx` bajo `ProtectedRoute` y conserva el
+  contexto de trabajo del profesor —clase, período y fecha—, el horario semanal
+  por jornada, el filtro de rendimiento por curso y materia, y las tarjetas de
+  inasistencias, bajo rendimiento y mejores estudiantes.
+- `/dashboard-admin` monta `pages/AdminDashboard.jsx` bajo `AdminRoute` y
+  conserva la tarjeta de cartera vencida, los cuatro accesos principales y los
+  cumpleaños de la semana.
+- `/ranking-rendimiento` y `/ranking-mejor-rendimiento` montan las dos pantallas
+  de ranking bajo `ProtectedRoute`. Solo se alcanzan desde el panel del profesor
+  y leen su `asignacionId` y su período del almacenamiento local.
+- `/super-admin` monta `pages/SuperAdminDashboard.jsx` bajo `SuperAdminRoute`,
+  fuera del `Layout` común, con el resumen por estado, la tabla de tenants, el
+  alta de colegios y el cambio de estado con motivo y auditoría.
+- Las cinco páginas son raíces de composición de 58, 168, 63, 41 y 41 líneas.
+  Importan solo `react-router-dom`, sus componentes, sus hooks y las constantes
+  de las rutas a las que navegan.
+- `services/dashboardsApi.js` es la única frontera HTTP del módulo y concentra
+  sus catorce contratos. `GET /mis-clases/:id`, `GET /plan-de-clases/:id` y
+  `GET /cartera/mora/resumen` se consumen desde allí en modo lectura: el módulo
+  posee su transporte en lugar de reutilizar el de planeaciones y cartera, con
+  el mismo criterio que ya aplican `pagosApi.js` e `inventarioVentasApi.js`.
+- Cada sección tiene su propio hook, su propio indicador de carga y su propio
+  manejo de error, de modo que el fallo de una no bloquea a las demás. Es la
+  invariante central del módulo.
+- El panel del profesor escribe `asignacionId` y `fechaAsistencia` en el
+  almacenamiento local; son el contrato de contexto que leen asistencia,
+  planilla, boletines y planeaciones. El período viaja por
+  `utils/periodoProfesor.js`, utilidad transversal que el módulo no modifica.
+- El selector de clases deduplica por curso y materia; el horario semanal, en
+  cambio, conserva cada franja. La jornada se deduce del texto recibido y, si no
+  lo trae, de la hora de inicio con el corte en las 12:30.
+- Las planeaciones recientes se cachean por asignación durante la vida de la
+  página; una planeación creada en otra pantalla no aparece hasta recargarla.
+- El módulo no adopta las capacidades que el backend ofrece y el frontend nunca
+  usó: un rango de cumpleaños distinto de siete días, el parámetro `fecha` y el
+  `limit` de hasta cincuenta de las planeaciones, ni las consultas de
+  rendimiento sin `curso_id`.
+- Un fallo de red en las clases del profesor, la cartera, las inasistencias, el
+  rendimiento o los rankings se muestra igual que un dato en cero. El de
+  `/mis-clases/:id` encadena: sin clases no hay cursos y sin cursos el
+  rendimiento ni siquiera consulta. Es comportamiento previo a la migración,
+  está fijado por pruebas y se atiende en un commit aparte.
+- No quedan llamadas HTTP, payloads ni bloques visuales extensos en las cinco
+  páginas, ni implementaciones visuales paralelas.
+
 ## Criterios de UX responsive
 
 - Los ajustes moviles se concentran en clases responsive de Tailwind y en
@@ -574,6 +642,14 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   filtro de egresos a la fecha registrada, el rechazo del rango invertido, la
   distinción manual/automático, la ausencia de consulta inicial de préstamos y
   el saldado con su recarga.
+- Las pruebas de `src/utils/dashboards/`,
+  `src/services/dashboardsApi.test.js`, los once hooks, los catorce componentes
+  y las cinco caracterizaciones de página protegen los catorce contratos HTTP,
+  los cuatro guardianes de acceso, la independencia de cada sección ante un
+  fallo, la deduplicación del selector de clases, la agrupación del horario por
+  jornada con su filtro, la persistencia del contexto de trabajo y el descarte de
+  la clase obsoleta, la caché de planeaciones recientes, el escapado del
+  historial de auditoría y las siete validaciones del alta de colegios.
 - Las pruebas de `src/utils/pagos/`, `src/services/pagosApi.test.js`, los siete
   hooks, los seis componentes y `PagosAdmin.test.jsx` protegen formatos,
   cálculos, payloads, transporte, consultas, comandos, presentación,

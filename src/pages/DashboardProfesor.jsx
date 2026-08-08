@@ -1,550 +1,80 @@
-import { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
-import CumpleanosSemana from "../components/dashboard/CumpleanosSemana";
-import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
-
-const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-const JORNADAS = ["Mañana", "Tarde"];
-
-const JORNADA_ESTILOS = {
-  Mañana: {
-    panel: "border-sky-200",
-    header: "bg-sky-50 text-sky-900",
-    badge: "bg-sky-100 text-sky-800",
-    rango: "06:30 - 12:30",
-  },
-  Tarde: {
-    panel: "border-orange-200",
-    header: "bg-orange-50 text-orange-900",
-    badge: "bg-orange-100 text-orange-800",
-    rango: "12:30 - 18:30",
-  },
-};
-
-const JORNADA_SELECTOR_ESTILOS = {
-  Mañana: {
-    icono: "☀",
-  },
-  Tarde: {
-    icono: "◐",
-  },
-};
-
-const HORARIO_DIA_ESTILOS = {
-  Lunes: {
-    panel: "border-purple-400 bg-purple-50/20",
-    header: "bg-purple-700",
-    headerMobile: "text-purple-900",
-    card: "border-l-purple-600 hover:border-purple-300",
-    time: "text-purple-700",
-  },
-  Martes: {
-    panel: "border-emerald-400 bg-emerald-50/20",
-    header: "bg-emerald-700",
-    headerMobile: "text-emerald-900",
-    card: "border-l-emerald-600 hover:border-emerald-300",
-    time: "text-emerald-700",
-  },
-  Miércoles: {
-    panel: "border-amber-400 bg-amber-50/20",
-    header: "bg-amber-600",
-    headerMobile: "text-amber-900",
-    card: "border-l-amber-600 hover:border-amber-300",
-    time: "text-amber-700",
-  },
-  Jueves: {
-    panel: "border-rose-400 bg-rose-50/20",
-    header: "bg-rose-700",
-    headerMobile: "text-rose-900",
-    card: "border-l-rose-600 hover:border-rose-300",
-    time: "text-rose-700",
-  },
-  Viernes: {
-    panel: "border-slate-400 bg-slate-50/40",
-    header: "bg-slate-700",
-    headerMobile: "text-slate-900",
-    card: "border-l-slate-600 hover:border-slate-400",
-    time: "text-slate-700",
-  },
-};
-
-const HORARIO_DIA_ESTILO_BASE = {
-  panel: "border-gray-200 bg-gray-50",
-  header: "bg-purple-700",
-  headerMobile: "text-gray-800",
-  card: "border-l-purple-500 hover:border-purple-200",
-  time: "text-purple-700",
-};
-
-const obtenerEstiloHorarioDia = (dia) => HORARIO_DIA_ESTILOS[dia] || HORARIO_DIA_ESTILO_BASE;
-
-const obtenerOrdenDia = (dia) => {
-  const orden = DIAS_SEMANA.indexOf(dia);
-  return orden === -1 ? DIAS_SEMANA.length : orden;
-};
-
-const formatearHora12 = (hora24) => {
-  if (!hora24) return "";
-  if (hora24.toLowerCase().includes("am") || hora24.toLowerCase().includes("pm")) return hora24;
-
-  const [horaStr, minutoStr = "00"] = hora24.split(":");
-  let horaNum = parseInt(horaStr, 10);
-  const ampm = horaNum >= 12 ? "PM" : "AM";
-  horaNum = horaNum % 12 || 12;
-  return `${horaNum}:${minutoStr} ${ampm}`;
-};
-
-const ordenarPorHora = (a, b) => (a.hora_inicio || "").localeCompare(b.hora_inicio || "");
-
-const obtenerJornadaClase = (clase) => {
-  const jornada = String(clase?.jornada || "")
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (jornada.includes("manan")) return "Mañana";
-  if (jornada.includes("tarde")) return "Tarde";
-
-  const [hora = "0", minuto = "0"] = String(clase?.hora_inicio || "").split(":");
-  const minutosInicio = Number(hora) * 60 + Number(minuto);
-  return minutosInicio < 12 * 60 + 30 ? "Mañana" : "Tarde";
-};
-
-const capitalizarInicial = (valor) => {
-  const texto = String(valor || "").trim();
-  return texto ? texto.charAt(0).toLocaleUpperCase("es-CO") + texto.slice(1).toLocaleLowerCase("es-CO") : "";
-};
-
-const formatearFechaPlaneacion = (valor) => {
-  if (!valor) return "Sin fecha";
-  const fechaPlaneacion = new Date(String(valor).includes("T") ? valor : `${valor}T00:00:00`);
-  if (Number.isNaN(fechaPlaneacion.getTime())) return String(valor);
-
-  return new Intl.DateTimeFormat("es-CO", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(fechaPlaneacion);
-};
+import ContextoTrabajoProfesor from "../components/dashboards/profesor/ContextoTrabajoProfesor";
+import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
+import FiltroRendimiento from "../components/dashboards/profesor/FiltroRendimiento";
+import HorarioSemanal from "../components/dashboards/profesor/HorarioSemanal";
+import TarjetaBajoRendimiento from "../components/dashboards/profesor/TarjetaBajoRendimiento";
+import TarjetaInasistencias from "../components/dashboards/profesor/TarjetaInasistencias";
+import TarjetaMejorRendimiento from "../components/dashboards/profesor/TarjetaMejorRendimiento";
+import useClasesProfesor from "../hooks/dashboards/useClasesProfesor";
+import useContextoProfesor from "../hooks/dashboards/useContextoProfesor";
+import useCumpleanosProfesor from "../hooks/dashboards/useCumpleanosProfesor";
+import useInasistenciasProfesor from "../hooks/dashboards/useInasistenciasProfesor";
+import usePlaneacionesRecientes from "../hooks/dashboards/usePlaneacionesRecientes";
+import useRendimientoProfesor from "../hooks/dashboards/useRendimientoProfesor";
+import { RUTA_RANKING_BAJO, RUTA_RANKING_MEJOR } from "../utils/dashboards/profesor";
 
 function DashboardProfesor() {
   const navigate = useNavigate();
-  const [clases, setClases] = useState([]);
-  const [horarioAsignado, setHorarioAsignado] = useState([]);
-  const [asignacionId, setAsignacionId] = useState(localStorage.getItem("asignacionId") || "");
-  const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
-  const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
-  const [inasistencias, setInasistencias] = useState([]);
-  const [notasBajas, setNotasBajas] = useState([]);
-  const [notasAltas, setNotasAltas] = useState([]);
-  const [cursoFiltroRendimiento, setCursoFiltroRendimiento] = useState("");
-  const [materiaFiltroRendimiento, setMateriaFiltroRendimiento] = useState("todas");
-  const [loadingClases, setLoadingClases] = useState(true);
-  const [loadingInasistencias, setLoadingInasistencias] = useState(true);
-  const [loadingRendimiento, setLoadingRendimiento] = useState(false);
-  const [cumpleanos, setCumpleanos] = useState([]);
-  const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
-  const [errorCumpleanos, setErrorCumpleanos] = useState("");
-  const [filtroJornada, setFiltroJornada] = useState("Ambas");
-  const [planeacionesRecientes, setPlaneacionesRecientes] = useState([]);
-  const [loadingPlaneacionesRecientes, setLoadingPlaneacionesRecientes] = useState(false);
-  const [errorPlaneacionesRecientes, setErrorPlaneacionesRecientes] = useState("");
-  const cachePlaneacionesRecientesRef = useRef(new Map());
+  const {
+    profesorId,
+    nombreProfesor,
+    asignacionId,
+    periodo,
+    fecha,
+    cambiarAsignacion,
+    cambiarPeriodo,
+    cambiarFecha,
+    descartarAsignacionInvalida,
+    exigirClaseElegida,
+  } = useContextoProfesor();
 
-  const handleAsignacionChange = (e) => {
-    const value = e.target.value;
-    setAsignacionId(value);
-    localStorage.setItem("asignacionId", value);
-  };
+  const {
+    loadingClases,
+    clasesUnicas,
+    claseSeleccionada,
+    cursosProfesor,
+    clasesConHorario,
+    clasesPorJornada,
+    horarioPorJornada,
+    filtroJornada,
+    setFiltroJornada,
+    hayDosJornadas,
+    jornadasVisibles,
+  } = useClasesProfesor(profesorId, asignacionId, descartarAsignacionInvalida);
 
-  const handlePeriodoChange = (e) => {
-    const value = e.target.value;
-    setPeriodo(value);
-    guardarPeriodoProfesor(value);
-  };
+  const { inasistencias, loadingInasistencias } = useInasistenciasProfesor(profesorId);
 
-  const handleFechaChange = (e) => {
-    const value = e.target.value;
-    setFecha(value);
-    localStorage.setItem("fechaAsistencia", value); // Usar la misma clave que Asistencia
-  };
+  const { cumpleanos, loadingCumpleanos, errorCumpleanos, diasRangoCumpleanos } =
+    useCumpleanosProfesor(profesorId);
 
-  const profesorStorage = localStorage.getItem("profesor");
-  const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
-  const profesorId = profesor?.id;
-  const nombreProfesor = profesor ? `${profesor.nombre || ""} ${profesor.apellido || ""}`.trim() : "";
-  const primerNombreProfesor = capitalizarInicial((profesor?.nombre || nombreProfesor || "profe").trim().split(/\s+/)[0]);
-  const clasesUnicas = useMemo(() => {
-    const vistos = new Map();
-    for (const clase of clases) {
-      const cursoKey = clase.curso_id || `${(clase.curso || "").trim().toLowerCase()}|${obtenerJornadaClase(clase)}`;
-      const key = `${cursoKey}|${(clase.materia || "").trim().toLowerCase()}`;
-      if (!vistos.has(key)) {
-        vistos.set(key, clase);
-      }
-    }
-    return Array.from(vistos.values());
-  }, [clases]);
-  const claseSeleccionada = useMemo(
-    () => clasesUnicas.find((clase) => String(clase.id) === String(asignacionId)) || null,
-    [asignacionId, clasesUnicas],
-  );
-  const cursosProfesor = useMemo(() => {
-    const vistos = new Map();
-    for (const clase of clases) {
-      if (!clase.curso_id) continue;
-      const key = String(clase.curso_id);
-      if (!vistos.has(key)) {
-        vistos.set(key, { id: clase.curso_id, nombre: clase.curso, jornada: obtenerJornadaClase(clase) });
-      }
-    }
-    return Array.from(vistos.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
-  }, [clases]);
-  const cursoFiltroNombre = useMemo(() => {
-    const curso = cursosProfesor.find((item) => String(item.id) === String(cursoFiltroRendimiento));
-    return curso ? `${curso.nombre} - ${curso.jornada}` : "Curso";
-  }, [cursoFiltroRendimiento, cursosProfesor]);
-  const materiasDelCursoFiltro = useMemo(
-    () =>
-      clasesUnicas
-        .filter((clase) => String(clase.curso_id) === String(cursoFiltroRendimiento))
-        .sort((a, b) => (a.materia || "").localeCompare(b.materia || "")),
-    [clasesUnicas, cursoFiltroRendimiento]
-  );
-  const materiaFiltroNombre = useMemo(() => {
-    if (materiaFiltroRendimiento === "todas") return "Todas las materias";
-    return materiasDelCursoFiltro.find((clase) => String(clase.id) === String(materiaFiltroRendimiento))?.materia || "Materia";
-  }, [materiaFiltroRendimiento, materiasDelCursoFiltro]);
+  const {
+    cursoFiltro,
+    materiaFiltro,
+    materiasDelCurso,
+    cursoFiltroNombre,
+    materiaFiltroNombre,
+    notasBajas,
+    notasAltas,
+    loadingRendimiento,
+    cambiarCurso,
+    setMateriaFiltro,
+  } = useRendimientoProfesor(profesorId, clasesUnicas, cursosProfesor);
 
-  const clasesConHorario = useMemo(
-    () =>
-      horarioAsignado
-        .filter((clase) => clase.dia && clase.hora_inicio && clase.hora_fin)
-        .sort((a, b) => {
-          const diaA = obtenerOrdenDia(a.dia);
-          const diaB = obtenerOrdenDia(b.dia);
-          if (diaA !== diaB) return diaA - diaB;
-          return ordenarPorHora(a, b);
-        }),
-    [horarioAsignado]
-  );
-  const clasesPorJornada = useMemo(
-    () =>
-      JORNADAS.reduce((acc, jornada) => {
-        acc[jornada] = clasesConHorario.filter((clase) => obtenerJornadaClase(clase) === jornada);
-        return acc;
-      }, {}),
-    [clasesConHorario]
-  );
-  const horarioPorJornada = useMemo(
-    () =>
-      JORNADAS.reduce((acc, jornada) => {
-        acc[jornada] = DIAS_SEMANA.reduce((dias, dia) => {
-          dias[dia] = clasesPorJornada[jornada].filter((clase) => clase.dia === dia);
-          return dias;
-        }, {});
-        return acc;
-      }, {}),
-    [clasesPorJornada]
-  );
-  const tieneDosJornadas = JORNADAS.every((jornada) => clasesPorJornada[jornada].length > 0);
-  const jornadasDisponibles = JORNADAS.filter((jornada) => clasesPorJornada[jornada].length > 0);
-  const jornadasVisibles = filtroJornada === "Ambas" || !clasesPorJornada[filtroJornada]?.length
-    ? jornadasDisponibles
-    : [filtroJornada];
+  const {
+    planeacionesRecientes,
+    loadingPlaneacionesRecientes,
+    errorPlaneacionesRecientes,
+    rutaDePlaneacion,
+  } = usePlaneacionesRecientes(asignacionId, claseSeleccionada, loadingClases);
 
-  const cargarClases = useCallback(async () => {
-    if (!profesorId) return;
-    setLoadingClases(true);
-    try {
-      const res = await api.get(`/mis-clases/${profesorId}`);
-      const data = res.data || [];
-      setClases(data);
-      const idsClases = new Set(data.map((clase) => String(clase.id)));
-      const asignacionGuardada = localStorage.getItem("asignacionId") || "";
-      if (asignacionGuardada && !idsClases.has(String(asignacionGuardada))) {
-        localStorage.removeItem("asignacionId");
-        setAsignacionId("");
-      }
-      const horarioProfesor = data
-        .map((asignacion) => ({
-          id: asignacion.id,
-          horario_id: asignacion.horario_id || asignacion.id,
-          materia: asignacion.materia,
-          curso: asignacion.curso,
-          curso_id: asignacion.curso_id,
-          jornada: asignacion.jornada,
-          dia: asignacion.dia,
-          hora_inicio: asignacion.hora_inicio,
-          hora_fin: asignacion.hora_fin,
-        }));
-
-      setHorarioAsignado(horarioProfesor);
-    } catch (error) {
-      console.error("Error cargando clases", error);
-    } finally {
-      setLoadingClases(false);
-    }
-  }, [profesorId]);
-
-  const cargarInasistencias = useCallback(async () => {
-    if (!profesorId) return;
-    setLoadingInasistencias(true);
-    try {
-      const res = await api.get(`/dashboard/inasistencias/${profesorId}`);
-      const data = res.data;
-      setInasistencias(Array.isArray(data) ? data : data ? [data] : []);
-    } catch (error) {
-      console.error("Error cargando inasistencias", error);
-    } finally {
-      setLoadingInasistencias(false);
-    }
-  }, [profesorId]);
-
-  const cargarCumpleanos = useCallback(async () => {
-    if (!profesorId) return;
-
-    setLoadingCumpleanos(true);
-    setErrorCumpleanos("");
-
-    try {
-      const res = await api.get(`/dashboard/cumpleanos/profesor/${profesorId}`, {
-        params: { dias: 7 },
-      });
-      setCumpleanos(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error("Error cargando cumpleaños", error);
-      setErrorCumpleanos("No se pudieron cargar los cumpleaños de la semana.");
-    } finally {
-      setLoadingCumpleanos(false);
-    }
-  }, [profesorId]);
-
-  const cargarRendimiento = useCallback(async () => {
-    if (!profesorId) return;
-    if (!cursoFiltroRendimiento) {
-      setNotasBajas([]);
-      setNotasAltas([]);
-      return;
-    }
-    setLoadingRendimiento(true);
-    try {
-      const params = { curso_id: cursoFiltroRendimiento };
-      if (materiaFiltroRendimiento !== "todas") {
-        params.asignacion_id = materiaFiltroRendimiento;
-      }
-      const [bajasRes, altasRes] = await Promise.all([
-        api.get(`/dashboard/notas-bajas/${profesorId}`, { params }),
-        api.get(`/dashboard/notas-altas/${profesorId}`, { params }),
-      ]);
-      setNotasBajas(bajasRes.data || []);
-      setNotasAltas(altasRes.data || []);
-    } catch (error) {
-      console.error("Error cargando rendimiento", error);
-    } finally {
-      setLoadingRendimiento(false);
-    }
-  }, [cursoFiltroRendimiento, materiaFiltroRendimiento, profesorId]);
-
-  useEffect(() => {
-    if (!profesorId) {
-      window.location.href = "/login";
-      return;
-    }
-    cargarClases();
-    cargarInasistencias();
-    cargarCumpleanos();
-  }, [cargarClases, cargarCumpleanos, cargarInasistencias, profesorId]);
-
-  useEffect(() => {
-    if (!cursosProfesor.length || cursoFiltroRendimiento) return;
-    setCursoFiltroRendimiento(String(cursosProfesor[0].id));
-  }, [cursosProfesor, cursoFiltroRendimiento]);
-
-  useEffect(() => {
-    if (!profesorId) return;
-    cargarRendimiento();
-  }, [profesorId, cargarRendimiento]);
-
-  useEffect(() => {
-    let activo = true;
-
-    if (loadingClases) return () => {
-      activo = false;
-    };
-
-    if (!asignacionId || !claseSeleccionada) {
-      setPlaneacionesRecientes([]);
-      setLoadingPlaneacionesRecientes(false);
-      setErrorPlaneacionesRecientes("");
-      return () => {
-        activo = false;
-      };
-    }
-
-    const cacheKey = String(asignacionId);
-    const planeacionesEnCache = cachePlaneacionesRecientesRef.current.get(cacheKey);
-    if (planeacionesEnCache) {
-      setPlaneacionesRecientes(planeacionesEnCache);
-      setLoadingPlaneacionesRecientes(false);
-      setErrorPlaneacionesRecientes("");
-      return () => {
-        activo = false;
-      };
-    }
-
-    const cargarPlaneacionesRecientes = async () => {
-      setLoadingPlaneacionesRecientes(true);
-      setErrorPlaneacionesRecientes("");
-      setPlaneacionesRecientes([]);
-
-      try {
-        const response = await api.get(`/plan-de-clases/${asignacionId}`, {
-          params: { limit: 5, offset: 0 },
-        });
-        const recientes = Array.isArray(response.data) ? response.data.slice(0, 5) : [];
-        cachePlaneacionesRecientesRef.current.set(cacheKey, recientes);
-        if (activo) setPlaneacionesRecientes(recientes);
-      } catch (error) {
-        console.error("Error cargando planeaciones recientes", error);
-        if (activo) setErrorPlaneacionesRecientes("No se pudieron cargar las planeaciones recientes.");
-      } finally {
-        if (activo) setLoadingPlaneacionesRecientes(false);
-      }
-    };
-
-    cargarPlaneacionesRecientes();
-
-    return () => {
-      activo = false;
-    };
-  }, [asignacionId, claseSeleccionada, loadingClases]);
-
-  const abrirPlaneacionReciente = (event) => {
-    const planId = event.target.value;
-    if (!planId) return;
-
-    const plan = planeacionesRecientes.find((item) => String(item.id) === String(planId));
-    if (!plan?.fecha) return;
-
-    const params = new URLSearchParams({
-      asignacion_id: String(asignacionId),
-      fecha: String(plan.fecha).split("T")[0],
-      presentacion: "1",
-    });
-    navigate(`/plan-de-clases?${params.toString()}`);
+  const abrirPlaneacionReciente = (planId) => {
+    const ruta = rutaDePlaneacion(planId);
+    if (ruta) navigate(ruta);
   };
 
   const irARanking = (ruta) => {
-    if (!asignacionId) {
-      alert("Por favor, selecciona un salón (materia) primero para ver el ranking.");
-      return;
-    }
-    navigate(ruta);
-  };
-
-  const renderHorarioJornada = (jornada) => {
-    const clasesJornada = clasesPorJornada[jornada];
-    const horarioJornada = horarioPorJornada[jornada];
-    const estiloJornada = JORNADA_ESTILOS[jornada];
-
-    return (
-      <section key={jornada} className={`overflow-hidden rounded-lg border ${estiloJornada.panel}`}>
-        <div className={`flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${estiloJornada.header} ${estiloJornada.panel}`}>
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wide">Jornada {jornada.toLowerCase()}</h3>
-            <p className="mt-0.5 text-xs font-medium opacity-75">Horario institucional: {estiloJornada.rango}</p>
-          </div>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${estiloJornada.badge}`}>
-            {clasesJornada.length} {clasesJornada.length === 1 ? "clase" : "clases"}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2.5 bg-white p-3 sm:grid-cols-2 lg:hidden">
-          {DIAS_SEMANA.map((dia) => {
-            const clasesDelDia = horarioJornada[dia];
-            const estiloDia = obtenerEstiloHorarioDia(dia);
-
-            return (
-              <div key={dia} className={`rounded-lg border ${estiloDia.panel}`}>
-                <div className="border-b border-gray-200 px-3 py-2">
-                  <h4 className={`text-sm font-bold uppercase tracking-wide ${estiloDia.headerMobile}`}>
-                    {dia}
-                  </h4>
-                </div>
-                <div className="space-y-2 p-2.5">
-                  {clasesDelDia.length === 0 ? (
-                    <p className="rounded-md border border-dashed border-gray-300 bg-white px-3 py-3 text-center text-sm text-gray-500">
-                      Sin clases
-                    </p>
-                  ) : (
-                    clasesDelDia.map((clase) => (
-                      <article
-                        key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                        className={`rounded-md border border-gray-100 border-l-4 bg-white px-2.5 py-2 shadow-sm ${estiloDia.card}`}
-                      >
-                        <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
-                          {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
-                        </p>
-                        <h5 className="mt-1 text-xs font-semibold leading-tight text-gray-900">
-                          {clase.materia}
-                        </h5>
-                        <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
-                          Curso: {clase.curso}
-                        </p>
-                      </article>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="hidden overflow-x-auto bg-white p-3 lg:block">
-          <div className="grid min-w-[860px] grid-cols-5 gap-2.5">
-            {DIAS_SEMANA.map((dia) => {
-              const clasesDelDia = horarioJornada[dia];
-              const estiloDia = obtenerEstiloHorarioDia(dia);
-
-              return (
-                <div key={dia} className={`flex min-h-[220px] flex-col rounded-lg border ${estiloDia.panel}`}>
-                  <div className={`rounded-t-lg px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-white ${estiloDia.header}`}>
-                    {dia}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 p-2.5">
-                    {clasesDelDia.length === 0 ? (
-                      <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-200 bg-white px-3 text-sm italic text-gray-400">
-                        Sin clases
-                      </div>
-                    ) : (
-                      clasesDelDia.map((clase) => (
-                        <article
-                          key={`${clase.horario_id || clase.id}-${clase.dia}-${clase.hora_inicio}`}
-                          className={`rounded-md border border-gray-200 border-l-4 bg-white px-2.5 py-2 shadow-sm transition hover:shadow-md ${estiloDia.card}`}
-                        >
-                          <p className={`text-[11px] font-bold leading-tight ${estiloDia.time}`}>
-                            {formatearHora12(clase.hora_inicio)} - {formatearHora12(clase.hora_fin)}
-                          </p>
-                          <h5 className="mt-1 text-xs font-bold leading-tight text-gray-900">
-                            {clase.materia}
-                          </h5>
-                          <p className="mt-0.5 text-[11px] font-medium leading-tight text-gray-600">
-                            Curso: {clase.curso}
-                          </p>
-                        </article>
-                      ))
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
+    if (exigirClaseElegida()) navigate(ruta);
   };
 
   return (
@@ -555,7 +85,7 @@ function DashboardProfesor() {
         </h1>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
           <span>
-            Hola, <strong className="font-bold text-gray-950">{primerNombreProfesor}</strong>
+            Hola, <strong className="font-bold text-gray-950">{nombreProfesor}</strong>
           </span>
           <span className="text-sm text-gray-600">
             📚 Prepara tu jornada y acompaña cada avance con calma.
@@ -563,440 +93,73 @@ function DashboardProfesor() {
         </p>
       </div>
 
-      <section className="mb-6 overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm">
-        <div className="border-b border-purple-100 bg-gradient-to-r from-purple-50 via-white to-sky-50 px-4 py-4 sm:px-5">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-purple-700">Contexto de trabajo</p>
-          <h2 className="mt-1 text-lg font-bold text-gray-950">¿Con qué clase vas a trabajar?</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            La clase, el período y la fecha se conservarán al abrir los módulos académicos.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.55fr)_minmax(12rem,0.65fr)]">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <label htmlFor="clase-profesor" className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-700" aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
-                </svg>
-              </span>
-              Clase / grupo
-            </label>
-            <div className="relative">
-              <select
-                id="clase-profesor"
-                value={asignacionId}
-                onChange={handleAsignacionChange}
-                disabled={loadingClases}
-                className="min-h-12 w-full appearance-none rounded-xl border border-purple-200 bg-purple-50/70 py-3 pl-4 pr-11 text-base font-semibold text-purple-950 shadow-sm outline-none transition hover:border-purple-300 hover:bg-purple-50 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 disabled:cursor-wait disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-500"
-              >
-                <option value="">
-                  {loadingClases
-                    ? "Cargando clases..."
-                    : clasesUnicas.length > 0
-                      ? "Vista general de clases"
-                      : "Sin clases asignadas"}
-                </option>
-                {clasesUnicas.map((clase) => {
-                  const jornada = obtenerJornadaClase(clase);
-                  return (
-                    <option key={clase.id} value={clase.id}>
-                      {clase.materia} - {clase.curso} - {JORNADA_SELECTOR_ESTILOS[jornada]?.icono} {jornada}
-                    </option>
-                  );
-                })}
-              </select>
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"
-                aria-hidden="true"
-              >
-                <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-              </svg>
-            </div>
-            {asignacionId && claseSeleccionada && !loadingClases && (
-              <div className="mt-3 rounded-xl border border-violet-100 bg-violet-50/55 p-3">
-                <label
-                  htmlFor="planeacion-reciente-profesor"
-                  className="mb-1.5 flex min-w-0 items-center gap-2 text-xs font-bold text-violet-900"
-                  title={`Planeaciones recientes de ${claseSeleccionada.materia}`}
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-violet-700 shadow-sm ring-1 ring-violet-100" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M12 8v5l3 2M3 12a9 9 0 1 0 3-6.7" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M3 4v5h5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                  <span className="truncate">Planeaciones recientes de {claseSeleccionada.materia}</span>
-                </label>
-                <div className="relative">
-                  <select
-                    id="planeacion-reciente-profesor"
-                    value=""
-                    onChange={abrirPlaneacionReciente}
-                    disabled={loadingPlaneacionesRecientes || planeacionesRecientes.length === 0}
-                    aria-busy={loadingPlaneacionesRecientes}
-                    className="min-h-10 w-full appearance-none rounded-lg border border-violet-200 bg-white py-2 pl-3 pr-10 text-sm font-semibold text-slate-800 shadow-sm outline-none transition hover:border-violet-300 focus:border-violet-500 focus:ring-3 focus:ring-violet-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-                  >
-                    <option value="">
-                      {loadingPlaneacionesRecientes
-                        ? "Cargando planeaciones recientes..."
-                        : errorPlaneacionesRecientes
-                          ? "No se pudieron cargar"
-                          : planeacionesRecientes.length > 0
-                            ? "Selecciona una planeación"
-                            : "Sin planeaciones recientes"}
-                    </option>
-                    {planeacionesRecientes.map((plan) => (
-                      <option key={plan.id} value={plan.id}>
-                        {plan.tema || "Sin tema registrado"} — {formatearFechaPlaneacion(plan.fecha)}
-                      </option>
-                    ))}
-                  </select>
-                  {loadingPlaneacionesRecientes ? (
-                    <span className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-violet-200 border-t-violet-700" aria-hidden="true"></span>
-                  ) : (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-600"
-                      aria-hidden="true"
-                    >
-                      <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-                {errorPlaneacionesRecientes && (
-                  <p className="mt-1.5 text-xs font-semibold text-rose-700">{errorPlaneacionesRecientes}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="periodo-profesor" className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700" aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M8 2v4M16 2v4M3 10h18" />
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                </svg>
-              </span>
-              Período
-            </label>
-            <div className="relative">
-              <select
-                id="periodo-profesor"
-                value={periodo}
-                onChange={handlePeriodoChange}
-                className="min-h-12 w-full appearance-none rounded-xl border border-emerald-100 bg-emerald-50/40 py-3 pl-4 pr-11 text-base font-semibold text-emerald-950 shadow-sm outline-none transition hover:border-emerald-200 hover:bg-emerald-50/60 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100/70"
-              >
-                <option value="1">Período 1</option>
-                <option value="2">Período 2</option>
-                <option value="3">Período 3</option>
-                <option value="4">Período 4</option>
-              </select>
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-700"
-                aria-hidden="true"
-              >
-                <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="fecha-profesor" className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700" aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M8 2v4M16 2v4M3 10h18" />
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
-                </svg>
-              </span>
-              Fecha de trabajo
-            </label>
-            <input
-              id="fecha-profesor"
-              type="date"
-              value={fecha}
-              onChange={handleFechaChange}
-              className="min-h-12 w-full rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3 text-base font-semibold text-sky-950 shadow-sm outline-none transition hover:border-sky-300 hover:bg-sky-50 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
-          </div>
-        </div>
-
-      </section>
+      <ContextoTrabajoProfesor
+        asignacionId={asignacionId}
+        onCambiarAsignacion={cambiarAsignacion}
+        loadingClases={loadingClases}
+        clasesUnicas={clasesUnicas}
+        claseSeleccionada={claseSeleccionada}
+        planeacionesRecientes={planeacionesRecientes}
+        loadingPlaneacionesRecientes={loadingPlaneacionesRecientes}
+        errorPlaneacionesRecientes={errorPlaneacionesRecientes}
+        onAbrirPlaneacion={abrirPlaneacionReciente}
+        periodo={periodo}
+        onCambiarPeriodo={cambiarPeriodo}
+        fecha={fecha}
+        onCambiarFecha={cambiarFecha}
+      />
 
       <CumpleanosSemana
         className="mb-6"
         estudiantes={cumpleanos}
         loading={loadingCumpleanos}
         error={errorCumpleanos}
-        diasRango={7}
+        diasRango={diasRangoCumpleanos}
         emptyText="Esta semana no hay estudiantes de tus cursos asignados cumpliendo años."
       />
 
-      <section className="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="border-b border-gray-200 bg-white px-4 py-4 sm:px-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-purple-700">
-                Horario asignado
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-gray-900 sm:text-xl">
-                Tus clases de la semana
-              </h2>
-              {!loadingClases && clasesConHorario.length > 0 && (
-                <p className="mt-1 text-sm text-gray-600">
-                  {clasesPorJornada.Mañana.length} en la mañana · {clasesPorJornada.Tarde.length} en la tarde
-                </p>
-              )}
-            </div>
-            <span className="w-max rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700">
-              {clasesConHorario.length} {clasesConHorario.length === 1 ? "clase" : "clases"}
-            </span>
-          </div>
-          {!loadingClases && clasesConHorario.length > 0 && (
-            tieneDosJornadas ? (
-              <div className="mt-4 inline-flex w-full rounded-lg border border-gray-200 bg-gray-50 p-1 sm:w-auto" role="group" aria-label="Filtrar horario por jornada">
-                {["Ambas", ...JORNADAS].map((jornada) => {
-                  const activo = filtroJornada === jornada;
-                  return (
-                    <button
-                      key={jornada}
-                      type="button"
-                      aria-pressed={activo}
-                      onClick={() => setFiltroJornada(jornada)}
-                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition sm:flex-none ${
-                        activo
-                          ? "bg-purple-700 text-white shadow-sm"
-                          : "text-gray-600 hover:bg-white hover:text-gray-900"
-                      }`}
-                    >
-                      {jornada}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <span className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                clasesPorJornada.Mañana.length > 0
-                  ? JORNADA_ESTILOS.Mañana.badge
-                  : JORNADA_ESTILOS.Tarde.badge
-              }`}>
-                Jornada {clasesPorJornada.Mañana.length > 0 ? "mañana" : "tarde"}
-              </span>
-            )
-          )}
-        </div>
+      <HorarioSemanal
+        loadingClases={loadingClases}
+        clasesConHorario={clasesConHorario}
+        clasesPorJornada={clasesPorJornada}
+        horarioPorJornada={horarioPorJornada}
+        hayDosJornadas={hayDosJornadas}
+        filtroJornada={filtroJornada}
+        onCambiarJornada={setFiltroJornada}
+        jornadasVisibles={jornadasVisibles}
+      />
 
-        {loadingClases ? (
-          <div className="p-6 text-sm font-medium text-gray-500">
-            Cargando horario asignado...
-          </div>
-        ) : clasesConHorario.length === 0 ? (
-          <div className="p-6 text-gray-600">
-            No tienes clases con horario asignado todavía.
-          </div>
-        ) : (
-          <div className="space-y-4 bg-gray-50/60 p-3 sm:p-4">
-            {jornadasVisibles.map(renderHorarioJornada)}
-          </div>
-        )}
-      </section>
-
-      <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">Filtro de rendimiento</p>
-          <p className="text-sm text-gray-600">
-            Primero selecciona el curso; luego mira todas las materias de ese curso o una materia especifica.
-          </p>
-        </div>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Curso
-            </label>
-            <select
-              value={cursoFiltroRendimiento}
-              onChange={(e) => {
-                setCursoFiltroRendimiento(e.target.value);
-                setMateriaFiltroRendimiento("todas");
-              }}
-              disabled={loadingClases || cursosProfesor.length === 0}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              {loadingClases && <option value="">Cargando cursos...</option>}
-              {!loadingClases && cursosProfesor.length > 0 && <option value="" disabled>Selecciona un curso</option>}
-              {!loadingClases && cursosProfesor.length === 0 && <option value="">Sin cursos asignados</option>}
-              {cursosProfesor.map((curso) => (
-                <option key={curso.id} value={curso.id}>
-                  {curso.nombre} - {curso.jornada}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Materia
-            </label>
-            <select
-              value={materiaFiltroRendimiento}
-              onChange={(e) => setMateriaFiltroRendimiento(e.target.value)}
-              disabled={loadingClases || !cursoFiltroRendimiento}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:text-gray-500"
-            >
-              <option value="todas">Todas las materias del curso</option>
-              {materiasDelCursoFiltro.map((clase) => (
-                <option key={clase.id} value={clase.id}>
-                  {clase.materia}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <FiltroRendimiento
+        loadingClases={loadingClases}
+        cursosProfesor={cursosProfesor}
+        cursoFiltro={cursoFiltro}
+        onCambiarCurso={cambiarCurso}
+        materiasDelCurso={materiasDelCurso}
+        materiaFiltro={materiaFiltro}
+        onCambiarMateria={setMateriaFiltro}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
-          <div className="p-6">
-            <div className="bg-red-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-2xl" aria-hidden="true">!</span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Ranking de inasistencias por curso
-            </h3>
-            {loadingInasistencias ? (
-              <p className="text-sm font-medium text-gray-500">Cargando inasistencias...</p>
-            ) : inasistencias.length > 0 ? (
-              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                {inasistencias.map((item) => (
-                  <div
-                    key={`${item.curso_id}-${item.estudiante_id}-${item.posicion}`}
-                    className="flex items-center justify-between gap-3 rounded-md border border-gray-100 bg-gray-50 px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
-                          #{item.posicion}
-                        </span>
-                        <p className="truncate text-sm font-semibold text-gray-900">{item.nombre}</p>
-                      </div>
-                      <p className="mt-1 truncate text-xs font-medium text-gray-600">Curso: {item.curso}</p>
-                    </div>
-                    <span className="shrink-0 rounded bg-white px-2 py-1 text-sm font-bold text-red-600">
-                      {item.total_fallas}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-600">No hay datos disponibles</p>
-            )}
-          </div>
-        </div>
+        <TarjetaInasistencias
+          inasistencias={inasistencias}
+          loading={loadingInasistencias}
+        />
 
-        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
-          <div className="p-6">
-            <div className="bg-yellow-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-2xl" aria-hidden="true">↓</span>
-            </div>
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">
-              Estudiantes con bajo rendimiento
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-yellow-50 px-2 py-1 text-xs font-semibold text-yellow-700">
-                  {cursoFiltroNombre}
-                </span>
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-                  {materiaFiltroNombre}
-                </span>
-              </div>
-            </div>
-            {loadingRendimiento ? (
-              <p className="text-sm font-medium text-gray-500">Cargando rendimiento...</p>
-            ) : notasBajas.length > 0 ? (
-              <div className="space-y-2">
-                {notasBajas.map((estudiante, index) => (
-                  <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-sm font-semibold text-gray-900">{estudiante.nombre}</p>
-                      <p className={`text-sm font-bold ${estudiante.color === 'red' ? 'text-red-500' : estudiante.color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`}>
-                        {Number(estudiante.promedio).toFixed(2)}
-                      </p>
-                    </div>
-                    <p className="mt-1 truncate text-xs font-medium text-gray-600">
-                      Curso: {estudiante.curso} · Materia: {estudiante.materia || materiaFiltroNombre}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-600">No hay estudiantes con bajo rendimiento</p>
-            )}
-            <button
-              type="button"
-              onClick={() => irARanking("/ranking-rendimiento")}
-              className="mt-4 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Ver ranking por materia
-            </button>
-          </div>
-        </div>
+        <TarjetaBajoRendimiento
+          notasBajas={notasBajas}
+          loading={loadingRendimiento}
+          cursoFiltroNombre={cursoFiltroNombre}
+          materiaFiltroNombre={materiaFiltroNombre}
+          onVerRanking={() => irARanking(RUTA_RANKING_BAJO)}
+        />
 
-        <div className="rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:shadow-lg">
-          <div className="p-6">
-            <div className="bg-green-500 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-2xl" aria-hidden="true">↑</span>
-            </div>
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">
-              Mejores Estudiantes
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
-                  {cursoFiltroNombre}
-                </span>
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
-                  {materiaFiltroNombre}
-                </span>
-              </div>
-            </div>
-            {loadingRendimiento ? (
-              <p className="text-sm font-medium text-gray-500">Cargando rendimiento...</p>
-            ) : notasAltas.length > 0 ? (
-              <div className="space-y-2">
-                {notasAltas.map((estudiante, index) => (
-                  <div key={`${estudiante.nombre}-${index}`} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-sm font-semibold text-gray-900">{estudiante.nombre}</p>
-                      <p className="text-sm font-bold text-green-600">
-                        {Number(estudiante.promedio).toFixed(2)}
-                      </p>
-                    </div>
-                    <p className="mt-1 truncate text-xs font-medium text-gray-600">
-                      Curso: {estudiante.curso} · Materia: {estudiante.materia || materiaFiltroNombre}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-600">No hay estudiantes con notas altas aún</p>
-            )}
-            <button
-              type="button"
-              onClick={() => irARanking("/ranking-mejor-rendimiento")}
-              className="mt-4 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Ver ranking por materia
-            </button>
-          </div>
-        </div>
+        <TarjetaMejorRendimiento
+          notasAltas={notasAltas}
+          loading={loadingRendimiento}
+          cursoFiltroNombre={cursoFiltroNombre}
+          materiaFiltroNombre={materiaFiltroNombre}
+          onVerRanking={() => irARanking(RUTA_RANKING_MEJOR)}
+        />
       </div>
     </div>
   );

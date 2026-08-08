@@ -828,6 +828,38 @@ Estado actual de componentes y paginas del frontend.
 - `pages/ReportesAdmin.jsx` permite filtrar el detalle de ingresos por
   `Subsidio` y muestra su referencia, incluso dentro de pagos mixtos.
 
+### Dashboards y rankings
+
+- `components/dashboards/CumpleanosSemana.jsx`
+- `components/dashboards/admin/AccesosAdmin.jsx`
+- `components/dashboards/admin/TarjetaCarteraVencida.jsx`
+- `components/dashboards/profesor/ContextoTrabajoProfesor.jsx`
+- `components/dashboards/profesor/FiltroRendimiento.jsx`
+- `components/dashboards/profesor/HorarioSemanal.jsx`
+- `components/dashboards/profesor/PanelJornada.jsx`
+- `components/dashboards/profesor/TablaRankingBajo.jsx`
+- `components/dashboards/profesor/TablaRankingMejor.jsx`
+- `components/dashboards/profesor/TarjetaBajoRendimiento.jsx`
+- `components/dashboards/profesor/TarjetaInasistencias.jsx`
+- `components/dashboards/profesor/TarjetaMejorRendimiento.jsx`
+- `components/dashboards/superAdmin/ResumenTenants.jsx`
+- `components/dashboards/superAdmin/TablaTenants.jsx`
+
+Notas:
+
+- `CumpleanosSemana` vive en la raíz porque lo comparten el panel de admin y el
+  del profesor; cada uno le pasa su propio texto de estado vacío.
+- Los componentes solo importan React y utilidades puras del módulo. No conocen
+  hooks, servicios, Axios ni endpoints.
+- `TablaRankingBajo` y `TablaRankingMejor` son hermanos, no variantes de un mismo
+  componente: difieren en la columna de puesto, los colores, la insignia y el
+  estado vacío. Lo mismo ocurre con `TarjetaBajoRendimiento`, cuyo color de
+  promedio lo decide el backend, y `TarjetaMejorRendimiento`, donde es fijo.
+- `PanelJornada` pinta una jornada completa con su vista móvil apilada y su
+  rejilla de cinco días en escritorio.
+- `AccesosAdmin` incluye la hoja de estilos de la animación de sus tarjetas, que
+  respeta `prefers-reduced-motion`.
+
 ### Impresion
 
 - `components/impresion/DocumentoImprimible.jsx`
@@ -849,7 +881,6 @@ Notas:
 - `BrandingAdmin.jsx`
 - `CarteraVencidaAdmin.jsx`
 - `CertificadosAdmin.jsx`
-- `DashboardAdmin.jsx`
 - `DashboardProfesor.jsx`
 - `EgresosAdmin.jsx`
 - `EstudiantesAdmin.jsx`
@@ -931,6 +962,16 @@ Notas:
   egresos y préstamos.
 - `utils/nominaEgresosPrestamos/`: contratos, payloads, validaciones, fechas,
   totales y reglas de clase puras del módulo.
+- `hooks/dashboards/`: once hooks, uno por sección independiente. Del admin,
+  `useDashboardAdmin`. Del profesor, `useContextoProfesor`, `useClasesProfesor`,
+  `useInasistenciasProfesor`, `useCumpleanosProfesor`, `useRendimientoProfesor`,
+  `usePlaneacionesRecientes` y `useRankingProfesor` con sus dos envoltorios. Del
+  super admin, `useTenants`, `useAltaTenant` y `useEstadoTenant`.
+- `services/dashboardsApi.js`: frontera HTTP única de los dashboards por rol y
+  de los dos rankings del profesor.
+- `utils/dashboards/`: un archivo por subdominio —`admin.js`, `profesor.js`,
+  `superAdmin.js` y `cumpleanos.js`, este último compartido por dos roles— con
+  contratos, transformaciones, validaciones y reglas de clase puras.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos

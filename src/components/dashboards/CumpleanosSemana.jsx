@@ -1,38 +1,9 @@
-const nombreCompleto = (estudiante) =>
-  `${estudiante?.nombre || ""} ${estudiante?.apellido || ""}`.trim() || "Estudiante";
-
-const MILISEGUNDOS_DIA = 24 * 60 * 60 * 1000;
-
-const obtenerInfoCumpleanos = (fechaNacimiento) => {
-  if (!fechaNacimiento) return null;
-  const match = String(fechaNacimiento).match(/^(\d{4})-\d{2}-\d{2}/);
-  if (!match) return null;
-
-  const [anio, mes, dia] = String(fechaNacimiento)
-    .slice(0, 10)
-    .split("-")
-    .map(Number);
-
-  if (!anio || !mes || !dia) return null;
-
-  const ahora = new Date();
-  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-  let fechaCumple = new Date(hoy.getFullYear(), mes - 1, dia);
-
-  if (fechaCumple < hoy) {
-    fechaCumple = new Date(hoy.getFullYear() + 1, mes - 1, dia);
-  }
-
-  const dias = Math.round((fechaCumple - hoy) / MILISEGUNDOS_DIA);
-  const edad = fechaCumple.getFullYear() - anio;
-  const etiqueta = dias === 0 ? "Hoy" : dias === 1 ? "Mañana" : `En ${dias} días`;
-
-  return {
-    dias,
-    edad: edad > 0 ? edad : null,
-    etiqueta,
-  };
-};
+import {
+  DIAS_RANGO_CUMPLEANOS,
+  nombreCompletoEstudiante,
+  obtenerInfoCumpleanos,
+  ordenarCumpleanos,
+} from "../../utils/dashboards/cumpleanos";
 
 function CumpleanosSemana({
   estudiantes = [],
@@ -40,13 +11,10 @@ function CumpleanosSemana({
   error = "",
   className = "",
   emptyText = "Esta semana no hay cumpleaños registrados.",
-  diasRango = 7,
+  diasRango = DIAS_RANGO_CUMPLEANOS,
 }) {
-  const estudiantesOrdenados = [...estudiantes].sort((a, b) => {
-    const diasA = obtenerInfoCumpleanos(a.fecha_nacimiento)?.dias ?? 999;
-    const diasB = obtenerInfoCumpleanos(b.fecha_nacimiento)?.dias ?? 999;
-    return diasA - diasB || nombreCompleto(a).localeCompare(nombreCompleto(b));
-  });
+  const ahora = new Date();
+  const estudiantesOrdenados = ordenarCumpleanos(estudiantes, ahora);
   const total = estudiantesOrdenados.length;
 
   return (
@@ -79,7 +47,7 @@ function CumpleanosSemana({
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {estudiantesOrdenados.map((estudiante) => {
-              const infoCumpleanos = obtenerInfoCumpleanos(estudiante.fecha_nacimiento);
+              const infoCumpleanos = obtenerInfoCumpleanos(estudiante.fecha_nacimiento, ahora);
 
               return (
                 <article
@@ -92,7 +60,7 @@ function CumpleanosSemana({
                     </div>
                     <div className="min-w-0">
                       <h3 className="truncate text-sm font-bold text-gray-950">
-                        {nombreCompleto(estudiante)}
+                        {nombreCompletoEstudiante(estudiante)}
                       </h3>
                       <p className="mt-0.5 text-xs font-semibold text-gray-600">
                         Curso: {estudiante.curso || "Sin curso"}
