@@ -314,7 +314,7 @@ registrar al final:
 | 6 | Certificados e impresión | Terminado; commit pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
 | 7 | Pagos | Terminado; commit pendiente | [PAGOS.md](./PAGOS.md) |
 | 8 | Cartera y tipos de pago | Terminado; commit pendiente | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
-| 9 | Reportes financieros | Pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
+| 9 | Reportes financieros | Terminado; commit pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
 | 10 | Inventario y ventas | Terminado; commit pendiente | [INVENTARIO_VENTAS.md](./INVENTARIO_VENTAS.md) |
 | 11 | Nómina, egresos y préstamos | Terminado; commit pendiente | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
 | 12 | Dashboards y rankings | Terminado; commit pendiente | [DASHBOARDS.md](./DASHBOARDS.md) |

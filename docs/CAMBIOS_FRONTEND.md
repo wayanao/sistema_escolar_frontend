@@ -1,5 +1,54 @@
 # Cambios Frontend
 
+## 2026-08-08 - Modularización completa de reportes financieros
+
+- Se conservaron diseño, textos, ruta `/admin/reportes`, protección
+  administrativa (`AdminRoute` más el control de rol propio de la página),
+  filtros por fecha y por medio de pago, soporte de pagos simples y
+  combinados, y los contratos de los cuatro endpoints de `/reportes/*`.
+- `utils/reportesFinancieros/` concentra la interpretación de medios de
+  pago (`mediosPago.js`, trasladado sin cambios desde
+  `utils/reportesMediosPago.js`), formateadores de moneda/fecha/mes
+  (`formatos.js`), normalización de listas paginadas o planas
+  (`contratos.js`) y la combinación de ingresos/egresos mensuales
+  (`derivaciones.js`).
+- `services/reportesFinancierosApi.js` es la única frontera HTTP del
+  módulo, con los cuatro contratos de reporte general, ingresos/egresos por
+  rango e ingresos por mes.
+- Dos hooks separan la consulta del reporte general (con recarga al volver
+  a la pestaña) de la consulta de detalle por rango o mes (validación de
+  fechas, filtro de medio de pago, scroll automático). El módulo no tiene
+  comandos de escritura: su capa 4 no aplica.
+- Cuatro componentes de `components/reportesFinancieros/` conservan el
+  resumen financiero, el movimiento mensual, el panel de rango de fechas
+  con estudiantes por curso, y el detalle de ingresos/egresos, todos
+  controlados por props y callbacks.
+- `pages/ReportesAdmin.jsx` queda como raíz de composición de 136 líneas
+  (venía de 589): conecta los dos hooks con los cuatro componentes y
+  conserva únicamente el control de acceso, el estado de carga inicial y
+  las funciones que traducen una interacción en una llamada a los hooks.
+- Se caracterizaron y se dejaron preservados a propósito dos riesgos
+  preexistentes, documentados en `docs/modularizacion/REPORTES_FINANCIEROS.md`
+  para una eventual corrección en tarea aparte:
+  - un pago con métodos combinados sin monto por método muestra, al
+    filtrar por uno de esos medios, el monto total del pago en vez de una
+    porción;
+  - `hoyISO()` y `nombreMes()` tienen defectos de zona horaria (toman UTC
+    sin compensar el desfase local) que pueden mostrar la fecha de mañana
+    como "hoy" o el nombre del mes anterior en la zona horaria real de
+    despliegue (America/Bogota).
+
+Verificación final:
+
+- 12 archivos y 114 pruebas específicas de reportes financieros correctas.
+- `pnpm run check:deploy`: correcto; 256 archivos, 1340 pruebas, ESLint y
+  build de producción de 364 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones
+  duplicadas: correcta. No queda ninguna referencia a
+  `utils/reportesMediosPago` ni llamadas HTTP directas fuera de
+  `reportesFinancierosApi.js`.
+
 ## 2026-08-08 - El panel de admin ya no silencia la regla de dependencias
 
 Corrección del sexto defecto que la modularización del módulo 12 dejó

@@ -828,6 +828,43 @@ Estado actual de componentes y paginas del frontend.
 - `pages/ReportesAdmin.jsx` permite filtrar el detalle de ingresos por
   `Subsidio` y muestra su referencia, incluso dentro de pagos mixtos.
 
+### Reportes financieros
+
+- `pages/ReportesAdmin.jsx` es la raíz de composición protegida (`AdminRoute`
+  más control de rol propio) del panel de reportes. Conecta
+  `useReporteGeneral` y `useDetalleReportes` con los cuatro componentes del
+  módulo y conserva solo el encabezado y las funciones que traducen una
+  interacción en una llamada a los hooks.
+- `components/reportesFinancieros/ResumenFinanciero.jsx` presenta las ocho
+  tarjetas de estadísticas (ingresos, egresos y balance de hoy, balance
+  general, estudiantes, profesores e ingresos/egresos acumulados).
+- `components/reportesFinancieros/MovimientoMensual.jsx` presenta los
+  últimos meses con ingreso, egreso, balance y barras de progreso
+  proporcionales.
+- `components/reportesFinancieros/RangoFechasPanel.jsx` presenta los campos
+  de fecha, los botones `Ingresos`/`Egresos` y el panel de estudiantes por
+  curso.
+- `components/reportesFinancieros/DetalleReportes.jsx` presenta el panel de
+  detalle: selector de medio de pago (solo ingresos), total según el filtro
+  activo, y las tablas de ingresos o egresos con sus estados vacíos.
+  Implementado con `React.forwardRef` para recibir el mismo `ref` que la
+  página usa para el scroll automático al abrir un detalle.
+- `hooks/reportesFinancieros/useReporteGeneral.js` separa la carga del
+  reporte general (con recarga al volver a la pestaña) de sus derivados
+  (`stats`, `estudiantesPorCurso`, `mesesFinancieros`).
+- `hooks/reportesFinancieros/useDetalleReportes.js` separa la consulta de
+  detalle por rango o por mes —con su validación de fechas y su scroll
+  automático— de sus derivados de filtro y totales por medio de pago.
+- `services/reportesFinancierosApi.js` encapsula el transporte HTTP;
+  `utils/reportesFinancieros/` conserva la interpretación de medios de pago,
+  los formateadores y la combinación de movimiento mensual.
+- El módulo es solo de lectura: no existe capa de comandos ni formularios de
+  escritura.
+- Un pago con métodos combinados (`tipo_pago` unido con `" + "`) sin monto
+  por método muestra, al filtrar por uno de esos medios, el monto **total**
+  del pago; es comportamiento heredado del backend actual, caracterizado y
+  conservado a propósito.
+
 ### Dashboards y rankings
 
 - `components/dashboards/CumpleanosSemana.jsx`
@@ -951,6 +988,13 @@ Notas:
 - `hooks/pagos/`: consultas, formularios y comandos del módulo de pagos.
 - `services/pagosApi.js`: frontera HTTP única de pagos.
 - `utils/pagos/`: formatos, cálculos, normalización y payloads puros de pagos.
+- `hooks/reportesFinancieros/`: consulta del reporte general (con sus
+  derivados) y consulta del detalle por rango o mes (con sus derivados de
+  filtro y totales). Sin comandos: el módulo es de solo lectura.
+- `services/reportesFinancierosApi.js`: frontera HTTP única de reportes
+  financieros.
+- `utils/reportesFinancieros/`: interpretación de medios de pago, formatos y
+  combinación de movimiento mensual puros del módulo.
 - `hooks/inventarioVentas/`: catálogo con filtro por estado, consultas paralelas
   de la caja, formulario de producto, carrito y anulación de cargos.
 - `services/inventarioVentasApi.js`: frontera HTTP única de inventario y ventas.

@@ -45,6 +45,9 @@ Estado documentado del frontend `frontend-react`.
   formulario e historial de egresos, y el formulario e historial de préstamos.
 - `src/components/pagos/`: listado, valores personalizados, formulario,
   historial y comprobante presentacionales del módulo de pagos.
+- `src/components/reportesFinancieros/`: resumen financiero, movimiento
+  mensual, panel de rango de fechas con estudiantes por curso, y detalle de
+  ingresos/egresos presentacionales del módulo de reportes.
 - `src/components/impresion/`: componentes de documentos imprimibles.
 - `src/components/asistencia/`: componentes presentacionales del flujo docente
   de asistencia, sin acceso a hooks ni transporte HTTP.
@@ -102,6 +105,10 @@ Estado documentado del frontend `frontend-react`.
   bloquee a las demás.
 - `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
   cuotas vencidas, adelantos, valores personalizados y anulación.
+- `src/hooks/reportesFinancieros/`: consulta del reporte general con sus
+  derivados (estadísticas, movimiento mensual y estudiantes por curso), y
+  consulta del detalle por rango o mes con sus derivados de filtro y
+  totales por medio de pago. El módulo no tiene comandos de escritura.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
   planeaciones, separados de la presentación.
 - `src/pages/`: paginas principales de la aplicacion.
@@ -137,6 +144,8 @@ Estado documentado del frontend `frontend-react`.
   dashboards por rol y de los dos rankings del profesor.
 - `src/services/pagosApi.js`: frontera HTTP de catálogos, historial, deudas,
   opciones, valores personalizados, registro y anulación de pagos.
+- `src/services/reportesFinancierosApi.js`: frontera HTTP del reporte
+  general y del detalle de ingresos/egresos por rango o por mes.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
   logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
@@ -176,6 +185,11 @@ Estado documentado del frontend `frontend-react`.
   reglas puras de clase.
 - `src/utils/pagos/`: formatos, cálculos financieros, estados iniciales,
   normalización y payloads puros del módulo de pagos.
+- `src/utils/reportesFinancieros/`: interpretación de medios de pago simples,
+  combinados y con nota libre (incluidas variantes históricas de campos),
+  formateadores de moneda/fecha/mes, normalización de listas paginadas o
+  planas, y la combinación de ingresos/egresos mensuales en movimiento
+  financiero.
 
 ## Entrada de la aplicacion
 
@@ -332,6 +346,37 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - No quedan llamadas HTTP, payloads, reglas financieras ni bloques visuales
   extensos en `PagosAdmin.jsx`; tampoco existe una implementación paralela del
   comprobante en `src/components/FacturaModerna.jsx`.
+
+## Reportes financieros
+
+- `/admin/reportes` monta `pages/ReportesAdmin.jsx` bajo `AdminRoute` (la
+  página repite además su propio control de rol) y conserva el reporte
+  general del día y acumulado, el movimiento de los últimos meses, la
+  consulta por rango de fechas o por mes, y el detalle de ingresos con
+  filtro por medio de pago o de egresos.
+- El módulo es de solo lectura: no tiene formularios, comandos ni endpoints
+  de escritura, por lo que su capa 4 (hooks de comandos) no aplica.
+- La página es la raíz de composición: conecta `useReporteGeneral` y
+  `useDetalleReportes` con `components/reportesFinancieros/` y conserva
+  únicamente el control de acceso, el estado de carga inicial y las
+  funciones que traducen una interacción en una llamada a los hooks.
+- `services/reportesFinancierosApi.js` es la única frontera HTTP del módulo.
+  Los hooks separan la consulta del reporte general (con su recarga al
+  volver a la pestaña) de la consulta de detalle (validación de rango,
+  filtro de medio de pago y scroll automático al resultado).
+- `utils/reportesFinancieros/` interpreta medios de pago simples,
+  combinados (unidos con `" + "` en `tipo_pago`) y con nota libre, incluida
+  compatibilidad con variantes históricas de campos que el backend actual
+  ya no envía. Cuando un pago combinado no trae monto por método, el total
+  filtrado cae al monto completo del pago; es un comportamiento heredado y
+  caracterizado, no un defecto introducido por la modularización.
+- `hoyISO()` (fecha "hoy" en UTC) y `nombreMes()` (nombre de mes por
+  parseo de fecha sin compensar zona horaria) tienen defectos de zona
+  horaria preexistentes, documentados y deliberadamente sin corregir en
+  `docs/modularizacion/REPORTES_FINANCIEROS.md`.
+- No quedan llamadas HTTP directas en la página ni en los componentes, y no
+  existe una implementación paralela de `reportesMediosPago.js` fuera de
+  `utils/reportesFinancieros/mediosPago.js`.
 
 ## Inventario y ventas
 
