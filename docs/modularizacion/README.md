@@ -316,7 +316,7 @@ registrar al final:
 | 8 | Cartera y tipos de pago | Terminado; commit pendiente | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
 | 9 | Reportes financieros | Pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
 | 10 | Inventario y ventas | Terminado; commit pendiente | [INVENTARIO_VENTAS.md](./INVENTARIO_VENTAS.md) |
-| 11 | Nómina, egresos y préstamos | Pendiente | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
+| 11 | Nómina, egresos y préstamos | Terminado; commit pendiente | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
 | 12 | Dashboards y rankings | Pendiente | [DASHBOARDS.md](./DASHBOARDS.md) |
 | 13 | Administración académica y horarios | Terminado; commit pendiente | [ADMINISTRACION_ACADEMICA.md](./ADMINISTRACION_ACADEMICA.md) |
 | 14 | Autenticación, sesión y navegación | Pendiente | [AUTENTICACION_NAVEGACION.md](./AUTENTICACION_NAVEGACION.md) |

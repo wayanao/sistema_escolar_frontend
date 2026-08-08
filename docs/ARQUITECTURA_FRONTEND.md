@@ -40,6 +40,9 @@ Estado documentado del frontend `frontend-react`.
   vencida, estados de cuenta y administración de conceptos de pago.
 - `src/components/inventarioVentas/`: vistas presentacionales del catálogo de
   productos, la caja y el volante imprimible de un cargo.
+- `src/components/nominaEgresosPrestamos/`: vistas presentacionales del estado
+  de cuenta del personal, el historial y el modal de pago de nómina, el
+  formulario e historial de egresos, y el formulario e historial de préstamos.
 - `src/components/pagos/`: listado, valores personalizados, formulario,
   historial y comprobante presentacionales del módulo de pagos.
 - `src/components/impresion/`: componentes de documentos imprimibles.
@@ -80,6 +83,9 @@ Estado documentado del frontend `frontend-react`.
   básico, configuración financiera y asignación editable de cursos.
 - `src/hooks/inventarioVentas/`: consulta del catálogo con filtro por estado,
   consultas paralelas de la caja, formulario de producto, carrito y anulación.
+- `src/hooks/nominaEgresosPrestamos/`: consultas paralelas de nómina, consulta
+  de egresos por rango de fechas, carga de profesores con historial de préstamos
+  bajo demanda, y los tres comandos de pago, egreso y préstamo.
 - `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
   cuotas vencidas, adelantos, valores personalizados y anulación.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
@@ -110,6 +116,9 @@ Estado documentado del frontend `frontend-react`.
   conceptos de pago, configuración y asignación de cursos.
 - `src/services/inventarioVentasApi.js`: frontera HTTP de catálogo, alta,
   edición y estado de productos, y de ventas, registro y anulación de cargos.
+- `src/services/nominaEgresosPrestamosApi.js`: frontera HTTP de empleados,
+  historial y pago de nómina; egresos por rango, alta y edición; y préstamos por
+  profesor, alta y saldado.
 - `src/services/pagosApi.js`: frontera HTTP de catálogos, historial, deudas,
   opciones, valores personalizados, registro y anulación de pagos.
 - `src/services/printingService.js`: frontera HTTP compartida de branding,
@@ -141,6 +150,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/inventarioVentas/`: estados y payloads de producto, filtros del
   catálogo, transformaciones inmutables del carrito, totales, contratos de
   venta y anulación, y reglas puras de clase por estado y stock.
+- `src/utils/nominaEgresosPrestamos/`: cálculo del neto y contratos de nómina,
+  fecha local, categorías, normalización y contratos de egresos, estados,
+  contratos y totales de préstamos, y reglas puras de clase por saldo y estado.
 - `src/utils/pagos/`: formatos, cálculos financieros, estados iniciales,
   normalización y payloads puros del módulo de pagos.
 
@@ -325,6 +337,40 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
 - El módulo no adopta las capacidades de paginación y búsqueda que el backend ya
   ofrece en `/inventario` y `/api/ventas/`: siguen sin usarse, como antes.
 - No quedan llamadas HTTP, payloads ni bloques visuales extensos en las dos
+  páginas, ni implementaciones visuales paralelas.
+
+## Nómina, egresos y préstamos
+
+- `/admin/nomina` monta `pages/NominaAdmin.jsx` y conserva el estado de cuenta
+  de todo el personal, el historial de pagos que solo se muestra al buscar un
+  nombre, y el modal que precarga el sueldo del profesor como salario base.
+- `/admin/egresos` monta `pages/EgresosAdmin.jsx` y conserva la consulta inicial
+  del día, el filtro por rango de fechas, el total del rango visible, el alta y
+  edición manual, y la distinción entre egreso manual y automático.
+- `/admin/prestamos` monta `pages/PrestamosAdmin.jsx` y conserva que el historial
+  solo se consulta al elegir un profesor, el alta con confirmación y la acción
+  `Saldar`.
+- Las tres rutas permanecen bajo `AdminRoute`. Ninguna recibe parámetros de ruta.
+- Las páginas son raíces de composición de 64, 62 y 60 líneas y conectan los
+  hooks con `components/nominaEgresosPrestamos/`. Solo importan React, sus
+  componentes y sus hooks.
+- `services/nominaEgresosPrestamosApi.js` es la única frontera HTTP del módulo y
+  concentra sus diez contratos. `GET /profesores` se consume desde allí en modo
+  lectura, con el mismo criterio que ya aplican `pagosApi.js` y
+  `inventarioVentasApi.js` con endpoints compartidos.
+- El acoplamiento entre los tres subflujos es del backend, no del frontend:
+  `POST /api/nomina/pagar` abona los préstamos pendientes del profesor y crea un
+  egreso automático dentro de la misma transacción. Las tres pantallas son
+  independientes entre sí y no comparten estado ni componentes.
+- Registrar un egreso mueve el filtro al día registrado; actualizarlo conserva el
+  rango vigente.
+- El módulo no adopta las capacidades que el backend ya ofrece y el frontend
+  nunca usó: préstamos sin `profesor_id`, egresos con fechas nulas y los dos
+  `DELETE` que responden `405` para recordar que estos registros no se eliminan.
+- Nómina y préstamos formatean montos con `valor.toFixed(2)` y egresos con
+  `Number(valor || 0).toFixed(2)`. La diferencia es previa a la migración y se
+  conserva: unificarla cambiaría el comportamiento de una de las pantallas.
+- No quedan llamadas HTTP, payloads ni bloques visuales extensos en las tres
   páginas, ni implementaciones visuales paralelas.
 
 ## Criterios de UX responsive
@@ -520,6 +566,14 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   `InventarioAdmin`/`VentasAdmin` protegen contratos HTTP, payloads, filtro por
   estado, actualización local sin recarga, tope de existencias del carrito,
   cargo a crédito, anulación con motivo y el volante imprimible.
+- Las pruebas de `src/utils/nominaEgresosPrestamos/`,
+  `src/services/nominaEgresosPrestamosApi.test.js`, los seis hooks, los siete
+  componentes y `NominaAdmin`/`EgresosAdmin`/`PrestamosAdmin` protegen los diez
+  contratos HTTP, el cálculo del neto y sus dos bloqueos previos al pago, el
+  modal que sobrevive a un error, el filtro del historial de nómina, el salto del
+  filtro de egresos a la fecha registrada, el rechazo del rango invertido, la
+  distinción manual/automático, la ausencia de consulta inicial de préstamos y
+  el saldado con su recarga.
 - Las pruebas de `src/utils/pagos/`, `src/services/pagosApi.test.js`, los siete
   hooks, los seis componentes y `PagosAdmin.test.jsx` protegen formatos,
   cálculos, payloads, transporte, consultas, comandos, presentación,

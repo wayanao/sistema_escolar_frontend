@@ -1,5 +1,53 @@
 # Cambios Frontend
 
+## 2026-08-07 - Modularización de nómina, egresos y préstamos
+
+Migración arquitectónica del módulo 11 del plan de modularización. No cambia
+diseño, textos, rutas, comportamiento ni contratos del backend.
+
+Las tres páginas eran cada una página, consultas, comandos, transformaciones y
+presentación en un solo archivo, sin ninguna prueba: `NominaAdmin.jsx` con 312
+líneas, `EgresosAdmin.jsx` con 324 y `PrestamosAdmin.jsx` con 326.
+
+- `src/utils/nominaEgresosPrestamos/`: tres archivos separados por subflujo con
+  el cálculo del neto y los contratos de nómina; la fecha local, las categorías,
+  la normalización y los contratos de egresos; y los estados, contratos y totales
+  de préstamos. Incluye las reglas puras de clase por saldo y por estado.
+- `src/services/nominaEgresosPrestamosApi.js`: frontera HTTP única con los diez
+  contratos del módulo. Ninguna página importa ya `utils/api.js`.
+- `src/hooks/nominaEgresosPrestamos/`: tres hooks de consulta —las dos consultas
+  paralelas de nómina, los egresos por rango y los profesores con el historial
+  bajo demanda— y tres hooks de comandos —el pago de nómina, el formulario de
+  egreso y el alta y saldado de préstamos—.
+- `src/components/nominaEgresosPrestamos/`: siete componentes presentacionales,
+  uno por tarjeta real de la pantalla. Solo importan React y utilidades puras.
+- Las tres páginas quedaron como raíces de composición de 64, 62 y 60 líneas.
+
+Decisiones registradas:
+
+- No se fusionaron utilidades entre los tres subflujos. Son tres dominios
+  relacionados por el backend —`POST /api/nomina/pagar` abona préstamos y crea un
+  egreso automático en la misma transacción— pero con contratos distintos.
+- `obtenerFechaLocal` se replicó con la misma firma inyectable que ya tiene
+  `utils/pagos/formatos.js`. Unificarlas exigiría modificar el módulo de pagos y
+  corresponde a una tarea transversal aparte.
+- `GET /profesores` se consume desde el servicio del módulo, con el mismo
+  criterio que `pagosApi.js` con `/estudiantes`.
+- Los formatos monetarios no se unificaron: nómina y préstamos usan
+  `valor.toFixed(2)` y egresos `Number(valor || 0).toFixed(2)`. Cualquier
+  unificación cambiaría el comportamiento de una de las pantallas.
+- `window.alert` y `window.confirm` se conservaron tal cual, junto con los otros
+  defectos preexistentes documentados en el documento del módulo.
+
+Verificación:
+
+- Caracterización previa a cualquier extracción: 31 pruebas de página que
+  pasaron sin modificarse en las seis capas siguientes.
+- Suite específica del módulo: 20 archivos y 151 pruebas correctas.
+- `pnpm run check:deploy`: correcto.
+- Detalle completo por capas en
+  [docs/modularizacion/NOMINA_EGRESOS_PRESTAMOS.md](modularizacion/NOMINA_EGRESOS_PRESTAMOS.md).
+
 ## 2026-08-06 - Limpieza: estado muerto `notas` en la caja
 
 Limpieza sin cambio de comportamiento. El payload enviado al backend es

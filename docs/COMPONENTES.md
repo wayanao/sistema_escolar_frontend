@@ -749,6 +749,42 @@ Estado actual de componentes y paginas del frontend.
 - Anular exige un motivo de al menos cinco caracteres y conserva la fila con su
   motivo visible.
 
+### Nómina, egresos y préstamos
+
+- `components/nominaEgresosPrestamos/EstadoCuentaPersonal.jsx`: tabla de todo el
+  personal con documento, nombre, saldo de préstamos coloreado y el botón que
+  abre el pago. Incluye su indicador de carga y su estado vacío.
+- `components/nominaEgresosPrestamos/HistorialNomina.jsx`: buscador por empleado
+  y tabla de pagos con sus dos estados vacíos: el que pide escribir un nombre y
+  el que avisa que ese empleado no tiene pagos.
+- `components/nominaEgresosPrestamos/ModalPagoNomina.jsx`: resumen del empleado
+  con su deuda, los cinco campos del pago, el total neto y los tres botones. El
+  campo de abono se deshabilita cuando no hay deuda.
+- `components/nominaEgresosPrestamos/FormularioEgreso.jsx`: concepto, monto,
+  categoría, fecha opcional y notas, con el encabezado y los botones que cambian
+  entre registrar y actualizar.
+- `components/nominaEgresosPrestamos/HistorialEgresos.jsx`: rango de fechas,
+  botones `Buscar` y `Hoy`, total del rango, tabla y la distinción entre fila
+  manual editable y fila `Automático`.
+- `components/nominaEgresosPrestamos/FormularioPrestamo.jsx`: selector de
+  profesor con documento, monto, fecha opcional y notas.
+- `components/nominaEgresosPrestamos/HistorialPrestamos.jsx`: filtro por
+  profesor, botones `Buscar` y `Limpiar`, total por cobrar, recuadro punteado
+  inicial, tabla con insignia de estado y la acción `Saldar`.
+- `pages\NominaAdmin.jsx`, `pages\EgresosAdmin.jsx` y `pages\PrestamosAdmin.jsx`:
+  raíces de composición del módulo.
+- `hooks/nominaEgresosPrestamos/`: consultas paralelas de nómina, egresos por
+  rango, profesores con historial bajo demanda, y los comandos de pago, egreso y
+  préstamo.
+- `services/nominaEgresosPrestamosApi.js`: frontera HTTP única del módulo.
+- `utils/nominaEgresosPrestamos/`: contratos, payloads, validaciones, fechas,
+  totales y reglas de clase puras de los tres subflujos.
+- El pago de nómina usa el sueldo del profesor como salario base, bloquea un
+  neto negativo y un abono mayor que la deuda pendiente, y ante un error conserva
+  el modal abierto con lo escrito.
+- Los egresos automáticos que crea la nómina no se pueden editar desde esta
+  pantalla; los préstamos no se eliminan y solo se pueden saldar.
+
 ### Pagos administrativos
 
 - `pages/PagosAdmin.jsx` es la raíz de composición protegida para administración
@@ -889,6 +925,12 @@ Notas:
 - `services/inventarioVentasApi.js`: frontera HTTP única de inventario y ventas.
 - `utils/inventarioVentas/`: contratos, payloads, filtros, totales y reglas de
   clase puras del módulo.
+- `hooks/nominaEgresosPrestamos/`: consultas de nómina, egresos y préstamos, y
+  comandos de pago de nómina, formulario de egreso y alta y saldado de préstamos.
+- `services/nominaEgresosPrestamosApi.js`: frontera HTTP única de nómina,
+  egresos y préstamos.
+- `utils/nominaEgresosPrestamos/`: contratos, payloads, validaciones, fechas,
+  totales y reglas de clase puras del módulo.
 - `utils/api.js`: cliente Axios compartido.
 
 ## Estilos
