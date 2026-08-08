@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
 import {
     MENSAJE_RANKING_SIN_CLASE,
@@ -52,9 +53,16 @@ const useContextoProfesor = () => {
     }, []);
 
     // Los rankings exigen una clase elegida. Avisa y responde si se puede seguir.
+    // El aviso no se espera: quien llama necesita la respuesta de inmediato para
+    // decidir si navega.
     const exigirClaseElegida = useCallback(() => {
         if (asignacionId) return true;
-        alert(MENSAJE_RANKING_SIN_CLASE);
+        Swal.fire({
+            icon: "warning",
+            title: "Elige una clase",
+            text: MENSAJE_RANKING_SIN_CLASE,
+            confirmButtonColor: "#059669",
+        });
         return false;
     }, [asignacionId]);
 

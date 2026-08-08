@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
     obtenerRankingBajoRendimiento,
     obtenerRankingMejorRendimiento,
@@ -32,8 +33,14 @@ const useRankingProfesor = (consultarRanking) => {
         }
 
         if (!asignacionId) {
-            alert(MENSAJE_RANKING_SIN_ASIGNACION);
-            navigate("/");
+            // Se espera a que el usuario lea el aviso antes de moverlo, igual que
+            // hacía el diálogo nativo que bloqueaba la pantalla.
+            Swal.fire({
+                icon: "warning",
+                title: "Elige una clase",
+                text: MENSAJE_RANKING_SIN_ASIGNACION,
+                confirmButtonColor: "#059669",
+            }).then(() => navigate("/"));
             return;
         }
 

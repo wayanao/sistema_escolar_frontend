@@ -5,8 +5,9 @@ import useRankingProfesor, {
     useRankingMejorRendimiento,
 } from "./useRankingProfesor";
 
-const { navigateMock, serviceMock } = vi.hoisted(() => ({
+const { navigateMock, serviceMock, swalFireMock } = vi.hoisted(() => ({
     navigateMock: vi.fn(),
+    swalFireMock: vi.fn(),
     serviceMock: {
         obtenerRankingBajoRendimiento: vi.fn(),
         obtenerRankingMejorRendimiento: vi.fn(),
@@ -14,6 +15,8 @@ const { navigateMock, serviceMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../services/dashboardsApi", () => serviceMock);
+
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
 vi.mock("react-router-dom", async (importOriginal) => ({
     ...(await importOriginal()),
@@ -35,7 +38,7 @@ const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "3" } = {}) => {
 describe("useRankingProfesor", () => {
     beforeEach(() => {
         localStorage.clear();
-        window.alert = vi.fn();
+        swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
         delete window.location;
         window.location = { href: "" };
@@ -52,19 +55,23 @@ describe("useRankingProfesor", () => {
 
         expect(window.location.href).toBe("/login");
         expect(consultarRanking).not.toHaveBeenCalled();
-        expect(window.alert).not.toHaveBeenCalled();
+        expect(swalFireMock).not.toHaveBeenCalled();
         expect(navigateMock).not.toHaveBeenCalled();
     });
 
-    it("avisa y vuelve al dashboard cuando no hay clase elegida", () => {
+    it("avisa y vuelve al dashboard cuando no hay clase elegida", async () => {
         iniciarSesionProfesor({ asignacionId: "" });
 
         renderHook(() => useRankingProfesor(consultarRanking));
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "Selecciona una clase en el Dashboard para ver el ranking.",
+        expect(swalFireMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                icon: "warning",
+                text: "Selecciona una clase en el Dashboard para ver el ranking.",
+            }),
         );
-        expect(navigateMock).toHaveBeenCalledWith("/");
+        // Se navega solo después de que el aviso se cierra.
+        await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/"));
         expect(consultarRanking).not.toHaveBeenCalled();
     });
 

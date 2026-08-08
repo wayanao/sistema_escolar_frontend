@@ -2,12 +2,15 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DashboardProfesor from "./DashboardProfesor";
 
-const { apiMock, navigateMock } = vi.hoisted(() => ({
+const { apiMock, navigateMock, swalFireMock } = vi.hoisted(() => ({
     apiMock: { get: vi.fn() },
     navigateMock: vi.fn(),
+    swalFireMock: vi.fn(),
 }));
 
 vi.mock("../utils/api", () => ({ default: apiMock }));
+
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
 vi.mock("react-router-dom", async (importOriginal) => ({
     ...(await importOriginal()),
@@ -92,7 +95,7 @@ const llamadasA = (url) => apiMock.get.mock.calls.filter(([ruta]) => ruta === ur
 describe("DashboardProfesor", () => {
     beforeEach(() => {
         localStorage.clear();
-        window.alert = vi.fn();
+        swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
         delete window.location;
         window.location = { href: "" };
@@ -460,8 +463,11 @@ describe("DashboardProfesor", () => {
         });
 
         fireEvent.click(rankingBajo);
-        expect(window.alert).toHaveBeenCalledWith(
-            "Por favor, selecciona un salón (materia) primero para ver el ranking.",
+        expect(swalFireMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                icon: "warning",
+                text: "Por favor, selecciona un salón (materia) primero para ver el ranking.",
+            }),
         );
         expect(navigateMock).not.toHaveBeenCalled();
 

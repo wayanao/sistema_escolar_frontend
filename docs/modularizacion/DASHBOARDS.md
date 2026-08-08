@@ -1264,10 +1264,9 @@ extraer nada.
      es estrecho: crear una planeación desmonta el dashboard y al volver se
      vuelve a consultar. La ventana de datos viejos se limita a otra pestaña,
      otro dispositivo o un cambio del administrador. Gravedad baja.
-  7. El panel del profesor y los rankings usan `window.alert` mientras el resto
-     del sistema ya migró a SweetAlert. Además Chrome puede silenciarlos si el
-     usuario marca `Impedir que esta página cree diálogos adicionales`, y
-     entonces pulsar el ranking sin clase elegida no hace nada visible.
+  7. ~~El panel del profesor y los rankings usan `window.alert`.~~ **CORREGIDO**
+     en un commit posterior a la migración. Los dos avisos son SweetAlert, como
+     el resto del sistema, así que Chrome ya no puede silenciarlos.
   8. `crearColegio` lee sus valores del DOM con `document.getElementById`, ahora
      aislado en trece líneas dentro de su hook.
 - Diferencia conocida que no es defecto: las dos `capitalizarInicial` divergen a

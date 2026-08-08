@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-08-08 - Los avisos del profesor usan SweetAlert
+
+Corrección del tercer defecto que la modularización del módulo 12 dejó
+registrado. Los dos avisos de «elige una clase» usaban `window.alert`, el único
+sitio del sistema que aún lo hacía.
+
+El problema no era solo estético: si el usuario marca en Chrome
+`Impedir que esta página cree diálogos adicionales`, el navegador silencia los
+`alert` siguientes. A partir de ahí, pulsar `Ver ranking por materia` sin clase
+elegida **no hacía absolutamente nada**, sin explicación alguna.
+
+- `useContextoProfesor` avisa con SweetAlert y no espera la respuesta: quien
+  llama necesita el booleano de inmediato para decidir si navega.
+- `useRankingProfesor` sí espera a que el aviso se cierre antes de volver al
+  dashboard, igual que hacía el diálogo nativo que bloqueaba la pantalla.
+
+Los textos no cambian. Los avisos usan `icon: "warning"` y el verde del módulo,
+como los del panel de super administración.
+
+Tres caracterizaciones y dos pruebas de hooks se actualizaron: fijaban
+`window.alert` y eran la red que debía avisar de este cambio.
+
+Verificación: 35 archivos y 342 pruebas específicas; `pnpm run check:deploy`
+correcto con 244 archivos y 1225 pruebas.
+
 ## 2026-08-08 - Los dashboards descartan las respuestas superadas
 
 Corrección del segundo defecto que la modularización del módulo 12 dejó

@@ -2,12 +2,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import RankingMejorRendimiento from "./RankingMejorRendimiento";
 
-const { apiMock, navigateMock } = vi.hoisted(() => ({
+const { apiMock, navigateMock, swalFireMock } = vi.hoisted(() => ({
     apiMock: { get: vi.fn() },
     navigateMock: vi.fn(),
+    swalFireMock: vi.fn(),
 }));
 
 vi.mock("../utils/api", () => ({ default: apiMock }));
+
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
 vi.mock("react-router-dom", async (importOriginal) => ({
     ...(await importOriginal()),
@@ -32,7 +35,7 @@ const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "2" } = {}) => {
 describe("RankingMejorRendimiento", () => {
     beforeEach(() => {
         localStorage.clear();
-        window.alert = vi.fn();
+        swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
         delete window.location;
         window.location = { href: "" };
@@ -51,15 +54,18 @@ describe("RankingMejorRendimiento", () => {
         expect(navigateMock).not.toHaveBeenCalled();
     });
 
-    it("avisa y vuelve al dashboard cuando no hay clase seleccionada", () => {
+    it("avisa y vuelve al dashboard cuando no hay clase seleccionada", async () => {
         iniciarSesionProfesor({ asignacionId: "" });
 
         render(<RankingMejorRendimiento />);
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "Selecciona una clase en el Dashboard para ver el ranking.",
+        expect(swalFireMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                icon: "warning",
+                text: "Selecciona una clase en el Dashboard para ver el ranking.",
+            }),
         );
-        expect(navigateMock).toHaveBeenCalledWith("/");
+        await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/"));
         expect(apiMock.get).not.toHaveBeenCalled();
     });
 

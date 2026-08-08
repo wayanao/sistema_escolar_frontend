@@ -2,6 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import useContextoProfesor from "./useContextoProfesor";
 
+const { swalFireMock } = vi.hoisted(() => ({ swalFireMock: vi.fn() }));
+
+vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
+
 const locationOriginal = window.location;
 
 const clases = [{ id: 10 }, { id: 11 }];
@@ -104,20 +108,22 @@ describe("useContextoProfesor", () => {
 
     it("exige una clase elegida antes de abrir un ranking", () => {
         iniciarSesionProfesor();
-        window.alert = vi.fn();
 
         const { result } = renderHook(() => useContextoProfesor());
 
         expect(result.current.exigirClaseElegida()).toBe(false);
-        expect(window.alert).toHaveBeenCalledWith(
-            "Por favor, selecciona un salón (materia) primero para ver el ranking.",
+        expect(swalFireMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                icon: "warning",
+                text: "Por favor, selecciona un salón (materia) primero para ver el ranking.",
+            }),
         );
 
         act(() => result.current.cambiarAsignacion("10"));
-        window.alert.mockClear();
+        swalFireMock.mockClear();
 
         expect(result.current.exigirClaseElegida()).toBe(true);
-        expect(window.alert).not.toHaveBeenCalled();
+        expect(swalFireMock).not.toHaveBeenCalled();
     });
 
     it("no hace nada cuando no hay clase guardada", () => {
