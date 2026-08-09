@@ -3,7 +3,7 @@
 Hoja de ruta para migrar el frontend por módulos y capas sin cambiar el
 comportamiento funcional existente.
 
-Última revisión: 2026-08-08.
+Última revisión: 2026-08-09.
 
 ## Objetivo
 
@@ -306,20 +306,20 @@ registrar al final:
 | Orden | Módulo | Estado | Documento |
 |---:|---|---|---|
 | Referencia | Planeaciones | Terminado en `fd9ed72` | Documentación global existente |
-| 1 | Asistencia | Terminado; commit pendiente | [ASISTENCIA.md](./ASISTENCIA.md) |
-| 2 | Planilla | Terminado; commit pendiente | [PLANILLA.md](./PLANILLA.md) |
-| 3 | Malla curricular | Terminado; commit pendiente | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
-| 4 | Boletines | Terminado; commit pendiente | [BOLETINES.md](./BOLETINES.md) |
-| 5 | Estudiantes y observador | Terminado; commit pendiente | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
-| 6 | Certificados e impresión | Terminado; commit pendiente | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
-| 7 | Pagos | Terminado; commit pendiente | [PAGOS.md](./PAGOS.md) |
-| 8 | Cartera y tipos de pago | Terminado; commit pendiente | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
-| 9 | Reportes financieros | Terminado; commit pendiente | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
-| 10 | Inventario y ventas | Terminado; commit pendiente | [INVENTARIO_VENTAS.md](./INVENTARIO_VENTAS.md) |
-| 11 | Nómina, egresos y préstamos | Terminado; commit pendiente | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
-| 12 | Dashboards y rankings | Terminado; commit pendiente | [DASHBOARDS.md](./DASHBOARDS.md) |
-| 13 | Administración académica y horarios | Terminado; commit pendiente | [ADMINISTRACION_ACADEMICA.md](./ADMINISTRACION_ACADEMICA.md) |
-| 14 | Autenticación, sesión y navegación | Terminado; commit pendiente | [AUTENTICACION_NAVEGACION.md](./AUTENTICACION_NAVEGACION.md) |
+| 1 | Asistencia | Terminado y publicado (`c02c2e2`) | [ASISTENCIA.md](./ASISTENCIA.md) |
+| 2 | Planilla | Terminado y publicado (`ef95bf7`) | [PLANILLA.md](./PLANILLA.md) |
+| 3 | Malla curricular | Terminado y publicado (`aefcfc8`) | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |
+| 4 | Boletines | Terminado y publicado (`60edcb5`) | [BOLETINES.md](./BOLETINES.md) |
+| 5 | Estudiantes y observador | Terminado y publicado (`9394d36`) | [ESTUDIANTES_OBSERVADOR.md](./ESTUDIANTES_OBSERVADOR.md) |
+| 6 | Certificados e impresión | Terminado y publicado (`d730cf1`) | [CERTIFICADOS_IMPRESION.md](./CERTIFICADOS_IMPRESION.md) |
+| 7 | Pagos | Terminado y publicado (`0f74233`) | [PAGOS.md](./PAGOS.md) |
+| 8 | Cartera y tipos de pago | Terminado y publicado (`eb24e2a`) | [CARTERA_TIPOS_PAGO.md](./CARTERA_TIPOS_PAGO.md) |
+| 9 | Reportes financieros | Terminado y publicado (`51824b8`) | [REPORTES_FINANCIEROS.md](./REPORTES_FINANCIEROS.md) |
+| 10 | Inventario y ventas | Terminado y publicado (`2a7c069`) | [INVENTARIO_VENTAS.md](./INVENTARIO_VENTAS.md) |
+| 11 | Nómina, egresos y préstamos | Terminado y publicado (`a80cca4`) | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
+| 12 | Dashboards y rankings | Terminado y publicado (`8195b29`) | [DASHBOARDS.md](./DASHBOARDS.md) |
+| 13 | Administración académica y horarios | Terminado y publicado (`6f2094b`) | [ADMINISTRACION_ACADEMICA.md](./ADMINISTRACION_ACADEMICA.md) |
+| 14 | Autenticación, sesión y navegación | Terminado y publicado (`c0ab1e5`) | [AUTENTICACION_NAVEGACION.md](./AUTENTICACION_NAVEGACION.md) |
 
 El orden puede cambiar por una necesidad funcional, pero debe modificarse aquí
 antes de iniciar el nuevo módulo.

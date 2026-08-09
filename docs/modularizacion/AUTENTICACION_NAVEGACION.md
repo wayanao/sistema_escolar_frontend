@@ -2,14 +2,14 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente. Capas 0 a 7 completadas.
+- Estado: Terminado y publicado en `main`. Capas 0 a 7 completadas.
 - Orden: 14.
 - Riesgo inicial: Crítico.
 - Flujo Git: `main` directo.
 - Commit base: `32d4ce8417c1c0744123154bf96148ac690fd1e8`.
 - Punto de recuperación: `main` y `origin/main` coincidían en el commit base y
   el working tree estaba limpio antes de iniciar la capa 0.
-- Commit final: Pendiente.
+- Commit final: `c0ab1e5`.
 - Última actualización: 2026-08-08 (capa 7, cierre).
 
 ## Objetivo
@@ -799,6 +799,6 @@ Después del commit, push y deploy que realizará el usuario:
 - Riesgos abiertos: los registrados en la sección anterior; no se introdujeron
   correcciones funcionales.
 - Siguiente capa: ninguna; módulo terminado.
-- Siguiente acción exacta: el usuario revisa el diff, crea el único commit con
-  el mensaje sugerido, hace push a `origin/main`, espera el deploy y ejecuta la
-  verificación manual anterior. Codex no realizó commit, push ni deploy.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual anterior como seguimiento operativo si todavía no fue
+  registrada.

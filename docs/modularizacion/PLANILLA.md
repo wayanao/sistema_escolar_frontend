@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 2.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `0f74233`.
-- Commit final: Pendiente.
+- Commit final: `ef95bf7`.
 - Última actualización: 2026-08-05.
 
 ## Objetivo
@@ -590,7 +590,7 @@ su propia forma de consumo; `asistenciaApi.js` no se movió ni se modificó.
   `/mis-clases` y `/planilla-excel`.
 - Documentación actualizada en este cierre:
   - `docs/modularizacion/README.md`: fila de Planilla en "Orden de
-    migración" pasa de `Pendiente` a `Terminado; commit pendiente`;
+    migración" pasa de `Pendiente` a `Terminado y publicado en main`;
   - `docs/ARQUITECTURA_FRONTEND.md`: nuevas entradas de
     `src/components/planilla/`, `src/hooks/planilla/`,
     `src/services/planillaApi.js` y `src/utils/planilla/` en "Estructura de
@@ -690,6 +690,6 @@ No se modificó ningún archivo fuera de estas rutas.
 - Riesgos residuales: ver "Riesgos residuales documentados" (capa 6);
   ninguno bloquea el cierre, todos están documentados como comportamiento
   preexistente o decisión arquitectónica deliberada.
-- Siguiente acción exacta: crear el único commit sugerido, publicar en
-  `origin/main`, esperar el deploy y ejecutar la verificación manual de
-  producción. Estas acciones corresponden al usuario.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción como seguimiento operativo si todavía
+  no fue registrada.

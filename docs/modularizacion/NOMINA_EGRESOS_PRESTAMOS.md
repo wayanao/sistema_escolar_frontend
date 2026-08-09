@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 11.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `0a54c019b04ba5159756a9cb2d5c42f32096bb4e`.
-- Commit final: Pendiente.
+- Commit final: `a80cca4`.
 - Última actualización: 2026-08-07 (capa 7, cierre).
 
 ## Objetivo
@@ -1009,5 +1009,6 @@ están protegidos por pruebas antes de extraer utilidades.
 - Diferencia conocida que no es defecto: nómina y préstamos formatean con
   `valor.toFixed(2)` y egresos con `Number(valor || 0).toFixed(2)`.
 - Siguiente capa pendiente: Ninguna.
-- Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
-  a `origin/main`, espera el deploy y ejecuta la verificación manual.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual como seguimiento operativo si todavía no fue
+  registrada.

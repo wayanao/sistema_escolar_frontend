@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 7.
 - Riesgo inicial: Muy alto.
 - Flujo Git: `main` directo.
 - Commit base: `eb24e2ad5cf2b4291af649ff5d9cc0e279e3c85d`.
-- Commit final: Pendiente.
+- Commit final: `0f74233`.
 - Última actualización: 2026-08-04.
 
 ## Objetivo
@@ -580,6 +580,6 @@ agregaron pruebas de caracterización antes de mover estado React.
   `src/components/pagos/` y `src/hooks/pagos/`; los hooks usan
   `src/services/pagosApi.js` y `src/utils/pagos/`.
 - No quedan capas pendientes ni implementaciones antiguas duplicadas.
-- Siguiente acción exacta del usuario: revisar el diff, crear el único commit
-  sugerido, hacer push a `origin/main`, esperar el deploy y ejecutar la
-  verificación manual de producción registrada arriba.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción registrada arriba como seguimiento
+  operativo si todavía no fue ejecutada.

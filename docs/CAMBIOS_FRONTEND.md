@@ -1,5 +1,14 @@
 # Cambios Frontend
 
+## 2026-08-09 - Cierre documental del plan de modularización
+
+- El plan maestro registra los catorce módulos como terminados y publicados en
+  `main`, con el commit de cierre correspondiente.
+- Los documentos específicos dejan de indicar que falta commit o publicación;
+  las verificaciones manuales de producción se conservan como seguimiento
+  operativo cuando todavía no existe constancia de su ejecución.
+- No se modificó código fuente ni comportamiento de la aplicación.
+
 ## 2026-08-09 - Navegación animada ubicada en autenticación
 
 - `DesktopAnimatedNav.jsx` se trasladó desde la raíz de `components/` a

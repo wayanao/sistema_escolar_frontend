@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 8.
 - Riesgo inicial: Muy alto.
 - Flujo Git: `main` directo.
 - Commit base: `aefcfc8de4a17128614c0a0e1adba7c2e49df807`.
-- Commit final: Pendiente.
+- Commit final: `eb24e2a`.
 - Última actualización: 2026-08-03.
 
 ## Objetivo
@@ -582,5 +582,6 @@ Contratos de escritura protegidos por caracterización:
 - Riesgos abiertos: los errores de carga inicial continúan visibles solo en
   consola, como antes de la migración; la mejora visual queda fuera de alcance.
 - Siguiente capa pendiente: Ninguna.
-- Siguiente acción exacta: el usuario crea el único commit del módulo, hace
-  push a `origin/main`, espera el deploy y ejecuta la verificación manual.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual como seguimiento operativo si todavía no fue
+  registrada.

@@ -1350,5 +1350,6 @@ prueba antes de llegar a producción.
 **Cuándo reabrirlo:** el día que ese formulario cambie por una razón de producto
 —añadir un campo, modificar el flujo de alta—, hacerlo entonces como modal React.
 Así el rediseño se paga una sola vez y con una justificación funcional detrás.
-- Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
-  a `origin/main`, espera el deploy y ejecuta la verificación manual.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual como seguimiento operativo si todavía no fue
+  registrada.

@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente. Capas 0 a 7 completas.
+- Estado: Terminado y publicado en `main`. Capas 0 a 7 completas.
 - Orden: 6.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `9394d366a5ba6be6f67e408c551d0c449c836aa8`.
-- Commit final: Pendiente.
+- Commit final: `d730cf1`; ajuste posterior publicado en `63526ed`.
 - Última actualización: 2026-08-03.
 
 ## Objetivo
@@ -634,8 +634,8 @@ caracterización para la construcción de reportes y el wrapper imprimible.
   tienen consumidores reales en varios dominios.
 - No se movieron esos contratos a una carpeta exclusiva del módulo ni se
   modificaron sus consumidores externos.
-- El commit final continúa pendiente para que el usuario revise y publique el
-  módulo como una sola unidad.
+- El cierre quedó publicado en `d730cf1`; el ajuste posterior de reporte parcial
+  quedó publicado en `63526ed`.
 
 ### Verificación manual recomendada en producción
 
@@ -682,9 +682,10 @@ caracterización para la construcción de reportes y el wrapper imprimible.
 - Última capa terminada: Capa 7, cierre. Módulo completo.
 - Verificación más reciente: 17 archivos y 61 pruebas específicas; 126 archivos
   y 440 pruebas globales; ESLint, build y `git diff --check` correctos.
-- Archivos pendientes: ninguno de implementación o documentación. Solo resta la
-  revisión del usuario, el único commit, push y verificación de producción.
+- Archivos pendientes: ninguno de implementación o documentación. La
+  verificación de producción se conserva como seguimiento operativo si todavía
+  no fue registrada.
 - Riesgos residuales: validación visual dependiente del diálogo nativo de
   impresión y de dispositivos móviles reales.
-- Siguiente acción exacta: revisar el diff, crear el único commit sugerido,
-  publicar en `origin/main` y ejecutar la verificación manual de producción.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción como seguimiento operativo.

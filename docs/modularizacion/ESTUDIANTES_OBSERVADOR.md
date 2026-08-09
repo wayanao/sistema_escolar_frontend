@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 5.
 - Riesgo actual: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `60edcb52c85c7bac5f6b05865c9ff22c7c691b98`.
-- Commit final: Pendiente.
+- Commit final: `9394d36`.
 - Última actualización: 2026-08-02.
 
 ## Objetivo
@@ -569,8 +569,7 @@ bloques visuales extensos.
   inseguro; servicio, endpoints y payloads permanecen intactos.
 - Si el navegador no ofrece `IntersectionObserver`, el hook habilita la carga
   inmediata como fallback para conservar funcionalidad.
-- El módulo queda listo para un único commit del usuario. No se hizo commit,
-  push ni deploy.
+- El módulo quedó publicado en `main` mediante `9394d36`.
 
 ## Seguimiento por capas
 
@@ -595,6 +594,6 @@ bloques visuales extensos.
   `estudiante_id`, y búsqueda por `documento` frente al campo de formulario
   `documento_identidad`; no deben reinterpretarse sin cambiar el backend.
 - Siguiente capa: ninguna; el módulo está terminado.
-- Siguiente acción exacta: verificar manualmente en producción, crear el único
-  commit del módulo, hacer push a `origin/main` y revisar el deploy. Estas
-  acciones quedan a cargo del usuario.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción como seguimiento operativo si todavía
+  no fue registrada.

@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 10.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `e8a11bcdf32e92a0002a5b2b9032031161db09ad`.
-- Commit final: Pendiente.
+- Commit final: `2a7c069`.
 - Última actualización: 2026-08-06.
 
 ## Objetivo
@@ -733,5 +733,6 @@ protegidos por pruebas antes de extraer servicios.
   de una venta en la interfaz. El backend lo acepta, pero requiere decidir dónde
   se escribe y dónde se muestra.
 - Siguiente capa pendiente: Ninguna.
-- Siguiente acción exacta: el usuario crea el único commit del módulo, hace push
-  a `origin/main`, espera el deploy y ejecuta la verificación manual.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual como seguimiento operativo si todavía no fue
+  registrada.

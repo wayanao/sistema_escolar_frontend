@@ -2,13 +2,13 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 9.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `ee6f502` (`main` == `origin/main`, working tree limpio al
   iniciar).
-- Commit final: Pendiente.
+- Commit final: `51824b8`; corrección posterior publicada en `32d4ce8`.
 - Última actualización: 2026-08-08 (capa 7, cierre).
 
 ## Objetivo
@@ -677,9 +677,9 @@ backend antes de extraer consultas.
 - Riesgos abiertos: ver "Riesgos conservados fuera de la migración" arriba;
   los dos defectos de zona horaria y el comportamiento de medios combinados
   afectan la exactitud del reporte y se recomiendan como tareas separadas.
-- Siguiente acción exacta del usuario: revisar el diff, crear el único
-  commit sugerido, hacer push a `origin/main`, esperar el deploy y ejecutar
-  la verificación manual de producción registrada arriba.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción registrada arriba como seguimiento
+  operativo si todavía no fue ejecutada.
 
 ## Corrección posterior al cierre (2026-08-08)
 

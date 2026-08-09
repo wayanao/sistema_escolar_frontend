@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit y publicación pendientes.
+- Estado: Terminado y publicado en `main`.
 - Orden: 1.
 - Riesgo inicial: Medio.
 - Flujo Git: `main` directo.
 - Commit base: `7051bbe`.
-- Commit final: Pendiente.
+- Commit final: `c02c2e2`.
 - Última actualización: 2026-07-31.
 
 ## Objetivo
@@ -379,6 +379,6 @@ hooks y componentes, conservando marcación, edición, historial y validaciones.
 - Archivos pendientes: ninguno de implementación o documentación.
 - Riesgos residuales: redirecciones directas, reintento fijo y orden de
   hidratación documentados y conservados.
-- Siguiente acción exacta: crear el único commit sugerido, publicar en
-  `origin/main`, esperar el deploy y ejecutar la verificación manual de
-  producción. Estas acciones corresponden al usuario.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción como seguimiento operativo si todavía
+  no fue registrada.

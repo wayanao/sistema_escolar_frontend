@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 4.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `18ce82a94b3ab2a69574b30d4195b0a3624b4ccc`.
-- Commit final: Pendiente.
+- Commit final: `60edcb5`.
 - Última actualización: 2026-08-02.
 
 ## Objetivo
@@ -453,7 +453,7 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
 - Capas 0 a 7 terminadas.
 - Verificación final: 17 archivos y 44 pruebas específicas; 93 archivos y 330
   pruebas globales; lint y build correctos.
-- Commit final: pendiente de creación por el usuario.
+- Commit final publicado: `60edcb5`.
 - Mensaje sugerido: `refactor(boletines): modularizar el flujo completo`.
 
 ### Verificación manual después del deploy

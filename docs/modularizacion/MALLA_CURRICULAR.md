@@ -2,12 +2,12 @@
 
 ## Control
 
-- Estado: Terminado; commit pendiente.
+- Estado: Terminado y publicado en `main`.
 - Orden: 3.
 - Riesgo inicial: Medio/alto.
 - Flujo Git: `main` directo.
 - Commit base: `63526ed155112f641bea1a01595ecf19bb348b77`.
-- Commit final: Pendiente; lo realizará el usuario.
+- Commit final: `aefcfc8`.
 - Última actualización: 2026-08-03.
 
 ## Objetivo
@@ -350,8 +350,8 @@ validaciones de filas, fechas y eliminación implícita de registros vacíos.
   para `slot` inválido y el defecto previo de carga cuando falta asignación o
   período. No se alteraron porque corregirlos cambiaría el comportamiento fuera
   del alcance de la migración.
-- Siguiente acción exacta: revisar el diff, crear el único commit del módulo,
-  hacer push a `origin/main`, revisar el deploy y ejecutar la verificación
-  manual anterior.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual anterior como seguimiento operativo si todavía no fue
+  registrada.
 - Mensaje sugerido para el único commit:
   `refactor(malla-curricular): modularizar el flujo completo`.

@@ -2,12 +2,13 @@
 
 ## Control
 
-- Estado: Terminado; capas 0-7 completadas en el alcance del módulo.
+- Estado: Terminado y publicado en `main`; capas 0-7 completadas en el alcance
+  del módulo.
 - Orden: 13.
 - Riesgo inicial: Alto.
 - Flujo Git: `main` directo.
 - Commit base: `c02c2e2e768bd16942195876f339ffc8d8d4c653`.
-- Commit final: Pendiente del commit único del usuario.
+- Commit final: `6f2094b`.
 - Última actualización: 2026-08-01.
 
 ## Objetivo
@@ -1334,9 +1335,9 @@ secciones claras, pero no debe convertirse en un archivo monolítico sin límite
 - Implementaciones antiguas: retiradas; no quedan imports, raíces ni
   contenedores duplicados.
 - Archivos pendientes de implementación: ninguno.
-- Siguiente acción exacta: el usuario debe revisar el diff, realizar la
-  verificación manual en producción y, si el resultado es correcto, crear el
-  único commit del módulo, hacer push a `origin/main` y revisar el deploy.
+- Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
+  la verificación manual de producción como seguimiento operativo si todavía
+  no fue registrada.
 - Mensaje sugerido para el commit único:
   `refactor(administracion-academica): modularizar gestion y horarios`.
 - Codex no realizó commit, push ni deploy.
