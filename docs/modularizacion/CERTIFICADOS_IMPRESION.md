@@ -36,7 +36,6 @@ alterar contenido académico, branding ni reglas de impresión.
 - `src/services/printingService.test.js`
 - `src/services/certificadosImpresionApi.js`
 - `src/services/certificadosImpresionApi.test.js`
-- `src/hooks/usePrintConfig.js`
 - `src/hooks/certificadosImpresion/useConsultasCertificadosAdmin.js`
 - `src/hooks/certificadosImpresion/useConsultasCertificadosAdmin.test.js`
 - `src/hooks/certificadosImpresion/usePrintConfig.js`
@@ -332,8 +331,8 @@ caracterización para la construcción de reportes y el wrapper imprimible.
 
 - La implementación de `usePrintConfig` se movió a
   `src/hooks/certificadosImpresion/usePrintConfig.js`.
-- `src/hooks/usePrintConfig.js` queda como reexportación compatible, sin una
-  segunda implementación, para no romper consumidores externos del wrapper.
+- La reexportación histórica `src/hooks/usePrintConfig.js` se retiró después
+  del cierre, cuando una auditoría confirmó que no tenía consumidores activos.
 - Se conservan caché de branding por sesión, caché de plantilla por tipo,
   deduplicación de promesas concurrentes, reintento después de error e
   invalidación global.
@@ -369,8 +368,8 @@ caracterización para la construcción de reportes y el wrapper imprimible.
   dominio ni de consulta.
 - Los servicios siguen propagando errores sin mensajes; el hook conserva los
   mensajes existentes que consume la interfaz.
-- La compatibilidad del import histórico de `usePrintConfig` se mantiene con
-  una reexportación mínima y explícita.
+- Todos los consumidores de `usePrintConfig` importan directamente la
+  implementación de dominio.
 - No se movieron comandos de branding o plantillas ni se extrajo presentación.
 
 ### Riesgos abiertos
@@ -593,8 +592,8 @@ caracterización para la construcción de reportes y el wrapper imprimible.
 ### Riesgos abiertos
 
 - La capa 7 debe ejecutar la verificación global para detectar regresiones en
-  los consumidores externos de `DocumentoImprimible`, `printingService` y la
-  reexportación histórica de `usePrintConfig`.
+  los consumidores externos de `DocumentoImprimible`, `printingService` y
+  `usePrintConfig`.
 - La revisión manual final debe cubrir A4, scroll móvil, branding, firmas y los
   dos comandos que invocan la impresión del navegador.
 - El árbol seguirá con cambios acumulados hasta que el usuario cree el único
@@ -610,8 +609,7 @@ caracterización para la construcción de reportes y el wrapper imprimible.
   las vistas, hooks, servicios, utilidades y raíces vigentes.
 - `docs/CAMBIOS_FRONTEND.md` registra el cierre, alcance y cifras finales de
   verificación.
-- `docs/modularizacion/README.md` marca el módulo como terminado con commit
-  pendiente.
+- `docs/modularizacion/README.md` marca el módulo como terminado y publicado.
 
 ### Verificación final
 
@@ -630,7 +628,7 @@ caracterización para la construcción de reportes y el wrapper imprimible.
 ### Decisiones de cierre
 
 - `printingService.js`, `DocumentoImprimible.jsx`, `styles/print.css` y la
-  reexportación histórica de `usePrintConfig` permanecen compartidos porque
+  implementación de dominio de `usePrintConfig` permanecen compartidos porque
   tienen consumidores reales en varios dominios.
 - No se movieron esos contratos a una carpeta exclusiva del módulo ni se
   modificaron sus consumidores externos.

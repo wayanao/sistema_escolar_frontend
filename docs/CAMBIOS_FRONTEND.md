@@ -1,5 +1,19 @@
 # Cambios Frontend
 
+## 2026-08-09 - Retiro de reexportación de impresión sin consumidores
+
+- Se eliminó `src/hooks/usePrintConfig.js`, que solo reexportaba la
+  implementación real de `hooks/certificadosImpresion/usePrintConfig.js` y ya
+  no tenía imports productivos.
+- Los consumidores activos ya importaban directamente la implementación de
+  dominio; no cambian caché, transporte, presentación ni comportamiento de
+  impresión.
+- Se actualizaron arquitectura, catálogo de componentes y documentos de
+  modularización relacionados.
+
+Verificación: 5 archivos y 19 pruebas de configuración e impresión correctas;
+ESLint específico y build de 375 módulos correctos.
+
 ## 2026-08-09 - Cierre documental del plan de modularización
 
 - El plan maestro registra los catorce módulos como terminados y publicados en

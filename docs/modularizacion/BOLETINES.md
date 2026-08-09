@@ -32,7 +32,7 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
 4. Impresión del boletín:
    `BoletinImprimible.jsx` usa el contrato compartido de
    `src/components/impresion/DocumentoImprimible.jsx`,
-   `src/hooks/usePrintConfig.js`, `src/services/printingService.js` y
+   `src/services/printingService.js` y
    `src/styles/print.css`. Estas unidades compartidas se inventariaron, pero no
    se modificaron.
 

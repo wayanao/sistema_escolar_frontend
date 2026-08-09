@@ -1001,9 +1001,8 @@ Notas:
 - `utils/estudiantesObservador/`: contratos, filtros, normalización y payloads
   puros del módulo.
 - `hooks/certificadosImpresion/usePrintConfig.js`: implementación única de la
-  caché de branding y plantilla activa por tipo.
-- `hooks/usePrintConfig.js`: reexportación compatible para consumidores de
-  otros dominios.
+  caché de branding y plantilla activa por tipo, importada directamente por sus
+  consumidores.
 - `hooks/certificadosImpresion/`: consultas y comandos de certificados,
   identidad institucional y plantillas.
 - `services/certificadosImpresionApi.js`: frontera HTTP propia de certificados.

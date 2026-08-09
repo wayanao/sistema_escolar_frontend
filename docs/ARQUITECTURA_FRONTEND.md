@@ -320,9 +320,9 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - `services/certificadosImpresionApi.js` y `printingService.js` encapsulan el
   transporte; los hooks separan consultas, comandos y caché compartida, y las
   utilidades concentran filtros, normalización y construcción de reportes.
-- `hooks/usePrintConfig.js` permanece como reexportación compatible hacia la
-  implementación única de `hooks/certificadosImpresion/usePrintConfig.js`,
-  porque el wrapper imprimible tiene consumidores en otros dominios.
+- `hooks/certificadosImpresion/usePrintConfig.js` es la implementación única de
+  la caché compartida de impresión. Todos sus consumidores importan esa ruta
+  directamente; no queda una reexportación histórica en la raíz de `hooks/`.
 - `DocumentoImprimible` conserva branding, plantilla activa, firmas, pie,
   formato A4, desplazamiento horizontal móvil y ambos comandos basados en
   `window.print()`.
