@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import auligoLogoNav from "../../assets/auligo-logo-nav.png";
 import { ADMIN_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "../../utils/autenticacion/sesion";
-import DesktopAnimatedNav from "../DesktopAnimatedNav";
+import DesktopAnimatedNav from "./DesktopAnimatedNav";
 
 function NavAdminView({ onCerrarSesion, renderNotificaciones }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

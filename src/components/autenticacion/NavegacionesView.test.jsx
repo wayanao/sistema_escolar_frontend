@@ -6,7 +6,7 @@ import NavAdminView from "./NavAdminView";
 import NavProfesorView from "./NavProfesorView";
 import NavSuperAdminView from "./NavSuperAdminView";
 
-vi.mock("../DesktopAnimatedNav", () => ({
+vi.mock("./DesktopAnimatedNav", () => ({
   default: ({ items, variant, ariaLabel }) => (
     <nav aria-label={ariaLabel} data-variant={variant}>
       {items.map((item) =>

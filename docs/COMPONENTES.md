@@ -40,7 +40,8 @@ Estado actual de componentes y paginas del frontend.
   al desplazar la página; encabezado y acción inferior permanecen visibles
   mientras la lista central hace scroll. En escritorio continúa anclada
   directamente a la campana.
-- `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
+- `components/autenticacion/DesktopAnimatedNav.jsx`: nav compartido de
+  escritorio para admin/profesor;
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
   escritorio usan `15px` para mejorar lectura.
@@ -630,8 +631,8 @@ Estado actual de componentes y paginas del frontend.
 - `pages/Login.jsx` y `pages/CambiarPassword.jsx`: raíces de composición de los
   dos formularios.
 - `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant.
-- `DesktopAnimatedNav.jsx`: presentación compartida de escritorio para admin y
-  profesor.
+- `components/autenticacion/DesktopAnimatedNav.jsx`: presentación compartida
+  de escritorio para admin y profesor.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
   compartido del dominio de planeaciones integrado mediante rol y callback de
   navegación; comparte el contrato de actualización local mediante

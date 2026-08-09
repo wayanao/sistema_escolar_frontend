@@ -1,5 +1,16 @@
 # Cambios Frontend
 
+## 2026-08-09 - Navegación animada ubicada en autenticación
+
+- `DesktopAnimatedNav.jsx` se trasladó desde la raíz de `components/` a
+  `components/autenticacion/`, junto a `NavAdminView` y `NavProfesorView`, sus
+  dos únicos consumidores.
+- Se actualizaron los imports productivos, el mock de las vistas de navegación
+  y la documentación sin modificar rutas, textos, estilos ni animaciones.
+
+Verificación: 4 archivos y 39 pruebas relacionadas correctas; ESLint específico
+y build de 375 módulos correctos.
+
 ## 2026-08-09 - Evento de notificaciones ubicado en planeaciones
 
 - `src/utils/notificacionesPlaneadores.js` se trasladó a

@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   esRutaNavegacionActiva,
   obtenerIdItemNavegacionActivo,
-} from "../utils/autenticacion/navegacion";
+} from "../../utils/autenticacion/navegacion";
 
 function ChevronIcon() {
   return (

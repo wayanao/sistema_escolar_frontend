@@ -26,7 +26,7 @@ seguridad ni modificar la experiencia de acceso.
 - `src/pages/CambiarPassword.jsx`: raíz de composición del cambio obligatorio.
 - `src/components/autenticacion/`: vistas de login, password, tenant y
   navegación por rol.
-- `src/components/DesktopAnimatedNav.jsx`.
+- `src/components/autenticacion/DesktopAnimatedNav.jsx`.
 - `src/hooks/autenticacion/`: estado, guards, consultas y comandos.
 - `src/services/autenticacionApi.js`: transporte de los cuatro flujos remotos.
 - `src/utils/autenticacion/`: contratos y transformaciones puras.
@@ -185,9 +185,9 @@ hooks:
   integra mediante un renderer estable que recibe `onNavigate`; su ubicación
   actual es `components/planeaciones/` porque admin y profesor lo comparten.
   No se movieron su consulta, agrupación, evento ni destinos.
-- `DesktopAnimatedNav` permanece como unidad presentacional existente y sigue
-  consumiendo los contratos puros de navegación; no se realizó un traslado de
-  carpeta sin beneficio arquitectónico.
+- `DesktopAnimatedNav` permanece como unidad presentacional compartida y sigue
+  consumiendo los contratos puros de navegación. Después del cierre se ubicó
+  junto a sus dos únicos consumidores en `components/autenticacion/`.
 - Se agregaron pruebas adyacentes para las seis vistas, incluidos props y
   acciones, estados visibles, toggle accesible, variantes del banner, rutas,
   metadatos, responsive y slot externo de notificaciones.
@@ -525,9 +525,10 @@ guards. La verificación manual final deberá cubrir los destinos reales.
    del conector para conservar una referencia estable. No se absorbió el
    dominio ni se introdujeron remontajes o nuevas consultas por una función
    recreada en cada render.
-7. Mantener `DesktopAnimatedNav` en su ubicación pública actual. Ya era una
-   unidad presentacional y moverla solo para uniformar carpetas añadiría churn
-   sin separar una responsabilidad nueva.
+7. Durante la capa se mantuvo `DesktopAnimatedNav` en su ubicación pública
+   original para evitar un traslado sin cambio de responsabilidad. Como ajuste
+   posterior solicitado por el usuario, la auditoría de consumidores confirmó
+   que admin y profesor eran sus únicos usos y se ubicó dentro del dominio.
 
 ## Decisiones de capa 6
 

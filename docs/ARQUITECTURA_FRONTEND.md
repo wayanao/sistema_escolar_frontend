@@ -33,7 +33,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/assets/`: imagenes y recursos estaticos del frontend.
 - `src/components/`: componentes reutilizables y componentes por modulo.
 - `src/components/autenticacion/`: vistas presentacionales de login, cambio de
-  password, estado del tenant y navegación de admin, profesor y super admin.
+  password, estado del tenant y navegación de admin, profesor y super admin,
+  incluido el menú animado de escritorio compartido por dos roles.
 - `src/components/certificadosImpresion/`: selección, vistas imprimibles y
   formularios presentacionales de identidad y plantillas.
 - `src/components/boletin/`: vistas presentacionales de generación,
