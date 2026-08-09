@@ -1,8 +1,23 @@
-import LoginForm from "../components/LoginForm";
+import LoginFormView from "../components/autenticacion/LoginFormView";
 import auligoLogoNav from "../assets/auligo-logo-nav.png";
 import fondoLogin from "../assets/login-auligo-original.jpg";
+import { useComandoLogin } from "../hooks/autenticacion/useComandoLogin";
 
 function Login() {
+  const {
+    email,
+    password,
+    codigoColegio,
+    formError,
+    isSubmitting,
+    isTakingLong,
+    loginSucceeded,
+    actualizarEmail,
+    actualizarPassword,
+    actualizarCodigoColegio,
+    iniciarSesion,
+  } = useComandoLogin();
+
   return (
     <main
       className="notranslate relative min-h-[100svh] overflow-hidden bg-slate-950"
@@ -48,7 +63,19 @@ function Login() {
           <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-purple-300/20 blur-3xl" />
           <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
           <div className="relative">
-            <LoginForm />
+            <LoginFormView
+              email={email}
+              password={password}
+              codigoColegio={codigoColegio}
+              formError={formError}
+              isSubmitting={isSubmitting}
+              isTakingLong={isTakingLong}
+              loginSucceeded={loginSucceeded}
+              actualizarEmail={actualizarEmail}
+              actualizarPassword={actualizarPassword}
+              actualizarCodigoColegio={actualizarCodigoColegio}
+              iniciarSesion={iniciarSesion}
+            />
           </div>
         </section>
       </div>

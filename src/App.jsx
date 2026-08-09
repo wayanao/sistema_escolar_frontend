@@ -1,10 +1,22 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import NavProfesor from "./components/NavProfesor";
-import NavAdmin from "./components/NavAdmin";
-import NavSuperAdmin from "./components/NavSuperAdmin";
-import TenantStatusBanner from "./components/TenantStatusBanner";
+import NotificacionesPlaneadores from "./components/NotificacionesPlaneadores";
+import NavAdminView from "./components/autenticacion/NavAdminView";
+import NavProfesorView from "./components/autenticacion/NavProfesorView";
+import NavSuperAdminView from "./components/autenticacion/NavSuperAdminView";
+import TenantStatusBannerView from "./components/autenticacion/TenantStatusBannerView";
+import { useCerrarSesion } from "./hooks/autenticacion/useCerrarSesion";
+import { useEstadoTenant } from "./hooks/autenticacion/useEstadoTenant";
+import {
+  useEstadoSesionGeneral,
+  useRedireccionCambioPassword,
+  useRedireccionRutaAdmin,
+  useRedireccionRutaProtegida,
+  useRedireccionSuperAdmin,
+  useSesionSuperAdmin,
+} from "./hooks/autenticacion/useSesion";
+import { RUTAS_SESION } from "./utils/autenticacion/sesion";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
 const Asistencia = lazy(() => import("./pages/Asistencia"));
@@ -35,6 +47,14 @@ const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const CambiarPassword = lazy(() => import("./pages/CambiarPassword"));
 
+function renderNotificacionesAdmin(onNavigate) {
+  return <NotificacionesPlaneadores rol="admin" onNavigate={onNavigate} />;
+}
+
+function renderNotificacionesProfesor(onNavigate) {
+  return <NotificacionesPlaneadores rol="profesor" onNavigate={onNavigate} />;
+}
+
 function PageLoader() {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
@@ -44,30 +64,18 @@ function PageLoader() {
 }
 
 function ProtectedRoute({ children }) {
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
-  if (usuario?.debe_cambiar_password) {
-    return <Navigate to="/cambiar-password" />;
-  }
-  return (usuario || profesor) ? children : <Navigate to="/login" />;
+  const redireccion = useRedireccionRutaProtegida();
+  return redireccion ? <Navigate to={redireccion} /> : children;
 }
 
 function AdminRoute({ children }) {
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  if (usuario?.debe_cambiar_password) {
-    return <Navigate to="/cambiar-password" />;
-  }
-  return (usuario && usuario.rol === "admin") ? children : <Navigate to="/login" />;
+  const redireccion = useRedireccionRutaAdmin();
+  return redireccion ? <Navigate to={redireccion} /> : children;
 }
 
 function PasswordChangeRoute() {
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  if (!usuario || usuario.rol !== "admin") {
-    return <Navigate to="/login" />;
-  }
-  if (!usuario.debe_cambiar_password) {
-    return <Navigate to="/dashboard-admin" />;
-  }
+  const redireccion = useRedireccionCambioPassword();
+  if (redireccion) return <Navigate to={redireccion} />;
   return (
     <Suspense fallback={<PageLoader />}>
       <CambiarPassword />
@@ -76,16 +84,49 @@ function PasswordChangeRoute() {
 }
 
 function SuperAdminRoute({ children }) {
-  const superAdmin = JSON.parse(localStorage.getItem("super_admin") || "null");
-  return (superAdmin && superAdmin.rol === "super_admin") ? children : <Navigate to="/login" />;
+  const redireccion = useRedireccionSuperAdmin();
+  return redireccion ? <Navigate to={redireccion} /> : children;
+}
+
+function NavegacionSesion({ esAdmin }) {
+  const cerrarSesion = useCerrarSesion();
+
+  return esAdmin ? (
+    <NavAdminView
+      onCerrarSesion={cerrarSesion}
+      renderNotificaciones={renderNotificacionesAdmin}
+    />
+  ) : (
+    <NavProfesorView
+      onCerrarSesion={cerrarSesion}
+      renderNotificaciones={renderNotificacionesProfesor}
+    />
+  );
+}
+
+function NavegacionSuperAdmin() {
+  const superAdmin = useSesionSuperAdmin();
+  const cerrarSesion = useCerrarSesion();
+
+  return (
+    <NavSuperAdminView
+      nombre={superAdmin?.nombre}
+      onCerrarSesion={cerrarSesion}
+    />
+  );
+}
+
+function AvisoEstadoTenant() {
+  const aviso = useEstadoTenant();
+  return <TenantStatusBannerView aviso={aviso} />;
 }
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/super-admin" element={<SuperAdminRoute><SuperAdminLayout /></SuperAdminRoute>} />
-      <Route path="/cambiar-password" element={<PasswordChangeRoute />} />
+      <Route path={RUTAS_SESION.LOGIN} element={<Login />} />
+      <Route path={RUTAS_SESION.INICIO_SUPER_ADMIN} element={<SuperAdminRoute><SuperAdminLayout /></SuperAdminRoute>} />
+      <Route path={RUTAS_SESION.CAMBIAR_PASSWORD} element={<PasswordChangeRoute />} />
       <Route path="/*" element={<Layout />} />
     </Routes>
   );
@@ -94,7 +135,7 @@ function App() {
 function SuperAdminLayout() {
   return (
     <div className="notranslate min-h-screen bg-slate-50" translate="no">
-      <NavSuperAdmin />
+      <NavegacionSuperAdmin />
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
           <SuperAdminDashboard />
@@ -105,23 +146,21 @@ function SuperAdminLayout() {
 }
 
 function Layout() {
-  const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const profesor = JSON.parse(localStorage.getItem("profesor") || "null");
-  const currentUser = usuario || profesor;
+  const { haySesion, esAdmin } = useEstadoSesionGeneral();
 
-  if (!currentUser) {
-    return <Navigate to="/login" />;
+  if (!haySesion) {
+    return <Navigate to={RUTAS_SESION.LOGIN} />;
   }
 
   return (
     <div className="notranslate min-h-screen bg-slate-50" translate="no">
-      {usuario && usuario.rol === "admin" ? <NavAdmin /> : <NavProfesor />}
-      <TenantStatusBanner />
+      <NavegacionSesion esAdmin={esAdmin} />
+      <AvisoEstadoTenant />
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<ProtectedRoute><DashboardProfesor /></ProtectedRoute>} />
-            <Route path="/dashboard-admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path={RUTAS_SESION.INICIO_PROFESOR} element={<ProtectedRoute><DashboardProfesor /></ProtectedRoute>} />
+            <Route path={RUTAS_SESION.INICIO_ADMIN} element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/pagos" element={<AdminRoute><PagosAdmin /></AdminRoute>} />
             <Route path="/admin/tipos-pagos" element={<AdminRoute><TiposPagosAdmin /></AdminRoute>} />
             <Route path="/admin/cartera-vencida" element={<AdminRoute><CarteraVencidaAdmin /></AdminRoute>} />

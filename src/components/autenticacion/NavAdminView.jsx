@@ -1,66 +1,13 @@
-import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import api from "../utils/api";
-import auligoLogoNav from "../assets/auligo-logo-nav.png";
-import DesktopAnimatedNav from "./DesktopAnimatedNav";
-import NotificacionesPlaneadores from "./NotificacionesPlaneadores";
+import { NavLink } from "react-router-dom";
+import auligoLogoNav from "../../assets/auligo-logo-nav.png";
+import { ADMIN_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
+import { RUTAS_SESION } from "../../utils/autenticacion/sesion";
+import DesktopAnimatedNav from "../DesktopAnimatedNav";
 
-const adminDesktopItems = [
-  { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
-  {
-    id: "academica",
-    type: "group",
-    label: "Gestión Académica",
-    children: [
-      { id: "horarios", label: "Horarios Asignados", to: "/admin/horarios" },
-      { id: "planeadores", label: "Planeadores de Clases", to: "/admin/planeadores-clases" },
-      { id: "certificados", label: "Certificados", to: "/admin/certificados" },
-      { id: "boletines", label: "Gestión Boletines", to: "/boletin" },
-      { id: "diseno-impresos", label: "Diseño de impresos", to: "/admin/diseno-impresos" },
-    ],
-  },
-  {
-    id: "cartera",
-    type: "group",
-    label: "Cartera",
-    children: [
-      { id: "pagos", label: "Gestión de Pagos", to: "/admin/pagos" },
-      { id: "tipos-pagos", label: "Tipos de Pago", to: "/admin/tipos-pagos" },
-      { id: "cartera-vencida", label: "Cartera Vencida", to: "/admin/cartera-vencida" },
-      { id: "inventario", label: "Inventario", to: "/admin/inventario" },
-      { id: "ventas", label: "Punto de Venta", to: "/admin/ventas" },
-      { id: "egresos", label: "Egresos", to: "/admin/egresos" },
-      { id: "prestamos", label: "Préstamos", to: "/admin/prestamos" },
-      { id: "nomina", label: "Nómina", to: "/admin/nomina", translate: "no" },
-    ],
-  },
-  { id: "administracion", type: "link", label: "Administración", to: "/admin", end: true },
-  { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes" },
-  { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes" },
-];
-
-function NavAdmin() {
-  const navigate = useNavigate();
+function NavAdminView({ onCerrarSesion, renderNotificaciones }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState(null);
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/logout");
-    } catch (error) {
-      console.error("Error cerrando sesión", error);
-    }
-
-    localStorage.removeItem("profesor");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("super_admin");
-    localStorage.removeItem("tenant");
-    localStorage.removeItem("asignacionId");
-    localStorage.removeItem("periodo");
-    // Remover token
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
-  };
 
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2.5 text-[15px] " +
@@ -90,7 +37,7 @@ function NavAdmin() {
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-2 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink
-            to="/dashboard-admin"
+            to={RUTAS_SESION.INICIO_ADMIN}
             className="inline-flex items-center transition hover:opacity-90"
             aria-label="Ir al inicio de Auligo"
           >
@@ -105,17 +52,17 @@ function NavAdmin() {
         {/* Desktop Navigation */}
         <div className="ml-auto hidden lg:flex lg:items-center">
           <DesktopAnimatedNav
-            items={adminDesktopItems}
+            items={ADMIN_DESKTOP_ITEMS}
             variant="admin"
             dropdownLinkClass={dropdownLinkClass}
             ariaLabel="Navegación principal de administrador"
           />
         </div>
         <div className="ml-auto lg:ml-0">
-          <NotificacionesPlaneadores rol="admin" onNavigate={closeMobile} />
+          {renderNotificaciones(closeMobile)}
         </div>
         <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
-        <button onClick={handleLogout} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesión</button>
+        <button onClick={onCerrarSesion} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesión</button>
 
         {/* Mobile menu button */}
         <button
@@ -136,7 +83,7 @@ function NavAdmin() {
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
-          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/dashboard-admin">Dashboard</NavLink>
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to={RUTAS_SESION.INICIO_ADMIN}>Dashboard</NavLink>
 
           <button
             type="button"
@@ -194,11 +141,11 @@ function NavAdmin() {
           <NavLink end onClick={closeMobile} className={mobileLinkClass} to="/admin">Administración</NavLink>
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
-          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>
+          <button onClick={onCerrarSesion} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>
         </nav>
       )}
     </header>
   );
 }
 
-export default NavAdmin;
+export default NavAdminView;

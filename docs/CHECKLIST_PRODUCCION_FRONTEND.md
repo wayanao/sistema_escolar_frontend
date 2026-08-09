@@ -2,7 +2,7 @@
 
 Checklist tecnico basado en el estado actual documentado del frontend.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-08-08.
 
 ## 1. CRITICO
 
@@ -10,7 +10,8 @@ Ultima revision documental: 2026-06-13.
 
 - Estado actual: el frontend ya no guarda `access_token` dentro de `localStorage.usuario` ni `localStorage.profesor`; conserva datos minimos de sesion visual y usa cookie `token`.
 - Riesgo: si la cookie productiva no queda `HttpOnly`, `Secure` y con `SameSite` adecuado, JavaScript podria leerla o el navegador podria enviarla en contextos no deseados.
-- Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
+- Archivo afectado: `src/utils/api.js`, `src/services/autenticacionApi.js`,
+  `src/hooks/autenticacion/useComandoLogin.js`.
 - Que puede pasar en produccion: una configuracion debil de cookie podria exponer la sesion o romper login entre dominios.
 - Prioridad: CRITICO.
 - Como probarlo: iniciar sesion, abrir DevTools, confirmar que `localStorage.usuario` y `localStorage.profesor` no contienen `access_token`, y revisar que la cookie `token` tenga atributos productivos esperados.
@@ -32,7 +33,8 @@ Ultima revision documental: 2026-06-13.
   `localStorage`.
 - Riesgo residual: si algun flujo futuro vuelve a confiar en un tenant enviado
   por el navegador, se reabre el riesgo de acceso cruzado entre colegios.
-- Archivo afectado: `src/utils/api.js`, `src/components/LoginForm.jsx`.
+- Archivo afectado: `src/utils/api.js`, `src/utils/autenticacion/sesion.js` y
+  `src/hooks/autenticacion/useComandoLogin.js`.
 - Que puede pasar en produccion: un contrato frontend/backend ambiguo podria
   permitir que se reintroduzca un header manipulable.
 - Prioridad: CRITICO.
@@ -93,7 +95,8 @@ Ultima revision documental: 2026-06-13.
   con selecciones de trabajo como `asignacionId`, `periodo`,
   `fechaAsistencia` y `planillaTipoEvaluacion`.
 - Riesgo: puede quedar estado viejo despues de cambios de usuario, logout parcial o expiracion.
-- Archivo afectado: `src/components/NavAdmin.jsx`, `src/components/NavProfesor.jsx`, `src/utils/api.js`, paginas academicas.
+- Archivo afectado: `src/hooks/autenticacion/useCerrarSesion.js`,
+  `src/utils/api.js` y paginas academicas.
 - Que puede pasar en produccion: un usuario podria ver selecciones anteriores, periodos viejos o peticiones con contexto incorrecto.
 - Prioridad: IMPORTANTE.
 - Como probarlo: iniciar como profesor, seleccionar asignacion/periodo, cerrar sesion, entrar con otro usuario y revisar si queda estado anterior.
@@ -113,7 +116,8 @@ Ultima revision documental: 2026-06-13.
 
 - Problema: las validaciones de formularios viven en cada componente/pagina.
 - Riesgo: reglas inconsistentes entre modulos y errores dificiles de mantener.
-- Archivo afectado: `LoginForm.jsx`, `CrearEstudiante.jsx`, `CrearProfesor.jsx`, `CrearCurso.jsx`, paginas administrativas y academicas.
+- Archivo afectado: `utils/autenticacion/login.js`, `CrearEstudiante.jsx`,
+  `CrearProfesor.jsx`, `CrearCurso.jsx`, paginas administrativas y academicas.
 - Que puede pasar en produccion: datos incompletos, mensajes diferentes para el mismo error o validaciones duplicadas.
 - Prioridad: IMPORTANTE.
 - Como probarlo: enviar formularios vacios, formatos invalidos y valores limite en cada modulo.
@@ -182,9 +186,11 @@ Ultima revision documental: 2026-06-13.
 
 ### Menus y rutas definidos manualmente
 
-- Problema: rutas en `App.jsx` y enlaces en `NavAdmin.jsx`/`NavProfesor.jsx` se mantienen por separado.
+- Problema: rutas en `App.jsx`, contratos desktop y vistas móviles se mantienen
+  por separado.
 - Riesgo: una ruta puede existir sin enlace o un enlace puede quedar apuntando a una ruta removida.
-- Archivo afectado: `src/App.jsx`, `src/components/NavAdmin.jsx`, `src/components/NavProfesor.jsx`.
+- Archivo afectado: `src/App.jsx`, `src/utils/autenticacion/navegacion.js`,
+  `src/components/autenticacion/NavAdminView.jsx` y `NavProfesorView.jsx`.
 - Que puede pasar en produccion: navegacion rota o pantallas inaccesibles desde el menu.
 - Prioridad: OPCIONAL.
 - Como probarlo: recorrer todos los enlaces del menu y refrescar cada ruta.
@@ -214,7 +220,7 @@ Ultima revision documental: 2026-06-13.
 
 Estado 2026-06-13: ajustado y validado con lint/build en cambios principales.
 
-[x] `NavAdmin` movil abre grupos bajo demanda y diferencia subpestanas.
+[x] `NavAdminView` movil abre grupos bajo demanda y diferencia subpestanas.
 [x] Opcion `Nómina` marcada con `translate="no"` para evitar traduccion a
 `nombre` en Android.
 [x] Boletin imprimible conserva ancho A4 y tiene scroll lateral en movil.

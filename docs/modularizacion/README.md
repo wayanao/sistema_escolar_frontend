@@ -3,7 +3,7 @@
 Hoja de ruta para migrar el frontend por módulos y capas sin cambiar el
 comportamiento funcional existente.
 
-Última revisión: 2026-08-04.
+Última revisión: 2026-08-08.
 
 ## Objetivo
 
@@ -319,7 +319,7 @@ registrar al final:
 | 11 | Nómina, egresos y préstamos | Terminado; commit pendiente | [NOMINA_EGRESOS_PRESTAMOS.md](./NOMINA_EGRESOS_PRESTAMOS.md) |
 | 12 | Dashboards y rankings | Terminado; commit pendiente | [DASHBOARDS.md](./DASHBOARDS.md) |
 | 13 | Administración académica y horarios | Terminado; commit pendiente | [ADMINISTRACION_ACADEMICA.md](./ADMINISTRACION_ACADEMICA.md) |
-| 14 | Autenticación, sesión y navegación | Pendiente | [AUTENTICACION_NAVEGACION.md](./AUTENTICACION_NAVEGACION.md) |
+| 14 | Autenticación, sesión y navegación | Terminado; commit pendiente | [AUTENTICACION_NAVEGACION.md](./AUTENTICACION_NAVEGACION.md) |
 
 El orden puede cambiar por una necesidad funcional, pero debe modificarse aquí
 antes de iniciar el nuevo módulo.

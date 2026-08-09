@@ -1,6 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_BASE_URL } from '../config/env';
+import {
+  CLAVES_LIMPIEZA_401,
+  COOKIE_TOKEN,
+  RUTAS_SESION,
+  debeLimpiarSesionPor401,
+} from './autenticacion/sesion';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,7 +20,7 @@ const api = axios.create({
 // Authorization queda solo como fallback para cookies no HttpOnly en desarrollo.
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = Cookies.get(COOKIE_TOKEN);
 
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -31,16 +37,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (
-      error.response?.status === 401 &&
-      window.location.pathname !== '/login'
-    ) {
-      Cookies.remove('token');
-      localStorage.removeItem('super_admin');
-      localStorage.removeItem('usuario');
-      localStorage.removeItem('profesor');
-      localStorage.removeItem('tenant');
-      window.location.href = '/login';
+    if (debeLimpiarSesionPor401(error.response?.status, window.location.pathname)) {
+      Cookies.remove(COOKIE_TOKEN);
+      CLAVES_LIMPIEZA_401.forEach((clave) => localStorage.removeItem(clave));
+      window.location.href = RUTAS_SESION.LOGIN;
     }
     return Promise.reject(error);
   },

@@ -32,6 +32,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/App.jsx`: define rutas, layouts, lazy loading y guards principales.
 - `src/assets/`: imagenes y recursos estaticos del frontend.
 - `src/components/`: componentes reutilizables y componentes por modulo.
+- `src/components/autenticacion/`: vistas presentacionales de login, cambio de
+  password, estado del tenant y navegación de admin, profesor y super admin.
 - `src/components/certificadosImpresion/`: selección, vistas imprimibles y
   formularios presentacionales de identidad y plantillas.
 - `src/components/boletin/`: vistas presentacionales de generación,
@@ -75,6 +77,8 @@ Estado documentado del frontend `frontend-react`.
   de la plataforma.
 - `src/constants/`: constantes compartidas entre paginas/componentes.
 - `src/hooks/`: hooks propios del frontend.
+- `src/hooks/autenticacion/`: lectura local y guards de sesión, consulta del
+  estado tenant y comandos de login, cambio de password y logout.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
   de asistencia, separados entre estado remoto y marcación editable.
 - `src/hooks/planilla/`: consultas cancelables de clases y planilla, y
@@ -115,6 +119,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/services/`: fronteras HTTP del frontend. Los servicios encapsulan rutas
   y configuración de transporte, devuelven datos y no administran estado de
   React ni decisiones de interfaz.
+- `src/services/autenticacionApi.js`: contratos HTTP de login, logout, cambio
+  obligatorio de password y estado del tenant.
 - `src/services/planeacionesApi.js`: contrato HTTP compartido por los flujos de
   planeaciones del profesor y del administrador.
 - `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
@@ -150,6 +156,8 @@ Estado documentado del frontend `frontend-react`.
   logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
+- `src/utils/autenticacion/`: contratos puros de sesión, login, password y
+  navegación, sin HTTP, React, DOM ni almacenamiento.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
   y acompañados por sus pruebas unitarias.
 - `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`:
@@ -202,16 +210,45 @@ Estado documentado del frontend `frontend-react`.
 
 ## Layout principal
 
-La aplicacion tiene una ruta superior:
+La aplicacion tiene cuatro ramas superiores:
 
 - `/login`: pantalla de login.
+- `/cambiar-password`: cambio obligatorio para un admin con password temporal.
+- `/super-admin`: layout exclusivo de la identidad `super_admin` con rol exacto.
 - `/*`: layout autenticado.
 
-El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
+Los hooks de `hooks/autenticacion/useSesion.js` conservan las lecturas locales
+y decisiones de cada guard. El layout general lee `usuario` y después
+`profesor` desde `localStorage`.
 
-- Si existe `usuario` con rol `admin`, muestra `NavAdmin`.
-- Si no, muestra `NavProfesor`.
+- Si existe `usuario` con rol `admin`, compone `NavAdminView`.
+- Si no, compone `NavProfesorView`.
 - Si no existe ningun usuario/profesor en sesion, redirige a `/login`.
+- Una sesión válida monta después `TenantStatusBannerView` con la consulta de
+  `useEstadoTenant`; los guards internos de rol y password conservan su orden.
+
+## Autenticación, sesión y navegación
+
+- `services/autenticacionApi.js` es la frontera de los cuatro contratos HTTP.
+  Mensajes, almacenamiento, cookies, navegación y estado visual permanecen
+  fuera del transporte.
+- `utils/autenticacion/` concentra claves y limpieza diferenciada de logout y
+  `401`, decisiones de guards, contratos del login y password, y árboles de
+  navegación desktop.
+- `hooks/autenticacion/` separa lectura/guards, consulta tenant y los tres
+  comandos. El interceptor global de `401` permanece en `utils/api.js` porque
+  pertenece al cliente HTTP compartido.
+- `components/autenticacion/` recibe datos y acciones mediante props. Solo
+  mantiene estado visual local para mostrar la contraseña y controlar los
+  menús responsive.
+- `pages/Login.jsx`, `pages/CambiarPassword.jsx` y los layouts privados de
+  `App.jsx` son las raíces de composición. `App.jsx` conserva rutas, imports
+  lazy, fallbacks y límites de `Suspense`.
+- `NotificacionesPlaneadores` sigue perteneciendo a planeaciones; autenticación
+  conserva únicamente su integración estable por `rol` y `onNavigate`.
+- Los conectores antiguos `LoginForm`, `NavAdmin`, `NavProfesor`,
+  `NavSuperAdmin` y `TenantStatusBanner` fueron retirados después de confirmar
+  que no tenían consumidores adicionales.
 
 ## Administración académica y horarios
 
@@ -500,11 +537,11 @@ El layout autenticado lee `usuario` y `profesor` desde `localStorage`.
     scroll horizontal en movil.
 - `DocumentoImprimible` es el punto de entrada para toolbar, branding,
   encabezado, firmas, pie de pagina y comportamiento especial por documento.
-- `NavAdmin` mantiene grupos colapsables en movil para reducir ruido visual y
+- `NavAdminView` mantiene grupos colapsables en movil para reducir ruido visual y
   diferenciar subpestanas de enlaces principales.
-- `NavAdmin` marca etiquetas sensibles como `Nómina` con `translate="no"` para
+- `NavAdminView` marca etiquetas sensibles como `Nómina` con `translate="no"` para
   evitar traducciones automaticas en Android/Chrome.
-- `NavProfesor` mantiene grupos moviles para control academico y planeacion.
+- `NavProfesorView` mantiene grupos moviles para control academico y planeacion.
 - `Planilla` usa vista de tarjetas en movil y tabla en escritorio; las etiquetas
   tecnicas se formatean y se protegen con `translate="no"`.
 - `IngresoBoletinProfesor` reutiliza el criterio de planilla: oculta notas
@@ -699,6 +736,11 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   jornada con su filtro, la persistencia del contexto de trabajo y el descarte de
   la clase obsoleta, la caché de planeaciones recientes, el escapado del
   historial de auditoría y las siete validaciones del alta de colegios.
+- Las pruebas de `src/utils/autenticacion/`,
+  `src/services/autenticacionApi.test.js`, los cinco hooks, las seis vistas,
+  `Login`, `CambiarPassword` y las dos caracterizaciones de `App` protegen los
+  contratos HTTP, almacenamiento, guards, rutas, comandos, textos, responsive,
+  integración de notificaciones y composición por rol.
 - Las pruebas de `src/utils/pagos/`, `src/services/pagosApi.test.js`, los siete
   hooks, los seis componentes y `PagosAdmin.test.jsx` protegen formatos,
   cálculos, payloads, transporte, consultas, comandos, presentación,

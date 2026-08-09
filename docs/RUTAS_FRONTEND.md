@@ -2,7 +2,7 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
-Ultima revision documental: 2026-07-22.
+Ultima revision documental: 2026-08-08.
 
 ## Rutas publicas
 
@@ -66,7 +66,7 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 
 ## Navegacion de administrador
 
-`src/components/NavAdmin.jsx` muestra enlaces a:
+`src/components/autenticacion/NavAdminView.jsx` muestra enlaces a:
 
 - Dashboard admin.
 - Administracion academica.
@@ -86,7 +86,7 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 - Estudiantes.
 - Reportes.
 
-En movil, `NavAdmin` separa enlaces principales de grupos colapsables. Al abrir
+En movil, `NavAdminView` separa enlaces principales de grupos colapsables. Al abrir
 el menu no se despliegan todas las subpestanas: el usuario selecciona el grupo
 correspondiente, por ejemplo Gestion Academica o Cartera, y entonces se muestran
 sus subenlaces. Los subenlaces usan estilo indentado/diferenciado para no
@@ -113,7 +113,7 @@ Notas de UX por ruta admin:
 
 ## Navegacion de profesor
 
-`src/components/NavProfesor.jsx` muestra enlaces a:
+`src/components/autenticacion/NavProfesorView.jsx` muestra enlaces a:
 
 - Dashboard.
 - Control Academico:
@@ -141,7 +141,7 @@ Notas de UX por ruta profesor:
 
 ## Navegacion de super admin
 
-`src/components/NavSuperAdmin.jsx` muestra enlace a:
+`src/components/autenticacion/NavSuperAdminView.jsx` muestra enlace a:
 
 - Tenants.
 

@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-
-function isPathActive(item, pathname) {
-  if (item.type === "group") {
-    return item.children.some((child) => isPathActive(child, pathname));
-  }
-
-  if (item.end || item.to === "/") {
-    return pathname === item.to;
-  }
-
-  return pathname === item.to || pathname.startsWith(`${item.to}/`);
-}
+import {
+  esRutaNavegacionActiva,
+  obtenerIdItemNavegacionActivo,
+} from "../utils/autenticacion/navegacion";
 
 function ChevronIcon() {
   return (
@@ -30,7 +22,7 @@ function DesktopAnimatedNav({ items, variant, dropdownLinkClass, ariaLabel }) {
   const [isRestoring, setIsRestoring] = useState(false);
 
   const activeItemId = useMemo(() => {
-    return items.find((item) => isPathActive(item, pathname))?.id || null;
+    return obtenerIdItemNavegacionActivo(items, pathname);
   }, [items, pathname]);
 
   const setItemRef = useCallback(
@@ -108,7 +100,7 @@ function DesktopAnimatedNav({ items, variant, dropdownLinkClass, ariaLabel }) {
       />
 
       {items.map((item) => {
-        const active = isPathActive(item, pathname);
+        const active = esRutaNavegacionActiva(item, pathname);
         const itemClassName = `desktop-nav-item${active ? " is-active" : ""}`;
 
         if (item.type === "group") {

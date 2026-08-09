@@ -1,56 +1,13 @@
-import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import api from "../utils/api";
-import auligoLogoNav from "../assets/auligo-logo-nav.png";
-import DesktopAnimatedNav from "./DesktopAnimatedNav";
-import NotificacionesPlaneadores from "./NotificacionesPlaneadores";
+import { NavLink } from "react-router-dom";
+import auligoLogoNav from "../../assets/auligo-logo-nav.png";
+import { PROFESOR_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
+import { RUTAS_SESION } from "../../utils/autenticacion/sesion";
+import DesktopAnimatedNav from "../DesktopAnimatedNav";
 
-const profesorDesktopItems = [
-  { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
-  {
-    id: "control",
-    type: "group",
-    label: "Control Académico",
-    children: [
-      { id: "planilla", label: "Planilla", to: "/planilla" },
-      { id: "asistencia", label: "Asistencia", to: "/asistencia" },
-      { id: "observaciones", label: "Observaciones", to: "/Formulario" },
-    ],
-  },
-  {
-    id: "planeacion",
-    type: "group",
-    label: "Planeación Académica",
-    children: [
-      { id: "plan-clases", label: "Plan de Clases", to: "/plan-de-clases" },
-      { id: "malla", label: "Malla Curricular", to: "/planeador-anual" },
-    ],
-  },
-  { id: "boletin", type: "link", label: "Boletín Final", to: "/ingreso-boletin" },
-];
-
-function NavProfesor() {
-  const navigate = useNavigate();
+function NavProfesorView({ onCerrarSesion, renderNotificaciones }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState(null);
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/logout");
-    } catch (error) {
-      console.error("Error cerrando sesión", error);
-    }
-
-    localStorage.removeItem("profesor");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("super_admin");
-    localStorage.removeItem("tenant");
-    localStorage.removeItem("asignacionId");
-    localStorage.removeItem("periodo");
-    // Remover token
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
-  };
 
   const dropdownLinkClass = ({ isActive }) =>
     "block px-4 py-2.5 text-[15px] " +
@@ -82,7 +39,7 @@ function NavProfesor() {
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-2 sm:px-6 xl:px-8">
         <div className="min-w-0">
           <NavLink
-            to="/"
+            to={RUTAS_SESION.INICIO_PROFESOR}
             className="inline-flex items-center transition hover:opacity-90"
             aria-label="Ir al inicio de Auligo"
           >
@@ -97,17 +54,17 @@ function NavProfesor() {
         {/* Desktop Navigation */}
         <div className="ml-auto hidden lg:flex lg:items-center">
           <DesktopAnimatedNav
-            items={profesorDesktopItems}
+            items={PROFESOR_DESKTOP_ITEMS}
             variant="profesor"
             dropdownLinkClass={dropdownLinkClass}
             ariaLabel="Navegación principal de profesor"
           />
         </div>
         <div className="ml-auto lg:ml-0">
-          <NotificacionesPlaneadores rol="profesor" onNavigate={closeMobile} />
+          {renderNotificaciones(closeMobile)}
         </div>
         <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
-        <button onClick={handleLogout} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesion</button>
+        <button onClick={onCerrarSesion} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesion</button>
 
         {/* Mobile menu button */}
         <button
@@ -128,7 +85,7 @@ function NavProfesor() {
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
-          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/">Dashboard</NavLink>
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to={RUTAS_SESION.INICIO_PROFESOR}>Dashboard</NavLink>
 
           {/* Grupo móvil: Control Académico */}
           <button
@@ -179,11 +136,11 @@ function NavProfesor() {
 
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/ingreso-boletin">Boletín Final</NavLink>
 
-          <button onClick={handleLogout} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesion</button>
+          <button onClick={onCerrarSesion} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesion</button>
         </nav>
       )}
     </header>
   );
 }
 
-export default NavProfesor;
+export default NavProfesorView;

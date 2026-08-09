@@ -1,9 +1,5 @@
 import { useState } from "react";
-import Swal from "sweetalert2";
-import auligoLoginLogo from "../assets/auligo-login-logo.png";
-import api from "../utils/api";
-
-const LAST_SCHOOL_CODE_KEY = "ultimo_codigo_colegio";
+import auligoLoginLogo from "../../assets/auligo-login-logo.png";
 
 const inputClassName =
   "login-field peer w-full rounded-2xl border border-white/90 bg-white/60 py-3.5 pl-[3.65rem] pr-4 text-[15px] font-semibold text-slate-900 shadow-[0_8px_24px_rgba(51,24,83,0.07),inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition-all duration-200 placeholder:font-normal placeholder:text-slate-400 hover:border-purple-300/80 hover:bg-white/75 focus:border-purple-500 focus:bg-white/90 focus:ring-4 focus:ring-purple-500/10 disabled:cursor-wait disabled:bg-white/40";
@@ -11,135 +7,20 @@ const inputClassName =
 const iconContainerClassName =
   "pointer-events-none absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl border border-purple-200/70 bg-gradient-to-br from-purple-100/95 to-white/80 text-purple-700 shadow-[0_4px_12px_rgba(109,40,217,0.09)] transition-all duration-200 peer-focus:border-purple-300 peer-focus:text-purple-800 peer-focus:shadow-[0_5px_16px_rgba(109,40,217,0.16)]";
 
-const capitalizarNombreVisible = (valor) =>
-  String(valor || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(
-      (palabra) =>
-        palabra.charAt(0).toLocaleUpperCase("es-CO") +
-        palabra.slice(1).toLocaleLowerCase("es-CO"),
-    )
-    .join(" ");
-
-function leerUltimoCodigoColegio() {
-  const codigo = localStorage.getItem(LAST_SCHOOL_CODE_KEY)?.trim().toLowerCase() || "";
-  return codigo === "demo" ? "" : codigo;
-}
-
-function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [codigoColegio, setCodigoColegio] = useState(leerUltimoCodigoColegio);
+function LoginFormView({
+  email,
+  password,
+  codigoColegio,
+  formError,
+  isSubmitting,
+  isTakingLong,
+  loginSucceeded,
+  actualizarEmail,
+  actualizarPassword,
+  actualizarCodigoColegio,
+  iniciarSesion,
+}) {
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isTakingLong, setIsTakingLong] = useState(false);
-  const [loginSucceeded, setLoginSucceeded] = useState(false);
-
-  const limpiarError = () => {
-    if (formError) setFormError("");
-  };
-
-  const iniciarSesion = async () => {
-    if (isSubmitting) return;
-
-    const codigoNormalizado = codigoColegio.toLowerCase().trim();
-
-    if (!email || !password || !codigoNormalizado) {
-      setFormError("Completa el código del colegio, el correo y la contraseña.");
-      return;
-    }
-
-    setFormError("");
-    setIsSubmitting(true);
-    setIsTakingLong(false);
-    setLoginSucceeded(false);
-    let accesoConfirmado = false;
-    const slowRequestTimer = window.setTimeout(() => {
-      setIsTakingLong(true);
-    }, 3000);
-
-    try {
-      const res = await api.post("/login", {
-        email,
-        password,
-        codigo_colegio: codigoNormalizado,
-      });
-
-      const data = res.data;
-      localStorage.setItem(LAST_SCHOOL_CODE_KEY, codigoNormalizado);
-
-      const sessionData = {
-        id: data.id,
-        nombre: data.nombre,
-        rol: data.rol,
-        tenant: data.tenant,
-        debe_cambiar_password: Boolean(data.debe_cambiar_password),
-      };
-
-      if (data.rol === "super_admin") {
-        localStorage.setItem("super_admin", JSON.stringify(sessionData));
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("profesor");
-      } else if (data.rol === "admin") {
-        localStorage.setItem("usuario", JSON.stringify(sessionData));
-        localStorage.removeItem("super_admin");
-        localStorage.removeItem("profesor");
-      } else {
-        localStorage.setItem("profesor", JSON.stringify(sessionData));
-        localStorage.removeItem("super_admin");
-        localStorage.removeItem("usuario");
-      }
-
-      accesoConfirmado = true;
-      setLoginSucceeded(true);
-      setIsTakingLong(false);
-
-      await Swal.fire({
-        icon: "success",
-        title: "¡Éxito!",
-        text: `Bienvenido ${capitalizarNombreVisible(data.nombre)}`,
-        timer: 1000,
-        showConfirmButton: false,
-      });
-
-      if (data.rol === "super_admin") {
-        window.location.href = "/super-admin";
-      } else if (data.rol === "admin" && data.debe_cambiar_password) {
-        window.location.href = "/cambiar-password";
-      } else if (data.rol === "admin") {
-        window.location.href = "/dashboard-admin";
-      } else {
-        window.location.href = "/";
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        Swal.fire({ icon: "error", title: "Acceso no válido", text: "Revisa tus credenciales e intenta nuevamente." });
-      } else if (error.response?.status === 403) {
-        const detail = error.response.data?.detail;
-        const message = typeof detail === "object" ? detail.message : detail;
-        Swal.fire({
-          icon: "warning",
-          title: "Servicio no disponible",
-          text: message || "El servicio del colegio no se encuentra habilitado.",
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "No pudimos conectar",
-          text: "Comprueba tu conexión e intenta nuevamente.",
-        });
-      }
-    } finally {
-      window.clearTimeout(slowRequestTimer);
-      if (!accesoConfirmado) {
-        setIsSubmitting(false);
-        setIsTakingLong(false);
-      }
-    }
-  };
 
   return (
     <form
@@ -195,10 +76,7 @@ function LoginForm() {
               spellCheck={false}
               className={inputClassName}
               value={codigoColegio}
-              onChange={(event) => {
-                setCodigoColegio(event.target.value.toLowerCase());
-                limpiarError();
-              }}
+              onChange={(event) => actualizarCodigoColegio(event.target.value)}
               disabled={isSubmitting}
             />
             <span className={iconContainerClassName}>
@@ -223,10 +101,7 @@ function LoginForm() {
               spellCheck={false}
               className={inputClassName}
               value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                limpiarError();
-              }}
+              onChange={(event) => actualizarEmail(event.target.value)}
               disabled={isSubmitting}
             />
             <span className={iconContainerClassName}>
@@ -249,10 +124,7 @@ function LoginForm() {
               autoComplete="current-password"
               className={`${inputClassName} pr-12`}
               value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                limpiarError();
-              }}
+              onChange={(event) => actualizarPassword(event.target.value)}
               disabled={isSubmitting}
             />
             <span className={iconContainerClassName}>
@@ -320,4 +192,4 @@ function LoginForm() {
   );
 }
 
-export default LoginForm;
+export default LoginFormView;

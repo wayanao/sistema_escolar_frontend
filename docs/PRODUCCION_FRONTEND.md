@@ -2,7 +2,7 @@
 
 Estado actual de preparacion para produccion del frontend.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-08-08.
 
 ## Variables de entorno
 
@@ -105,7 +105,7 @@ eslint .
 
 Ajustes activos en produccion:
 
-- `NavAdmin` en movil no despliega todos los submenus al abrir. Los grupos se
+- `NavAdminView` en movil no despliega todos los submenus al abrir. Los grupos se
   abren bajo demanda y sus subpestanas se diferencian visualmente de los enlaces
   principales.
 - `BrandingAdmin` y `PlantillasAdmin` tienen controles mas compactos en
@@ -125,7 +125,7 @@ Ajustes activos en produccion:
 Prueba manual recomendada antes de liberar:
 
 - En movil, entrar como admin y abrir el menu principal.
-- Abrir grupos de `NavAdmin` y confirmar que los subenlaces no se confunden con
+- Abrir grupos de `NavAdminView` y confirmar que los subenlaces no se confunden con
   enlaces principales.
 - Generar boletin, certificado de notas, certificado de matricula y estado de
   cuenta de cartera; confirmar scroll lateral y que el boton `Atras` no tape
@@ -210,11 +210,12 @@ UI.
 
 ## Estado SaaS del tenant
 
-El layout autenticado monta:
+El layout autenticado compone:
 
-- `src/components/TenantStatusBanner.jsx`
+- `src/hooks/autenticacion/useEstadoTenant.js`
+- `src/components/autenticacion/TenantStatusBannerView.jsx`
 
-Ese componente consume:
+La consulta usa `src/services/autenticacionApi.js`:
 
 ```text
 GET /tenant/status
@@ -228,7 +229,7 @@ tenants en estado `en_mora`. La autorizacion y bloqueo real de tenants
 
 La ruta `/super-admin` monta:
 
-- `src/components/NavSuperAdmin.jsx`
+- `src/components/autenticacion/NavSuperAdminView.jsx`
 - `src/pages/SuperAdminDashboard.jsx`
 
 El login usa el mismo formulario. Si el backend responde `rol = "super_admin"`,
@@ -324,7 +325,7 @@ seguridad final dependen del backend.
 
 ## Login con tenant bloqueado
 
-`LoginForm.jsx` distingue:
+`useComandoLogin`, presentado por `LoginFormView`, distingue:
 
 - `401`: credenciales incorrectas o codigo de colegio invalido.
 - `403`: colegio existente pero con servicio `suspendido` o `cancelado`.

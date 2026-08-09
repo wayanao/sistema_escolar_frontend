@@ -2,7 +2,7 @@
 
 Estado actual del consumo de API desde el frontend.
 
-Ultima revision documental: 2026-07-16.
+Ultima revision documental: 2026-08-08.
 
 ## Cliente Axios principal
 
@@ -54,13 +54,13 @@ El interceptor de response hace limpieza cuando recibe `401` y la ruta actual no
 
 ## Login
 
-`LoginForm.jsx` consume:
+`services/autenticacionApi.js` encapsula:
 
 ```text
 POST /login
 ```
 
-Envia:
+`useComandoLogin`, compuesto por `pages/Login.jsx`, construye y envia:
 
 - `email`
 - `password`
@@ -68,13 +68,13 @@ Envia:
 
 ## Estado SaaS del tenant
 
-`TenantStatusBanner.jsx` consume:
+`services/autenticacionApi.js` encapsula:
 
 ```text
 GET /tenant/status
 ```
 
-Uso:
+`useEstadoTenant` coordina la consulta y `TenantStatusBannerView` presenta:
 
 - `activo`: no muestra aviso.
 - `en_mora`: muestra banner de pago.

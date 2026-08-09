@@ -1,5 +1,49 @@
 # Cambios Frontend
 
+## 2026-08-08 - Modularización completa de autenticación, sesión y navegación
+
+Migración arquitectónica del módulo 14 del plan de modularización. No cambia
+diseño, textos, rutas, comportamiento responsive ni contratos del backend.
+
+- `utils/autenticacion/` concentra contratos puros de sesión, login, cambio de
+  password y navegación: claves y limpieza diferenciada, parseo y decisiones
+  de guards, payloads, validaciones y árboles de menú.
+- `services/autenticacionApi.js` centraliza los cuatro contratos propios del
+  módulo: login, logout, cambio de password y estado del tenant, reutilizando el
+  cliente HTTP compartido y su interceptor global de `401`.
+- `hooks/autenticacion/` separa las lecturas y guards de sesión, la consulta del
+  tenant y los comandos de login, cambio de password y logout. Se conservan el
+  almacenamiento por rol, las redirecciones, alertas, temporizador y
+  recuperación actuales.
+- Seis vistas de `components/autenticacion/` reciben datos y acciones mediante
+  props y mantienen únicamente estado visual local: visibilidad de password y
+  navegación responsive.
+- `pages/Login.jsx`, `pages/CambiarPassword.jsx` y los layouts de `App.jsx` son
+  las raíces de composición. `App` conserva la tabla de rutas, imports lazy,
+  tres límites de `Suspense`, fallback y orden de guards.
+- Se retiraron `LoginForm.jsx`, `NavAdmin.jsx`, `NavProfesor.jsx`,
+  `NavSuperAdmin.jsx` y `TenantStatusBanner.jsx`; no quedan conectores ni
+  implementaciones antiguas paralelas dentro del módulo.
+- `DesktopAnimatedNav` permanece como unidad presentacional compartida y
+  `NotificacionesPlaneadores` conserva su frontera de planeaciones, roles y
+  callback de navegación.
+- Se preservaron deliberadamente el parseo estricto del almacenamiento, la
+  diferencia entre limpieza por logout y por `401`, y el montaje actual del
+  tenant antes de ciertos redirects internos. Los riesgos quedan documentados
+  en `docs/modularizacion/AUTENTICACION_NAVEGACION.md`.
+
+Verificación final:
+
+- 19 archivos y 170 pruebas específicas de autenticación, sesión y navegación
+  correctas.
+- `pnpm run check:deploy`: correcto; 275 archivos, 1510 pruebas, ESLint y build
+  de producción de 375 módulos correctos.
+- `git diff --check`: correcto.
+- Auditoría de rutas, imports, endpoints, alcance e implementaciones duplicadas:
+  correcta. Los cuatro endpoints propios aparecen únicamente en
+  `services/autenticacionApi.js`; la consulta de notificaciones permanece fuera
+  por pertenecer a planeaciones.
+
 ## 2026-08-08 - Reportes financieros: hoyISO y nombreMes ya usan hora local
 
 Corrección de dos de los tres riesgos que la modularización de reportes

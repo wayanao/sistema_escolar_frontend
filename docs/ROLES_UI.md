@@ -2,7 +2,7 @@
 
 Estado actual del manejo de roles en la interfaz.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-08-08.
 
 ## Roles observados
 
@@ -18,7 +18,7 @@ La sesion real viaja en cookie `token` emitida por backend; los datos en
 
 ## Login
 
-`LoginForm.jsx` envia:
+`useComandoLogin`, compuesto en `pages/Login.jsx`, envia:
 
 - `email`
 - `password`
@@ -83,9 +83,9 @@ Si falla la validacion, ambos redirigen a `/login`.
 
 `App.jsx` decide el menu principal:
 
-- `NavAdmin` cuando existe `usuario` con rol `admin`.
-- `NavProfesor` cuando no hay admin y existe profesor.
-- `NavSuperAdmin` en la ruta `/super-admin`.
+- `NavAdminView` cuando existe `usuario` con rol `admin`.
+- `NavProfesorView` cuando no hay admin y existe profesor.
+- `NavSuperAdminView` en la ruta `/super-admin`.
 
 ## Validaciones adicionales en paginas
 

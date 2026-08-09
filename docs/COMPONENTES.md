@@ -8,21 +8,23 @@ Estado actual de componentes y paginas del frontend.
   institucional original como fondo y mejora su integracion mediante filtros y
   capas CSS, sin alterar las personas de la imagen. Presenta el eslogan oficial
   `Tu aula, tu camino, tu futuro.` y concentra el formulario en una tarjeta de
-  cristal translucido con desenfoque y contraste de lectura.
-- `LoginForm.jsx`: formulario de acceso con identidad visual de Auligo; consume
-  `/login`, valida los campos requeridos, permite mostrar u ocultar la
-  contrasena, muestra respuesta inmediata al enviar, bloquea envios duplicados
-  y avisa cuando la conexion tarda mas de lo esperado. El encabezado usa el
-  logotipo completo transparente; los campos incluyen contenedores de iconos,
-  foco morado y correccion visual del autocompletado, y el boton principal usa
-  degradado con indicador de avance.
-- `NavAdmin.jsx`: menu principal para usuario admin; en movil agrupa secciones,
-  usa etiquetas principales mas legibles, muestra solo la marca mas visible en
-  un encabezado compacto, protege etiquetas como `Nómina` con
-  `translate="no"` y mantiene visible la campana de planeaciones.
-- `NavProfesor.jsx`: menu principal para profesor; en movil separa control
-  academico y planeacion, con etiquetas principales mas legibles, encabezado
-  compacto con solo la marca visible y campana para observaciones nuevas.
+  cristal translucido con desenfoque y contraste de lectura. Conecta
+  `useComandoLogin` con `LoginFormView` como raíz de composición.
+- `components/autenticacion/LoginFormView.jsx`: formulario presentacional de
+  acceso con identidad visual de Auligo. Recibe campos, estados y acciones desde
+  `pages/Login.jsx`; permite mostrar u ocultar la contraseña, muestra respuesta
+  inmediata al enviar y avisa cuando la conexión tarda más de lo esperado.
+- `components/autenticacion/CambiarPasswordView.jsx`: formulario
+  presentacional del cambio obligatorio; recibe valores, cambios, submit y
+  estado de guardado desde `pages/CambiarPassword.jsx`.
+- `components/autenticacion/NavAdminView.jsx`: menu principal para usuario
+  admin; en movil agrupa secciones, usa etiquetas principales mas legibles,
+  muestra solo la marca mas visible en un encabezado compacto, protege etiquetas
+  como `Nómina` con `translate="no"` y mantiene visible la campana de planeaciones.
+- `components/autenticacion/NavProfesorView.jsx`: menu principal para profesor;
+  en movil separa control academico y planeacion, con etiquetas principales mas
+  legibles, encabezado compacto con solo la marca visible y campana para
+  observaciones nuevas.
 - `NotificacionesPlaneadores.jsx`: campana compartida por admin y profesor.
   Consulta `GET /notificaciones/planeadores`, muestra contador y hasta ocho
   pendientes para profesor; en admin consulta hasta veinte envíos recientes y
@@ -40,8 +42,9 @@ Estado actual de componentes y paginas del frontend.
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
   escritorio usan `15px` para mejorar lectura.
-- `NavSuperAdmin.jsx`: menu principal para super admin de plataforma.
-- `NavAdmin.jsx`, `NavProfesor.jsx` y `NavSuperAdmin.jsx` muestran el logotipo
+- `components/autenticacion/NavSuperAdminView.jsx`: menu principal para super
+  admin de plataforma.
+- Las tres vistas de navegación muestran el logotipo
   transparente de `Auligo` en lugar del texto `Scholarix`; la marca conserva su
   enlace al inicio correspondiente de cada perfil. Sus elementos verdes usan
   mayor brillo y saturacion para conservar contraste sobre el navbar. Una
@@ -51,7 +54,8 @@ Estado actual de componentes y paginas del frontend.
   `32x32`, ademas del icono Apple de `180x180`. Usa una `A` morada minimalista
   sobre tarjeta blanca redondeada, sin elementos adicionales ni contorno de
   color, y con exterior transparente.
-- `TenantStatusBanner.jsx`: aviso global cuando el backend marca el tenant como `en_mora`.
+- `components/autenticacion/TenantStatusBannerView.jsx`: aviso global
+  presentacional cuando el hook entrega un tenant en mora.
 - `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
 - `components/administracionAcademica/asignaciones/AsignarClase.jsx`:
   contenedor de asignaciones; conecta consultas, disponibilidad y comandos con
@@ -595,7 +599,8 @@ Estado actual de componentes y paginas del frontend.
 
 ## Comportamiento UX movil documentado
 
-- `NavAdmin.jsx`: en movil muestra enlaces principales y grupos colapsables.
+- `components/autenticacion/NavAdminView.jsx`: en movil muestra enlaces
+  principales y grupos colapsables.
   Las subpestanas de admin se abren solo al seleccionar su grupo, para evitar
   que el menu despliegue todas las opciones al abrirse.
 - `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
@@ -615,6 +620,18 @@ Estado actual de componentes y paginas del frontend.
   movil las secciones se apilan; en escritorio se muestran como columnas.
 
 ## Componentes por modulo
+
+### Autenticación y navegación
+
+- `components/autenticacion/`: seis vistas presentacionales para acceso,
+  cambio obligatorio de password, tenant y navegación por rol.
+- `pages/Login.jsx` y `pages/CambiarPassword.jsx`: raíces de composición de los
+  dos formularios.
+- `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant.
+- `DesktopAnimatedNav.jsx`: presentación compartida de escritorio para admin y
+  profesor.
+- `NotificacionesPlaneadores.jsx`: dependencia del dominio de planeaciones
+  integrada mediante rol y callback de navegación.
 
 ### Asistencia
 
@@ -917,6 +934,7 @@ Notas:
 - `Boletin.jsx`
 - `BrandingAdmin.jsx`
 - `CarteraVencidaAdmin.jsx`
+- `CambiarPassword.jsx`
 - `CertificadosAdmin.jsx`
 - `DashboardProfesor.jsx`
 - `EgresosAdmin.jsx`
@@ -942,6 +960,13 @@ Notas:
 - `VentasAdmin.jsx`
 
 ## Hooks y servicios
+
+- `hooks/autenticacion/`: lecturas y guards de sesión, consulta tenant y
+  comandos de login, cambio de password y logout.
+- `services/autenticacionApi.js`: frontera HTTP de `/login`, `/logout`,
+  `/auth/cambiar-password` y `/tenant/status`.
+- `utils/autenticacion/`: claves, contratos, validaciones, payloads,
+  redirecciones y navegación puros.
 
 - `hooks/asistencia/useConsultasAsistenciaProfesor.js`: carga cancelable de
   estudiantes, clases e historial.
@@ -1016,7 +1041,9 @@ Notas:
 - `utils/dashboards/`: un archivo por subdominio —`admin.js`, `profesor.js`,
   `superAdmin.js` y `cumpleanos.js`, este último compartido por dos roles— con
   contratos, transformaciones, validaciones y reglas de clase puras.
-- `utils/api.js`: cliente Axios compartido.
+- `utils/api.js`: cliente Axios compartido e interceptor global de `401`;
+  reutiliza decisiones puras de sesión y permanece como dependencia
+  transversal.
 
 ## Estilos
 

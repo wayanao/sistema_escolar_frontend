@@ -2,7 +2,7 @@
 
 Estado actual del manejo de sesion en el frontend.
 
-Ultima revision documental: 2026-06-13.
+Ultima revision documental: 2026-08-08.
 
 ## Almacenamiento usado
 
@@ -49,7 +49,7 @@ Nota:
 
 ## Flujo de login
 
-`LoginForm.jsx`:
+`useComandoLogin`, compuesto por `pages/Login.jsx` con `LoginFormView`:
 
 1. Envia credenciales a `POST /login`.
 2. Recibe datos minimos de sesion y la cookie `token` queda configurada por el
@@ -64,7 +64,8 @@ Nota:
 
 ## Flujo de logout
 
-`NavAdmin.jsx` y `NavProfesor.jsx` eliminan:
+`useCerrarSesion`, conectado por los layouts de `App.jsx` a las tres vistas de
+navegacion, elimina:
 
 - `profesor`
 - `usuario`
@@ -76,7 +77,7 @@ Nota:
 Tambien llaman `POST /logout`, intentan expirar la cookie `token` como
 compatibilidad para desarrollo y redirigen a `/login`.
 
-`NavSuperAdmin.jsx` limpia las mismas claves principales de sesion.
+El mismo comando se usa para admin, profesor y super admin.
 
 Nota operativa:
 
