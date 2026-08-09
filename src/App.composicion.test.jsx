@@ -78,7 +78,7 @@ vi.mock("./components/autenticacion/TenantStatusBannerView", () => ({
     return aviso ? <div data-testid="tenant-status">{aviso.mensaje}</div> : null;
   },
 }));
-vi.mock("./components/NotificacionesPlaneadores", () => ({
+vi.mock("./components/planeaciones/NotificacionesPlaneadores", () => ({
   default: (props) => {
     mocks.notificaciones(props);
     return <div data-testid={`notificaciones-${props.rol}`} />;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../utils/api";
-import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../utils/notificacionesPlaneadores";
+import api from "../../utils/api";
+import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/notificacionesPlaneadores";
 
 function formatearMomento(value) {
   if (!value) return "";
@@ -152,7 +152,7 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
   };
 
   return (
-    <div ref={contenedorRef} className="relative shrink-0">
+    <div ref={contenedorRef} className="static shrink-0 lg:relative">
       <button
         type="button"
         onClick={() => setAbierto((actual) => !actual)}
@@ -169,7 +169,7 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
       </button>
 
       {abierto && (
-        <div className="fixed left-3 right-3 top-[3.75rem] z-[80] flex max-h-[calc(100dvh-4.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:left-auto sm:right-6 sm:w-[390px] lg:absolute lg:left-auto lg:right-0 lg:top-12 lg:max-h-none">
+        <div className="absolute left-3 right-3 top-[3.75rem] z-[80] flex max-h-[calc(100dvh-4.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:left-auto sm:right-6 sm:w-[390px] lg:left-auto lg:right-0 lg:top-12 lg:max-h-none">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5">
             <div>
               <p className="text-sm font-black text-slate-950">Notificaciones</p>

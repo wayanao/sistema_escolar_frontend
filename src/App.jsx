@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import NotificacionesPlaneadores from "./components/NotificacionesPlaneadores";
+import NotificacionesPlaneadores from "./components/planeaciones/NotificacionesPlaneadores";
 import NavAdminView from "./components/autenticacion/NavAdminView";
 import NavProfesorView from "./components/autenticacion/NavProfesorView";
 import NavSuperAdminView from "./components/autenticacion/NavSuperAdminView";

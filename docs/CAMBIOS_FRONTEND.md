@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-08-09 - Panel móvil de notificaciones anclado al encabezado
+
+- En móvil y tablet, la ventana de notificaciones dejó de usar posición fija
+  respecto al viewport y ahora se posiciona dentro del encabezado.
+- Al desplazar la página, la ventana acompaña al navbar y sale de la pantalla.
+  Conserva sus márgenes laterales, altura máxima, scroll interno y acción
+  inferior; en escritorio continúa anclada directamente a la campana.
+- Se agregó una prueba adyacente que protege el contrato responsive y evita que
+  el panel vuelva a usar `fixed`.
+
+Verificación: 4 archivos y 25 pruebas relacionadas correctas; ESLint específico
+y build de 375 módulos correctos.
+
+## 2026-08-09 - Notificaciones compartidas ubicadas en planeaciones
+
+- `NotificacionesPlaneadores.jsx` se trasladó desde la raíz de `components/` a
+  `components/planeaciones/`, por encima de `admin/` y `profesor/`, porque ambos
+  perfiles consumen la misma campana.
+- Se actualizaron el import productivo de `App.jsx`, su mock de composición y
+  las referencias documentales. No cambian consulta, textos, rutas, responsive
+  ni comportamiento.
+
+Verificación: 3 archivos y 24 pruebas de rutas/navegación correctas; ESLint
+específico, build de 375 módulos y `git diff --check` correctos.
+
 ## 2026-08-08 - Modularización completa de autenticación, sesión y navegación
 
 Migración arquitectónica del módulo 14 del plan de modularización. No cambia

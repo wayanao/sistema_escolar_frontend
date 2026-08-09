@@ -25,7 +25,8 @@ Estado actual de componentes y paginas del frontend.
   en movil separa control academico y planeacion, con etiquetas principales mas
   legibles, encabezado compacto con solo la marca visible y campana para
   observaciones nuevas.
-- `NotificacionesPlaneadores.jsx`: campana compartida por admin y profesor.
+- `components/planeaciones/NotificacionesPlaneadores.jsx`: campana compartida
+  por admin y profesor.
   Consulta `GET /notificaciones/planeadores`, muestra contador y hasta ocho
   pendientes para profesor; en admin consulta hasta veinte envíos recientes y
   recibe un resumen por docente. Cada tarjeta muestra la cantidad total y abre
@@ -34,10 +35,11 @@ Estado actual de componentes y paginas del frontend.
   refresca cada 60 segundos/foco/evento local. La notificacion administrativa
   permanece hasta aprobar o solicitar un ajuste; una observacion del profesor
   no se marca como leida hasta abrir su historial. En móvil y tablet, la
-  ventana se contiene dentro del viewport con márgenes laterales seguros y una
-  altura máxima dinámica; encabezado y acción inferior permanecen visibles
-  mientras la lista central hace scroll. En escritorio continúa anclada a la
-  campana.
+  ventana se posiciona dentro del encabezado con márgenes laterales seguros y
+  una altura máxima dinámica, por lo que acompaña al navbar y sale del viewport
+  al desplazar la página; encabezado y acción inferior permanecen visibles
+  mientras la lista central hace scroll. En escritorio continúa anclada
+  directamente a la campana.
 - `DesktopAnimatedNav.jsx`: nav compartido de escritorio para admin/profesor;
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
@@ -630,8 +632,9 @@ Estado actual de componentes y paginas del frontend.
 - `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant.
 - `DesktopAnimatedNav.jsx`: presentación compartida de escritorio para admin y
   profesor.
-- `NotificacionesPlaneadores.jsx`: dependencia del dominio de planeaciones
-  integrada mediante rol y callback de navegación.
+- `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
+  compartido del dominio de planeaciones integrado mediante rol y callback de
+  navegación.
 
 ### Asistencia
 

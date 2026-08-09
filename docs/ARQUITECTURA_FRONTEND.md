@@ -66,6 +66,9 @@ Estado documentado del frontend `frontend-react`.
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
   flujo docente de planeaciones.
+- `src/components/planeaciones/NotificacionesPlaneadores.jsx`: campana
+  compartida por admin y profesor, ubicada en la raíz del dominio porque ambos
+  perfiles la consumen.
 - `src/components/dashboards/`: `CumpleanosSemana`, el único componente
   compartido por dos roles del módulo de dashboards.
 - `src/components/dashboards/admin/`: tarjeta de cartera vencida y rejilla de
@@ -244,8 +247,9 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - `pages/Login.jsx`, `pages/CambiarPassword.jsx` y los layouts privados de
   `App.jsx` son las raíces de composición. `App.jsx` conserva rutas, imports
   lazy, fallbacks y límites de `Suspense`.
-- `NotificacionesPlaneadores` sigue perteneciendo a planeaciones; autenticación
-  conserva únicamente su integración estable por `rol` y `onNavigate`.
+- `components/planeaciones/NotificacionesPlaneadores.jsx` pertenece a
+  planeaciones; autenticación conserva únicamente su integración estable por
+  `rol` y `onNavigate`.
 - Los conectores antiguos `LoginForm`, `NavAdmin`, `NavProfesor`,
   `NavSuperAdmin` y `TenantStatusBanner` fueron retirados después de confirmar
   que no tenían consumidores adicionales.

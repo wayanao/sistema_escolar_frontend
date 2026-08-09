@@ -37,7 +37,7 @@ seguridad ni modificar la experiencia de acceso.
 
 ### Dependencia compartida delimitada
 
-- `src/components/NotificacionesPlaneadores.jsx` se monta en las navegaciones
+- `src/components/planeaciones/NotificacionesPlaneadores.jsx` se monta en las navegaciones
   de admin y profesor, pero su consulta, agrupación, evento y destinos
   pertenecen a planeaciones.
 - El módulo de autenticación conservará su integración por `rol` y
@@ -181,9 +181,10 @@ hooks:
   menús y `TenantStatusBanner`) quedaron como conectores mínimos que invocan
   hooks y entregan props explícitas a las vistas. `App.jsx` y `Login.jsx` no se
   consolidaron, porque esa responsabilidad corresponde a la capa 6.
-- `NotificacionesPlaneadores` permanece fuera del dominio y se integra mediante
-  un renderer estable que recibe `onNavigate`; no se movieron su consulta,
-  agrupación, evento ni destinos.
+- `NotificacionesPlaneadores` permanece fuera del dominio de autenticación y se
+  integra mediante un renderer estable que recibe `onNavigate`; su ubicación
+  actual es `components/planeaciones/` porque admin y profesor lo comparten.
+  No se movieron su consulta, agrupación, evento ni destinos.
 - `DesktopAnimatedNav` permanece como unidad presentacional existente y sigue
   consumiendo los contratos puros de navegación; no se realizó un traslado de
   carpeta sin beneficio arquitectónico.
