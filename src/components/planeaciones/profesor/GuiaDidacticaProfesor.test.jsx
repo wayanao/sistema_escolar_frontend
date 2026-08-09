@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../../ImagenProtegida", () => ({
+vi.mock("../../../hooks/planeaciones/useImagenProtegida", () => ({
   useImagenProtegida: () => ({
     url: "https://auligo.test/evidencia.webp",
     cargando: false,

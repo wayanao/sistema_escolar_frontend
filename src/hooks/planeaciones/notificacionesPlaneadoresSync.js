@@ -1,5 +1,4 @@
-export const EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES =
-  "planeadores:notificaciones-actualizar";
+import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/planeaciones/notificacionesContratos";
 
 export function actualizarNotificacionesPlaneadores() {
   window.dispatchEvent(

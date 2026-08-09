@@ -23,7 +23,7 @@ vi.mock('sweetalert2', () => ({
   },
 }));
 
-vi.mock('../components/ImagenProtegida', () => ({
+vi.mock('../hooks/planeaciones/useImagenProtegida', () => ({
   useImagenProtegida: () => ({
     url: '',
     cargando: false,

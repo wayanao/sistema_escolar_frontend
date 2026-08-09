@@ -1,4 +1,4 @@
-import { useImagenProtegida } from "../../ImagenProtegida";
+import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
 import CampoTextareaPlanProfesor from "./CampoTextareaPlanProfesor";
 
 export default function EvidenciasPlanProfesor({

@@ -67,9 +67,9 @@ Estado documentado del frontend `frontend-react`.
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
   flujo docente de planeaciones.
-- `src/components/planeaciones/NotificacionesPlaneadores.jsx`: campana
-  compartida por admin y profesor, ubicada en la raíz del dominio porque ambos
-  perfiles la consumen.
+- `src/components/planeaciones/NotificacionesPlaneadores.jsx`: conector de la
+  campana compartida por admin y profesor; enlaza hook, router y estado local.
+  `NotificacionesPlaneadoresVista.jsx` contiene su presentación controlada.
 - `src/components/dashboards/`: `CumpleanosSemana`, el único componente
   compartido por dos roles del módulo de dashboards.
 - `src/components/dashboards/admin/`: tarjeta de cartera vencida y rejilla de
@@ -118,7 +118,8 @@ Estado documentado del frontend `frontend-react`.
   consulta del detalle por rango o mes con sus derivados de filtro y
   totales por medio de pago. El módulo no tiene comandos de escritura.
 - `src/hooks/planeaciones/`: estado y efectos reutilizables del módulo de
-  planeaciones, separados de la presentación.
+  planeaciones, separados de la presentación; incluye consulta y sincronización
+  de notificaciones y ciclo de vida de imágenes protegidas.
 - `src/pages/`: paginas principales de la aplicacion.
 - `src/services/`: fronteras HTTP del frontend. Los servicios encapsulan rutas
   y configuración de transporte, devuelven datos y no administran estado de
@@ -126,7 +127,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/services/autenticacionApi.js`: contratos HTTP de login, logout, cambio
   obligatorio de password y estado del tenant.
 - `src/services/planeacionesApi.js`: contrato HTTP compartido por los flujos de
-  planeaciones del profesor y del administrador.
+  planeaciones del profesor y del administrador, incluidas notificaciones y
+  descarga autenticada de imágenes como blob.
 - `src/services/asistenciaApi.js`: contrato HTTP de planilla, clases, historial
   y guardado de asistencia del profesor.
 - `src/services/planillaApi.js`: contrato HTTP de clases, planilla, guardado
@@ -167,9 +169,10 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`:
   contratos y transformaciones puras del módulo de planeaciones. No realizan
   solicitudes, no acceden al DOM y no administran estado de React.
-- `src/utils/planeaciones/notificaciones.js`: contrato compartido del evento
-  local que solicita refrescar la campana de planeaciones para admin y profesor;
-  concentra la única comunicación con `window` de esta carpeta.
+- `src/utils/planeaciones/notificacionesContratos.js` e `imagenes.js`:
+  agrupación, formato, rutas, nombre del evento y normalización de imágenes como
+  contratos puros. El despacho y la escucha del evento viven en hooks, fuera de
+  esta carpeta.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
 - `src/utils/planilla/`: columna interna reservada, formateo de etiquetas,
@@ -604,8 +607,11 @@ El proyecto fuerza el uso de pnpm mediante scripts `preinstall`, `predev`,
   configuración multipart, señales de cancelación y propagación de errores del
   contrato HTTP.
 - Los tests de `src/hooks/planeaciones/` comprueban paginación, aislamiento
-  entre selecciones y lectura de observaciones sin renderizar la página
-  completa.
+  entre selecciones, lectura de observaciones, recargas de notificaciones y
+  ciclo de vida de blobs sin renderizar la página completa.
+- Las pruebas adyacentes de `NotificacionesPlaneadoresVista`, contratos de
+  notificaciones e imágenes protegen presentación, rutas, agrupación y
+  normalización sin transporte ni estado de React.
 - Los hooks de formulario y carga diaria separan el estado editable de la
   consulta remota. Sus pruebas protegen recuperación local, mapeo de planes,
   errores y descarte de respuestas obsoletas.

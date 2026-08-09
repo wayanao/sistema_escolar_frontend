@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useImagenProtegida } from "../../ImagenProtegida";
+import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
 import { formatearFechaPlan } from "../../../utils/planeaciones/profesor";
 
 export default function PresentacionClaseProfesor({

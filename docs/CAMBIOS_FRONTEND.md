@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-08-09 - Cierre arquitectónico de excepciones de planeaciones
+
+Migración por capas de las notificaciones compartidas y las imágenes
+protegidas, sin cambios de diseño, textos, rutas, comportamiento ni contratos
+del backend.
+
+- `utils/planeaciones/` concentra normalización de imágenes, agrupación,
+  formato, rutas y el nombre puro del evento de actualización.
+- `planeacionesApi.js` es la única frontera HTTP de la consulta de
+  notificaciones y de la descarga autenticada con `responseType: "blob"`.
+- `useNotificacionesPlaneadores`, `useImagenProtegida` y la sincronización local
+  administran consultas, polling, eventos y ciclo de vida de `object URLs`.
+- `NotificacionesPlaneadores.jsx` quedó como conector mínimo y
+  `NotificacionesPlaneadoresVista.jsx` como presentación controlada.
+- Se retiraron `components/ImagenProtegida.jsx` y
+  `utils/planeaciones/notificaciones.js`, junto con sus pruebas antiguas y una
+  ruta administrativa individual sin consumidor real.
+- El barrido final confirmó una sola implementación por responsabilidad, tres
+  consumidores productivos de imágenes protegidas y ausencia de directorios
+  vacíos o imports obsoletos.
+
+Verificación final: `pnpm run check:deploy` correcto; 282 archivos y 1542
+pruebas, ESLint y build de producción de 379 módulos correctos.
+`git diff --check` correcto.
+
 ## 2026-08-09 - Retiro de reexportación de impresión sin consumidores
 
 - Se eliminó `src/hooks/usePrintConfig.js`, que solo reexportaba la

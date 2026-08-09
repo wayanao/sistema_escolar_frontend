@@ -1,11 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES,
-  actualizarNotificacionesPlaneadores,
-} from "./notificaciones";
+import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/planeaciones/notificacionesContratos";
+import { actualizarNotificacionesPlaneadores } from "./notificacionesPlaneadoresSync";
 
-describe("notificaciones de planeadores", () => {
-  it("conserva el contrato del evento local de actualización", () => {
+describe("sincronización de notificaciones de planeadores", () => {
+  it("despacha el evento local conservando su contrato", () => {
     const listener = vi.fn();
     window.addEventListener(
       EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES,

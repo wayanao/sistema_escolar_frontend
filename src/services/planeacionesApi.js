@@ -1,5 +1,17 @@
 import api from "../utils/api";
 
+export async function listarNotificacionesPlaneadores(limit) {
+  const { data } = await api.get("/notificaciones/planeadores", {
+    params: { limit },
+  });
+  return data;
+}
+
+export async function descargarImagenPlaneacion(path) {
+  const { data } = await api.get(path, { responseType: "blob" });
+  return data;
+}
+
 export async function listarClasesProfesor(profesorId) {
   const { data } = await api.get(`/mis-clases/${profesorId}`);
   return data;

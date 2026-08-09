@@ -16,11 +16,13 @@ vi.mock("../utils/api", () => ({
 import {
   actualizarRevisionPlaneacionAdmin,
   crearObservacionPlaneacionAdmin,
+  descargarImagenPlaneacion,
   eliminarImagenPlaneacionAdmin,
   eliminarImagenPlanProfesor,
   guardarPlanProfesor,
   listarClasesProfesor,
   listarHistorialPlanesProfesor,
+  listarNotificacionesPlaneadores,
   listarObservacionesPlan,
   listarPlaneacionesAdmin,
   listarProfesoresPlaneaciones,
@@ -31,6 +33,37 @@ import {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe("contrato HTTP compartido de planeaciones", () => {
+  it("consulta notificaciones conservando el límite recibido", async () => {
+    const respuesta = {
+      total_no_leidas: 2,
+      total_profesores: 1,
+      items: [{ id: 91 }],
+    };
+    apiMock.get.mockResolvedValue({ data: respuesta });
+
+    await expect(listarNotificacionesPlaneadores(20)).resolves.toBe(respuesta);
+
+    expect(apiMock.get).toHaveBeenCalledWith("/notificaciones/planeadores", {
+      params: { limit: 20 },
+    });
+  });
+
+  it("descarga imágenes protegidas como blob y devuelve los datos", async () => {
+    const blob = new Blob(["imagen"], { type: "image/webp" });
+    apiMock.get.mockResolvedValue({ data: blob });
+
+    await expect(
+      descargarImagenPlaneacion("/evidencias/plan-91.webp?version=3"),
+    ).resolves.toBe(blob);
+
+    expect(apiMock.get).toHaveBeenCalledWith(
+      "/evidencias/plan-91.webp?version=3",
+      { responseType: "blob" },
+    );
+  });
 });
 
 describe("contrato HTTP de planeaciones del profesor", () => {

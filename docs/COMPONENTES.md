@@ -26,8 +26,10 @@ Estado actual de componentes y paginas del frontend.
   legibles, encabezado compacto con solo la marca visible y campana para
   observaciones nuevas.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: campana compartida
-  por admin y profesor.
-  Consulta `GET /notificaciones/planeadores`, muestra contador y hasta ocho
+  por admin y profesor. Es un conector mínimo entre el hook de consulta, el
+  router, el estado local del panel y `NotificacionesPlaneadoresVista.jsx`.
+  Mediante el servicio consulta `GET /notificaciones/planeadores`, muestra
+  contador y hasta ocho
   pendientes para profesor; en admin consulta hasta veinte envíos recientes y
   recibe un resumen por docente. Cada tarjeta muestra la cantidad total y abre
   directamente la bandeja `Todas + Pendiente`, filtrada con el identificador
@@ -59,7 +61,9 @@ Estado actual de componentes y paginas del frontend.
   color, y con exterior transparente.
 - `components/autenticacion/TenantStatusBannerView.jsx`: aviso global
   presentacional cuando el hook entrega un tenant en mora.
-- `ImagenProtegida.jsx`: carga imagenes protegidas usando el cliente `api` y `responseType: "blob"`.
+- `hooks/planeaciones/useImagenProtegida.js`: administra la carga, error y ciclo
+  de vida de imágenes autenticadas para presentación, evidencias del profesor y
+  detalle admin; el transporte blob permanece en `planeacionesApi.js`.
 - `components/administracionAcademica/asignaciones/AsignarClase.jsx`:
   contenedor de asignaciones; conecta consultas, disponibilidad y comandos con
   selector, formulario y calendarios presentacionales. No selecciona un curso
@@ -635,8 +639,9 @@ Estado actual de componentes y paginas del frontend.
   de escritorio para admin y profesor.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
   compartido del dominio de planeaciones integrado mediante rol y callback de
-  navegación; comparte el contrato de actualización local mediante
-  `utils/planeaciones/notificaciones.js`.
+  navegación; consume `useNotificacionesPlaneadores` y delega el marcado en
+  `NotificacionesPlaneadoresVista.jsx`. El contrato puro del evento está en
+  `utils/planeaciones/notificacionesContratos.js` y su sincronización en hooks.
 
 ### Asistencia
 

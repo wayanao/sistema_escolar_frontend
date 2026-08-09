@@ -1,21 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../utils/api";
-
-function normalizarRutaImagen(path) {
-  if (!path) return "";
-  if (path.startsWith("blob:") || path.startsWith("data:")) return path;
-
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    try {
-      const url = new URL(path);
-      return `${url.pathname}${url.search}`;
-    } catch {
-      return path;
-    }
-  }
-
-  return `/${path.replaceAll("\\", "/").replace(/^\/+/, "")}`;
-}
+import { descargarImagenPlaneacion } from "../../services/planeacionesApi";
+import { normalizarRutaImagen } from "../../utils/planeaciones/imagenes";
 
 export function useImagenProtegida(path) {
   const [url, setUrl] = useState("");
@@ -37,11 +22,10 @@ export function useImagenProtegida(path) {
     setError("");
     setUrl("");
 
-    api
-      .get(normalizarRutaImagen(path), { responseType: "blob" })
-      .then((res) => {
+    descargarImagenPlaneacion(normalizarRutaImagen(path))
+      .then((blob) => {
         if (!activo) return;
-        objectUrl = URL.createObjectURL(res.data);
+        objectUrl = URL.createObjectURL(blob);
         setUrl(objectUrl);
       })
       .catch((err) => {
@@ -61,4 +45,3 @@ export function useImagenProtegida(path) {
 
   return { url, cargando, error };
 }
-

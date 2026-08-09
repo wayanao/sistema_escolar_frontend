@@ -305,7 +305,7 @@ registrar al final:
 
 | Orden | Módulo | Estado | Documento |
 |---:|---|---|---|
-| Referencia | Planeaciones | Terminado en `fd9ed72` | Documentación global existente |
+| Referencia | Planeaciones | Cierre arquitectónico terminado y verificado localmente; publicación pendiente | [PLANEACIONES_EXCEPCIONES.md](./PLANEACIONES_EXCEPCIONES.md) |
 | 1 | Asistencia | Terminado y publicado (`c02c2e2`) | [ASISTENCIA.md](./ASISTENCIA.md) |
 | 2 | Planilla | Terminado y publicado (`ef95bf7`) | [PLANILLA.md](./PLANILLA.md) |
 | 3 | Malla curricular | Terminado y publicado (`aefcfc8`) | [MALLA_CURRICULAR.md](./MALLA_CURRICULAR.md) |

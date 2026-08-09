@@ -3,7 +3,7 @@ import {
   listarObservacionesPlan,
   marcarObservacionVista,
 } from "../../services/planeacionesApi";
-import { actualizarNotificacionesPlaneadores } from "../../utils/planeaciones/notificaciones";
+import { actualizarNotificacionesPlaneadores } from "./notificacionesPlaneadoresSync";
 
 export default function useObservacionesPlaneacionProfesor({
   planId,

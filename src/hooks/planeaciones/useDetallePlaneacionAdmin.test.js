@@ -24,7 +24,7 @@ vi.mock("../../services/planeacionesApi", () => ({
   obtenerPlaneacionAdmin: obtenerPlaneacionMock,
 }));
 
-vi.mock("../../utils/planeaciones/notificaciones", () => ({
+vi.mock("./notificacionesPlaneadoresSync", () => ({
   actualizarNotificacionesPlaneadores: notificarMock,
 }));
 

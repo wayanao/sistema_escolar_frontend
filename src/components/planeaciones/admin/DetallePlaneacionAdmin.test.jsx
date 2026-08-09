@@ -6,7 +6,7 @@ const { useImagenProtegidaMock } = vi.hoisted(() => ({
   useImagenProtegidaMock: vi.fn(),
 }));
 
-vi.mock("../../ImagenProtegida", () => ({
+vi.mock("../../../hooks/planeaciones/useImagenProtegida", () => ({
   useImagenProtegida: useImagenProtegidaMock,
 }));
 

@@ -1,4 +1,4 @@
-import { useImagenProtegida } from "../../ImagenProtegida";
+import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
 import {
   formatearFecha,
   formatearTextoVisual,
