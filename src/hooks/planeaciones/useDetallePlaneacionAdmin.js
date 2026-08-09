@@ -6,7 +6,7 @@ import {
   obtenerPlaneacionAdmin,
 } from "../../services/planeacionesApi";
 import { detalleError } from "../../utils/planeaciones/admin";
-import { actualizarNotificacionesPlaneadores } from "../../utils/notificacionesPlaneadores";
+import { actualizarNotificacionesPlaneadores } from "../../utils/planeaciones/notificaciones";
 import useEliminacionImagenPlaneacionAdmin from "./useEliminacionImagenPlaneacionAdmin";
 
 export default function useDetallePlaneacionAdmin({

@@ -634,7 +634,8 @@ Estado actual de componentes y paginas del frontend.
   profesor.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
   compartido del dominio de planeaciones integrado mediante rol y callback de
-  navegación.
+  navegación; comparte el contrato de actualización local mediante
+  `utils/planeaciones/notificaciones.js`.
 
 ### Asistencia
 

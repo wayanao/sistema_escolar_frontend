@@ -166,6 +166,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/planeaciones/profesor.js` y `src/utils/planeaciones/admin.js`:
   contratos y transformaciones puras del módulo de planeaciones. No realizan
   solicitudes, no acceden al DOM y no administran estado de React.
+- `src/utils/planeaciones/notificaciones.js`: contrato compartido del evento
+  local que solicita refrescar la campana de planeaciones para admin y profesor;
+  concentra la única comunicación con `window` de esta carpeta.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
 - `src/utils/planilla/`: columna interna reservada, formateo de etiquetas,

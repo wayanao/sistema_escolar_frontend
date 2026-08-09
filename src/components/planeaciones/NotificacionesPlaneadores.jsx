@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../utils/api";
-import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/notificacionesPlaneadores";
+import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/planeaciones/notificaciones";
 
 function formatearMomento(value) {
   if (!value) return "";

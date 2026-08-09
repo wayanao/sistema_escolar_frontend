@@ -1,5 +1,17 @@
 # Cambios Frontend
 
+## 2026-08-09 - Evento de notificaciones ubicado en planeaciones
+
+- `src/utils/notificacionesPlaneadores.js` se trasladó a
+  `src/utils/planeaciones/notificaciones.js` porque todos sus consumidores
+  pertenecen al dominio de planeaciones.
+- Se actualizaron el componente compartido, los dos hooks consumidores y sus
+  mocks de prueba sin cambiar el nombre del evento ni su comportamiento.
+- Se agregó una prueba adyacente para proteger el contrato del evento local.
+
+Verificación: 4 archivos y 10 pruebas relacionadas correctas; ESLint específico
+y build de 375 módulos correctos.
+
 ## 2026-08-09 - Panel móvil de notificaciones anclado al encabezado
 
 - En móvil y tablet, la ventana de notificaciones dejó de usar posición fija

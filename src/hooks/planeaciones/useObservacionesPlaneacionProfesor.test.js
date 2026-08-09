@@ -16,7 +16,7 @@ vi.mock("../../services/planeacionesApi", () => ({
   marcarObservacionVista: marcarObservacionVistaMock,
 }));
 
-vi.mock("../../utils/notificacionesPlaneadores", () => ({
+vi.mock("../../utils/planeaciones/notificaciones", () => ({
   actualizarNotificacionesPlaneadores: actualizarNotificacionesMock,
 }));
 
