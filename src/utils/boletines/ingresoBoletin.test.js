@@ -178,12 +178,51 @@ describe("utilidades de ingreso docente a boletines", () => {
       asignacionId: "55",
       periodo: "2",
     });
-    expect(desarrollo.definitiva).toBeNull();
+    // Antes se enviaba `null` y el curso quedaba sin puesto, porque el ranking
+    // promedia las definitivas guardadas y descarta las nulas. Ahora viaja la
+    // equivalencia numerica de las caritas; la interfaz sigue mostrando carita.
+    expect(desarrollo.definitiva).toBe(4);
     expect(desarrollo.detalles[0]).toEqual({
       nota: null,
       observacion: "Participa",
       tipo_evaluacion: "desarrollo",
       valoracion: "logrado",
     });
+  });
+
+  it("promedia varias caritas y conserva null cuando ninguna esta calificada", () => {
+    const construir = (observaciones) =>
+      construirPayloadBoletin({
+        datosBoletin: { 9: { definitiva: 0, observaciones } },
+        estudianteId: 9,
+        asignacionId: "55",
+        periodo: "2",
+      });
+
+    const mezcla = construir([
+      { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "destacado" },
+      { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+      { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+    ]);
+    expect(mezcla.definitiva).toBeCloseTo(4.33, 2);
+
+    const sinCalificar = construir([
+      { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "" },
+    ]);
+    expect(sinCalificar.definitiva).toBeNull();
+  });
+
+  it("calcula la definitiva inicial de una materia de desarrollo", () => {
+    const estado = crearDatosBoletinInicial([
+      {
+        estudiante_id: 9,
+        notas: [
+          { valor: null, tipo_evaluacion: "desarrollo", valoracion: "destacado" },
+          { valor: null, tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+        ],
+      },
+    ]);
+
+    expect(estado[9].definitiva).toBe("4.50");
   });
 });

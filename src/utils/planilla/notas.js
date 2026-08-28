@@ -1,3 +1,5 @@
+import { promedioDeValoraciones } from "../valoracionesDesarrollo";
+
 const COLUMNA_INTERNA_MAS_ALTO = "mas_alto";
 const COLUMNAS_INTERNAS_OCULTAS = new Set([COLUMNA_INTERNA_MAS_ALTO]);
 
@@ -50,13 +52,45 @@ export const calcularPromedioNotas = (notas, columnasVisibles) => {
 
 export const normalizarNumeroNota = (valor) => Number(String(valor).replace(",", "."));
 
+/**
+ * Promedio de las caritas visibles, como número.
+ *
+ * Las caritas no viven en `notas` sino en `valoraciones`, así que
+ * `calcularPromedioNotas` nunca las veía y la columna salía vacía. Devuelve el
+ * número; la fila y la tarjeta lo traducen a carita antes de mostrarlo.
+ */
+export const calcularPromedioValoraciones = (valoraciones, columnasVisibles) => {
+    const visibles = obtenerNotasVisibles(valoraciones || {}, columnasVisibles);
+    const promedio = promedioDeValoraciones(Object.values(visibles));
+    return promedio === null ? "" : promedio.toFixed(2);
+};
+
+/**
+ * Promedio de un estudiante, venga de notas numéricas o de caritas.
+ *
+ * Una materia no mezcla los dos tipos, así que basta con preferir el de caritas
+ * cuando existe.
+ */
+export const calcularPromedioEstudiante = (est, columnasVisibles) => {
+    const promedioValoraciones = calcularPromedioValoraciones(
+        est?.valoraciones,
+        columnasVisibles,
+    );
+    if (promedioValoraciones !== "") return promedioValoraciones;
+
+    return calcularPromedioNotas(
+        obtenerNotasVisibles(est?.notas || {}, columnasVisibles),
+        columnasVisibles,
+    );
+};
+
 export const normalizarEstudiantesPlanilla = (estudiantes, columnasVisibles) =>
     (estudiantes || []).map((est) => {
         const notasVisibles = obtenerNotasVisibles(est.notas || {}, columnasVisibles);
         return {
             ...est,
             notas: notasVisibles,
-            promedio: calcularPromedioNotas(notasVisibles, columnasVisibles),
+            promedio: calcularPromedioEstudiante(est, columnasVisibles),
         };
     });
 

@@ -472,3 +472,29 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
    orden persistido.
 6. Abrir Certificados y confirmar que la generación compartida sigue operando
    con el mismo endpoint.
+
+## Cambio posterior fuera del plan, 2026-08-28
+
+El módulo sigue **cerrado**. Con orden explícita del usuario se agregó una
+función nueva de producto que toca sus archivos: promedio y puesto en boletines
+de desarrollo infantil. **No reabre el módulo ni pertenece al plan**, que
+excluye funciones nuevas de su alcance; queda anotado aquí solo para que un
+asistente posterior no lo lea como divergencia sin explicar al comparar el árbol
+con el commit final `60edcb5`.
+
+La documentación viva del cambio está en `docs/CAMBIOS_FRONTEND.md`. Respetó los
+límites del módulo: los contratos nuevos viven en `src/utils/boletines/`, la
+escala compartida en `src/constants/`, los componentes siguen sin hooks ni HTTP
+y las pruebas quedaron junto a las unidades que protegen.
+
+De paso corrigió una duplicación heredada: `VALORACIONES_DESARROLLO` estaba
+declarada tres veces y las copias habían divergido en la etiqueta de `apoyo`.
+Ahora hay una sola definición y las utilidades la derivan.
+
+El mismo cambio alcanzó al módulo `planilla`, cuya columna de promedio tenía el
+hueco equivalente. También está cerrado y tampoco se reabre; queda anotado en
+`PLANILLA.md`. El contrato compartido vive en `src/utils/valoracionesDesarrollo.js`,
+fuera de ambos módulos.
+
+Verificación: `pnpm run check:deploy` correcto, 283 archivos y 1564 pruebas.
+Sin commit ni publicación.

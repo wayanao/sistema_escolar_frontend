@@ -5,6 +5,7 @@ import {
   formatearValoracionPeriodo,
   obtenerDesempeno,
   usaDesarrolloInfantil as detectarDesarrolloInfantil,
+  valoracionDesdePromedio,
   VALORACIONES_DESARROLLO,
 } from "../../utils/boletines/generacionBoletin";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
@@ -106,6 +107,9 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
 
 function EscalaYPromedio({ boletinData, usaDesarrolloInfantil }) {
   const promedio = calcularPromedioGeneral(boletinData.materias);
+  const valoracionPromedio = usaDesarrolloInfantil
+    ? valoracionDesdePromedio(Number(promedio) || null)
+    : null;
 
   return (
     <div className="rounded-lg border border-slate-200 mb-4 overflow-hidden">
@@ -144,19 +148,31 @@ function EscalaYPromedio({ boletinData, usaDesarrolloInfantil }) {
             <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">
               Promedio
             </span>
-            <span
-              className={`text-3xl font-black leading-none mt-1 ${
-                promedio >= 3.0 || promedio == 0 ? "text-white" : "text-red-300"
-              }`}
-            >
-              {promedio}
-            </span>
+            {/* En desarrollo el promedio existe como número para poder rankear,
+                pero el boletín nunca lo muestra: se traduce a su carita. */}
+            {usaDesarrolloInfantil ? (
+              <span
+                className="text-3xl leading-none mt-1"
+                title={valoracionPromedio?.label || "Sin calificar"}
+              >
+                {valoracionPromedio?.emoji || "—"}
+              </span>
+            ) : (
+              <span
+                className={`text-3xl font-black leading-none mt-1 ${
+                  promedio >= 3.0 || promedio == 0 ? "text-white" : "text-red-300"
+                }`}
+              >
+                {promedio}
+              </span>
+            )}
             <span className="text-[10px] uppercase tracking-widest font-semibold opacity-70 mt-1">
-              general
+              {usaDesarrolloInfantil
+                ? valoracionPromedio?.label || "general"
+                : "general"}
             </span>
           </div>
-          {!usaDesarrolloInfantil &&
-            boletinData.puesto &&
+          {boletinData.puesto &&
             boletinData.total_estudiantes > 0 && (
               <div className="flex flex-col items-center justify-center px-3">
                 <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">
@@ -184,6 +200,12 @@ function MateriaBoletin({ materia }) {
     : "numerica";
   const styles = obtenerEstilos(materia.definitiva);
   const desempeno = obtenerDesempeno(materia.definitiva);
+  // La definitiva de una materia de desarrollo llega como número, porque es lo
+  // que el puesto del curso necesita promediar. Aquí vuelve a ser carita.
+  const valoracionMateria =
+    tipoMateria === "desarrollo"
+      ? valoracionDesdePromedio(materia.definitiva)
+      : null;
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden page-break-inside-avoid">
@@ -198,8 +220,13 @@ function MateriaBoletin({ materia }) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {tipoMateria === "desarrollo" ? (
-            <span className="text-[10px] font-black tracking-widest px-2 py-1 rounded bg-emerald-100 text-emerald-700">
-              DESARROLLO
+            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-800">
+              <span className="text-xl leading-none">
+                {valoracionMateria?.emoji || "—"}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {valoracionMateria?.label || "Sin calificar"}
+              </span>
             </span>
           ) : (
             <>

@@ -1,4 +1,5 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
+import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
 
 function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const promedioNumerico = Number(est.promedio);
@@ -7,6 +8,11 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
         : promedioNumerico >= 3
             ? "text-emerald-600"
             : "text-red-600";
+    // En desarrollo el promedio se calcula como numero para poder compararlo,
+    // pero la planilla muestra la carita equivalente, nunca el numero.
+    const valoracionPromedio = tipoEvaluacion === "desarrollo"
+        ? valoracionDesdePromedio(est.promedio === "" ? null : promedioNumerico)
+        : null;
     const guardarNotaNumerica = async (event, columna) => {
         const input = event.currentTarget;
         const notaAnterior = est.notas?.[columna];
@@ -89,7 +95,18 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
 
             <td className="border-b border-l border-b-gray-100/70 border-l-emerald-100/50 bg-white px-6 py-4 text-center md:sticky md:right-0 md:z-10">
                 <span className={`text-sm font-semibold ${promedioClass}`}>
-                    {tipoEvaluacion === "desarrollo" ? "—" : est.promedio}
+                    {tipoEvaluacion === "desarrollo" ? (
+                        <span
+                            className="inline-flex items-center gap-1"
+                            title={valoracionPromedio?.label || "Sin calificar"}
+                        >
+                            <span className="text-lg leading-none">
+                                {valoracionPromedio?.emoji || "—"}
+                            </span>
+                        </span>
+                    ) : (
+                        est.promedio
+                    )}
                 </span>
             </td>
         </tr>

@@ -693,3 +693,26 @@ No se modificó ningún archivo fuera de estas rutas.
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual de producción como seguimiento operativo si todavía
   no fue registrada.
+
+## Cambio posterior fuera del plan, 2026-08-28
+
+El módulo sigue **cerrado**. Con orden explícita del usuario se corrigió, junto
+con el cambio equivalente en boletines, que la columna de promedio saliera vacía
+cuando la planilla está en modo carita. **No reabre el módulo ni pertenece al
+plan**; queda anotado aquí para que no se lea como divergencia sin explicar.
+
+Tres capas saltaban las caritas: el backend promedia solo las notas numéricas,
+`calcularPromedioNotas` lee `notas` mientras las caritas viven en
+`valoraciones`, y las dos vistas escribían `"—"` de forma explícita. El backend
+no se tocó, porque el frontend ya recalculaba el promedio y pisaba el recibido.
+
+`utils/planilla/notas.js` suma `calcularPromedioValoraciones` y
+`calcularPromedioEstudiante`; `calcularPromedioNotas` conserva su contrato. El
+comando de guardado recalcula al calificar con carita, que antes solo ocurría en
+el camino numérico. La traducción entre carita y número vive fuera del módulo,
+en `src/utils/valoracionesDesarrollo.js`, compartida con boletines.
+
+Documentación viva en `docs/CAMBIOS_FRONTEND.md`.
+
+Verificación: `pnpm run check:deploy` correcto, 283 archivos y 1564 pruebas.
+Sin commit ni publicación.

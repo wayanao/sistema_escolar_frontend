@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import PlanillaRow from "./PlanillaRow";
@@ -90,6 +90,28 @@ describe("PlanillaRow", () => {
     await user.click(otro);
     expect(guardarNota).toHaveBeenCalledWith(303, "quiz", "destacado");
 
-    expect(screen.getByText("—")).toHaveClass("text-gray-900");
+    // Sin ninguna carita puesta el promedio queda vacio y la celda muestra el
+    // guion, en el gris neutro que usa el modo desarrollo.
+    expect(screen.getByText("—").closest("span.text-sm")).toHaveClass(
+      "text-gray-900",
+    );
+  });
+
+  it("muestra la carita del promedio y nunca su equivalencia numérica", () => {
+    const est = {
+      estudiante_id: 304,
+      nombre: "Iván",
+      apellido: "Soto",
+      notas: {},
+      valoraciones: { quiz: "destacado" },
+      promedio: "5.00",
+    };
+    renderFila({ est, tipoEvaluacion: "desarrollo" });
+
+    // Se acota a la ultima celda: el emoji tambien vive en los botones de
+    // calificar, y lo que se comprueba aqui es la columna de promedio.
+    const celdaPromedio = screen.getAllByRole("cell").at(-1);
+    expect(within(celdaPromedio).getByTitle("Destacado")).toBeInTheDocument();
+    expect(screen.queryByText("5.00")).not.toBeInTheDocument();
   });
 });

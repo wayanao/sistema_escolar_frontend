@@ -343,7 +343,11 @@ describe("flujo de planilla del profesor", () => {
         valoracion: "logrado",
       }),
     );
-    expect(within(filaAna).getByText("—")).toBeInTheDocument();
+    // Antes la columna de promedio quedaba en "—" porque el calculo solo leia
+    // notas numericas. Ahora promedia las caritas y muestra la equivalente.
+    // Se acota a la ultima celda porque el emoji tambien esta en los botones.
+    const celdaPromedio = within(filaAna).getAllByRole("cell").at(-1);
+    expect(within(celdaPromedio).getByText("😀")).toBeInTheDocument();
   });
 
   it("recuerda en localStorage el tipo de evaluación seleccionado previamente", async () => {

@@ -1,9 +1,17 @@
-export const VALORACIONES_DESARROLLO = {
-  destacado: { label: "Destacado", emoji: "⭐" },
-  logrado: { label: "Logrado", emoji: "😀" },
-  proceso: { label: "En proceso", emoji: "🙂" },
-  apoyo: { label: "Requiere acompañamiento", emoji: "🧩" },
-};
+import { VALORACIONES_DESARROLLO as ESCALA_DESARROLLO } from "../../constants/valoracionesDesarrollo";
+
+export { valoracionDesdePromedio } from "../valoracionesDesarrollo";
+
+/**
+ * La escala indexada por código, que es como la consume la impresión.
+ *
+ * Se deriva de `src/constants/` en vez de repetirse: este archivo tenía su
+ * propia copia y llegó a diferir de la de la planilla en la etiqueta de
+ * `apoyo`. La forma de objeto se conserva para no cambiar a sus consumidores.
+ */
+export const VALORACIONES_DESARROLLO = Object.fromEntries(
+  ESCALA_DESARROLLO.map(({ value, label, emoji }) => [value, { label, emoji }]),
+);
 
 export const ESCALA_NUMERICA = [
   { rango: "5.0", concepto: "Excelente / Superior" },

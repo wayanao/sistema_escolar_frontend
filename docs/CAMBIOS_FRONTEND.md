@@ -1,5 +1,83 @@
 # Cambios Frontend
 
+## 2026-08-28 - Promedio en caritas y puesto para desarrollo infantil
+
+Función nueva de producto, autorizada explícitamente. **No pertenece al plan de
+modularización**: el módulo `boletines` está cerrado y publicado, y el plan
+excluye funciones nuevas de su alcance. Sin cambios en el backend.
+
+Antes, una materia evaluada con caritas no producía definitiva —el ingreso
+docente enviaba `null`— y el puesto del curso, que promedia
+`boletin_cabecera.definitiva` descartando las nulas, dejaba fuera a esos cursos.
+El boletín además ocultaba el puesto de forma explícita cuando detectaba
+desarrollo infantil.
+
+- Cada carita tiene ahora equivalencia numérica: `destacado` 5, `logrado` 4,
+  `proceso` 3, `apoyo` 2. El número viaja al backend y se guarda; **ninguna
+  pantalla lo muestra**.
+- `utils/boletines/valoracionesDesarrollo.js` concentra las dos traducciones
+  como contratos puros: promedio de un conjunto de caritas y carita más cercana
+  a un promedio. Ante un empate gana la carita más alta, así que 4.33 es
+  "Logrado" y 4.5 es "Destacado".
+- El promedio ignora las casillas sin calificar en vez de contarlas como cero, y
+  devuelve `null` cuando no hay ninguna carita, que es lo que distingue "sin
+  calificar" de un promedio real.
+- `construirPayloadBoletin` envía ese promedio en `definitiva`;
+  `crearDatosBoletinInicial` lo calcula para que el docente lo vea antes de
+  guardar. El camino numérico conserva su cálculo anterior.
+- `VistaIngresoBoletinProfesor` reemplaza la etiqueta fija "Desarrollo infantil"
+  por la carita definitiva del periodo con su nombre.
+- `BoletinImprimible` muestra la carita en la definitiva de cada materia y en el
+  promedio general, y **deja de ocultar el puesto** en boletines de desarrollo.
+
+Duplicación corregida de paso, necesaria para el cambio:
+
+- `VALORACIONES_DESARROLLO` estaba definida **tres veces**: en
+  `constants/valoracionesDesarrollo.js`, en `utils/boletines/ingresoBoletin.js`
+  y en `utils/boletines/generacionBoletin.js`. Las copias habían divergido: la
+  misma carita se llamaba "Requiere apoyo" en la planilla del profesor y
+  "Requiere acompañamiento" en el boletín del acudiente.
+- Queda una sola definición en `constants/`, con su equivalencia numérica. Las
+  dos utilidades la derivan y conservan la forma que ya exponían —arreglo en
+  `ingresoBoletin`, objeto indexado en `generacionBoletin`—, así que ningún
+  consumidor cambió sus imports.
+- Etiqueta unificada por decisión del usuario: **"Requiere acompañamiento"**.
+  Cambia el texto visible en la planilla del profesor; el boletín lo conserva.
+
+Alcance y riesgo:
+
+- Ninguna nota ni valoración guardada se modifica: no hay migración ni escritura
+  correctiva. El cambio solo afecta lo que se guarda de aquí en adelante.
+- No es retroactivo. Se verificó con el colegio que **no había ningún boletín
+  guardado** todavía, así que no queda arrastre pendiente.
+- Ninguna materia mezcla caritas con notas numéricas, confirmado con el usuario,
+  de modo que las definitivas numéricas existentes no cambian.
+
+La planilla del profesor tenía el mismo hueco y se corrigió en el mismo cambio:
+
+- La columna de promedio salía vacía en modo carita. Tres capas la saltaban: el
+  backend promedia solo `tipo_evaluacion == "numerica"`,
+  `calcularPromedioNotas` lee `notas` mientras las caritas viven en
+  `valoraciones`, y las dos vistas escribían `"—"` de forma explícita.
+- `utils/planilla/notas.js` suma `calcularPromedioValoraciones` y
+  `calcularPromedioEstudiante`; este último prefiere las caritas cuando existen
+  y cae al promedio numérico si no. `calcularPromedioNotas` no cambió.
+- `useComandosPlanillaProfesor` recalcula el promedio al guardar una carita, que
+  antes solo ocurría en el camino numérico: la columna no reaccionaba hasta
+  recargar.
+- `PlanillaRow` y `PlanillaMobileCard` muestran la carita del promedio en vez
+  del guion. El backend no se tocó: el frontend ya recalculaba y pisaba el
+  promedio recibido.
+- El contrato compartido se movió a `src/utils/valoracionesDesarrollo.js`, en la
+  raíz de `utils/`, porque ahora lo consumen dos módulos. Sigue el precedente de
+  `src/utils/periodoProfesor.js`.
+
+Pruebas que fijaban el comportamiento anterior y se actualizaron con su motivo:
+la definitiva nula del boletín de desarrollo y los dos `"—"` de la planilla.
+
+Verificación final: `pnpm run check:deploy` correcto; 283 archivos y 1564
+pruebas, ESLint y build de producción correctos. Sin `git commit` ni publicación.
+
 ## 2026-08-09 - Cierre arquitectónico de excepciones de planeaciones
 
 Migración por capas de las notificaciones compartidas y las imágenes

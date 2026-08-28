@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+    calcularPromedioEstudiante,
+    calcularPromedioValoraciones,
     calcularPromedioNotas,
     construirPayloadNota,
     esColumnaInterna,
@@ -117,5 +119,55 @@ describe("contratos puros de la planilla de notas", () => {
             tipo_evaluacion: "desarrollo",
             valoracion: "logrado",
         });
+    });
+});
+
+describe("promedio de la planilla en modo carita", () => {
+    const columnas = ["quiz", "taller"];
+
+    it("promedia las caritas visibles por su equivalencia numerica", () => {
+        expect(
+            calcularPromedioValoraciones(
+                { quiz: "destacado", taller: "logrado" },
+                columnas,
+            ),
+        ).toBe("4.50");
+    });
+
+    it("ignora columnas que no estan visibles", () => {
+        expect(
+            calcularPromedioValoraciones(
+                { quiz: "destacado", oculta: "apoyo" },
+                columnas,
+            ),
+        ).toBe("5.00");
+    });
+
+    it("devuelve cadena vacia cuando no hay ninguna carita puesta", () => {
+        expect(calcularPromedioValoraciones({}, columnas)).toBe("");
+        expect(calcularPromedioValoraciones({ quiz: "" }, columnas)).toBe("");
+        expect(calcularPromedioValoraciones(undefined, columnas)).toBe("");
+    });
+
+    it("prefiere las caritas cuando el estudiante las tiene", () => {
+        expect(
+            calcularPromedioEstudiante(
+                { valoraciones: { quiz: "logrado" }, notas: {} },
+                columnas,
+            ),
+        ).toBe("4.00");
+    });
+
+    it("cae al promedio numerico cuando no hay caritas", () => {
+        expect(
+            calcularPromedioEstudiante(
+                { valoraciones: {}, notas: { quiz: 3, taller: 4 } },
+                columnas,
+            ),
+        ).toBe("3.50");
+    });
+
+    it("no rompe con un estudiante sin ninguno de los dos", () => {
+        expect(calcularPromedioEstudiante({}, columnas)).toBe("");
     });
 });

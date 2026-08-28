@@ -1,9 +1,17 @@
-export const VALORACIONES_DESARROLLO = [
-  { value: "destacado", label: "Destacado", emoji: "⭐" },
-  { value: "logrado", label: "Logrado", emoji: "😀" },
-  { value: "proceso", label: "En proceso", emoji: "🙂" },
-  { value: "apoyo", label: "Requiere acompañamiento", emoji: "🧩" },
-];
+import {
+  esEvaluacionDesarrollo,
+  promedioDeValoraciones,
+} from "../valoracionesDesarrollo";
+
+/**
+ * Se reexporta para no obligar a cambiar los imports existentes.
+ *
+ * La única definición vive en `src/constants/`, compartida con la planilla.
+ * Antes este archivo tenía su propia copia y las dos escalas se
+ * desincronizaron: la misma carita se llamaba "Requiere apoyo" en la planilla y
+ * "Requiere acompañamiento" en el boletín.
+ */
+export { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
 
 const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
 
@@ -51,19 +59,30 @@ export const crearDatosBoletinInicial = (estudiantes) => {
   const estadoInicial = {};
 
   estudiantes.forEach((estudiante) => {
-    const notasNumericas = (estudiante.notas || []).filter(
+    const notas = estudiante.notas || [];
+    const notasNumericas = notas.filter(
       (nota) =>
         nota.tipo_evaluacion !== "desarrollo" &&
         nota.valor !== null &&
         nota.valor !== undefined,
     );
-    const definitiva =
+
+    // Una materia de desarrollo no tiene notas numéricas que promediar, así que
+    // su definitiva sale de la equivalencia de las caritas. Sin esto la
+    // definitiva quedaba en cero y el estudiante no entraba en el puesto del
+    // curso. El profesor sigue viendo la carita, nunca este número.
+    const promedioDesarrollo = esEvaluacionDesarrollo(notas)
+      ? promedioDeValoraciones(notas.map((nota) => nota.valoracion))
+      : null;
+
+    const promedioNumerico =
       notasNumericas.length > 0
-        ? (
-            notasNumericas.reduce((total, nota) => total + nota.valor, 0) /
-            notasNumericas.length
-          ).toFixed(2)
-        : 0;
+        ? notasNumericas.reduce((total, nota) => total + nota.valor, 0) /
+          notasNumericas.length
+        : null;
+
+    const promedio = promedioDesarrollo ?? promedioNumerico;
+    const definitiva = promedio === null ? 0 : promedio.toFixed(2);
 
     estadoInicial[estudiante.estudiante_id] = {
       definitiva,
@@ -166,15 +185,24 @@ export const construirPayloadBoletin = ({
 }) => {
   const data = datosBoletin[estudianteId];
   if (!data) return null;
-  const esDesarrollo = data.observaciones.some(
-    (observacion) => observacion.tipo_evaluacion === "desarrollo",
-  );
+  const esDesarrollo = esEvaluacionDesarrollo(data.observaciones);
+
+  // En desarrollo se envía el promedio de las caritas, no `null`: el puesto del
+  // curso se calcula sobre las definitivas guardadas y descarta las nulas, de
+  // modo que enviarlas vacías dejaba a estos cursos sin puesto. Si todavía no
+  // hay ninguna carita puesta se mantiene `null`, que es lo que distingue "sin
+  // calificar" de un promedio real.
+  const definitiva = esDesarrollo
+    ? promedioDeValoraciones(
+        data.observaciones.map((observacion) => observacion.valoracion),
+      )
+    : parseFloat(data.definitiva);
 
   return {
     estudiante_id: estudianteId,
     asignacion_id: parseInt(asignacionId),
     periodo: parseInt(periodo),
-    definitiva: esDesarrollo ? null : parseFloat(data.definitiva),
+    definitiva,
     detalles: data.observaciones.map((observacion) => ({
       nota:
         observacion.tipo_evaluacion === "desarrollo"

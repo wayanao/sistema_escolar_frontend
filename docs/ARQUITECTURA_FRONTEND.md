@@ -80,6 +80,10 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/dashboards/superAdmin/`: resumen por estado y tabla de tenants
   de la plataforma.
 - `src/constants/`: constantes compartidas entre paginas/componentes.
+- `src/constants/valoracionesDesarrollo.js`: única definición de la escala de
+  desarrollo infantil —código, etiqueta, emoji y equivalencia numérica—,
+  compartida por planilla y boletines. Las utilidades de boletines la derivan;
+  no vuelven a declararla.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/autenticacion/`: lectura local y guards de sesión, consulta del
   estado tenant y comandos de login, cambio de password y logout.
@@ -162,6 +166,10 @@ Estado documentado del frontend `frontend-react`.
   logos y plantillas de impresión.
 - `src/styles/`: estilos globales adicionales.
 - `src/utils/`: utilidades compartidas, incluyendo cliente API.
+- `src/utils/valoracionesDesarrollo.js`: traducción entre caritas y números de
+  la escala de desarrollo infantil, en las dos direcciones. Compartida por
+  boletines y planilla, como `periodoProfesor.js`; la escala vive en
+  `src/constants/`.
 - `src/utils/autenticacion/`: contratos puros de sesión, login, password y
   navegación, sin HTTP, React, DOM ni almacenamiento.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
@@ -176,8 +184,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/asistencia/`: contratos y transformaciones puras de asistencia,
   incluidas fechas, historial, resumen, cambios, marcación masiva y payload.
 - `src/utils/planilla/`: columna interna reservada, formateo de etiquetas,
-  notas visibles, cálculo de promedio, normalización de coma decimal y
-  construcción del payload de nota de la planilla.
+  notas visibles, cálculo de promedio —numérico y por caritas—, normalización de
+  coma decimal y construcción del payload de nota de la planilla.
 - `src/utils/mallaCurricular/`: filas iniciales, normalización por `slot`,
   validaciones y construcción del payload posicional de ocho filas.
 - `src/utils/boletines/`: contratos y transformaciones puras de generación,
@@ -575,6 +583,29 @@ y decisiones de cada guard. El layout general lee `usuario` y después
   cambio sea explicitamente solicitado para ambas vistas.
 - Los documentos imprimibles que representan formatos A4 deben conservar ancho
   fijo y usar scroll horizontal en pantalla movil.
+- **Un dato que consumen dos modulos no se copia: se comparte.** Va a
+  `src/constants/` si es una constante, o a la raiz de `src/utils/` si es un
+  contrato puro. Un modulo nunca importa de `utils/<otro-modulo>/`.
+
+### Por que existe esa regla
+
+La organizacion por modulos hace que copiar cuatro lineas se sienta mas limpio
+que compartirlas. Es barato el dia uno y se cobra meses despues.
+
+`VALORACIONES_DESARROLLO` llego a estar declarada **tres veces**: en
+`constants/valoracionesDesarrollo.js`, en `utils/boletines/ingresoBoletin.js` y
+en `utils/boletines/generacionBoletin.js`. Alguien mejoro la etiqueta de `apoyo`
+en unas copias y no en otras, y durante meses el profesor leyo "Requiere apoyo"
+en la planilla mientras el acudiente leia "Requiere acompanamiento" en el
+boletin del mismo estudiante. Nadie lo noto porque son pantallas distintas.
+
+Una copia duplicada no falla el dia que se crea. Falla cuando alguien cambia una
+sola, y no falla con error: falla mostrando cosas distintas en pantallas
+distintas.
+
+Precedentes de dato compartido resuelto bien: `src/utils/periodoProfesor.js`,
+usado por seis modulos, y `src/utils/valoracionesDesarrollo.js`, usado por
+boletines y planilla.
 
 ## Build
 

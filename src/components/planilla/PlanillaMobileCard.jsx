@@ -1,4 +1,5 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
+import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
 
 function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
@@ -8,8 +9,15 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
         : promedioNumerico >= 3
             ? "text-emerald-600"
             : "text-red-600";
+    // En desarrollo el promedio existe como numero para poder compararlo, pero
+    // la planilla muestra la carita equivalente con su nombre.
+    const valoracionPromedio = tipoEvaluacion === "desarrollo"
+        ? valoracionDesdePromedio(est.promedio === "" ? null : promedioNumerico)
+        : null;
     const promedioMostrado = tipoEvaluacion === "desarrollo"
-        ? "—"
+        ? valoracionPromedio
+            ? `${valoracionPromedio.emoji} ${valoracionPromedio.label}`
+            : "—"
         : Number.isNaN(promedioNumerico)
             ? est.promedio
             : promedioNumerico.toFixed(2);

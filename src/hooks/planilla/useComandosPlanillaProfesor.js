@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { eliminarTipoEvaluacionPlanilla, guardarNotaPlanilla } from "../../services/planillaApi";
 import {
     calcularPromedioNotas,
+    calcularPromedioValoraciones,
     construirPayloadNota,
     esColumnaInterna,
     formatearEtiquetaColumna,
@@ -35,12 +36,21 @@ export default function useComandosPlanillaProfesor({
                     if (Number(est.estudiante_id) !== Number(estudiante_id)) return est;
 
                     if (tipoEvaluacion === "desarrollo") {
+                        const valoracionesActualizadas = {
+                            ...(est.valoraciones || {}),
+                            [descripcion]: valor,
+                        };
+
                         return {
                             ...est,
-                            valoraciones: {
-                                ...(est.valoraciones || {}),
-                                [descripcion]: valor,
-                            },
+                            valoraciones: valoracionesActualizadas,
+                            // El promedio de caritas se recalcula igual que el
+                            // numerico; sin esto la columna no reaccionaba al
+                            // calificar y solo cambiaba al recargar.
+                            promedio: calcularPromedioValoraciones(
+                                valoracionesActualizadas,
+                                columnas,
+                            ),
                         };
                     }
 

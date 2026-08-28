@@ -4,6 +4,10 @@ import {
   obtenerTipoNota,
   VALORACIONES_DESARROLLO,
 } from "../../utils/boletines/ingresoBoletin";
+import {
+  esEvaluacionDesarrollo,
+  valoracionDesdePromedio,
+} from "../../utils/valoracionesDesarrollo";
 
 export default function VistaIngresoBoletinProfesor({
   asignacionId,
@@ -155,9 +159,12 @@ function TarjetaEstudiante({
   onObservacionChange,
 }) {
   const notasVisibles = estudiante.notas || [];
-  const esDesarrollo = form.observaciones.some(
-    (observacion) => observacion.tipo_evaluacion === "desarrollo",
-  );
+  const esDesarrollo = esEvaluacionDesarrollo(form.observaciones);
+  // El profesor ve la carita que resume el periodo, no el número. Ese número
+  // existe por debajo para que el estudiante entre en el puesto del curso.
+  const valoracionDefinitiva = esDesarrollo
+    ? valoracionDesdePromedio(Number(form.definitiva) || null)
+    : null;
 
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
@@ -185,9 +192,19 @@ function TarjetaEstudiante({
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
             {esDesarrollo ? (
-              <span className="inline-flex justify-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                Desarrollo infantil
-              </span>
+              <div className="flex items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 sm:justify-start">
+                <span className="text-sm font-semibold text-emerald-700">
+                  Definitiva
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded bg-white px-2 py-1 text-emerald-800">
+                  <span className="text-lg leading-none">
+                    {valoracionDefinitiva?.emoji || "—"}
+                  </span>
+                  <span className="text-sm font-bold">
+                    {valoracionDefinitiva?.label || "Sin calificar"}
+                  </span>
+                </span>
+              </div>
             ) : (
               <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 sm:justify-start">
                 <span className="text-sm font-semibold text-gray-600">
