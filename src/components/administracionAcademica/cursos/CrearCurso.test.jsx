@@ -58,10 +58,30 @@ describe("flujo de cursos de administración académica", () => {
                 nombre: "6A",
                 jornada: "Mañana",
                 estado: "activo",
+                nivel: null,
             });
         });
         expect(window.alert).toHaveBeenCalledWith("Curso creado 🔥");
         expect(apiMock.get).toHaveBeenCalledTimes(2);
+    });
+
+    it("crea un curso de preescolar con el nivel seleccionado", async () => {
+        prepararApi();
+        const user = userEvent.setup();
+        render(<CrearCurso />);
+
+        await user.type(screen.getByPlaceholderText("Nombre (6A, 7B...)"), "Transición A");
+        await user.selectOptions(screen.getByDisplayValue("Sin definir"), "preescolar");
+        await user.click(screen.getByRole("button", { name: "Crear Curso" }));
+
+        await waitFor(() => {
+            expect(apiMock.post).toHaveBeenCalledWith("/cursos", {
+                nombre: "TRANSICIÓN A",
+                jornada: "Mañana",
+                estado: "activo",
+                nivel: "preescolar",
+            });
+        });
     });
 
     it("carga edición y restaura los valores iniciales al cancelar", async () => {

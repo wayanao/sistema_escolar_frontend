@@ -8,8 +8,11 @@ import {
     FILTROS_CURSO,
     JORNADA_CURSO_INICIAL,
     JORNADAS_CURSO,
+    NIVEL_CURSO_SIN_DEFINIR,
+    NIVELES_CURSO,
     normalizarNombreCurso,
     obtenerEtiquetaEstadoCurso,
+    obtenerEtiquetaNivelCurso,
     obtenerMensajeErrorCurso,
 } from "./cursos";
 
@@ -28,7 +31,24 @@ describe("utilidades puras de cursos", () => {
             nombre: "6A",
             jornada: "Tarde",
             estado: "inactivo",
+            nivel: null,
         });
+    });
+
+    it("conserva el nivel cuando viene definido y lo normaliza a null si no", () => {
+        expect(construirPayloadCurso({
+            nombre: "Transición A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: "preescolar",
+        }).nivel).toBe("preescolar");
+
+        expect(construirPayloadCurso({
+            nombre: "6A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: NIVEL_CURSO_SIN_DEFINIR,
+        }).nivel).toBeNull();
     });
 
     it("conserva detalles, mensajes y fallback de errores HTTP", () => {
@@ -65,6 +85,14 @@ describe("utilidades puras de cursos", () => {
         expect(CLASES_ESTADO_CURSO.activo).toBe(
             "bg-green-100 text-green-800 border-green-200",
         );
+        expect(NIVELES_CURSO).toEqual([
+            { value: "", label: "Sin definir" },
+            { value: "preescolar", label: "Preescolar" },
+            { value: "primaria", label: "Primaria" },
+        ]);
+        expect(obtenerEtiquetaNivelCurso("preescolar")).toBe("Preescolar");
+        expect(obtenerEtiquetaNivelCurso(null)).toBe("Sin definir");
+        expect(obtenerEtiquetaNivelCurso(undefined)).toBe("Sin definir");
     });
 
     it("actualiza el estado y filtra según el estado operativo", () => {

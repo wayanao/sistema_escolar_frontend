@@ -66,4 +66,27 @@ describe("FormularioCurso", () => {
         expect(onActualizarCampo).toHaveBeenCalledWith("estado", "activo");
         expect(onCancelarEdicion).toHaveBeenCalledTimes(1);
     });
+
+    it("presenta el nivel y delega su cambio, con 'Sin definir' cuando no llega", async () => {
+        const onActualizarCampo = vi.fn();
+        const user = userEvent.setup();
+        render(
+            <FormularioCurso
+                {...PROPS_BASE}
+                onActualizarCampo={onActualizarCampo}
+            />,
+        );
+
+        expect(screen.getByDisplayValue("Sin definir")).toBeInTheDocument();
+
+        await user.selectOptions(screen.getByDisplayValue("Sin definir"), "preescolar");
+
+        expect(onActualizarCampo).toHaveBeenCalledWith("nivel", "preescolar");
+    });
+
+    it("preselecciona el nivel recibido al editar", () => {
+        render(<FormularioCurso {...PROPS_BASE} editId={21} nivel="preescolar" />);
+
+        expect(screen.getByDisplayValue("Preescolar")).toBeInTheDocument();
+    });
 });

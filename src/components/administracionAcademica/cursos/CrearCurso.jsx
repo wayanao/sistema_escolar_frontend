@@ -16,6 +16,7 @@ function CrearCurso() {
         nombre,
         jornada,
         estado,
+        nivel,
         actualizarCampo,
         guardarCurso,
         iniciarEdicion,
@@ -30,6 +31,7 @@ function CrearCurso() {
                 nombre={nombre}
                 jornada={jornada}
                 estado={estado}
+                nivel={nivel}
                 onActualizarCampo={actualizarCampo}
                 onCancelarEdicion={cancelarEdicion}
                 onGuardar={guardarCurso}

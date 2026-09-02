@@ -7,6 +7,7 @@ import ListaCursos from "./ListaCursos";
 const CURSOS = [
     { id: 21, nombre: "6A", jornada: "Mañana", estado: "activo" },
     { id: 22, nombre: "7B", jornada: "Tarde", estado: "inactivo" },
+    { id: 23, nombre: "Transición A", jornada: "Mañana", estado: "activo", nivel: "preescolar" },
 ];
 
 const PROPS_BASE = {
@@ -28,6 +29,15 @@ describe("ListaCursos", () => {
         expect(within(filaTarde).getByText("Tarde")).toBeInTheDocument();
         expect(within(filaManana).getByText("Activo", { selector: "span" })).toBeInTheDocument();
         expect(within(filaTarde).getByText("Inactivo", { selector: "span" })).toBeInTheDocument();
+        expect(within(filaManana).getByText("Sin definir")).toBeInTheDocument();
+        expect(within(filaTarde).getByText("Sin definir")).toBeInTheDocument();
+    });
+
+    it("muestra el nivel del curso cuando está definido", () => {
+        render(<ListaCursos {...PROPS_BASE} />);
+
+        const filaPreescolar = screen.getByRole("row", { name: /Transición A/ });
+        expect(within(filaPreescolar).getByText("Preescolar")).toBeInTheDocument();
     });
 
     it("delega filtro, edición y cambio de estado", async () => {

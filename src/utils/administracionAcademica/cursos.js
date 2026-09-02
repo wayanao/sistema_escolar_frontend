@@ -15,6 +15,19 @@ export const JORNADAS_CURSO = [
     { value: "Tarde", label: "🌇 Tarde" },
 ];
 
+export const NIVEL_CURSO_SIN_DEFINIR = "";
+
+export const NIVELES_CURSO = [
+    { value: NIVEL_CURSO_SIN_DEFINIR, label: "Sin definir" },
+    { value: "preescolar", label: "Preescolar" },
+    { value: "primaria", label: "Primaria" },
+];
+
+export const CLASES_NIVEL_CURSO = {
+    preescolar: "bg-pink-100 text-pink-800 border-pink-200",
+    primaria: "bg-blue-100 text-blue-800 border-blue-200",
+};
+
 export const CLASES_ESTADO_CURSO = {
     activo: "bg-green-100 text-green-800 border-green-200",
     inactivo: "bg-gray-100 text-gray-700 border-gray-200",
@@ -39,11 +52,19 @@ export function obtenerEtiquetaEstadoCurso(estado) {
     return ESTADOS_CURSO.find((item) => item.value === estado)?.label || "Activo";
 }
 
-export function construirPayloadCurso({ nombre, jornada, estado }) {
+export function obtenerEtiquetaNivelCurso(nivel) {
+    return NIVELES_CURSO.find((item) => item.value === (nivel || ""))?.label
+        || "Sin definir";
+}
+
+export function construirPayloadCurso({ nombre, jornada, estado, nivel }) {
     return {
         nombre: normalizarNombreCurso(nombre),
         jornada,
         estado,
+        // Un curso "sin definir" viaja como null, nunca como cadena vacía: el
+        // backend solo acepta null, "preescolar" o "primaria".
+        nivel: nivel || null,
     };
 }
 

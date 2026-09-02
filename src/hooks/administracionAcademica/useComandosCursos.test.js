@@ -67,6 +67,7 @@ describe("useComandosCursos", () => {
         expect(result.current.nombre).toBe("6A");
         expect(result.current.jornada).toBe("Tarde");
         expect(result.current.estado).toBe("activo");
+        expect(result.current.nivel).toBe("");
 
         act(() => result.current.cancelarEdicion());
 
@@ -74,6 +75,15 @@ describe("useComandosCursos", () => {
         expect(result.current.nombre).toBe("");
         expect(result.current.jornada).toBe("Mañana");
         expect(result.current.estado).toBe("activo");
+        expect(result.current.nivel).toBe("");
+    });
+
+    it("preselecciona el nivel del curso en edición cuando está definido", () => {
+        const { result } = crearHook();
+
+        act(() => result.current.iniciarEdicion({ ...CURSO, nivel: "preescolar" }));
+
+        expect(result.current.nivel).toBe("preescolar");
     });
 
     it("valida el nombre antes de crear", async () => {
@@ -100,11 +110,29 @@ describe("useComandosCursos", () => {
             nombre: "6A",
             jornada: "Tarde",
             estado: "activo",
+            nivel: null,
         });
         expect(window.alert).toHaveBeenCalledWith("Curso creado 🔥");
         expect(recargar).toHaveBeenCalledTimes(1);
         expect(result.current.nombre).toBe("");
         expect(result.current.jornada).toBe("Mañana");
+    });
+
+    it("crea con el nivel seleccionado", async () => {
+        const { result } = crearHook();
+        act(() => {
+            result.current.actualizarCampo("nombre", "Transición A");
+            result.current.actualizarCampo("nivel", "preescolar");
+        });
+
+        await act(async () => result.current.guardarCurso());
+
+        expect(crearMock).toHaveBeenCalledWith({
+            nombre: "TRANSICIÓN A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: "preescolar",
+        });
     });
 
     it("actualiza el curso en edición con el mismo contrato", async () => {
@@ -117,6 +145,7 @@ describe("useComandosCursos", () => {
             nombre: "6A",
             jornada: "Tarde",
             estado: "activo",
+            nivel: null,
         });
         expect(crearMock).not.toHaveBeenCalled();
         expect(window.alert).toHaveBeenCalledWith("Curso actualizado 🔥");

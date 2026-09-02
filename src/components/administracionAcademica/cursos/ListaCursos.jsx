@@ -1,9 +1,11 @@
 import {
     CLASES_ESTADO_CURSO,
+    CLASES_NIVEL_CURSO,
     ESTADOS_CURSO,
     FILTROS_CURSO,
     JORNADA_CURSO_INICIAL,
     obtenerEtiquetaEstadoCurso,
+    obtenerEtiquetaNivelCurso,
 } from "../../../utils/administracionAcademica/cursos";
 
 export default function ListaCursos({
@@ -35,6 +37,7 @@ export default function ListaCursos({
                         <tr className="bg-gray-100 text-gray-600">
                             <th className="p-2 border-b">Nombre</th>
                             <th className="p-2 border-b">Jornada</th>
+                            <th className="p-2 border-b">Nivel</th>
                             <th className="p-2 border-b">Estado</th>
                             <th className="p-2 border-b text-right">Acciones</th>
                         </tr>
@@ -46,6 +49,11 @@ export default function ListaCursos({
                                 <td className="p-2">
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${curso.jornada === "Tarde" ? "bg-orange-100 text-orange-800" : "bg-purple-100 text-purple-900"}`}>
                                         {curso.jornada || JORNADA_CURSO_INICIAL}
+                                    </span>
+                                </td>
+                                <td className="p-2">
+                                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${CLASES_NIVEL_CURSO[curso.nivel] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                                        {obtenerEtiquetaNivelCurso(curso.nivel)}
                                     </span>
                                 </td>
                                 <td className="p-2">

@@ -2,7 +2,8 @@
 
 ## Control
 
-- Estado: **Propuesta, pendiente de aprobación. Nada implementado.**
+- Estado: **Código completo**, verificado localmente. Nada commiteado ni
+  publicado.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno: esa
   documentación es solo para migraciones arquitectónicas sin funcionalidad
@@ -11,7 +12,7 @@
   `sistema_escolar_api/docs/funcionalidades/NIVEL_ACADEMICO.md`, que cubre la
   parte de datos y validación en el servidor.
 - Riesgo inicial: Medio.
-- Última actualización: 2026-09-01.
+- Última actualización: 2026-09-02.
 
 ## Objetivo
 
@@ -48,31 +49,66 @@ toma por materia, lo que en preescolar duplica el trabajo.
 - La validación real de que un curso preescolar no reciba notas numéricas
   vive en el backend; el frontend refleja la regla, no la reemplaza.
 
-## Inventario de archivos existentes que este cambio toca
+## Archivos tocados (implementación real)
 
-- `src/utils/administracionAcademica/cursos.js`
-- `src/components/administracionAcademica/cursos/FormularioCurso.jsx`
-- `src/components/administracionAcademica/cursos/ListaCursos.jsx` (mostrar el
-  nivel en la tabla)
-- `src/hooks/administracionAcademica/useComandosCursos.js`
-- `src/components/planilla/SelectorTipoEvaluacion.jsx`
-- `src/pages/Asistencia.jsx`
-- `src/utils/planilla/notas.js` (a revisar en la capa 0: si ya calcula algo
-  relacionado con `tipo_evaluacion` que deba conocer el nivel del curso)
+**Nuevos:**
+- `src/utils/nivelAcademico.js` — espejo de `app/core/nivel_academico.py`:
+  `tipoEvaluacionForzado(nivel)` y `esNivelPreescolar(nivel)`, funciones
+  puras. Con `src/utils/nivelAcademico.test.js`.
 
-No inventariado todavía en detalle: cómo "mis clases" / el listado de
-asignaciones que consume `Asistencia.jsx` debería exponer el nivel del curso
-o identificar cuál asignación es la de "Asistencia diaria". Se define en la
-capa 0 de implementación, no aquí.
+**Modificados:**
+- `src/utils/administracionAcademica/cursos.js` — `NIVELES_CURSO`,
+  `NIVEL_CURSO_SIN_DEFINIR`, `CLASES_NIVEL_CURSO`,
+  `obtenerEtiquetaNivelCurso`, y `construirPayloadCurso` ahora incluye
+  `nivel` (convierte `""` a `null` antes de enviarlo).
+- `src/components/administracionAcademica/cursos/FormularioCurso.jsx` —
+  selector "Nivel".
+- `src/components/administracionAcademica/cursos/ListaCursos.jsx` — columna
+  "Nivel" con insignia.
+- `src/hooks/administracionAcademica/useComandosCursos.js` — `nivel` en el
+  formulario, se envía al guardar y se preselecciona al editar.
+- `src/components/administracionAcademica/cursos/CrearCurso.jsx` — conecta
+  el nuevo prop.
+- `src/pages/Planilla.jsx` — oculta `SelectorTipoEvaluacion` y fuerza
+  `tipoEvaluacion` a `"desarrollo"` cuando el curso de la clase activa es
+  preescolar, sin importar lo que diga `localStorage`.
 
-## Cambios de UI previstos
+**Sin cambios, y por qué:**
+- `src/pages/Asistencia.jsx`: no requirió ningún cambio (ver más abajo).
+- `src/components/planilla/SelectorTipoEvaluacion.jsx`: se oculta desde
+  `Planilla.jsx` con un condicional; el componente en sí no necesitó
+  cambios.
+
+## El "modo jornada" de Asistencia no requirió código
+
+Se investigó cómo el profesor llega a una asignación en `Asistencia.jsx` y
+se encontró que la página **no tiene selector propio**: lee `asignacionId`
+de `localStorage`, puesto ahí por `ContextoTrabajoProfesor.jsx` (el
+selector "¿Con qué clase vas a trabajar?" del Dashboard del profesor), que
+lista **todas** las asignaciones del profesor sin distinción
+(`clase.materia - clase.curso - jornada`).
+
+Como la asignación de jornada (`"ASISTENCIA DIARIA"`) es, para el sistema,
+una asignación más, **ya aparece en ese selector automáticamente**. El
+profesor la elige igual que elegiría "Matemáticas", y `Asistencia.jsx` la
+usa sin saber ni necesitar saber que es especial. Es la misma conclusión de
+diseño que ya se había aplicado en el backend (no crear una ruta ni tabla
+nueva) llevada a su consecuencia lógica en el frontend: no hay nada que
+programar aquí.
+
+Queda como mejora de UX opcional, no implementada: distinguir visualmente
+esa opción en el selector (ej. un ícono) para que no se confunda con una
+materia real. No se hizo porque no fue pedida y el selector ya funciona
+correctamente sin ella.
+
+## Cambios de UI (implementados)
 
 | Pantalla | Cambio |
 |---|---|
 | Formulario de Curso | Selector "Nivel": Preescolar / Primaria / Sin definir. |
-| Lista de Cursos | Mostrar el nivel como columna o insignia. |
-| Planilla | `SelectorTipoEvaluacion` no se muestra si el curso es preescolar. |
-| Asistencia | Si el curso activo es preescolar, entra directo a la asignación de jornada en vez de mostrar el selector de materia. Si es primaria, sigue igual que hoy. |
+| Lista de Cursos | Columna "Nivel" con insignia de color. |
+| Planilla | `SelectorTipoEvaluacion` no se muestra si el curso es preescolar; el tipo queda fijo en "desarrollo". |
+| Asistencia | Sin cambios de código (ver sección anterior). |
 
 ## Invariantes
 
@@ -82,38 +118,66 @@ capa 0 de implementación, no aquí.
   lo descrito aquí.
 - Comportamiento responsive actual se conserva.
 
-## Riesgos iniciales
+## Hueco de backend descubierto y cerrado durante esta fase
 
-- `Asistencia.jsx` y sus hooks relacionados (ver
-  `docs/modularizacion/ASISTENCIA.md`) ya están modularizados; hay que
-  extender su comportamiento sin romper sus pruebas de caracterización
-  existentes.
-- Confirmar en la capa 0 si el nivel del curso llega ya en la respuesta de
-  "mis clases" del profesor o si hace falta un cambio adicional de contrato
-  para exponerlo (a coordinar con el backend).
+Al conectar el selector de Cursos se descubrió que
+`app/controllers/curso_controller.py` (backend) nunca leía, guardaba ni
+devolvía `nivel` pese a estar en el plan desde el inicio. Se corrigió ahí
+(ver el documento del backend) antes de continuar; sin eso el selector de
+este repo no habría tenido nada real que guardar o mostrar.
 
-## Plan de fases (frontend)
+También se agregó `c.nivel` a la consulta de `GET /mis-clases/{profesor_id}`
+(`app/repositories/asignaciones_repository.py`), que es el endpoint que
+alimenta tanto a Planilla como al Dashboard del profesor, para que
+`Planilla.jsx` supiera el nivel del curso de la clase activa.
 
-1. Capa 0: inventariar con precisión los archivos de arriba, confirmar cómo
-   llega (o no) el nivel del curso a la pantalla de Asistencia, y proteger
-   con pruebas de caracterización el comportamiento actual antes de tocar
-   nada.
-2. Selector de nivel en el formulario de Cursos + mostrarlo en la lista.
-3. Ocultar `SelectorTipoEvaluacion` en Planilla cuando el curso es
-   preescolar.
-4. Modo jornada en Asistencia para preescolar.
-5. Pruebas + `pnpm run check:deploy`.
+## Riesgos
+
+- `Asistencia.jsx` y sus hooks relacionados no se tocaron: sus pruebas de
+  caracterización existentes no se vieron afectadas.
+- El nivel de un curso viaja hoy en dos respuestas distintas del backend
+  (`GET /cursos` y `GET /mis-clases/:profesorId`); si en el futuro se agrega
+  un tercer lugar que necesite el nivel, hay que recordar incluirlo ahí
+  también — no hay un solo punto de verdad en el backend para "todas las
+  respuestas que exponen un curso".
+
+## Plan de fases (frontend) — completado
+
+1. ~~Capa 0: inventariar y proteger el comportamiento actual.~~ Hecho
+   mediante lectura directa del código real, no solo de la documentación.
+2. ~~Selector de nivel en el formulario de Cursos + mostrarlo en la lista.~~
+   Hecho.
+3. ~~Ocultar `SelectorTipoEvaluacion` en Planilla cuando el curso es
+   preescolar.~~ Hecho.
+4. ~~Modo jornada en Asistencia para preescolar.~~ Resuelto sin código, ver
+   sección dedicada arriba.
+5. ~~Pruebas + `pnpm run check:deploy`.~~ Hecho, ver Verificación abajo.
+
+## Verificación
+
+- `pnpm run check:deploy`: **1577 pruebas pasaron** en 284 archivos, lint
+  correcto, build correcto (exit 0).
+- Antes del cambio: unas 1560 pruebas aproximadamente (no se registró el
+  número exacto previo a esta funcionalidad); se agregaron pruebas en
+  `cursos.test.js`, `FormularioCurso.test.jsx`, `ListaCursos.test.jsx`,
+  `useComandosCursos.test.js`, `CrearCurso.test.jsx`, `Planilla.test.jsx` y
+  el archivo nuevo `nivelAcademico.test.js`.
+- `git diff --check`: exit 0, limpio.
+- Nada commiteado ni publicado.
 
 ## Preguntas abiertas
 
 Ver `sistema_escolar_api/docs/funcionalidades/NIVEL_ACADEMICO.md`, sección
-Preguntas abiertas — son compartidas entre ambos repos.
+Preguntas abiertas — son compartidas entre ambos repos. Ninguna bloqueaba
+este trabajo.
 
 ## Entrega para el siguiente chat
 
-- Última fase terminada: ninguna. Esto es una propuesta, no hay código
-  escrito.
-- Siguiente acción exacta: esperar aprobación del usuario y respuesta a las
-  preguntas abiertas. El backend debe ir primero (columna `nivel` disponible)
-  antes de que el frontend pueda consumirla.
-- No hay commit base todavía porque no se ha tocado código de producto.
+- Última acción terminada: código completo de ambos repos para esta
+  funcionalidad, verificado localmente.
+- Siguiente acción exacta: el usuario decide cuándo aplicar la migración
+  real a todos los tenants y publicar (ver "Orden de despliegue obligatorio"
+  en el documento del backend) — es lo único que falta para que esto llegue
+  a producción.
+- No hay commit todavía en ninguno de los dos repos para este trabajo; el
+  usuario los hace cuando lo decida.

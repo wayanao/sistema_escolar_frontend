@@ -29,6 +29,12 @@ const PERIODO = 3;
 const ANA_ID = 501;
 const LUIS_ID = 502;
 const CLASE = { id: ASIGNACION_ID, materia: "Ciencias Naturales", curso: "4B" };
+const CLASE_PREESCOLAR = {
+  id: ASIGNACION_ID,
+  materia: "Desarrollo Cognitivo",
+  curso: "Transición A",
+  nivel: "preescolar",
+};
 const PLANILLA_URL = `/planilla-excel/${ASIGNACION_ID}/${PERIODO}`;
 
 const ESTUDIANTES_INICIALES = [
@@ -48,10 +54,10 @@ const ESTUDIANTES_INICIALES = [
 
 let columnasServidor;
 
-function prepararApi() {
+function prepararApi({ clase = CLASE } = {}) {
   apiMock.get.mockImplementation((url) => {
     if (url === `/mis-clases/${PROFESOR_ID}`) {
-      return Promise.resolve({ data: [CLASE] });
+      return Promise.resolve({ data: [clase] });
     }
     if (url === PLANILLA_URL) {
       return Promise.resolve({
@@ -96,9 +102,9 @@ function contarLlamadasPlanilla() {
   return apiMock.get.mock.calls.filter(([url]) => url === PLANILLA_URL).length;
 }
 
-async function abrirPlanilla() {
+async function abrirPlanilla({ clase = CLASE } = {}) {
   render(<Planilla />);
-  await screen.findByText(CLASE.materia);
+  await screen.findByText(clase.materia);
   await within(screen.getByRole("table")).findByText("Ruiz Ana");
 }
 
@@ -358,5 +364,40 @@ describe("flujo de planilla del profesor", () => {
     const filaAna = obtenerFilaEstudiante(tabla, "Ruiz Ana");
     expect(within(filaAna).queryAllByRole("spinbutton")).toHaveLength(0);
     expect(within(filaAna).getAllByRole("button", { name: "Logrado en Quiz" })).toHaveLength(1);
+  });
+
+  it("en un curso de preescolar no muestra el selector de tipo de evaluación", async () => {
+    prepararApi({ clase: CLASE_PREESCOLAR });
+    await abrirPlanilla({ clase: CLASE_PREESCOLAR });
+
+    expect(screen.queryByText("Tipo de calificación")).not.toBeInTheDocument();
+  });
+
+  it("en un curso de preescolar evalúa con desarrollo aunque localStorage diga numérica", async () => {
+    localStorage.setItem("planillaTipoEvaluacion", "numerica");
+    prepararApi({ clase: CLASE_PREESCOLAR });
+    await abrirPlanilla({ clase: CLASE_PREESCOLAR });
+
+    const tabla = screen.getByRole("table");
+    const filaAna = obtenerFilaEstudiante(tabla, "Ruiz Ana");
+    // El modo de captura es de caritas (botones), no de número: el nivel del
+    // curso manda sobre la preferencia guardada.
+    expect(within(filaAna).queryAllByRole("spinbutton")).toHaveLength(0);
+    expect(within(filaAna).getAllByRole("button", { name: "Logrado en Quiz" })).toHaveLength(1);
+
+    const botonLogrado = within(filaAna).getByRole("button", { name: "Logrado en Quiz" });
+    await fireEvent.click(botonLogrado);
+
+    await waitFor(() =>
+      expect(apiMock.post).toHaveBeenCalledWith("/planilla/nota", {
+        estudiante_id: ANA_ID,
+        asignacion_id: ASIGNACION_ID,
+        nota: null,
+        descripcion: "quiz",
+        periodo: PERIODO,
+        tipo_evaluacion: "desarrollo",
+        valoracion: "logrado",
+      }),
+    );
   });
 });

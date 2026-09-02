@@ -8,6 +8,7 @@ import {
     aplicarEstadoCurso,
     construirPayloadCurso,
     JORNADA_CURSO_INICIAL,
+    NIVEL_CURSO_SIN_DEFINIR,
     obtenerMensajeErrorCurso,
 } from "../../utils/administracionAcademica/cursos";
 
@@ -15,6 +16,7 @@ const FORMULARIO_INICIAL = {
     nombre: "",
     jornada: JORNADA_CURSO_INICIAL,
     estado: "activo",
+    nivel: NIVEL_CURSO_SIN_DEFINIR,
 };
 
 export default function useComandosCursos({
@@ -35,14 +37,14 @@ export default function useComandosCursos({
     };
 
     const guardarCurso = async () => {
-        const { nombre, jornada, estado } = formulario;
+        const { nombre, jornada, estado, nivel } = formulario;
         if (!nombre) {
             window.alert("Falta nombre");
             return;
         }
 
         try {
-            const payload = construirPayloadCurso({ nombre, jornada, estado });
+            const payload = construirPayloadCurso({ nombre, jornada, estado, nivel });
 
             if (editId) {
                 await actualizarCurso(editId, payload);
@@ -65,6 +67,7 @@ export default function useComandosCursos({
             nombre: curso.nombre,
             jornada: curso.jornada || JORNADA_CURSO_INICIAL,
             estado: curso.estado || "activo",
+            nivel: curso.nivel || NIVEL_CURSO_SIN_DEFINIR,
         });
     };
 

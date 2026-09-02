@@ -1,6 +1,8 @@
 import {
     ESTADOS_CURSO,
     JORNADAS_CURSO,
+    NIVEL_CURSO_SIN_DEFINIR,
+    NIVELES_CURSO,
 } from "../../../utils/administracionAcademica/cursos";
 
 export default function FormularioCurso({
@@ -8,6 +10,7 @@ export default function FormularioCurso({
     nombre,
     jornada,
     estado,
+    nivel,
     onActualizarCampo,
     onCancelarEdicion,
     onGuardar,
@@ -18,7 +21,7 @@ export default function FormularioCurso({
                 🏫 {editId ? "Editar" : "Crear"} Curso
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                     <input
@@ -50,6 +53,20 @@ export default function FormularioCurso({
                         onChange={(event) => onActualizarCampo("estado", event.target.value)}
                     >
                         {ESTADOS_CURSO.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+                    <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                        value={nivel || NIVEL_CURSO_SIN_DEFINIR}
+                        onChange={(event) => onActualizarCampo("nivel", event.target.value)}
+                    >
+                        {NIVELES_CURSO.map((item) => (
                             <option key={item.value} value={item.value}>
                                 {item.label}
                             </option>

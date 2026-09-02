@@ -5,6 +5,7 @@ import SelectorTipoEvaluacion from "../components/planilla/SelectorTipoEvaluacio
 import TablaNotasPlanilla from "../components/planilla/TablaNotasPlanilla";
 import useComandosPlanillaProfesor from "../hooks/planilla/useComandosPlanillaProfesor";
 import useConsultasPlanillaProfesor from "../hooks/planilla/useConsultasPlanillaProfesor";
+import { esNivelPreescolar, tipoEvaluacionForzado } from "../utils/nivelAcademico";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 import { formatearEtiquetaColumna } from "../utils/planilla/notas";
 
@@ -81,6 +82,19 @@ function Planilla() {
     }, [asignacionId, periodo, profesorId, pedirSeleccionClase]);
 
     const selectedClase = clases.find(c => c.id == asignacionId);
+    const cursoEsPreescolar = esNivelPreescolar(selectedClase?.nivel);
+
+    // El nivel del curso manda sobre la preferencia guardada en localStorage:
+    // un curso de preescolar siempre evalúa con desarrollo (caritas), sin
+    // opción de cambiarlo. El servidor ya lo garantiza al guardar; esto
+    // ajusta además lo que ve el profesor.
+    useEffect(() => {
+        const forzado = tipoEvaluacionForzado(selectedClase?.nivel);
+        if (forzado && tipoEvaluacion !== forzado) {
+            setTipoEvaluacion(forzado);
+        }
+    }, [selectedClase?.nivel, tipoEvaluacion]);
+
     return (
     <div className="p-3 sm:p-6">
         <EncabezadoContextoCurso
@@ -92,13 +106,15 @@ function Planilla() {
             periodo={periodo}
             fecha={fecha}
         >
-                <SelectorTipoEvaluacion
-                    value={tipoEvaluacion}
-                    onChange={(valor) => {
-                        setTipoEvaluacion(valor);
-                        localStorage.setItem("planillaTipoEvaluacion", valor);
-                    }}
-                />
+                {!cursoEsPreescolar && (
+                    <SelectorTipoEvaluacion
+                        value={tipoEvaluacion}
+                        onChange={(valor) => {
+                            setTipoEvaluacion(valor);
+                            localStorage.setItem("planillaTipoEvaluacion", valor);
+                        }}
+                    />
+                )}
         </EncabezadoContextoCurso>
 
         <GestionTiposEvaluacion
