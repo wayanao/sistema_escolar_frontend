@@ -149,19 +149,40 @@ alimenta tanto a Planilla como al Dashboard del profesor, para que
    Hecho.
 3. ~~Ocultar `SelectorTipoEvaluacion` en Planilla cuando el curso es
    preescolar.~~ Hecho.
-4. ~~Modo jornada en Asistencia para preescolar.~~ Resuelto sin código, ver
-   sección dedicada arriba.
+4. ~~Modo jornada en Asistencia para preescolar.~~ Resuelto sin código en su
+   momento; ver la extensión posterior más abajo, que sí agregó código.
 5. ~~Pruebas + `pnpm run check:deploy`.~~ Hecho, ver Verificación abajo.
+
+## Extensión: manejar el rechazo del backend (posterior al cierre inicial)
+
+El usuario preguntó qué pasaba si, en un curso preescolar, se tomaba
+asistencia usando una materia normal en vez de "Asistencia diaria". La
+respuesta honesta era que el backend no lo impedía. Eligió bloquearlo, y el
+backend ahora responde `{"error": "..."}` con status 200 (no lanza una
+excepción) cuando eso ocurre — ver
+`sistema_escolar_api/docs/funcionalidades/NIVEL_ACADEMICO.md`, sección
+"Extensión: validar la asignación de jornada".
+
+Antes de este cambio, `useComandosAsistenciaProfesor.js` **no revisaba** el
+contenido de la respuesta de guardado: solo distinguía éxito (la promesa se
+resuelve) de fallo real (la promesa se rechaza). Como el rechazo por nivel
+académico es un 200 "exitoso" a nivel de red, la maestra habría visto el
+mensaje de "Asistencia guardada" aunque en realidad no se guardó nada.
+
+Corregido en `guardarAsistencia`: si la respuesta trae `error`, se muestra
+ese mensaje con `icon: "warning"` y **no** se recarga el historial ni se
+felicita el guardado. 1 prueba nueva en
+`useComandosAsistenciaProfesor.test.js`.
 
 ## Verificación
 
-- `pnpm run check:deploy`: **1577 pruebas pasaron** en 284 archivos, lint
-  correcto, build correcto (exit 0).
-- Antes del cambio: unas 1560 pruebas aproximadamente (no se registró el
-  número exacto previo a esta funcionalidad); se agregaron pruebas en
-  `cursos.test.js`, `FormularioCurso.test.jsx`, `ListaCursos.test.jsx`,
-  `useComandosCursos.test.js`, `CrearCurso.test.jsx`, `Planilla.test.jsx` y
-  el archivo nuevo `nivelAcademico.test.js`.
+- `pnpm run check:deploy`: exit 0 (test, lint y build en cadena). El log
+  detallado de tests no quedó capturado tras el build, pero el exit 0 de la
+  cadena confirma que las tres etapas pasaron.
+- Se agregaron pruebas en `cursos.test.js`, `FormularioCurso.test.jsx`,
+  `ListaCursos.test.jsx`, `useComandosCursos.test.js`, `CrearCurso.test.jsx`,
+  `Planilla.test.jsx`, `useComandosAsistenciaProfesor.test.js` y el archivo
+  nuevo `nivelAcademico.test.js`.
 - `git diff --check`: exit 0, limpio.
 - Nada commiteado ni publicado.
 

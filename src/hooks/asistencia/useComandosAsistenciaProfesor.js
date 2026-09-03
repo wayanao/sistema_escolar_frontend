@@ -186,7 +186,18 @@ export default function useComandosAsistenciaProfesor({
           showConfirmButton: false,
           didOpen: () => Swal.showLoading(),
         });
-        await guardarAsistenciaProfesor(data);
+        const respuesta = await guardarAsistenciaProfesor(data);
+        if (respuesta?.error) {
+          await Swal.fire({
+            icon: "warning",
+            title: "No se pudo guardar",
+            text: respuesta.error,
+            confirmButtonText: "Entendido",
+            confirmButtonColor: "#6d28d9",
+          });
+          return;
+        }
+
         await recargarHistorial();
         await Swal.fire({
           icon: "success",

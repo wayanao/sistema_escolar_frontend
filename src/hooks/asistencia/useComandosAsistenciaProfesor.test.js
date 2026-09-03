@@ -197,4 +197,29 @@ describe("useComandosAsistenciaProfesor", () => {
     expect(recargarHistorial).not.toHaveBeenCalled();
     expect(result.current.guardando).toBe(false);
   });
+
+  it("avisa y no recarga cuando el backend rechaza la asignación por nivel académico", async () => {
+    // El backend responde 200 con {error} -no lanza- cuando un curso
+    // preescolar intenta tomar asistencia por una materia normal en vez de
+    // la asignación reservada "Asistencia diaria".
+    guardarMock.mockResolvedValue({
+      error: 'Este curso es de preescolar. Usa la asignación "Asistencia diaria" para registrar asistencia.',
+    });
+    const recargarHistorial = vi.fn();
+    const { result } = renderHook(() => useComandosAsistenciaProfesor({
+      ...parametrosBase,
+      recargarHistorial,
+    }));
+
+    await act(async () => result.current.marcarTodosPresentes());
+    await act(async () => result.current.guardarAsistencia());
+
+    expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
+      icon: "warning",
+      title: "No se pudo guardar",
+      text: 'Este curso es de preescolar. Usa la asignación "Asistencia diaria" para registrar asistencia.',
+    }));
+    expect(recargarHistorial).not.toHaveBeenCalled();
+    expect(result.current.guardando).toBe(false);
+  });
 });
