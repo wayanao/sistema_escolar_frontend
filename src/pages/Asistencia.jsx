@@ -5,10 +5,15 @@ import BarraGuardadoAsistencia from "../components/asistencia/BarraGuardadoAsist
 import PanelAsistenciaProfesor from "../components/asistencia/PanelAsistenciaProfesor";
 import useComandosAsistenciaProfesor from "../hooks/asistencia/useComandosAsistenciaProfesor";
 import useConsultasAsistenciaProfesor from "../hooks/asistencia/useConsultasAsistenciaProfesor";
+import {
+  asistenciaRechazadaPorNivel,
+  MENSAJE_ASISTENCIA_REQUIERE_JORNADA,
+} from "../utils/nivelAcademico";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 function Asistencia() {
   const avisoSeleccionRef = useRef(false);
+  const avisoNivelRef = useRef(false);
   const [fecha] = useState(localStorage.getItem("fechaAsistencia") || "");
   const asignacionId = localStorage.getItem("asignacionId");
   const periodo = obtenerPeriodoProfesor();
@@ -27,6 +32,19 @@ function Asistencia() {
   const manejarClaseNoDisponible = useCallback(() => {
     localStorage.removeItem("asignacionId");
     alert("La clase seleccionada ya no está disponible. Selecciónala nuevamente.");
+    window.location.href = "/";
+  }, []);
+
+  // Detecta temprano -antes de mostrar la lista de estudiantes- que la clase
+  // elegida no sirve para tomar asistencia (curso preescolar con una materia
+  // que no es "Asistencia diaria"). El servidor sigue siendo quien de verdad
+  // garantiza esta regla al guardar; esto solo evita que el profesor marque
+  // a todo el curso para enterarse recién al final.
+  const manejarAsignacionInvalidaPorNivel = useCallback(() => {
+    if (avisoNivelRef.current) return;
+
+    avisoNivelRef.current = true;
+    alert(MENSAJE_ASISTENCIA_REQUIERE_JORNADA);
     window.location.href = "/";
   }, []);
 
@@ -82,6 +100,15 @@ function Asistencia() {
       pedirSeleccionClase();
     }
   }, [asignacionId, periodo, profesorId, pedirSeleccionClase]);
+
+  useEffect(() => {
+    const clase = clases.find((c) => c.id == asignacionId);
+    if (!clase) return;
+
+    if (asistenciaRechazadaPorNivel(clase.nivel, clase.materia)) {
+      manejarAsignacionInvalidaPorNivel();
+    }
+  }, [clases, asignacionId, manejarAsignacionInvalidaPorNivel]);
 
   const claseSeleccionada = clases.find((clase) => clase.id == asignacionId);
 

@@ -213,6 +213,63 @@ describe("flujo de asistencia del profesor", () => {
     );
   });
 
+  it("bloquea temprano y avisa si el curso es preescolar y la clase no es la asignación de jornada", async () => {
+    const CLASE_PREESCOLAR = {
+      id: ASIGNACION_ID,
+      materia: "Matemáticas",
+      curso: "Transición A",
+      nivel: "preescolar",
+    };
+    apiMock.get.mockImplementation((url) => {
+      if (url === `/planilla-excel/${ASIGNACION_ID}/${PERIODO}`) {
+        return Promise.resolve({ data: { data: ESTUDIANTES } });
+      }
+      if (url === `/asistencia/historial/${ASIGNACION_ID}/${PERIODO}`) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url === "/mis-clases/7") {
+        return Promise.resolve({ data: [CLASE_PREESCOLAR] });
+      }
+      return Promise.reject(new Error(`Consulta no simulada: ${url}`));
+    });
+    apiMock.post.mockResolvedValue({ data: {} });
+
+    render(<Asistencia />);
+
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith(
+        'Este curso es de preescolar. Usa la asignación "Asistencia diaria" para registrar asistencia.',
+      ),
+    );
+  });
+
+  it("no bloquea cuando la clase sí es la asignación de jornada en preescolar", async () => {
+    const CLASE_JORNADA = {
+      id: ASIGNACION_ID,
+      materia: "Asistencia diaria",
+      curso: "Transición A",
+      nivel: "preescolar",
+    };
+    apiMock.get.mockImplementation((url) => {
+      if (url === `/planilla-excel/${ASIGNACION_ID}/${PERIODO}`) {
+        return Promise.resolve({ data: { data: ESTUDIANTES } });
+      }
+      if (url === `/asistencia/historial/${ASIGNACION_ID}/${PERIODO}`) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url === "/mis-clases/7") {
+        return Promise.resolve({ data: [CLASE_JORNADA] });
+      }
+      return Promise.reject(new Error(`Consulta no simulada: ${url}`));
+    });
+    apiMock.post.mockResolvedValue({ data: {} });
+
+    await abrirAsistencia();
+
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(screen.getByText("Asistencia diaria")).toBeInTheDocument();
+  });
+
   it("reintenta una vez la carga del historial antes de mostrarlo", async () => {
     let intentosHistorial = 0;
     prepararApi({

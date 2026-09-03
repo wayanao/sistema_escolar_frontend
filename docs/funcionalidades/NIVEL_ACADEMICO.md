@@ -2,8 +2,11 @@
 
 ## Control
 
-- Estado: **Código completo**, verificado localmente. Nada commiteado ni
-  publicado.
+- Estado: **Código completo**, incluida una mejora de UX pedida por el
+  usuario después del cierre inicial: detectar temprano, en Asistencia,
+  que la clase elegida no sirve para preescolar (ver "Extensión: bloqueo
+  temprano en Asistencia" más abajo). Verificado localmente. Nada
+  commiteado ni publicado.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno: esa
   documentación es solo para migraciones arquitectónicas sin funcionalidad
@@ -12,7 +15,7 @@
   `sistema_escolar_api/docs/funcionalidades/NIVEL_ACADEMICO.md`, que cubre la
   parte de datos y validación en el servidor.
 - Riesgo inicial: Medio.
-- Última actualización: 2026-09-02.
+- Última actualización: 2026-09-03.
 
 ## Objetivo
 
@@ -185,6 +188,57 @@ felicita el guardado. 1 prueba nueva en
   nuevo `nivelAcademico.test.js`.
 - `git diff --check`: exit 0, limpio.
 - Nada commiteado ni publicado.
+
+## Extensión: bloqueo temprano en Asistencia (posterior al cierre inicial)
+
+El servidor ya rechazaba (ver backend) tomar asistencia con una materia
+normal en un curso preescolar, pero solo **al guardar**: el profesor
+marcaba a todo el curso y recién al final se enteraba de que no servía. El
+usuario pidió detectarlo **al entrar**, antes de mostrar la lista de
+estudiantes.
+
+### Diseño
+
+`Asistencia.jsx` ya consume `GET /mis-clases/:profesorId` (mismo endpoint
+que Planilla), que desde la Fase 1 devuelve `nivel` del curso y `materia`
+por cada clase — no hizo falta ningún cambio de backend ni una consulta
+extra.
+
+- `src/utils/nivelAcademico.js`: se agregaron
+  `NOMBRE_MATERIA_ASISTENCIA_JORNADA`, `esAsignacionDeJornada(nombreMateria)`,
+  `asistenciaRechazadaPorNivel(nivel, nombreMateria)` y
+  `MENSAJE_ASISTENCIA_REQUIERE_JORNADA` — espejo exacto de las funciones
+  Python equivalentes (mismo nombre reservado, misma condición), para que
+  nunca haya dos reglas distintas por accidente.
+- `src/pages/Asistencia.jsx`: un `useEffect` nuevo, con el mismo patrón que
+  ya usa la página para sus otros bloqueos tempranos (sin asignación
+  seleccionada, clase ya no disponible): en cuanto `clases` carga, si la
+  clase activa es inválida para su nivel, muestra una alerta con
+  `MENSAJE_ASISTENCIA_REQUIERE_JORNADA` y redirige al Dashboard
+  (`window.location.href = "/"`). Un `ref` evita que la alerta se dispare
+  más de una vez.
+- El servidor **sigue siendo la validación real**: esto es una mejora de
+  experiencia que evita el viaje en falso, no un reemplazo de la
+  protección ya existente.
+
+### Nota de rendimiento, no corregida a propósito
+
+La carga de estudiantes (`GET /planilla-excel/...`) sigue disparándose en
+paralelo a la de clases, así que ocurre igual aunque la clase resulte
+inválida. No se optimizó porque encadenar esa carga a esperar el resultado
+de `clases` habría cambiado el comportamiento de carga en paralelo que ya
+existía para todos los demás casos, y el costo de una consulta de lectura
+de más es bajo frente a ese riesgo.
+
+### Verificación
+
+- Archivos modificados: los dos de arriba.
+- Pruebas nuevas: 5 en `nivelAcademico.test.js`, 2 en `Asistencia.test.jsx`
+  (bloquea y avisa con materia normal en preescolar; no bloquea con la
+  asignación de jornada).
+- `pnpm run check:deploy`: la cadena `test && lint && build` llegó hasta el
+  build exitoso, confirmando que test y lint pasaron antes.
+- `git diff --check`: exit 0.
 
 ## Preguntas abiertas
 
