@@ -5,7 +5,7 @@ import SelectorTipoEvaluacion from "../components/planilla/SelectorTipoEvaluacio
 import TablaNotasPlanilla from "../components/planilla/TablaNotasPlanilla";
 import useComandosPlanillaProfesor from "../hooks/planilla/useComandosPlanillaProfesor";
 import useConsultasPlanillaProfesor from "../hooks/planilla/useConsultasPlanillaProfesor";
-import { esNivelPreescolar, tipoEvaluacionForzado } from "../utils/nivelAcademico";
+import { tipoEvaluacionForzado } from "../utils/nivelAcademico";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 import { formatearEtiquetaColumna } from "../utils/planilla/notas";
 
@@ -82,18 +82,19 @@ function Planilla() {
     }, [asignacionId, periodo, profesorId, pedirSeleccionClase]);
 
     const selectedClase = clases.find(c => c.id == asignacionId);
-    const cursoEsPreescolar = esNivelPreescolar(selectedClase?.nivel);
+    // Un curso sin nivel definido es el único caso libre: ningún nivel
+    // definido (preescolar o primaria) deja elegir el tipo de evaluación.
+    const evaluacionForzada = tipoEvaluacionForzado(selectedClase?.nivel);
 
     // El nivel del curso manda sobre la preferencia guardada en localStorage:
-    // un curso de preescolar siempre evalúa con desarrollo (caritas), sin
-    // opción de cambiarlo. El servidor ya lo garantiza al guardar; esto
-    // ajusta además lo que ve el profesor.
+    // preescolar siempre evalúa con desarrollo (caritas) y primaria siempre
+    // con numérica, sin opción de cambiarlo. El servidor ya lo garantiza al
+    // guardar; esto ajusta además lo que ve el profesor.
     useEffect(() => {
-        const forzado = tipoEvaluacionForzado(selectedClase?.nivel);
-        if (forzado && tipoEvaluacion !== forzado) {
-            setTipoEvaluacion(forzado);
+        if (evaluacionForzada && tipoEvaluacion !== evaluacionForzada) {
+            setTipoEvaluacion(evaluacionForzada);
         }
-    }, [selectedClase?.nivel, tipoEvaluacion]);
+    }, [evaluacionForzada, tipoEvaluacion]);
 
     return (
     <div className="p-3 sm:p-6">
@@ -106,7 +107,7 @@ function Planilla() {
             periodo={periodo}
             fecha={fecha}
         >
-                {!cursoEsPreescolar && (
+                {!evaluacionForzada && (
                     <SelectorTipoEvaluacion
                         value={tipoEvaluacion}
                         onChange={(valor) => {

@@ -35,6 +35,12 @@ const CLASE_PREESCOLAR = {
   curso: "Transición A",
   nivel: "preescolar",
 };
+const CLASE_PRIMARIA = {
+  id: ASIGNACION_ID,
+  materia: "Ciencias Naturales",
+  curso: "4B",
+  nivel: "primaria",
+};
 const PLANILLA_URL = `/planilla-excel/${ASIGNACION_ID}/${PERIODO}`;
 
 const ESTUDIANTES_INICIALES = [
@@ -399,5 +405,50 @@ describe("flujo de planilla del profesor", () => {
         valoracion: "logrado",
       }),
     );
+  });
+
+  it("en un curso de primaria no muestra el selector de tipo de evaluación", async () => {
+    prepararApi({ clase: CLASE_PRIMARIA });
+    await abrirPlanilla({ clase: CLASE_PRIMARIA });
+
+    expect(screen.queryByText("Tipo de calificación")).not.toBeInTheDocument();
+  });
+
+  it("en un curso de primaria evalúa con numérica aunque localStorage diga desarrollo", async () => {
+    localStorage.setItem("planillaTipoEvaluacion", "desarrollo");
+    prepararApi({ clase: CLASE_PRIMARIA });
+    await abrirPlanilla({ clase: CLASE_PRIMARIA });
+
+    const tabla = screen.getByRole("table");
+    const filaLuis = obtenerFilaEstudiante(tabla, "Pérez Luis");
+    // El modo de captura es numérico (spinbutton), no de caritas: el nivel
+    // del curso manda sobre la preferencia guardada.
+    const [inputQuizLuis] = within(filaLuis).getAllByRole("spinbutton");
+    expect(inputQuizLuis).toHaveValue(2);
+
+    fireEvent.change(inputQuizLuis, { target: { value: "5" } });
+    fireEvent.blur(inputQuizLuis);
+
+    await waitFor(() =>
+      expect(apiMock.post).toHaveBeenCalledWith("/planilla/nota", {
+        estudiante_id: LUIS_ID,
+        asignacion_id: ASIGNACION_ID,
+        nota: 5,
+        descripcion: "quiz",
+        periodo: PERIODO,
+        tipo_evaluacion: "numerica",
+        valoracion: null,
+      }),
+    );
+  });
+
+  it("en un curso sin nivel definido sigue dejando elegir el tipo de evaluación", async () => {
+    // CLASE no trae `nivel`: es el comportamiento anterior a esta
+    // funcionalidad, preservado para los cursos que todavía no se han
+    // clasificado como preescolar o primaria.
+    prepararApi({ clase: CLASE });
+    await abrirPlanilla({ clase: CLASE });
+
+    expect(screen.getByText("Tipo de calificación")).toBeInTheDocument();
   });
 });

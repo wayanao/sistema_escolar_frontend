@@ -16,8 +16,8 @@ describe("reglas puras de nivel académico", () => {
         expect(tipoEvaluacionForzado(NIVEL_PREESCOLAR)).toBe("desarrollo");
     });
 
-    it("primaria no fuerza nada", () => {
-        expect(tipoEvaluacionForzado(NIVEL_PRIMARIA)).toBeNull();
+    it("primaria fuerza numérica", () => {
+        expect(tipoEvaluacionForzado(NIVEL_PRIMARIA)).toBe("numerica");
     });
 
     it("un nivel desconocido o ausente no fuerza nada", () => {

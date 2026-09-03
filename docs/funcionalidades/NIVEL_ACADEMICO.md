@@ -2,11 +2,13 @@
 
 ## Control
 
-- Estado: **Código completo**, incluida una mejora de UX pedida por el
-  usuario después del cierre inicial: detectar temprano, en Asistencia,
-  que la clase elegida no sirve para preescolar (ver "Extensión: bloqueo
-  temprano en Asistencia" más abajo). Verificado localmente. Nada
-  commiteado ni publicado.
+- Estado: **Código completo**, con dos mejoras pedidas por el usuario
+  después del cierre inicial: detectar temprano, en Asistencia, que la
+  clase elegida no sirve para preescolar (ver "Extensión: bloqueo temprano
+  en Asistencia"); y **primaria dejó de ser libre** en Planilla, igual que
+  preescolar (ver "Extensión: primaria también fuerza su tipo de
+  evaluación" más abajo). Verificado localmente. Nada commiteado ni
+  publicado.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno: esa
   documentación es solo para migraciones arquitectónicas sin funcionalidad
@@ -238,6 +240,39 @@ de más es bajo frente a ese riesgo.
   asignación de jornada).
 - `pnpm run check:deploy`: la cadena `test && lint && build` llegó hasta el
   build exitoso, confirmando que test y lint pasaron antes.
+- `git diff --check`: exit 0.
+
+## Extensión: primaria también fuerza su tipo de evaluación
+
+El usuario probó Planilla en un curso de primaria y pidió que el selector
+de tipo de evaluación desapareciera ahí también, igual que en preescolar —
+ya no quiere que ningún nivel definido sea libre.
+
+### Diseño
+
+- `src/utils/nivelAcademico.js`: `tipoEvaluacionForzado` para
+  `NIVEL_PRIMARIA` pasó de `null` a `"numerica"` (espejo exacto del cambio
+  equivalente en el backend, `app/core/nivel_academico.py`).
+- `src/pages/Planilla.jsx`: la variable `cursoEsPreescolar` (que solo
+  ocultaba el selector en preescolar) se reemplazó por `evaluacionForzada =
+  tipoEvaluacionForzado(selectedClase?.nivel)`. El selector ahora se oculta
+  con **cualquier** nivel definido, no solo preescolar; el único caso que
+  sigue mostrándolo es un curso sin `nivel` (`undefined`/`null`).
+- No hizo falta tocar `SelectorTipoEvaluacion.jsx` ni el hook de comandos:
+  el `useEffect` que ya forzaba `tipoEvaluacion` según el nivel siguió
+  funcionando igual, solo que ahora `tipoEvaluacionForzado("primaria")`
+  devuelve `"numerica"` en vez de `null`.
+
+### Verificación
+
+- Pruebas nuevas en `Planilla.test.jsx`: no muestra el selector en
+  primaria; fuerza numérica aunque `localStorage` diga "desarrollo"; un
+  curso sin nivel definido sigue mostrando el selector (comportamiento
+  preservado).
+- `nivelAcademico.test.js`: la prueba "primaria no fuerza nada" se
+  reemplazó por "primaria fuerza numérica".
+- `pnpm run check:deploy`: la cadena `test && lint && build` llegó hasta el
+  build exitoso.
 - `git diff --check`: exit 0.
 
 ## Preguntas abiertas

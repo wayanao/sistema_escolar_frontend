@@ -15,10 +15,14 @@ export const NIVEL_PRIMARIA = "primaria";
 
 const TIPO_EVALUACION_FORZADO_POR_NIVEL = {
     [NIVEL_PREESCOLAR]: "desarrollo",
-    [NIVEL_PRIMARIA]: null,
+    [NIVEL_PRIMARIA]: "numerica",
 };
 
-/** Tipo de evaluación que un nivel exige, o `null` si el nivel es libre o no está definido. */
+/**
+ * Tipo de evaluación que un nivel exige, o `null` solo cuando el curso no
+ * tiene nivel definido -único caso libre-. Ningún nivel definido es libre:
+ * preescolar fuerza "desarrollo" y primaria fuerza "numerica".
+ */
 export const tipoEvaluacionForzado = (nivel) =>
     TIPO_EVALUACION_FORZADO_POR_NIVEL[nivel] || null;
 
