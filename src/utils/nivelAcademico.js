@@ -26,9 +26,6 @@ const TIPO_EVALUACION_FORZADO_POR_NIVEL = {
 export const tipoEvaluacionForzado = (nivel) =>
     TIPO_EVALUACION_FORZADO_POR_NIVEL[nivel] || null;
 
-/** `true` si el curso es de preescolar. */
-export const esNivelPreescolar = (nivel) => nivel === NIVEL_PREESCOLAR;
-
 // ---------------------------------------------------------------------------
 // Asistencia por jornada (preescolar)
 // ---------------------------------------------------------------------------

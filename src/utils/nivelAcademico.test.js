@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
     asistenciaRechazadaPorNivel,
     esAsignacionDeJornada,
-    esNivelPreescolar,
     MENSAJE_ASISTENCIA_REQUIERE_JORNADA,
     NIVEL_PREESCOLAR,
     NIVEL_PRIMARIA,
@@ -24,13 +23,6 @@ describe("reglas puras de nivel académico", () => {
         expect(tipoEvaluacionForzado(undefined)).toBeNull();
         expect(tipoEvaluacionForzado(null)).toBeNull();
         expect(tipoEvaluacionForzado("bachillerato")).toBeNull();
-    });
-
-    it("reconoce el nivel preescolar", () => {
-        expect(esNivelPreescolar(NIVEL_PREESCOLAR)).toBe(true);
-        expect(esNivelPreescolar(NIVEL_PRIMARIA)).toBe(false);
-        expect(esNivelPreescolar(undefined)).toBe(false);
-        expect(esNivelPreescolar(null)).toBe(false);
     });
 
     it("reconoce el nombre reservado de la asignación de jornada, tolerante a mayúsculas y espacios", () => {
