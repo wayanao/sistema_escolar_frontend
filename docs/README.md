@@ -17,6 +17,18 @@ Ultima organizacion: 2026-07-30.
   cada módulo en un chat nuevo.
 - `CAMBIOS_FRONTEND.md`: historial cronologico de cambios realizados.
 
+## Funcionalidades de producto
+
+Funciones nuevas documentadas aparte de la migracion arquitectonica. Cada una
+tiene su gemela en `sistema_escolar_api/docs/funcionalidades/` y su prompt de
+continuacion para retomarla en otro chat u otro LLM.
+
+- `funcionalidades/NIVEL_ACADEMICO.md`: niveles preescolar y primaria en
+  cursos, planilla y asistencia. **Completo.**
+- `funcionalidades/OBSERVADOR_ESTUDIANTE.md`: pagina nueva del observador por
+  estudiante, con bitacora, impresion y autocorreccion de texto.
+  **Disenado, nada implementado.**
+
 ## Control SaaS
 
 - `API_CLIENT.md`: contrato frontend con backend, endpoints consumidos y
