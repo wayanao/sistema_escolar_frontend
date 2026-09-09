@@ -55,8 +55,8 @@ profesores, a lo largo del año.
 | 8 | El selector de periodo **no oculta** nada; incluye la opción «Todos» |
 | 9 | Autocorrección de mayúsculas **al salir del campo**, no mientras escribe |
 | 10 | Impresión con dos opciones: **todo** o **solo mis anotaciones** |
-| 11 | Cada anotación **dice de qué materia era** | Decidido el 2026-09-08, al detectar que el dibujo de esta página la mostraba y la tabla no la guardaba |
-| 12 | **La materia se muestra según el nivel del curso** | Decidido el 2026-09-08. Preescolar la omite y dice el nivel en el título; primaria la lleva en cápsula. Ver abajo |
+| 11 | **La materia no se muestra**, y por ahora ni se guarda | Decidido el 2026-09-08, después de darle dos vueltas. Ver abajo |
+| 12 | **El nivel del curso va en el título**, en los dos niveles | «Pepito · Primaria», «Juanito · Preescolar». Una vez, no en cada anotación |
 
 ## Pantallas
 
@@ -65,38 +65,36 @@ profesores, a lo largo del año.
 Es la que el usuario describió textualmente. Agrupa por campo y dentro lista a
 los profesores:
 
-En **primaria**, y en los cursos sin nivel, la materia va en una cápsula sutil:
+**Los dos niveles se ven igual.** El nivel va **una sola vez** en el título y la
+anotación lleva solo profesora, fecha y periodo:
 
 ```
-OBSERVADOR DE PEPITO PÉREZ            Periodo: [Todos ▾]   [Imprimir ▾]
+OBSERVADOR DE PEPITO PÉREZ · Primaria     Periodo: [Todos ▾]   [Imprimir ▾]
 
                                       [ Por dimensión | Por fecha ]
 
 ━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 Prof. Ana  (Matemáticas)  · 20/mar · P1
+  🔴 Prof. Ana · 20/mar · P1
      Se para mucho.                                  [Editar]
 
-  🔴 Prof. Luis  (Artística)  · 18/mar · P1
+  🔴 Prof. Luis · 18/mar · P1
      Hace desorden.
 
 ━━ COGNITIVO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🟢 Prof. Luis  (Artística)  · 18/mar · P1
+  🟢 Prof. Luis · 18/mar · P1
      Mucha creatividad en los trabajos.
 
-  🟢 Prof. Ana  (Matemáticas)  · 10/mar · P1
+  🟢 Prof. Ana · 10/mar · P1
      Mejoró bastante en las tablas.                  [Editar]
 ```
 
-En **preescolar**, la materia no se muestra y el nivel se dice **una sola vez**,
-en el título:
+En preescolar, idéntico; solo cambia la palabra del título:
 
 ```
-OBSERVADOR DE PEPITO PÉREZ · Preescolar   Periodo: [Todos ▾]   [Imprimir ▾]
-
-━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 Prof. Ana · 20/mar · P1
-     Se para mucho.                                  [Editar]
+OBSERVADOR DE JUANITO · Preescolar        Periodo: [Todos ▾]   [Imprimir ▾]
 ```
+
+Un curso **sin nivel** (`null`) no pone nada tras el nombre.
 
 Una anotación aparece bajo **cada dimensión que tenga texto**. Si solo trae
 `conductual`, solo sale en ese bloque.
@@ -127,40 +125,58 @@ de dos maneras. No debe provocar una segunda petición.
 - El periodo se toma del que esté activo.
 - Se mantiene la validación actual: **al menos un campo con contenido**.
 
-## La materia según el nivel del curso
+## Por qué la materia no se muestra
 
-Decidido con el usuario el 2026-09-08. Son **tres** casos, no dos:
+Decidido con el usuario el 2026-09-08, **después de cambiar de idea dos veces**.
+Queda escrito el recorrido porque el porqué importa más que la conclusión.
 
-| Nivel del curso | Cápsula de materia | El nivel en el título |
-|---|---|---|
-| `preescolar` | **No** | Sí |
-| `primaria` | Sí, sutil | No hace falta |
-| **sin nivel** (`null`) | Sí, sutil | No |
+**Primera idea:** cápsula sutil con la materia en primaria, nada en preescolar.
 
-El tercer caso no es teórico: al decidirlo había **20 cursos sin nivel** en
-`tenant_colegio_1`. Se comportan como primaria, que es la regla que el resto del
-proyecto ya aplica: un curso sin nivel definido no fuerza nada y se comporta
-como antes de que existiera la clasificación. Ver
-`src/utils/nivelAcademico.js` y su espejo `app/core/nivel_academico.py`.
+**Lo que la tumbó fue un dato, no una opinión.** Para poner esa etiqueta hay que
+saber de qué materia habla la anotación, y se midió: en `tenant_2005`, solo el
+**27%** de los pares profesor-curso tienen **una sola** materia. El **73%**
+restante da varias —una profesora da **9** en PRIMERO-A—. En `tenant_colegio_1`
+es el 75%. **El servidor no puede deducirla.** No es cuestión de programarlo
+mejor: el dato es ambiguo de verdad.
 
-**Por qué preescolar la omite.** El observador de preescolar se lee como un
-documento del desarrollo del niño, no como un informe por asignatura.
+Eso dejaba dos salidas, y ninguna salía gratis:
 
-**Lo que cuesta, comprobado y no supuesto.** Se miró la base antes de decidir:
-los cursos de preescolar de `tenant_2005` tienen **9 o 10 materias** cada uno,
-con profesores distintos —no es un curso de una sola materia—. Así que omitirla
-**sí** esconde en qué clase pasó. Se aceptó a conciencia: el nombre de la
-profesora sigue visible, así que nunca se pierde **quién** lo escribió.
+- **Que la profesora la elija** en cada anotación. Fricción en cada guardado,
+  para un dato secundario.
+- **Deducirla del sitio desde el que entra** (su planilla de Matemáticas). Sin
+  fricción, pero **ata la página a una única puerta de entrada**: dejaría de
+  poder abrirse desde un listado de alumnos.
 
-**Por qué el nivel va una vez en el título y no en cada anotación.** Toda la
-página es el mismo niño del mismo curso: una cápsula repitiendo «Preescolar»
-veinte veces es ruido, no información.
+**Decisión: por ahora, ninguna de las dos.** No se muestra la materia y no se le
+pide nada a nadie. El nivel en el título, y las anotaciones limpias. El nombre
+de la profesora ya dice quién observó.
 
-**El backend ya lo sirve** desde el 2026-09-08: `nivel` llega **fuera** de las
-anotaciones, y **también cuando el alumno no tiene ninguna** —que hoy es el caso
-de todos—. Así la pantalla siempre puede escribir su título. Se resolvió en la
-misma consulta, sin ida y vuelta añadida, en vez de al guardar: cambiar la
-presentación no exige otra migración.
+**Lo que se pierde, dicho claro:** no queda registrado en qué clase pasó. Se
+aceptó a conciencia. Si algún día hace falta, la columna `materia` **ya existe
+en la base** —se creó ese mismo día antes de este cambio de idea— y está vacía,
+esperando. No es código muerto que borrar.
+
+### El nivel, que sí se muestra
+
+Son **tres** casos, no dos:
+
+| Nivel del curso | En el título |
+|---|---|
+| `preescolar` | «· Preescolar» |
+| `primaria` | «· Primaria» |
+| **sin nivel** (`null`) | nada |
+
+El tercero no es teórico: al decidirlo había **20 cursos sin nivel** en
+`tenant_colegio_1`. No poner nada es la regla que el resto del proyecto ya
+aplica: un curso sin nivel definido no fuerza nada. Ver `src/utils/nivelAcademico.js`
+y su espejo `app/core/nivel_academico.py`.
+
+**Va una vez en el título y no en cada anotación** porque toda la página es el
+mismo niño del mismo curso: repetir la palabra veinte veces es ruido.
+
+**El backend ya lo sirve**: `nivel` llega **fuera** de las anotaciones, y
+**también cuando el alumno no tiene ninguna** —que hoy es el caso de todos—, así
+que la pantalla siempre puede escribir su título.
 
 ## Autocorrección de mayúsculas
 
@@ -241,7 +257,8 @@ Firmas, decididas con el usuario:
 2. Página nueva con la vista por dimensión.
 3. Selector de periodo con «Todos» por defecto.
 
-**Fase 2 — Escritura** (requiere fase 3 del backend)
+**Fase 2 — Escritura** (requiere fase 3 del backend: **lo está desde el
+2026-09-08**)
 4. Formulario de anotación nueva con el selector positiva/negativa.
 5. Edición de anotación propia.
 6. Autocorrección de mayúsculas en `onBlur`.
@@ -275,10 +292,20 @@ Firmas, decididas con el usuario:
   fallo que el usuario reportó **sigue vivo** y es intermitente: con 2
   peticiones simultáneas tarda 8-9,7 s y el límite son 10 s, así que a veces
   carga y a veces no.
-- Estado del backend al 2026-09-08: **fases 1 y 2 terminadas**. Existe la tabla
-  y existe `GET /observador/{estudiante_id}`, probado. **No hay escritura**: la
-  bitácora se lee, pero está vacía y nadie puede anotar. Ver
-  `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+- Estado del backend al 2026-09-08: **completo**. Leer, crear y editar, con
+  prueba de extremo a extremo contra la base real. **Ya no bloquea nada de este
+  repo.** Ver `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+- Endpoints de escritura:
+  - `POST /observador` → `201` con `{"id": N}`. Cuerpo: `estudiante_id`,
+    `periodo` (1-4), `positiva`, y los tres campos de texto. **No mandes
+    `profesor_id`**: sale del token y el servidor ignora el del cuerpo.
+  - `PUT /observador/{anotacion_id}` → cuerpo: `positiva` y los tres textos.
+    **No** lleva `estudiante_id` ni `periodo`. `403` si la anotación no es tuya,
+    `404` si no existe.
+  - **No existe `DELETE`**, y no debe pedirse.
+- El servidor aplica la misma autocorrección de mayúsculas al guardar, así que
+  la de esta pantalla es comodidad, no la garantía. Espejo:
+  `app/core/texto_observador.py`.
 - Lo que devuelve el endpoint:
 
   ```json
@@ -308,4 +335,7 @@ Firmas, decididas con el usuario:
   **cosmético**: la regla de verdad la impone el servidor.
 - Siguiente acción exacta: que el usuario **autorice la Fase 1 del frontend**
   (servicio, hook y página con la vista por dimensión). Ya no hay nada del
-  backend que lo bloquee.
+  backend que lo bloquee, y las fases 1 y 2 de aquí podrían hacerse seguidas.
+- **Sigue sin responderse la pregunta abierta 1: desde dónde se entra a la
+  página.** Ya no condiciona el modelo de datos —eso se resolvió al descartar la
+  materia—, pero sí hay que decidirlo antes de montar la navegación.
