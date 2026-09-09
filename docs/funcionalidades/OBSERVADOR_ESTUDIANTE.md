@@ -58,6 +58,51 @@ profesores, a lo largo del año.
 | 11 | **La materia no se muestra**, y por ahora ni se guarda | Decidido el 2026-09-08, después de darle dos vueltas. Ver abajo |
 | 12 | **El nivel del curso va en el título**, en los dos niveles | «Pepito · Primaria», «Juanito · Preescolar». Una vez, no en cada anotación |
 
+## Por dónde se entra
+
+Decidido con el usuario el 2026-09-08. Cierra la pregunta abierta 1.
+
+### Profesor: un elemento nuevo en «Control Académico»
+
+En `src/utils/autenticacion/navegacion.js`, dentro del grupo `control`, **justo
+debajo** de «Observaciones». La entrada vieja **se queda**: conviven hasta que el
+usuario ordene retirarla.
+
+```
+Control Académico
+   ├─ Planilla
+   ├─ Asistencia
+   ├─ Observaciones          ← la vieja, /Formulario, intacta
+   └─ Observador             ← la nueva
+```
+
+El profesor ya tiene una asignación elegida en `localStorage.asignacionId`,
+igual que hoy. La pantalla nueva lista **solo los nombres** de sus alumnos —una
+petición, la que ya hace `usePlanillaObservador`— y al pulsar uno abre su
+bitácora completa con **una sola petición más**.
+
+**Ahí es donde muere el fallo del usuario.** La vieja monta un componente por
+alumno y cada uno pide lo suyo: 12 peticiones, 16-20 s, y el hook aborta a los
+10 s. La nueva pide de uno en uno, cuando se abre.
+
+> **Nota para el futuro**, no una decisión: al entrar así, la asignación **sí**
+> se conoce, y con ella la materia. Si algún día se quiere volver a etiquetar
+> las anotaciones con su materia, sale gratis y sin preguntarle nada a nadie.
+> Ver «Por qué la materia no se muestra».
+
+### Admin: donde ya está, sin mover nada
+
+Estudiantes → ficha del alumno → sección «Observador», en
+`src/components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`. **Mismo
+sitio y mismo aspecto.** Lo único que cambia es de dónde salen los datos: la
+bitácora nueva completa —todas las anotaciones, de todos los profesores— en vez
+de las observaciones viejas.
+
+Las 68 viejas **no desaparecen**: se copian a la bitácora nueva (fase 4 del
+backend, autorizada). Llegan sin marca de positiva/negativa y sin fecha, porque
+el modelo viejo no guardaba ninguna de las dos, y se ordenan al final. Sí
+conservan profesor, materia y periodo.
+
 ## Pantallas
 
 ### Vista principal: agrupada por dimensión
