@@ -55,6 +55,8 @@ profesores, a lo largo del año.
 | 8 | El selector de periodo **no oculta** nada; incluye la opción «Todos» |
 | 9 | Autocorrección de mayúsculas **al salir del campo**, no mientras escribe |
 | 10 | Impresión con dos opciones: **todo** o **solo mis anotaciones** |
+| 11 | Cada anotación **dice de qué materia era** | Decidido el 2026-09-08, al detectar que el dibujo de esta página la mostraba y la tabla no la guardaba |
+| 12 | **La materia se muestra según el nivel del curso** | Decidido el 2026-09-08. Preescolar la omite y dice el nivel en el título; primaria la lleva en cápsula. Ver abajo |
 
 ## Pantallas
 
@@ -63,31 +65,37 @@ profesores, a lo largo del año.
 Es la que el usuario describió textualmente. Agrupa por campo y dentro lista a
 los profesores:
 
+En **primaria**, y en los cursos sin nivel, la materia va en una cápsula sutil:
+
 ```
 OBSERVADOR DE PEPITO PÉREZ            Periodo: [Todos ▾]   [Imprimir ▾]
 
                                       [ Por dimensión | Por fecha ]
 
 ━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 Prof. Ana · Matemáticas · 20/mar · P1
+  🔴 Prof. Ana  (Matemáticas)  · 20/mar · P1
      Se para mucho.                                  [Editar]
 
-  🔴 Prof. Luis · Artística · 18/mar · P1
+  🔴 Prof. Luis  (Artística)  · 18/mar · P1
      Hace desorden.
 
-  🔴 Prof. Carmen · Inglés · 15/mar · P1
-     Es muy ruidoso.
-
 ━━ COGNITIVO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🟢 Prof. Luis · Artística · 18/mar · P1
+  🟢 Prof. Luis  (Artística)  · 18/mar · P1
      Mucha creatividad en los trabajos.
 
-  🟢 Prof. Ana · Matemáticas · 10/mar · P1
+  🟢 Prof. Ana  (Matemáticas)  · 10/mar · P1
      Mejoró bastante en las tablas.                  [Editar]
+```
 
-━━ LENGUAJE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🟢 Prof. Carmen · Inglés · 02/mar · P1
-     Buena pronunciación.
+En **preescolar**, la materia no se muestra y el nivel se dice **una sola vez**,
+en el título:
+
+```
+OBSERVADOR DE PEPITO PÉREZ · Preescolar   Periodo: [Todos ▾]   [Imprimir ▾]
+
+━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🔴 Prof. Ana · 20/mar · P1
+     Se para mucho.                                  [Editar]
 ```
 
 Una anotación aparece bajo **cada dimensión que tenga texto**. Si solo trae
@@ -118,6 +126,40 @@ de dos maneras. No debe provocar una segunda petición.
 - Un selector obligatorio: `( ) Positiva  ( ) Negativa`.
 - El periodo se toma del que esté activo.
 - Se mantiene la validación actual: **al menos un campo con contenido**.
+
+## La materia según el nivel del curso
+
+Decidido con el usuario el 2026-09-08. Son **tres** casos, no dos:
+
+| Nivel del curso | Cápsula de materia | El nivel en el título |
+|---|---|---|
+| `preescolar` | **No** | Sí |
+| `primaria` | Sí, sutil | No hace falta |
+| **sin nivel** (`null`) | Sí, sutil | No |
+
+El tercer caso no es teórico: al decidirlo había **20 cursos sin nivel** en
+`tenant_colegio_1`. Se comportan como primaria, que es la regla que el resto del
+proyecto ya aplica: un curso sin nivel definido no fuerza nada y se comporta
+como antes de que existiera la clasificación. Ver
+`src/utils/nivelAcademico.js` y su espejo `app/core/nivel_academico.py`.
+
+**Por qué preescolar la omite.** El observador de preescolar se lee como un
+documento del desarrollo del niño, no como un informe por asignatura.
+
+**Lo que cuesta, comprobado y no supuesto.** Se miró la base antes de decidir:
+los cursos de preescolar de `tenant_2005` tienen **9 o 10 materias** cada uno,
+con profesores distintos —no es un curso de una sola materia—. Así que omitirla
+**sí** esconde en qué clase pasó. Se aceptó a conciencia: el nombre de la
+profesora sigue visible, así que nunca se pierde **quién** lo escribió.
+
+**Por qué el nivel va una vez en el título y no en cada anotación.** Toda la
+página es el mismo niño del mismo curso: una cápsula repitiendo «Preescolar»
+veinte veces es ruido, no información.
+
+**Requiere un cambio pequeño en el backend**: `GET /observador/{estudiante_id}`
+todavía **no** devuelve el nivel del curso. Es una unión más dentro de la misma
+consulta, sin ida y vuelta añadida. Se decidió así, en vez de resolverlo al
+guardar, para que cambiar la presentación no exija otra migración.
 
 ## Autocorrección de mayúsculas
 
@@ -192,8 +234,8 @@ Firmas, decididas con el usuario:
 
 ## Plan de fases (frontend)
 
-**Fase 1 — Lectura** (requiere fase 2 del backend cerrada; **el backend va por
-la fase 1**, así que esta todavía no puede empezar)
+**Fase 1 — Lectura** (requiere fase 2 del backend cerrada: **lo está desde el
+2026-09-08**, así que esta fase ya puede empezar)
 1. Servicio y hook para `GET /observador/{estudiante_id}`.
 2. Página nueva con la vista por dimensión.
 3. Selector de periodo con «Todos» por defecto.
@@ -232,9 +274,17 @@ la fase 1**, así que esta todavía no puede empezar)
   fallo que el usuario reportó **sigue vivo** y es intermitente: con 2
   peticiones simultáneas tarda 8-9,7 s y el límite son 10 s, así que a veces
   carga y a veces no.
-- Estado del backend al 2026-09-08: **fase 1 (estructura) terminada**. Existe
-  la tabla `observador_anotaciones` en los dos colegios, pero **no hay endpoint
-  todavía**. Ver `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
-- Siguiente acción exacta: que el usuario **autorice la Fase 2 del backend**
-  (lectura, `GET /observador/{estudiante_id}`). El frontend no empieza hasta que
-  ese endpoint exista y esté probado.
+- Estado del backend al 2026-09-08: **fases 1 y 2 terminadas**. Existe la tabla
+  y existe `GET /observador/{estudiante_id}`, probado. **No hay escritura**: la
+  bitácora se lee, pero está vacía y nadie puede anotar. Ver
+  `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+- Lo que devuelve el endpoint, por anotación: `id`, `profesor_id`, `profesor`
+  (nombre y apellido ya unidos), `materia`, `periodo`, `positiva`, los tres
+  campos de texto, `creada_en`, `editada_en` y `editada_por`. Ordenado de la más
+  nueva a la más vieja. `?periodo=N` es opcional y se valida entre 1 y 4; **sin
+  él devuelve el año entero**, que es el caso por defecto.
+- `profesor_id` viaja para que la pantalla decida si pinta `[Editar]`. Es
+  **cosmético**: la regla de verdad la impone el servidor.
+- Siguiente acción exacta: que el usuario **autorice la Fase 1 del frontend**
+  (servicio, hook y página con la vista por dimensión). Ya no hay nada del
+  backend que lo bloquee.
