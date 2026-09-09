@@ -156,10 +156,11 @@ profesora sigue visible, así que nunca se pierde **quién** lo escribió.
 página es el mismo niño del mismo curso: una cápsula repitiendo «Preescolar»
 veinte veces es ruido, no información.
 
-**Requiere un cambio pequeño en el backend**: `GET /observador/{estudiante_id}`
-todavía **no** devuelve el nivel del curso. Es una unión más dentro de la misma
-consulta, sin ida y vuelta añadida. Se decidió así, en vez de resolverlo al
-guardar, para que cambiar la presentación no exija otra migración.
+**El backend ya lo sirve** desde el 2026-09-08: `nivel` llega **fuera** de las
+anotaciones, y **también cuando el alumno no tiene ninguna** —que hoy es el caso
+de todos—. Así la pantalla siempre puede escribir su título. Se resolvió en la
+misma consulta, sin ida y vuelta añadida, en vez de al guardar: cambiar la
+presentación no exige otra migración.
 
 ## Autocorrección de mayúsculas
 
@@ -278,11 +279,31 @@ Firmas, decididas con el usuario:
   y existe `GET /observador/{estudiante_id}`, probado. **No hay escritura**: la
   bitácora se lee, pero está vacía y nadie puede anotar. Ver
   `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
-- Lo que devuelve el endpoint, por anotación: `id`, `profesor_id`, `profesor`
-  (nombre y apellido ya unidos), `materia`, `periodo`, `positiva`, los tres
-  campos de texto, `creada_en`, `editada_en` y `editada_por`. Ordenado de la más
-  nueva a la más vieja. `?periodo=N` es opcional y se valida entre 1 y 4; **sin
-  él devuelve el año entero**, que es el caso por defecto.
+- Lo que devuelve el endpoint:
+
+  ```json
+  {
+    "nivel": "primaria",
+    "anotaciones": [
+      {
+        "id": 12, "profesor_id": 7, "profesor": "Ana Gómez",
+        "materia": "Matemáticas", "periodo": 1, "positiva": false,
+        "conductual": "...", "cognitivo": "", "lenguaje": "",
+        "creada_en": "...", "editada_en": null, "editada_por": null
+      }
+    ]
+  }
+  ```
+
+  Ordenado de la más nueva a la más vieja. `?periodo=N` es opcional y se valida
+  entre 1 y 4; **sin él devuelve el año entero**, que es el caso por defecto.
+- `nivel` va fuera de las anotaciones y **llega aunque `anotaciones` esté
+  vacío**: la pantalla puede escribir «Pepito · Preescolar» antes de que exista
+  la primera anotación. Puede ser `null` si el curso no está clasificado; en ese
+  caso se trata como primaria.
+- **`404` significa que el estudiante no existe**, y es distinto de una lista
+  vacía, que significa que todavía nadie le ha escrito nada. Son dos mensajes
+  distintos en pantalla; no los mezcles.
 - `profesor_id` viaja para que la pantalla decida si pinta `[Editar]`. Es
   **cosmético**: la regla de verdad la impone el servidor.
 - Siguiente acción exacta: que el usuario **autorice la Fase 1 del frontend**
