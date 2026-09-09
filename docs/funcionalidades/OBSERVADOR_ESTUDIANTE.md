@@ -12,7 +12,7 @@
   que cubre tabla, endpoints y permisos. **El backend va primero**: esta
   pantalla no debe depender de endpoints que no existan.
 - Riesgo inicial: Medio. Sustituye una pantalla que los profesores usan hoy.
-- Última actualización: 2026-09-04.
+- Última actualización: 2026-09-08.
 
 ## Objetivo
 
@@ -192,7 +192,8 @@ Firmas, decididas con el usuario:
 
 ## Plan de fases (frontend)
 
-**Fase 1 — Lectura** (requiere fase 2 del backend cerrada)
+**Fase 1 — Lectura** (requiere fase 2 del backend cerrada; **el backend va por
+la fase 1**, así que esta todavía no puede empezar)
 1. Servicio y hook para `GET /observador/{estudiante_id}`.
 2. Página nueva con la vista por dimensión.
 3. Selector de periodo con «Todos» por defecto.
@@ -231,5 +232,9 @@ Firmas, decididas con el usuario:
   fallo que el usuario reportó **sigue vivo** y es intermitente: con 2
   peticiones simultáneas tarda 8-9,7 s y el límite son 10 s, así que a veces
   carga y a veces no.
-- Siguiente acción exacta: que el usuario **autorice la Fase 1 del backend**.
-  El frontend no empieza hasta que exista el endpoint de lectura.
+- Estado del backend al 2026-09-08: **fase 1 (estructura) terminada**. Existe
+  la tabla `observador_anotaciones` en los dos colegios, pero **no hay endpoint
+  todavía**. Ver `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+- Siguiente acción exacta: que el usuario **autorice la Fase 2 del backend**
+  (lectura, `GET /observador/{estudiante_id}`). El frontend no empieza hasta que
+  ese endpoint exista y esté probado.
