@@ -737,8 +737,14 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `pages/Observador.jsx`: raíz de composición. Lista los alumnos de la
   asignación con **una** petición y pide la bitácora de uno **al abrirlo**. Ahí
   muere el fallo de las doce peticiones simultáneas de la pantalla vieja.
-- `components/observador/ListaAlumnosObservador.jsx`: solo nombres, con filtro
-  local que no vuelve a consultar al servidor.
+- `components/observador/ListaAlumnosObservador.jsx`: solo nombres, agrupados
+  por curso, con filtro local que no vuelve a consultar al servidor. **No
+  depende de ninguna clase elegida** desde el 2026-09-09.
+- `hooks/observador/useMisEstudiantes.js`: los alumnos del profesor, de todos
+  sus cursos, en una sola petición. Sustituye a `usePlanillaObservador` en esta
+  pantalla; la vieja lo sigue usando.
+- `utils/observador/alumnos.js`: agrupación por curso, nombre completo y filtro,
+  como contratos puros.
 - `components/observador/VistaObservadorEstudiante.jsx`: la bitácora agrupada
   por dimensión, con el nivel del curso en el título y el selector de periodo en
   «Todos». Cambiar la agrupación **no** dispara otra petición.

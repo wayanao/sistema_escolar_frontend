@@ -15,6 +15,7 @@ vi.mock("../utils/api", () => ({
 import {
   crearAnotacion,
   editarAnotacion,
+  listarMisEstudiantes,
   obtenerObservador,
 } from "./observadorApi";
 
@@ -54,6 +55,28 @@ describe("contrato HTTP del observador del estudiante", () => {
 
     expect(apiMock.get).toHaveBeenCalledWith("/observador/42", {
       params: { periodo: 2 },
+      signal: controller.signal,
+    });
+  });
+
+  it("pide los alumnos del profesor sin mandarle ninguna clase", async () => {
+    const alumnos = [{ estudiante_id: 11, nombre: "Ana", curso: "PRIMERO-A" }];
+    apiMock.get.mockResolvedValue({ data: alumnos });
+
+    await expect(listarMisEstudiantes()).resolves.toBe(alumnos);
+
+    // Sin parametros: el profesor sale del token y no hay clase de la que
+    // depender. Es lo que suelta la pantalla de la asignacion elegida.
+    expect(apiMock.get).toHaveBeenCalledWith("/observador/mis-estudiantes", undefined);
+  });
+
+  it("propaga la señal de cancelación al pedir la lista", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarMisEstudiantes({ signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/observador/mis-estudiantes", {
       signal: controller.signal,
     });
   });
@@ -101,6 +124,7 @@ describe("contrato HTTP del observador del estudiante", () => {
     expect(Object.keys(modulo).sort()).toStrictEqual([
       "crearAnotacion",
       "editarAnotacion",
+      "listarMisEstudiantes",
       "obtenerObservador",
     ]);
     expect(apiMock).not.toHaveProperty("delete");

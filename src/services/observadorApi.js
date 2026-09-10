@@ -34,6 +34,27 @@ export async function obtenerObservador(estudianteId, { periodo, signal } = {}) 
 }
 
 /**
+ * Los alumnos del profesor de la sesión, de **todos** los cursos donde tiene
+ * clase, con el curso de cada uno.
+ *
+ * Existe para que la pantalla no dependa de una asignación elegida: el
+ * observador es del niño, no de la materia. El profesor sale del token, así que
+ * nadie puede pedir la lista de otro. Un `403` significa que quien pide no es
+ * profesor —el admin entra por la ficha del alumno, no por esta lista—.
+ *
+ * **Una sola petición**, también para un profesor con seis cursos. Pedir sus
+ * clases y luego los alumnos de cada una serían siete, y sería reconstruir el
+ * N+1 en la pantalla que existe para matarlo.
+ */
+export async function listarMisEstudiantes({ signal } = {}) {
+  const { data } = await api.get(
+    "/observador/mis-estudiantes",
+    signal ? { signal } : undefined,
+  );
+  return data;
+}
+
+/**
  * Añade una anotación a la bitácora. Devuelve `{ id }`.
  *
  * **Nunca actualiza una existente**: es una bitácora y todas quedan. Un

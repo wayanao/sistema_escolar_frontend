@@ -2,12 +2,13 @@
 
 ## Control
 
-- Estado: **Fases 1 y 2 terminadas el 2026-09-09.** La pantalla existe, **lee y
-  escribe**: el profesor entra por «Observador» en Control Académico, elige un
-  alumno, ve su bitácora agrupada por dimensión, añade anotaciones y corrige
-  las suyas. Falta la fase 3 —vista por fecha e impresión— y la entrada del
-  admin sigue leyendo las observaciones viejas. La pantalla vieja
-  (`/Formulario`) sigue intacta y en producción.
+- Estado: **Fases 1 y 2 terminadas el 2026-09-09**, y ese mismo día la pantalla
+  **dejó de depender de una clase elegida**. El profesor entra por «Observador»
+  en Control Académico, ve a **todos** sus alumnos agrupados por curso, abre uno,
+  lee su bitácora agrupada por dimensión, añade anotaciones y corrige las suyas.
+  Falta la fase 3 —vista por fecha e impresión— y la entrada del admin sigue
+  leyendo las observaciones viejas. La pantalla vieja (`/Formulario`) sigue
+  intacta y en producción.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -80,19 +81,26 @@ Control Académico
    └─ Observador             ← la nueva
 ```
 
-El profesor ya tiene una asignación elegida en `localStorage.asignacionId`,
-igual que hoy. La pantalla nueva lista **solo los nombres** de sus alumnos —una
-petición, la que ya hace `usePlanillaObservador`— y al pulsar uno abre su
-bitácora completa con **una sola petición más**.
+La pantalla lista **solo los nombres** de sus alumnos —una petición— y al pulsar
+uno abre su bitácora completa con **una sola petición más**.
+
+> **Corregido el 2026-09-09.** Esto decía que la pantalla usaba la asignación
+> elegida en `localStorage.asignacionId`, y así se construyó. El usuario lo
+> cuestionó —«no quiero que dependa de la asignación»— y tenía razón: el
+> observador es del niño, no de la materia. Ahora la lista sale de
+> `GET /observador/mis-estudiantes` y trae a los alumnos de **todos** sus
+> cursos. Ver «Entrar sin elegir clase», más abajo.
 
 **Ahí es donde muere el fallo del usuario.** La vieja monta un componente por
 alumno y cada uno pide lo suyo: 12 peticiones, 16-20 s, y el hook aborta a los
 10 s. La nueva pide de uno en uno, cuando se abre.
 
-> **Nota para el futuro**, no una decisión: al entrar así, la asignación **sí**
-> se conoce, y con ella la materia. Si algún día se quiere volver a etiquetar
-> las anotaciones con su materia, sale gratis y sin preguntarle nada a nadie.
-> Ver «Por qué la materia no se muestra».
+> **Esta nota quedó obsoleta el 2026-09-09.** Decía que, al entrar por una
+> asignación, la materia se conocía gratis y se podría volver a etiquetar las
+> anotaciones con ella. Ya no: la pantalla entra sin clase, así que **la materia
+> no se conoce por la puerta de entrada**. Si algún día se quiere, habrá que
+> preguntársela a la profesora. Es exactamente el precio que se pagó, y se pagó
+> a sabiendas.
 
 ### Admin: donde ya está, sin mover nada
 
@@ -398,6 +406,58 @@ ese caso sale un mensaje propio.
 traen positiva ni negativa, y el `PUT` la exige. Al abrirlas para corregir, el
 formulario arranca sin marca y no deja guardar hasta elegir una.
 
+## Entrar sin elegir clase
+
+Añadido el 2026-09-09, a petición del usuario: «no quiero que dependa de la
+asignación».
+
+**La premisa era correcta.** La anotación no guarda nada de la materia. La clase
+solo servía para saber a quién listar, porque el único endpoint que lo hacía era
+`GET /planilla/{asignacion_id}`.
+
+Las dos salidas sin tocar el backend estaban descartadas, y por motivos fuertes:
+
+- **Pedir las clases y luego los alumnos de cada una.** Con 6 cursos son **7
+  peticiones**. Sería reconstruir el N+1 justo en la pantalla que existe para
+  matarlo.
+- **`GET /estudiantes`.** Devuelve **todos los niños del colegio**, sin filtrar
+  por profesor.
+
+Así que se añadió `GET /observador/mis-estudiantes` en el backend. Detalles en
+`sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+
+**Salió más rápido que lo que reemplaza**, medido contra la base real con un
+profesor de 6 cursos:
+
+| Petición | Qué devuelve | Tiempo |
+|---|---|---|
+| `GET /observador/mis-estudiantes` | **81 alumnos, 6 cursos** | **1,35 s** |
+| `GET /planilla/212`, lo de antes | los de **una** clase | 2,0 – 3,3 s |
+
+### La lista va agrupada por curso
+
+81 nombres seguidos no se leen. Se agrupan por curso, con el número de alumnos
+al lado del encabezado, y el buscador arriba filtra en local sin volver a
+preguntar nada.
+
+El orden lo pone el servidor —curso y apellido—; el frontend solo parte la lista
+en bloques y **no reordena**.
+
+### Lo que se quitó
+
+- La pantalla ya no lee `localStorage.asignacionId`, y ya **no** suelta el
+  `alert` que echaba al inicio cuando no había clase elegida. Hay prueba de que
+  no aparece ni aunque haya una guardada.
+- Ya no usa `usePlanillaObservador`. Ese hook **no se toca**: la pantalla vieja
+  (`/Formulario`) lo sigue usando y se irá con ella en la fase 4.
+
+### Un 403 no es un fallo
+
+Si quien entra no es profesor, el servidor responde `403` y la pantalla dice
+«Esta pantalla es para profesores. Abre el observador desde la ficha del
+estudiante», que es la verdad: el admin entra por ahí. Cualquier otro fallo dice
+otra cosa y ofrece reintentar.
+
 ## Plan de fases (frontend)
 
 **Fase 1 — Lectura — TERMINADA el 2026-09-09**
@@ -409,7 +469,8 @@ formulario arranca sin marca y no deja guardar hasta elegir una.
 3. ~~Selector de periodo con «Todos» por defecto~~.
 4. ~~Entrada del profesor~~: ruta `/observador` en `src/App.jsx` y el elemento
    «Observador» en `src/utils/autenticacion/navegacion.js`, justo debajo de
-   «Observaciones». La vieja se queda.
+   «Observaciones». La vieja se queda. **El 2026-09-09 dejó de exigir una clase
+   elegida**, ver «Entrar sin elegir clase».
 5. ~~Pruebas~~: 61 propias, más una existente del menú actualizada, todas
    verificadas con mutaciones. Compuerta completa en verde: **1648 pruebas**,
    `lint` y `build`.
@@ -462,66 +523,54 @@ formulario arranca sin marca y no deja guardar hasta elegir una.
 **No queda ninguna abierta.** La única deuda anotada es la de arriba: un
 profesor sin periodo guardado escribe en el 1 sin enterarse. No corre prisa.
 
-### Deuda anotada: la asignación como única puerta
+### ~~Deuda: la asignación como única puerta~~ — RESUELTA el 2026-09-09
 
-La pantalla exige tener una asignación elegida, y el usuario preguntó por qué si
-el observador no depende de la materia. **Tiene razón**: la asignación se usa
-**solo** para saber a qué alumnos listar, y nada de ella se guarda en la
-anotación. Entrar por Matemáticas o por Artística enseña exactamente la misma
-bitácora.
-
-El motivo es que hoy el único endpoint que lista los alumnos de un profesor es
-`GET /planilla/{asignacion_id}`, que pide una clase. `GET /estudiantes` devuelve
-**todos los del colegio** y no está filtrado por profesor, así que no sirve.
-
-Para abrir la pantalla sin elegir clase haría falta un endpoint nuevo en el
-backend -«todos los alumnos de este profesor»-. **No corre prisa** y no rompe
-nada: es una comodidad, no un defecto.
+La pantalla exigía una asignación elegida, y el usuario preguntó por qué si el
+observador no depende de la materia. Tenía razón, y se arregló el mismo día: se
+añadió `GET /observador/mis-estudiantes` en el backend y la pantalla dejó de
+leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **Fase 2 (escritura), el 2026-09-09.** La pantalla
-  `/observador` lee, crea y corrige. **117 pruebas propias**, verificadas con
-  mutaciones. Compuerta completa en verde: **1705 pruebas**, `pnpm run lint` y
-  `pnpm run build`.
-- **Sin publicar, en los dos repos.** El backend de esta funcionalidad tiene
-  seis commits locales sin subir y **no está desplegado**; este repo tiene los
-  suyos. La base de datos de producción **sí** tiene ya la tabla y sus índices,
-  aplicados el 2026-09-08. Orden correcto para publicar: **primero el backend**,
-  después el frontend. Al revés, la pantalla nueva pediría endpoints que en
-  producción no existen —ahora también los de escribir—.
-- **La bitácora está vacía.** Falta ejecutar, en el repo del backend, la
+- Última acción terminada: **la pantalla dejó de depender de una clase elegida,
+  el 2026-09-09.** Entra directa, lista a todos los alumnos del profesor
+  agrupados por curso, y sigue leyendo, escribiendo y corrigiendo igual.
+- Compuerta completa en verde: **1729 pruebas**, `pnpm run lint` y
+  `pnpm run build`. 24 nuevas, verificadas con mutaciones.
+- **Depende de un endpoint que todavía no está en producción**:
+  `GET /observador/mis-estudiantes`, añadido el mismo día en el backend. **El
+  backend debe publicarse primero.** Si se publica esta pantalla antes, la lista
+  de alumnos no cargaría.
+- **Sin publicar, en los dos repos.** El backend tiene siete commits locales sin
+  subir. La base de datos de producción sí tiene la tabla desde el 2026-09-08.
+- **La bitácora está vacía** hasta que se ejecute, en el repo del backend, la
   migración `20260908_observador_anotaciones_historicas.sql` y después
   `scripts/copiar_observaciones_al_observador.py`, que trae las 68 anotaciones
   viejas. Lo que se escriba con la pantalla nueva sí aparece desde el primer
-  momento. Comprobar con `SELECT count(*) FROM <tenant>.observador_anotaciones`.
+  momento.
 - **El fallo original sigue vivo en la pantalla vieja**, y seguirá mientras
-  `/Formulario` sea la que usan los profesores. La nueva no lo hereda: convierte
-  doce peticiones en una, y hay prueba que lo fija por aserción
-  (`src/pages/Observador.test.jsx`).
+  `/Formulario` sea la que usan los profesores.
 - Lo que **no** hace todavía: la vista por fecha y la impresión con sus dos
   opciones. Es la fase 3, y **no toca el backend**: se pinta con lo que la
   lectura ya devuelve, así que no debe provocar ninguna petición nueva.
 - **La entrada del admin sigue sin tocar.** `DetalleEstudianteAdmin.jsx` lee
-  todavía las observaciones viejas. Cambiarle el origen de los datos es un paso
-  aparte, sobre una pantalla que hoy funciona, y necesita su propia orden.
-  Cuando se haga: el admin **ve todo pero no escribe ni edita**, y el servidor
-  ya lo impide con un 403.
-- Contratos que consume la pantalla, por si hay que revisarlos:
+  todavía las observaciones viejas. El admin **no** tiene lista de alumnos
+  —recibe un `403`— y no debe tenerla: entra por la ficha del estudiante.
+- Contratos que consume la pantalla:
+  - `GET /observador/mis-estudiantes` → lista de
+    `{estudiante_id, nombre, apellido, curso_id, curso}`, ya ordenada por curso
+    y apellido. `403` si quien pide no es profesor.
   - `GET /observador/{estudiante_id}` → `{"nivel": ..., "anotaciones": [...]}`,
     `?periodo=N` opcional entre 1 y 4, `404` solo si el estudiante no existe.
-    `nivel` llega **fuera** de las anotaciones y también cuando no hay ninguna.
   - `POST /observador` → `201` con `{"id": N}`. Cuerpo: `estudiante_id`,
-    `periodo`, `positiva` y los tres textos. **Sin `profesor_id`**, que sale del
-    token, y sin `asignacion_id` ni `materia`.
+    `periodo`, `positiva` y los tres textos. **Sin `profesor_id`**.
   - `PUT /observador/{anotacion_id}` → cuerpo: `positiva` y los tres textos.
     **Sin `estudiante_id` ni `periodo`.** `403` si no es tuya, `404` si no
     existe.
   - **No existe `DELETE`**, y no debe pedirse.
-- Dos deudas anotadas, ninguna urgente: un profesor sin periodo guardado escribe
-  en el periodo 1 sin enterarse, y la pantalla necesita una asignación elegida
-  solo para saber a qué alumnos listar. Las dos están explicadas en «Preguntas
-  abiertas».
+- Una deuda anotada, no urgente: un profesor sin periodo guardado escribe en el
+  periodo 1 sin enterarse. Explicada en «Preguntas abiertas». La otra deuda —la
+  asignación como única puerta— **quedó resuelta** hoy.
 - Siguiente acción exacta: que el usuario **autorice la Fase 3** (vista por
   fecha e impresión). No hay preguntas abiertas que la bloqueen. Una instrucción
   genérica como «continúa» no basta.

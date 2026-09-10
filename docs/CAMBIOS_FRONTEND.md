@@ -1,5 +1,76 @@
 # Cambios Frontend
 
+## 2026-09-09 - Observador: entrar sin elegir clase
+
+La pantalla `/observador` ya no exige tener una asignacion seleccionada. Entra
+directa y lista **todos** los alumnos del profesor, de todos sus cursos.
+
+### Lo pregunto el usuario, y tenia razon
+
+«No quiero que dependa de la asignacion». La premisa era correcta: la anotacion
+no guarda nada de la materia. La clase solo servia para saber a quien listar,
+porque el unico endpoint que lo hacia era `GET /planilla/{asignacion_id}`.
+
+Las dos salidas sin tocar el backend estaban descartadas:
+
+* **Pedir las clases y luego los alumnos de cada una.** Con 6 cursos son 7
+  peticiones: reconstruir el N+1 en la pantalla que existe para matarlo.
+* **`GET /estudiantes`.** Devuelve todos los ninos del colegio, sin filtrar por
+  profesor.
+
+Asi que el backend estreno `GET /observador/mis-estudiantes` el mismo dia.
+
+### Salio mas rapido que lo que reemplaza
+
+Medido contra la base real con un profesor de 6 cursos:
+
+| Peticion | Que devuelve | Tiempo |
+|---|---|---|
+| `GET /observador/mis-estudiantes` | **81 alumnos, 6 cursos** | **1,35 s** |
+| `GET /planilla/212`, lo de antes | los de **una** clase | 2,0 - 3,3 s |
+
+Sigue siendo **una sola peticion** para pintar la lista.
+
+### La lista va agrupada por curso
+
+81 nombres seguidos no se leen. Se agrupan por curso, con el numero al lado del
+encabezado. El orden lo pone el servidor -curso y apellido-; el frontend solo
+parte la lista en bloques y no reordena. El buscador filtra en local.
+
+### Lo que se quito
+
+- La lectura de `localStorage.asignacionId` y el `alert` que echaba al inicio
+  cuando no habia clase elegida. Hay prueba de que ya no aparece **ni aunque
+  haya una guardada**.
+- El uso de `usePlanillaObservador` en esta pantalla. **El hook no se toca**: la
+  pantalla vieja (`/Formulario`) lo sigue usando y se ira con ella en la fase 4.
+
+### Un 403 no es un fallo
+
+Si quien entra no es profesor, la pantalla dice «Esta pantalla es para
+profesores. Abre el observador desde la ficha del estudiante», que es la verdad.
+Cualquier otro fallo dice otra cosa y ofrece reintentar.
+
+### Una nota del documento quedo obsoleta, y se corrigio en vez de borrarla
+
+El diseno decia que, al entrar por una asignacion, la materia se conocia gratis
+y algun dia se podrian volver a etiquetar las anotaciones con ella. Ya no es
+cierto: sin clase de entrada, la materia habria que preguntarsela a la
+profesora. Es el precio que se pago, y se pago a sabiendas.
+
+### Pruebas
+
+`1729 pasan`, 24 nuevas, verificadas con mutaciones: volver a atar la lista a la
+asignacion guardada, meter a todos los alumnos en una sola bolsa sin agrupar, y
+confundir el 403 con cualquier otro fallo. Las tres rompen pruebas. `lint` y
+`build`, en verde.
+
+### Depende de un endpoint que aun no esta en produccion
+
+**El backend va primero.** Si se publica esta pantalla antes, la lista de
+alumnos no cargaria.
+
+
 ## 2026-09-09 - Observador unificado, fase 2: escribir y corregir
 
 La pantalla `/observador` ya no solo lee. El profesor añade anotaciones a la

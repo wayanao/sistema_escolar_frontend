@@ -105,10 +105,11 @@ Estado documentado del frontend `frontend-react`.
   solo lectura independientes.
 - `src/hooks/estudiantesObservador/`: consultas, formularios y comandos de
   estudiantes y observador, con aislamiento de respuestas obsoletas.
-- `src/hooks/observador/`: consulta cancelable de la bitácora de un estudiante
-  —una sola petición pinta la pantalla, y distingue el estudiante inexistente de
-  la bitácora vacía—, estado editable del formulario con su marca de campos
-  tocados, y los dos comandos de escritura. Sin comando de borrado.
+- `src/hooks/observador/`: consulta cancelable de la lista de alumnos del
+  profesor —sin depender de ninguna clase elegida— y de la bitácora de un
+  estudiante —una sola petición pinta la pantalla, y distingue el estudiante
+  inexistente de la bitácora vacía—, estado editable del formulario con su marca
+  de campos tocados, y los dos comandos de escritura. Sin comando de borrado.
 - `src/hooks/certificadosImpresion/`: consultas cancelables de certificados,
   comandos administrativos y configuración compartida de impresión.
 - `src/hooks/carteraTiposPago/`: consultas de cartera y conceptos, formulario
@@ -156,8 +157,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/services/estudiantesObservadorApi.js`: contrato HTTP de estudiantes,
   cursos, detalle, deudas, planilla y observaciones.
 - `src/services/observadorApi.js`: contrato HTTP del observador del estudiante
-  unificado: leer la bitácora, crear una anotación y corregir la propia.
-  **Sin** contrato de borrado: nadie borra una anotación.
+  unificado: listar los alumnos del profesor, leer una bitácora, crear una
+  anotación y corregir la propia. **Sin** contrato de borrado: nadie borra una
+  anotación.
 - `src/services/certificadosImpresionApi.js`: fachada HTTP de certificados que
   reutiliza contratos compatibles de boletines y asistencia.
 - `src/services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida,
@@ -206,9 +208,10 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/estudiantesObservador/`: formularios, filtros, normalización y
   payloads puros de estudiantes y observaciones.
 - `src/utils/observador/`: agrupación por dimensión, opciones de periodo, marca
-  positiva/negativa, fecha corta y título con nivel del curso; validación y
-  cuerpos de las peticiones de escritura; y la corrección de mayúsculas, espejo
-  comprobado de `app/core/texto_observador.py`. Todo como contratos puros.
+  positiva/negativa, fecha corta y título con nivel del curso; agrupación de la
+  lista de alumnos por curso y su filtro; validación y cuerpos de las peticiones
+  de escritura; y la corrección de mayúsculas, espejo comprobado de
+  `app/core/texto_observador.py`. Todo como contratos puros.
 - `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
   académica y transformaciones puras de certificados e impresión.
 - `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de

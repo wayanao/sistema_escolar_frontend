@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import FormularioAnotacionObservador from "../components/observador/FormularioAnotacionObservador";
 import ListaAlumnosObservador from "../components/observador/ListaAlumnosObservador";
 import VistaObservadorEstudiante from "../components/observador/VistaObservadorEstudiante";
-import usePlanillaObservador from "../hooks/estudiantesObservador/usePlanillaObservador";
 import useComandosObservador from "../hooks/observador/useComandosObservador";
 import useFormularioAnotacion from "../hooks/observador/useFormularioAnotacion";
+import useMisEstudiantes, {
+  ERROR_SIN_LISTA,
+} from "../hooks/observador/useMisEstudiantes";
 import useObservadorEstudiante, {
   ERROR_ESTUDIANTE_NO_EXISTE,
 } from "../hooks/observador/useObservadorEstudiante";
-import { filtrarEstudiantesObservador } from "../utils/estudiantesObservador/estudiantes";
+import { filtrarAlumnosObservador } from "../utils/observador/alumnos";
 import {
   PERIODO_TODOS,
   titularObservador,
@@ -23,20 +25,23 @@ import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
  * que el usuario ordene retirarla. Ver
  * `docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
  *
- * La asignación elegida se usa **solo** para saber a qué alumnos listar. Nada
- * de la materia se guarda en la anotación: el observador es del niño, no de la
- * clase por la que se entró.
+ * **No depende de ninguna clase elegida.** El observador es del niño y no de la
+ * materia: la lista sale de `GET /observador/mis-estudiantes`, que devuelve los
+ * alumnos de todos los cursos del profesor en una sola petición.
  */
 
 const MENSAJE_NO_EXISTE = "No encontramos a ese estudiante.";
 const MENSAJE_FALLO = "No se pudo consultar el observador. Intenta de nuevo.";
+const MENSAJE_SIN_LISTA =
+  "Esta pantalla es para profesores. Abre el observador desde la ficha del estudiante.";
+const MENSAJE_FALLO_LISTA =
+  "No se pudo cargar tu lista de estudiantes. Intenta de nuevo.";
 
 /** Marca de que el formulario abierto es una anotación nueva y no la
  * corrección de una existente. */
 const NUEVA = "nueva";
 
 function Observador() {
-  const asignacionId = localStorage.getItem("asignacionId");
   const profesorId = leerProfesorId();
   // El periodo que se le pega a una anotación nueva sale del que el profesor
   // eligió en el Dashboard, decidido con el usuario el 2026-09-09. Es distinto
@@ -55,7 +60,8 @@ function Observador() {
     estudiantes,
     cargando: cargandoEstudiantes,
     error: errorEstudiantes,
-  } = usePlanillaObservador(asignacionId);
+    recargar: recargarEstudiantes,
+  } = useMisEstudiantes();
 
   const {
     nivel,
@@ -71,20 +77,10 @@ function Observador() {
   const formulario = useFormularioAnotacion();
   const { guardando, guardarNueva, guardarCorreccion } = useComandosObservador();
 
-  useEffect(() => {
-    if (asignacionId) return;
-    alert("Selecciona una asignación primero en la página principal");
-    window.location.href = "/";
-  }, [asignacionId]);
-
-  useEffect(() => {
-    if (errorEstudiantes) console.error("Error cargando estudiantes", errorEstudiantes);
-  }, [errorEstudiantes]);
-
   // El filtro es local sobre la lista ya cargada: escribir en el buscador no
   // vuelve a preguntarle nada al servidor.
   const filtrados = useMemo(
-    () => filtrarEstudiantesObservador(estudiantes || [], busqueda),
+    () => filtrarAlumnosObservador(estudiantes, busqueda),
     [busqueda, estudiantes],
   );
 
@@ -149,6 +145,10 @@ function Observador() {
     recargar();
   };
 
+  const mensajeErrorLista = errorEstudiantes
+    ? (errorEstudiantes === ERROR_SIN_LISTA ? MENSAJE_SIN_LISTA : MENSAJE_FALLO_LISTA)
+    : null;
+
   const mensajeError = error
     ? (error === ERROR_ESTUDIANTE_NO_EXISTE ? MENSAJE_NO_EXISTE : MENSAJE_FALLO)
     : null;
@@ -200,7 +200,8 @@ function Observador() {
           onCambiarBusqueda={setBusqueda}
           estudiantes={filtrados}
           cargando={cargandoEstudiantes}
-          error={errorEstudiantes}
+          error={mensajeErrorLista}
+          onReintentar={recargarEstudiantes}
           onAbrir={abrirEstudiante}
         />
       )}

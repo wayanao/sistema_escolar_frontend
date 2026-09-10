@@ -5,22 +5,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   crearAnotacionMock,
   editarAnotacionMock,
+  listarMisEstudiantesMock,
   obtenerObservadorMock,
-  usePlanillaMock,
 } = vi.hoisted(() => ({
   crearAnotacionMock: vi.fn(),
   editarAnotacionMock: vi.fn(),
+  listarMisEstudiantesMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
-  usePlanillaMock: vi.fn(),
-}));
-
-vi.mock("../hooks/estudiantesObservador/usePlanillaObservador", () => ({
-  default: usePlanillaMock,
 }));
 
 vi.mock("../services/observadorApi", () => ({
   crearAnotacion: crearAnotacionMock,
   editarAnotacion: editarAnotacionMock,
+  listarMisEstudiantes: listarMisEstudiantesMock,
   obtenerObservador: obtenerObservadorMock,
 }));
 
@@ -32,22 +29,17 @@ vi.mock("../utils/periodoProfesor", () => ({
 import Observador from "./Observador";
 
 const ESTUDIANTES = [
-  { estudiante_id: 11, nombre: "Ana", apellido: "Rojas" },
-  { estudiante_id: 12, nombre: "Luis", apellido: "Pardo" },
+  { estudiante_id: 11, nombre: "Ana", apellido: "Rojas", curso: "PRIMERO-A" },
+  { estudiante_id: 12, nombre: "Luis", apellido: "Pardo", curso: "SEGUNDO" },
 ];
 
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
-  localStorage.setItem("asignacionId", "44");
   localStorage.setItem("profesor", JSON.stringify({ id: 7 }));
   crearAnotacionMock.mockResolvedValue({ id: 31 });
   editarAnotacionMock.mockResolvedValue({ id: 12 });
-  usePlanillaMock.mockReturnValue({
-    estudiantes: ESTUDIANTES,
-    cargando: false,
-    error: null,
-  });
+  listarMisEstudiantesMock.mockResolvedValue(ESTUDIANTES);
   obtenerObservadorMock.mockResolvedValue({
     nivel: "primaria",
     anotaciones: [
@@ -69,13 +61,31 @@ beforeEach(() => {
 });
 
 describe("página del Observador", () => {
-  it("no pide ninguna bitácora hasta que se abre un alumno", () => {
+  it("abre sin ninguna clase elegida, con una sola petición", async () => {
+    // Ni siquiera hay `asignacionId` en el navegador: el observador es del niño
+    // y no de la materia.
+    expect(localStorage.getItem("asignacionId")).toBeNull();
     render(<Observador />);
 
-    expect(screen.getByRole("button", { name: "Ana Rojas" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Ana Rojas" })).toBeInTheDocument();
+    expect(listarMisEstudiantesMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("agrupa la lista por curso", async () => {
+    render(<Observador />);
+    await screen.findByRole("button", { name: "Ana Rojas" });
+
+    expect(screen.getByRole("heading", { name: /PRIMERO-A/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /SEGUNDO/ })).toBeInTheDocument();
+  });
+
+  it("no pide ninguna bitácora hasta que se abre un alumno", async () => {
+    render(<Observador />);
+    await screen.findByRole("button", { name: "Ana Rojas" });
+
     // Aquí muere el fallo del usuario: la pantalla vieja montaba un componente
     // por alumno y cada uno pedía lo suyo -12 peticiones, 16-20 s, y el hook se
-    // rendía a los 10 s-. Esta lista no pide nada.
+    // rendía a los 10 s-. Esta lista no pide ninguna bitácora.
     expect(obtenerObservadorMock).not.toHaveBeenCalled();
   });
 
@@ -83,7 +93,7 @@ describe("página del Observador", () => {
     const user = userEvent.setup();
     render(<Observador />);
 
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
 
     await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(1));
     expect(obtenerObservadorMock.mock.calls[0][0]).toBe(11);
@@ -99,19 +109,20 @@ describe("página del Observador", () => {
   it("filtra la lista sin volver a consultar al servidor", async () => {
     const user = userEvent.setup();
     render(<Observador />);
+    await screen.findByRole("button", { name: "Ana Rojas" });
 
     await user.type(screen.getByPlaceholderText("Buscar estudiante..."), "luis");
 
     expect(screen.getByRole("button", { name: "Luis Pardo" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ana Rojas" })).not.toBeInTheDocument();
-    expect(usePlanillaMock).toHaveBeenCalledWith("44");
+    expect(listarMisEstudiantesMock).toHaveBeenCalledTimes(1);
   });
 
   it("vuelve a la lista sin perder el buscador", async () => {
     const user = userEvent.setup();
     render(<Observador />);
 
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
 
     await user.click(screen.getByRole("button", { name: "← Volver a la lista" }));
@@ -124,7 +135,7 @@ describe("página del Observador", () => {
     const user = userEvent.setup();
     render(<Observador />);
 
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
 
     expect(
       await screen.findByText("No encontramos a ese estudiante."),
@@ -136,7 +147,7 @@ describe("página del Observador", () => {
     const user = userEvent.setup();
     render(<Observador />);
 
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
 
     expect(
       await screen.findByText("No se pudo consultar el observador. Intenta de nuevo."),
@@ -144,7 +155,7 @@ describe("página del Observador", () => {
   });
 
   async function abrirAnaYAnotar(user) {
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
     await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
   }
@@ -194,7 +205,7 @@ describe("página del Observador", () => {
   it("si el selector filtra otro periodo, pasa a «Todos» para que lo escrito se vea", async () => {
     const user = userEvent.setup();
     render(<Observador />);
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
 
     await user.selectOptions(screen.getByRole("combobox"), "2");
@@ -215,7 +226,7 @@ describe("página del Observador", () => {
   it("corrige una anotación propia sin tocar su periodo", async () => {
     const user = userEvent.setup();
     render(<Observador />);
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
 
     await user.click(screen.getByRole("button", { name: "Editar" }));
@@ -260,7 +271,7 @@ describe("página del Observador", () => {
     const user = userEvent.setup();
     render(<Observador />);
 
-    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     expect(await screen.findByText("De otro profesor.")).toBeInTheDocument();
 
     // Es cosmético: el servidor responde 403 si alguien lo intenta igual.
@@ -302,16 +313,29 @@ describe("página del Observador", () => {
     expect(screen.getByRole("button", { name: "Guardar" })).toBeEnabled();
   });
 
-  it("manda a elegir asignación si no hay ninguna guardada", () => {
-    localStorage.removeItem("asignacionId");
+  it("ya no manda a elegir asignación, ni aunque haya una guardada", async () => {
+    // Antes, sin `asignacionId`, la pantalla soltaba un alert y te echaba al
+    // inicio. Esa dependencia se quito el 2026-09-09.
+    localStorage.setItem("asignacionId", "44");
     const alerta = vi.spyOn(window, "alert").mockImplementation(() => {});
-    usePlanillaMock.mockReturnValue({ estudiantes: [], cargando: false, error: null });
 
     render(<Observador />);
+    await screen.findByRole("button", { name: "Ana Rojas" });
 
-    expect(alerta).toHaveBeenCalledWith(
-      "Selecciona una asignación primero en la página principal",
-    );
+    expect(alerta).not.toHaveBeenCalled();
+    // Y la clase guardada no llega al servidor: no pinta nada en esta pantalla.
+    expect(listarMisEstudiantesMock.mock.calls[0][0]).not.toHaveProperty("asignacionId");
     alerta.mockRestore();
+  });
+
+  it("dice que esta pantalla es de profesores si el servidor responde 403", async () => {
+    listarMisEstudiantesMock.mockRejectedValue({ response: { status: 403 } });
+    render(<Observador />);
+
+    expect(
+      await screen.findByText(
+        "Esta pantalla es para profesores. Abre el observador desde la ficha del estudiante.",
+      ),
+    ).toBeInTheDocument();
   });
 });
