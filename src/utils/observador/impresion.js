@@ -24,6 +24,20 @@ export const OPCIONES_IMPRESION = [
 ];
 
 /**
+ * Lo que puede imprimir un admin: **solo el documento general**.
+ *
+ * «Solo mis anotaciones» no tiene sentido para un coordinador, que no tiene
+ * ninguna: le saldría siempre una hoja vacía. Decidido con el usuario el
+ * 2026-09-10.
+ *
+ * Se deriva de la lista de arriba en vez de escribirse aparte, para que no
+ * puedan decir cosas distintas del mismo reporte.
+ */
+export const OPCIONES_IMPRESION_ADMIN = OPCIONES_IMPRESION.filter(
+  (opcion) => opcion.value === IMPRIMIR_TODO,
+);
+
+/**
  * Las anotaciones que entran en el impreso.
  *
  * Recibe **las que ya están en pantalla**, o sea las del periodo elegido: este

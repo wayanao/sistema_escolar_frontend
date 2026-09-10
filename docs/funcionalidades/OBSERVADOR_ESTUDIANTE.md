@@ -8,8 +8,9 @@
   pantalla **dejó de depender de una clase elegida**. El profesor entra por «Observador»
   en Control Académico, ve a **todos** sus alumnos agrupados por curso, abre uno,
   lee su bitácora agrupada por dimensión, añade anotaciones y corrige las suyas.
-  La entrada del admin sigue leyendo las observaciones viejas, y la pantalla
-  vieja (`/Formulario`) sigue intacta y en producción.
+  El **admin ya ve la misma bitácora que el profesor** en la ficha del alumno,
+  en solo lectura, desde el 2026-09-10. La pantalla vieja (`/Formulario`) sigue
+  intacta y en producción.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -121,18 +122,41 @@ alumno y cada uno pide lo suyo: 12 peticiones, 16-20 s, y el hook aborta a los
 > preguntársela a la profesora. Es exactamente el precio que se pagó, y se pagó
 > a sabiendas.
 
-### Admin: donde ya está, sin mover nada
+### Admin: donde ya está — HECHO el 2026-09-10
 
 Estudiantes → ficha del alumno → sección «Observador», en
 `src/components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`. **Mismo
-sitio y mismo aspecto.** Lo único que cambia es de dónde salen los datos: la
-bitácora nueva completa —todas las anotaciones, de todos los profesores— en vez
-de las observaciones viejas.
+sitio**: el coordinador no tiene que ir a ninguna pantalla nueva, y las notas,
+las deudas y el inventario del alumno siguen al lado.
 
-Las 68 viejas **no desaparecen**: se copian a la bitácora nueva (fase 4 del
-backend, autorizada). Llegan sin marca de positiva/negativa y sin fecha, porque
-el modelo viejo no guardaba ninguna de las dos, y se ordenan al final. Sí
+Lo que cambió es **qué** ve ahí. Antes: una lista plana de registros de la tabla
+vieja, cada uno con su materia. Ahora: **la misma vista que ve la profesora**,
+montada tal cual —`VistaObservadorEstudiante`—, con la bitácora completa de
+todos los profesores.
+
+**Se reutiliza el componente entero, no una copia parecida.** Es lo único que
+garantiza que el coordinador vea exactamente lo mismo; dos pantallas separadas
+acabarían diciendo cosas distintas del mismo niño.
+
+Tres diferencias, todas porque **el admin solo mira** (decisión 9):
+
+| | Profesor | Admin |
+|---|---|---|
+| Escribir y corregir | Sí, lo suyo | **No.** El servidor responde `403`, y ni se le pintan los botones |
+| Imprimir | Las dos opciones | **Solo el documento general.** «Solo mis anotaciones» le saldría en blanco: no tiene ninguna |
+| Título y «Volver a la lista» | Sí | No: la ficha ya dice de quién es |
+
+Decidido con el usuario el 2026-09-10: «que el admin vea todo centralizado del
+estudiante».
+
+Las 68 viejas **no desaparecen**: ya están copiadas en la bitácora nueva. Llegan
+sin fecha porque el modelo viejo no la guardaba, y se ordenan al final. Sí
 conservan profesor, materia y periodo.
+
+> **Detalle que se descubrió mirando los datos reales**: las profesoras
+> escribían la fecha **dentro del texto** («07 de septiembre de 2026 ⏎ Durante el
+> desarrollo…»), porque el sistema viejo no la guardaba. Con la bitácora nueva ya
+> no les hace falta.
 
 ## Pantallas
 
@@ -677,13 +701,14 @@ leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **Fase 3 (presentación), el 2026-09-10.** La pantalla
-  cambia entre vista por dimensión y por fecha sin volver a consultar, e imprime
-  con las dos opciones reutilizando el impreso del colegio.
-- Compuerta completa en verde: **1778 pruebas**, `pnpm run lint` y
-  `pnpm run build`. 38 nuevas, verificadas con mutaciones.
-- **El observador está completo para el profesor.** Lee, escribe, corrige, se ve
-  de dos maneras y se imprime, sin depender de ninguna clase elegida.
+- Última acción terminada: **la ficha del admin monta la vista del profesor**,
+  el 2026-09-10, justo después de la fase 3.
+- Compuerta completa en verde: **1787 pruebas**, `pnpm run lint` y
+  `pnpm run build`. 47 nuevas ese día, verificadas con mutaciones.
+- **El observador está completo para los dos roles.** El profesor lee, escribe,
+  corrige, cambia de vista e imprime, sin depender de ninguna clase elegida; el
+  coordinador ve lo mismo en la ficha del alumno, sin poder escribir, e imprime
+  el documento general.
 - **Sin publicar, en los dos repos.** El backend tiene nueve commits locales sin
   subir. **El backend va primero**: la pantalla depende de
   `GET /observador/mis-estudiantes` y de que el servidor ya no exija la marca de
@@ -691,9 +716,12 @@ leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
 - Las 68 anotaciones heredadas **ya están copiadas** en la bitácora, y hay
   cuatro filas más de las pruebas del usuario. Nadie borra anotaciones: si esas
   cuatro sobran, hay que quitarlas por base de datos.
-- **La entrada del admin sigue sin tocar.** `DetalleEstudianteAdmin.jsx` lee
-  todavía las observaciones viejas. El admin **no** tiene lista de alumnos
-  —recibe un `403`— y no debe tenerla: entra por la ficha del estudiante.
+- **La ficha del admin ya monta la vista del profesor**, en solo lectura, desde
+  el 2026-09-10. Ver «Admin: donde ya está». El admin **no** tiene lista de
+  alumnos —recibe un `403`— y no debe tenerla: entra por la ficha del
+  estudiante. `detalles.observaciones` de `GET /estudiantes/{id}/detalles`
+  **dejó de usarse** en el frontend; el endpoint sigue devolviéndolo y nadie lo
+  ha tocado.
 - Lo único que queda del plan es la **fase 4: retirar la pantalla vieja**
   (`src/pages/Formulario.jsx` y lo que quede sin uso en
   `src/components/estudiantesObservador/`, incluido `useCargaObservacionVisible`,

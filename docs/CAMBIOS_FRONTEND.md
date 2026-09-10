@@ -1,5 +1,55 @@
 # Cambios Frontend
 
+## 2026-09-10 - El admin ve la misma bitacora que el profesor
+
+Pedido por el usuario: «que el admin vea todo centralizado del estudiante». En
+Estudiantes -> ficha del alumno, la seccion «Observador» deja de listar los
+registros de la tabla vieja y **monta la misma vista que ve la profesora**.
+
+### Se reutiliza el componente entero, no una copia parecida
+
+`VistaObservadorEstudiante` se monta tal cual. Es lo unico que garantiza que el
+coordinador vea exactamente lo mismo: dos pantallas separadas acabarian diciendo
+cosas distintas del mismo nino. Para que sirviera en los dos sitios, el titulo,
+el boton de «Volver a la lista» y las opciones de impresion pasaron a ser
+opcionales.
+
+**Mismo sitio de siempre.** El coordinador no va a ninguna pantalla nueva, y las
+notas, las deudas y el inventario del alumno siguen al lado.
+
+### Tres diferencias, todas porque el admin solo mira
+
+| | Profesor | Admin |
+|---|---|---|
+| Escribir y corregir | Si, lo suyo | **No.** El servidor responde 403, y ni se le pintan los botones |
+| Imprimir | Las dos opciones | **Solo el documento general** |
+| Titulo y «Volver a la lista» | Si | No: la ficha ya dice de quien es |
+
+«Solo mis anotaciones» le saldria siempre en blanco a un coordinador, que no
+tiene ninguna. `OPCIONES_IMPRESION_ADMIN` se **deriva** de la lista completa en
+vez de escribirse aparte, para que no puedan decir cosas distintas del mismo
+reporte.
+
+### Lo que se quito
+
+El bloque que listaba `detalles.observaciones`, y con el los dos ayudantes
+`ObservacionPill` y `ObservacionDimension`, que se quedaban sin uso. El endpoint
+`GET /estudiantes/{id}/detalles` sigue devolviendo ese campo y **no se ha
+tocado**: simplemente el frontend ya no lo lee.
+
+### Por que hacia falta
+
+No era solo estetica: la ficha leia la tabla vieja, asi que **el coordinador no
+veia nada de lo que los profesores escribieran en la pantalla nueva**. Se le
+habria quedado congelada.
+
+### Pruebas
+
+`1787 pasan`, nueve nuevas. Verificado con mutaciones: darle al admin la opcion
+de imprimir «solo mis anotaciones», y pasarle un `onEditar` que le pintaria el
+boton de editar. Las dos rompen pruebas. `lint` y `build`, en verde.
+
+
 ## 2026-09-10 - Observador, fase 3: vista por fecha e impresion
 
 Ultima fase del plan salvo retirar la pantalla vieja. **No toca el backend**: se

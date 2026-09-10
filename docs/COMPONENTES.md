@@ -715,7 +715,8 @@ Estado actual de componentes y paginas del frontend.
 - `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
   estado vacío y acciones por estudiante.
 - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal
-  responsive con resumen, rendimiento, deudas, inventario y observaciones.
+  responsive con resumen, rendimiento, deudas e inventario. Desde el 2026-09-10
+  la sección «Observador» monta `ObservadorEnFichaAdmin`, no la tabla vieja.
 - `components/estudiantesObservador/FormularioObservacionEstudiante.jsx` y
   `VistaPlanillaObservador.jsx`: formulario individual y planilla visual del
   observador del profesor.
@@ -760,8 +761,12 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `components/observador/ObservadorImprimible.jsx`: el impreso, que reutiliza
   `DocumentoImprimible` con `tipo="observaciones"`. Sale lo que se está viendo;
   en papel no se pinta el color del profesor.
+- `components/observador/ObservadorEnFichaAdmin.jsx`: conector que monta la
+  vista del profesor dentro de la ficha del admin, en solo lectura y con la
+  impresión limitada al documento general.
 - `utils/observador/impresion.js`: qué anotaciones entran, las firmas de cada
-  reporte y los títulos, como contratos puros.
+  reporte y los títulos, como contratos puros. Incluye la lista recortada que ve
+  un admin.
 - `hooks/observador/useObservadorEstudiante.js`: la consulta, con descarte de
   respuestas obsoletas. Distingue el `404` («el estudiante no existe») de una
   lista vacía («todavía nadie le ha escrito nada»): son mensajes distintos.

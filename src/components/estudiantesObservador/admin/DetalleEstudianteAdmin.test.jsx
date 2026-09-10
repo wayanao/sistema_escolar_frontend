@@ -1,7 +1,38 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { obtenerObservadorMock } = vi.hoisted(() => ({
+  obtenerObservadorMock: vi.fn(),
+}));
+
+// La seccion «Observador» ya no sale de `detalles.observaciones`: monta la
+// misma vista que ve la profesora, que pide la bitacora al servidor.
+vi.mock("../../../services/observadorApi", () => ({
+  obtenerObservador: obtenerObservadorMock,
+}));
+
 import DetalleEstudianteAdmin from "./DetalleEstudianteAdmin";
+
+beforeEach(() => {
+  obtenerObservadorMock.mockReset().mockResolvedValue({
+    nivel: "primaria",
+    anotaciones: [
+      {
+        id: 12,
+        profesor_id: 7,
+        profesor: "Sara Díaz",
+        periodo: 2,
+        conductual: "Participa",
+        cognitivo: "Avanza",
+        lenguaje: "Expone",
+        creada_en: "2026-08-02T12:00:00Z",
+        editada_en: null,
+        editada_por: null,
+      },
+    ],
+  });
+});
 
 const estudiante = {
   id: 11,
@@ -27,26 +58,21 @@ describe("DetalleEstudianteAdmin", () => {
           deudas: [],
           total_deuda: 0,
           productos_inventario: [],
-          observaciones: [
-            {
-              periodo: 2,
-              materia: "Matemáticas",
-              profesor: "Sara Díaz",
-              fecha: "2026-08-02",
-              conductual: "Participa",
-              cognitivo: "Avanza",
-              lenguaje: "Expone",
-            },
-          ],
         }}
       />,
     );
 
     expect(screen.getByText("Resumen de Rojas Ana")).toBeInTheDocument();
-    expect(screen.getByText("Matemáticas")).toBeInTheDocument();
-    expect(screen.getByText("Sara Díaz")).toBeInTheDocument();
-    expect(screen.getByText("Participa")).toBeInTheDocument();
     expect(screen.getByText("Sin deudas pendientes.")).toBeInTheDocument();
+
+    // La bitacora, con la misma forma que ve la profesora: agrupada por
+    // dimension y con el nombre del profesor a color.
+    // Sale una vez bajo cada dimension que tiene texto, que son las tres.
+    expect(await screen.findAllByText("Sara Díaz")).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: "Conductual" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cognitivo" })).toBeInTheDocument();
+    expect(screen.getByText("Participa")).toBeInTheDocument();
+    expect(obtenerObservadorMock.mock.calls[0][0]).toBe(11);
 
     await user.click(screen.getByRole("button", { name: "Cerrar" }));
     expect(onCerrar).toHaveBeenCalledTimes(1);

@@ -1,3 +1,11 @@
+import ObservadorEnFichaAdmin from "../../observador/ObservadorEnFichaAdmin";
+
+/**
+ * Ficha del alumno para el admin. Desde el 2026-09-10 la sección «Observador»
+ * monta **la misma vista que ve la profesora**, en solo lectura, en vez de
+ * listar las observaciones de la tabla vieja. Ver
+ * `docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+ */
 export default function DetalleEstudianteAdmin({
   estudiante,
   cursos,
@@ -183,76 +191,7 @@ export default function DetalleEstudianteAdmin({
                 </div>
               </div>
 
-              <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:p-4">
-                <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">
-                      Observador
-                    </p>
-                    <h3 className="text-lg font-bold text-amber-900">
-                      Observaciones del estudiante
-                    </h3>
-                  </div>
-                  <span className="w-fit rounded-full border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800">
-                    {detalles.observaciones?.length || 0} registros
-                  </span>
-                </div>
-                {detalles.observaciones && detalles.observaciones.length > 0 ? (
-                  <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1 sm:max-h-72 sm:pr-2">
-                    {detalles.observaciones.map((observacion, indice) => (
-                      <article
-                        key={indice}
-                        className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm"
-                      >
-                        <div className="border-b border-slate-100 bg-slate-50 px-3 py-3">
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="flex min-w-0 flex-wrap gap-1.5">
-                              <ObservacionPill
-                                label="Periodo"
-                                value={observacion.periodo || "N/A"}
-                              />
-                              <ObservacionPill
-                                label="Materia"
-                                value={observacion.materia || "Sin materia"}
-                              />
-                              <ObservacionPill
-                                label="Profesor"
-                                value={observacion.profesor || "Sin profesor"}
-                              />
-                            </div>
-                            {observacion.fecha && (
-                              <span className="w-fit rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 ring-1 ring-slate-200">
-                                {observacion.fecha}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-3">
-                          <ObservacionDimension
-                            titulo="Conductual / Disciplinario"
-                            texto={observacion.conductual}
-                            className="border-purple-100 bg-purple-50 text-purple-900"
-                          />
-                          <ObservacionDimension
-                            titulo="Cognitivo"
-                            texto={observacion.cognitivo}
-                            className="border-emerald-100 bg-emerald-50 text-emerald-900"
-                          />
-                          <ObservacionDimension
-                            titulo="Lenguaje"
-                            texto={observacion.lenguaje}
-                            className="border-sky-100 bg-sky-50 text-sky-900"
-                          />
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-amber-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-500">
-                    No hay observaciones registradas
-                  </div>
-                )}
-              </div>
+              <ObservadorEnFichaAdmin estudiante={estudiante} />
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
@@ -270,29 +209,5 @@ export default function DetalleEstudianteAdmin({
         </div>
       </div>
     </div>
-  );
-}
-
-function ObservacionPill({ label, value }) {
-  return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-      <span className="shrink-0 uppercase tracking-wide text-slate-400">
-        {label}:
-      </span>
-      <span className="min-w-0 truncate">{value}</span>
-    </span>
-  );
-}
-
-function ObservacionDimension({ titulo, texto, className }) {
-  return (
-    <section className={`rounded-lg border p-3 ${className}`}>
-      <p className="mb-1 text-[10px] font-black uppercase tracking-widest">
-        {titulo}
-      </p>
-      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-        {texto || "Sin registro"}
-      </p>
-    </section>
   );
 }

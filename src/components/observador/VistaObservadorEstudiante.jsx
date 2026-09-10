@@ -47,6 +47,7 @@ export default function VistaObservadorEstudiante({
   onEditar,
   onNuevaAnotacion,
   formulario,
+  opcionesImpresion = OPCIONES_IMPRESION,
 }) {
   const grupos = agruparAnotacionesPorDimension(anotaciones);
   const cronologicas = anotacionesEnOrdenCronologico(anotaciones);
@@ -57,16 +58,24 @@ export default function VistaObservadorEstudiante({
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onVolver}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            ← Volver a la lista
-          </button>
-          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-            Observador de {titulo}
-          </h2>
+          {/* La ficha del admin monta esta misma vista sin lista detrás y con
+              el nombre del alumno ya escrito arriba, así que las dos cosas son
+              opcionales. Reutilizarla entera es lo que garantiza que el
+              coordinador vea exactamente lo que ve la profesora. */}
+          {onVolver && (
+            <button
+              type="button"
+              onClick={onVolver}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              ← Volver a la lista
+            </button>
+          )}
+          {titulo && (
+            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+              Observador de {titulo}
+            </h2>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -131,7 +140,7 @@ export default function VistaObservadorEstudiante({
               className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
             >
               <option value="">Elige qué imprimir</option>
-              {OPCIONES_IMPRESION.map((opcion) => (
+              {opcionesImpresion.map((opcion) => (
                 <option key={opcion.value} value={opcion.value}>
                   {opcion.label}
                 </option>
