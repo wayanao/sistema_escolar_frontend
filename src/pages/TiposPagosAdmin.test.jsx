@@ -55,6 +55,7 @@ const detalle = {
     mora_tipo: "porcentaje",
     mora_valor: "2.5",
     mes_inicial: "2",
+    mes_final: "11",
     frecuencia_meses: "1",
     generacion_automatica: 1,
 };
@@ -134,6 +135,12 @@ describe("TiposPagosAdmin", () => {
 
         fireEvent.click(screen.getAllByRole("button", { name: "⚙️ Configurar" })[0]);
         expect(await screen.findByText("Configuración de recurrencia")).toBeInTheDocument();
+        expect(controlDe("Mes final")).toHaveValue("11");
+        expect(controlDe("Mes final").querySelector('option[value="1"]')).toBeDisabled();
+        expect(controlDe("Mes final").querySelector('option[value="2"]')).not.toBeDisabled();
+        expect(screen.getByText(
+            "Último mes que genera mensualidades y permite adelantos."
+        )).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
 
@@ -147,6 +154,7 @@ describe("TiposPagosAdmin", () => {
                 mora_tipo: "porcentaje",
                 mora_valor: 2.5,
                 mes_inicial: 2,
+                mes_final: 11,
                 frecuencia_meses: 1,
                 generacion_automatica: true,
                 activo: true,

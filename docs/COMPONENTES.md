@@ -800,8 +800,11 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   cuenta A4 por estudiante o curso. Recibe datos y callbacks por props.
 - `components/carteraTiposPago/VistaAdministrarTiposPago.jsx`: formulario,
   listado activo/inactivo, indicadores publicado/borrador, configuración
-  financiera y asignación responsive de cursos. Recibe estado y acciones por
-  props.
+  financiera —incluidos mes inicial y mes final de los conceptos mensuales— y
+  asignación responsive de cursos. Recibe estado y acciones por props.
+- `Mes final` solo aparece al elegir cobro mensual. Sus opciones anteriores al
+  mes inicial quedan deshabilitadas y la ayuda visible aclara: `Último mes que
+  genera mensualidades y permite adelantos.`.
 - `pages/CarteraVencidaAdmin.jsx` y `pages/TiposPagosAdmin.jsx`: raíces de
   composición del módulo.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
@@ -905,7 +908,9 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - Dentro de adelantos se puede alternar entre `Meses completos` y `Distribuir
   un monto`; la segunda opcion esta pensada para subsidios y remanentes.
 - La vista previa detalla monto aplicado y saldo restante por mes, advierte si
-  existe deuda vencida y bloquea valores que no caben antes de diciembre.
+  existe deuda vencida y bloquea valores que no caben antes del mes final del
+  concepto. Diciembre es el valor compatible cuando el backend no entrega la
+  nueva configuracion.
 - `Subsidio` se ofrece como metodo identificable y deja la referencia como
   texto libre escrito por el usuario, sin entidades predefinidas.
 - Los metodos de pago deben sumar el total calculado y el backend vuelve a

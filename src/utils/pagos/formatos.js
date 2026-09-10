@@ -5,6 +5,19 @@ export const obtenerFechaLocal = (ahora) => {
 
 export const formatearMoneda = (valor) => `$${Number(valor || 0).toLocaleString()}`;
 
+const NOMBRES_MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+export const formatearNombreMes = (valor) => {
+  const mesRecibido = Number(valor);
+  const mes = Number.isInteger(mesRecibido) && mesRecibido >= 1 && mesRecibido <= 12
+    ? mesRecibido
+    : 12;
+  return NOMBRES_MESES[mes - 1];
+};
+
 export const formatearPeriodo = (periodo) => {
   if (!periodo) return "";
   const [anio, mes] = periodo.split("-").map(Number);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatearMoneda,
+  formatearNombreMes,
   formatearPeriodo,
   obtenerFechaLocal,
 } from "./formatos";
@@ -18,6 +19,12 @@ describe("formatos de pagos", () => {
   it("mantiene el formato monetario actual y convierte valores vacíos en cero", () => {
     expect(formatearMoneda("123456.5")).toBe(`$${Number("123456.5").toLocaleString()}`);
     expect(formatearMoneda(null)).toBe("$0");
+  });
+
+  it("formatea el mes límite y usa diciembre para contratos anteriores", () => {
+    expect(formatearNombreMes(11)).toBe("noviembre");
+    expect(formatearNombreMes(null)).toBe("diciembre");
+    expect(formatearNombreMes(13)).toBe("diciembre");
   });
 
   it("formatea periodos en español usando el mes UTC", () => {

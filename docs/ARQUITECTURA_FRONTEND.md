@@ -387,7 +387,8 @@ y decisiones de cada guard. El layout general lee `usuario` y después
   estudiante o curso.
 - `/admin/tipos-pagos` monta `pages/TiposPagosAdmin.jsx` y conserva creación y
   edición de conceptos, estados activo/inactivo/borrador, configuración de
-  cobro y mora, y reemplazo de asignaciones por curso.
+  cobro y mora, calendario recurrente con mes inicial/final, y reemplazo de
+  asignaciones por curso.
 - Ambas rutas permanecen bajo `AdminRoute`. La navegación `Cobrar` conserva
   `/admin/pagos` con `{ state: { estudiante_id } }`; `PagosAdmin` no forma parte
   de este módulo.
@@ -417,6 +418,10 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - `utils/pagos/` conserva contratos y transformaciones puras, incluidas
   normalización de opciones, cálculos en centavos y payloads diferentes para
   pago normal y adelantado.
+- El frontend transporta `mes_final` en la configuracion del concepto, pero no
+  decide que periodos generan deuda. Cartera, cuotas vencidas y adelantos usan
+  los limites calculados por el backend; la interfaz solo impide seleccionar o
+  distribuir fuera de las opciones recibidas.
 - Los componentes presentacionales no conocen servicios. `FacturaModerna` vive
   dentro del dominio y `ComprobantePago` reutiliza el
   `components/impresion/DocumentoImprimible.jsx` compartido.

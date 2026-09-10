@@ -23,6 +23,7 @@ const detalle = {
     mora_tipo: "porcentaje",
     mora_valor: "2.5",
     mes_inicial: "2",
+    mes_final: "11",
     frecuencia_meses: "1",
     generacion_automatica: 1,
 };
@@ -60,6 +61,7 @@ describe("useConfiguracionTipoPago", () => {
             mora_tipo: "porcentaje",
             mora_valor: 2.5,
             mes_inicial: 2,
+            mes_final: 11,
             frecuencia_meses: 1,
             generacion_automatica: true,
             activo: true,
@@ -73,6 +75,52 @@ describe("useConfiguracionTipoPago", () => {
             "success"
         );
         expect(result.current.guardandoConfig).toBe(false);
+    });
+
+    it("no envía un mes final anterior al mes inicial", async () => {
+        const { result } = renderHook(() =>
+            useConfiguracionTipoPago({
+                selectedTipoId: 1,
+                detalle,
+                cargarTiposPagos,
+                actualizarDetalle,
+            })
+        );
+        act(() => result.current.inicializarConfiguracion(detalle));
+        act(() => result.current.handleConfigChange("mes_final", "1"));
+
+        await act(async () => result.current.guardarConfiguracion());
+
+        expect(actualizarConfiguracionMock).not.toHaveBeenCalled();
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Configuración inválida",
+            "El mes final no puede ser anterior al mes inicial.",
+            "warning"
+        );
+    });
+
+    it("no amplía el calendario al mover el mes inicial después del mes final", async () => {
+        const { result } = renderHook(() =>
+            useConfiguracionTipoPago({
+                selectedTipoId: 1,
+                detalle,
+                cargarTiposPagos,
+                actualizarDetalle,
+            })
+        );
+        act(() => result.current.inicializarConfiguracion(detalle));
+        act(() => result.current.handleConfigChange("mes_inicial", "12"));
+
+        expect(result.current.config.mes_final).toBe(11);
+
+        await act(async () => result.current.guardarConfiguracion());
+
+        expect(actualizarConfiguracionMock).not.toHaveBeenCalled();
+        expect(swalFireMock).toHaveBeenCalledWith(
+            "Configuración inválida",
+            "El mes final no puede ser anterior al mes inicial.",
+            "warning"
+        );
     });
 
     it("respeta la cancelación al desactivar un concepto", async () => {

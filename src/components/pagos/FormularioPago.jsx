@@ -1,5 +1,9 @@
 import { METODOS_PAGO } from "../../utils/pagos/contratos";
-import { formatearMoneda, formatearPeriodo } from "../../utils/pagos/formatos";
+import {
+  formatearMoneda,
+  formatearNombreMes,
+  formatearPeriodo,
+} from "../../utils/pagos/formatos";
 
 export default function FormularioPago({
   pagoData,
@@ -420,7 +424,7 @@ export default function FormularioPago({
                           placeholder="Ej: 80000"
                         />
                         <p className="mt-1 text-xs text-gray-600">
-                          Disponible hasta diciembre:{" "}
+                          Disponible hasta {formatearNombreMes(opcionAdelantoSeleccionada.mes_final)}:{" "}
                           {formatearMoneda(opcionAdelantoSeleccionada.total_disponible)}
                         </p>
                       </div>

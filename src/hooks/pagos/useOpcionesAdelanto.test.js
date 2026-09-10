@@ -20,6 +20,7 @@ describe("useOpcionesAdelanto", () => {
         {
           tipo_pago_id: 11,
           valor_unitario: "100000",
+          mes_final: 11,
           periodos_disponibles: [{ periodo: "2026-08" }],
         },
       ],
@@ -35,6 +36,7 @@ describe("useOpcionesAdelanto", () => {
       {
         tipo_pago_id: 11,
         valor_unitario: "100000",
+        mes_final: 11,
         periodos_disponibles: [
           { periodo: "2026-08", saldo: 100000, estado: "disponible" },
         ],

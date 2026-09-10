@@ -48,7 +48,8 @@ pago sin modificar generación de deuda, saldos ni asignaciones por curso.
 - `AdministrarTiposPago.jsx` contiene actualmente consultas, comandos,
   transformaciones, estado de formularios y toda la presentación.
 - Flujos conservados: crear y editar nombre/valor; filtrar activos, inactivos y
-  todos; abrir detalle; configurar cobro, mora y recurrencia; activar o
+  todos; abrir detalle; configurar cobro, mora y recurrencia —incluidos mes
+  inicial y mes final—; activar o
   desactivar; asignar cursos y valores; y guardar asignaciones pendientes.
 - Un concepto se muestra como publicado únicamente si está activo, no es
   opcional y tiene al menos un curso asignado. En cualquier otro caso se
@@ -101,6 +102,10 @@ Contratos de escritura protegidos por caracterización:
 - Configuración: descripción y campos opcionales se convierten a `null` cuando
   están vacíos; campos numéricos se convierten con `Number`; los booleanos se
   normalizan explícitamente.
+- Para conceptos mensuales, `mes_final` se normaliza como entero de `1` a `12`
+  y usa `12` si el detalle proviene de un backend anterior. El formulario
+  bloquea un mes final anterior al mes inicial y el backend repite la
+  validación como autoridad del contrato.
 - Cursos: `{ cursos: [{ curso_id, valor: Number(valor) || 0, activo: boolean }] }`.
 - Un `409` al guardar configuración conserva el aviso existente de migración
   pendiente. Un `409` al crear/editar conserva el aviso de concepto duplicado.
@@ -127,6 +132,8 @@ Contratos de escritura protegidos por caracterización:
 - Asignación de conceptos a cursos.
 - Previsualización de cartera y razones de configuración incompleta.
 - Deudas existentes visibles aunque cambie una configuración.
+- Ninguna cuota mensual se genera después del `mes_final`; diciembre (`12`)
+  conserva el comportamiento de los colegios que no cambien la configuración.
 
 ## Riesgos iniciales
 
@@ -567,6 +574,20 @@ Contratos de escritura protegidos por caracterización:
    recurrencia, vista previa y cursos sin guardar cambios de prueba.
 7. En ancho móvil, comprobar que formularios se apilan y que las tablas de
    cartera y cursos conservan desplazamiento horizontal.
+
+### Cambio funcional posterior: mes final del calendario mensual
+
+Desde 2026-09-10, la configuración recurrente admite `mes_final`. Es una
+capacidad por concepto, no una modificación automática del calendario de los
+colegios: el valor compatible es diciembre y cada institución decide si lo
+reduce. La pantalla muestra el rango y valida que el final no sea anterior al
+inicio.
+
+Para `tenant_2005`, después de desplegar primero la migración y el backend, la
+operación pendiente es abrir el concepto de mensualidad en `Tipos de Pago` y
+guardar noviembre (`11`) como mes final, conservando el mes inicial y la
+frecuencia que realmente use el colegio. Este repositorio no aplica ese dato ni
+ejecuta migraciones.
 
 ### Commit sugerido
 

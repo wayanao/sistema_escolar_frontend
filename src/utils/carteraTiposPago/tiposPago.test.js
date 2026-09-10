@@ -9,10 +9,12 @@ import {
     crearPayloadCursos,
     crearPayloadTipoPago,
     crearCursosAsignadosDesdeDetalle,
+    esRangoMesesValido,
     evaluarEstadoCartera,
     filtrarTiposPagoPorEstado,
     obtenerCursosDisponibles,
     obtenerMensajeConceptosVacios,
+    normalizarMesFinal,
     quitarCursoAsignado,
     resumirAsignacionCursos,
     toggleCursoAsignado,
@@ -40,6 +42,7 @@ describe("utilidades puras de tipos de pago", () => {
             mora_tipo: "",
             mora_valor: 0,
             mes_inicial: "",
+            mes_final: 12,
             frecuencia_meses: 1,
             generacion_automatica: false,
             activo: true,
@@ -72,6 +75,7 @@ describe("utilidades puras de tipos de pago", () => {
             mora_tipo: null,
             mora_valor: null,
             mes_inicial: null,
+            mes_final: null,
             frecuencia_meses: null,
             generacion_automatica: 1,
             activo: false,
@@ -104,6 +108,7 @@ describe("utilidades puras de tipos de pago", () => {
                 mora_tipo: "porcentaje",
                 mora_valor: "2.5",
                 mes_inicial: "2",
+                mes_final: "11",
                 frecuencia_meses: "2",
                 generacion_automatica: 1,
             })
@@ -116,6 +121,7 @@ describe("utilidades puras de tipos de pago", () => {
             mora_tipo: "porcentaje",
             mora_valor: 2.5,
             mes_inicial: 2,
+            mes_final: 11,
             frecuencia_meses: 2,
             generacion_automatica: true,
             activo: true,
@@ -123,6 +129,31 @@ describe("utilidades puras de tipos de pago", () => {
         expect(crearPayloadCursos(asignados)).toEqual({
             cursos: [{ curso_id: 10, valor: 350000, activo: true }],
         });
+    });
+
+    it("normaliza diciembre por compatibilidad y evita rangos mensuales invertidos", () => {
+        expect(normalizarMesFinal(null)).toBe(12);
+        expect(normalizarMesFinal("8")).toBe(8);
+        expect(esRangoMesesValido({
+            tipo_cobro: "mensual",
+            mes_inicial: "10",
+            mes_final: "9",
+        })).toBe(false);
+        expect(esRangoMesesValido({
+            tipo_cobro: "mensual",
+            mes_inicial: "",
+            mes_final: "11",
+        })).toBe(true);
+        expect(esRangoMesesValido({
+            tipo_cobro: "mensual",
+            mes_inicial: "13",
+            mes_final: "12",
+        })).toBe(false);
+        expect(esRangoMesesValido({
+            tipo_cobro: "anual",
+            mes_inicial: "10",
+            mes_final: "9",
+        })).toBe(true);
     });
 
     it("filtra conceptos y calcula los contadores de estado", () => {

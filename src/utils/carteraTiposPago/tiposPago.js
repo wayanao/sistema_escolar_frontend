@@ -10,6 +10,25 @@ export const MESES = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
+export const MES_FINAL_DEFAULT = 12;
+
+const obtenerMesValido = (valor) => {
+    const mes = Number(valor);
+    return Number.isInteger(mes) && mes >= 1 && mes <= 12 ? mes : null;
+};
+
+export const normalizarMesFinal = (mesFinal) =>
+    obtenerMesValido(mesFinal) ?? MES_FINAL_DEFAULT;
+
+export const esRangoMesesValido = (config) => {
+    if (config.tipo_cobro !== "mensual") return true;
+    const mesInicialVacio = config.mes_inicial === "" || config.mes_inicial == null;
+    const inicio = obtenerMesValido(config.mes_inicial);
+    const fin = obtenerMesValido(config.mes_final);
+    if (!mesInicialVacio && inicio === null) return false;
+    return fin !== null && (mesInicialVacio || fin >= inicio);
+};
+
 export const FILTROS_ESTADO_CONCEPTO = [
     { value: "activo", label: "Activos" },
     { value: "inactivo", label: "Inactivos" },
@@ -25,6 +44,7 @@ export const CONFIG_DEFAULT = {
     mora_tipo: "",
     mora_valor: 0,
     mes_inicial: "",
+    mes_final: MES_FINAL_DEFAULT,
     frecuencia_meses: 1,
     generacion_automatica: false,
     activo: true,
@@ -49,19 +69,23 @@ export const evaluarEstadoCartera = (tipoPago) => {
     };
 };
 
-export const crearConfiguracionDesdeDetalle = (data) => ({
-    descripcion: data.descripcion ?? "",
-    tipo_cobro: data.tipo_cobro ?? "unico",
-    fecha_limite: data.fecha_limite ?? "",
-    dia_limite_mes: data.dia_limite_mes ?? "",
-    dias_gracia: data.dias_gracia ?? 0,
-    mora_tipo: data.mora_tipo ?? "",
-    mora_valor: data.mora_valor ?? 0,
-    mes_inicial: data.mes_inicial ?? "",
-    frecuencia_meses: data.frecuencia_meses ?? 1,
-    generacion_automatica: !!data.generacion_automatica,
-    activo: data.activo !== false,
-});
+export const crearConfiguracionDesdeDetalle = (data) => {
+    const mesInicial = data.mes_inicial ?? "";
+    return {
+        descripcion: data.descripcion ?? "",
+        tipo_cobro: data.tipo_cobro ?? "unico",
+        fecha_limite: data.fecha_limite ?? "",
+        dia_limite_mes: data.dia_limite_mes ?? "",
+        dias_gracia: data.dias_gracia ?? 0,
+        mora_tipo: data.mora_tipo ?? "",
+        mora_valor: data.mora_valor ?? 0,
+        mes_inicial: mesInicial,
+        mes_final: normalizarMesFinal(data.mes_final),
+        frecuencia_meses: data.frecuencia_meses ?? 1,
+        generacion_automatica: !!data.generacion_automatica,
+        activo: data.activo !== false,
+    };
+};
 
 export const crearCursosAsignadosDesdeDetalle = (data) =>
     (data.cursos || []).map((curso) => ({
@@ -85,6 +109,7 @@ export const crearPayloadConfiguracion = (config) => ({
     mora_tipo: config.mora_tipo || null,
     mora_valor: Number(config.mora_valor) || 0,
     mes_inicial: config.mes_inicial === "" ? null : Number(config.mes_inicial),
+    mes_final: normalizarMesFinal(config.mes_final),
     frecuencia_meses: Number(config.frecuencia_meses) || 1,
     generacion_automatica: !!config.generacion_automatica,
     activo: !!config.activo,

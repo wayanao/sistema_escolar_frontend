@@ -65,6 +65,7 @@ const opcionesAdelanto = {
       tipo_pago_id: 11,
       concepto: "Pensión",
       valor_unitario: 100000,
+      mes_final: 11,
       max_meses: 2,
       total_disponible: 200000,
       periodos_disponibles: [
@@ -300,6 +301,7 @@ describe("PagosAdmin - caracterización", () => {
     expect(screen.getByText("Septiembre 2026")).toBeInTheDocument();
     expect(screen.getByText("Queda cubierto")).toBeInTheDocument();
     expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
+    expect(screen.getByText("Disponible hasta noviembre: $200.000")).toBeInTheDocument();
 
     await user.click(screen.getByLabelText("subsidio"));
     await user.type(screen.getByLabelText("Referencia del subsidio"), "Convenio 2026");

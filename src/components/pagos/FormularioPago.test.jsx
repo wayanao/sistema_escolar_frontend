@@ -93,6 +93,7 @@ describe("FormularioPago", () => {
       tipo_pago_id: 11,
       concepto: "Pensión",
       valor_unitario: 100000,
+      mes_final: 11,
       max_meses: 2,
       total_disponible: 200000,
     };
@@ -130,6 +131,7 @@ describe("FormularioPago", () => {
     expect(screen.getByText("Queda cubierto")).toBeInTheDocument();
     expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
     expect(screen.getByText("Hay deuda vencida por $25.000.")).toBeInTheDocument();
+    expect(screen.getByText("Disponible hasta noviembre: $200.000")).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText("Ej: 80000"), {
       target: { value: "120000" },

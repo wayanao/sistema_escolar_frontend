@@ -5,6 +5,7 @@ import {
     CONFIG_DEFAULT,
     crearConfiguracionDesdeDetalle,
     crearPayloadConfiguracion,
+    esRangoMesesValido,
 } from "../../utils/carteraTiposPago/tiposPago";
 
 export default function useConfiguracionTipoPago({
@@ -26,6 +27,14 @@ export default function useConfiguracionTipoPago({
 
     const guardarConfiguracion = async () => {
         if (!selectedTipoId) return;
+        if (!esRangoMesesValido(config)) {
+            Swal.fire(
+                "Configuración inválida",
+                "El mes final no puede ser anterior al mes inicial.",
+                "warning"
+            );
+            return;
+        }
         const estabaActivo = detalle?.activo !== false;
         const quedaraActivo = !!config.activo;
         const seDesactiva = estabaActivo && !quedaraActivo;

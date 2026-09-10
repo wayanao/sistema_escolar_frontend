@@ -30,6 +30,11 @@ export const normalizarOpcionesVencidas = (opciones) =>
 
 export const normalizarOpcionesAdelanto = (opciones) =>
   (Array.isArray(opciones) ? opciones : []).map((opcion) => {
+    const mesFinalRecibido = Number(opcion.mes_final);
+    const mesFinal = Number.isInteger(mesFinalRecibido) &&
+      mesFinalRecibido >= 1 && mesFinalRecibido <= 12
+      ? mesFinalRecibido
+      : 12;
     const periodos = (opcion.periodos_disponibles || []).map((periodo) => ({
       ...periodo,
       saldo: Number(periodo.saldo ?? opcion.valor_unitario ?? 0),
@@ -37,6 +42,7 @@ export const normalizarOpcionesAdelanto = (opciones) =>
     }));
     return {
       ...opcion,
+      mes_final: mesFinal,
       periodos_disponibles: periodos,
       total_disponible: Number(
         opcion.total_disponible ??

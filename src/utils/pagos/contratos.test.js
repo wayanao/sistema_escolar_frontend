@@ -64,6 +64,7 @@ describe("contratos de pagos", () => {
       {
         tipo_pago_id: 11,
         valor_unitario: "100000",
+        mes_final: "11",
         periodos_disponibles: [
           { periodo: "2026-08" },
           { periodo: "2026-09", saldo: "80000", estado: "parcial" },
@@ -81,6 +82,7 @@ describe("contratos de pagos", () => {
       {
         tipo_pago_id: 11,
         valor_unitario: "100000",
+        mes_final: 11,
         periodos_disponibles: [
           { periodo: "2026-08", saldo: 100000, estado: "disponible" },
           { periodo: "2026-09", saldo: 80000, estado: "parcial" },
@@ -91,12 +93,20 @@ describe("contratos de pagos", () => {
       {
         tipo_pago_id: 12,
         total_disponible: 0,
+        mes_final: 12,
         periodos_disponibles: [
           { periodo: "2026-08", saldo: 25000, estado: "disponible" },
         ],
       },
     ]);
     expect(normalizarOpcionesAdelanto({ opciones: entrada })).toEqual([]);
+  });
+
+  it("usa diciembre cuando una API anterior omite mes_final", () => {
+    expect(normalizarOpcionesAdelanto([{
+      tipo_pago_id: 11,
+      periodos_disponibles: [],
+    }])[0].mes_final).toBe(12);
   });
 
   it("construye el payload normal conservando cadenas y convirtiendo aplicaciones", () => {

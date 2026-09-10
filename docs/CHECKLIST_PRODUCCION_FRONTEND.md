@@ -2,7 +2,7 @@
 
 Checklist tecnico basado en el estado actual documentado del frontend.
 
-Ultima revision documental: 2026-08-08.
+Ultima revision documental: 2026-09-10.
 
 ## 1. CRITICO
 
@@ -240,6 +240,15 @@ Pruebas manuales recomendadas despues de desplegar:
   scroll lateral.
 - Entrar a `/admin/cartera-vencida`, generar estado de cuenta por estudiante y
   por curso.
+- Entrar a `/admin/tipos-pagos`, abrir un concepto mensual y confirmar que
+  `Mes final` carga el valor guardado, deshabilita meses anteriores al inicio y
+  no permite guardar un rango invertido.
+- En `/admin/pagos`, revisar un concepto mensual controlado y confirmar que el
+  resumen dice `Disponible hasta {mes final}` y que no ofrece periodos
+  posteriores. No registrar un pago sobre un estudiante real solo para probar.
+- Después de la configuración institucional autorizada, comprobar en
+  `tenant_2005` que la mensualidad termina en noviembre; conservar el mes
+  inicial y la frecuencia que ya correspondan al colegio.
 - Entrar a `/admin/estudiantes`, abrir detalle y revisar el bloque de
   observaciones.
 - Repetir revision breve en PC para confirmar que la vista de escritorio se

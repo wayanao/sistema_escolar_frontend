@@ -6,7 +6,7 @@
  *  - Crear y editar tipos de pago (nombre + valor base)
  *  - Configuración avanzada por tipo de cobro: único, mensual, anual, opcional
  *  - Mora (porcentaje o fijo), días de gracia, fecha límite
- *  - Recurrencia mensual (mes inicial, frecuencia, generación automática)
+ *  - Recurrencia mensual (mes inicial, mes final, frecuencia, generación automática)
  *  - Asignación a uno o múltiples cursos con valores diferenciados
  *  - Estado activo / inactivo
  *
@@ -20,6 +20,7 @@ import {
     FILTROS_ESTADO_CONCEPTO,
     MESES,
     TIPOS_COBRO,
+    esRangoMesesValido,
     evaluarEstadoCartera,
     obtenerTipoCobro,
 } from "../../utils/carteraTiposPago/tiposPago";
@@ -111,6 +112,7 @@ function VistaAdministrarTiposPago({
 }) {
     const esMensual = config.tipo_cobro === "mensual";
     const esAnual = config.tipo_cobro === "anual";
+    const rangoMesesValido = esRangoMesesValido(config);
 
     // Vista previa del estado de cartera con la configuración actual (no guardada).
     const carteraPreview = useMemo(() => {
@@ -437,7 +439,7 @@ function VistaAdministrarTiposPago({
                                     <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
                                         Configuración de recurrencia
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Mes inicial</label>
                                             <select
@@ -454,6 +456,36 @@ function VistaAdministrarTiposPago({
 
                                         {esMensual && (
                                             <>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Mes final</label>
+                                                    <select
+                                                        value={config.mes_final}
+                                                        onChange={(e) => handleConfigChange("mes_final", e.target.value)}
+                                                        className="w-full p-2 border border-gray-300 rounded-lg"
+                                                        aria-describedby="ayuda-mes-final"
+                                                        required
+                                                    >
+                                                        {MESES.map((mes, index) => {
+                                                            const numeroMes = index + 1;
+                                                            return (
+                                                                <option
+                                                                    key={mes}
+                                                                    value={numeroMes}
+                                                                    disabled={
+                                                                        config.mes_inicial !== "" &&
+                                                                        numeroMes < Number(config.mes_inicial)
+                                                                    }
+                                                                >
+                                                                    {mes}
+                                                                </option>
+                                                            );
+                                                        })}
+                                                    </select>
+                                                    <p id="ayuda-mes-final" className="text-xs text-gray-500 mt-1">
+                                                        Último mes que genera mensualidades y permite adelantos.
+                                                    </p>
+                                                </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia (meses)</label>
                                                     <input
@@ -482,7 +514,7 @@ function VistaAdministrarTiposPago({
                                             </>
                                         )}
 
-                                        <div className="md:col-span-3">
+                                        <div className="md:col-span-2 xl:col-span-4">
                                             <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
                                                 <input
                                                     type="checkbox"
@@ -492,6 +524,11 @@ function VistaAdministrarTiposPago({
                                                 Generar deudas automáticamente (evita duplicados del mismo mes)
                                             </label>
                                         </div>
+                                        {!rangoMesesValido && (
+                                            <p className="text-sm font-medium text-red-600 md:col-span-2 xl:col-span-4" role="alert">
+                                                El mes final no puede ser anterior al mes inicial.
+                                            </p>
+                                        )}
                                     </div>
                                 </section>
                             )}
@@ -499,7 +536,7 @@ function VistaAdministrarTiposPago({
                             <div className="flex justify-end">
                                 <button
                                     onClick={guardarConfiguracion}
-                                    disabled={guardandoConfig}
+                                    disabled={guardandoConfig || !rangoMesesValido}
                                     className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
                                 >
                                     {guardandoConfig ? "Guardando..." : "Guardar configuración"}

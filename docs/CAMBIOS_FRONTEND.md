@@ -1,5 +1,49 @@
 # Cambios Frontend
 
+## 2026-09-10 - Mes final configurable para conceptos mensuales
+
+La configuración de Tipos de Pago ya permite indicar hasta qué mes cobra un
+concepto mensual. Antes la interfaz solo conocía el mes inicial y la frecuencia,
+y los adelantos comunicaban diciembre como límite fijo.
+
+### Un parámetro del concepto, no un cambio masivo de calendario
+
+`mes_final` acepta enero a diciembre y se envía con la configuración avanzada.
+Diciembre (`12`) es el valor compatible: cargar un detalle de un backend que
+todavía no entregue el campo o abrir un concepto sin personalizarlo conserva el
+comportamiento anterior.
+
+El mes final no puede quedar antes del inicial. La pantalla lo valida antes de
+guardar y el backend vuelve a validarlo; la regla no depende del navegador.
+
+### El mismo límite en cartera y pagos
+
+La vista de Tipos de Pago presenta el rango recurrente completo. Gestión de
+Pagos deja de hablar de «hasta diciembre» y usa el mes final del concepto al
+mostrar los adelantos y el monto que no cabe. Las cuotas vencidas, la cartera y
+los periodos adelantables siguen viniendo del backend, que es la autoridad para
+no generar ni aceptar aplicaciones posteriores al límite.
+
+### Activación para el colegio 2005
+
+La implementación habilita la opción para todos los colegios, pero no cambia
+sus datos. Una vez aplicada la migración y desplegado el backend, el
+administrador de `tenant_2005` debe abrir su concepto de mensualidad y guardar:
+
+- mes final: noviembre (`11`);
+- mes inicial y frecuencia: conservar los valores institucionales que ya
+  correspondan; revisarlos, no reemplazarlos por una suposicion.
+
+No se ejecutó esa configuración ni una migración desde el frontend. Hacerlo por
+separado evita que los demás colegios pasen a noviembre sin haberlo decidido.
+
+### Compatibilidad y pruebas
+
+El payload conserva todos los campos avanzados existentes y solo agrega
+`mes_final`. Las pruebas del contrato puro, el hook de configuración, la vista
+de Tipos de Pago y Gestión de Pagos cubren el valor por defecto, la carga y el
+envío del campo, la validación del rango y el texto dinámico del límite.
+
 ## 2026-09-10 - El admin ve la misma bitacora que el profesor
 
 Pedido por el usuario: «que el admin vea todo centralizado del estudiante». En

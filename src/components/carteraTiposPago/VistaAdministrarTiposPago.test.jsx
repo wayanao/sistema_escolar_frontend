@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { CONFIG_DEFAULT } from "../../utils/carteraTiposPago/tiposPago";
 import VistaAdministrarTiposPago from "./VistaAdministrarTiposPago";
 
 const tipoPago = {
@@ -74,5 +75,31 @@ describe("VistaAdministrarTiposPago", () => {
         expect(props.setEstadoFiltro).toHaveBeenCalledWith("inactivo");
         expect(props.seleccionarTipoParaConfigurar).toHaveBeenCalledWith(tipoPago);
         expect(props.handleEdit).toHaveBeenCalledWith(tipoPago);
+    });
+
+    it("muestra el mes final únicamente para cobros mensuales", () => {
+        const props = {
+            ...crearProps(),
+            selectedTipoId: 1,
+            detalle: tipoPago,
+            config: {
+                ...CONFIG_DEFAULT,
+                tipo_cobro: "mensual",
+                mes_inicial: 2,
+                mes_final: 11,
+            },
+        };
+        const { rerender } = render(<VistaAdministrarTiposPago {...props} />);
+
+        expect(screen.getByText("Mes final", { selector: "label" })).toBeInTheDocument();
+
+        rerender(
+            <VistaAdministrarTiposPago
+                {...props}
+                config={{ ...props.config, tipo_cobro: "anual" }}
+            />
+        );
+
+        expect(screen.queryByText("Mes final", { selector: "label" })).not.toBeInTheDocument();
     });
 });

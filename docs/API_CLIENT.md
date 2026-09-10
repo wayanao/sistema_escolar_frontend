@@ -262,6 +262,37 @@ Uso:
 - Al desactivar un concepto, los cobros/deudas ya generados se conservan.
 - Al reactivar un concepto, vuelve a usarse con su configuracion anterior y no
   se generan cobros retroactivos automaticamente.
+- La configuracion avanzada de un concepto mensual incluye `mes_inicial`,
+  `mes_final` y `frecuencia_meses`. `mes_final` acepta enteros de `1` a `12`,
+  usa diciembre (`12`) como valor compatible y no puede ser anterior a
+  `mes_inicial` cuando ambos estan definidos.
+- El cliente conserva la estructura completa del `PUT`:
+
+  ```json
+  {
+    "descripcion": "Pensión ordinaria",
+    "tipo_cobro": "mensual",
+    "fecha_limite": null,
+    "dia_limite_mes": 5,
+    "dias_gracia": 0,
+    "mora_tipo": "porcentaje",
+    "mora_valor": 0,
+    "mes_inicial": 2,
+    "mes_final": 11,
+    "frecuencia_meses": 1,
+    "generacion_automatica": false,
+    "activo": true
+  }
+  ```
+
+  Agregar `mes_final` no renombra ni elimina ningun parametro anterior.
+- `GET /tipos-pagos/detallado` y `GET /tipos-pagos/{tipo_pago_id}/detalle`
+  devuelven `mes_final`; `PUT /tipos-pagos/{tipo_pago_id}/configuracion` lo
+  envia junto con el resto de la configuracion financiera. Un backend anterior
+  que no exponga el campo se representa en el cliente como diciembre.
+- El campo define el ultimo periodo cobrable, no una fecha de vencimiento. Para
+  un calendario febrero-noviembre se guardan `mes_inicial: 2`, `mes_final: 11`
+  y `frecuencia_meses: 1`.
 
 `PagosAdmin.jsx` tambien consulta:
 
@@ -306,8 +337,12 @@ Uso:
 - Como alternativa a `cantidad_meses`, envia `monto_distribuir` para subsidios
   o valores no divisibles exactamente por la mensualidad.
 - La respuesta de opciones incluye el saldo futuro por periodo. La interfaz
-  muestra cuantos meses quedan completos, el abono parcial final y cualquier
+  muestra cuantos meses quedan completos, el saldo pendiente final y cualquier
   monto que no pueda asignarse dentro del año.
+- Tanto las cuotas vencidas como las opciones futuras terminan en el
+  `mes_final` configurado para el concepto. Para compatibilidad visual, el
+  cliente normaliza a diciembre un `mes_final` omitido o invalido; los periodos
+  cobrables siguen siendo exclusivamente los que calcula y valida el backend.
 - Los adelantos no se mezclan con cargos de inventario ni conceptos unicos.
 - La anulacion de pagos pide motivo y depende del endpoint auditado del backend.
 
