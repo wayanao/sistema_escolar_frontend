@@ -128,7 +128,7 @@ describe("FormularioPago", () => {
     expect(screen.getByText("Agosto 2026")).toBeInTheDocument();
     expect(screen.getByText("Septiembre 2026")).toBeInTheDocument();
     expect(screen.getByText("Queda cubierto")).toBeInTheDocument();
-    expect(screen.getByText("Abono parcial")).toBeInTheDocument();
+    expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
     expect(screen.getByText("Hay deuda vencida por $25.000.")).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText("Ej: 80000"), {

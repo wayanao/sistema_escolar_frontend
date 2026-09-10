@@ -231,7 +231,7 @@ export default function FormularioPago({
                                     ? "bg-amber-100 text-amber-800"
                                     : "bg-red-100 text-red-700"
                                 }`}>
-                                  {cuota.estado === "parcial" ? "Abono parcial" : "Vencido"}
+                                  {cuota.estado === "parcial" ? "Saldo pendiente" : "Vencido"}
                                 </span>
                               </span>
                               <span className="mt-2 flex items-end justify-between gap-2 text-sm">
@@ -467,7 +467,7 @@ export default function FormularioPago({
                                   ? "bg-amber-100 text-amber-800"
                                   : "bg-emerald-100 text-emerald-800"
                               }`}>
-                                {periodo.saldo_restante > 0 ? "Abono parcial" : "Queda cubierto"}
+                                {periodo.saldo_restante > 0 ? "Saldo pendiente" : "Queda cubierto"}
                               </span>
                             </div>
                             <div className="mt-2 flex items-center justify-between text-sm">

@@ -299,7 +299,7 @@ describe("PagosAdmin - caracterización", () => {
     expect(await screen.findByText("Agosto 2026")).toBeInTheDocument();
     expect(screen.getByText("Septiembre 2026")).toBeInTheDocument();
     expect(screen.getByText("Queda cubierto")).toBeInTheDocument();
-    expect(screen.getByText("Abono parcial")).toBeInTheDocument();
+    expect(screen.getByText("Saldo pendiente")).toBeInTheDocument();
 
     await user.click(screen.getByLabelText("subsidio"));
     await user.type(screen.getByLabelText("Referencia del subsidio"), "Convenio 2026");
