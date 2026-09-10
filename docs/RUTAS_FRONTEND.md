@@ -24,6 +24,7 @@ El layout `/*` valida que exista `usuario` o `profesor` en `localStorage`.
 | `/` | `DashboardProfesor` | `ProtectedRoute` |
 | `/planilla` | `Planilla` | `ProtectedRoute` |
 | `/Formulario` | `Formulario` | `ProtectedRoute` |
+| `/observador` | `Observador` | `ProtectedRoute` |
 | `/asistencia` | `Asistencia` | `ProtectedRoute` |
 | `/ranking-rendimiento` | `RankingRendimiento` | `ProtectedRoute` |
 | `/ranking-mejor-rendimiento` | `RankingMejorRendimiento` | `ProtectedRoute` |
@@ -119,7 +120,8 @@ Notas de UX por ruta admin:
 - Control Academico:
   - Planilla.
   - Asistencia.
-  - Observaciones (`/Formulario`).
+  - Observaciones (`/Formulario`), la pantalla vieja.
+  - Observador (`/observador`), la bitacora por estudiante.
 - Planeacion Academica:
   - Plan de clases.
   - Planeador anual / Malla Curricular.
@@ -132,7 +134,12 @@ Notas de UX por ruta profesor:
 - `/asistencia`: muestra carga/reintento del historial y aviso si la asistencia
   del dia ya fue tomada.
 - `/Formulario`: monta el Observador del estudiante; la verificacion inicial no
-  debe quedarse indefinidamente en `Verificando`.
+  debe quedarse indefinidamente en `Verificando`. Es la pantalla **vieja**: una
+  peticion por alumno visible, y por eso tarda.
+- `/observador`: bitacora acumulativa por estudiante. Lista solo nombres con una
+  peticion, y pide la bitacora del alumno **al abrirlo**, no antes. Convive con
+  `/Formulario` hasta que el usuario ordene retirarla. Ver
+  `docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
 - `/plan-de-clases?asignacion_id=<id>&fecha=<AAAA-MM-DD>&plan_id=<id>&observaciones=1`:
   enlace de la campana del profesor; selecciona el plan exacto y abre su
   historial para confirmar la lectura de las observaciones.

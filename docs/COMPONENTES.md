@@ -728,6 +728,30 @@ Estado actual de componentes y paginas del frontend.
 - `services/estudiantesObservadorApi.js`: frontera HTTP única del módulo.
 - `utils/estudiantesObservador/`: contratos y transformaciones puras.
 
+### Observador del estudiante unificado
+
+Módulo aparte del anterior **a propósito**: cuando el usuario ordene retirar la
+pantalla vieja (`/Formulario`), esta no se va con ella. Ver
+`docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+
+- `pages/Observador.jsx`: raíz de composición. Lista los alumnos de la
+  asignación con **una** petición y pide la bitácora de uno **al abrirlo**. Ahí
+  muere el fallo de las doce peticiones simultáneas de la pantalla vieja.
+- `components/observador/ListaAlumnosObservador.jsx`: solo nombres, con filtro
+  local que no vuelve a consultar al servidor.
+- `components/observador/VistaObservadorEstudiante.jsx`: la bitácora agrupada
+  por dimensión, con el nivel del curso en el título y el selector de periodo en
+  «Todos». Cambiar la agrupación **no** dispara otra petición.
+- `components/observador/AnotacionObservador.jsx`: una anotación bajo la
+  dimensión en la que se muestra. **No pinta ningún botón de borrar**, en
+  ninguna vista y para nadie.
+- `hooks/observador/useObservadorEstudiante.js`: la consulta, con descarte de
+  respuestas obsoletas. Distingue el `404` («el estudiante no existe») de una
+  lista vacía («todavía nadie le ha escrito nada»): son mensajes distintos.
+- `services/observadorApi.js`: frontera HTTP. No expone contrato de borrado.
+- `utils/observador/anotaciones.js`: agrupación por dimensión, periodo, marca
+  positiva/negativa, fecha corta y título con nivel, como contratos puros.
+
 ### Constantes
 
 - `constants/valoracionesDesarrollo.js`: opciones compartidas de desarrollo

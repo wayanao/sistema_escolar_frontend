@@ -2,9 +2,11 @@
 
 ## Control
 
-- Estado: **Diseñado, nada implementado.** No hay página, componente ni hook
-  nuevo. Este documento recoge las decisiones tomadas con el usuario el
-  2026-09-04 y el plan de fases.
+- Estado: **Fase 1 terminada el 2026-09-09.** La pantalla existe y **lee**: el
+  profesor entra por «Observador» en Control Académico, elige un alumno y ve su
+  bitácora agrupada por dimensión. Todavía **no se puede escribir** —eso es la
+  fase 2— y la entrada del admin sigue leyendo las observaciones viejas.
+  La pantalla vieja (`/Formulario`) sigue intacta y en producción.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -12,7 +14,7 @@
   que cubre tabla, endpoints y permisos. **El backend va primero**: esta
   pantalla no debe depender de endpoints que no existan.
 - Riesgo inicial: Medio. Sustituye una pantalla que los profesores usan hoy.
-- Última actualización: 2026-09-08.
+- Última actualización: 2026-09-09.
 
 ## Objetivo
 
@@ -294,13 +296,78 @@ Firmas, decididas con el usuario:
 | Reaparece el N+1 si se lista el curso con las bitácoras de todos | La página es de **un** estudiante. Si algún día se hace un listado, se diseña aparte |
 | La autocorrección estropea texto ya escrito al editar | Aplicarla solo al salir de un campo que el usuario tocó, no al cargar |
 
+## Cómo quedó construida la fase 1
+
+Cinco cosas que no estaban escritas antes y que conviene no volver a discutir.
+
+**Módulo aparte, no dentro de `estudiantesObservador/`.** El código nuevo vive
+en `services/observadorApi.js`, `hooks/observador/`, `components/observador/`,
+`utils/observador/` y `pages/Observador.jsx`. El motivo es la fase 4: cuando el
+usuario ordene retirar la pantalla vieja, se borra `estudiantesObservador/` sin
+arrastrar nada de esto. Mezclarlos habría convertido esa limpieza en una
+operación delicada.
+
+**El buscador de la lista filtra en local.** La lista de alumnos llega en una
+petición —la que ya hacía la planilla— y escribir en el buscador no vuelve a
+preguntar nada. Tampoco hay botón «Buscar»: filtra al teclear. La pantalla vieja
+obligaba a pulsarlo.
+
+**Cambiar de periodo sí vuelve a consultar; cambiar de agrupación, no.** El
+filtro lo aplica el servidor, que para eso acepta `?periodo=N`. Las respuestas
+que llegan tarde se descartan, así que cambiar rápido de periodo no deja la
+pantalla mostrando el anterior. El invariante 1 habla de la agrupación y la
+vista, no del periodo: son consultas distintas.
+
+**Un periodo roto nunca deja al alumno sin bitácora.** `periodoParaConsulta`
+devuelve «el año entero» ante cualquier valor que no sea 1-4. Si mandara la
+etiqueta rota, el servidor respondería `422` y la profesora vería un error en
+vez de su historial.
+
+**Tres estados que no se pueden confundir**, y hay prueba de cada uno:
+
+| Lo que pasa | Lo que dice la pantalla |
+|---|---|
+| Cargando | «Cargando el observador...» |
+| `404` del servidor | «No encontramos a ese estudiante.» |
+| Lista vacía, sin filtro | «Todavía nadie le ha escrito nada a este estudiante.» |
+| Lista vacía, con periodo filtrado | «No hay anotaciones en este periodo. Elige «Todos» para ver el año entero.» |
+
+Las dos últimas filas son la misma respuesta del servidor y **dicen cosas
+distintas a propósito**: el periodo no puede ocultar historial en silencio, así
+que si el filtro está puesto la pantalla dice en voz alta cómo ver el año
+entero.
+
+**Las heredadas se marcan «Sin marcar», con un círculo blanco.** Decisión de
+presentación tomada al construir: las copiadas de la tabla vieja llegan con
+`positiva` en `null` y sin fecha. Se muestran con ⚪ y «Sin fecha» en vez de
+elegirles un color o inventarles un día. Un `false` —negativa de verdad— nunca
+se pinta igual que un `null`, y hay prueba que lo fija.
+
 ## Plan de fases (frontend)
 
-**Fase 1 — Lectura** (requiere fase 2 del backend cerrada: **lo está desde el
-2026-09-08**, así que esta fase ya puede empezar)
-1. Servicio y hook para `GET /observador/{estudiante_id}`.
-2. Página nueva con la vista por dimensión.
-3. Selector de periodo con «Todos» por defecto.
+**Fase 1 — Lectura — TERMINADA el 2026-09-09**
+1. ~~Servicio y hook para `GET /observador/{estudiante_id}`~~:
+   `src/services/observadorApi.js` y
+   `src/hooks/observador/useObservadorEstudiante.js`.
+2. ~~Página nueva con la vista por dimensión~~: `src/pages/Observador.jsx` y
+   `src/components/observador/`.
+3. ~~Selector de periodo con «Todos» por defecto~~.
+4. ~~Entrada del profesor~~: ruta `/observador` en `src/App.jsx` y el elemento
+   «Observador» en `src/utils/autenticacion/navegacion.js`, justo debajo de
+   «Observaciones». La vieja se queda.
+5. ~~Pruebas~~: 76, verificadas con mutaciones. Compuerta completa en verde:
+   **1648 pruebas**, `lint` y `build`.
+
+**Lo que la fase 1 NO hizo, y hay que saberlo:**
+
+- **La entrada del admin sigue como estaba.** `DetalleEstudianteAdmin.jsx`
+  continúa mostrando las observaciones viejas. Cambiarle el origen de los datos
+  toca una pantalla que ya funciona, así que se hace aparte y con su propia
+  orden.
+- **No se probó contra producción**, porque el backend de esta funcionalidad
+  **todavía no está publicado**: los seis commits que lo implementan siguen sin
+  subir. La base de datos sí tiene la tabla. Contra `localhost` la pantalla
+  funciona.
 
 **Fase 2 — Escritura** (requiere fase 3 del backend: **lo está desde el
 2026-09-08**)
@@ -319,68 +386,66 @@ Firmas, decididas con el usuario:
 
 ## Preguntas abiertas
 
-1. **¿Desde dónde se entra a la página?** ¿Desde el listado de estudiantes,
-   desde la planilla, desde el menú? No se decidió.
-2. **¿La pantalla vieja se retira o convive?** El usuario no lo dijo. Por
-   defecto conviven hasta que él ordene retirarla.
-3. **¿Qué pasa si el profesor no tiene periodo activo en `localStorage`?** Hoy
-   `obtenerPeriodoProfesor` cae a `"1"`. Con «Todos» por defecto quizá deje de
-   importar; confirmar.
+1. ~~**¿Desde dónde se entra a la página?**~~ **Resuelta el 2026-09-08**, ver
+   «Por dónde se entra». El profesor, por un elemento nuevo en Control
+   Académico; el admin, por donde ya entra hoy. **Esta lista se quedó sin
+   actualizar ese día y decía que seguía abierta; queda corregido.**
+2. ~~**¿La pantalla vieja se retira o convive?**~~ **Conviven**, decidido el
+   2026-09-08, hasta que el usuario ordene retirarla. Es la fase 4.
+3. **¿Qué periodo se usa al escribir si el profesor no tiene ninguno guardado?**
+   Hoy `obtenerPeriodoProfesor` cae a `"1"`. **No afecta a la fase 1**: la
+   lectura arranca en «Todos» y sin periodo el servidor devuelve el año entero,
+   así que la pantalla nunca depende de ese valor. Sí hay que responderla
+   **antes de la fase 2**, porque una anotación nueva sí nace con un periodo
+   encima y esa etiqueta se queda escrita.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **ninguna.** Solo existe este documento y su
-  equivalente de backend.
-- Estado del repo relacionado: la pantalla actual del observador
-  (`src/pages/Formulario.jsx`, `src/components/estudiantesObservador/`,
-  `src/hooks/estudiantesObservador/`) **sigue en producción y sin cambios**. El
-  fallo que el usuario reportó **sigue vivo** y es intermitente: con 2
-  peticiones simultáneas tarda 8-9,7 s y el límite son 10 s, así que a veces
-  carga y a veces no.
-- Estado del backend al 2026-09-08: **completo**. Leer, crear y editar, con
-  prueba de extremo a extremo contra la base real. **Ya no bloquea nada de este
-  repo.** Ver `sistema_escolar_api/docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
-- Endpoints de escritura:
+- Última acción terminada: **Fase 1 (lectura), el 2026-09-09.** Existe la
+  pantalla `/observador`: lista de alumnos con una petición, bitácora del alumno
+  al abrirlo, agrupada por dimensión, con el nivel en el título y el selector de
+  periodo en «Todos». 76 pruebas propias, verificadas con mutaciones. Compuerta
+  completa en verde: **1648 pruebas**, `pnpm run lint` y `pnpm run build`.
+- **Sin publicar, en los dos repos.** El backend de esta funcionalidad tiene
+  seis commits locales sin subir y **no está desplegado**; este repo tiene los
+  suyos. La base de datos de producción **sí** tiene ya la tabla y sus índices,
+  aplicados el 2026-09-08. Orden correcto para publicar: **primero el backend**,
+  después el frontend. Al revés, la pantalla nueva pediría un endpoint que en
+  producción no existe.
+- **La bitácora está vacía.** Falta ejecutar, en el repo del backend, la
+  migración `20260908_observador_anotaciones_historicas.sql` y después
+  `scripts/copiar_observaciones_al_observador.py`, que trae las 68 anotaciones
+  viejas. Hasta entonces la pantalla nueva dirá, con razón, que nadie ha escrito
+  nada. Comprobar con `SELECT count(*) FROM <tenant>.observador_anotaciones`.
+- **El fallo original sigue vivo en la pantalla vieja**, y seguirá mientras
+  `/Formulario` sea la que usan los profesores. La nueva no lo hereda: convierte
+  doce peticiones en una, y hay prueba que lo fija por aserción
+  (`src/pages/Observador.test.jsx`).
+- Lo que **no** hace todavía esta pantalla: escribir, editar, la vista por
+  fecha, imprimir, y la autocorrección de mayúsculas. Son las fases 2 y 3.
+- **La entrada del admin sigue sin tocar.** `DetalleEstudianteAdmin.jsx` lee
+  todavía las observaciones viejas. Cambiarle el origen de los datos es un paso
+  aparte, sobre una pantalla que hoy funciona, y necesita su propia orden.
+- Contrato que consume la pantalla, por si hay que revisarlo:
+  `GET /observador/{estudiante_id}` → `{"nivel": ..., "anotaciones": [...]}`,
+  `?periodo=N` opcional entre 1 y 4, `404` solo si el estudiante no existe.
+  `nivel` llega **fuera** de las anotaciones y también cuando no hay ninguna.
+- Contratos de escritura que la fase 2 va a necesitar, ya listos en el
+  servidor:
   - `POST /observador` → `201` con `{"id": N}`. Cuerpo: `estudiante_id`,
     `periodo` (1-4), `positiva`, y los tres campos de texto. **No mandes
-    `profesor_id`**: sale del token y el servidor ignora el del cuerpo.
+    `profesor_id`**: sale del token y el servidor ignora el del cuerpo. El
+    cuerpo **no** lleva `asignacion_id` ni `materia`.
   - `PUT /observador/{anotacion_id}` → cuerpo: `positiva` y los tres textos.
     **No** lleva `estudiante_id` ni `periodo`. `403` si la anotación no es tuya,
     `404` si no existe.
   - **No existe `DELETE`**, y no debe pedirse.
-- El servidor aplica la misma autocorrección de mayúsculas al guardar, así que
-  la de esta pantalla es comodidad, no la garantía. Espejo:
-  `app/core/texto_observador.py`.
-- Lo que devuelve el endpoint:
-
-  ```json
-  {
-    "nivel": "primaria",
-    "anotaciones": [
-      {
-        "id": 12, "profesor_id": 7, "profesor": "Ana Gómez",
-        "materia": "Matemáticas", "periodo": 1, "positiva": false,
-        "conductual": "...", "cognitivo": "", "lenguaje": "",
-        "creada_en": "...", "editada_en": null, "editada_por": null
-      }
-    ]
-  }
-  ```
-
-  Ordenado de la más nueva a la más vieja. `?periodo=N` es opcional y se valida
-  entre 1 y 4; **sin él devuelve el año entero**, que es el caso por defecto.
-- `nivel` va fuera de las anotaciones y **llega aunque `anotaciones` esté
-  vacío**: la pantalla puede escribir «Pepito · Preescolar» antes de que exista
-  la primera anotación. Puede ser `null` si el curso no está clasificado; en ese
-  caso se trata como primaria.
-- **`404` significa que el estudiante no existe**, y es distinto de una lista
-  vacía, que significa que todavía nadie le ha escrito nada. Son dos mensajes
-  distintos en pantalla; no los mezcles.
-- `profesor_id` viaja para que la pantalla decida si pinta `[Editar]`. Es
-  **cosmético**: la regla de verdad la impone el servidor.
-- Siguiente acción exacta: que el usuario **autorice la Fase 1 del frontend**
-  (servicio, hook y página con la vista por dimensión). Ya no hay nada del
-  backend que lo bloquee, y las fases 1 y 2 de aquí podrían hacerse seguidas.
-- **Sigue sin responderse la pregunta abierta 1: desde dónde se entra a la
-  página.** Ya no condiciona el modelo de datos —eso se resolvió al descartar la
-  materia—, pero sí hay que decidirlo antes de montar la navegación.
+  - El servidor aplica la misma autocorrección de mayúsculas al guardar
+    (`app/core/texto_observador.py`), así que la de la pantalla es comodidad y
+    no la garantía.
+  - `profesor_id` viaja en cada anotación para que la pantalla decida si pinta
+    `[Editar]`. Es **cosmético**: la regla de verdad la impone el servidor.
+- Siguiente acción exacta: que el usuario **autorice la Fase 2** (escribir y
+  editar). Antes de empezarla hay que responder la pregunta abierta 3: qué
+  periodo lleva una anotación nueva si el profesor no tiene ninguno guardado.
+  Una instrucción genérica como «continúa» no basta.

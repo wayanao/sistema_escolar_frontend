@@ -63,6 +63,10 @@ Estado documentado del frontend `frontend-react`.
   asignaciones, profesores, cursos, materias y horarios, separados por dominio.
 - `src/components/estudiantesObservador/`: vistas presentacionales del listado,
   formulario y detalle administrativo, y del observador del profesor.
+- `src/components/observador/`: lista de alumnos, bitácora agrupada por
+  dimensión y anotación individual del observador del estudiante unificado.
+  Módulo aparte del anterior a propósito, para que retirar la pantalla vieja no
+  se lo lleve por delante.
 - `src/components/planeaciones/admin/`: componentes presentacionales de la
   bandeja administrativa y elementos visuales compartidos de revisión.
 - `src/components/planeaciones/profesor/`: componentes presentacionales del
@@ -101,6 +105,9 @@ Estado documentado del frontend `frontend-react`.
   solo lectura independientes.
 - `src/hooks/estudiantesObservador/`: consultas, formularios y comandos de
   estudiantes y observador, con aislamiento de respuestas obsoletas.
+- `src/hooks/observador/`: consulta cancelable de la bitácora de un estudiante.
+  Una sola petición pinta la pantalla, y distingue el estudiante inexistente de
+  la bitácora vacía.
 - `src/hooks/certificadosImpresion/`: consultas cancelables de certificados,
   comandos administrativos y configuración compartida de impresión.
 - `src/hooks/carteraTiposPago/`: consultas de cartera y conceptos, formulario
@@ -147,6 +154,9 @@ Estado documentado del frontend `frontend-react`.
   académica y horarios.
 - `src/services/estudiantesObservadorApi.js`: contrato HTTP de estudiantes,
   cursos, detalle, deudas, planilla y observaciones.
+- `src/services/observadorApi.js`: contrato HTTP del observador del estudiante
+  unificado. Solo lectura por ahora, y **sin** contrato de borrado: nadie borra
+  una anotación.
 - `src/services/certificadosImpresionApi.js`: fachada HTTP de certificados que
   reutiliza contratos compatibles de boletines y asistencia.
 - `src/services/carteraTiposPagoApi.js`: frontera HTTP de cartera vencida,
@@ -194,6 +204,9 @@ Estado documentado del frontend `frontend-react`.
   filtros, estados y transformaciones puras del módulo académico.
 - `src/utils/estudiantesObservador/`: formularios, filtros, normalización y
   payloads puros de estudiantes y observaciones.
+- `src/utils/observador/`: agrupación por dimensión, opciones de periodo, marca
+  positiva/negativa, fecha corta y título con nivel del curso, como contratos
+  puros del observador unificado.
 - `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
   académica y transformaciones puras de certificados e impresión.
 - `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de

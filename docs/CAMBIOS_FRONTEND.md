@@ -1,5 +1,84 @@
 # Cambios Frontend
 
+## 2026-09-09 - Observador del estudiante unificado, fase 1: la pantalla que lee
+
+Función nueva de producto, autorizada explícitamente. **No pertenece al plan de
+modularización** ni a la migración arquitectónica: se documenta aparte, en
+`docs/funcionalidades/OBSERVADOR_ESTUDIANTE.md`.
+
+Existe `/observador`: el profesor entra por «Observador» en Control Académico,
+ve los nombres de sus alumnos y al abrir uno lee su bitácora completa, con las
+anotaciones de **todos** sus profesores, agrupadas por dimensión.
+
+### Aquí es donde muere el fallo de «No pudimos recuperar la observación guardada»
+
+La pantalla vieja monta un componente por alumno y **cada uno hace su propia
+petición**: medido el 2026-09-03, con 12 alumnos tarda 16-20 s y el hook aborta
+a los 10 s. La nueva hace **una** petición para la lista de nombres y **una**
+para la bitácora del alumno que se abre. El N+1 desaparece por diseño, no por
+optimización, y hay prueba que lo fija por aserción: abrir la lista no consulta
+ninguna bitácora.
+
+**El fallo sigue vivo en `/Formulario`**, que no se tocó y que es la que los
+profesores usan hoy. Las dos conviven hasta que el usuario ordene retirar la
+vieja.
+
+### Módulo aparte a propósito
+
+`services/observadorApi.js`, `hooks/observador/`, `components/observador/`,
+`utils/observador/` y `pages/Observador.jsx`. No se metió dentro de
+`estudiantesObservador/` para que retirar la pantalla vieja -fase 4- sea borrar
+una carpeta y no una operación delicada.
+
+### Tres estados que no se pueden confundir
+
+`404` significa que **el estudiante no existe**; una lista vacía significa que
+**todavía nadie le ha escrito nada**. Son mensajes distintos y hay prueba de
+cada uno. El tercero es sutil: si el selector tiene un periodo puesto y no hay
+nada, la pantalla dice cómo ver el año entero, porque el periodo es una etiqueta
+y **nunca puede ocultar historial en silencio**.
+
+### Lo que no hace todavía
+
+No escribe, no edita, no imprime, no tiene la vista por fecha ni la
+autocorrección de mayúsculas: son las fases 2 y 3. Y la ficha del alumno del
+admin sigue leyendo las observaciones viejas; cambiarle el origen de los datos
+toca una pantalla que ya funciona y va con su propia orden.
+
+### Las heredadas se reconocen sin adivinar
+
+Las 68 anotaciones que se copiarán de la tabla vieja llegan sin fecha y sin
+marca de positiva o negativa, porque el modelo anterior no guardaba ninguna de
+las dos. Se muestran con «Sin fecha» y ⚪ «Sin marcar» en vez de inventarles un
+día o elegirles un color. Un `false` -negativa de verdad- nunca se pinta igual
+que un `null`.
+
+### Pruebas
+
+`1648 pasan`, 76 nuevas, verificadas con mutaciones: quitar el descarte de
+bloques vacíos, confundir negativa con sin marcar, borrar la distinción del
+`404` y hacer que el aviso de bitácora vacía ignore el periodo elegido. Las
+cuatro rompen pruebas. `pnpm run lint` y `pnpm run build`, en verde.
+
+Una prueba existente se actualizó: `navegacion.test.js` fija el árbol exacto del
+menú y ahora incluye el elemento nuevo, más un caso que comprueba que
+`/observador` marca activo el grupo Control Académico.
+
+### Deuda anotada, ajena a esto
+
+`src/pages/IngresoBoletinProfesor.test.jsx` falló una vez en una corrida
+completa y pasó en todas las demás, también tres veces seguidas en solitario. Es
+un `findByRole` que se queda corto de tiempo cuando la suite va cargada, no un
+fallo de producto y nada que ver con el observador. Queda anotado para no
+redescubrirlo; no corre prisa.
+
+### Pendiente de publicar
+
+Ni este repo ni el backend están subidos. **El backend va primero**: si se
+publica esta pantalla antes, pediría un endpoint que en producción todavía no
+existe. La tabla en la base de datos sí está aplicada desde el 2026-09-08.
+
+
 ## 2026-08-28 - Promedio en caritas y puesto para desarrollo infantil
 
 Función nueva de producto, autorizada explícitamente. **No pertenece al plan de

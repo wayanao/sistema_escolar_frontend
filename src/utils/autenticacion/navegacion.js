@@ -42,6 +42,7 @@ export const PROFESOR_DESKTOP_ITEMS = [
       { id: "planilla", label: "Planilla", to: "/planilla" },
       { id: "asistencia", label: "Asistencia", to: "/asistencia" },
       { id: "observaciones", label: "Observaciones", to: "/Formulario" },
+      { id: "observador", label: "Observador", to: "/observador" },
     ],
   },
   {

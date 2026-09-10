@@ -70,6 +70,7 @@ describe("contratos puros de navegacion", () => {
           { id: "planilla", label: "Planilla", to: "/planilla" },
           { id: "asistencia", label: "Asistencia", to: "/asistencia" },
           { id: "observaciones", label: "Observaciones", to: "/Formulario" },
+          { id: "observador", label: "Observador", to: "/observador" },
         ],
       },
       {
@@ -95,6 +96,7 @@ describe("contratos puros de navegacion", () => {
     [PROFESOR_DESKTOP_ITEMS, "/", "dashboard"],
     [PROFESOR_DESKTOP_ITEMS, "/planilla/18", "control"],
     [PROFESOR_DESKTOP_ITEMS, "/Formulario", "control"],
+    [PROFESOR_DESKTOP_ITEMS, "/observador", "control"],
     [PROFESOR_DESKTOP_ITEMS, "/formulario", null],
     [PROFESOR_DESKTOP_ITEMS, "/ruta-desconocida", null],
     [[], "/", null],

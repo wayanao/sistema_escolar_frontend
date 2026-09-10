@@ -23,6 +23,7 @@ const Asistencia = lazy(() => import("./pages/Asistencia"));
 const Boletin = lazy(() => import("./pages/Boletin"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Formulario = lazy(() => import("./pages/Formulario"));
+const Observador = lazy(() => import("./pages/Observador"));
 const PlanDeClases = lazy(() => import("./pages/PlanDeClases"));
 const DashboardProfesor = lazy(() => import("./pages/DashboardProfesor"));
 const PlaneadorAnual = lazy(() => import("./pages/PlaneadorAnual"));
@@ -178,6 +179,7 @@ function Layout() {
             <Route path="/admin/diseno-impresos" element={<AdminRoute><BrandingAdmin /></AdminRoute>} />
             <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />
             <Route path="/Formulario" element={<ProtectedRoute><Formulario /></ProtectedRoute>} />
+            <Route path="/observador" element={<ProtectedRoute><Observador /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/asistencia" element={<ProtectedRoute><Asistencia /></ProtectedRoute>} />
             <Route path="/ranking-rendimiento" element={<ProtectedRoute><RankingRendimiento /></ProtectedRoute>} />
