@@ -1,5 +1,84 @@
 # Cambios Frontend
 
+## 2026-09-10 - Observador, fase 3: vista por fecha e impresion
+
+Ultima fase del plan salvo retirar la pantalla vieja. **No toca el backend**: se
+pinta e imprime con los datos que la pantalla ya tiene.
+
+### Dos maneras de mirar la misma bitacora
+
+Por dimension, una anotacion se **reparte** entre varios bloques -uno por cada
+campo con texto-. Por fecha, una anotacion es **una tarjeta** que enumera sus
+campos. Mismo dato, otra manera de mirarlo: **cambiar de vista no pide nada al
+servidor**, y hay prueba que cuenta las peticiones.
+
+Las dos comparten `EncabezadoAnotacion.jsx` -quien escribio y cuando-. Si cada
+una lo dibujara por su cuenta, podrian acabar diciendo cosas distintas de la
+misma anotacion.
+
+No se reordena nada: el servidor ya las manda de la mas nueva a la mas vieja, con
+las heredadas -sin fecha- al final.
+
+### La impresion, con las dos opciones
+
+Se **reutiliza `DocumentoImprimible`**, que ya aplica logo, colores y plantilla
+activa para `tipo="observaciones"`. No se construyo ningun impreso nuevo, tal y
+como decia el diseno.
+
+* **Todo el observador** — el documento oficial, firmado por el director de grupo
+  y el acudiente.
+* **Solo mis anotaciones** — las del profesor que imprime, firmado por el y el
+  acudiente.
+
+**Sale lo que se esta viendo**: el periodo del selector **y** la agrupacion
+puesta. El menu solo decide de quien son las anotaciones, nunca de cuando.
+
+**En papel no se pinta el color del profesor.** Un documento que puede acabar
+fotocopiado en blanco y negro no puede apoyarse en el color, y no hace falta: el
+nombre esta escrito.
+
+Si no hay nada que imprimir lo dice, en vez de sacar una hoja con membrete y
+firmas vacia. Pasa de verdad con «Solo mis anotaciones» cuando el profesor aun no
+ha escrito ninguna.
+
+### Un fallo que encontro una prueba
+
+Un periodo inesperado imprimia **«Periodo undefined» en papel**. Se arreglo el
+codigo, no la prueba: `etiquetaPeriodoImpreso` reutiliza ahora la misma
+validacion que decide que se le pide al servidor, asi que todo lo que no sea 1-4
+sale como «Ano completo», que es lo que la pantalla esta ensenando.
+
+### Dos frases del documento que habian quedado obsoletas
+
+El diseno decia que «Solo mis anotaciones» servia «para una reunion sobre **su
+materia**», y dibujaba la vista por fecha con la materia y el circulo de color.
+Las tres cosas desaparecieron despues. Se corrigieron en el documento en vez de
+dejarlas mentir.
+
+### Un detalle del compilador de React
+
+La pantalla decide entre el impreso y la vista normal con un **ternario en el
+unico `return`**, no con un `return` temprano: `pnpm run lint` rechaza el
+segundo, porque el compilador de React no puede conservar la memoizacion si el
+componente vuelve antes de tiempo.
+
+### Una corrida roja que no reproduce, dicha tal cual
+
+Una de las corridas completas dio **4 fallos** y no se llego a capturar cuales.
+Las **cinco** corridas completas siguientes, mas tres de `src/pages/` en
+solitario, salieron verdes. Encaja con la fragilidad de tiempos que este repo ya
+tenia anotada el 2026-09-09 -un `findByRole` que se queda corto cuando la suite
+va cargada-, pero **no esta comprobado**, asi que queda escrito como lo que es:
+un fallo visto una vez y no reproducido. No corre prisa.
+
+### Pruebas
+
+`1778 pasan`, 38 nuevas, verificadas con mutaciones: que la impresion ignore el
+filtro de «solo mis anotaciones», que la vista por fecha pinte siempre por
+dimension, y que las firmas no cambien segun el reporte. Las tres rompen
+pruebas. `lint` y `build`, en verde.
+
+
 ## 2026-09-10 - Observador: un color por profesor
 
 Pedido por el usuario, para distinguir de un vistazo quien escribio cada

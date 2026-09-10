@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   COLOR_SIN_PROFESOR,
@@ -46,8 +45,9 @@ describe("color por profesor", () => {
     // hay que comprobarlo en el archivo y no en el valor: componerlas
     // -`text-${color}-700`- da exactamente la misma cadena en memoria y aun asi
     // deja el nombre sin color, sin ningun error que lo avise.
+    // Ruta desde la raiz del proyecto, que es desde donde corre vitest.
     const fuente = readFileSync(
-      resolve(process.cwd(), "src/utils/observador/coloresProfesor.js"),
+      "src/utils/observador/coloresProfesor.js",
       "utf8",
     );
     const paleta = fuente.slice(

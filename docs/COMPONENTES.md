@@ -753,6 +753,15 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `components/observador/AnotacionObservador.jsx`: una anotación bajo la
   dimensión en la que se muestra. **No pinta ningún botón de borrar**, en
   ninguna vista y para nadie.
+- `components/observador/AnotacionCronologica.jsx`: la misma anotación en la
+  vista por fecha, como una sola tarjeta que enumera sus dimensiones.
+- `components/observador/EncabezadoAnotacion.jsx`: quién escribió y cuándo,
+  compartido por las dos vistas para que no puedan decir cosas distintas.
+- `components/observador/ObservadorImprimible.jsx`: el impreso, que reutiliza
+  `DocumentoImprimible` con `tipo="observaciones"`. Sale lo que se está viendo;
+  en papel no se pinta el color del profesor.
+- `utils/observador/impresion.js`: qué anotaciones entran, las firmas de cada
+  reporte y los títulos, como contratos puros.
 - `hooks/observador/useObservadorEstudiante.js`: la consulta, con descarte de
   respuestas obsoletas. Distingue el `404` («el estudiante no existe») de una
   lista vacía («todavía nadie le ha escrito nada»): son mensajes distintos.

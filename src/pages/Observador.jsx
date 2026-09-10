@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import FormularioAnotacionObservador from "../components/observador/FormularioAnotacionObservador";
 import ListaAlumnosObservador from "../components/observador/ListaAlumnosObservador";
+import ObservadorImprimible from "../components/observador/ObservadorImprimible";
 import VistaObservadorEstudiante from "../components/observador/VistaObservadorEstudiante";
 import useComandosObservador from "../hooks/observador/useComandosObservador";
 import useFormularioAnotacion from "../hooks/observador/useFormularioAnotacion";
@@ -12,9 +13,11 @@ import useObservadorEstudiante, {
 } from "../hooks/observador/useObservadorEstudiante";
 import { filtrarAlumnosObservador } from "../utils/observador/alumnos";
 import {
+  AGRUPACION_DIMENSION,
   PERIODO_TODOS,
   titularObservador,
 } from "../utils/observador/anotaciones";
+import { anotacionesParaImprimir } from "../utils/observador/impresion";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 /**
@@ -55,6 +58,9 @@ function Observador() {
   const [periodo, setPeriodo] = useState(PERIODO_TODOS);
   const [editando, setEditando] = useState(null);
   const [errorGuardado, setErrorGuardado] = useState(null);
+  const [agrupacion, setAgrupacion] = useState(AGRUPACION_DIMENSION);
+  // Qué reporte se está imprimiendo, o `null` si no hay ninguno abierto.
+  const [imprimiendo, setImprimiendo] = useState(null);
 
   const {
     estudiantes,
@@ -113,6 +119,7 @@ function Observador() {
   const volverALaLista = useCallback(() => {
     setEditando(null);
     setErrorGuardado(null);
+    setImprimiendo(null);
     setSeleccionado(null);
   }, []);
 
@@ -153,6 +160,11 @@ function Observador() {
     ? (error === ERROR_ESTUDIANTE_NO_EXISTE ? MENSAJE_NO_EXISTE : MENSAJE_FALLO)
     : null;
 
+  const tituloAlumno = titularObservador({ ...seleccionado, nivel });
+
+  // Se imprime **lo que se está viendo**: las anotaciones que ya están en
+  // pantalla -o sea, las del periodo elegido- y con la agrupación puesta. El
+  // filtro de la impresión solo decide de quién, nunca de cuándo.
   const vistaFormulario = editando ? (
     <FormularioAnotacionObservador
       titulo={editando === NUEVA ? "Nueva anotación" : "Corregir tu anotación"}
@@ -172,7 +184,20 @@ function Observador() {
     />
   ) : null;
 
-  return (
+  // Una sola salida, con ternario, en vez de un `return` temprano: el
+  // compilador de React no puede conservar la memoizacion si el componente
+  // vuelve antes de tiempo, y `pnpm run lint` lo rechaza.
+  return imprimiendo ? (
+    <ObservadorImprimible
+      alumno={tituloAlumno}
+      periodo={periodo}
+      agrupacion={agrupacion}
+      anotaciones={anotacionesParaImprimir(anotaciones, imprimiendo, profesorId)}
+      opcion={imprimiendo}
+      profesor={leerProfesor()}
+      onVolver={() => setImprimiendo(null)}
+    />
+  ) : (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold text-slate-900 sm:text-3xl">
         📘 Observador del estudiante
@@ -180,9 +205,12 @@ function Observador() {
 
       {seleccionado ? (
         <VistaObservadorEstudiante
-          titulo={titularObservador({ ...seleccionado, nivel })}
+          titulo={tituloAlumno}
           periodo={periodo}
           onCambiarPeriodo={setPeriodo}
+          agrupacion={agrupacion}
+          onCambiarAgrupacion={setAgrupacion}
+          onImprimir={setImprimiendo}
           anotaciones={anotaciones}
           cargando={cargando}
           error={mensajeError}
@@ -208,14 +236,19 @@ function Observador() {
   );
 }
 
-/** El profesor de la sesión, solo para decidir dónde se pinta `[Editar]`. Es
- * cosmético: la regla de verdad la impone el servidor. */
-function leerProfesorId() {
+/** El profesor de la sesión. Se usa para decidir dónde se pinta `[Editar]` -que
+ * es cosmético: la regla de verdad la impone el servidor- y para firmar el
+ * impreso de «Solo mis anotaciones». */
+function leerProfesor() {
   try {
-    return JSON.parse(localStorage.getItem("profesor") || "null")?.id ?? null;
+    return JSON.parse(localStorage.getItem("profesor") || "null");
   } catch {
     return null;
   }
+}
+
+function leerProfesorId() {
+  return leerProfesor()?.id ?? null;
 }
 
 export default Observador;

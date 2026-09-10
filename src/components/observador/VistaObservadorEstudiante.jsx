@@ -1,10 +1,15 @@
+import AnotacionCronologica from "./AnotacionCronologica";
 import AnotacionObservador from "./AnotacionObservador";
 import {
   agruparAnotacionesPorDimension,
+  anotacionesEnOrdenCronologico,
+  AGRUPACION_FECHA,
+  OPCIONES_AGRUPACION,
   OPCIONES_PERIODO_OBSERVADOR,
   PERIODO_TODOS,
 } from "../../utils/observador/anotaciones";
 import { esAnotacionPropia } from "../../utils/observador/formulario";
+import { OPCIONES_IMPRESION } from "../../utils/observador/impresion";
 
 /** Cuando no hay nada que mostrar, el aviso cambia según el selector: filtrar
  * por un periodo nunca oculta historial, así que si el filtro está puesto hay
@@ -30,6 +35,9 @@ export default function VistaObservadorEstudiante({
   titulo,
   periodo,
   onCambiarPeriodo,
+  agrupacion,
+  onCambiarAgrupacion,
+  onImprimir,
   anotaciones,
   cargando,
   error,
@@ -41,6 +49,9 @@ export default function VistaObservadorEstudiante({
   formulario,
 }) {
   const grupos = agruparAnotacionesPorDimension(anotaciones);
+  const cronologicas = anotacionesEnOrdenCronologico(anotaciones);
+  const porFecha = agrupacion === AGRUPACION_FECHA;
+  const vacia = porFecha ? cronologicas.length === 0 : grupos.length === 0;
 
   return (
     <section className="space-y-4">
@@ -86,6 +97,50 @@ export default function VistaObservadorEstudiante({
         </div>
       </header>
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div
+          className="inline-flex rounded-lg border border-slate-300 p-0.5"
+          role="group"
+          aria-label="Cómo agrupar las anotaciones"
+        >
+          {OPCIONES_AGRUPACION.map((opcion) => (
+            <button
+              key={opcion.value}
+              type="button"
+              onClick={() => onCambiarAgrupacion(opcion.value)}
+              aria-pressed={agrupacion === opcion.value}
+              className={`rounded-md px-3 py-1 text-sm font-medium ${
+                agrupacion === opcion.value
+                  ? "bg-purple-600 text-white"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {opcion.label}
+            </button>
+          ))}
+        </div>
+
+        {onImprimir && (
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            Imprimir:
+            <select
+              value=""
+              onChange={(event) => {
+                if (event.target.value) onImprimir(event.target.value);
+              }}
+              className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            >
+              <option value="">Elige qué imprimir</option>
+              {OPCIONES_IMPRESION.map((opcion) => (
+                <option key={opcion.value} value={opcion.value}>
+                  {opcion.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+
       {formulario}
 
       {cargando && (
@@ -109,14 +164,25 @@ export default function VistaObservadorEstudiante({
         </div>
       )}
 
-      {!cargando && !error && grupos.length === 0 && (
+      {!cargando && !error && vacia && (
         <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">
           {avisoSinAnotaciones(periodo)}
         </p>
       )}
 
+      {!cargando && !error && porFecha
+        && cronologicas.map((anotacion) => (
+          <AnotacionCronologica
+            key={anotacion.id}
+            anotacion={anotacion}
+            esPropia={esAnotacionPropia(anotacion, profesorId)}
+            onEditar={onEditar}
+          />
+        ))}
+
       {!cargando
         && !error
+        && !porFecha
         && grupos.map((grupo) => (
           <div key={grupo.campo} className="space-y-2">
             <h3 className="border-b border-slate-300 pb-1 text-sm font-bold uppercase tracking-wide text-slate-700">

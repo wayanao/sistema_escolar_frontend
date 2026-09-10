@@ -81,6 +81,52 @@ export function agruparAnotacionesPorDimension(anotaciones) {
   })).filter((grupo) => grupo.entradas.length > 0);
 }
 
+/**
+ * Las dimensiones de **una** anotación que traen texto, con su título.
+ *
+ * Es lo que necesita la vista por fecha, donde una anotación es **una fila** que
+ * enumera sus dimensiones: «Conductual: se para mucho.». En la vista por
+ * dimensión pasa lo contrario -la anotación se reparte entre varios bloques-, y
+ * de eso se encarga `agruparAnotacionesPorDimension`.
+ *
+ * Los dos son el **mismo dato pintado de dos maneras**: cambiar de vista no
+ * puede provocar otra petición. Es el invariante 1.
+ */
+export function dimensionesConTextoDeAnotacion(anotacion) {
+  return DIMENSIONES_OBSERVADOR
+    .map(({ campo, titulo }) => ({
+      campo,
+      titulo,
+      texto: String(anotacion?.[campo] || "").trim(),
+    }))
+    .filter((dimension) => dimension.texto.length > 0);
+}
+
+/**
+ * Las anotaciones en orden cronológico, la más nueva primero.
+ *
+ * **No reordena**: el servidor ya las manda así, con las heredadas -que no
+ * tienen fecha- al final. Solo descarta las que no tienen nada escrito, que no
+ * deberían existir pero tampoco deberían pintar una tarjeta vacía.
+ */
+export function anotacionesEnOrdenCronologico(anotaciones) {
+  return (anotaciones || []).filter(
+    (anotacion) => dimensionesConTextoDeAnotacion(anotacion).length > 0,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Las dos maneras de mirar la misma bitácora
+// ---------------------------------------------------------------------------
+
+export const AGRUPACION_DIMENSION = "dimension";
+export const AGRUPACION_FECHA = "fecha";
+
+export const OPCIONES_AGRUPACION = [
+  { value: AGRUPACION_DIMENSION, label: "Por dimensión" },
+  { value: AGRUPACION_FECHA, label: "Por fecha" },
+];
+
 // ---------------------------------------------------------------------------
 // Cómo se presenta una anotación
 // ---------------------------------------------------------------------------

@@ -2,6 +2,11 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import VistaObservadorEstudiante from "./VistaObservadorEstudiante";
+import {
+  AGRUPACION_DIMENSION,
+  AGRUPACION_FECHA,
+} from "../../utils/observador/anotaciones";
+import { IMPRIMIR_MIAS, IMPRIMIR_TODO } from "../../utils/observador/impresion";
 
 function anotacion(extra = {}) {
   return {
@@ -30,6 +35,8 @@ function pintar(props = {}) {
       error={null}
       onReintentar={vi.fn()}
       onVolver={vi.fn()}
+      agrupacion={AGRUPACION_DIMENSION}
+      onCambiarAgrupacion={vi.fn()}
       {...props}
     />,
   );
@@ -75,7 +82,7 @@ describe("VistaObservadorEstudiante", () => {
       screen.getByText(/Elige «Todos» para ver el año entero/),
     ).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByRole("combobox"), "todos");
+    await user.selectOptions(screen.getByRole("combobox", { name: /Periodo/ }), "todos");
     expect(onCambiarPeriodo).toHaveBeenCalledWith("todos");
   });
 
@@ -178,6 +185,75 @@ describe("VistaObservadorEstudiante", () => {
     });
 
     expect(screen.getAllByText("Formulario abierto")).toHaveLength(1);
+  });
+
+  it("cambia de agrupación sin pedir nada al servidor", async () => {
+    const user = userEvent.setup();
+    const onCambiarAgrupacion = vi.fn();
+    pintar({
+      onCambiarAgrupacion,
+      anotaciones: [anotacion({ conductual: "Se para mucho." })],
+    });
+
+    // Es un cambio de presentacion, no de datos: la vista recibe las
+    // anotaciones ya cargadas y no pide nada.
+    await user.click(screen.getByRole("button", { name: "Por fecha" }));
+    expect(onCambiarAgrupacion).toHaveBeenCalledWith(AGRUPACION_FECHA);
+
+    await user.click(screen.getByRole("button", { name: "Por dimensión" }));
+    expect(onCambiarAgrupacion).toHaveBeenCalledWith(AGRUPACION_DIMENSION);
+  });
+
+  it("pinta el mismo dato de dos maneras", () => {
+    const anotaciones = [
+      anotacion({ conductual: "Se para mucho.", cognitivo: "Muy creativo." }),
+    ];
+    const { rerender } = pintar({ agrupacion: AGRUPACION_DIMENSION, anotaciones });
+
+    // Por dimension: la anotacion se reparte en dos bloques con encabezado.
+    expect(screen.getByRole("heading", { name: "Conductual" })).toBeInTheDocument();
+
+    rerender(
+      <VistaObservadorEstudiante
+        titulo="Pepito Pérez · Primaria"
+        periodo="todos"
+        onCambiarPeriodo={vi.fn()}
+        anotaciones={anotaciones}
+        cargando={false}
+        error={null}
+        onReintentar={vi.fn()}
+        onVolver={vi.fn()}
+        agrupacion={AGRUPACION_FECHA}
+        onCambiarAgrupacion={vi.fn()}
+      />,
+    );
+
+    // Por fecha: una sola tarjeta que enumera sus dimensiones.
+    expect(screen.queryByRole("heading", { name: "Conductual" })).not.toBeInTheDocument();
+    expect(screen.getByText("Conductual:")).toBeInTheDocument();
+    expect(screen.getByText("Se para mucho.")).toBeInTheDocument();
+    expect(screen.getByText("Muy creativo.")).toBeInTheDocument();
+  });
+
+  it("dice que no hay nada también en la vista por fecha", () => {
+    pintar({ agrupacion: AGRUPACION_FECHA, anotaciones: [] });
+
+    expect(
+      screen.getByText("Todavía nadie le ha escrito nada a este estudiante."),
+    ).toBeInTheDocument();
+  });
+
+  it("ofrece las dos impresiones y avisa cuál se pidió", async () => {
+    const user = userEvent.setup();
+    const onImprimir = vi.fn();
+    pintar({ onImprimir });
+
+    const menu = screen.getByRole("combobox", { name: /Imprimir/ });
+    await user.selectOptions(menu, IMPRIMIR_TODO);
+    expect(onImprimir).toHaveBeenCalledWith(IMPRIMIR_TODO);
+
+    await user.selectOptions(menu, IMPRIMIR_MIAS);
+    expect(onImprimir).toHaveBeenCalledWith(IMPRIMIR_MIAS);
   });
 
   it("no ofrece borrar en ninguna vista", () => {

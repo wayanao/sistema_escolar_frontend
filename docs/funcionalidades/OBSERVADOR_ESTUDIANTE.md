@@ -2,13 +2,14 @@
 
 ## Control
 
-- Estado: **Fases 1 y 2 terminadas el 2026-09-09**, y ese mismo día la pantalla
-  **dejó de depender de una clase elegida**. El profesor entra por «Observador»
+- Estado: **Fases 1, 2 y 3 terminadas.** Las dos primeras el 2026-09-09 -leer y
+  escribir-, y la 3 el 2026-09-10: vista por fecha e impresión. Solo queda la
+  fase 4, retirar la pantalla vieja, que **espera tu orden**. Ese mismo 09 la
+  pantalla **dejó de depender de una clase elegida**. El profesor entra por «Observador»
   en Control Académico, ve a **todos** sus alumnos agrupados por curso, abre uno,
   lee su bitácora agrupada por dimensión, añade anotaciones y corrige las suyas.
-  Falta la fase 3 —vista por fecha e impresión— y la entrada del admin sigue
-  leyendo las observaciones viejas. La pantalla vieja (`/Formulario`) sigue
-  intacta y en producción.
+  La entrada del admin sigue leyendo las observaciones viejas, y la pantalla
+  vieja (`/Formulario`) sigue intacta y en producción.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -16,7 +17,7 @@
   que cubre tabla, endpoints y permisos. **El backend va primero**: esta
   pantalla no debe depender de endpoints que no existan.
 - Riesgo inicial: Medio. Sustituye una pantalla que los profesores usan hoy.
-- Última actualización: 2026-09-09.
+- Última actualización: 2026-09-10.
 
 ## Objetivo
 
@@ -183,12 +184,16 @@ servidor**, y el frontend no debe ser la única defensa.
 Mismo dato, orden cronológico, lo más nuevo arriba:
 
 ```
-20/mar · Prof. Ana · Matemáticas · P1 · 🔴
+20/mar · Prof. Ana · P1
    Conductual: se para mucho.                        [Editar]
 
-18/mar · Prof. Luis · Artística · P1 · 🟢
+18/mar · Prof. Luis · P1
    Cognitivo: mucha creatividad en los trabajos.
 ```
+
+> El dibujo original llevaba la materia y el círculo de color. Los dos
+> desaparecieron después —la materia el 2026-09-08, la marca el 2026-09-09—, y
+> el dibujo se corrigió al construir la vista, en la fase 3.
 
 Es un **cambio de presentación, no de datos**: se pide una sola vez y se pinta
 de dos maneras. No debe provocar una segunda petición.
@@ -355,7 +360,11 @@ y la plantilla activa. No hay que construir nada nuevo.
 - **Todo el observador** — anotaciones de todos los profesores. Es el documento
   oficial que va a la carpeta del alumno.
 - **Solo mis anotaciones** — únicamente las de quien imprime. Para una reunión
-  con el acudiente sobre su materia.
+  con el acudiente.
+
+> La versión anterior decía «para una reunión sobre **su materia**». Quedó
+> obsoleta el 2026-09-08, cuando se decidió que la anotación no guarda la
+> materia. Corregido al construir la fase 3.
 
 **Se imprime lo que se está viendo.** Si el selector marca «Periodo 2», sale el
 periodo 2; si marca «Todos», sale el año completo. Sin sorpresas.
@@ -537,6 +546,57 @@ Si quien entra no es profesor, el servidor responde `403` y la pantalla dice
 estudiante», que es la verdad: el admin entra por ahí. Cualquier otro fallo dice
 otra cosa y ofrece reintentar.
 
+## Cómo quedó construida la fase 3
+
+**Las dos vistas comparten el encabezado.** Quién escribió la anotación y cuándo
+vive en `EncabezadoAnotacion.jsx`, que usan las dos. Si cada una lo dibujara por
+su cuenta, podrían acabar diciendo cosas distintas de la misma anotación.
+
+**La vista por fecha es la de dimensión del revés.** Por dimensión, una anotación
+se **reparte** entre varios bloques —uno por cada campo con texto—; por fecha,
+una anotación es **una tarjeta** que enumera sus campos. Mismo dato, dos maneras
+de mirarlo: cambiar de vista **no pide nada al servidor**, y hay prueba que
+cuenta las peticiones.
+
+**No se reordena nada.** El servidor ya manda las anotaciones de la más nueva a
+la más vieja, con las heredadas —que no tienen fecha— al final. La vista por
+fecha solo descarta las que no tienen texto.
+
+### La impresión
+
+**Se reutiliza `DocumentoImprimible`**, que ya aplica la identidad del colegio
+—logo, colores— y la plantilla activa para `tipo="observaciones"`. No se
+construyó ningún impreso nuevo, tal y como decía el diseño.
+
+**Sale lo que se está viendo**, y son dos cosas: el periodo del selector **y** la
+agrupación que esté puesta. El menú de imprimir solo decide **de quién** son las
+anotaciones, nunca de cuándo.
+
+**En papel no se pinta el color del profesor.** Un documento que puede acabar
+fotocopiado en blanco y negro no puede apoyarse en el color, y no hace falta: el
+nombre está escrito. Hay prueba que lo fija.
+
+**El periodo va escrito en el subtítulo** —«Año completo» o «Periodo 2»—. El
+impreso se archiva y se enseña meses después: sin eso, nadie sabría si tiene
+delante el año entero o un trozo.
+
+Un detalle que la prueba encontró y el código no tenía: un periodo inesperado
+imprimía **«Periodo undefined» en papel**. Ahora `etiquetaPeriodoImpreso`
+reutiliza la misma validación que decide qué se le pide al servidor, así que todo
+lo que no sea 1-4 sale como «Año completo», que es justo lo que la pantalla está
+enseñando.
+
+**Si no hay nada que imprimir lo dice**, en vez de sacar una hoja con membrete y
+firmas vacía. Pasa de verdad con «Solo mis anotaciones» cuando el profesor aún no
+ha escrito ninguna.
+
+### Un detalle del compilador de React
+
+La pantalla decide entre el impreso y la vista normal con un **ternario en el
+único `return`**, no con un `return` temprano. `pnpm run lint` rechaza el
+segundo: el compilador de React no puede conservar la memoización si el
+componente vuelve antes de tiempo.
+
 ## Plan de fases (frontend)
 
 **Fase 1 — Lectura — TERMINADA el 2026-09-09**
@@ -576,9 +636,15 @@ otra cosa y ofrece reintentar.
 7. ~~Pruebas~~: 56 nuevas, verificadas con mutaciones. Compuerta completa en
    verde: **1705 pruebas**, `lint` y `build`.
 
-**Fase 3 — Presentación**
-7. Botón de cambio a vista por fecha.
-8. Impresión con las dos opciones.
+**Fase 3 — Presentación — TERMINADA el 2026-09-10**
+7. ~~Botón de cambio a vista por fecha~~:
+   `src/components/observador/AnotacionCronologica.jsx` y el conmutador de la
+   vista. **No dispara ninguna petición**, y hay prueba que las cuenta.
+8. ~~Impresión con las dos opciones~~:
+   `src/components/observador/ObservadorImprimible.jsx` y
+   `src/utils/observador/impresion.js`.
+9. ~~Pruebas~~: 38 nuevas, verificadas con mutaciones. Compuerta completa en
+   verde: **1778 pruebas**, `lint` y `build`.
 
 **Fase 4 — Retirada** (solo cuando el usuario lo confirme)
 9. Quitar la pantalla vieja (`src/pages/Formulario.jsx` y los componentes de
@@ -611,45 +677,32 @@ leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **la pantalla dejó de depender de una clase elegida,
-  el 2026-09-09.** Entra directa, lista a todos los alumnos del profesor
-  agrupados por curso, y sigue leyendo, escribiendo y corrigiendo igual.
-- Compuerta completa en verde: **1729 pruebas**, `pnpm run lint` y
-  `pnpm run build`. 24 nuevas, verificadas con mutaciones.
-- **Depende de un endpoint que todavía no está en producción**:
-  `GET /observador/mis-estudiantes`, añadido el mismo día en el backend. **El
-  backend debe publicarse primero.** Si se publica esta pantalla antes, la lista
-  de alumnos no cargaría.
-- **Sin publicar, en los dos repos.** El backend tiene siete commits locales sin
-  subir. La base de datos de producción sí tiene la tabla desde el 2026-09-08.
-- **La bitácora está vacía** hasta que se ejecute, en el repo del backend, la
-  migración `20260908_observador_anotaciones_historicas.sql` y después
-  `scripts/copiar_observaciones_al_observador.py`, que trae las 68 anotaciones
-  viejas. Lo que se escriba con la pantalla nueva sí aparece desde el primer
-  momento.
-- **El fallo original sigue vivo en la pantalla vieja**, y seguirá mientras
-  `/Formulario` sea la que usan los profesores.
-- Lo que **no** hace todavía: la vista por fecha y la impresión con sus dos
-  opciones. Es la fase 3, y **no toca el backend**: se pinta con lo que la
-  lectura ya devuelve, así que no debe provocar ninguna petición nueva.
+- Última acción terminada: **Fase 3 (presentación), el 2026-09-10.** La pantalla
+  cambia entre vista por dimensión y por fecha sin volver a consultar, e imprime
+  con las dos opciones reutilizando el impreso del colegio.
+- Compuerta completa en verde: **1778 pruebas**, `pnpm run lint` y
+  `pnpm run build`. 38 nuevas, verificadas con mutaciones.
+- **El observador está completo para el profesor.** Lee, escribe, corrige, se ve
+  de dos maneras y se imprime, sin depender de ninguna clase elegida.
+- **Sin publicar, en los dos repos.** El backend tiene nueve commits locales sin
+  subir. **El backend va primero**: la pantalla depende de
+  `GET /observador/mis-estudiantes` y de que el servidor ya no exija la marca de
+  positiva o negativa, y ninguna de las dos cosas está en producción.
+- Las 68 anotaciones heredadas **ya están copiadas** en la bitácora, y hay
+  cuatro filas más de las pruebas del usuario. Nadie borra anotaciones: si esas
+  cuatro sobran, hay que quitarlas por base de datos.
 - **La entrada del admin sigue sin tocar.** `DetalleEstudianteAdmin.jsx` lee
   todavía las observaciones viejas. El admin **no** tiene lista de alumnos
   —recibe un `403`— y no debe tenerla: entra por la ficha del estudiante.
-- Contratos que consume la pantalla:
-  - `GET /observador/mis-estudiantes` → lista de
-    `{estudiante_id, nombre, apellido, curso_id, curso}`, ya ordenada por curso
-    y apellido. `403` si quien pide no es profesor.
-  - `GET /observador/{estudiante_id}` → `{"nivel": ..., "anotaciones": [...]}`,
-    `?periodo=N` opcional entre 1 y 4, `404` solo si el estudiante no existe.
-  - `POST /observador` → `201` con `{"id": N}`. Cuerpo: `estudiante_id`,
-    `periodo`, `positiva` y los tres textos. **Sin `profesor_id`**.
-  - `PUT /observador/{anotacion_id}` → cuerpo: `positiva` y los tres textos.
-    **Sin `estudiante_id` ni `periodo`.** `403` si no es tuya, `404` si no
-    existe.
-  - **No existe `DELETE`**, y no debe pedirse.
-- Una deuda anotada, no urgente: un profesor sin periodo guardado escribe en el
-  periodo 1 sin enterarse. Explicada en «Preguntas abiertas». La otra deuda —la
-  asignación como única puerta— **quedó resuelta** hoy.
-- Siguiente acción exacta: que el usuario **autorice la Fase 3** (vista por
-  fecha e impresión). No hay preguntas abiertas que la bloqueen. Una instrucción
-  genérica como «continúa» no basta.
+- Lo único que queda del plan es la **fase 4: retirar la pantalla vieja**
+  (`src/pages/Formulario.jsx` y lo que quede sin uso en
+  `src/components/estudiantesObservador/`, incluido `useCargaObservacionVisible`,
+  que existe solo para disimular el N+1). **Espera una orden explícita del
+  usuario**, y no debería darse hasta que lo nuevo lleve un tiempo en producción.
+- Deudas anotadas, ninguna urgente: un profesor sin periodo guardado escribe en
+  el periodo 1 sin enterarse; y el menú móvil de `NavProfesorView.jsx` está
+  escrito a mano, aparte de `PROFESOR_DESKTOP_ITEMS` —hay prueba que ata su
+  orden, pero la duplicación sigue ahí—.
+- Siguiente acción exacta: **publicar**, en orden, o esperar a que el usuario
+  ordene la fase 4. Una instrucción genérica como «continúa» no basta para
+  retirar la pantalla vieja.

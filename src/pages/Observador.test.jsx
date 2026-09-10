@@ -204,7 +204,7 @@ describe("página del Observador", () => {
     await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
     await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
 
-    await user.selectOptions(screen.getByRole("combobox"), "2");
+    await user.selectOptions(screen.getByRole("combobox", { name: /Periodo/ }), "2");
     await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
 
     await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
@@ -215,7 +215,7 @@ describe("página del Observador", () => {
     // no aparecería y la profesora creería que no se guardó.
     await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(3));
     expect(obtenerObservadorMock.mock.calls[2][1].periodo).toBeNull();
-    expect(screen.getByRole("combobox")).toHaveValue("todos");
+    expect(screen.getByRole("combobox", { name: /Periodo/ })).toHaveValue("todos");
   });
 
   it("corrige una anotación propia sin tocar su periodo", async () => {
@@ -304,6 +304,100 @@ describe("página del Observador", () => {
     expect(screen.getByRole("button", { name: "Guardar" })).toBeEnabled();
     // Ya no hay ningun paso de elegir si es buena o mala.
     expect(screen.queryAllByRole("radio")).toHaveLength(0);
+  });
+
+  it("cambia a la vista por fecha sin volver a consultar al servidor", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    expect(obtenerObservadorMock).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "Por fecha" }));
+
+    expect(screen.getByText("Conductual:")).toBeInTheDocument();
+    // Invariante 1: cambiar de vista es presentacion, no otra peticion.
+    expect(obtenerObservadorMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("imprime todo el observador, con lo que está en pantalla", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+
+    expect(
+      await screen.findByRole("heading", { name: "Observador del Estudiante" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Estudiante: Ana Rojas · Primaria · Año completo"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Director de grupo")).toBeInTheDocument();
+    // Imprimir tampoco vuelve a preguntarle nada al servidor.
+    expect(obtenerObservadorMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("«Solo mis anotaciones» deja fuera las de otros profesores", async () => {
+    obtenerObservadorMock.mockResolvedValue({
+      nivel: "primaria",
+      anotaciones: [
+        {
+          id: 12, profesor_id: 7, profesor: "Ana Gómez", periodo: 1,
+          conductual: "Mía.", cognitivo: "", lenguaje: "",
+          creada_en: "2026-03-20T12:00:00Z", editada_en: null, editada_por: null,
+        },
+        {
+          id: 13, profesor_id: 8, profesor: "Luis Díaz", periodo: 1,
+          conductual: "De otro profesor.", cognitivo: "", lenguaje: "",
+          creada_en: "2026-03-18T12:00:00Z", editada_en: null, editada_por: null,
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await screen.findByText("De otro profesor.");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "mias");
+
+    expect(await screen.findByText("Mía.")).toBeInTheDocument();
+    expect(screen.queryByText("De otro profesor.")).not.toBeInTheDocument();
+    expect(screen.getByText("Firma del Profesor")).toBeInTheDocument();
+  });
+
+  it("el impreso respeta el periodo que marque el selector", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Periodo/ }), "2");
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+
+    expect(
+      await screen.findByText("Estudiante: Ana Rojas · Primaria · Periodo 2"),
+    ).toBeInTheDocument();
+  });
+
+  it("se puede volver del impreso a la pantalla", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+    await screen.findByRole("button", { name: "← Volver" });
+
+    await user.click(screen.getByRole("button", { name: "← Volver" }));
+
+    expect(
+      await screen.findByRole("heading", { name: /Observador de Ana Rojas/ }),
+    ).toBeInTheDocument();
   });
 
   it("ya no manda a elegir asignación, ni aunque haya una guardada", async () => {

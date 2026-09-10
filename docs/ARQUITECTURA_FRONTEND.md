@@ -64,7 +64,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/estudiantesObservador/`: vistas presentacionales del listado,
   formulario y detalle administrativo, y del observador del profesor.
 - `src/components/observador/`: lista de alumnos, bitácora agrupada por
-  dimensión y anotación individual del observador del estudiante unificado.
+  dimensión o por fecha, anotación individual, formulario e impreso del
+  observador del estudiante unificado.
   Módulo aparte del anterior a propósito, para que retirar la pantalla vieja no
   se lo lleve por delante.
 - `src/components/planeaciones/admin/`: componentes presentacionales de la
@@ -210,7 +211,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/observador/`: agrupación por dimensión, opciones de periodo, fecha
   corta y título con nivel del curso; agrupación de la
   lista de alumnos por curso y su filtro; validación y cuerpos de las peticiones
-  de escritura; el color de cada profesor, repartido por `profesor_id`; y la
+  de escritura; el color de cada profesor, repartido por `profesor_id`; qué entra
+  en cada impreso con sus firmas y títulos; y la
   corrección de mayúsculas, espejo comprobado de `app/core/texto_observador.py`.
   Todo como contratos puros.
 - `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
