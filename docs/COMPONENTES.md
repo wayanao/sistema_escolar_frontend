@@ -749,8 +749,21 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   respuestas obsoletas. Distingue el `404` («el estudiante no existe») de una
   lista vacía («todavía nadie le ha escrito nada»): son mensajes distintos.
 - `services/observadorApi.js`: frontera HTTP. No expone contrato de borrado.
+- `components/observador/FormularioAnotacionObservador.jsx`: los tres campos y
+  la marca positiva/negativa, que es obligatoria. Pide la corrección de
+  mayúsculas **al salir del campo**, nunca al teclear. Se pinta una sola vez,
+  arriba, tanto para una anotación nueva como para corregir una propia.
+- `hooks/observador/useFormularioAnotacion.js`: estado editable, con la cuenta
+  de qué campos tocó la profesora —la corrección solo se aplica a esos—.
+- `hooks/observador/useComandosObservador.js`: crear y corregir. **No hay
+  comando de borrado, y no debe añadirse.**
 - `utils/observador/anotaciones.js`: agrupación por dimensión, periodo, marca
   positiva/negativa, fecha corta y título con nivel, como contratos puros.
+- `utils/observador/formulario.js`: estado inicial, validación y cuerpos de las
+  peticiones. El del `POST` **no** lleva `profesor_id`; el del `PUT` **no** lleva
+  estudiante ni periodo.
+- `utils/observador/texto.js`: la corrección de mayúsculas. Espejo comprobado de
+  `app/core/texto_observador.py`.
 
 ### Constantes
 

@@ -1,5 +1,85 @@
 # Cambios Frontend
 
+## 2026-09-09 - Observador unificado, fase 2: escribir y corregir
+
+La pantalla `/observador` ya no solo lee. El profesor añade anotaciones a la
+bitacora de un alumno y corrige **las suyas**. Sigue sin haber forma de borrar,
+y no debe anadirse.
+
+### El periodo sale del Dashboard, y por que importa
+
+Decidido por el usuario sobre tres opciones. No hay selector de periodo en el
+formulario: se usa el que el profesor eligio en el Dashboard.
+
+Es un dato **irreversible** -`PUT` no lo cambia y `DELETE` no existe-, asi que
+el formulario **dice** en cual va a quedar («Se guardara en el Periodo 3, el que
+tienes activo»). Informar no es preguntar.
+
+**Deuda anotada, no urgente:** un profesor que nunca eligio periodo -docente
+nuevo, navegador nuevo- escribe en el 1 sin enterarse, porque es a donde
+`obtenerPeriodoProfesor` ya cae hoy. Si algun dia aparece, la salida es no dejar
+guardar hasta que elija.
+
+### El selector filtra; el Dashboard etiqueta
+
+Son dos cosas distintas y se confundian con facilidad. Si al guardar el selector
+estaba filtrando otro periodo, lo recien escrito no apareceria y la profesora
+creeria que no se guardo: la pantalla **pasa sola a «Todos»**. Cambiar el
+selector ya dispara la recarga, asi que sigue siendo **una sola peticion**, y
+hay prueba que las cuenta.
+
+### La correccion de mayusculas es un espejo comprobado
+
+`src/utils/observador/texto.js` y `app/core/texto_observador.py` se ejecutaron
+sobre los mismos once casos -«¿por que», «avila», «mide 1.75 metros», la
+abreviatura «etc.»- y devolvieron exactamente lo mismo. No se supuso: se
+comparo.
+
+Se aplica **al salir del campo**, nunca al teclear, y **solo en campos que la
+profesora toco**: abrir una anotacion vieja y pasar por encima de un campo sin
+escribir nada no le reescribe el texto. Era el riesgo que el documento tenia
+anotado desde el diseno.
+
+### Detalles que evitan un error silencioso
+
+- **`[Editar]` solo en las propias**, y es cosmetico: el servidor responde 403 a
+  quien lo intente igual. El frontend no puede ser la unica defensa.
+- **El cuerpo del POST no lleva `profesor_id`.** Si viajara desde el cliente, un
+  profesor podria firmar una anotacion con el nombre de otro. Hay prueba.
+- **El 422 crudo de FastAPI no se muestra.** Sus errores conocidos -403, 404-
+  traen texto listo para ensenar y sale tal cual; un 422 de validacion llega
+  como lista de objetos con nombres internos, y ahi sale un mensaje propio.
+- **Editar una heredada obliga a marcarla** positiva o negativa: las copiadas de
+  la tabla vieja no la traen y el servidor la exige.
+- **Si el guardado falla, el formulario no se cierra.** Lo escrito no se pierde
+  por un fallo del servidor.
+
+### Por que la pantalla pide una asignacion
+
+El usuario lo pregunto y tenia razon en la premisa: el observador **no** depende
+de la materia, y nada de ella se guarda en la anotacion. La asignacion se usa
+**solo** para saber a que alumnos listar, porque el unico endpoint que lo hace
+es `GET /planilla/{asignacion_id}`. `GET /estudiantes` devuelve todos los del
+colegio, sin filtrar por profesor.
+
+Queda anotado: abrir la pantalla sin elegir clase exigiria un endpoint nuevo en
+el backend. No corre prisa.
+
+### Pruebas
+
+`1705 pasan`, 56 nuevas -117 propias del observador-, verificadas con
+mutaciones: firmar el payload con `profesor_id` desde el cliente, dejar guardar sin elegir positiva/negativa,
+corregir mayusculas en campos que nadie toco, y escribir con el periodo del
+selector en vez del Dashboard. Las cuatro rompen pruebas. `lint` y `build`, en
+verde.
+
+### Sigue pendiente de publicar
+
+Ni este repo ni el backend estan subidos. **El backend va primero**: ahora la
+pantalla ademas escribe, asi que publicarla antes pediria endpoints que en
+produccion no existen.
+
+
 ## 2026-09-09 - Observador del estudiante unificado, fase 1: la pantalla que lee
 
 Función nueva de producto, autorizada explícitamente. **No pertenece al plan de
@@ -55,7 +135,8 @@ que un `null`.
 
 ### Pruebas
 
-`1648 pasan`, 76 nuevas, verificadas con mutaciones: quitar el descarte de
+`1648 pasan`, 61 propias mas una del menu actualizada, verificadas con
+mutaciones: quitar el descarte de
 bloques vacíos, confundir negativa con sin marcar, borrar la distinción del
 `404` y hacer que el aviso de bitácora vacía ignore el periodo elegido. Las
 cuatro rompen pruebas. `pnpm run lint` y `pnpm run build`, en verde.

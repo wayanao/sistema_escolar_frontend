@@ -83,7 +83,9 @@ export default function useObservadorEstudiante({ estudianteId, periodo }) {
     };
   }, [estudianteId, periodo, intento]);
 
-  const reintentar = useCallback(() => {
+  /** Vuelve a pedir la bitácora. Sirve para el botón de reintentar cuando la
+   * consulta falla y para refrescar después de guardar una anotación. */
+  const recargar = useCallback(() => {
     setIntento((actual) => actual + 1);
   }, []);
 
@@ -94,6 +96,6 @@ export default function useObservadorEstudiante({ estudianteId, periodo }) {
     anotaciones: esDelAlumnoAbierto ? cargado.anotaciones : [],
     cargando,
     error,
-    reintentar,
+    recargar,
   };
 }

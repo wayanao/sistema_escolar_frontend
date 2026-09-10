@@ -12,10 +12,14 @@ import {
  * tenga texto-, y por eso el texto llega por prop en vez de sacarlo de dentro.
  *
  * Presentacional: sin hooks propios y sin HTTP. **No hay botón de borrar**, en
- * ninguna vista y para nadie (invariante 2). El botón de editar llega en la
- * fase 2.
+ * ninguna vista y para nadie (invariante 2).
+ *
+ * `[Editar]` se pinta **únicamente** en las anotaciones propias, y es
+ * comodidad visual: la regla de verdad la impone el servidor, que responde 403
+ * si alguien intenta corregir lo de otro. El frontend no puede ser la única
+ * defensa.
  */
-export default function AnotacionObservador({ anotacion, texto }) {
+export default function AnotacionObservador({ anotacion, texto, esPropia, onEditar }) {
   const marca = describirMarcaAnotacion(anotacion.positiva);
   const fecha = formatearFechaAnotacion(anotacion.creada_en);
   const periodo = formatearPeriodoAnotacion(anotacion.periodo);
@@ -30,7 +34,16 @@ export default function AnotacionObservador({ anotacion, texto }) {
       <header className="flex items-start gap-2">
         <span aria-hidden="true">{marca.simbolo}</span>
         <span className="sr-only">{marca.etiqueta}</span>
-        <p className="text-sm font-semibold text-slate-800">{encabezado}</p>
+        <p className="flex-1 text-sm font-semibold text-slate-800">{encabezado}</p>
+        {esPropia && onEditar && (
+          <button
+            type="button"
+            onClick={() => onEditar(anotacion)}
+            className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Editar
+          </button>
+        )}
       </header>
 
       <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{texto}</p>

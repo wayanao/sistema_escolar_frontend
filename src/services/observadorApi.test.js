@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { apiMock } = vi.hoisted(() => ({
   apiMock: {
     get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -10,10 +12,16 @@ vi.mock("../utils/api", () => ({
   default: apiMock,
 }));
 
-import { obtenerObservador } from "./observadorApi";
+import {
+  crearAnotacion,
+  editarAnotacion,
+  obtenerObservador,
+} from "./observadorApi";
 
 beforeEach(() => {
   apiMock.get.mockReset();
+  apiMock.post.mockReset();
+  apiMock.put.mockReset();
 });
 
 describe("contrato HTTP del observador del estudiante", () => {
@@ -50,11 +58,51 @@ describe("contrato HTTP del observador del estudiante", () => {
     });
   });
 
+  it("crea una anotación sin mandar quién la firma", async () => {
+    apiMock.post.mockResolvedValue({ data: { id: 31 } });
+    const payload = {
+      estudiante_id: 42,
+      periodo: 3,
+      positiva: false,
+      conductual: "Se para mucho.",
+      cognitivo: "",
+      lenguaje: "",
+    };
+
+    await expect(crearAnotacion(payload)).resolves.toStrictEqual({ id: 31 });
+
+    expect(apiMock.post).toHaveBeenCalledWith("/observador", payload);
+    // El autor sale del token. Si viajara desde el cliente, un profesor podría
+    // firmar una anotación con el nombre de otro.
+    expect(apiMock.post.mock.calls[0][1]).not.toHaveProperty("profesor_id");
+  });
+
+  it("edita una anotación sin tocar el estudiante ni el periodo", async () => {
+    apiMock.put.mockResolvedValue({ data: { id: 31 } });
+    const payload = {
+      positiva: true,
+      conductual: "Ya no se para.",
+      cognitivo: "",
+      lenguaje: "",
+    };
+
+    await expect(editarAnotacion(31, payload)).resolves.toStrictEqual({ id: 31 });
+
+    expect(apiMock.put).toHaveBeenCalledWith("/observador/31", payload);
+    expect(apiMock.put.mock.calls[0][1]).not.toHaveProperty("periodo");
+    expect(apiMock.put.mock.calls[0][1]).not.toHaveProperty("estudiante_id");
+  });
+
   it("no expone ningún contrato de borrado", async () => {
     const modulo = await import("./observadorApi");
 
     // Nadie borra una anotación: no hay endpoint DELETE en el servidor y no
     // debe aparecer aquí un atajo que lo sugiera.
-    expect(Object.keys(modulo)).toStrictEqual(["obtenerObservador"]);
+    expect(Object.keys(modulo).sort()).toStrictEqual([
+      "crearAnotacion",
+      "editarAnotacion",
+      "obtenerObservador",
+    ]);
+    expect(apiMock).not.toHaveProperty("delete");
   });
 });

@@ -32,3 +32,31 @@ export async function obtenerObservador(estudianteId, { periodo, signal } = {}) 
   const { data } = await api.get(`/observador/${estudianteId}`, config);
   return data;
 }
+
+/**
+ * Añade una anotación a la bitácora. Devuelve `{ id }`.
+ *
+ * **Nunca actualiza una existente**: es una bitácora y todas quedan. Un
+ * profesor puede anotar cuantas veces quiera en el mismo periodo, que es justo
+ * lo que la tabla vieja impedía.
+ *
+ * El `profesor_id` **no viaja en el cuerpo**: el servidor lo saca del token e
+ * ignora el que le manden. Un `403` significa que quien pide no es profesor del
+ * alumno -el admin tampoco escribe-.
+ */
+export async function crearAnotacion(payload) {
+  const { data } = await api.post("/observador", payload);
+  return data;
+}
+
+/**
+ * Corrige una anotación **propia**. El servidor deja rastro de la edición.
+ *
+ * `403` si la anotación no es tuya y `404` si no existe: son mensajes distintos
+ * y el servidor los distingue a propósito. No cambia de estudiante ni de
+ * periodo.
+ */
+export async function editarAnotacion(anotacionId, payload) {
+  const { data } = await api.put(`/observador/${anotacionId}`, payload);
+  return data;
+}

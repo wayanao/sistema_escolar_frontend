@@ -2,7 +2,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { obtenerObservadorMock, usePlanillaMock } = vi.hoisted(() => ({
+const {
+  crearAnotacionMock,
+  editarAnotacionMock,
+  obtenerObservadorMock,
+  usePlanillaMock,
+} = vi.hoisted(() => ({
+  crearAnotacionMock: vi.fn(),
+  editarAnotacionMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
   usePlanillaMock: vi.fn(),
 }));
@@ -12,7 +19,14 @@ vi.mock("../hooks/estudiantesObservador/usePlanillaObservador", () => ({
 }));
 
 vi.mock("../services/observadorApi", () => ({
+  crearAnotacion: crearAnotacionMock,
+  editarAnotacion: editarAnotacionMock,
   obtenerObservador: obtenerObservadorMock,
+}));
+
+// El profesor eligio el periodo 3 en el Dashboard.
+vi.mock("../utils/periodoProfesor", () => ({
+  obtenerPeriodoProfesor: () => "3",
 }));
 
 import Observador from "./Observador";
@@ -26,6 +40,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   localStorage.setItem("asignacionId", "44");
+  localStorage.setItem("profesor", JSON.stringify({ id: 7 }));
+  crearAnotacionMock.mockResolvedValue({ id: 31 });
+  editarAnotacionMock.mockResolvedValue({ id: 12 });
   usePlanillaMock.mockReturnValue({
     estudiantes: ESTUDIANTES,
     cargando: false,
@@ -124,6 +141,165 @@ describe("página del Observador", () => {
     expect(
       await screen.findByText("No se pudo consultar el observador. Intenta de nuevo."),
     ).toBeInTheDocument();
+  });
+
+  async function abrirAnaYAnotar(user) {
+    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+    await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
+  }
+
+  it("guarda una anotación nueva con el periodo del Dashboard y el texto corregido", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await abrirAnaYAnotar(user);
+
+    // El periodo se le queda pegado para siempre, así que se dice antes.
+    expect(
+      screen.getByText("Se guardará en el Periodo 3, el que tienes activo."),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Conductual"), "se para mucho.hace desorden");
+    await user.click(screen.getByRole("radio", { name: /Negativa/ }));
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(crearAnotacionMock).toHaveBeenCalledTimes(1));
+    expect(crearAnotacionMock).toHaveBeenCalledWith({
+      estudiante_id: 11,
+      // El 3 sale del Dashboard, no del selector de la pantalla, que está en
+      // "Todos".
+      periodo: 3,
+      positiva: false,
+      conductual: "Se para mucho. Hace desorden",
+      cognitivo: "",
+      lenguaje: "",
+    });
+  });
+
+  it("después de guardar cierra el formulario y refresca la bitácora una vez", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await abrirAnaYAnotar(user);
+
+    await user.type(screen.getByLabelText("Cognitivo"), "Mejoró en las tablas.");
+    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    // Una sola recarga: la de abrir el alumno más la de después de guardar.
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
+    expect(screen.queryByLabelText("Cognitivo")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nueva anotación" })).toBeInTheDocument();
+  });
+
+  it("si el selector filtra otro periodo, pasa a «Todos» para que lo escrito se vea", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    await user.selectOptions(screen.getByRole("combobox"), "2");
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
+
+    await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
+    await user.type(screen.getByLabelText("Conductual"), "Algo nuevo.");
+    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    // La anotación nace en el periodo 3 y el selector estaba en el 2: sin esto
+    // no aparecería y la profesora creería que no se guardó.
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(3));
+    expect(obtenerObservadorMock.mock.calls[2][1].periodo).toBeNull();
+    expect(screen.getByRole("combobox")).toHaveValue("todos");
+  });
+
+  it("corrige una anotación propia sin tocar su periodo", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    await screen.findByRole("heading", { name: /Observador de Ana Rojas/ });
+
+    await user.click(screen.getByRole("button", { name: "Editar" }));
+
+    // Llega precargada con lo que ya decía.
+    expect(screen.getByLabelText("Conductual")).toHaveValue("Se para mucho.");
+    expect(
+      screen.getByText("Al corregir no cambia el periodo ni el estudiante."),
+    ).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Conductual"));
+    await user.type(screen.getByLabelText("Conductual"), "ya no se para.");
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(editarAnotacionMock).toHaveBeenCalledTimes(1));
+    expect(editarAnotacionMock).toHaveBeenCalledWith(12, {
+      positiva: false,
+      conductual: "Ya no se para.",
+      cognitivo: "",
+      lenguaje: "",
+    });
+    expect(crearAnotacionMock).not.toHaveBeenCalled();
+  });
+
+  it("no ofrece editar la anotación de otro profesor", async () => {
+    obtenerObservadorMock.mockResolvedValue({
+      nivel: "primaria",
+      anotaciones: [{
+        id: 13,
+        profesor_id: 8,
+        profesor: "Luis Díaz",
+        periodo: 1,
+        positiva: false,
+        conductual: "De otro profesor.",
+        cognitivo: "",
+        lenguaje: "",
+        creada_en: "2026-03-18T12:00:00Z",
+        editada_en: null,
+        editada_por: null,
+      }],
+    });
+    const user = userEvent.setup();
+    render(<Observador />);
+
+    await user.click(screen.getByRole("button", { name: "Ana Rojas" }));
+    expect(await screen.findByText("De otro profesor.")).toBeInTheDocument();
+
+    // Es cosmético: el servidor responde 403 si alguien lo intenta igual.
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+  });
+
+  it("enseña el mensaje del servidor si el guardado falla, sin cerrar el formulario", async () => {
+    crearAnotacionMock.mockRejectedValue({
+      response: {
+        status: 403,
+        data: { detail: "Solo un profesor del estudiante puede escribir en el observador." },
+      },
+    });
+    const user = userEvent.setup();
+    render(<Observador />);
+    await abrirAnaYAnotar(user);
+
+    await user.type(screen.getByLabelText("Conductual"), "Algo.");
+    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    expect(
+      await screen.findByText("Solo un profesor del estudiante puede escribir en el observador."),
+    ).toBeInTheDocument();
+    // No se cierra: lo escrito no se pierde por un fallo del servidor.
+    expect(screen.getByLabelText("Conductual")).toHaveValue("Algo.");
+  });
+
+  it("no deja guardar una anotación sin marcar si es positiva o negativa", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await abrirAnaYAnotar(user);
+
+    await user.type(screen.getByLabelText("Conductual"), "Algo escrito.");
+
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
+
+    await user.click(screen.getByRole("radio", { name: /Negativa/ }));
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeEnabled();
   });
 
   it("manda a elegir asignación si no hay ninguna guardada", () => {

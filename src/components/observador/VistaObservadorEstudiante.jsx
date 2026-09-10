@@ -4,6 +4,7 @@ import {
   OPCIONES_PERIODO_OBSERVADOR,
   PERIODO_TODOS,
 } from "../../utils/observador/anotaciones";
+import { esAnotacionPropia } from "../../utils/observador/formulario";
 
 /** Cuando no hay nada que mostrar, el aviso cambia según el selector: filtrar
  * por un periodo nunca oculta historial, así que si el filtro está puesto hay
@@ -18,7 +19,12 @@ function avisoSinAnotaciones(periodo) {
  * La bitácora de un estudiante, agrupada por dimensión.
  *
  * Presentacional: recibe las anotaciones ya cargadas y no pide nada. Cambiar
- * la agrupación **no** debe disparar otra petición (invariante 1).
+ * la agrupación **no** debe disparar otra petición.
+ *
+ * El formulario llega ya montado en `formulario`, y se pinta arriba tanto para
+ * una anotación nueva como para corregir una propia. Va **una sola vez** aunque
+ * la anotación aparezca bajo varias dimensiones: repetirlo tres veces sería
+ * incomprensible.
  */
 export default function VistaObservadorEstudiante({
   titulo,
@@ -29,6 +35,10 @@ export default function VistaObservadorEstudiante({
   error,
   onReintentar,
   onVolver,
+  profesorId,
+  onEditar,
+  onNuevaAnotacion,
+  formulario,
 }) {
   const grupos = agruparAnotacionesPorDimension(anotaciones);
 
@@ -48,21 +58,35 @@ export default function VistaObservadorEstudiante({
           </h2>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          Periodo:
-          <select
-            value={periodo}
-            onChange={(event) => onCambiarPeriodo(event.target.value)}
-            className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
-          >
-            {OPCIONES_PERIODO_OBSERVADOR.map((opcion) => (
-              <option key={opcion.value} value={opcion.value}>
-                {opcion.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex items-center gap-3">
+          {onNuevaAnotacion && !formulario && (
+            <button
+              type="button"
+              onClick={onNuevaAnotacion}
+              className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
+            >
+              Nueva anotación
+            </button>
+          )}
+
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            Periodo:
+            <select
+              value={periodo}
+              onChange={(event) => onCambiarPeriodo(event.target.value)}
+              className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+            >
+              {OPCIONES_PERIODO_OBSERVADOR.map((opcion) => (
+                <option key={opcion.value} value={opcion.value}>
+                  {opcion.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
+
+      {formulario}
 
       {cargando && (
         <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">
@@ -103,6 +127,8 @@ export default function VistaObservadorEstudiante({
                 key={`${grupo.campo}-${entrada.anotacion.id}`}
                 anotacion={entrada.anotacion}
                 texto={entrada.texto}
+                esPropia={esAnotacionPropia(entrada.anotacion, profesorId)}
+                onEditar={onEditar}
               />
             ))}
           </div>

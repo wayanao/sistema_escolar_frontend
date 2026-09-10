@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import AnotacionObservador from "./AnotacionObservador";
 
 function anotacion(extra = {}) {
@@ -64,13 +65,46 @@ describe("AnotacionObservador", () => {
     expect(screen.getByText("Editada el 2/abr")).toBeInTheDocument();
   });
 
-  it("no pinta ningún botón: ni borrar, ni editar todavía", () => {
+  it("pinta [Editar] solo en las propias", async () => {
+    const user = userEvent.setup();
+    const onEditar = vi.fn();
+    const propia = anotacion();
+
+    const { rerender } = render(
+      <AnotacionObservador
+        anotacion={propia}
+        texto="Se para mucho."
+        esPropia={false}
+        onEditar={onEditar}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+
+    rerender(
+      <AnotacionObservador
+        anotacion={propia}
+        texto="Se para mucho."
+        esPropia
+        onEditar={onEditar}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Editar" }));
+
+    expect(onEditar).toHaveBeenCalledWith(propia);
+  });
+
+  it("no pinta ningún botón de borrar, ni siquiera en la propia", () => {
     render(
-      <AnotacionObservador anotacion={anotacion()} texto="Se para mucho." />,
+      <AnotacionObservador
+        anotacion={anotacion()}
+        texto="Se para mucho."
+        esPropia
+        onEditar={vi.fn()}
+      />,
     );
 
-    // Nadie borra una anotación, en ninguna vista y para nadie. El botón de
-    // editar llega en la fase 2 y solo en las propias.
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    // Nadie borra una anotación, en ninguna vista y para nadie.
+    const botones = screen.getAllByRole("button").map((boton) => boton.textContent);
+    expect(botones).toStrictEqual(["Editar"]);
   });
 });

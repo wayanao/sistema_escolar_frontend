@@ -2,11 +2,12 @@
 
 ## Control
 
-- Estado: **Fase 1 terminada el 2026-09-09.** La pantalla existe y **lee**: el
-  profesor entra por «Observador» en Control Académico, elige un alumno y ve su
-  bitácora agrupada por dimensión. Todavía **no se puede escribir** —eso es la
-  fase 2— y la entrada del admin sigue leyendo las observaciones viejas.
-  La pantalla vieja (`/Formulario`) sigue intacta y en producción.
+- Estado: **Fases 1 y 2 terminadas el 2026-09-09.** La pantalla existe, **lee y
+  escribe**: el profesor entra por «Observador» en Control Académico, elige un
+  alumno, ve su bitácora agrupada por dimensión, añade anotaciones y corrige
+  las suyas. Falta la fase 3 —vista por fecha e impresión— y la entrada del
+  admin sigue leyendo las observaciones viejas. La pantalla vieja
+  (`/Formulario`) sigue intacta y en producción.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -59,6 +60,7 @@ profesores, a lo largo del año.
 | 10 | Impresión con dos opciones: **todo** o **solo mis anotaciones** |
 | 11 | **La materia no se muestra**, y por ahora ni se guarda | Decidido el 2026-09-08, después de darle dos vueltas. Ver abajo |
 | 12 | **El nivel del curso va en el título**, en los dos niveles | «Pepito · Primaria», «Juanito · Preescolar». Una vez, no en cada anotación |
+| 13 | **El periodo de una anotación nueva sale del Dashboard** | Decidido el 2026-09-09. No se pregunta y no se puede cambiar en el formulario. Ver abajo |
 
 ## Por dónde se entra
 
@@ -343,6 +345,59 @@ presentación tomada al construir: las copiadas de la tabla vieja llegan con
 elegirles un color o inventarles un día. Un `false` —negativa de verdad— nunca
 se pinta igual que un `null`, y hay prueba que lo fija.
 
+## Cómo quedó construida la fase 2
+
+**El periodo de una anotación nueva sale del Dashboard.** Decisión 13, tomada
+por el usuario el 2026-09-09 sobre tres opciones. Se descartó poner un selector
+en el formulario -«para que no haya embolate»-.
+
+Es un dato **irreversible**: `PUT` no cambia el periodo y `DELETE` no existe, así
+que una etiqueta equivocada se queda escrita para siempre. Consecuencias que se
+asumieron y hay que conocer:
+
+- Si el profesor **nunca eligió** periodo -docente nuevo, navegador nuevo, datos
+  borrados-, `obtenerPeriodoProfesor` cae al **1**, y la anotación nace
+  etiquetada como periodo 1 aunque el colegio vaya por el 3. **Deuda anotada, no
+  corre prisa**: si un día aparece, la salida es la tercera opción que se
+  descartó -no dejar guardar hasta que elija-.
+- Lo que sí se hizo, sin añadir un control: el formulario **dice** en qué
+  periodo va a quedar («Se guardará en el Periodo 3, el que tienes activo»).
+  Informar no es preguntar, y un dato que no se puede corregir después tiene que
+  poder verse antes.
+
+**El selector de la pantalla y el periodo de escritura son cosas distintas.** El
+selector filtra lo que se ve; el del Dashboard etiqueta lo que se escribe. Si al
+guardar el selector estaba filtrando otro periodo, lo recién escrito no
+aparecería y la profesora creería que no se guardó, así que **la pantalla pasa
+sola a «Todos»**. Cambiar el selector ya dispara la recarga, de modo que sigue
+siendo una sola petición. Hay prueba que cuenta las peticiones.
+
+**El formulario se pinta una sola vez, arriba.** Vale para una anotación nueva y
+para corregir una propia. No se pinta en el sitio de la anotación porque una
+anotación aparece bajo **cada** dimensión que tenga texto: el formulario saldría
+tres veces.
+
+**La corrección de mayúsculas solo toca campos que la profesora tocó.** Abrir
+una anotación vieja y pasar por encima de un campo sin escribir nada **no** le
+reescribe el texto. Era el riesgo que el documento tenía anotado desde el
+diseño. `useFormularioAnotacion` lleva la cuenta de los campos tocados, y
+`reiniciar` la borra: sin eso, cerrar un formulario y abrir otro arrastraría la
+marca.
+
+**El espejo con el servidor se comprobó, no se supuso.**
+`src/utils/observador/texto.js` y `app/core/texto_observador.py` se ejecutaron
+sobre los mismos once casos —incluidos «¿por qué», «ávila», «mide 1.75 metros» y
+la abreviatura «etc.»— y devolvieron exactamente lo mismo.
+
+**Un 422 de FastAPI no se le enseña a nadie.** Los errores conocidos del
+servidor -403, 404- traen un texto listo para mostrar y se muestra tal cual. Un
+422 de validación llega como lista de objetos con nombres internos, así que en
+ese caso sale un mensaje propio.
+
+**Editar una heredada obliga a marcarla.** Las copiadas de la tabla vieja no
+traen positiva ni negativa, y el `PUT` la exige. Al abrirlas para corregir, el
+formulario arranca sin marca y no deja guardar hasta elegir una.
+
 ## Plan de fases (frontend)
 
 **Fase 1 — Lectura — TERMINADA el 2026-09-09**
@@ -355,8 +410,9 @@ se pinta igual que un `null`, y hay prueba que lo fija.
 4. ~~Entrada del profesor~~: ruta `/observador` en `src/App.jsx` y el elemento
    «Observador» en `src/utils/autenticacion/navegacion.js`, justo debajo de
    «Observaciones». La vieja se queda.
-5. ~~Pruebas~~: 76, verificadas con mutaciones. Compuerta completa en verde:
-   **1648 pruebas**, `lint` y `build`.
+5. ~~Pruebas~~: 61 propias, más una existente del menú actualizada, todas
+   verificadas con mutaciones. Compuerta completa en verde: **1648 pruebas**,
+   `lint` y `build`.
 
 **Lo que la fase 1 NO hizo, y hay que saberlo:**
 
@@ -369,11 +425,16 @@ se pinta igual que un `null`, y hay prueba que lo fija.
   subir. La base de datos sí tiene la tabla. Contra `localhost` la pantalla
   funciona.
 
-**Fase 2 — Escritura** (requiere fase 3 del backend: **lo está desde el
-2026-09-08**)
-4. Formulario de anotación nueva con el selector positiva/negativa.
-5. Edición de anotación propia.
-6. Autocorrección de mayúsculas en `onBlur`.
+**Fase 2 — Escritura — TERMINADA el 2026-09-09**
+4. ~~Formulario de anotación nueva con el selector positiva/negativa~~:
+   `src/components/observador/FormularioAnotacionObservador.jsx` y
+   `src/hooks/observador/useFormularioAnotacion.js`.
+5. ~~Edición de anotación propia~~: `[Editar]` solo en las propias, y
+   `src/hooks/observador/useComandosObservador.js` para las dos escrituras.
+6. ~~Autocorrección de mayúsculas en `onBlur`~~: `src/utils/observador/texto.js`,
+   espejo comprobado de `app/core/texto_observador.py`.
+7. ~~Pruebas~~: 56 nuevas, verificadas con mutaciones. Compuerta completa en
+   verde: **1705 pruebas**, `lint` y `build`.
 
 **Fase 3 — Presentación**
 7. Botón de cambio a vista por fecha.
@@ -392,60 +453,75 @@ se pinta igual que un `null`, y hay prueba que lo fija.
    actualizar ese día y decía que seguía abierta; queda corregido.**
 2. ~~**¿La pantalla vieja se retira o convive?**~~ **Conviven**, decidido el
    2026-09-08, hasta que el usuario ordene retirarla. Es la fase 4.
-3. **¿Qué periodo se usa al escribir si el profesor no tiene ninguno guardado?**
-   Hoy `obtenerPeriodoProfesor` cae a `"1"`. **No afecta a la fase 1**: la
-   lectura arranca en «Todos» y sin periodo el servidor devuelve el año entero,
-   así que la pantalla nunca depende de ese valor. Sí hay que responderla
-   **antes de la fase 2**, porque una anotación nueva sí nace con un periodo
-   encima y esa etiqueta se queda escrita.
+3. ~~**¿Qué periodo se usa al escribir si el profesor no tiene ninguno
+   guardado?**~~ **Resuelta el 2026-09-09: el del Dashboard**, y si no hay
+   ninguno, el `"1"` al que `obtenerPeriodoProfesor` ya cae hoy. Sin selector en
+   el formulario. Ver «Cómo quedó construida la fase 2» para lo que eso implica
+   y cuál sería la salida si algún día molesta.
+
+**No queda ninguna abierta.** La única deuda anotada es la de arriba: un
+profesor sin periodo guardado escribe en el 1 sin enterarse. No corre prisa.
+
+### Deuda anotada: la asignación como única puerta
+
+La pantalla exige tener una asignación elegida, y el usuario preguntó por qué si
+el observador no depende de la materia. **Tiene razón**: la asignación se usa
+**solo** para saber a qué alumnos listar, y nada de ella se guarda en la
+anotación. Entrar por Matemáticas o por Artística enseña exactamente la misma
+bitácora.
+
+El motivo es que hoy el único endpoint que lista los alumnos de un profesor es
+`GET /planilla/{asignacion_id}`, que pide una clase. `GET /estudiantes` devuelve
+**todos los del colegio** y no está filtrado por profesor, así que no sirve.
+
+Para abrir la pantalla sin elegir clase haría falta un endpoint nuevo en el
+backend -«todos los alumnos de este profesor»-. **No corre prisa** y no rompe
+nada: es una comodidad, no un defecto.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **Fase 1 (lectura), el 2026-09-09.** Existe la
-  pantalla `/observador`: lista de alumnos con una petición, bitácora del alumno
-  al abrirlo, agrupada por dimensión, con el nivel en el título y el selector de
-  periodo en «Todos». 76 pruebas propias, verificadas con mutaciones. Compuerta
-  completa en verde: **1648 pruebas**, `pnpm run lint` y `pnpm run build`.
+- Última acción terminada: **Fase 2 (escritura), el 2026-09-09.** La pantalla
+  `/observador` lee, crea y corrige. **117 pruebas propias**, verificadas con
+  mutaciones. Compuerta completa en verde: **1705 pruebas**, `pnpm run lint` y
+  `pnpm run build`.
 - **Sin publicar, en los dos repos.** El backend de esta funcionalidad tiene
   seis commits locales sin subir y **no está desplegado**; este repo tiene los
   suyos. La base de datos de producción **sí** tiene ya la tabla y sus índices,
   aplicados el 2026-09-08. Orden correcto para publicar: **primero el backend**,
-  después el frontend. Al revés, la pantalla nueva pediría un endpoint que en
-  producción no existe.
+  después el frontend. Al revés, la pantalla nueva pediría endpoints que en
+  producción no existen —ahora también los de escribir—.
 - **La bitácora está vacía.** Falta ejecutar, en el repo del backend, la
   migración `20260908_observador_anotaciones_historicas.sql` y después
   `scripts/copiar_observaciones_al_observador.py`, que trae las 68 anotaciones
-  viejas. Hasta entonces la pantalla nueva dirá, con razón, que nadie ha escrito
-  nada. Comprobar con `SELECT count(*) FROM <tenant>.observador_anotaciones`.
+  viejas. Lo que se escriba con la pantalla nueva sí aparece desde el primer
+  momento. Comprobar con `SELECT count(*) FROM <tenant>.observador_anotaciones`.
 - **El fallo original sigue vivo en la pantalla vieja**, y seguirá mientras
   `/Formulario` sea la que usan los profesores. La nueva no lo hereda: convierte
   doce peticiones en una, y hay prueba que lo fija por aserción
   (`src/pages/Observador.test.jsx`).
-- Lo que **no** hace todavía esta pantalla: escribir, editar, la vista por
-  fecha, imprimir, y la autocorrección de mayúsculas. Son las fases 2 y 3.
+- Lo que **no** hace todavía: la vista por fecha y la impresión con sus dos
+  opciones. Es la fase 3, y **no toca el backend**: se pinta con lo que la
+  lectura ya devuelve, así que no debe provocar ninguna petición nueva.
 - **La entrada del admin sigue sin tocar.** `DetalleEstudianteAdmin.jsx` lee
   todavía las observaciones viejas. Cambiarle el origen de los datos es un paso
   aparte, sobre una pantalla que hoy funciona, y necesita su propia orden.
-- Contrato que consume la pantalla, por si hay que revisarlo:
-  `GET /observador/{estudiante_id}` → `{"nivel": ..., "anotaciones": [...]}`,
-  `?periodo=N` opcional entre 1 y 4, `404` solo si el estudiante no existe.
-  `nivel` llega **fuera** de las anotaciones y también cuando no hay ninguna.
-- Contratos de escritura que la fase 2 va a necesitar, ya listos en el
-  servidor:
+  Cuando se haga: el admin **ve todo pero no escribe ni edita**, y el servidor
+  ya lo impide con un 403.
+- Contratos que consume la pantalla, por si hay que revisarlos:
+  - `GET /observador/{estudiante_id}` → `{"nivel": ..., "anotaciones": [...]}`,
+    `?periodo=N` opcional entre 1 y 4, `404` solo si el estudiante no existe.
+    `nivel` llega **fuera** de las anotaciones y también cuando no hay ninguna.
   - `POST /observador` → `201` con `{"id": N}`. Cuerpo: `estudiante_id`,
-    `periodo` (1-4), `positiva`, y los tres campos de texto. **No mandes
-    `profesor_id`**: sale del token y el servidor ignora el del cuerpo. El
-    cuerpo **no** lleva `asignacion_id` ni `materia`.
+    `periodo`, `positiva` y los tres textos. **Sin `profesor_id`**, que sale del
+    token, y sin `asignacion_id` ni `materia`.
   - `PUT /observador/{anotacion_id}` → cuerpo: `positiva` y los tres textos.
-    **No** lleva `estudiante_id` ni `periodo`. `403` si la anotación no es tuya,
-    `404` si no existe.
+    **Sin `estudiante_id` ni `periodo`.** `403` si no es tuya, `404` si no
+    existe.
   - **No existe `DELETE`**, y no debe pedirse.
-  - El servidor aplica la misma autocorrección de mayúsculas al guardar
-    (`app/core/texto_observador.py`), así que la de la pantalla es comodidad y
-    no la garantía.
-  - `profesor_id` viaja en cada anotación para que la pantalla decida si pinta
-    `[Editar]`. Es **cosmético**: la regla de verdad la impone el servidor.
-- Siguiente acción exacta: que el usuario **autorice la Fase 2** (escribir y
-  editar). Antes de empezarla hay que responder la pregunta abierta 3: qué
-  periodo lleva una anotación nueva si el profesor no tiene ninguno guardado.
-  Una instrucción genérica como «continúa» no basta.
+- Dos deudas anotadas, ninguna urgente: un profesor sin periodo guardado escribe
+  en el periodo 1 sin enterarse, y la pantalla necesita una asignación elegida
+  solo para saber a qué alumnos listar. Las dos están explicadas en «Preguntas
+  abiertas».
+- Siguiente acción exacta: que el usuario **autorice la Fase 3** (vista por
+  fecha e impresión). No hay preguntas abiertas que la bloqueen. Una instrucción
+  genérica como «continúa» no basta.

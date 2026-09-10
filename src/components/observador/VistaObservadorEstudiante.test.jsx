@@ -131,6 +131,56 @@ describe("VistaObservadorEstudiante", () => {
     expect(onVolver).toHaveBeenCalledTimes(1);
   });
 
+  it("ofrece anotar, y esconde el botón mientras el formulario está abierto", async () => {
+    const user = userEvent.setup();
+    const onNuevaAnotacion = vi.fn();
+    const { rerender } = pintar({ onNuevaAnotacion });
+
+    await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
+    expect(onNuevaAnotacion).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <VistaObservadorEstudiante
+        titulo="Pepito Pérez · Primaria"
+        periodo="todos"
+        onCambiarPeriodo={vi.fn()}
+        anotaciones={[]}
+        cargando={false}
+        error={null}
+        onReintentar={vi.fn()}
+        onVolver={vi.fn()}
+        onNuevaAnotacion={onNuevaAnotacion}
+        formulario={<div>Formulario abierto</div>}
+      />,
+    );
+
+    expect(screen.getByText("Formulario abierto")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Nueva anotación" })).not.toBeInTheDocument();
+  });
+
+  it("pinta [Editar] solo en las anotaciones del profesor de la sesión", () => {
+    pintar({
+      profesorId: 7,
+      onEditar: vi.fn(),
+      anotaciones: [
+        anotacion({ id: 12, profesor_id: 7, conductual: "Mía." }),
+        anotacion({ id: 13, profesor_id: 8, profesor: "Luis Díaz", conductual: "De otro." }),
+      ],
+    });
+
+    // Es comodidad visual: la regla de verdad la impone el servidor con un 403.
+    expect(screen.getAllByRole("button", { name: "Editar" })).toHaveLength(1);
+  });
+
+  it("el formulario va una sola vez aunque la anotación esté bajo varias dimensiones", () => {
+    pintar({
+      formulario: <div>Formulario abierto</div>,
+      anotaciones: [anotacion({ conductual: "Se para.", cognitivo: "Creativo." })],
+    });
+
+    expect(screen.getAllByText("Formulario abierto")).toHaveLength(1);
+  });
+
   it("no ofrece borrar en ninguna vista", () => {
     pintar({ anotaciones: [anotacion({ conductual: "Se para mucho." })] });
 

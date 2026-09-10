@@ -162,7 +162,7 @@ describe("useObservadorEstudiante", () => {
     expect(result.current.anotaciones).toStrictEqual([]);
   });
 
-  it("reintentar vuelve a preguntar y limpia el error anterior", async () => {
+  it("recargar vuelve a preguntar y limpia el error anterior", async () => {
     obtenerObservadorMock.mockRejectedValueOnce({ response: { status: 500 } });
 
     const { result } = renderHook(() =>
@@ -171,7 +171,7 @@ describe("useObservadorEstudiante", () => {
 
     await waitFor(() => expect(result.current.error).toBe(ERROR_CONSULTA));
 
-    act(() => result.current.reintentar());
+    act(() => result.current.recargar());
 
     // Se espera a la bitácora y no al error: el error se limpia al arrancar la
     // consulta, así que esperarlo a él daría por buena una respuesta que
