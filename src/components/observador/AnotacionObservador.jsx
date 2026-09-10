@@ -2,6 +2,7 @@ import {
   formatearFechaAnotacion,
   formatearPeriodoAnotacion,
 } from "../../utils/observador/anotaciones";
+import { colorDeProfesor } from "../../utils/observador/coloresProfesor";
 
 /**
  * Una anotación de la bitácora, con el texto de la dimensión bajo la que se
@@ -23,14 +24,19 @@ export default function AnotacionObservador({ anotacion, texto, esPropia, onEdit
   const periodo = formatearPeriodoAnotacion(anotacion.periodo);
   const editada = Boolean(anotacion.editada_en);
 
-  const encabezado = [anotacion.profesor || "Profesor sin nombre", fecha, periodo]
-    .filter(Boolean)
-    .join(" · ");
+  const profesor = anotacion.profesor || "Profesor sin nombre";
+  // Cada profesor con su color, para distinguir de un vistazo quién escribió
+  // cada anotación. El nombre sigue escrito: el color acompaña, no sustituye.
+  const color = colorDeProfesor(anotacion.profesor_id);
+  const cuando = [fecha, periodo].filter(Boolean).join(" · ");
 
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <header className="flex items-start gap-2">
-        <p className="flex-1 text-sm font-semibold text-slate-800">{encabezado}</p>
+        <p className="flex-1 text-sm">
+          <span className={`font-semibold ${color}`}>{profesor}</span>
+          {cuando && <span className="text-slate-500">{` · ${cuando}`}</span>}
+        </p>
         {esPropia && onEditar && (
           <button
             type="button"

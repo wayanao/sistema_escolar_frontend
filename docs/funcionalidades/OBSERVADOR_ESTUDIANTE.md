@@ -149,7 +149,7 @@ OBSERVADOR DE PEPITO PÉREZ · Primaria     Periodo: [Todos ▾]   [Imprimir ▾
                                       [ Por dimensión | Por fecha ]
 
 ━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Prof. Ana · 20/mar · P1
+  Prof. Ana · 20/mar · P1        ← el nombre, en el color de Ana
      Se para mucho.                                  [Editar]
 
   Prof. Luis · 18/mar · P1
@@ -273,6 +273,47 @@ puesto un ⚪ «sin marcar» permanente en cada anotación nueva, que es ruido.
 Efecto secundario bueno: **corregir una heredada ya no obliga a marcarla.** Antes
 el `PUT` exigía la marca, así que arreglar una errata en una anotación copiada de
 la tabla vieja obligaba a inventarle una etiqueta que nunca tuvo.
+
+## Un color por profesor
+
+Pedido por el usuario el 2026-09-10, para distinguir de un vistazo quién escribió
+cada anotación. **Solo frontend**: el `profesor_id` ya venía en cada anotación.
+
+Se colorea **el nombre**, y solo el nombre; la fecha y el periodo se quedan
+grises. El nombre sigue escrito, así que **el color acompaña, no sustituye**:
+quien no distinga dos tonos lee exactamente lo mismo que antes.
+
+**El color sale del `profesor_id`, no del nombre.** El id es estable: dos
+profesoras que se llamen igual no comparten color, cambiarle el nombre a una no
+le cambia el suyo, y el mismo profesor sale del mismo tono en la bitácora de
+todos sus alumnos. Eso último es lo que hace que el color signifique algo.
+
+### Lo simple ganó, y se midió
+
+El reparto es `profesor_id % 8`. Antes de elegirlo se comprobó contra los **16
+cursos reales** de los dos colegios:
+
+| Reparto | Cursos con dos profesores del mismo color |
+|---|---|
+| Resto (`id % 8`) | **0 de 16** |
+| Hash multiplicativo | **6 de 16** |
+
+El hash parecía más fino y era peor. El motivo: los profesores de un mismo curso
+tienen ids seguidos —39, 40, 42, 44—, y el resto los separa uno a uno mientras
+que el hash los revuelve y los junta. Ocho colores sobran: el curso con más
+docentes tiene **5**.
+
+### La trampa de Tailwind
+
+Las clases van escritas **enteras y literales** en `coloresProfesor.js`. Tailwind
+lee el código fuente para decidir qué CSS genera, así que componerlas
+—`` `text-${color}-700` ``— las dejaría fuera de la hoja de estilos: el nombre
+saldría sin color y **ningún error lo avisaría**.
+
+Hay prueba que lo fija, y **lee el archivo**, no el valor: componerlas da
+exactamente la misma cadena en memoria. La primera versión de esa prueba
+comprobaba el valor y no detectaba la mutación; se corrigió. Además, tras
+`pnpm run build` se verificó que los ocho colores aparecen en el CSS generado.
 
 ## Autocorrección de mayúsculas
 

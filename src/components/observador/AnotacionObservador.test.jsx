@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AnotacionObservador from "./AnotacionObservador";
+import {
+  COLOR_SIN_PROFESOR,
+  colorDeProfesor,
+} from "../../utils/observador/coloresProfesor";
 
 function anotacion(extra = {}) {
   return {
@@ -25,8 +29,52 @@ describe("AnotacionObservador", () => {
       <AnotacionObservador anotacion={anotacion()} texto="Se para mucho." />,
     );
 
-    expect(screen.getByText("Ana Gómez · 20/mar · P1")).toBeInTheDocument();
+    expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+    expect(screen.getByText("· 20/mar · P1")).toBeInTheDocument();
     expect(screen.getByText("Se para mucho.")).toBeInTheDocument();
+  });
+
+  it("pinta el nombre del profesor con su color, y la fecha no", () => {
+    render(
+      <AnotacionObservador anotacion={anotacion()} texto="Se para mucho." />,
+    );
+
+    // El color acompaña al nombre; el nombre sigue escrito, así que quien no
+    // distinga dos tonos lee exactamente lo mismo.
+    expect(screen.getByText("Ana Gómez").className)
+      .toBe(`font-semibold ${colorDeProfesor(7)}`);
+    expect(screen.getByText("· 20/mar · P1").className).toBe("text-slate-500");
+  });
+
+  it("dos profesores distintos salen de colores distintos", () => {
+    const { container } = render(
+      <div>
+        <AnotacionObservador
+          anotacion={anotacion({ profesor_id: 7, profesor: "Ana Gómez" })}
+          texto="Una."
+        />
+        <AnotacionObservador
+          anotacion={anotacion({ id: 13, profesor_id: 8, profesor: "Luis Díaz" })}
+          texto="Otra."
+        />
+      </div>,
+    );
+
+    expect(screen.getByText("Ana Gómez").className)
+      .not.toBe(screen.getByText("Luis Díaz").className);
+    expect(container).toBeTruthy();
+  });
+
+  it("una anotación sin autor reconocible no se queda sin clase", () => {
+    render(
+      <AnotacionObservador
+        anotacion={anotacion({ profesor: "", profesor_id: null })}
+        texto="Se para mucho."
+      />,
+    );
+
+    expect(screen.getByText("Profesor sin nombre").className)
+      .toBe(`font-semibold ${COLOR_SIN_PROFESOR}`);
   });
 
   it("no muestra si la observación es buena o mala", () => {
@@ -63,7 +111,8 @@ describe("AnotacionObservador", () => {
       />,
     );
 
-    expect(screen.getByText("Ana Gómez · Sin fecha · P1")).toBeInTheDocument();
+    expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+    expect(screen.getByText("· Sin fecha · P1")).toBeInTheDocument();
   });
 
   it("deja constancia de que la anotación fue editada", () => {

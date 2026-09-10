@@ -1,5 +1,49 @@
 # Cambios Frontend
 
+## 2026-09-10 - Observador: un color por profesor
+
+Pedido por el usuario, para distinguir de un vistazo quien escribio cada
+anotacion. **Solo frontend**: el `profesor_id` ya venia en cada anotacion.
+
+Se colorea **el nombre** y solo el nombre; la fecha y el periodo se quedan
+grises. El nombre sigue escrito, asi que el color acompana y no sustituye: quien
+no distinga dos tonos lee lo mismo que antes.
+
+El color sale del `profesor_id` y no del nombre. Dos profesoras que se llamen
+igual no comparten color, cambiarle el nombre a una no le cambia el suyo, y el
+mismo profesor sale del mismo tono en la bitacora de todos sus alumnos.
+
+### Lo simple gano, y se midio
+
+Reparto por resto, `id % 8`, comprobado contra los 16 cursos reales de los dos
+colegios:
+
+| Reparto | Cursos con dos profesores del mismo color |
+|---|---|
+| Resto (`id % 8`) | **0 de 16** |
+| Hash multiplicativo | **6 de 16** |
+
+El hash parecia mas fino y era peor: los profesores de un mismo curso tienen ids
+seguidos -39, 40, 42, 44-, y el resto los separa uno a uno mientras que el hash
+los revuelve y los junta. Ocho colores sobran: el curso con mas docentes tiene 5.
+
+### Una prueba que no protegia lo que decia
+
+Las clases van literales porque Tailwind lee el codigo fuente para decidir que
+CSS genera; componerlas las dejaria fuera de la hoja de estilos sin ningun error
+que lo avisara.
+
+La primera version de esa prueba comprobaba el **valor** de las clases, y
+componerlas da exactamente la misma cadena en memoria: la mutacion pasaba sin
+romper nada. Se reescribio para leer el **archivo**. Ahora si muerde, y ademas
+se verifico tras `pnpm run build` que los ocho colores estan en el CSS generado.
+
+### Pruebas
+
+`1740 pasan`, diez nuevas. Verificado con mutaciones: dar el mismo color a todos
+y componer las clases. Las dos rompen pruebas. `lint` y `build`, en verde.
+
+
 ## 2026-09-09 - Observador: fuera la marca de positiva o negativa
 
 Decidido por el usuario. **Revierte la decision 6** del documento, que era una de

@@ -210,8 +210,9 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/observador/`: agrupación por dimensión, opciones de periodo, fecha
   corta y título con nivel del curso; agrupación de la
   lista de alumnos por curso y su filtro; validación y cuerpos de las peticiones
-  de escritura; y la corrección de mayúsculas, espejo comprobado de
-  `app/core/texto_observador.py`. Todo como contratos puros.
+  de escritura; el color de cada profesor, repartido por `profesor_id`; y la
+  corrección de mayúsculas, espejo comprobado de `app/core/texto_observador.py`.
+  Todo como contratos puros.
 - `src/utils/certificadosImpresion/`: contratos, filtros, consolidación
   académica y transformaciones puras de certificados e impresión.
 - `src/utils/carteraTiposPago/`: formatos, filtros, totales, CSV, estados de

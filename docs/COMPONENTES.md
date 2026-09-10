@@ -745,6 +745,8 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   pantalla; la vieja lo sigue usando.
 - `utils/observador/alumnos.js`: agrupación por curso, nombre completo y filtro,
   como contratos puros.
+- `utils/observador/coloresProfesor.js`: un color por profesor, repartido por
+  `profesor_id`. Las clases van literales porque Tailwind lee el código fuente.
 - `components/observador/VistaObservadorEstudiante.jsx`: la bitácora agrupada
   por dimensión, con el nivel del curso en el título y el selector de periodo en
   «Todos». Cambiar la agrupación **no** dispara otra petición.
