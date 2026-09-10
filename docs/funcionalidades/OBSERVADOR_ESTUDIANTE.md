@@ -62,6 +62,7 @@ profesores, a lo largo del año.
 | 11 | **La materia no se muestra**, y por ahora ni se guarda | Decidido el 2026-09-08, después de darle dos vueltas. Ver abajo |
 | 12 | **El nivel del curso va en el título**, en los dos niveles | «Pepito · Primaria», «Juanito · Preescolar». Una vez, no en cada anotación |
 | 13 | **El periodo de una anotación nueva sale del Dashboard** | Decidido el 2026-09-09. No se pregunta y no se puede cambiar en el formulario. Ver abajo |
+| 14 | **Es una pestaña suelta del menú**, no un hijo de Control Académico | Decidido el 2026-09-09. Ese grupo son tareas de la clase elegida, y esta pantalla ya no depende de ninguna |
 
 ## Por dónde se entra
 
@@ -69,17 +70,34 @@ Decidido con el usuario el 2026-09-08. Cierra la pregunta abierta 1.
 
 ### Profesor: un elemento nuevo en «Control Académico»
 
-En `src/utils/autenticacion/navegacion.js`, dentro del grupo `control`, **justo
-debajo** de «Observaciones». La entrada vieja **se queda**: conviven hasta que el
-usuario ordene retirarla.
+En `src/utils/autenticacion/navegacion.js`, como **pestaña suelta**, fuera de
+Control Académico. La entrada vieja **se queda** dentro del grupo: conviven hasta
+que el usuario ordene retirarla.
 
 ```
+Dashboard
 Control Académico
    ├─ Planilla
    ├─ Asistencia
-   ├─ Observaciones          ← la vieja, /Formulario, intacta
-   └─ Observador             ← la nueva
+   └─ Observaciones          ← la vieja, /Formulario, intacta
+Planeación Académica
+Observador                   ← la nueva, suelta
+Boletín Final
 ```
+
+Los dos grupos van juntos y las pestañas sueltas después. El orden se fijó así
+el 2026-09-09, a petición del usuario.
+
+> **Movida fuera del grupo el 2026-09-09**, a petición del usuario. Nació dentro
+> de Control Académico, donde están las tareas de **la clase elegida**: planilla,
+> asistencia, observaciones. El Observador dejó de ser eso el mismo día —es una
+> pantalla **por estudiante** y ya no depende de ninguna clase—, así que estaba
+> en el cajón equivocado.
+
+**El menú móvil está escrito a mano**, en `NavProfesorView.jsx`, aparte de
+`PROFESOR_DESKTOP_ITEMS`. Un elemento nuevo puede quedarse solo en escritorio sin
+que nadie lo note: pasó con este entre el 2026-09-09 y esa misma tarde. Hay
+prueba que exige que aparezca en los dos.
 
 La pantalla lista **solo los nombres** de sus alumnos —una petición— y al pulsar
 uno abre su bitácora completa con **una sola petición más**.

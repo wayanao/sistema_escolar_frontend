@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import NavAdminView from "./NavAdminView";
 import NavProfesorView from "./NavProfesorView";
 import NavSuperAdminView from "./NavSuperAdminView";
+import { PROFESOR_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
 
 vi.mock("./DesktopAnimatedNav", () => ({
   default: ({ items, variant, ariaLabel }) => (
@@ -104,9 +105,45 @@ describe("vistas de navegacion", () => {
     await user.click(screen.getByRole("button", { name: "Cerrar sesion" }));
     expect(onCerrarSesion).toHaveBeenCalledTimes(1);
 
+    // El Observador es una pestana suelta, no un hijo de Control Academico.
+    expect(within(desktop).getByRole("link", { name: "Observador" })).toHaveAttribute(
+      "href",
+      "/observador",
+    );
+
     await user.click(screen.getByRole("button", { name: "Abrir menu de profesor" }));
+    // En movil tambien va suelto: se ve sin desplegar ningun grupo. El menu
+    // movil esta escrito a mano, aparte de PROFESOR_DESKTOP_ITEMS, asi que un
+    // elemento nuevo puede quedarse solo en escritorio sin que nadie lo note.
+    expect(screen.getAllByRole("link", { name: "Observador" })).toHaveLength(2);
+
     await user.click(screen.getByRole("button", { name: "Control Académico" }));
     expect(screen.getAllByRole("link", { name: "Observaciones" })).toHaveLength(2);
+  });
+
+  it("el menu movil de profesor lleva el mismo orden que el de escritorio", async () => {
+    // El menu movil esta escrito a mano en NavProfesorView.jsx y no sale de
+    // PROFESOR_DESKTOP_ITEMS. Ya paso una vez -«Observador» se quedo solo en
+    // escritorio-, asi que esta prueba ata los dos ordenes.
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NavProfesorView onCerrarSesion={vi.fn()} renderNotificaciones={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Abrir menu de profesor" }));
+
+    const movil = screen
+      .getAllByRole("navigation")
+      .find((nav) => !nav.getAttribute("aria-label"));
+    const primerNivel = Array.from(movil.children)
+      .map((hijo) => hijo.textContent.trim())
+      .filter((texto) => texto && texto !== "Cerrar sesion");
+
+    expect(primerNivel).toStrictEqual(
+      PROFESOR_DESKTOP_ITEMS.map((item) => item.label),
+    );
   });
 
   it("presenta identidad, ruta y callback de super admin", async () => {

@@ -134,6 +134,8 @@ function NavProfesorView({ onCerrarSesion, renderNotificaciones }) {
             </div>
           )}
 
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/observador">Observador</NavLink>
+
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/ingreso-boletin">Boletín Final</NavLink>
 
           <button onClick={onCerrarSesion} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesion</button>

@@ -42,7 +42,6 @@ export const PROFESOR_DESKTOP_ITEMS = [
       { id: "planilla", label: "Planilla", to: "/planilla" },
       { id: "asistencia", label: "Asistencia", to: "/asistencia" },
       { id: "observaciones", label: "Observaciones", to: "/Formulario" },
-      { id: "observador", label: "Observador", to: "/observador" },
     ],
   },
   {
@@ -54,6 +53,11 @@ export const PROFESOR_DESKTOP_ITEMS = [
       { id: "malla", label: "Malla Curricular", to: "/planeador-anual" },
     ],
   },
+  // Suelto y no dentro de Control Académico: es una pantalla por estudiante,
+  // no una tarea de la clase que el profesor tenga elegida. Decidido con el
+  // usuario el 2026-09-09, el mismo día en que dejó de depender de la
+  // asignación.
+  { id: "observador", type: "link", label: "Observador", to: "/observador" },
   { id: "boletin", type: "link", label: "Boletín Final", to: "/ingreso-boletin" },
 ];
 

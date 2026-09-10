@@ -1,5 +1,59 @@
 # Cambios Frontend
 
+## 2026-09-09 - Nav de profesor: los dos grupos juntos
+
+`Planeacion Academica` vuelve a quedar pegada a `Control Academico`, y
+`Observador` pasa detras de las dos. Lo pidio el usuario. Orden final: Dashboard,
+Control Academico, Planeacion Academica, Observador, Boletin Final.
+
+### Una prueba que ata los dos menus
+
+El menu movil esta escrito a mano en `NavProfesorView.jsx` y **no sale** de
+`PROFESOR_DESKTOP_ITEMS`. Esa duplicacion ya fallo una vez hoy -«Observador» se
+quedo solo en escritorio-, y reordenar es justo el cambio que la vuelve a
+romper en silencio.
+
+Se anadio una prueba que compara el primer nivel del menu movil, en orden, con
+`PROFESOR_DESKTOP_ITEMS`. Verificada con mutacion: dejar el movil en el orden
+anterior la rompe.
+
+Arreglar la duplicacion de raiz -que el movil se pinte desde la misma lista-
+queda **anotado como deuda**. No corre prisa y toca un componente que hoy
+funciona.
+
+### Pruebas
+
+`1730 pasan`, una nueva. `lint` y `build`, en verde.
+
+
+## 2026-09-09 - Observador: pestana suelta en el menu
+
+Sale de Control Academico y pasa a ser un elemento propio del menu, entre ese
+grupo y Planeacion Academica. Lo pidio el usuario.
+
+**Estaba en el cajon equivocado.** Control Academico son las tareas de *la clase
+elegida*: planilla, asistencia, observaciones. El Observador dejo de ser eso el
+mismo dia, cuando dejo de depender de la asignacion: es una pantalla por
+estudiante. La entrada vieja «Observaciones» se queda dentro del grupo, donde si
+le corresponde.
+
+### Un descuido de la fase 1, corregido aqui
+
+**El menu movil esta escrito a mano** en `NavProfesorView.jsx`, aparte de
+`PROFESOR_DESKTOP_ITEMS`. Al anadir «Observador» en la fase 1 solo se toco la
+lista de escritorio, asi que **en movil no aparecia**. Nadie lo habria visto
+hasta abrirlo en un telefono.
+
+Queda corregido y con prueba: ahora se exige que el enlace exista en los dos
+menus. Es una trampa de este componente, no del observador; el siguiente
+elemento que se anada puede caer igual.
+
+### Pruebas
+
+`1729 pasan`. Verificado con mutaciones: devolverlo al grupo y quitarlo del menu
+movil. Las dos rompen pruebas. `lint` y `build`, en verde.
+
+
 ## 2026-09-09 - Observador: entrar sin elegir clase
 
 La pantalla `/observador` ya no exige tener una asignacion seleccionada. Entra

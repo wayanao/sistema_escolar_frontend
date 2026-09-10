@@ -121,7 +121,8 @@ Notas de UX por ruta admin:
   - Planilla.
   - Asistencia.
   - Observaciones (`/Formulario`), la pantalla vieja.
-  - Observador (`/observador`), la bitacora por estudiante.
+- Observador (`/observador`), **pestana suelta**: es una pantalla por estudiante,
+  no una tarea de la clase elegida. Sale en escritorio y en movil.
 - Planeacion Academica:
   - Plan de clases.
   - Planeador anual / Malla Curricular.
