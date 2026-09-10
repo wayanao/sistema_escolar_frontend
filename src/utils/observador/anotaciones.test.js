@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   agruparAnotacionesPorDimension,
-  describirMarcaAnotacion,
   DIMENSIONES_OBSERVADOR,
   etiquetaNivelObservador,
   formatearFechaAnotacion,
@@ -19,7 +18,6 @@ function anotacion(extra = {}) {
     profesor_id: 7,
     profesor: "Ana Gómez",
     periodo: 1,
-    positiva: false,
     conductual: "",
     cognitivo: "",
     lenguaje: "",
@@ -111,21 +109,6 @@ describe("agrupación por dimensión", () => {
   it("aguanta una lista vacía o ausente", () => {
     expect(agruparAnotacionesPorDimension([])).toStrictEqual([]);
     expect(agruparAnotacionesPorDimension(null)).toStrictEqual([]);
-  });
-});
-
-describe("marca positiva o negativa", () => {
-  it("distingue positiva, negativa y sin marcar", () => {
-    expect(describirMarcaAnotacion(true).etiqueta).toBe("Positiva");
-    expect(describirMarcaAnotacion(false).etiqueta).toBe("Negativa");
-    // Las heredadas de la tabla vieja llegan con `positiva` en null porque el
-    // modelo anterior no distinguía y se decidió no inventarles una marca.
-    expect(describirMarcaAnotacion(null).etiqueta).toBe("Sin marcar");
-  });
-
-  it("no confunde `false` con «sin marcar»", () => {
-    expect(describirMarcaAnotacion(false).simbolo)
-      .not.toBe(describirMarcaAnotacion(null).simbolo);
   });
 });
 

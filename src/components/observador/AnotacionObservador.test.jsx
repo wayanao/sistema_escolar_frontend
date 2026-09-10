@@ -9,7 +9,6 @@ function anotacion(extra = {}) {
     profesor_id: 7,
     profesor: "Ana Gómez",
     periodo: 1,
-    positiva: false,
     conductual: "Se para mucho.",
     cognitivo: "",
     lenguaje: "",
@@ -28,7 +27,21 @@ describe("AnotacionObservador", () => {
 
     expect(screen.getByText("Ana Gómez · 20/mar · P1")).toBeInTheDocument();
     expect(screen.getByText("Se para mucho.")).toBeInTheDocument();
-    expect(screen.getByText("Negativa")).toBeInTheDocument();
+  });
+
+  it("no muestra si la observación es buena o mala", () => {
+    // Se quito el 2026-09-09. La columna sigue en la base y el endpoint la
+    // sigue devolviendo, pero la pantalla no la enseña.
+    render(
+      <AnotacionObservador
+        anotacion={anotacion({ positiva: false })}
+        texto="Se para mucho."
+      />,
+    );
+
+    expect(screen.queryByText("Negativa")).not.toBeInTheDocument();
+    expect(screen.queryByText("Positiva")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sin marcar")).not.toBeInTheDocument();
   });
 
   it("no muestra la materia, que se decidió no enseñar ni pedir", () => {
@@ -45,13 +58,12 @@ describe("AnotacionObservador", () => {
   it("dice «Sin fecha» en una heredada, en vez de inventarle una", () => {
     render(
       <AnotacionObservador
-        anotacion={anotacion({ creada_en: null, positiva: null })}
+        anotacion={anotacion({ creada_en: null })}
         texto="Anotación vieja."
       />,
     );
 
     expect(screen.getByText("Ana Gómez · Sin fecha · P1")).toBeInTheDocument();
-    expect(screen.getByText("Sin marcar")).toBeInTheDocument();
   });
 
   it("deja constancia de que la anotación fue editada", () => {

@@ -9,7 +9,6 @@ function anotacion(extra = {}) {
     profesor_id: 7,
     profesor: "Ana Gómez",
     periodo: 1,
-    positiva: false,
     conductual: "",
     cognitivo: "",
     lenguaje: "",

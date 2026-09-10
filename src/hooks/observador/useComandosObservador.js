@@ -14,8 +14,7 @@ import {
  * añadirse**: nadie borra una anotación.
  */
 
-const MENSAJE_INCOMPLETA =
-  "Escribe al menos una observación y marca si es positiva o negativa.";
+const MENSAJE_INCOMPLETA = "Escribe al menos una observación antes de guardar.";
 const MENSAJE_FALLO = "No se pudo guardar la anotación. Intenta de nuevo.";
 
 /** El servidor manda un texto listo para enseñar en sus errores conocidos -403,

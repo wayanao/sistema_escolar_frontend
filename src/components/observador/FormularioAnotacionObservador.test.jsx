@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import FormularioAnotacionObservador from "./FormularioAnotacionObservador";
 
-const VACIO = { conductual: "", cognitivo: "", lenguaje: "", positiva: null };
+const VACIO = { conductual: "", cognitivo: "", lenguaje: "" };
 
 function pintar(props = {}) {
   return render(
@@ -12,7 +12,6 @@ function pintar(props = {}) {
       valores={VACIO}
       onCambiarTexto={vi.fn()}
       onSalirDeCampo={vi.fn()}
-      onCambiarPositiva={vi.fn()}
       onGuardar={vi.fn()}
       onCancelar={vi.fn()}
       guardando={false}
@@ -43,16 +42,12 @@ describe("FormularioAnotacionObservador", () => {
     ).toBeInTheDocument();
   });
 
-  it("obliga a marcar positiva o negativa", async () => {
-    const user = userEvent.setup();
-    const onCambiarPositiva = vi.fn();
-    pintar({ onCambiarPositiva });
+  it("no pregunta si la observación es buena o mala", () => {
+    // Se quito el 2026-09-09, a peticion del usuario.
+    pintar();
 
-    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
-    expect(onCambiarPositiva).toHaveBeenCalledWith(true);
-
-    await user.click(screen.getByRole("radio", { name: /Negativa/ }));
-    expect(onCambiarPositiva).toHaveBeenCalledWith(false);
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(screen.queryByText(/positiva o negativa/i)).not.toBeInTheDocument();
   });
 
   it("avisa del texto al escribir y pide la corrección al salir del campo", async () => {

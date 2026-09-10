@@ -1,5 +1,44 @@
 # Cambios Frontend
 
+## 2026-09-09 - Observador: fuera la marca de positiva o negativa
+
+Decidido por el usuario. **Revierte la decision 6** del documento, que era una de
+las que pedia no reabrir; las tomo el y las puede cambiar.
+
+Se quito **del todo**: ni se pregunta al guardar, ni se pinta el circulo de color
+al leer. Media medida no valia: dejar solo la parte de mostrar habria puesto un
+circulo blanco de «sin marcar» permanente en cada anotacion nueva, que es ruido.
+
+### La columna no se borra
+
+Se jubila, como `materia`. Sigue en la tabla, el endpoint la sigue devolviendo, y
+las cuatro filas que ya tenian marca la conservan. Volver atras seria cambiar
+solo la pantalla, sin otra migracion.
+
+### Un efecto secundario bueno
+
+**Corregir una anotacion heredada ya no obliga a marcarla.** Antes el servidor
+exigia la marca al editar, asi que arreglar una errata en una anotacion copiada
+de la tabla vieja obligaba a inventarle una etiqueta que nunca tuvo. Ahora una
+edicion no toca ese campo.
+
+### Lo unico que queda para poder guardar
+
+Escribir algo en al menos uno de los tres campos. Era la otra condicion y ahora
+es la unica.
+
+### Pruebas
+
+`1730 pasan`. Verificado con mutaciones: volver a exigir la marca para guardar,
+volver a mandarla en el cuerpo, y volver a pintar el circulo de color. Las tres
+rompen pruebas. `lint` y `build`, en verde.
+
+### El backend va primero
+
+Si se publica esta pantalla antes, dejaria de mandar una marca que el servidor
+de produccion todavia exige, y no se podria guardar nada.
+
+
 ## 2026-09-09 - Nav de profesor: los dos grupos juntos
 
 `Planeacion Academica` vuelve a quedar pegada a `Control Academico`, y

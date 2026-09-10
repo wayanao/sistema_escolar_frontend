@@ -1,8 +1,10 @@
 import { DIMENSIONES_OBSERVADOR } from "../../utils/observador/anotaciones";
 
 /**
- * El formulario de una anotación: los tres campos de siempre y la marca
- * positiva o negativa, que es obligatoria.
+ * El formulario de una anotación: los tres campos de siempre.
+ *
+ * La marca de positiva o negativa se quitó el 2026-09-09, a petición del
+ * usuario. No se pide, no se muestra y no se guarda.
  *
  * La corrección de mayúsculas se dispara **al salir del campo** (`onBlur`),
  * jamás en cada tecla: corregir letra por letra hace saltar el cursor y el
@@ -14,7 +16,6 @@ export default function FormularioAnotacionObservador({
   valores,
   onCambiarTexto,
   onSalirDeCampo,
-  onCambiarPositiva,
   onGuardar,
   onCancelar,
   guardando,
@@ -48,34 +49,6 @@ export default function FormularioAnotacionObservador({
           />
         </label>
       ))}
-
-      <fieldset className="space-y-1">
-        <legend className="text-sm font-medium text-slate-700">
-          ¿Es positiva o negativa?
-        </legend>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="radio"
-              name="positiva"
-              checked={valores.positiva === true}
-              onChange={() => onCambiarPositiva(true)}
-              disabled={guardando}
-            />
-            🟢 Positiva
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="radio"
-              name="positiva"
-              checked={valores.positiva === false}
-              onChange={() => onCambiarPositiva(false)}
-              disabled={guardando}
-            />
-            🔴 Negativa
-          </label>
-        </div>
-      </fieldset>
 
       {periodoTexto && (
         <p className="text-xs text-slate-500">{periodoTexto}</p>

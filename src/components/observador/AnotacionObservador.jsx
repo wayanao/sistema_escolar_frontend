@@ -1,5 +1,4 @@
 import {
-  describirMarcaAnotacion,
   formatearFechaAnotacion,
   formatearPeriodoAnotacion,
 } from "../../utils/observador/anotaciones";
@@ -20,7 +19,6 @@ import {
  * defensa.
  */
 export default function AnotacionObservador({ anotacion, texto, esPropia, onEditar }) {
-  const marca = describirMarcaAnotacion(anotacion.positiva);
   const fecha = formatearFechaAnotacion(anotacion.creada_en);
   const periodo = formatearPeriodoAnotacion(anotacion.periodo);
   const editada = Boolean(anotacion.editada_en);
@@ -32,8 +30,6 @@ export default function AnotacionObservador({ anotacion, texto, esPropia, onEdit
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <header className="flex items-start gap-2">
-        <span aria-hidden="true">{marca.simbolo}</span>
-        <span className="sr-only">{marca.etiqueta}</span>
         <p className="flex-1 text-sm font-semibold text-slate-800">{encabezado}</p>
         {esPropia && onEditar && (
           <button

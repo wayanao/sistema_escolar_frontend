@@ -6,8 +6,8 @@ import {
 } from "../../utils/observador/formulario";
 
 /**
- * Estado editable de una anotación: los tres textos y la marca positiva o
- * negativa.
+ * Estado editable de una anotación: los tres textos. La marca de positiva o
+ * negativa se quitó el 2026-09-09.
  *
  * `anotacion` en `null` es una anotación nueva; con una anotación dentro, es
  * una corrección de la propia.
@@ -45,10 +45,6 @@ export default function useFormularioAnotacion(anotacion = null) {
     });
   }, [tocados]);
 
-  const cambiarPositiva = useCallback((positiva) => {
-    setValores((actual) => ({ ...actual, positiva }));
-  }, []);
-
   const reiniciar = useCallback((siguiente = null) => {
     setValores(crearFormularioAnotacion(siguiente));
     setTocados(new Set());
@@ -58,7 +54,6 @@ export default function useFormularioAnotacion(anotacion = null) {
     valores,
     cambiarTexto,
     corregirAlSalir,
-    cambiarPositiva,
     reiniciar,
     puedeGuardar: puedeGuardarAnotacion(valores),
   };

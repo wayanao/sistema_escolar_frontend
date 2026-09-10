@@ -17,7 +17,6 @@ const COMPLETO = {
   conductual: "se para mucho",
   cognitivo: "",
   lenguaje: "",
-  positiva: false,
 };
 
 beforeEach(() => {
@@ -41,7 +40,6 @@ describe("useComandosObservador", () => {
     expect(crearAnotacionMock).toHaveBeenCalledWith({
       estudiante_id: 42,
       periodo: 3,
-      positiva: false,
       conductual: "Se para mucho",
       cognitivo: "",
       lenguaje: "",
@@ -56,32 +54,41 @@ describe("useComandosObservador", () => {
     });
 
     expect(editarAnotacionMock).toHaveBeenCalledWith(31, {
-      positiva: false,
       conductual: "Se para mucho",
       cognitivo: "",
       lenguaje: "",
     });
   });
 
-  it("no viaja al servidor si falta texto o falta la marca", async () => {
+  it("no viaja al servidor si no hay nada escrito", async () => {
     const { result } = renderHook(() => useComandosObservador());
 
     let sinTexto;
-    let sinMarca;
     await act(async () => {
       sinTexto = await result.current.guardarNueva(
-        { conductual: "", cognitivo: "", lenguaje: "", positiva: true },
-        { estudianteId: 42, periodo: 3 },
-      );
-      sinMarca = await result.current.guardarNueva(
-        { conductual: "Algo", cognitivo: "", lenguaje: "", positiva: null },
+        { conductual: "", cognitivo: "", lenguaje: "" },
         { estudianteId: 42, periodo: 3 },
       );
     });
 
     expect(sinTexto.estado).toBe("incompleta");
-    expect(sinMarca.estado).toBe("incompleta");
     expect(crearAnotacionMock).not.toHaveBeenCalled();
+  });
+
+  it("sí viaja aunque no lleve marca de positiva o negativa", async () => {
+    // Antes esto era un "incompleta" que ni salia de la pantalla.
+    const { result } = renderHook(() => useComandosObservador());
+
+    let resultado;
+    await act(async () => {
+      resultado = await result.current.guardarNueva(
+        { conductual: "Algo", cognitivo: "", lenguaje: "" },
+        { estudianteId: 42, periodo: 3 },
+      );
+    });
+
+    expect(resultado.estado).toBe("exito");
+    expect(crearAnotacionMock.mock.calls[0][0]).not.toHaveProperty("positiva");
   });
 
   it("enseña el mensaje del servidor cuando la anotación no es tuya", async () => {

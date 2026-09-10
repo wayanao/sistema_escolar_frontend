@@ -21,7 +21,7 @@ describe("useFormularioAnotacion", () => {
     // Al abrir una anotación vieja para corregir otra cosa, pasar por encima de
     // este campo no debe cambiarle el texto que ya estaba guardado.
     const { result } = renderHook(() =>
-      useFormularioAnotacion({ conductual: "texto viejo sin corregir", positiva: true }),
+      useFormularioAnotacion({ conductual: "texto viejo sin corregir" }),
     );
 
     act(() => result.current.corregirAlSalir("conductual"));
@@ -42,37 +42,33 @@ describe("useFormularioAnotacion", () => {
     expect(result.current.valores.cognitivo).toBe("muy creativo");
   });
 
-  it("no deja guardar sin texto ni sin elegir positiva o negativa", () => {
+  it("no deja guardar sin texto, y no pide nada más", () => {
+    // La marca de positiva o negativa se quito el 2026-09-09: escribir algo es
+    // la unica condicion que queda.
     const { result } = renderHook(() => useFormularioAnotacion());
 
     expect(result.current.puedeGuardar).toBe(false);
 
     act(() => result.current.cambiarTexto("conductual", "Se para mucho."));
-    expect(result.current.puedeGuardar).toBe(false);
-
-    act(() => result.current.cambiarPositiva(false));
     expect(result.current.puedeGuardar).toBe(true);
+    expect(result.current).not.toHaveProperty("cambiarPositiva");
   });
 
   it("reiniciar lo deja como al abrirlo, y olvida lo que se había tocado", () => {
     const { result } = renderHook(() => useFormularioAnotacion());
 
-    act(() => {
-      result.current.cambiarTexto("conductual", "algo");
-      result.current.cambiarPositiva(true);
-    });
+    act(() => result.current.cambiarTexto("conductual", "algo"));
     act(() => result.current.reiniciar(null));
 
     expect(result.current.valores).toStrictEqual({
       conductual: "",
       cognitivo: "",
       lenguaje: "",
-      positiva: null,
     });
 
     // Si siguiera recordando el campo como tocado, abrir después una anotación
     // vieja y salir del campo se lo reescribiría.
-    act(() => result.current.reiniciar({ conductual: "texto viejo", positiva: true }));
+    act(() => result.current.reiniciar({ conductual: "texto viejo" }));
     act(() => result.current.corregirAlSalir("conductual"));
     expect(result.current.valores.conductual).toBe("texto viejo");
   });
@@ -88,7 +84,8 @@ describe("useFormularioAnotacion", () => {
     );
 
     expect(result.current.valores.conductual).toBe("Se para mucho.");
-    expect(result.current.valores.positiva).toBe(false);
+    // La marca que la fila tuviera no entra en el formulario ni sale de el.
+    expect(result.current.valores).not.toHaveProperty("positiva");
     expect(result.current.puedeGuardar).toBe(true);
   });
 });

@@ -207,8 +207,8 @@ Estado documentado del frontend `frontend-react`.
   filtros, estados y transformaciones puras del módulo académico.
 - `src/utils/estudiantesObservador/`: formularios, filtros, normalización y
   payloads puros de estudiantes y observaciones.
-- `src/utils/observador/`: agrupación por dimensión, opciones de periodo, marca
-  positiva/negativa, fecha corta y título con nivel del curso; agrupación de la
+- `src/utils/observador/`: agrupación por dimensión, opciones de periodo, fecha
+  corta y título con nivel del curso; agrupación de la
   lista de alumnos por curso y su filtro; validación y cuerpos de las peticiones
   de escritura; y la corrección de mayúsculas, espejo comprobado de
   `app/core/texto_observador.py`. Todo como contratos puros.

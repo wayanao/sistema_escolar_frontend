@@ -48,7 +48,6 @@ beforeEach(() => {
         profesor_id: 7,
         profesor: "Ana Gómez",
         periodo: 1,
-        positiva: false,
         conductual: "Se para mucho.",
         cognitivo: "",
         lenguaje: "",
@@ -171,7 +170,6 @@ describe("página del Observador", () => {
     ).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Conductual"), "se para mucho.hace desorden");
-    await user.click(screen.getByRole("radio", { name: /Negativa/ }));
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() => expect(crearAnotacionMock).toHaveBeenCalledTimes(1));
@@ -180,7 +178,6 @@ describe("página del Observador", () => {
       // El 3 sale del Dashboard, no del selector de la pantalla, que está en
       // "Todos".
       periodo: 3,
-      positiva: false,
       conductual: "Se para mucho. Hace desorden",
       cognitivo: "",
       lenguaje: "",
@@ -193,7 +190,6 @@ describe("página del Observador", () => {
     await abrirAnaYAnotar(user);
 
     await user.type(screen.getByLabelText("Cognitivo"), "Mejoró en las tablas.");
-    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     // Una sola recarga: la de abrir el alumno más la de después de guardar.
@@ -213,7 +209,6 @@ describe("página del Observador", () => {
 
     await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
     await user.type(screen.getByLabelText("Conductual"), "Algo nuevo.");
-    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     // La anotación nace en el periodo 3 y el selector estaba en el 2: sin esto
@@ -243,7 +238,6 @@ describe("página del Observador", () => {
 
     await waitFor(() => expect(editarAnotacionMock).toHaveBeenCalledTimes(1));
     expect(editarAnotacionMock).toHaveBeenCalledWith(12, {
-      positiva: false,
       conductual: "Ya no se para.",
       cognitivo: "",
       lenguaje: "",
@@ -259,7 +253,6 @@ describe("página del Observador", () => {
         profesor_id: 8,
         profesor: "Luis Díaz",
         periodo: 1,
-        positiva: false,
         conductual: "De otro profesor.",
         cognitivo: "",
         lenguaje: "",
@@ -290,7 +283,6 @@ describe("página del Observador", () => {
     await abrirAnaYAnotar(user);
 
     await user.type(screen.getByLabelText("Conductual"), "Algo.");
-    await user.click(screen.getByRole("radio", { name: /Positiva/ }));
     await user.click(screen.getByRole("button", { name: "Guardar" }));
 
     expect(
@@ -300,17 +292,18 @@ describe("página del Observador", () => {
     expect(screen.getByLabelText("Conductual")).toHaveValue("Algo.");
   });
 
-  it("no deja guardar una anotación sin marcar si es positiva o negativa", async () => {
+  it("deja guardar en cuanto hay algo escrito, sin pedir nada más", async () => {
     const user = userEvent.setup();
     render(<Observador />);
     await abrirAnaYAnotar(user);
 
-    await user.type(screen.getByLabelText("Conductual"), "Algo escrito.");
-
     expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
 
-    await user.click(screen.getByRole("radio", { name: /Negativa/ }));
+    await user.type(screen.getByLabelText("Conductual"), "Algo escrito.");
+
     expect(screen.getByRole("button", { name: "Guardar" })).toBeEnabled();
+    // Ya no hay ningun paso de elegir si es buena o mala.
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
   });
 
   it("ya no manda a elegir asignación, ni aunque haya una guardada", async () => {

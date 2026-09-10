@@ -85,19 +85,6 @@ export function agruparAnotacionesPorDimension(anotaciones) {
 // Cómo se presenta una anotación
 // ---------------------------------------------------------------------------
 
-/**
- * Si la anotación es positiva, negativa o no lo dice.
- *
- * El tercer caso no es teórico: las anotaciones heredadas de la tabla vieja
- * llegan con `positiva` en `null`, porque el modelo anterior no distinguía y
- * se decidió no inventarles una marca. Toda anotación **nueva** sí la trae.
- */
-export function describirMarcaAnotacion(positiva) {
-  if (positiva === true) return { simbolo: "🟢", etiqueta: "Positiva" };
-  if (positiva === false) return { simbolo: "🔴", etiqueta: "Negativa" };
-  return { simbolo: "⚪", etiqueta: "Sin marcar" };
-}
-
 const MESES = [
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic",

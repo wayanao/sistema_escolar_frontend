@@ -54,7 +54,7 @@ profesores, a lo largo del año.
 | 3 | El botón **Editar** solo aparece en las anotaciones propias |
 | 4 | **No hay botón de borrar**, para nadie |
 | 5 | Se mantienen los tres campos: conductual, cognitivo, lenguaje |
-| 6 | Cada anotación se marca **positiva o negativa** |
+| 6 | ~~Cada anotación se marca **positiva o negativa**~~ **Revertida el 2026-09-09**: se quitó. Ver «Por qué se quitó la marca» |
 | 7 | Vista principal **agrupada por dimensión**; botón para ver por fecha |
 | 8 | El selector de periodo **no oculta** nada; incluye la opción «Todos» |
 | 9 | Autocorrección de mayúsculas **al salir del campo**, no mientras escribe |
@@ -149,17 +149,17 @@ OBSERVADOR DE PEPITO PÉREZ · Primaria     Periodo: [Todos ▾]   [Imprimir ▾
                                       [ Por dimensión | Por fecha ]
 
 ━━ CONDUCTUAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 Prof. Ana · 20/mar · P1
+  Prof. Ana · 20/mar · P1
      Se para mucho.                                  [Editar]
 
-  🔴 Prof. Luis · 18/mar · P1
+  Prof. Luis · 18/mar · P1
      Hace desorden.
 
 ━━ COGNITIVO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🟢 Prof. Luis · 18/mar · P1
+  Prof. Luis · 18/mar · P1
      Mucha creatividad en los trabajos.
 
-  🟢 Prof. Ana · 10/mar · P1
+  Prof. Ana · 10/mar · P1
      Mejoró bastante en las tablas.                  [Editar]
 ```
 
@@ -196,7 +196,6 @@ de dos maneras. No debe provocar una segunda petición.
 ### Formulario de anotación nueva
 
 - Los tres campos de siempre.
-- Un selector obligatorio: `( ) Positiva  ( ) Negativa`.
 - El periodo se toma del que esté activo.
 - Se mantiene la validación actual: **al menos un campo con contenido**.
 
@@ -252,6 +251,28 @@ mismo niño del mismo curso: repetir la palabra veinte veces es ruido.
 **El backend ya lo sirve**: `nivel` llega **fuera** de las anotaciones, y
 **también cuando el alumno no tiene ninguna** —que hoy es el caso de todos—, así
 que la pantalla siempre puede escribir su título.
+
+## Por qué se quitó la marca de positiva o negativa
+
+Decidido por el usuario el 2026-09-09. **Revierte la decisión 6**, que era una de
+las que el documento pedía no reabrir; el usuario es quien las tomó y quien las
+puede cambiar.
+
+Se quitó **del todo**: ni se pregunta al guardar, ni se pinta el círculo de
+color al leer. Media medida no valía: dejar solo la parte de mostrar habría
+puesto un ⚪ «sin marcar» permanente en cada anotación nueva, que es ruido.
+
+**La columna `positiva` no se borra.** Se jubila, como `materia`:
+
+- sigue en la tabla y el endpoint la sigue devolviendo, así que volver atrás es
+  cambiar solo la pantalla, sin otra migración;
+- las filas nuevas nacen con `NULL`;
+- **las cuatro que ya tenían marca la conservan.** Editar una anotación ya **no**
+  toca ese campo, así que corregir una tilde no borra lo que hubiera.
+
+Efecto secundario bueno: **corregir una heredada ya no obliga a marcarla.** Antes
+el `PUT` exigía la marca, así que arreglar una errata en una anotación copiada de
+la tabla vieja obligaba a inventarle una etiqueta que nunca tuvo.
 
 ## Autocorrección de mayúsculas
 
@@ -365,11 +386,10 @@ distintas a propósito**: el periodo no puede ocultar historial en silencio, as�
 que si el filtro está puesto la pantalla dice en voz alta cómo ver el año
 entero.
 
-**Las heredadas se marcan «Sin marcar», con un círculo blanco.** Decisión de
-presentación tomada al construir: las copiadas de la tabla vieja llegan con
-`positiva` en `null` y sin fecha. Se muestran con ⚪ y «Sin fecha» en vez de
-elegirles un color o inventarles un día. Un `false` —negativa de verdad— nunca
-se pinta igual que un `null`, y hay prueba que lo fija.
+> **Este párrafo quedó obsoleto el 2026-09-09**, cuando se quitó la marca. Decía
+> cómo se pintaban las heredadas —⚪ «Sin marcar»— frente a una negativa de
+> verdad. Hoy no se pinta ninguna. Lo que sigue vigente es «Sin fecha»: las
+> heredadas no tienen fecha y no se les inventa.
 
 ## Cómo quedó construida la fase 2
 

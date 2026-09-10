@@ -10,12 +10,11 @@ import {
 } from "./formulario";
 
 describe("estado inicial del formulario", () => {
-  it("arranca vacío y sin marca elegida", () => {
+  it("arranca vacío, y solo con los tres textos", () => {
     expect(crearFormularioAnotacion()).toStrictEqual({
       conductual: "",
       cognitivo: "",
       lenguaje: "",
-      positiva: null,
     });
   });
 
@@ -29,20 +28,16 @@ describe("estado inicial del formulario", () => {
       conductual: "Se para mucho.",
       cognitivo: "",
       lenguaje: "Habla claro.",
-      positiva: false,
     });
   });
 
-  it("una heredada sin marca obliga a elegirla antes de guardar", () => {
-    // Las copiadas de la tabla vieja llegan con `positiva` en null, y el
-    // servidor la exige al editar.
-    const formulario = crearFormularioAnotacion({
-      conductual: "Anotación vieja.",
-      positiva: null,
-    });
+  it("corregir una heredada ya no obliga a marcarla", () => {
+    // Antes el formulario arrancaba sin marca y el servidor la exigia, asi que
+    // corregir una tilde de una anotacion vieja obligaba a inventarle una.
+    const formulario = crearFormularioAnotacion({ conductual: "Anotación vieja." });
 
-    expect(formulario.positiva).toBeNull();
-    expect(puedeGuardarAnotacion(formulario)).toBe(false);
+    expect(formulario).not.toHaveProperty("positiva");
+    expect(puedeGuardarAnotacion(formulario)).toBe(true);
   });
 });
 
@@ -56,12 +51,9 @@ describe("cuándo se puede guardar", () => {
       .toBe(true);
   });
 
-  it("exige además elegir positiva o negativa", () => {
-    expect(puedeGuardarAnotacion({ conductual: "Bien.", positiva: null })).toBe(false);
-    expect(puedeGuardarAnotacion({ conductual: "Bien.", positiva: true })).toBe(true);
-    // `false` es una elección válida, no un «sin elegir».
-    expect(puedeGuardarAnotacion({ conductual: "Bien.", positiva: false })).toBe(true);
-    expect(puedeGuardarAnotacion({ conductual: "", positiva: true })).toBe(false);
+  it("no exige nada más: la marca de positiva o negativa se quitó", () => {
+    expect(puedeGuardarAnotacion({ conductual: "Bien." })).toBe(true);
+    expect(puedeGuardarAnotacion({ conductual: "" })).toBe(false);
   });
 
   it("conserva los tres campos de siempre", () => {
@@ -74,7 +66,6 @@ describe("cuerpo de las peticiones", () => {
     conductual: "se para mucho.hace desorden",
     cognitivo: "",
     lenguaje: "  ",
-    positiva: false,
   };
 
   it("el de crear lleva estudiante y periodo, y el texto ya corregido", () => {
@@ -84,7 +75,6 @@ describe("cuerpo de las peticiones", () => {
     })).toStrictEqual({
       estudiante_id: 42,
       periodo: 3,
-      positiva: false,
       conductual: "Se para mucho. Hace desorden",
       cognitivo: "",
       lenguaje: "",
@@ -103,6 +93,7 @@ describe("cuerpo de las peticiones", () => {
     expect(payload).not.toHaveProperty("profesor_id");
     expect(payload).not.toHaveProperty("materia");
     expect(payload).not.toHaveProperty("asignacion_id");
+    expect(payload).not.toHaveProperty("positiva");
   });
 
   it("el de corregir NO lleva estudiante ni periodo", () => {
@@ -110,8 +101,8 @@ describe("cuerpo de las peticiones", () => {
 
     // Mover una anotación de periodo sería reescribir cuándo pasó, no corregir
     // cómo se contó.
+    // Tampoco `positiva`: el servidor conserva la que la fila tuviera.
     expect(payload).toStrictEqual({
-      positiva: false,
       conductual: "Se para mucho. Hace desorden",
       cognitivo: "",
       lenguaje: "",

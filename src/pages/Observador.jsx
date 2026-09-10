@@ -159,7 +159,6 @@ function Observador() {
       valores={formulario.valores}
       onCambiarTexto={formulario.cambiarTexto}
       onSalirDeCampo={formulario.corregirAlSalir}
-      onCambiarPositiva={formulario.cambiarPositiva}
       onGuardar={guardar}
       onCancelar={cerrarFormulario}
       guardando={guardando}

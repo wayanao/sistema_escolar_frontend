@@ -13,16 +13,14 @@ export const CAMPOS_ANOTACION = ["conductual", "cognitivo", "lenguaje"];
 /**
  * El formulario vacío, o precargado con una anotación para corregirla.
  *
- * `positiva` arranca en `null` -«sin elegir»-, también al editar una heredada
- * de la tabla vieja, que no trae marca. El servidor la exige, así que hay que
- * elegirla antes de poder guardar.
+ * Solo los tres campos de texto. La marca de positiva o negativa se quitó el
+ * 2026-09-09: ya no se pide, no se muestra y no se guarda.
  */
 export function crearFormularioAnotacion(anotacion = null) {
   return {
     conductual: anotacion?.conductual || "",
     cognitivo: anotacion?.cognitivo || "",
     lenguaje: anotacion?.lenguaje || "",
-    positiva: typeof anotacion?.positiva === "boolean" ? anotacion.positiva : null,
   };
 }
 
@@ -36,16 +34,14 @@ export function tieneContenidoAnotacion(formulario) {
 }
 
 /**
- * `true` si el formulario se puede enviar: algo escrito **y** la marca elegida.
+ * `true` si el formulario se puede enviar: basta con que haya algo escrito.
  *
- * Las dos condiciones las exige el servidor por separado, así que comprobarlas
- * aquí solo evita un viaje inútil y un mensaje de error feo.
+ * Es la única condición que queda desde que se quitó la marca de positiva o
+ * negativa. El servidor la exige igual, así que comprobarla aquí solo evita un
+ * viaje inútil y un mensaje de error feo.
  */
 export function puedeGuardarAnotacion(formulario) {
-  return (
-    tieneContenidoAnotacion(formulario)
-    && typeof formulario?.positiva === "boolean"
-  );
+  return tieneContenidoAnotacion(formulario);
 }
 
 function textosNormalizados(formulario) {
@@ -62,14 +58,13 @@ function textosNormalizados(formulario) {
  *
  * **No lleva `profesor_id`**: el autor sale del token del profesor, nunca del
  * cliente. Si viajara desde aquí, un profesor podría firmar una anotación con
- * el nombre de otro. Tampoco lleva `asignacion_id` ni `materia`: la anotación
- * no depende de la materia.
+ * el nombre de otro. Tampoco lleva `asignacion_id`, `materia` ni `positiva`:
+ * ninguna de las tres se rellena.
  */
 export function construirPayloadAnotacionNueva(formulario, { estudianteId, periodo }) {
   return {
     estudiante_id: Number(estudianteId),
     periodo: Number(periodo),
-    positiva: formulario.positiva,
     ...textosNormalizados(formulario),
   };
 }
@@ -79,13 +74,11 @@ export function construirPayloadAnotacionNueva(formulario, { estudianteId, perio
  *
  * **No lleva `estudiante_id` ni `periodo`.** El periodo es la etiqueta del
  * momento en que se escribió: moverla de periodo sería reescribir cuándo pasó,
- * no corregir cómo se contó.
+ * no corregir cómo se contó. Tampoco lleva `positiva`: el servidor conserva la
+ * que la fila tuviera, así que corregir una heredada ya no obliga a marcarla.
  */
 export function construirPayloadEdicionAnotacion(formulario) {
-  return {
-    positiva: formulario.positiva,
-    ...textosNormalizados(formulario),
-  };
+  return textosNormalizados(formulario);
 }
 
 /** `true` si la anotación la escribió el profesor de la sesión, que es lo único
