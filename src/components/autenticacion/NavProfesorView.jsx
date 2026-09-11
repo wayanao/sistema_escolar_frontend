@@ -107,7 +107,6 @@ function NavProfesorView({ onCerrarSesion, renderNotificaciones }) {
             <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/planilla">Planilla</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/asistencia">Asistencia</NavLink>
-              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/Formulario">Observaciones</NavLink>
             </div>
           )}
 

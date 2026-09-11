@@ -1,5 +1,49 @@
 # Cambios Frontend
 
+## 2026-09-10 - Se oculta el observador viejo
+
+Pedido por el usuario justo antes de publicar. **Ocultar no es retirar**: sale
+del menu y su direccion redirige, pero el codigo sigue entero y volver atras es
+devolver tres lineas. Borrarlo es la fase 4 y sigue pendiente.
+
+### Tres sitios, no uno
+
+1. `navegacion.js` — el menu de escritorio.
+2. `NavProfesorView.jsx` — el menu movil, **escrito a mano aparte**. Ya se
+   olvido una vez esta semana.
+3. `App.jsx` — la ruta.
+
+### La direccion se conserva y redirige
+
+`/Formulario` manda ahora a `/observador`. Una profesora con la pagina guardada
+en su navegador llega a donde queria ir; si se borrara la ruta, veria una pagina
+en blanco sin entender por que. Hay prueba en `App.test.jsx` que lo fija.
+
+El usuario eligio bloquearla del todo frente a dejarla accesible por enlace, y
+el motivo es el de abajo.
+
+### Por que importaba mas de lo que parece
+
+Mientras las dos pantallas convivian, **lo que se escribia en la vieja no
+aparecia en la nueva** hasta volver a correr el script de copia. No se perdia
+nada, pero el observador nuevo iba con retraso.
+
+Y paso de verdad: entre la primera copia y el dia de publicar, las profesoras
+escribieron **4 observaciones mas** en la vieja. El script las recogio sin
+duplicar nada -para eso se hizo idempotente-. Ocultar la vieja corta esa
+divergencia de raiz.
+
+### Pruebas
+
+`1794 pasan`, una nueva. Verificado con mutaciones: devolver la entrada al menu
+y dejar la ruta vieja sirviendo una pantalla. Las dos rompen pruebas. `lint` y
+`build`, en verde.
+
+Una corrida completa dio un fallo en `VistaAdministrarTiposPago.test.jsx`, ajeno
+a este cambio, que tardo 6,2 s y no reprodujo en tres corridas en solitario ni
+en dos completas. Encaja con la fragilidad de tiempos ya anotada el 2026-09-09.
+
+
 ## 2026-09-10 - Mes final configurable para conceptos mensuales
 
 La configuración de Tipos de Pago ya permite indicar hasta qué mes cobra un

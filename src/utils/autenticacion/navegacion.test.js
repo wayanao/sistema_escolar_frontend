@@ -69,7 +69,6 @@ describe("contratos puros de navegacion", () => {
         children: [
           { id: "planilla", label: "Planilla", to: "/planilla" },
           { id: "asistencia", label: "Asistencia", to: "/asistencia" },
-          { id: "observaciones", label: "Observaciones", to: "/Formulario" },
         ],
       },
       {
@@ -95,7 +94,9 @@ describe("contratos puros de navegacion", () => {
     [ADMIN_DESKTOP_ITEMS, "/admin/desconocida", null],
     [PROFESOR_DESKTOP_ITEMS, "/", "dashboard"],
     [PROFESOR_DESKTOP_ITEMS, "/planilla/18", "control"],
-    [PROFESOR_DESKTOP_ITEMS, "/Formulario", "control"],
+    // El observador viejo se quito del menu el 2026-09-10: su direccion ya no
+    // marca ningun grupo como activo.
+    [PROFESOR_DESKTOP_ITEMS, "/Formulario", null],
     [PROFESOR_DESKTOP_ITEMS, "/observador", "observador"],
     [PROFESOR_DESKTOP_ITEMS, "/formulario", null],
     [PROFESOR_DESKTOP_ITEMS, "/ruta-desconocida", null],

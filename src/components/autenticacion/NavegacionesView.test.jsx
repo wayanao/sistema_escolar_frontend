@@ -97,10 +97,6 @@ describe("vistas de navegacion", () => {
     });
 
     expect(desktop).toHaveAttribute("data-variant", "profesor");
-    expect(within(desktop).getByRole("link", { name: "Observaciones" })).toHaveAttribute(
-      "href",
-      "/Formulario",
-    );
     expect(screen.getByRole("button", { name: "Cerrar sesion" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Cerrar sesion" }));
     expect(onCerrarSesion).toHaveBeenCalledTimes(1);
@@ -118,7 +114,12 @@ describe("vistas de navegacion", () => {
     expect(screen.getAllByRole("link", { name: "Observador" })).toHaveLength(2);
 
     await user.click(screen.getByRole("button", { name: "Control Académico" }));
-    expect(screen.getAllByRole("link", { name: "Observaciones" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Planilla" })).toHaveLength(2);
+
+    // El observador viejo se oculto el 2026-09-10: no aparece en ninguno de los
+    // dos menus. Su codigo sigue entero; retirarlo es la fase 4.
+    expect(screen.queryAllByRole("link", { name: "Observaciones" })).toHaveLength(0);
+    expect(document.querySelector('[href="/Formulario"]')).toBeNull();
   });
 
   it("el menu movil de profesor lleva el mismo orden que el de escritorio", async () => {

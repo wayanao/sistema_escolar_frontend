@@ -23,7 +23,7 @@ El layout `/*` valida que exista `usuario` o `profesor` en `localStorage`.
 | --- | --- | --- |
 | `/` | `DashboardProfesor` | `ProtectedRoute` |
 | `/planilla` | `Planilla` | `ProtectedRoute` |
-| `/Formulario` | `Formulario` | `ProtectedRoute` |
+| `/Formulario` | redirige a `/observador` | — (oculta el 2026-09-10) |
 | `/observador` | `Observador` | `ProtectedRoute` |
 | `/asistencia` | `Asistencia` | `ProtectedRoute` |
 | `/ranking-rendimiento` | `RankingRendimiento` | `ProtectedRoute` |
@@ -120,7 +120,6 @@ Notas de UX por ruta admin:
 - Control Academico:
   - Planilla.
   - Asistencia.
-  - Observaciones (`/Formulario`), la pantalla vieja.
 - Observador (`/observador`), **pestana suelta**: es una pantalla por estudiante,
   no una tarea de la clase elegida. Sale en escritorio y en movil.
 - Planeacion Academica:
@@ -134,9 +133,10 @@ Notas de UX por ruta profesor:
   tabla. El promedio se colorea verde/rojo segun umbral `3.0`.
 - `/asistencia`: muestra carga/reintento del historial y aviso si la asistencia
   del dia ya fue tomada.
-- `/Formulario`: monta el Observador del estudiante; la verificacion inicial no
-  debe quedarse indefinidamente en `Verificando`. Es la pantalla **vieja**: una
-  peticion por alumno visible, y por eso tarda.
+- `/Formulario`: **oculta desde el 2026-09-10**. Salio del menu -escritorio y
+  movil- y ahora redirige a `/observador`, para que quien tuviera la direccion
+  guardada llegue a donde queria ir. Su codigo sigue entero: retirarlo es la
+  fase 4.
 - `/observador`: bitacora acumulativa por estudiante. Lista solo nombres con una
   peticion, y pide la bitacora del alumno **al abrirlo**, no antes. Convive con
   `/Formulario` hasta que el usuario ordene retirarla. Ver

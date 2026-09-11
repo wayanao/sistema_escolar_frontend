@@ -25,6 +25,9 @@ vi.mock("./pages/CambiarPassword", () => ({
 vi.mock("./pages/Planilla", () => ({
   default: () => <div data-testid="pagina-planilla">Planilla</div>,
 }));
+vi.mock("./pages/Observador", () => ({
+  default: () => <div data-testid="pagina-observador">Observador</div>,
+}));
 vi.mock("./components/autenticacion/NavProfesorView", () => ({
   default: () => <div data-testid="nav-profesor">Nav profesor</div>,
 }));
@@ -93,6 +96,17 @@ describe("rutas de autenticacion y sesion", () => {
     expect(screen.getByTestId("tenant-status")).toBeInTheDocument();
     expect(await screen.findByTestId("dashboard-profesor")).toBeInTheDocument();
     expect(mocks.useEstadoTenant).toHaveBeenCalledTimes(1);
+  });
+
+  it("manda el observador viejo al nuevo, sin dejar a nadie en blanco", async () => {
+    // Se oculto el 2026-09-10. La direccion se conserva a proposito: quien la
+    // tuviera guardada llega a donde queria ir. El codigo de la pantalla vieja
+    // sigue entero; retirarlo es la fase 4.
+    guardarSesion("profesor", { id: 7, rol: "profesor" });
+
+    renderApp("/Formulario");
+
+    expect(await screen.findByTestId("pagina-observador")).toBeInTheDocument();
   });
 
   it("compone el layout admin solo cuando usuario tiene el rol admin", async () => {

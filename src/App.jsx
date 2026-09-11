@@ -22,7 +22,6 @@ const Planilla = lazy(() => import("./pages/Planilla"));
 const Asistencia = lazy(() => import("./pages/Asistencia"));
 const Boletin = lazy(() => import("./pages/Boletin"));
 const Admin = lazy(() => import("./pages/Admin"));
-const Formulario = lazy(() => import("./pages/Formulario"));
 const Observador = lazy(() => import("./pages/Observador"));
 const PlanDeClases = lazy(() => import("./pages/PlanDeClases"));
 const DashboardProfesor = lazy(() => import("./pages/DashboardProfesor"));
@@ -178,7 +177,11 @@ function Layout() {
             <Route path="/admin/certificados" element={<AdminRoute><CertificadosAdmin /></AdminRoute>} />
             <Route path="/admin/diseno-impresos" element={<AdminRoute><BrandingAdmin /></AdminRoute>} />
             <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />
-            <Route path="/Formulario" element={<ProtectedRoute><Formulario /></ProtectedRoute>} />
+            {/* El observador viejo se oculto el 2026-09-10. La direccion se
+                conserva y manda al nuevo: quien la tuviera guardada llega a
+                donde queria ir, en vez de a una pagina en blanco. El codigo de
+                la pantalla vieja sigue entero -retirarlo es la fase 4-. */}
+            <Route path="/Formulario" element={<Navigate to="/observador" replace />} />
             <Route path="/observador" element={<ProtectedRoute><Observador /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/asistencia" element={<ProtectedRoute><Asistencia /></ProtectedRoute>} />

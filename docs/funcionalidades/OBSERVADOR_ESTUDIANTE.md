@@ -9,8 +9,9 @@
   en Control Académico, ve a **todos** sus alumnos agrupados por curso, abre uno,
   lee su bitácora agrupada por dimensión, añade anotaciones y corrige las suyas.
   El **admin ya ve la misma bitácora que el profesor** en la ficha del alumno,
-  en solo lectura, desde el 2026-09-10. La pantalla vieja (`/Formulario`) sigue
-  intacta y en producción.
+  en solo lectura, desde el 2026-09-10. Ese mismo día **se ocultó la pantalla
+  vieja**: fuera del menú y con su dirección redirigida a la nueva. Su código
+  sigue entero.
 - Tipo: Función nueva de producto. **No** es un módulo de la migración
   arquitectónica de `docs/modularizacion/` y no debe confundirse con uno.
 - Repos afectados: este repo (`frontend-react`) y `sistema_escolar_api`. Ver
@@ -80,12 +81,17 @@ que el usuario ordene retirarla.
 Dashboard
 Control Académico
    ├─ Planilla
-   ├─ Asistencia
-   └─ Observaciones          ← la vieja, /Formulario, intacta
+   └─ Asistencia
 Planeación Académica
 Observador                   ← la nueva, suelta
 Boletín Final
 ```
+
+> **La vieja se ocultó el 2026-09-10.** «Observaciones» salió del menú, en
+> escritorio y en móvil, y `/Formulario` **redirige a `/observador`**: quien
+> tuviera la dirección guardada llega a donde quería ir, no a una página en
+> blanco. **El código sigue entero**: ocultar es quitar tres líneas, y volver
+> atrás es devolverlas. Borrarlo es la fase 4 y sigue sin hacerse.
 
 Los dos grupos van juntos y las pestañas sueltas después. El orden se fijó así
 el 2026-09-09, a petición del usuario.
@@ -621,6 +627,39 @@ La pantalla decide entre el impreso y la vista normal con un **ternario en el
 segundo: el compilador de React no puede conservar la memoización si el
 componente vuelve antes de tiempo.
 
+## Ocultar la pantalla vieja, que no es retirarla
+
+Hecho el 2026-09-10, a petición del usuario. **Son dos cosas muy distintas y
+conviene no confundirlas:**
+
+| | Ocultar (hecho) | Retirar (fase 4, pendiente) |
+|---|---|---|
+| Qué pasa | Sale del menú y su dirección redirige | Se borra el código |
+| Volver atrás | Devolver tres líneas | Recuperar de git |
+
+Son **tres sitios**, no uno:
+
+1. `src/utils/autenticacion/navegacion.js` — el menú de escritorio.
+2. `src/components/autenticacion/NavProfesorView.jsx` — el menú móvil, que en
+   este proyecto **está escrito a mano aparte**. Ya se olvidó una vez.
+3. `src/App.jsx` — la ruta.
+
+**La dirección se conserva y redirige a `/observador`**, en vez de borrarla. Una
+profesora con la página guardada en su navegador llega a donde quería ir; si se
+borrara la ruta, vería una página en blanco sin entender por qué. Hay prueba en
+`src/App.test.jsx` que lo fija.
+
+### Por qué esto importaba más de lo que parece
+
+Mientras las dos pantallas convivían, **lo que se escribía en la vieja no
+aparecía en la nueva** hasta volver a ejecutar el script de copia. No se perdía
+nada, pero el observador nuevo iba con retraso. Ocultar la vieja corta esa
+divergencia de raíz.
+
+De hecho pasó: entre la primera copia y el día de publicar, las profesoras
+escribieron **4 observaciones más** en la vieja. El script las recogió sin
+duplicar nada, que es justo para lo que se hizo idempotente.
+
 ## Plan de fases (frontend)
 
 **Fase 1 — Lectura — TERMINADA el 2026-09-09**
@@ -701,10 +740,11 @@ leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **la ficha del admin monta la vista del profesor**,
-  el 2026-09-10, justo después de la fase 3.
-- Compuerta completa en verde: **1787 pruebas**, `pnpm run lint` y
-  `pnpm run build`. 47 nuevas ese día, verificadas con mutaciones.
+- Última acción terminada: **se ocultó la pantalla vieja**, el 2026-09-10.
+  Fuera del menú -escritorio y móvil- y `/Formulario` redirigido a
+  `/observador`. **Su código sigue entero**: ocultar no es retirar.
+- Compuerta completa en verde: **1794 pruebas**, `pnpm run lint` y
+  `pnpm run build`. 54 nuevas ese día, verificadas con mutaciones.
 - **El observador está completo para los dos roles.** El profesor lee, escribe,
   corrige, cambia de vista e imprime, sin depender de ninguna clase elegida; el
   coordinador ve lo mismo en la ficha del alumno, sin poder escribir, e imprime
@@ -722,6 +762,10 @@ leer `localStorage.asignacionId`. Ver «Entrar sin elegir clase».
   estudiante. `detalles.observaciones` de `GET /estudiantes/{id}/detalles`
   **dejó de usarse** en el frontend; el endpoint sigue devolviéndolo y nadie lo
   ha tocado.
+- **Las 72 observaciones viejas están copiadas**, incluidas las 4 que las
+  profesoras escribieron después de la primera copia. El script es idempotente
+  y no duplicó nada, comprobado contando filas de origen repetidas. La tabla
+  `observaciones` sigue intacta.
 - Lo único que queda del plan es la **fase 4: retirar la pantalla vieja**
   (`src/pages/Formulario.jsx` y lo que quede sin uso en
   `src/components/estudiantesObservador/`, incluido `useCargaObservacionVisible`,

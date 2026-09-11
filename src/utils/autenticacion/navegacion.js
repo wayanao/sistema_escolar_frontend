@@ -41,7 +41,9 @@ export const PROFESOR_DESKTOP_ITEMS = [
     children: [
       { id: "planilla", label: "Planilla", to: "/planilla" },
       { id: "asistencia", label: "Asistencia", to: "/asistencia" },
-      { id: "observaciones", label: "Observaciones", to: "/Formulario" },
+      // «Observaciones» -el observador viejo, /Formulario- se quito el
+      // 2026-09-10. Su codigo sigue entero y su direccion redirige al
+      // observador nuevo; retirarlo del todo es la fase 4.
     ],
   },
   {
