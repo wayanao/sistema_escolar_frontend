@@ -7,6 +7,13 @@ export const ESTADOS_REVISION_PROFESOR = {
     badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
     iconClass: "bg-amber-100 text-amber-700",
   },
+  visto: {
+    label: "Visto por administración",
+    title: "Administración ya vio tu planeación",
+    detail: "Quedó registrada como vista; la revisión con comentarios llega después.",
+    badgeClass: "border-sky-200 bg-sky-50 text-sky-800",
+    iconClass: "bg-sky-100 text-sky-700",
+  },
   revisado_con_observacion: {
     label: "Revisado con observación",
     title: "Planeación revisada con observación",
@@ -37,7 +44,9 @@ export const ESTADO_INICIAL_PLAN = {
 const PREFIJO_CAMPOS_RECORDADOS = "plan_clases_defaults";
 
 export function obtenerEstadoRevisionVisual(estado, totalObservaciones = 0) {
-  if (!["revisado", "con_observaciones"].includes(estado)) return "pendiente";
+  if (!["revisado", "con_observaciones"].includes(estado)) {
+    return estado === "visto" ? "visto" : "pendiente";
+  }
   return Number(totalObservaciones) > 0 ? "revisado_con_observacion" : "revisado";
 }
 

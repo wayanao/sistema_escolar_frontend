@@ -13,7 +13,7 @@ import {
 describe("utilidades de planeaciones del profesor", () => {
   it("resuelve el estado visual sin alterar los estados internos compatibles", () => {
     expect(obtenerEstadoRevisionVisual("pendiente", 0)).toBe("pendiente");
-    expect(obtenerEstadoRevisionVisual("visto", 0)).toBe("pendiente");
+    expect(obtenerEstadoRevisionVisual("visto", 0)).toBe("visto");
     expect(obtenerEstadoRevisionVisual("revisado", 0)).toBe("revisado");
     expect(obtenerEstadoRevisionVisual("con_observaciones", 2)).toBe("revisado_con_observacion");
     expect(obtenerEstadoRevisionVisual("revisado", 1)).toBe("revisado_con_observacion");

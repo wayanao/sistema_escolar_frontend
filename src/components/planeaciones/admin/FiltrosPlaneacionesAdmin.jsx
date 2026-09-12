@@ -9,9 +9,11 @@ function FiltrosPlaneacionesAdmin({
   profesorId,
   estado,
   conteoPendientes,
+  conteoVistos,
   onCambiarProfesor,
   onCambiarEstado,
 }) {
+  const conteos = { pendiente: conteoPendientes, visto: conteoVistos };
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-end">
@@ -41,7 +43,8 @@ function FiltrosPlaneacionesAdmin({
                 actual={estado}
                 onChange={onCambiarEstado}
                 label={ESTADOS_PLANEACION_ADMIN[value].label}
-                count={value === "pendiente" ? conteoPendientes : null}
+                count={conteos[value] ?? null}
+                tonoContador={value === "visto" ? "sky" : "rose"}
               />
             ))}
           </div>
@@ -51,8 +54,17 @@ function FiltrosPlaneacionesAdmin({
   );
 }
 
-function FiltroEstado({ value, actual, onChange, label, count = null }) {
+function FiltroEstado({
+  value,
+  actual,
+  onChange,
+  label,
+  count = null,
+  tonoContador = "rose",
+}) {
   const mostrarContador = Number.isFinite(count) && count > 0;
+  const colorContador =
+    tonoContador === "sky" ? "bg-sky-600" : "bg-rose-600";
 
   return (
     <button
@@ -69,7 +81,7 @@ function FiltroEstado({ value, actual, onChange, label, count = null }) {
       {label}
       {mostrarContador && (
         <span
-          className="absolute -right-2.5 -top-2.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-rose-600 px-1 text-[10px] font-black leading-none text-white shadow-sm"
+          className={`absolute -right-2.5 -top-2.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-white px-1 text-[10px] font-black leading-none text-white shadow-sm ${colorContador}`}
           aria-hidden="true"
         >
           {count > 99 ? "99+" : count}

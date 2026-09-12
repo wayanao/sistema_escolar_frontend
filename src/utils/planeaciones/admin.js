@@ -3,12 +3,12 @@ export const PAGE_SIZE = 12;
 
 export const ESTADOS_PLANEACION_ADMIN = {
   pendiente: {
-    label: "Pendiente",
+    label: "Sin abrir",
     className: "border-amber-200 bg-amber-50 text-amber-800",
   },
   visto: {
-    label: "Pendiente",
-    className: "border-amber-200 bg-amber-50 text-amber-800",
+    label: "Visto",
+    className: "border-sky-200 bg-sky-50 text-sky-800",
   },
   con_observaciones: {
     label: "Revisado",
@@ -20,7 +20,7 @@ export const ESTADOS_PLANEACION_ADMIN = {
   },
 };
 
-export const ESTADOS_FILTRABLES = ["pendiente", "revisado"];
+export const ESTADOS_FILTRABLES = ["pendiente", "visto", "revisado"];
 
 export const VISTAS_FECHA = {
   realizadas: {

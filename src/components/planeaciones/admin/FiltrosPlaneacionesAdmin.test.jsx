@@ -45,21 +45,30 @@ describe("FiltrosPlaneacionesAdmin", () => {
         profesorId=""
         estado="pendiente"
         conteoPendientes={145}
+        conteoVistos={7}
         onCambiarProfesor={vi.fn()}
         onCambiarEstado={onCambiarEstado}
       />,
     );
 
     const pendiente = screen.getByRole("button", {
-      name: "Pendiente: 145 planeaciones",
+      name: "Sin abrir: 145 planeaciones",
     });
     expect(pendiente).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("99+")).toBeInTheDocument();
 
+    // Vistos es su propio cajon y lleva su propio contador.
+    const visto = screen.getByRole("button", {
+      name: "Visto: 7 planeaciones",
+    });
+    expect(visto).toHaveAttribute("aria-pressed", "false");
+
     await user.click(pendiente);
+    await user.click(visto);
     await user.click(screen.getByRole("button", { name: "Revisado" }));
 
     expect(onCambiarEstado).toHaveBeenNthCalledWith(1, "");
-    expect(onCambiarEstado).toHaveBeenNthCalledWith(2, "revisado");
+    expect(onCambiarEstado).toHaveBeenNthCalledWith(2, "visto");
+    expect(onCambiarEstado).toHaveBeenNthCalledWith(3, "revisado");
   });
 });

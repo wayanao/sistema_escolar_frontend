@@ -25,6 +25,14 @@ function ResultadosPlaneacionesAdmin({
   onLimpiarFiltros,
   onCambiarPagina,
   onAbrirPlan,
+  seleccionados = [],
+  idsMarcables = [],
+  marcando = false,
+  progreso = 0,
+  resumen = null,
+  onAlternarPlan,
+  onAlternarTodos,
+  onMarcarVistos,
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -47,6 +55,18 @@ function ResultadosPlaneacionesAdmin({
         onLimpiarBusqueda={onLimpiarBusqueda}
       />
 
+      {seleccionCompleta && !cargando && !error && idsMarcables.length > 0 && (
+        <BarraRevisionMasiva
+          seleccionados={seleccionados}
+          idsMarcables={idsMarcables}
+          marcando={marcando}
+          progreso={progreso}
+          resumen={resumen}
+          onAlternarTodos={onAlternarTodos}
+          onMarcarVistos={onMarcarVistos}
+        />
+      )}
+
       {!seleccionCompleta ? (
         <SeleccionPendiente vista={vista} estado={estado} />
       ) : error ? (
@@ -59,7 +79,13 @@ function ResultadosPlaneacionesAdmin({
           onLimpiar={busquedaAplicada ? onLimpiarBusqueda : onLimpiarFiltros}
         />
       ) : (
-        <ListadoPlaneaciones planes={planes} onAbrirPlan={onAbrirPlan} />
+        <ListadoPlaneaciones
+          planes={planes}
+          onAbrirPlan={onAbrirPlan}
+          seleccionados={seleccionados}
+          marcando={marcando}
+          onAlternarPlan={onAlternarPlan}
+        />
       )}
 
       {seleccionCompleta && (
@@ -164,16 +190,116 @@ function BusquedaPlaneacionesAdmin({
   );
 }
 
-function ListadoPlaneaciones({ planes, onAbrirPlan }) {
+function BarraRevisionMasiva({
+  seleccionados,
+  idsMarcables,
+  marcando,
+  progreso,
+  resumen,
+  onAlternarTodos,
+  onMarcarVistos,
+}) {
+  const total = idsMarcables.length;
+  const elegidos = seleccionados.length;
+  const todos = elegidos === total && total > 0;
+
+  return (
+    <div className="flex flex-col gap-3 border-b border-sky-100 bg-sky-50/60 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-1">
+        <label className="flex w-fit cursor-pointer items-center gap-2.5 text-sm font-bold text-slate-800">
+          <input
+            type="checkbox"
+            checked={todos}
+            onChange={onAlternarTodos}
+            disabled={marcando}
+            className="h-4 w-4 cursor-pointer rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed"
+          />
+          {todos
+            ? `Los ${total} pendientes de esta página`
+            : `Seleccionar los ${total} pendientes de esta página`}
+        </label>
+        <p className="text-xs text-slate-500">
+          Marcar como visto le avisa al docente que ya abriste su plan. No lo
+          aprueba: eso sigue siendo abrirlo y revisarlo.
+        </p>
+        {resumen && <ResumenRevisionMasiva resumen={resumen} />}
+      </div>
+
+      <button
+        type="button"
+        onClick={onMarcarVistos}
+        disabled={marcando || elegidos === 0}
+        aria-busy={marcando}
+        className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-sky-700 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+      >
+        {marcando ? (
+          <>
+            <SpinnerPlaneacionAdmin />
+            Marcando {progreso} de {elegidos}...
+          </>
+        ) : (
+          `Marcar ${elegidos || ""} como ${elegidos === 1 ? "visto" : "vistos"}`.replace(
+            "  ",
+            " ",
+          )
+        )}
+      </button>
+    </div>
+  );
+}
+
+function ResumenRevisionMasiva({ resumen }) {
+  const { exitosos, fallidos } = resumen;
+
+  return (
+    <p
+      className={`text-xs font-bold ${
+        fallidos > 0 ? "text-amber-800" : "text-emerald-800"
+      }`}
+      role="status"
+    >
+      {exitosos > 0 && `${exitosos} marcado${exitosos === 1 ? "" : "s"} como visto${exitosos === 1 ? "" : "s"}. `}
+      {fallidos > 0 &&
+        `${fallidos} no se pudo${fallidos === 1 ? "" : "ieron"}: el docente los guardó de nuevo. Recarga y reintenta.`}
+    </p>
+  );
+}
+
+function CasillaPlan({ plan, seleccionados, marcando, onAlternarPlan }) {
+  const marcable = plan.estado_revision === "pendiente";
+  if (!marcable || !onAlternarPlan) return null;
+
+  return (
+    <input
+      type="checkbox"
+      checked={seleccionados.includes(String(plan.id))}
+      onChange={() => onAlternarPlan(plan.id)}
+      disabled={marcando}
+      aria-label={`Seleccionar el plan del ${formatearFecha(plan.fecha)} de ${plan.profesor || "docente sin nombre"}`}
+      className="h-4 w-4 cursor-pointer rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed"
+    />
+  );
+}
+
+function ListadoPlaneaciones({
+  planes,
+  onAbrirPlan,
+  seleccionados,
+  marcando,
+  onAlternarPlan,
+}) {
   return (
     <>
       <div className="hidden md:block">
         <table className="w-full table-fixed text-left">
           <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="w-[14%] px-5 py-3">Fecha</th>
-              <th className="w-[31%] px-4 py-3">Planeación</th>
-              <th className="w-[22%] px-4 py-3">Docente</th>
+              <th className="w-[4%] py-3 pl-5 pr-1">
+                <span className="sr-only">Seleccionar</span>
+              </th>
+              <th className="w-[13%] px-3 py-3">Fecha</th>
+              <th className="w-[29%] px-4 py-3">Planeación</th>
+              <th className="w-[21%] px-4 py-3">Docente</th>
               <th className="w-[18%] px-4 py-3">Estado</th>
               <th className="w-[15%] px-5 py-3 text-right">Acción</th>
             </tr>
@@ -184,7 +310,15 @@ function ListadoPlaneaciones({ planes, onAbrirPlan }) {
                 key={plan.id}
                 className="group transition hover:bg-violet-50/45"
               >
-                <td className="px-5 py-4 align-top">
+                <td className="py-4 pl-5 pr-1 align-top">
+                  <CasillaPlan
+                    plan={plan}
+                    seleccionados={seleccionados}
+                    marcando={marcando}
+                    onAlternarPlan={onAlternarPlan}
+                  />
+                </td>
+                <td className="px-3 py-4 align-top">
                   <p className="text-sm font-bold text-slate-800">
                     {formatearFecha(plan.fecha)}
                   </p>
@@ -244,12 +378,20 @@ function ListadoPlaneaciones({ planes, onAbrirPlan }) {
 
       <div className="divide-y divide-slate-100 md:hidden">
         {planes.map((plan) => (
-          <button
-            key={plan.id}
-            type="button"
-            onClick={() => onAbrirPlan(plan.id)}
-            className="block w-full p-4 text-left transition hover:bg-violet-50/50"
-          >
+          <div key={plan.id} className="flex items-start gap-3 p-4">
+            <div className="pt-1">
+              <CasillaPlan
+                plan={plan}
+                seleccionados={seleccionados}
+                marcando={marcando}
+                onAlternarPlan={onAlternarPlan}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => onAbrirPlan(plan.id)}
+              className="min-w-0 flex-1 rounded-lg text-left transition hover:bg-violet-50/50"
+            >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-slate-800">
@@ -280,7 +422,8 @@ function ListadoPlaneaciones({ planes, onAbrirPlan }) {
             <p className="mt-3 text-sm font-medium text-slate-600">
               {plan.profesor || "Sin docente"}
             </p>
-          </button>
+            </button>
+          </div>
         ))}
       </div>
     </>

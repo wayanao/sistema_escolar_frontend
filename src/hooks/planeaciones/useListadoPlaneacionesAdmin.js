@@ -47,7 +47,9 @@ export default function useListadoPlaneacionesAdmin({
     Boolean(vistaInicial && estadoInicial),
   );
   const [conteoPendientes, setConteoPendientes] = useState(null);
+  const [conteoVistos, setConteoVistos] = useState(null);
   const [error, setError] = useState("");
+  const [recargas, setRecargas] = useState(0);
 
   const seleccionCompleta = Boolean(vista && estado);
   const totalPaginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -153,33 +155,42 @@ export default function useListadoPlaneacionesAdmin({
 
     void cargar();
     return () => controller.abort();
-  }, [estado, filtrosAplicados, pagina, vista]);
+  }, [estado, filtrosAplicados, pagina, recargas, vista]);
 
   useEffect(() => {
     if (!vista) {
       setConteoPendientes(null);
+      setConteoVistos(null);
       return undefined;
     }
 
     const controller = new AbortController();
 
+    const contarPorEstado = (estadoContado) =>
+      listarPlaneacionesAdmin(
+        crearParametrosPlanes({
+          vista,
+          filtros: filtrosAplicados,
+          estado: estadoContado,
+          limit: 1,
+          offset: 0,
+        }),
+        { signal: controller.signal },
+      ).then((data) => normalizarRespuestaPlanes(data).total);
+
     const cargarConteos = async () => {
       setConteoPendientes(null);
+      setConteoVistos(null);
 
       try {
-        const data = await listarPlaneacionesAdmin(
-          crearParametrosPlanes({
-            vista,
-            filtros: filtrosAplicados,
-            estado: "pendiente",
-            limit: 1,
-            offset: 0,
-          }),
-          { signal: controller.signal },
-        );
+        const [pendientes, vistos] = await Promise.all([
+          contarPorEstado("pendiente"),
+          contarPorEstado("visto"),
+        ]);
 
         if (!controller.signal.aborted) {
-          setConteoPendientes(normalizarRespuestaPlanes(data).total);
+          setConteoPendientes(pendientes);
+          setConteoVistos(vistos);
         }
       } catch (requestError) {
         if (requestError.code !== "ERR_CANCELED") {
@@ -193,7 +204,7 @@ export default function useListadoPlaneacionesAdmin({
 
     void cargarConteos();
     return () => controller.abort();
-  }, [filtrosAplicados, vista]);
+  }, [filtrosAplicados, recargas, vista]);
 
   useEffect(() => {
     if (!cargando && pagina > totalPaginas) setPagina(totalPaginas);
@@ -235,6 +246,10 @@ export default function useListadoPlaneacionesAdmin({
     setPagina(1);
   }, []);
 
+  const recargar = useCallback(() => {
+    setRecargas((actual) => actual + 1);
+  }, []);
+
   const limpiarFiltros = useCallback(() => {
     const vacios = { profesor_id: "", busqueda: "" };
     setFiltros(vacios);
@@ -255,6 +270,7 @@ export default function useListadoPlaneacionesAdmin({
     filtrosAplicados,
     cargando,
     conteoPendientes,
+    conteoVistos,
     error,
     seleccionCompleta,
     totalPaginas,
@@ -268,5 +284,6 @@ export default function useListadoPlaneacionesAdmin({
     cambiarBusqueda,
     limpiarBusqueda,
     limpiarFiltros,
+    recargar,
   };
 }

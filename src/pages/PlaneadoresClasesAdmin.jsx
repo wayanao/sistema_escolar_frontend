@@ -5,6 +5,7 @@ import FiltrosPlaneacionesAdmin from "../components/planeaciones/admin/FiltrosPl
 import ResultadosPlaneacionesAdmin from "../components/planeaciones/admin/ResultadosPlaneacionesAdmin";
 import useDetallePlaneacionAdmin from "../hooks/planeaciones/useDetallePlaneacionAdmin";
 import useListadoPlaneacionesAdmin from "../hooks/planeaciones/useListadoPlaneacionesAdmin";
+import useRevisionMasivaPlaneacionesAdmin from "../hooks/planeaciones/useRevisionMasivaPlaneacionesAdmin";
 
 function subirAlInicio() {
   const reducirMovimiento = window.matchMedia?.(
@@ -41,6 +42,7 @@ function ListadoPlaneadoresAdmin() {
     filtrosAplicados,
     cargando,
     conteoPendientes,
+    conteoVistos,
     error,
     seleccionCompleta,
     totalPaginas,
@@ -54,9 +56,23 @@ function ListadoPlaneadoresAdmin() {
     cambiarBusqueda,
     limpiarBusqueda,
     limpiarFiltros,
+    recargar,
   } = useListadoPlaneacionesAdmin({
     searchParams,
     setSearchParams,
+  });
+  const {
+    seleccionados,
+    idsMarcables,
+    marcando,
+    progreso,
+    resumen,
+    alternar,
+    alternarTodos,
+    marcarComoVistos,
+  } = useRevisionMasivaPlaneacionesAdmin({
+    planes,
+    onMarcados: recargar,
   });
 
   const abrirPlan = (id) => {
@@ -79,6 +95,7 @@ function ListadoPlaneadoresAdmin() {
           profesorId={filtros.profesor_id}
           estado={estado}
           conteoPendientes={conteoPendientes}
+          conteoVistos={conteoVistos}
           onCambiarProfesor={cambiarProfesor}
           onCambiarEstado={cambiarEstado}
         />
@@ -102,6 +119,14 @@ function ListadoPlaneadoresAdmin() {
           onLimpiarFiltros={limpiarFiltros}
           onCambiarPagina={cambiarPagina}
           onAbrirPlan={abrirPlan}
+          seleccionados={seleccionados}
+          idsMarcables={idsMarcables}
+          marcando={marcando}
+          progreso={progreso}
+          resumen={resumen}
+          onAlternarPlan={alternar}
+          onAlternarTodos={alternarTodos}
+          onMarcarVistos={marcarComoVistos}
         />
       </div>
     </div>

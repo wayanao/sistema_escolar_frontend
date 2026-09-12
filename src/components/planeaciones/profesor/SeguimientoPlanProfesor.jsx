@@ -23,9 +23,11 @@ export default function SeguimientoPlanProfesor({
   const config = ESTADOS_REVISION_PROFESOR[estadoVisual];
   const fechaPrincipal = seguimiento.revisado_at
     ? `Revisado ${formatearFechaSeguimiento(seguimiento.revisado_at)}`
-    : seguimiento.enviado_at
-      ? `Enviado ${formatearFechaSeguimiento(seguimiento.enviado_at)}`
-      : "";
+    : seguimiento.admin_visto_at
+      ? `Visto ${formatearFechaSeguimiento(seguimiento.admin_visto_at)}`
+      : seguimiento.enviado_at
+        ? `Enviado ${formatearFechaSeguimiento(seguimiento.enviado_at)}`
+        : "";
 
   return (
     <section className="overflow-hidden rounded-xl border border-l-4 border-violet-200 border-l-violet-500 bg-violet-50/70 shadow-sm">
@@ -197,6 +199,25 @@ function IconoSeguimiento({ estado }) {
     );
   }
   if (estado === "revisado_con_observacion") return <IconoComentario />;
+  if (estado === "visto") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        aria-hidden="true"
+      >
+        <path
+          d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="12" cy="12" r="2.5" />
+      </svg>
+    );
+  }
   return (
     <svg
       viewBox="0 0 24 24"

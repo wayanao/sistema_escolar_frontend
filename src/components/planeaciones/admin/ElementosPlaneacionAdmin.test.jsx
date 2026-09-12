@@ -16,7 +16,7 @@ describe("ElementosPlaneacionAdmin", () => {
 
     rerender(<EstadoPlaneacionAdminBadge estado="desconocido" />);
 
-    expect(screen.getByText("Pendiente")).toHaveClass("text-amber-800");
+    expect(screen.getByText("Sin abrir")).toHaveClass("text-amber-800");
   });
 
   it("diferencia mensajes exitosos de errores mediante roles accesibles", () => {
