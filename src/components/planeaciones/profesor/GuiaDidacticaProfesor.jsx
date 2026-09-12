@@ -72,6 +72,10 @@ export default function GuiaDidacticaProfesor({
             form={form}
             onActualizarCampo={onActualizarCampo}
           />
+          <TemaYLogro
+            form={form}
+            onActualizarCampo={onActualizarCampo}
+          />
           <DesarrolloClase
             form={form}
             onActualizarCampo={onActualizarCampo}
@@ -156,7 +160,15 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
           placeholder="Estándar, lineamientos curriculares o referente curricular"
           rows={3}
         />
+      </div>
+    </div>
+  );
+}
 
+function TemaYLogro({ form, onActualizarCampo }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+      <div className="grid grid-cols-1 gap-4">
         <CampoTextareaPlanProfesor
           label="Tema"
           value={form.tema}
@@ -164,7 +176,7 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
           placeholder="Tema central de la clase"
           rows={2}
         />
-        
+
         <CampoTextareaPlanProfesor
           label="Logro"
           value={form.proposito}
