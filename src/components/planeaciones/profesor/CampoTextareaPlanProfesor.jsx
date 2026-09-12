@@ -7,10 +7,17 @@ export default function CampoTextareaPlanProfesor({
   onChange,
   placeholder,
   rows = 4,
+  color,
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">
+      <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
+        {color && (
+          <span
+            className={`h-4 w-1 shrink-0 rounded-full ${color}`}
+            aria-hidden="true"
+          />
+        )}
         {label}
       </label>
       <textarea

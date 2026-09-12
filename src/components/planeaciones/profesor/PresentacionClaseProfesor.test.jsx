@@ -69,8 +69,12 @@ describe("PresentacionClaseProfesor", () => {
     expect(
       screen.getByRole("heading", { name: "Contexto pedagógico" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Logro" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Desarrollo de la clase" }),
+      screen.getByRole("heading", { name: "Actividad inicial" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Actividad en clase" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Desarrollo cognitivo" }),

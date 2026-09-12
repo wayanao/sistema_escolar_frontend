@@ -37,17 +37,18 @@ export default function PresentacionClaseProfesor({
 
   const tieneImagen1 = Boolean(imagenesSeleccionadas.imagen1 || imagenesGuardadas.imagen1);
   const tieneImagen2 = Boolean(imagenesSeleccionadas.imagen2 || imagenesGuardadas.imagen2);
-  const tieneContexto =
-    tieneTexto(form.unidad) ||
-    tieneTexto(form.proposito) ||
-    tieneTexto(form.estandar);
-  const tieneDesarrollo = tieneTexto(form.clase) || tieneTexto(form.competencias);
+  const tieneContexto = tieneTexto(form.unidad) || tieneTexto(form.estandar);
+  const tieneLogro = tieneTexto(form.proposito);
+  const tieneActividadInicial = tieneTexto(form.clase);
+  const tieneActividadEnClase = tieneTexto(form.competencias);
   const tieneDesarrolloCognitivo = tieneTexto(form.dba) || tieneImagen1;
   const tieneActividadCasa = tieneTexto(form.actividad_casa) || tieneImagen2;
   const tieneContenido =
     tieneTexto(form.tema) ||
     tieneContexto ||
-    tieneDesarrollo ||
+    tieneLogro ||
+    tieneActividadInicial ||
+    tieneActividadEnClase ||
     tieneDesarrolloCognitivo ||
     tieneActividadCasa;
 
@@ -71,11 +72,7 @@ export default function PresentacionClaseProfesor({
         {!tieneContenido && <PresentacionSinContenido />}
 
         {tieneContexto && (
-          <SeccionPresentacion
-            titulo="Contexto pedagógico"
-            descripcion="El punto de partida y la intención formativa de la clase."
-            tono="violet"
-          >
+          <SeccionPresentacion titulo="Contexto pedagógico" tono="violet">
             <div className="grid gap-4 md:grid-cols-2">
               {tieneTexto(form.unidad) && (
                 <CampoPresentacion label="Unidad" contenido={form.unidad} />
@@ -84,42 +81,32 @@ export default function PresentacionClaseProfesor({
                 <CampoPresentacion
                   label="Estándar / Lineamientos curriculares"
                   contenido={form.estandar}
-                  className="md:col-span-2"
                 />
-              )}
-              {tieneTexto(form.proposito) && (
-                <CampoPresentacion label="Logro" contenido={form.proposito} />
               )}
             </div>
           </SeccionPresentacion>
         )}
 
-        {tieneDesarrollo && (
-          <SeccionPresentacion
-            titulo="Desarrollo de la clase"
-            descripcion="La ruta de trabajo y las actividades previstas para los estudiantes."
-            tono="sky"
-          >
-            <div className="grid gap-4 lg:grid-cols-2">
-              {tieneTexto(form.clase) && (
-                <CampoPresentacion label="Ambientación" contenido={form.clase} />
-              )}
-              {tieneTexto(form.competencias) && (
-                <CampoPresentacion
-                  label="Actividad en clase"
-                  contenido={form.competencias}
-                />
-              )}
-            </div>
+        {tieneLogro && (
+          <SeccionPresentacion titulo="Logro" tono="emerald">
+            <CampoPresentacion contenido={form.proposito} />
+          </SeccionPresentacion>
+        )}
+
+        {tieneActividadInicial && (
+          <SeccionPresentacion titulo="Actividad inicial" tono="purple">
+            <CampoPresentacion contenido={form.clase} />
+          </SeccionPresentacion>
+        )}
+
+        {tieneActividadEnClase && (
+          <SeccionPresentacion titulo="Actividad en clase" tono="amber">
+            <CampoPresentacion contenido={form.competencias} />
           </SeccionPresentacion>
         )}
 
         {tieneDesarrolloCognitivo && (
-          <SeccionPresentacion
-            titulo="Desarrollo cognitivo"
-            descripcion="Proceso principal de aprendizaje y su evidencia visual."
-            tono="purple"
-          >
+          <SeccionPresentacion titulo="Desarrollo cognitivo" tono="orange">
             <div
               className={`grid gap-5 ${
                 tieneTexto(form.dba) && tieneImagen1
@@ -128,7 +115,7 @@ export default function PresentacionClaseProfesor({
               }`}
             >
               {tieneTexto(form.dba) && (
-                <CampoPresentacion label="Descripción" contenido={form.dba} />
+                <CampoPresentacion contenido={form.dba} />
               )}
               {tieneImagen1 && (
                 <ImagenPresentacion
@@ -142,11 +129,7 @@ export default function PresentacionClaseProfesor({
         )}
 
         {tieneActividadCasa && (
-          <SeccionPresentacion
-            titulo="Actividad en casa"
-            descripcion="Continuidad del aprendizaje y evidencia visual asociada."
-            tono="amber"
-          >
+          <SeccionPresentacion titulo="Actividad en casa" tono="sky">
             <div
               className={`grid gap-5 ${
                 tieneTexto(form.actividad_casa) && tieneImagen2
@@ -155,10 +138,7 @@ export default function PresentacionClaseProfesor({
               }`}
             >
               {tieneTexto(form.actividad_casa) && (
-                <CampoPresentacion
-                  label="Descripción"
-                  contenido={form.actividad_casa}
-                />
+                <CampoPresentacion contenido={form.actividad_casa} />
               )}
               {tieneImagen2 && (
                 <ImagenPresentacion
@@ -323,11 +303,13 @@ function DatoEncabezadoPresentacion({ label, value }) {
   );
 }
 
-function SeccionPresentacion({ titulo, descripcion, tono, children }) {
+function SeccionPresentacion({ titulo, tono, children }) {
   const tonos = {
     violet: { borde: "border-violet-200", acento: "bg-violet-600" },
-    sky: { borde: "border-sky-200", acento: "bg-sky-500" },
+    emerald: { borde: "border-emerald-200", acento: "bg-emerald-500" },
     purple: { borde: "border-purple-200", acento: "bg-purple-600" },
+    orange: { borde: "border-orange-200", acento: "bg-orange-500" },
+    sky: { borde: "border-sky-200", acento: "bg-sky-500" },
     amber: { borde: "border-amber-200", acento: "bg-amber-500" },
   };
   const tonoActual = tonos[tono] || tonos.violet;
@@ -336,32 +318,29 @@ function SeccionPresentacion({ titulo, descripcion, tono, children }) {
     <section
       className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${tonoActual.borde}`}
     >
-      <div className="flex items-start gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
         <span
-          className={`mt-0.5 h-10 w-1 shrink-0 rounded-full ${tonoActual.acento}`}
+          className={`h-7 w-1 shrink-0 rounded-full ${tonoActual.acento}`}
           aria-hidden="true"
         ></span>
-        <div>
-          <h2 className="text-lg font-black text-slate-950 sm:text-xl">
-            {titulo}
-          </h2>
-          <p className="mt-0.5 text-sm text-slate-500">{descripcion}</p>
-        </div>
+        <h2 className="text-lg font-black text-slate-950 sm:text-xl">
+          {titulo}
+        </h2>
       </div>
       <div className="p-4 sm:p-6">{children}</div>
     </section>
   );
 }
 
-function CampoPresentacion({ label, contenido, className = "" }) {
+function CampoPresentacion({ label, contenido }) {
   return (
-    <article
-      className={`rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 ${className}`}
-    >
-      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-violet-700">
-        {label}
-      </p>
-      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 sm:text-base">
+    <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+      {label && (
+        <p className="mb-2 text-[11px] font-black uppercase tracking-[0.14em] text-violet-700">
+          {label}
+        </p>
+      )}
+      <p className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 sm:text-base">
         {contenido}
       </p>
     </article>

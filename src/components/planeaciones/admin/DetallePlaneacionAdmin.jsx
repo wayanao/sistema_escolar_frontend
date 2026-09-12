@@ -216,12 +216,11 @@ function PlanRecibidoDetalle({
     .map((parte) => parte[0])
     .join("")
     .toLocaleUpperCase("es-CO");
-  const fundamentos = [
+  const contexto = [
     { titulo: "Unidad", texto: plan.unidad },
-    { titulo: "Logro", texto: plan.proposito },
     { titulo: "Estándar", texto: plan.estandar },
-    { titulo: "Desarrollo cognitivo", texto: plan.dba },
   ];
+  const tieneActividadEnClase = Boolean(String(plan.competencias || "").trim());
 
   return (
     <div className="space-y-6">
@@ -282,19 +281,29 @@ function PlanRecibidoDetalle({
 
       <section>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {fundamentos.map((item) => (
+          {contexto.map((item) => (
             <DetallePlanBloque key={item.titulo} {...item} />
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-violet-100 bg-violet-50/55 p-5">
+      <section>
+        <DetallePlanBloque
+          titulo="Logro"
+          texto={plan.proposito}
+          color="bg-emerald-500"
+        />
+      </section>
+
+      <section className="rounded-2xl border border-purple-100 bg-purple-50/55 p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-700 text-sm font-black text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-700 text-sm font-black text-white">
             1
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-black text-violet-800">Ambientación</h3>
+            <h3 className="text-lg font-black text-purple-800">
+              Actividad inicial
+            </h3>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-800">
               {plan.clase || "Sin información"}
             </p>
@@ -308,15 +317,22 @@ function PlanRecibidoDetalle({
           titulo="Trabajo propuesto para estudiantes"
         />
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {tieneActividadEnClase && (
+            <DetallePlanBloque
+              titulo="Actividad en clase"
+              texto={plan.competencias}
+              color="bg-amber-500"
+            />
+          )}
           <DetallePlanBloque
-            titulo="Actividad en clase"
-            texto={plan.competencias}
-            destacado
+            titulo="Desarrollo cognitivo"
+            texto={plan.dba}
+            color="bg-orange-500"
           />
           <DetallePlanBloque
             titulo="Actividad en casa"
             texto={plan.actividad_casa}
-            destacado
+            color="bg-sky-500"
           />
         </div>
       </section>
@@ -435,16 +451,18 @@ function TituloSeccion({ eyebrow, titulo }) {
   );
 }
 
-function DetallePlanBloque({ titulo, texto, destacado = false }) {
+function DetallePlanBloque({ titulo, texto, color }) {
   return (
-    <article
-      className={`rounded-2xl border p-4 ${
-        destacado
-          ? "border-emerald-100 bg-emerald-50/65"
-          : "border-slate-200 bg-white"
-      }`}
-    >
-      <h4 className="text-base font-black text-violet-800">{titulo}</h4>
+    <article className="rounded-2xl border border-slate-200 bg-white p-4">
+      <h4 className="flex items-center gap-2 text-base font-black text-violet-800">
+        {color && (
+          <span
+            className={`h-5 w-1 shrink-0 rounded-full ${color}`}
+            aria-hidden="true"
+          />
+        )}
+        {titulo}
+      </h4>
       <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-800">
         {texto || "Sin información"}
       </p>

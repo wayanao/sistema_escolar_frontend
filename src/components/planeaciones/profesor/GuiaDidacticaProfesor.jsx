@@ -76,7 +76,7 @@ export default function GuiaDidacticaProfesor({
             form={form}
             onActualizarCampo={onActualizarCampo}
           />
-          <DesarrolloClase
+          <ActividadInicial
             form={form}
             onActualizarCampo={onActualizarCampo}
           />
@@ -175,6 +175,7 @@ function TemaYLogro({ form, onActualizarCampo }) {
           onChange={(valor) => onActualizarCampo("tema", valor)}
           placeholder="Tema central de la clase"
           rows={2}
+          color="bg-emerald-500"
         />
 
         <CampoTextareaPlanProfesor
@@ -183,36 +184,24 @@ function TemaYLogro({ form, onActualizarCampo }) {
           onChange={(valor) => onActualizarCampo("proposito", valor)}
           placeholder="Qué se espera que logren los estudiantes"
           rows={3}
+          color="bg-emerald-500"
         />
       </div>
     </div>
   );
 }
 
-function DesarrolloClase({ form, onActualizarCampo }) {
+function ActividadInicial({ form, onActualizarCampo }) {
   return (
     <div className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-purple-50/50 p-4 sm:p-5">
-      <EncabezadoBloque
-        titulo="Desarrollo de la clase"
-        descripcion="Describe la secuencia y las actividades que realizarán los estudiantes."
-        color="bg-sky-500"
+      <CampoTextareaPlanProfesor
+        label="Actividad inicial"
+        value={form.clase}
+        onChange={(valor) => onActualizarCampo("clase", valor)}
+        placeholder="Cómo inicia la clase y qué hacen los estudiantes"
+        rows={6}
+        color="bg-purple-600"
       />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <CampoTextareaPlanProfesor
-          label="Ambientación"
-          value={form.clase}
-          onChange={(valor) => onActualizarCampo("clase", valor)}
-          placeholder="Apertura, desarrollo y cierre"
-          rows={6}
-        />
-        <CampoTextareaPlanProfesor
-          label="Actividad en clase"
-          value={form.competencias}
-          onChange={(valor) => onActualizarCampo("competencias", valor)}
-          placeholder="Trabajo individual, grupal, práctica o evidencia"
-          rows={6}
-        />
-      </div>
     </div>
   );
 }

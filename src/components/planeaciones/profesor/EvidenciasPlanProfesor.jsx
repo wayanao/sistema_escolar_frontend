@@ -11,41 +11,20 @@ export default function EvidenciasPlanProfesor({
   onEliminarImagen,
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-3">
-        <span
-          className="h-9 w-1 shrink-0 rounded-full bg-amber-500"
-          aria-hidden="true"
-        />
-        <div>
-          <h3 className="text-sm font-semibold text-gray-950 sm:text-base">
-            Evidencias y continuidad
-          </h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Registra el desarrollo cognitivo y el trabajo que continuará en
-            casa.
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <TarjetaEvidencia
-          titulo="Desarrollo cognitivo"
-          descripcion="Proceso principal y evidencia asociada."
-          tituloClassName="text-purple-950"
-          descripcionClassName="text-purple-700/80"
-          className="border-purple-200 from-purple-50/90"
-        >
+    <>
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+        <div className="space-y-4">
           <CampoTextareaPlanProfesor
-            label="Descripción"
+            label="Desarrollo cognitivo"
             value={form.dba}
             onChange={(valor) => onActualizarCampo("dba", valor)}
             placeholder="Proceso, habilidad o DBA relacionado"
             rows={5}
+            color="bg-orange-500"
           />
           <EvidenciaCampo
             id="evidencia-desarrollo-cognitivo"
-            label="Evidencia de desarrollo cognitivo"
-            descripcion="Adjunta una foto relacionada con este desarrollo."
+            label="Actividad a desarrollar"
             inputRef={(element) =>
               onRegistrarInputImagen("imagen1", element)
             }
@@ -54,26 +33,22 @@ export default function EvidenciasPlanProfesor({
             onChange={(event) => onManejarImagen("imagen1", event)}
             onEliminarImagen={() => onEliminarImagen("imagen1")}
           />
-        </TarjetaEvidencia>
+        </div>
+      </div>
 
-        <TarjetaEvidencia
-          titulo="Actividad en casa"
-          descripcion="Continuidad del aprendizaje y evidencia asociada."
-          tituloClassName="text-amber-950"
-          descripcionClassName="text-amber-700/80"
-          className="border-amber-200 from-amber-50/90"
-        >
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
+        <div className="space-y-4">
           <CampoTextareaPlanProfesor
-            label="Descripción"
+            label="Actividad en casa"
             value={form.actividad_casa}
             onChange={(valor) => onActualizarCampo("actividad_casa", valor)}
             placeholder="Refuerzo, consulta o producción para casa"
             rows={5}
+            color="bg-sky-500"
           />
           <EvidenciaCampo
             id="evidencia-actividad-casa"
             label="Evidencia de actividad en casa"
-            descripcion="Adjunta una foto relacionada con la actividad enviada."
             inputRef={(element) =>
               onRegistrarInputImagen("imagen2", element)
             }
@@ -81,80 +56,45 @@ export default function EvidenciasPlanProfesor({
             guardada={imagenesGuardadas.imagen2}
             onChange={(event) => onManejarImagen("imagen2", event)}
             onEliminarImagen={() => onEliminarImagen("imagen2")}
-            tono="amber"
           />
-        </TarjetaEvidencia>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function TarjetaEvidencia({
-  titulo,
-  descripcion,
-  tituloClassName,
-  descripcionClassName,
-  className,
-  children,
-}) {
-  return (
-    <div
-      className={`space-y-4 rounded-xl border bg-gradient-to-b to-white p-4 shadow-sm sm:p-5 ${className}`}
-    >
-      <div>
-        <p className={`text-sm font-semibold ${tituloClassName}`}>{titulo}</p>
-        <p className={`mt-0.5 text-xs ${descripcionClassName}`}>
-          {descripcion}
-        </p>
-      </div>
-      {children}
-    </div>
+    </>
   );
 }
 
 function EvidenciaCampo({
   id,
   label,
-  descripcion,
   inputRef,
   seleccionada,
   guardada,
   onChange,
   onEliminarImagen,
-  tono = "purple",
 }) {
-  const inputClass =
-    tono === "amber"
-      ? "border-amber-200 bg-amber-50/50 text-gray-600 file:bg-amber-100 file:text-amber-800 hover:border-amber-300 hover:file:bg-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
-      : "border-purple-200 bg-purple-50/50 text-gray-600 file:bg-purple-100 file:text-purple-800 hover:border-purple-300 hover:file:bg-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100";
-
   return (
     <div className="rounded-lg border border-gray-200 bg-white/90 p-3.5">
-      <div className="mb-2">
-        <label htmlFor={id} className="text-sm font-semibold text-gray-800">
-          {label}
-        </label>
-        <p className="text-xs text-gray-600">{descripcion}</p>
-      </div>
+      <label
+        htmlFor={id}
+        className="mb-2 block text-sm font-semibold text-gray-800"
+      >
+        {label}
+      </label>
       <input
         id={id}
         ref={inputRef}
         type="file"
         accept="image/png,image/jpeg,image/jpg,image/webp"
         onChange={onChange}
-        className={`block w-full cursor-pointer rounded-lg border border-dashed px-2 py-2 text-xs shadow-sm outline-none transition file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-2 file:text-xs file:font-semibold ${inputClass}`}
+        className="block w-full cursor-pointer rounded-lg border border-dashed border-purple-200 bg-purple-50/50 px-2 py-2 text-xs text-gray-600 shadow-sm outline-none transition file:mr-3 file:rounded-md file:border-0 file:bg-purple-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-purple-800 hover:border-purple-300 hover:file:bg-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
       />
       {seleccionada && <ImagenSeleccionadaCard imagen={seleccionada} />}
-      {guardada ? (
+      {guardada && (
         <ImagenGuardadaCard
           imagen={{ path: guardada, label }}
           alt={label}
           onEliminarImagen={onEliminarImagen}
         />
-      ) : (
-        <p className="mt-2 text-xs text-gray-500">
-          Sin evidencia guardada para este campo.
-        </p>
       )}
     </div>
   );
