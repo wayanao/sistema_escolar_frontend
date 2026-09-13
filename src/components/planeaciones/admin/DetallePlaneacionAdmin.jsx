@@ -1,4 +1,5 @@
 import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
+import TextoConEnlaces from "../TextoConEnlaces";
 import {
   formatearFecha,
   formatearTextoVisual,
@@ -304,8 +305,12 @@ function PlanRecibidoDetalle({
             <h3 className="text-lg font-black text-purple-800">
               Actividad inicial
             </h3>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-800">
-              {plan.clase || "Sin información"}
+            <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-800">
+              {plan.clase ? (
+                <TextoConEnlaces texto={plan.clase} />
+              ) : (
+                "Sin información"
+              )}
             </p>
           </div>
         </div>
@@ -463,8 +468,8 @@ function DetallePlanBloque({ titulo, texto, color }) {
         )}
         {titulo}
       </h4>
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-800">
-        {texto || "Sin información"}
+      <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-800">
+        {texto ? <TextoConEnlaces texto={texto} /> : "Sin información"}
       </p>
     </article>
   );

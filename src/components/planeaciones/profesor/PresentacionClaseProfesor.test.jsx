@@ -193,4 +193,27 @@ describe("PresentacionClaseProfesor", () => {
       "https://auligo.test/evidencia-guardada.webp",
     );
   });
+  it("reproduce el video escrito en el plan sin cerrar la presentación", async () => {
+    const user = userEvent.setup();
+    const propiedades = crearPropiedades({
+      form: {
+        ...formularioCompleto,
+        dba: "Ver el video https://youtu.be/dQw4w9WgXcQ antes del taller",
+      },
+    });
+    render(<PresentacionClaseProfesor {...propiedades} />);
+
+    await user.click(screen.getByRole("button", { name: /Reproducir video/ }));
+    expect(screen.getByTitle("Video de la planeación")).toHaveAttribute(
+      "src",
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1",
+    );
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByTitle("Video de la planeación")).not.toBeInTheDocument();
+    expect(propiedades.onCerrar).not.toHaveBeenCalled();
+
+    await user.keyboard("{Escape}");
+    expect(propiedades.onCerrar).toHaveBeenCalledTimes(1);
+  });
 });

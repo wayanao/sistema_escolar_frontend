@@ -1,5 +1,85 @@
 # Cambios Frontend
 
+## 2026-09-13 - El video escrito en la planeacion se reproduce en clase
+
+El profesor ya podia pegar un link de YouTube en cualquier caja de texto de la
+planeacion y se guardaba bien -son campos de texto libre sin limite-. El
+problema era al presentar: el link se pintaba como texto muerto, asi que para
+ver el video habia que seleccionarlo, copiarlo y pegarlo en el navegador.
+
+### El video se abre solo, encima de la clase
+
+`utils/planeaciones/enlaces.js` parte el texto en tramos -texto plano y enlaces
+`http`/`https`- y reconoce cuando un enlace es un video de YouTube.
+`components/planeaciones/TextoConEnlaces.jsx` pinta cada tramo.
+
+Un video se convierte en un boton `Reproducir video` que abre
+`ReproductorVideoPlaneacion`: una capa negra con el reproductor y nada mas. Sin
+comentarios, sin recomendaciones, sin salir de la pantalla. Se cierra con
+Escape, con el boton o tocando fuera, y la clase sigue donde estaba.
+
+La primera version mandaba a YouTube en otra pestaña. El usuario pidio ver solo
+el video, y tenia razon: proyectar la pagina de YouTube en un salon muestra
+recomendaciones y comentarios que nadie pidio.
+
+Los enlaces que **no** son de YouTube siguen mostrando la URL completa y abriendo
+en otra pestaña.
+
+**No toca el backend.** No hay columna nueva, ni migracion, ni endpoint: el link
+viaja dentro del mismo campo de texto de siempre. Por eso los planes guardados
+desde antes tambien quedan clicables sin migrar nada.
+
+Se evaluo la alternativa de un campo dedicado (`video1`/`video2`, columnas
+propias, validacion de que sea YouTube, conteo en la bandeja del admin). Queda
+abierta: si mas adelante hace falta un boton de reproducir o filtrar por
+"clases con video", este cambio no estorba.
+
+### Por que no se inyecta HTML
+
+El texto lo escribe el profesor. Pintarlo con `dangerouslySetInnerHTML` seria
+dejar que cualquiera guarde etiquetas y se ejecuten en la pantalla de otro. El
+texto se parte en pedazos y React escapa cada uno solo.
+
+Por lo mismo, tres decisiones:
+
+1. Solo se reconocen `http` y `https`. `javascript:` nunca se vuelve enlace.
+2. La etiqueta visible es la URL completa, no un texto bonito tipo "Ver video":
+   quien lee ve a donde va **antes** de hacer clic.
+3. Abren con `target="_blank"` y `rel="noopener noreferrer"`.
+
+El boton de reproducir es la excepcion a la regla 2, y puede serlo: solo aparece
+cuando el enlace pasa por `obtenerVideoYoutube`, que exige dominio de YouTube e
+identificador de once caracteres. Un boton que solo puede llevar a un video de
+YouTube no engaña a nadie. Se incrusta desde `youtube-nocookie.com`.
+
+La funcion tampoco se traga la puntuacion de la frase: en `mira https://x/abc.`
+el punto final queda fuera del enlace.
+
+### Donde se ve
+
+En la presentacion de clase del profesor y en el detalle que revisa
+administracion, que son las dos pantallas donde se lee la planeacion terminada.
+En el formulario de edicion sigue siendo un `textarea` normal, como debe ser.
+
+### El detalle que casi se escapa
+
+La presentacion de clase ya cerraba con Escape. Al abrir el video encima, un
+Escape habria cerrado las dos cosas y devuelto al profesor al formulario en
+mitad de la clase. El reproductor escucha Escape en **fase de captura** y corta
+la propagacion, asi que el primer Escape cierra el video y el segundo la
+presentacion. Hay prueba que lo fija en `PresentacionClaseProfesor.test.jsx`.
+
+### Pruebas
+
+`1819 pasan` en 306 archivos, veinte nuevas. `lint` y `build`, en verde.
+
+Anotado de paso: la suite completa es inestable en esta maquina. Dos corridas
+intermedias tumbaron tests distintos y ajenos al cambio por pasarse de los 5s
+bajo carga (`PrestamosAdmin`, `CrearProfesor`, `IngresoBoletinProfesor`); los
+tres pasan en segundos aislados y la corrida final salio limpia. Vale la pena
+subir el limite o bajar los workers antes de que le haga perder la confianza a
+`check:deploy`.
+
 ## 2026-09-10 - Se oculta el observador viejo
 
 Pedido por el usuario justo antes de publicar. **Ocultar no es retirar**: sale

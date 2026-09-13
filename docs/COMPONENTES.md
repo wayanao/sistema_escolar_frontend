@@ -25,6 +25,18 @@ Estado actual de componentes y paginas del frontend.
   en movil separa control academico y planeacion, con etiquetas principales mas
   legibles, encabezado compacto con solo la marca visible y campana para
   observaciones nuevas.
+- `components/planeaciones/TextoConEnlaces.jsx`: pinta el texto libre de una
+  planeación reconociendo los enlaces `http`/`https`. Parte el texto con
+  `utils/planeaciones/enlaces.js` y deja que React escape cada tramo; no inyecta
+  HTML. Un video de YouTube se vuelve un botón `Reproducir video`; cualquier otro
+  enlace muestra la URL completa como etiqueta y abre con `target="_blank"` y
+  `rel="noopener noreferrer"`. Lo usan la presentación del profesor y el detalle
+  del admin.
+- `components/planeaciones/ReproductorVideoPlaneacion.jsx`: capa sobre la
+  pantalla con el video solo, en `youtube-nocookie.com`. Se cierra con el botón,
+  tocando fuera o con Escape; captura Escape en fase de captura y detiene su
+  propagación para no cerrar también la presentación de clase que hay debajo.
+  Conserva un enlace `Abrir en YouTube` por si el video no permite incrustarse.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: campana compartida
   por admin y profesor. Es un conector mínimo entre el hook de consulta, el
   router, el estado local del panel y `NotificacionesPlaneadoresVista.jsx`.
@@ -331,6 +343,9 @@ Estado actual de componentes y paginas del frontend.
 - Su contenido se deriva de props, delega la resolución protegida de imágenes
   al hook compartido y no modifica el formulario. La página mantiene solo el
   estado de apertura y cierre.
+- Cada campo se pinta con `TextoConEnlaces`, de modo que un link de YouTube
+  escrito dentro del texto se reproduce con un clic sobre la misma presentación,
+  sin cambiar de pestaña ni salir de la clase.
 - La novena capa incorpora
   `components/planeaciones/profesor/EncabezadoPlanProfesor.jsx` para el título,
   la identificación del plan y el estado visual del guardado.
@@ -525,6 +540,8 @@ Estado actual de componentes y paginas del frontend.
 - El detalle recibe estado y acciones desde el hook de la página, y reutiliza
   `useImagenProtegida` para mostrar adjuntos autenticados sin conocer los
   servicios de planeaciones.
+- Los bloques de texto del plan también se pintan con `TextoConEnlaces`, para que
+  administración pueda abrir el material enlazado al revisar.
 - `pages/PlaneadoresClasesAdmin.jsx` queda como raíz de composición de la
   bandeja y el detalle, responsable únicamente de hooks, rutas y navegación.
 - La columna lateral `Envios recibidos` y su scroll vertical interno fueron

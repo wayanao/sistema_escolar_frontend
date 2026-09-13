@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
+import TextoConEnlaces from "../TextoConEnlaces";
 import { formatearFechaPlan } from "../../../utils/planeaciones/profesor";
 
 export default function PresentacionClaseProfesor({
@@ -341,7 +342,7 @@ function CampoPresentacion({ label, contenido }) {
         </p>
       )}
       <p className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 sm:text-base">
-        {contenido}
+        <TextoConEnlaces texto={contenido} />
       </p>
     </article>
   );
