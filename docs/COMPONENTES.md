@@ -32,11 +32,22 @@ Estado actual de componentes y paginas del frontend.
   enlace muestra la URL completa como etiqueta y abre con `target="_blank"` y
   `rel="noopener noreferrer"`. Lo usan la presentación del profesor y el detalle
   del admin.
-- `components/planeaciones/ReproductorVideoPlaneacion.jsx`: capa sobre la
-  pantalla con el video solo, en `youtube-nocookie.com`. Se cierra con el botón,
-  tocando fuera o con Escape; captura Escape en fase de captura y detiene su
-  propagación para no cerrar también la presentación de clase que hay debajo.
-  Conserva un enlace `Abrir en YouTube` por si el video no permite incrustarse.
+- `components/planeaciones/CapaVisorPlaneacion.jsx`: base compartida de las capas
+  que muestran una evidencia sola sobre la pantalla actual. Aporta el fondo, el
+  botón de cerrar, el enlace externo opcional y el cierre tocando fuera. Escucha
+  Escape en **fase de captura** y detiene su propagación, para que cerrar la capa
+  no cierre también la presentación de clase que hay debajo.
+- `components/planeaciones/ReproductorVideoPlaneacion.jsx`: la capa con el video
+  solo, servido desde `youtube-nocookie.com`. Conserva un enlace
+  `Abrir en YouTube` por si el video no permite incrustarse.
+- `components/planeaciones/VisorPdfPlaneacion.jsx`: la capa con el PDF solo.
+  Recibe una URL `blob:` ya descargada con la sesión del usuario, nunca una ruta
+  del servidor, y ofrece `Abrir en otra pestaña` como salida para los navegadores
+  que no incrustan PDF.
+- `components/planeaciones/ContenidoEvidencia.jsx`: pinta el interior de una
+  evidencia. Una imagen se muestra tal cual; un PDF no se puede previsualizar sin
+  descargarlo entero, así que se anuncia con una portada y su nombre en vez de
+  dejar un recuadro roto. También resuelve los estados de carga y error.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: campana compartida
   por admin y profesor. Es un conector mínimo entre el hook de consulta, el
   router, el estado local del panel y `NotificacionesPlaneadoresVista.jsx`.
@@ -73,6 +84,10 @@ Estado actual de componentes y paginas del frontend.
   color, y con exterior transparente.
 - `components/autenticacion/TenantStatusBannerView.jsx`: aviso global
   presentacional cuando el hook entrega un tenant en mora.
+- `hooks/planeaciones/useAperturaEvidencia.js`: decide cómo se abre una evidencia
+  ya descargada. Un PDF se muestra en una capa sobre la pantalla, para no sacar al
+  profesor de la clase; una imagen sigue abriéndose en otra pestaña, como siempre.
+  Lo usan los cuatro lugares que muestran evidencias.
 - `hooks/planeaciones/useImagenProtegida.js`: administra la carga, error y ciclo
   de vida de imágenes autenticadas para presentación, evidencias del profesor y
   detalle admin; el transporte blob permanece en `planeacionesApi.js`.
@@ -331,7 +346,8 @@ Estado actual de componentes y paginas del frontend.
 - `components/planeaciones/profesor/CampoTextareaPlanProfesor.jsx` unifica los
   campos con contador y límite de caracteres.
 - `components/planeaciones/profesor/EvidenciasPlanProfesor.jsx` presenta la
-  carga, previsualización y eliminación de imágenes nuevas o guardadas.
+  carga, previsualización y eliminación de evidencias nuevas o guardadas: una
+  imagen de hasta 5MB o un PDF de hasta 15MB por espacio.
 - Estos componentes no administran el formulario ni consultan la API:
   `PlanDeClases.jsx` continúa coordinando los hooks y entrega valores y
   callbacks mediante props.

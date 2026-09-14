@@ -1,5 +1,66 @@
 # Cambios Frontend
 
+## 2026-09-13 - Las evidencias del plan aceptan PDF
+
+Los dos espacios de evidencia solo admitian imagenes. Un taller escaneado o una
+guia en PDF no tenian donde ir.
+
+### No hubo columna nueva
+
+`imagen1` e `imagen2` nunca guardaron una imagen: guardan **la ruta de un
+archivo**. El almacenamiento y el control de permisos son indiferentes al tipo,
+asi que un PDF queda tan protegido como una imagen sin migrar nada. Solo hubo
+que abrir la lista blanca del backend -ver `CAMBIOS_BACKEND.md` del mismo dia- y
+ensenar al frontend a distinguir los dos.
+
+Limites: imagen 5MB, PDF 15MB. `utils/planeaciones/evidencias.js` los declara y
+valida antes de enviar; el backend vuelve a validar lo mismo, que es donde
+cuenta. La validacion del navegador solo evita el viaje y explica el problema de
+inmediato.
+
+### Lo que de verdad costo: pintarlo
+
+Habia **cuatro** lugares que asumian que la evidencia era una imagen y la metian
+en un `<img>`: la vista previa antes de guardar, la evidencia guardada del
+profesor, la presentacion de clase y el detalle del admin. Un PDF ahi no da
+error, da un recuadro roto.
+
+Los cuatro pasan ahora por `ContenidoEvidencia`, que pinta la imagen o una
+portada con el nombre del PDF, y por `useAperturaEvidencia`, que decide como se
+abre: **el PDF en una capa sobre la pantalla; la imagen en otra pestaña, como
+siempre**. Ese "como siempre" tiene prueba, para que ampliar no cambie lo que ya
+funcionaba.
+
+### Una base compartida en vez de copiar
+
+El visor de PDF y el reproductor de video hacen lo mismo: una capa negra con una
+cosa dentro. La mecanica quedo en `CapaVisorPlaneacion`, incluido el manejo de
+Escape en fase de captura. Duplicar ese detalle era pedir que uno de los dos se
+desincronizara -es exactamente la historia de `VALORACIONES_DESARROLLO` que
+cuenta `ARQUITECTURA_FRONTEND.md`-.
+
+`ReproductorVideoPlaneacion` se reescribio sobre esa base sin cambiar su
+comportamiento; sus pruebas pasaron sin tocarlas.
+
+### Lo que cambio de texto
+
+El detalle del admin decia "El profesor no adjunto imagenes"; ahora dice
+evidencias. Los botones dicen `Abrir documento` o `Ver imagen completa` segun lo
+que haya. Habia una prueba fijando el texto viejo y se actualizo.
+
+### Pruebas
+
+`1828 pasan` en 307 archivos, nueve nuevas. `lint` y `build`, en verde.
+
+En el backend: `1297 pasan`, `ruff` y `pip check` en verde.
+
+### Pendiente de comprobar en navegador
+
+Las pruebas verifican que el visor recibe la URL correcta, no que el PDF se
+vea. Safari en iPhone y iPad no incrusta PDF de forma confiable; para eso quedo
+el enlace `Abrir en otra pestaña` dentro del visor. Falta confirmarlo en un
+dispositivo real.
+
 ## 2026-09-13 - El video escrito en la planeacion se reproduce en clase
 
 El profesor ya podia pegar un link de YouTube en cualquier caja de texto de la

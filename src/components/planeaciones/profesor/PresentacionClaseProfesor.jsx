@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import useAperturaEvidencia from "../../../hooks/planeaciones/useAperturaEvidencia";
 import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
+import { esEvidenciaPdf } from "../../../utils/planeaciones/evidencias";
+import ContenidoEvidencia from "../ContenidoEvidencia";
 import TextoConEnlaces from "../TextoConEnlaces";
+import VisorPdfPlaneacion from "../VisorPdfPlaneacion";
 import { formatearFechaPlan } from "../../../utils/planeaciones/profesor";
 
 export default function PresentacionClaseProfesor({
@@ -355,23 +359,24 @@ function ImagenPresentacion({ seleccionada, guardada, alt }) {
     error,
   } = useImagenProtegida(seleccionada ? "" : guardada);
   const url = seleccionada?.url || urlGuardada;
-
-  const abrirImagen = () => {
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
-  };
+  const esPdf = seleccionada ? Boolean(seleccionada.esPdf) : esEvidenciaPdf(guardada);
+  const nombre = seleccionada?.nombre || alt;
+  const { abrir, cerrar, visorAbierto } = useAperturaEvidencia({ url, esPdf });
 
   return (
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
       <button
         type="button"
-        onClick={abrirImagen}
+        onClick={abrir}
         disabled={!url}
-        className="block min-h-64 w-full bg-white transition hover:bg-slate-50 disabled:cursor-default"
-        aria-label={`Ver imagen completa: ${alt}`}
+        className="flex min-h-64 w-full items-center justify-center bg-white transition hover:bg-slate-50 disabled:cursor-default"
+        aria-label={
+          esPdf ? `Abrir documento: ${alt}` : `Ver imagen completa: ${alt}`
+        }
       >
         {cargando && (
           <span className="flex min-h-64 items-center justify-center gap-2 text-sm font-semibold text-slate-500">
-            <SpinnerPresentacion /> Cargando imagen...
+            <SpinnerPresentacion /> Cargando evidencia...
           </span>
         )}
         {error && !cargando && (
@@ -380,13 +385,18 @@ function ImagenPresentacion({ seleccionada, guardada, alt }) {
           </span>
         )}
         {url && !cargando && (
-          <img
-            src={url}
+          <ContenidoEvidencia
+            url={url}
+            esPdf={esPdf}
             alt={alt}
-            className="max-h-[32rem] min-h-64 w-full object-contain p-2"
+            nombre={nombre}
+            claseImagen="max-h-[32rem] min-h-64 w-full object-contain p-2"
           />
         )}
       </button>
+      {visorAbierto && (
+        <VisorPdfPlaneacion url={url} nombre={nombre} onCerrar={cerrar} />
+      )}
       <div className="flex flex-col gap-1 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-bold text-slate-800">{alt}</p>
@@ -398,11 +408,11 @@ function ImagenPresentacion({ seleccionada, guardada, alt }) {
         </div>
         <button
           type="button"
-          onClick={abrirImagen}
+          onClick={abrir}
           disabled={!url}
           className="w-fit text-xs font-bold text-violet-700 hover:text-violet-900 disabled:text-slate-400"
         >
-          Ver imagen completa
+          {esPdf ? "Abrir documento" : "Ver imagen completa"}
         </button>
       </div>
     </article>

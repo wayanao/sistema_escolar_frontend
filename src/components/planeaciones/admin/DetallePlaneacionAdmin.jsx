@@ -1,5 +1,9 @@
+import useAperturaEvidencia from "../../../hooks/planeaciones/useAperturaEvidencia";
 import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
+import { esEvidenciaPdf } from "../../../utils/planeaciones/evidencias";
+import ContenidoEvidencia from "../ContenidoEvidencia";
 import TextoConEnlaces from "../TextoConEnlaces";
+import VisorPdfPlaneacion from "../VisorPdfPlaneacion";
 import {
   formatearFecha,
   formatearTextoVisual,
@@ -496,7 +500,7 @@ function Evidencias({ plan, onEliminarImagen, eliminandoImagen }) {
           Evidencias
         </h3>
         <p className="mt-2 text-sm text-slate-600">
-          El profesor no adjuntó imágenes en esta planeación.
+          El profesor no adjuntó evidencias en esta planeación.
         </p>
       </div>
     );
@@ -523,46 +527,39 @@ function Evidencias({ plan, onEliminarImagen, eliminandoImagen }) {
 
 function ImagenPlanCard({ imagen, onEliminarImagen, eliminando }) {
   const { url, cargando, error } = useImagenProtegida(imagen.path);
-  const abrirImagen = () => {
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
-  };
+  const esPdf = esEvidenciaPdf(imagen.path);
+  const { abrir, cerrar, visorAbierto } = useAperturaEvidencia({ url, esPdf });
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
       <button
         type="button"
-        onClick={abrirImagen}
+        onClick={abrir}
         disabled={!url}
         className="block h-48 w-full transition hover:opacity-90 disabled:cursor-not-allowed"
       >
-        {cargando && (
-          <div className="flex h-full items-center justify-center text-sm text-slate-500">
-            Cargando imagen...
-          </div>
-        )}
-        {error && !cargando && (
-          <div className="flex h-full items-center justify-center px-3 text-sm text-rose-600">
-            {error}
-          </div>
-        )}
-        {url && !cargando && (
-          <img
-            src={url}
-            alt={imagen.label}
-            className="h-full w-full object-contain"
-          />
-        )}
+        <ContenidoEvidencia
+          url={url}
+          esPdf={esPdf}
+          alt={imagen.label}
+          nombre={imagen.label}
+          cargando={cargando}
+          error={error}
+        />
       </button>
+      {visorAbierto && (
+        <VisorPdfPlaneacion url={url} nombre={imagen.label} onCerrar={cerrar} />
+      )}
       <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-3">
         <div>
           <p className="text-sm font-bold text-slate-800">{imagen.label}</p>
           <button
             type="button"
-            onClick={abrirImagen}
+            onClick={abrir}
             disabled={!url}
             className="text-xs font-bold text-violet-700 disabled:text-slate-400"
           >
-            Ver completa
+            {esPdf ? "Abrir documento" : "Ver completa"}
           </button>
         </div>
         <button

@@ -216,4 +216,60 @@ describe("PresentacionClaseProfesor", () => {
     await user.keyboard("{Escape}");
     expect(propiedades.onCerrar).toHaveBeenCalledTimes(1);
   });
+  it("abre el PDF adjunto sobre la clase, sin cerrar la presentación", async () => {
+    const user = userEvent.setup();
+    const propiedades = crearPropiedades({
+      imagenesGuardadas: {
+        imagen1: "uploads/tenant_demo/plan_de_clases/taller.pdf",
+        imagen2: null,
+      },
+    });
+    render(<PresentacionClaseProfesor {...propiedades} />);
+
+    expect(
+      screen.queryByTitle("Evidencia de desarrollo cognitivo"),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: "Abrir documento: Evidencia de desarrollo cognitivo",
+      }),
+    );
+
+    expect(
+      screen.getByTitle("Evidencia de desarrollo cognitivo"),
+    ).toHaveAttribute("src", "https://auligo.test/evidencia-guardada.webp");
+    expect(window.open).not.toHaveBeenCalled();
+
+    await user.keyboard("{Escape}");
+    expect(
+      screen.queryByTitle("Evidencia de desarrollo cognitivo"),
+    ).not.toBeInTheDocument();
+    expect(propiedades.onCerrar).not.toHaveBeenCalled();
+  });
+
+  it("sigue abriendo las imágenes en otra pestaña", async () => {
+    const user = userEvent.setup();
+    render(
+      <PresentacionClaseProfesor
+        {...crearPropiedades({
+          imagenesGuardadas: {
+            imagen1: "uploads/tenant_demo/plan_de_clases/foto.webp",
+            imagen2: null,
+          },
+        })}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Ver imagen completa: Evidencia de desarrollo cognitivo",
+      }),
+    );
+
+    expect(window.open).toHaveBeenCalledWith(
+      "https://auligo.test/evidencia-guardada.webp",
+      "_blank",
+      "noopener,noreferrer",
+    );
+  });
 });

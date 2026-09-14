@@ -116,7 +116,7 @@ describe("DetallePlaneacionAdmin", () => {
     expect(screen.getByText("Revisión 3")).toBeInTheDocument();
     expect(screen.getByText("Exploración de saberes previos")).toBeInTheDocument();
     expect(
-      screen.getByText("El profesor no adjuntó imágenes en esta planeación."),
+      screen.getByText("El profesor no adjuntó evidencias en esta planeación."),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

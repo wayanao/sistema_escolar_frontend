@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
 import {
+  esEvidenciaPdf,
+  validarArchivoEvidencia,
+} from "../../utils/planeaciones/evidencias";
+import {
   crearClaveCamposRecordados,
   ESTADO_INICIAL_PLAN,
 } from "../../utils/planeaciones/profesor";
-
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 
 function crearEstadoGuardado(overrides = {}) {
   return {
@@ -78,6 +79,7 @@ export default function useFormularioPlaneacionProfesor({
           acc[slot] = {
             nombre: imagen.name,
             url: URL.createObjectURL(imagen),
+            esPdf: esEvidenciaPdf(imagen),
           };
         }
         return acc;
@@ -125,14 +127,9 @@ export default function useFormularioPlaneacionProfesor({
       return;
     }
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      window.alert("Solo se permiten imagenes PNG, JPG, JPEG o WEBP.");
-      event.target.value = "";
-      return;
-    }
-
-    if (file.size > MAX_IMAGE_BYTES) {
-      window.alert("La imagen no puede superar 5MB.");
+    const { valido, mensaje } = validarArchivoEvidencia(file);
+    if (!valido) {
+      window.alert(mensaje);
       event.target.value = "";
       return;
     }
