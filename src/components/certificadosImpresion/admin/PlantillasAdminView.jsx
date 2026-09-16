@@ -7,6 +7,10 @@ import {
   LIMITES_TAMANO_NOMBRE_COLEGIO,
   obtenerTamanoNombreColegio,
 } from "../../../utils/certificadosImpresion/tamanoNombreColegio";
+import {
+  LIMITES_TAMANO_ESLOGAN,
+  obtenerTamanoEslogan,
+} from "../../../utils/certificadosImpresion/tamanoEslogan";
 
 const TIPOS = [
   { key: "boletin", label: "Boletín de notas" },
@@ -188,6 +192,8 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
   const tamanoEscudo = obtenerTamanoEscudo(config);
   const tamanoNombreColegioId = useId();
   const tamanoNombreColegio = obtenerTamanoNombreColegio(config);
+  const tamanoEsloganId = useId();
+  const tamanoEslogan = obtenerTamanoEslogan(config);
 
   return (
     <div className="bg-white rounded-lg shadow border border-slate-200 p-4 sm:p-6">
@@ -345,6 +351,29 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
             value={config.mostrar_eslogan !== false}
             onChange={(v) => set("mostrar_eslogan", v)}
           />
+        </div>
+
+        <Campo
+          label={`Tamaño del eslogan: ${tamanoEslogan}px`}
+          htmlFor={tamanoEsloganId}
+        >
+          <input
+            id={tamanoEsloganId}
+            type="range"
+            min={LIMITES_TAMANO_ESLOGAN.min}
+            max={LIMITES_TAMANO_ESLOGAN.max}
+            step={LIMITES_TAMANO_ESLOGAN.paso}
+            value={tamanoEslogan}
+            aria-valuetext={`${tamanoEslogan} píxeles`}
+            onChange={(e) => set("tamano_eslogan", Number(e.target.value))}
+            className="w-full accent-purple-600"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Ajusta el tamaño del lema o eslogan en el encabezado, en pantalla y al imprimir.
+          </p>
+        </Campo>
+
+        <div className="space-y-2">
           <Toggle
             label="Mostrar pie de página"
             value={config.mostrar_pie !== false}

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import usePrintConfig from "../../hooks/certificadosImpresion/usePrintConfig";
 import { obtenerTamanoEscudo } from "../../utils/certificadosImpresion/tamanoEscudo";
 import { obtenerTamanoNombreColegio } from "../../utils/certificadosImpresion/tamanoNombreColegio";
+import { obtenerTamanoEslogan } from "../../utils/certificadosImpresion/tamanoEslogan";
 import "../../styles/print.css";
 
 /**
@@ -135,7 +136,14 @@ export default function DocumentoImprimible({
         <p className="di-encabezado__aprobacion">{aprobacionResolucion}</p>
       )}
       {mostrarEslogan && branding?.eslogan && (
-        <p className="di-encabezado__eslogan">{branding.eslogan}</p>
+        <p
+          className="di-encabezado__eslogan"
+          style={config.tamano_eslogan != null
+            ? { fontSize: obtenerTamanoEslogan(config) }
+            : undefined}
+        >
+          {branding.eslogan}
+        </p>
       )}
       {datosContacto.length > 0 && (
         <p className="di-encabezado__contacto">

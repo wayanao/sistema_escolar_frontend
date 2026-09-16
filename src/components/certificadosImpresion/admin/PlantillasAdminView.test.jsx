@@ -46,6 +46,9 @@ describe("PlantillasAdminView", () => {
     const tamanoNombre = screen.getByRole("slider", { name: /Tamaño del nombre del colegio/ });
     expect(tamanoNombre).toHaveValue("16.8");
     fireEvent.change(tamanoNombre, { target: { value: "28" } });
+    const tamanoEslogan = screen.getByRole("slider", { name: /Tamaño del eslogan/ });
+    expect(tamanoEslogan).toHaveValue("11.4");
+    fireEvent.change(tamanoEslogan, { target: { value: "18" } });
     expect(screen.queryByRole("textbox", { name: "Membrete" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: "Mostrar membrete" }));
     await user.click(screen.getByRole("checkbox", { name: "Mostrar aprobación de resolución" }));
@@ -59,6 +62,7 @@ describe("PlantillasAdminView", () => {
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("posicion_logo", "centro");
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_escudo", 100);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_nombre_colegio", 28);
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_eslogan", 18);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_membrete", false);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_aprobacion_resolucion", false);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_pie", false);

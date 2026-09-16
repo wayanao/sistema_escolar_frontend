@@ -200,6 +200,7 @@ describe("DocumentoImprimible", () => {
             posicion_logo: posicion,
             tamano_escudo: 100,
             tamano_nombre_colegio: 28,
+            tamano_eslogan: 18,
           },
         },
       });
@@ -208,6 +209,7 @@ describe("DocumentoImprimible", () => {
       expect(screen.getByRole("heading", { name: "Colegio Central" })).toHaveStyle({
         fontSize: "28px",
       });
+      expect(screen.getByText("Aprender para crecer")).toHaveStyle({ fontSize: "18px" });
       expect(screen.getByAltText("logo")).toHaveStyle({
         height: "100px",
         width: "auto",
@@ -226,6 +228,7 @@ describe("DocumentoImprimible", () => {
       });
       rerender(<DocumentoImprimible tipo="voucher_pago" />);
       expect(screen.getByRole("heading", { name: "Colegio Central" }).style.fontSize).toBe("");
+      expect(screen.getByText("Aprender para crecer").style.fontSize).toBe("");
       const escudoSinConfigurar = screen.getByAltText("logo");
       expect(escudoSinConfigurar.style.height).toBe("");
       expect(escudoSinConfigurar).toHaveStyle({
