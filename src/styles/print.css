@@ -195,13 +195,13 @@
 
 .di-encabezado__eslogan {
   font-style: italic;
+  font-weight: 600;
   color: var(--di-color-secundario, #526775);
   font-size: 0.95em;
   margin: 0;
 }
 
-.di-encabezado__identificacion,
-.di-encabezado__contacto {
+.di-encabezado__identificacion {
   font-size: 0.78em;
   color: var(--di-color-secundario, #526775);
   margin: 0;

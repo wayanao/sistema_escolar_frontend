@@ -96,7 +96,13 @@ describe("DocumentoImprimible", () => {
     );
     expect(screen.getByText("Laura Gómez")).toBeInTheDocument();
     expect(screen.getByText("Rectora")).toBeInTheDocument();
-    expect(screen.getByText(/Documento generado el/)).toBeInTheDocument();
+    const pie = screen.getByText(/Documento generado el/);
+    expect(pie).toHaveClass("di-pie");
+    expect(pie.textContent).toContain("colegio.test");
+    expect(pie.textContent).toContain("Calle 1");
+    expect(pie.textContent).toContain("300 000 0000");
+    expect(pie.textContent).toContain("info@colegio.test");
+    expect(screen.getAllByText(/Calle 1/)).toHaveLength(1);
 
     await user.click(screen.getByRole("button", { name: "Descargar PDF" }));
     await user.click(screen.getByRole("button", { name: "Imprimir" }));
@@ -219,6 +225,8 @@ describe("DocumentoImprimible", () => {
       if (posicion !== "centro") {
         expect(screen.getByAltText("logo secundario").style.height).toBe("");
       }
+      expect(screen.queryByText(/Documento generado el/)).not.toBeInTheDocument();
+      expect(screen.getByText(/Calle 1/)).toBeInTheDocument();
 
       usePrintConfig.mockReturnValue({
         ...configuracion,
@@ -229,6 +237,7 @@ describe("DocumentoImprimible", () => {
       rerender(<DocumentoImprimible tipo="voucher_pago" />);
       expect(screen.getByRole("heading", { name: "Colegio Central" }).style.fontSize).toBe("");
       expect(screen.getByText("Aprender para crecer").style.fontSize).toBe("");
+      expect(screen.getByText(/Documento generado el/)).toBeInTheDocument();
       const escudoSinConfigurar = screen.getByAltText("logo");
       expect(escudoSinConfigurar.style.height).toBe("");
       expect(escudoSinConfigurar).toHaveStyle({

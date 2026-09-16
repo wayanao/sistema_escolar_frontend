@@ -50,7 +50,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           <div className="flex items-stretch gap-1.5 text-[11px]">
             <Chip label="Curso" value={boletinData.curso} highlight />
             <Chip label="Periodo" value={boletinData.periodo} highlight />
-            <Chip label="Año" value={new Date().getFullYear()} />
+            <Chip label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
           </div>
         </div>
 

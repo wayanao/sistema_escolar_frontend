@@ -66,6 +66,9 @@ describe("BoletinImprimible", () => {
     expect(screen.getAllByRole("heading", { name: "Dimensión comunicativa" })).toHaveLength(1);
     expect(screen.getByText("Expresa sus ideas")).toBeInTheDocument();
     expect(screen.getByText("Escucha a sus compañeros")).toBeInTheDocument();
+    expect(screen.getByText("Fecha")).toBeInTheDocument();
+    expect(screen.getByText(new Date().toLocaleDateString("es-CO"))).toBeInTheDocument();
+    expect(screen.queryByText("Año")).not.toBeInTheDocument();
     expect(screen.getByTestId("documento-imprimible")).toHaveAttribute(
       "data-class-name",
       "di-documento--boletin",

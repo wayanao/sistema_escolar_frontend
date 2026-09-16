@@ -93,6 +93,11 @@ export default function DocumentoImprimible({
     branding?.telefono,
     branding?.email,
   ].filter(Boolean);
+  const piePartes = [
+    branding?.sitio_web,
+    ...datosContacto,
+    tipo !== "boletin" ? `Documento generado el ${new Date().toLocaleDateString("es-CO")}` : null,
+  ].filter(Boolean);
   const clasesDocumento = className.split(" ").filter(Boolean);
   const usaScrollMovil = clasesDocumento.some((clase) =>
     [
@@ -145,11 +150,6 @@ export default function DocumentoImprimible({
           {branding.eslogan}
         </p>
       )}
-      {datosContacto.length > 0 && (
-        <p className="di-encabezado__contacto">
-          {datosContacto.join("  -  ")}
-        </p>
-      )}
     </div>
   );
 
@@ -199,10 +199,9 @@ export default function DocumentoImprimible({
                   </section>
                 )}
 
-                {mostrarPie && (
+                {mostrarPie && piePartes.length > 0 && (
                   <footer className="di-pie">
-                    {branding?.sitio_web && <span>{branding.sitio_web} - </span>}
-                    Documento generado el {new Date().toLocaleDateString("es-CO")}
+                    {piePartes.join("  -  ")}
                   </footer>
                 )}
               </td>
