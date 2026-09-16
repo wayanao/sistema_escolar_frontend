@@ -38,8 +38,8 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           { nombre: "Director de Grupo" },
         ]}
       >
-        <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-wrap items-start gap-x-6 gap-y-2">
-          <div className="flex-1 min-w-0">
+        <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-col gap-2">
+          <div>
             <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 leading-none mb-1">
               Estudiante
             </p>
@@ -47,10 +47,13 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
               {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
             </p>
           </div>
-          <div className="flex items-stretch gap-1.5 text-[11px]">
+          <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
             <Chip label="Grado" value={boletinData.curso} highlight />
             <Chip label="Periodo" value={boletinData.periodo} highlight />
             <Chip label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
+            {boletinData.director_grupo && (
+              <Chip label="Director de grupo" value={boletinData.director_grupo} />
+            )}
           </div>
         </div>
 

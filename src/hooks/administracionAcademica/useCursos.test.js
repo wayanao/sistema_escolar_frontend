@@ -1,12 +1,17 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listarCursosMock } = vi.hoisted(() => ({
+const { listarCursosMock, listarProfesoresMock } = vi.hoisted(() => ({
     listarCursosMock: vi.fn(),
+    listarProfesoresMock: vi.fn(),
 }));
 
 vi.mock("../../services/cursosApi", () => ({
     listarCursos: listarCursosMock,
+}));
+
+vi.mock("../../services/profesoresApi", () => ({
+    listarProfesores: listarProfesoresMock,
 }));
 
 import useCursos from "./useCursos";
@@ -22,6 +27,7 @@ function diferido() {
 beforeEach(() => {
     vi.clearAllMocks();
     listarCursosMock.mockResolvedValue([{ id: 21, estado: "activo" }]);
+    listarProfesoresMock.mockResolvedValue([{ id: 7, nombre: "Ana", apellido: "Gómez" }]);
     vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -39,6 +45,17 @@ describe("useCursos", () => {
 
         expect(result.current.estadoFiltro).toBe("activo");
         expect(listarCursosMock).toHaveBeenCalledWith("activo", {
+            signal: expect.any(AbortSignal),
+        });
+    });
+
+    it("carga los profesores activos para el selector de director de grupo", async () => {
+        const { result } = renderHook(() => useCursos());
+
+        await waitFor(() => expect(result.current.profesores).toEqual([
+            { id: 7, nombre: "Ana", apellido: "Gómez" },
+        ]));
+        expect(listarProfesoresMock).toHaveBeenCalledWith("activo", {
             signal: expect.any(AbortSignal),
         });
     });

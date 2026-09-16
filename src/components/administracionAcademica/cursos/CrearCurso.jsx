@@ -9,6 +9,7 @@ function CrearCurso() {
         setCursos,
         estadoFiltro,
         setEstadoFiltro,
+        profesores,
         recargar,
     } = useCursos();
     const {
@@ -17,6 +18,7 @@ function CrearCurso() {
         jornada,
         estado,
         nivel,
+        director_grupo_id: directorGrupoId,
         actualizarCampo,
         guardarCurso,
         iniciarEdicion,
@@ -32,6 +34,8 @@ function CrearCurso() {
                 jornada={jornada}
                 estado={estado}
                 nivel={nivel}
+                director_grupo_id={directorGrupoId}
+                profesores={profesores}
                 onActualizarCampo={actualizarCampo}
                 onCancelarEdicion={cancelarEdicion}
                 onGuardar={guardarCurso}

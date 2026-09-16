@@ -69,11 +69,31 @@ describe("BoletinImprimible", () => {
     expect(screen.getByText("Fecha")).toBeInTheDocument();
     expect(screen.getByText(new Date().toLocaleDateString("es-CO"))).toBeInTheDocument();
     expect(screen.queryByText("Año")).not.toBeInTheDocument();
+    expect(screen.queryByText("Director de grupo")).not.toBeInTheDocument();
     expect(screen.getByTestId("documento-imprimible")).toHaveAttribute(
       "data-class-name",
       "di-documento--boletin",
     );
     await user.click(screen.getByRole("button", { name: "← Atrás" }));
     expect(onVolver).toHaveBeenCalledTimes(1);
+  });
+
+  it("muestra el director de grupo como dato aparte cuando el curso tiene uno asignado", () => {
+    render(
+      <BoletinImprimible
+        boletinData={{
+          estudiante_nombre: "Sara",
+          estudiante_apellido: "López",
+          curso: "Transición",
+          periodo: 1,
+          director_grupo: "Ana Gómez",
+          materias: [],
+        }}
+        onVolver={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Director de grupo")).toBeInTheDocument();
+    expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
   });
 });

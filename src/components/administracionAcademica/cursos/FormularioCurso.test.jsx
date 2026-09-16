@@ -89,4 +89,42 @@ describe("FormularioCurso", () => {
 
         expect(screen.getByDisplayValue("Preescolar")).toBeInTheDocument();
     });
+
+    it("presenta el director de grupo con 'Sin asignar' cuando no llega, y lista los profesores", async () => {
+        const onActualizarCampo = vi.fn();
+        const user = userEvent.setup();
+        const profesores = [
+            { id: 7, nombre: "Ana", apellido: "Gómez" },
+            { id: 9, nombre: "Luis", apellido: "Pérez" },
+        ];
+        render(
+            <FormularioCurso
+                {...PROPS_BASE}
+                profesores={profesores}
+                onActualizarCampo={onActualizarCampo}
+            />,
+        );
+
+        expect(screen.getByDisplayValue("Sin asignar")).toBeInTheDocument();
+        expect(screen.getByRole("option", { name: "Ana Gómez" })).toBeInTheDocument();
+        expect(screen.getByRole("option", { name: "Luis Pérez" })).toBeInTheDocument();
+
+        await user.selectOptions(screen.getByDisplayValue("Sin asignar"), "7");
+
+        expect(onActualizarCampo).toHaveBeenCalledWith("director_grupo_id", 7);
+    });
+
+    it("preselecciona el director de grupo recibido al editar", () => {
+        const profesores = [{ id: 7, nombre: "Ana", apellido: "Gómez" }];
+        render(
+            <FormularioCurso
+                {...PROPS_BASE}
+                editId={21}
+                director_grupo_id={7}
+                profesores={profesores}
+            />,
+        );
+
+        expect(screen.getByDisplayValue("Ana Gómez")).toBeInTheDocument();
+    });
 });

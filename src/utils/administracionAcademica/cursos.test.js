@@ -4,6 +4,7 @@ import {
     aplicarEstadoCurso,
     CLASES_ESTADO_CURSO,
     construirPayloadCurso,
+    DIRECTOR_GRUPO_SIN_DEFINIR,
     ESTADOS_CURSO,
     FILTROS_CURSO,
     JORNADA_CURSO_INICIAL,
@@ -32,6 +33,7 @@ describe("utilidades puras de cursos", () => {
             jornada: "Tarde",
             estado: "inactivo",
             nivel: null,
+            director_grupo_id: null,
         });
     });
 
@@ -49,6 +51,22 @@ describe("utilidades puras de cursos", () => {
             estado: "activo",
             nivel: NIVEL_CURSO_SIN_DEFINIR,
         }).nivel).toBeNull();
+    });
+
+    it("conserva el director de grupo cuando viene definido y lo normaliza a null si no", () => {
+        expect(construirPayloadCurso({
+            nombre: "Transición A",
+            jornada: "Mañana",
+            estado: "activo",
+            directorGrupoId: 7,
+        }).director_grupo_id).toBe(7);
+
+        expect(construirPayloadCurso({
+            nombre: "6A",
+            jornada: "Mañana",
+            estado: "activo",
+            directorGrupoId: DIRECTOR_GRUPO_SIN_DEFINIR,
+        }).director_grupo_id).toBeNull();
     });
 
     it("conserva detalles, mensajes y fallback de errores HTTP", () => {

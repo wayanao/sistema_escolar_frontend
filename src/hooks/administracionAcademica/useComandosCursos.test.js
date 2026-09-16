@@ -86,6 +86,14 @@ describe("useComandosCursos", () => {
         expect(result.current.nivel).toBe("preescolar");
     });
 
+    it("preselecciona el director de grupo del curso en edición cuando está definido", () => {
+        const { result } = crearHook();
+
+        act(() => result.current.iniciarEdicion({ ...CURSO, director_grupo_id: 7 }));
+
+        expect(result.current.director_grupo_id).toBe(7);
+    });
+
     it("valida el nombre antes de crear", async () => {
         const { result, recargar } = crearHook();
 
@@ -111,6 +119,7 @@ describe("useComandosCursos", () => {
             jornada: "Tarde",
             estado: "activo",
             nivel: null,
+            director_grupo_id: null,
         });
         expect(window.alert).toHaveBeenCalledWith("Curso creado 🔥");
         expect(recargar).toHaveBeenCalledTimes(1);
@@ -132,6 +141,25 @@ describe("useComandosCursos", () => {
             jornada: "Mañana",
             estado: "activo",
             nivel: "preescolar",
+            director_grupo_id: null,
+        });
+    });
+
+    it("crea con el director de grupo seleccionado", async () => {
+        const { result } = crearHook();
+        act(() => {
+            result.current.actualizarCampo("nombre", "Transición A");
+            result.current.actualizarCampo("director_grupo_id", 7);
+        });
+
+        await act(async () => result.current.guardarCurso());
+
+        expect(crearMock).toHaveBeenCalledWith({
+            nombre: "TRANSICIÓN A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: null,
+            director_grupo_id: 7,
         });
     });
 
@@ -146,6 +174,7 @@ describe("useComandosCursos", () => {
             jornada: "Tarde",
             estado: "activo",
             nivel: null,
+            director_grupo_id: null,
         });
         expect(crearMock).not.toHaveBeenCalled();
         expect(window.alert).toHaveBeenCalledWith("Curso actualizado 🔥");

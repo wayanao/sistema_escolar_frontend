@@ -17,6 +17,8 @@ export const JORNADAS_CURSO = [
 
 export const NIVEL_CURSO_SIN_DEFINIR = "";
 
+export const DIRECTOR_GRUPO_SIN_DEFINIR = "";
+
 export const NIVELES_CURSO = [
     { value: NIVEL_CURSO_SIN_DEFINIR, label: "Sin definir" },
     { value: "preescolar", label: "Preescolar" },
@@ -57,7 +59,7 @@ export function obtenerEtiquetaNivelCurso(nivel) {
         || "Sin definir";
 }
 
-export function construirPayloadCurso({ nombre, jornada, estado, nivel }) {
+export function construirPayloadCurso({ nombre, jornada, estado, nivel, directorGrupoId }) {
     return {
         nombre: normalizarNombreCurso(nombre),
         jornada,
@@ -65,6 +67,8 @@ export function construirPayloadCurso({ nombre, jornada, estado, nivel }) {
         // Un curso "sin definir" viaja como null, nunca como cadena vacía: el
         // backend solo acepta null, "preescolar" o "primaria".
         nivel: nivel || null,
+        // "Sin asignar" viaja como null, nunca como cadena vacía.
+        director_grupo_id: directorGrupoId || null,
     };
 }
 

@@ -7,6 +7,7 @@ import {
 import {
     aplicarEstadoCurso,
     construirPayloadCurso,
+    DIRECTOR_GRUPO_SIN_DEFINIR,
     JORNADA_CURSO_INICIAL,
     NIVEL_CURSO_SIN_DEFINIR,
     obtenerMensajeErrorCurso,
@@ -17,6 +18,7 @@ const FORMULARIO_INICIAL = {
     jornada: JORNADA_CURSO_INICIAL,
     estado: "activo",
     nivel: NIVEL_CURSO_SIN_DEFINIR,
+    director_grupo_id: DIRECTOR_GRUPO_SIN_DEFINIR,
 };
 
 export default function useComandosCursos({
@@ -37,14 +39,14 @@ export default function useComandosCursos({
     };
 
     const guardarCurso = async () => {
-        const { nombre, jornada, estado, nivel } = formulario;
+        const { nombre, jornada, estado, nivel, director_grupo_id: directorGrupoId } = formulario;
         if (!nombre) {
             window.alert("Falta nombre");
             return;
         }
 
         try {
-            const payload = construirPayloadCurso({ nombre, jornada, estado, nivel });
+            const payload = construirPayloadCurso({ nombre, jornada, estado, nivel, directorGrupoId });
 
             if (editId) {
                 await actualizarCurso(editId, payload);
@@ -68,6 +70,7 @@ export default function useComandosCursos({
             jornada: curso.jornada || JORNADA_CURSO_INICIAL,
             estado: curso.estado || "activo",
             nivel: curso.nivel || NIVEL_CURSO_SIN_DEFINIR,
+            director_grupo_id: curso.director_grupo_id || DIRECTOR_GRUPO_SIN_DEFINIR,
         });
     };
 

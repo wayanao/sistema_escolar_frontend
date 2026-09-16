@@ -1,4 +1,5 @@
 import {
+    DIRECTOR_GRUPO_SIN_DEFINIR,
     ESTADOS_CURSO,
     JORNADAS_CURSO,
     NIVEL_CURSO_SIN_DEFINIR,
@@ -11,6 +12,8 @@ export default function FormularioCurso({
     jornada,
     estado,
     nivel,
+    director_grupo_id: directorGrupoId,
+    profesores = [],
     onActualizarCampo,
     onCancelarEdicion,
     onGuardar,
@@ -69,6 +72,21 @@ export default function FormularioCurso({
                         {NIVELES_CURSO.map((item) => (
                             <option key={item.value} value={item.value}>
                                 {item.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Director de grupo</label>
+                    <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                        value={directorGrupoId || DIRECTOR_GRUPO_SIN_DEFINIR}
+                        onChange={(event) => onActualizarCampo("director_grupo_id", Number(event.target.value) || null)}
+                    >
+                        <option value={DIRECTOR_GRUPO_SIN_DEFINIR}>Sin asignar</option>
+                        {profesores.map((profesor) => (
+                            <option key={profesor.id} value={profesor.id}>
+                                {profesor.nombre} {profesor.apellido}
                             </option>
                         ))}
                     </select>

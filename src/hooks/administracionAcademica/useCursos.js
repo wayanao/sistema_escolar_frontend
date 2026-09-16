@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listarCursos } from "../../services/cursosApi";
+import { listarProfesores } from "../../services/profesoresApi";
 
 export default function useCursos() {
     const [cursos, setCursos] = useState([]);
     const [estadoFiltro, setEstadoFiltro] = useState("activo");
+    const [profesores, setProfesores] = useState([]);
     const solicitudRef = useRef(null);
 
     const cancelar = useCallback(() => {
@@ -38,11 +40,26 @@ export default function useCursos() {
         return cancelar;
     }, [cancelar, recargar]);
 
+    useEffect(() => {
+        const controller = new AbortController();
+
+        listarProfesores("activo", { signal: controller.signal })
+            .then((data) => {
+                if (!controller.signal.aborted) setProfesores(data);
+            })
+            .catch((error) => {
+                if (!controller.signal.aborted) console.error(error);
+            });
+
+        return () => controller.abort();
+    }, []);
+
     return {
         cursos,
         setCursos,
         estadoFiltro,
         setEstadoFiltro,
+        profesores,
         recargar,
     };
 }

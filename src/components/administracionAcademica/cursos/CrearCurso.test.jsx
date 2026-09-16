@@ -17,8 +17,13 @@ vi.mock("../../../utils/api", () => ({
 
 import CrearCurso from "./CrearCurso";
 
-function prepararApi({ cursos = [] } = {}) {
-    apiMock.get.mockResolvedValue({ data: cursos, status: 200 });
+function prepararApi({ cursos = [], profesores = [] } = {}) {
+    apiMock.get.mockImplementation((url) => {
+        if (url === "/profesores") {
+            return Promise.resolve({ data: profesores, status: 200 });
+        }
+        return Promise.resolve({ data: cursos, status: 200 });
+    });
     apiMock.post.mockResolvedValue({ data: {}, status: 201 });
     apiMock.put.mockResolvedValue({ data: {}, status: 200 });
     apiMock.patch.mockResolvedValue({ data: { estado: "inactivo" }, status: 200 });
@@ -59,10 +64,12 @@ describe("flujo de cursos de administración académica", () => {
                 jornada: "Mañana",
                 estado: "activo",
                 nivel: null,
+                director_grupo_id: null,
             });
         });
         expect(window.alert).toHaveBeenCalledWith("Curso creado 🔥");
-        expect(apiMock.get).toHaveBeenCalledTimes(2);
+        // 2 llamadas iniciales (/cursos y /profesores) + 1 recarga de /cursos tras crear.
+        expect(apiMock.get).toHaveBeenCalledTimes(3);
     });
 
     it("crea un curso de preescolar con el nivel seleccionado", async () => {
@@ -80,6 +87,30 @@ describe("flujo de cursos de administración académica", () => {
                 jornada: "Mañana",
                 estado: "activo",
                 nivel: "preescolar",
+                director_grupo_id: null,
+            });
+        });
+    });
+
+    it("crea un curso con el director de grupo seleccionado", async () => {
+        prepararApi({ profesores: [{ id: 7, nombre: "Ana", apellido: "Gómez" }] });
+        const user = userEvent.setup();
+        render(<CrearCurso />);
+
+        await user.type(screen.getByPlaceholderText("Nombre (6A, 7B...)"), "Transición A");
+        await waitFor(() => {
+            expect(screen.getByRole("option", { name: "Ana Gómez" })).toBeInTheDocument();
+        });
+        await user.selectOptions(screen.getByDisplayValue("Sin asignar"), "7");
+        await user.click(screen.getByRole("button", { name: "Crear Curso" }));
+
+        await waitFor(() => {
+            expect(apiMock.post).toHaveBeenCalledWith("/cursos", {
+                nombre: "TRANSICIÓN A",
+                jornada: "Mañana",
+                estado: "activo",
+                nivel: null,
+                director_grupo_id: 7,
             });
         });
     });
@@ -103,6 +134,19 @@ describe("flujo de cursos de administración académica", () => {
         expect(screen.getByText("🏫 Crear Curso")).toBeInTheDocument();
         expect(screen.getByPlaceholderText("Nombre (6A, 7B...)")).toHaveValue("");
         expect(screen.getByDisplayValue("🌅 Mañana")).toBeInTheDocument();
+    });
+
+    it("carga edición con el director de grupo preseleccionado", async () => {
+        prepararApi({
+            cursos: [{ id: 21, nombre: "6A", jornada: "Tarde", estado: "activo", director_grupo_id: 7 }],
+            profesores: [{ id: 7, nombre: "Ana", apellido: "Gómez" }],
+        });
+        const user = userEvent.setup();
+        render(<CrearCurso />);
+
+        await user.click(await screen.findByRole("button", { name: "Editar" }));
+
+        expect(screen.getByDisplayValue("Ana Gómez")).toBeInTheDocument();
     });
 
     it("confirma la desactivación y retira el curso del filtro activo", async () => {
