@@ -1,3 +1,13 @@
+import { useId } from "react";
+import {
+  LIMITES_TAMANO_ESCUDO,
+  obtenerTamanoEscudo,
+} from "../../../utils/certificadosImpresion/tamanoEscudo";
+import {
+  LIMITES_TAMANO_NOMBRE_COLEGIO,
+  obtenerTamanoNombreColegio,
+} from "../../../utils/certificadosImpresion/tamanoNombreColegio";
+
 const TIPOS = [
   { key: "boletin", label: "Boletín de notas" },
   { key: "voucher_pago", label: "Voucher de pago" },
@@ -174,6 +184,10 @@ function PlantillaCard({ plantilla, seleccionada, onSelect, onActivar, onDuplica
 function EditorPlantilla({ plantilla, config, onChange, onSave }) {
   const set = onChange;
   const bloqueado = plantilla.es_predefinida;
+  const tamanoEscudoId = useId();
+  const tamanoEscudo = obtenerTamanoEscudo(config);
+  const tamanoNombreColegioId = useId();
+  const tamanoNombreColegio = obtenerTamanoNombreColegio(config);
 
   return (
     <div className="bg-white rounded-lg shadow border border-slate-200 p-4 sm:p-6">
@@ -212,6 +226,26 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
           />
         </Campo>
 
+        <Campo
+          label={`Tamaño del nombre del colegio: ${tamanoNombreColegio}px`}
+          htmlFor={tamanoNombreColegioId}
+        >
+          <input
+            id={tamanoNombreColegioId}
+            type="range"
+            min={LIMITES_TAMANO_NOMBRE_COLEGIO.min}
+            max={LIMITES_TAMANO_NOMBRE_COLEGIO.max}
+            step={LIMITES_TAMANO_NOMBRE_COLEGIO.paso}
+            value={tamanoNombreColegio}
+            aria-valuetext={`${tamanoNombreColegio} píxeles`}
+            onChange={(e) => set("tamano_nombre_colegio", Number(e.target.value))}
+            className="w-full accent-purple-600"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Ajusta el nombre del colegio en el encabezado, en pantalla y al imprimir.
+          </p>
+        </Campo>
+
         <Campo label="Posición del logo principal">
           <div className="flex flex-col gap-2 sm:flex-row">
             {POSICIONES_LOGO.map((p) => (
@@ -229,6 +263,23 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
               </button>
             ))}
           </div>
+        </Campo>
+
+        <Campo label={`Tamaño del escudo: ${tamanoEscudo}px`} htmlFor={tamanoEscudoId}>
+          <input
+            id={tamanoEscudoId}
+            type="range"
+            min={LIMITES_TAMANO_ESCUDO.min}
+            max={LIMITES_TAMANO_ESCUDO.max}
+            step={LIMITES_TAMANO_ESCUDO.paso}
+            value={tamanoEscudo}
+            aria-valuetext={`${tamanoEscudo} píxeles de alto`}
+            onChange={(e) => set("tamano_escudo", Number(e.target.value))}
+            className="w-full accent-purple-600"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            Ajusta la altura del escudo principal de esta plantilla conservando sus proporciones.
+          </p>
         </Campo>
 
         <Campo label="Alineación del encabezado">
@@ -275,6 +326,16 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
 
         <div className="space-y-2">
           <Toggle
+            label="Mostrar membrete"
+            value={config.mostrar_membrete !== false}
+            onChange={(v) => set("mostrar_membrete", v)}
+          />
+          <Toggle
+            label="Mostrar aprobación de resolución"
+            value={config.mostrar_aprobacion_resolucion !== false}
+            onChange={(v) => set("mostrar_aprobacion_resolucion", v)}
+          />
+          <Toggle
             label="Mostrar logo secundario"
             value={!!config.mostrar_logo_secundario}
             onChange={(v) => set("mostrar_logo_secundario", v)}
@@ -315,10 +376,10 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
   );
 }
 
-function Campo({ label, children }) {
+function Campo({ label, htmlFor, children }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-700 mb-1">{label}</label>
+      <label htmlFor={htmlFor} className="block text-sm font-semibold text-slate-700 mb-1">{label}</label>
       {children}
     </div>
   );

@@ -1,7 +1,23 @@
-import { useRef } from "react";
+import { useId, useRef } from "react";
 
 const CAMPOS_TEXTO = [
   { key: "nombre_institucion", label: "Nombre de la institución", placeholder: "Ej. Colegio San José" },
+  {
+    key: "membrete",
+    label: "Membrete",
+    placeholder: "Escribe el membrete del colegio…",
+    multilinea: true,
+    extra: true,
+    ayuda: "Aparece justo debajo del nombre del colegio en los documentos. Puedes escribir varias líneas.",
+  },
+  {
+    key: "aprobacion_resolucion",
+    label: "Aprobación de resolución",
+    placeholder: "Escribe la aprobación de resolución…",
+    multilinea: true,
+    extra: true,
+    ayuda: "Aparece debajo del NIT y el código DANE en los documentos. Puedes escribir varias líneas.",
+  },
   { key: "eslogan", label: "Eslogan / Lema", placeholder: "Formando líderes para el futuro" },
   { key: "direccion", label: "Dirección", placeholder: "Calle 10 #5-30, Ciudad" },
   { key: "telefono", label: "Teléfono", placeholder: "+57 300 000 0000" },
@@ -29,6 +45,7 @@ export default function IdentidadInstitucionalView({
 }) {
   const inputPrincipalRef = useRef(null);
   const inputSecundarioRef = useRef(null);
+  const camposId = useId();
 
   const subir = async (e, slot) => {
     const file = e.target.files?.[0];
@@ -84,22 +101,36 @@ export default function IdentidadInstitucionalView({
       <section className="bg-white rounded-lg shadow border border-slate-200 p-6">
         <h2 className="text-xl font-bold text-slate-800 mb-4">Datos institucionales</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {CAMPOS_TEXTO.map((c) => (
-            <div key={c.key} className={c.key === "eslogan" ? "md:col-span-2" : ""}>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                {c.label}
-              </label>
-              <input
-                type="text"
-                className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder={c.placeholder}
-                inputMode={c.inputMode}
-                maxLength={c.maxLength}
-                value={branding?.[c.key] || ""}
-                onChange={(e) => onCambiarCampo(c.key, e.target.value)}
-              />
-            </div>
-          ))}
+          {CAMPOS_TEXTO.map((c) => {
+            const Control = c.multilinea ? "textarea" : "input";
+            const valor = c.extra
+              ? branding?.configuracion_extra?.[c.key]
+              : branding?.[c.key];
+
+            return (
+              <div key={c.key} className={c.multilinea || c.key === "eslogan" ? "md:col-span-2" : ""}>
+                <label htmlFor={`${camposId}-${c.key}`} className="block text-sm font-semibold text-slate-700 mb-1">
+                  {c.label}
+                </label>
+                <Control
+                  id={`${camposId}-${c.key}`}
+                  type={c.multilinea ? undefined : "text"}
+                  rows={c.multilinea ? 4 : undefined}
+                  className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder={c.placeholder}
+                  inputMode={c.inputMode}
+                  maxLength={c.maxLength}
+                  value={valor || ""}
+                  onChange={(e) => onCambiarCampo(c.key, e.target.value)}
+                />
+                {c.ayuda && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {c.ayuda}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <h3 className="text-md font-bold text-slate-800 mt-6 mb-3">Colores institucionales</h3>

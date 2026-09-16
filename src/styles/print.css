@@ -171,6 +171,7 @@
   flex-direction: column;
   gap: 2px;
   flex: 1;
+  min-width: 0;
 }
 
 .di-encabezado__nombre {
@@ -179,6 +180,17 @@
   color: var(--di-color-primario, #0f314f);
   line-height: 1.1;
   margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.di-encabezado__membrete,
+.di-encabezado__aprobacion {
+  font-size: 0.9em;
+  color: var(--di-color-secundario, #526775);
+  line-height: 1.35;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .di-encabezado__eslogan {
@@ -188,11 +200,20 @@
   margin: 0;
 }
 
+.di-encabezado__identificacion,
 .di-encabezado__contacto {
   font-size: 0.78em;
   color: var(--di-color-secundario, #526775);
   margin: 0;
   line-height: 1.3;
+}
+
+.di-encabezado__identificacion span {
+  display: inline-block;
+}
+
+.di-encabezado__identificacion span + span {
+  margin-left: 1.5em;
 }
 
 .di-titulo {

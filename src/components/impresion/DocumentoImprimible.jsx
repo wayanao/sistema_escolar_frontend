@@ -1,5 +1,7 @@
 import { useEffect, useMemo } from "react";
 import usePrintConfig from "../../hooks/certificadosImpresion/usePrintConfig";
+import { obtenerTamanoEscudo } from "../../utils/certificadosImpresion/tamanoEscudo";
+import { obtenerTamanoNombreColegio } from "../../utils/certificadosImpresion/tamanoNombreColegio";
 import "../../styles/print.css";
 
 /**
@@ -54,18 +56,41 @@ export default function DocumentoImprimible({
 
   const alineacion = config.encabezado_alineacion || "center";
   const posicionLogo = config.posicion_logo || "izquierda";
+  const tamanoEscudo = obtenerTamanoEscudo(config);
+  const estiloEscudo = {
+    maxHeight: tamanoEscudo,
+    maxWidth: Math.round(tamanoEscudo * (posicionLogo === "centro" ? 1.5 : 110 / 70)),
+    // Sin ajuste guardado, se conservan las dimensiones naturales anteriores.
+    ...(config.tamano_escudo != null && {
+      height: tamanoEscudo,
+      width: "auto",
+      objectFit: "contain",
+      flexShrink: 0,
+    }),
+  };
   const mostrarSecundario = config.mostrar_logo_secundario && branding?.logo_secundario_url;
   const mostrarEslogan = config.mostrar_eslogan !== false;
+  const membrete = typeof branding?.configuracion_extra?.membrete === "string"
+    ? branding.configuracion_extra.membrete
+    : "";
+  const mostrarMembrete = config.mostrar_membrete !== false && membrete.trim().length > 0;
+  const aprobacionResolucion = typeof branding?.configuracion_extra?.aprobacion_resolucion === "string"
+    ? branding.configuracion_extra.aprobacion_resolucion
+    : "";
+  const mostrarAprobacionResolucion = config.mostrar_aprobacion_resolucion !== false
+    && aprobacionResolucion.trim().length > 0;
   const mostrarPie = config.mostrar_pie !== false;
   const mostrarFirmas = config.mostrar_firmas !== false && Array.isArray(firmas) && firmas.length > 0;
   const bordeado = config.borde_documento === true;
   const abrirDialogoPDF = () => window.print();
-  const datosInstitucionales = [
+  const identificadoresInstitucionales = [
+    branding?.nit ? `NIT: ${branding.nit}` : null,
+    branding?.codigo_dane ? `Código DANE: ${branding.codigo_dane}` : null,
+  ].filter(Boolean);
+  const datosContacto = [
     branding?.direccion,
     branding?.telefono,
     branding?.email,
-    branding?.nit ? `NIT: ${branding.nit}` : null,
-    branding?.codigo_dane ? `Código DANE: ${branding.codigo_dane}` : null,
   ].filter(Boolean);
   const clasesDocumento = className.split(" ").filter(Boolean);
   const usaScrollMovil = clasesDocumento.some((clase) =>
@@ -80,7 +105,7 @@ export default function DocumentoImprimible({
   const logos = (
     <div className="di-encabezado__logos">
       {posicionLogo !== "centro" && branding?.logo_principal_url && (
-        <img src={branding.logo_principal_url} alt="logo" />
+        <img src={branding.logo_principal_url} alt="logo" style={estiloEscudo} />
       )}
       {mostrarSecundario && (
         <img src={branding.logo_secundario_url} alt="logo secundario" />
@@ -90,15 +115,31 @@ export default function DocumentoImprimible({
 
   const textosInstitucion = (
     <div className="di-encabezado__textos">
-      <h1 className="di-encabezado__nombre">
+      <h1
+        className="di-encabezado__nombre"
+        style={config.tamano_nombre_colegio != null
+          ? { fontSize: obtenerTamanoNombreColegio(config) }
+          : undefined}
+      >
         {branding?.nombre_institucion || "Institucion"}
       </h1>
+      {mostrarMembrete && (
+        <p className="di-encabezado__membrete">{membrete}</p>
+      )}
+      {identificadoresInstitucionales.length > 0 && (
+        <p className="di-encabezado__identificacion">
+          {identificadoresInstitucionales.map((dato) => <span key={dato}>{dato}</span>)}
+        </p>
+      )}
+      {mostrarAprobacionResolucion && (
+        <p className="di-encabezado__aprobacion">{aprobacionResolucion}</p>
+      )}
       {mostrarEslogan && branding?.eslogan && (
         <p className="di-encabezado__eslogan">{branding.eslogan}</p>
       )}
-      {datosInstitucionales.length > 0 && (
+      {datosContacto.length > 0 && (
         <p className="di-encabezado__contacto">
-          {datosInstitucionales.join("  -  ")}
+          {datosContacto.join("  -  ")}
         </p>
       )}
     </div>
@@ -119,7 +160,7 @@ export default function DocumentoImprimible({
                     <img
                       src={branding.logo_principal_url}
                       alt="logo"
-                      style={{ maxHeight: 80, maxWidth: 120, margin: "0 auto" }}
+                      style={{ ...estiloEscudo, margin: "0 auto" }}
                     />
                   )}
                   {textosInstitucion}

@@ -20,6 +20,7 @@ const branding = {
   nombre_institucion: "Colegio Central",
   codigo_dane: "123",
   logo_principal_url: "/principal.png",
+  configuracion_extra: { otra_opcion: "conservar" },
 };
 
 beforeEach(() => {
@@ -40,6 +41,8 @@ describe("useIdentidadInstitucional", () => {
 
     act(() => result.current.cambiarCampo("codigo_dane", "10a20-30"));
     expect(result.current.branding.codigo_dane).toBe("102030");
+    act(() => result.current.cambiarCampo("membrete", "Educación integral\nSede principal"));
+    act(() => result.current.cambiarCampo("aprobacion_resolucion", "Resolución de aprobación\nTexto institucional"));
 
     await act(async () => {
       await result.current.guardar();
@@ -48,11 +51,26 @@ describe("useIdentidadInstitucional", () => {
     expect(serviceMock.updateBranding).toHaveBeenCalledWith({
       ...branding,
       codigo_dane: "102030",
+      configuracion_extra: {
+        otra_opcion: "conservar",
+        membrete: "Educación integral\nSede principal",
+        aprobacion_resolucion: "Resolución de aprobación\nTexto institucional",
+      },
     });
     expect(cacheMock).toHaveBeenCalledTimes(1);
     expect(result.current.mensaje).toEqual({
       tipo: "ok",
       texto: "Datos guardados correctamente.",
+    });
+
+    act(() => result.current.cambiarCampo("membrete", ""));
+    await act(async () => {
+      await result.current.guardar();
+    });
+    expect(result.current.branding.configuracion_extra).toEqual({
+      otra_opcion: "conservar",
+      membrete: "",
+      aprobacion_resolucion: "Resolución de aprobación\nTexto institucional",
     });
   });
 

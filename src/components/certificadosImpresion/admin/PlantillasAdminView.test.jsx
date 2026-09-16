@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -40,6 +40,15 @@ describe("PlantillasAdminView", () => {
     await user.click(screen.getByRole("button", { name: "Duplicar" }));
     await user.click(screen.getByRole("button", { name: "Eliminar" }));
     await user.click(screen.getByRole("button", { name: "Centro" }));
+    const tamanoEscudo = screen.getByRole("slider", { name: /Tamaño del escudo/ });
+    expect(tamanoEscudo).toHaveValue("70");
+    fireEvent.change(tamanoEscudo, { target: { value: "100" } });
+    const tamanoNombre = screen.getByRole("slider", { name: /Tamaño del nombre del colegio/ });
+    expect(tamanoNombre).toHaveValue("16.8");
+    fireEvent.change(tamanoNombre, { target: { value: "28" } });
+    expect(screen.queryByRole("textbox", { name: "Membrete" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "Mostrar membrete" }));
+    await user.click(screen.getByRole("checkbox", { name: "Mostrar aprobación de resolución" }));
     await user.click(screen.getByRole("checkbox", { name: "Mostrar pie de página" }));
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
 
@@ -48,6 +57,10 @@ describe("PlantillasAdminView", () => {
     expect(callbacks.onDuplicar).toHaveBeenCalledWith(plantilla);
     expect(callbacks.onEliminar).toHaveBeenCalledWith(plantilla);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("posicion_logo", "centro");
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_escudo", 100);
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_nombre_colegio", 28);
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_membrete", false);
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_aprobacion_resolucion", false);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_pie", false);
     expect(callbacks.onGuardarConfig).toHaveBeenCalledTimes(1);
   });

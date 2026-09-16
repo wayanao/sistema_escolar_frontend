@@ -106,12 +106,22 @@ describe("usePlantillasAdmin", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => result.current.seleccionarPlantilla(personalizada));
     act(() => result.current.actualizarCampoConfig("mostrar_pie", false));
+    act(() => result.current.actualizarCampoConfig("tamano_escudo", 100));
+    act(() => result.current.actualizarCampoConfig("tamano_nombre_colegio", 28));
+    act(() => result.current.actualizarCampoConfig("mostrar_membrete", false));
+    act(() => result.current.actualizarCampoConfig("mostrar_aprobacion_resolucion", false));
 
     await act(async () => {
       await result.current.guardarConfig();
     });
     expect(serviceMock.actualizarPlantilla).toHaveBeenCalledWith(2, {
-      config_json: { mostrar_pie: false },
+      config_json: {
+        mostrar_pie: false,
+        tamano_escudo: 100,
+        tamano_nombre_colegio: 28,
+        mostrar_membrete: false,
+        mostrar_aprobacion_resolucion: false,
+      },
     });
     expect(cacheMock).toHaveBeenCalledTimes(1);
 

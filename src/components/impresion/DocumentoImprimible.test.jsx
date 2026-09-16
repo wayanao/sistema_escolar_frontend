@@ -130,4 +130,108 @@ describe("DocumentoImprimible", () => {
       error,
     );
   });
+
+  it("organiza membrete, identificación y aprobación, conserva sus líneas y permite ocultarlos", () => {
+    const configuracion = usePrintConfig.getMockImplementation()();
+    const membrete = "Educación integral\nSede principal";
+    const aprobacion = "Resolución de aprobación\nTexto institucional";
+    const configurarEncabezado = ({ membrete: texto, aprobacion_resolucion: resolucion = aprobacion, ...opciones }) => usePrintConfig.mockReturnValue({
+      ...configuracion,
+      branding: {
+        ...configuracion.branding,
+        configuracion_extra: { membrete: texto, aprobacion_resolucion: resolucion },
+      },
+      plantilla: {
+        config_json: {
+          ...configuracion.plantilla.config_json,
+          membrete: "Texto anterior de la plantilla",
+          ...opciones,
+        },
+      },
+    });
+    configurarEncabezado({ membrete });
+    const { rerender } = render(<DocumentoImprimible tipo="boletin" />);
+
+    const nombre = screen.getByRole("heading", { name: "Colegio Central" });
+    expect(nombre.nextElementSibling).toHaveClass("di-encabezado__membrete");
+    expect(nombre.nextElementSibling.textContent).toBe(membrete);
+    const identificacion = screen.getByText("NIT: 900.123").parentElement;
+    expect(screen.getByText("Código DANE: 12345").parentElement).toBe(identificacion);
+    expect(nombre.nextElementSibling.nextElementSibling).toBe(identificacion);
+    expect(identificacion.nextElementSibling).toHaveClass("di-encabezado__aprobacion");
+    expect(identificacion.nextElementSibling.textContent).toBe(aprobacion);
+    expect(identificacion.nextElementSibling.nextElementSibling).toBe(
+      screen.getByText("Aprender para crecer"),
+    );
+    expect(screen.queryByText("Texto anterior de la plantilla")).not.toBeInTheDocument();
+
+    rerender(<DocumentoImprimible tipo="voucher_pago" />);
+    expect(nombre.nextElementSibling.textContent).toBe(membrete);
+
+    configurarEncabezado({ membrete, mostrar_membrete: false });
+    rerender(<DocumentoImprimible tipo="boletin" />);
+    expect(nombre.nextElementSibling).toBe(identificacion);
+    expect(screen.queryByText(/Educación integral/)).not.toBeInTheDocument();
+    expect(identificacion.nextElementSibling.textContent).toBe(aprobacion);
+
+    configurarEncabezado({ membrete: "  \n  " });
+    rerender(<DocumentoImprimible tipo="boletin" />);
+    expect(nombre.nextElementSibling).toBe(identificacion);
+
+    configurarEncabezado({ membrete, mostrar_aprobacion_resolucion: false });
+    rerender(<DocumentoImprimible tipo="boletin" />);
+    expect(nombre.nextElementSibling.textContent).toBe(membrete);
+    expect(identificacion.nextElementSibling).toBe(screen.getByText("Aprender para crecer"));
+
+    configurarEncabezado({ membrete, aprobacion_resolucion: "  \n  " });
+    rerender(<DocumentoImprimible tipo="boletin" />);
+    expect(identificacion.nextElementSibling).toBe(screen.getByText("Aprender para crecer"));
+  });
+
+  it.each(["izquierda", "centro", "derecha"])(
+    "aplica los tamaños del encabezado con escudo en posición %s y conserva otras plantillas",
+    (posicion) => {
+      const configuracion = usePrintConfig.getMockImplementation()();
+      usePrintConfig.mockReturnValue({
+        ...configuracion,
+        plantilla: {
+          config_json: {
+            ...configuracion.plantilla.config_json,
+            posicion_logo: posicion,
+            tamano_escudo: 100,
+            tamano_nombre_colegio: 28,
+          },
+        },
+      });
+
+      const { rerender } = render(<DocumentoImprimible tipo="boletin" />);
+      expect(screen.getByRole("heading", { name: "Colegio Central" })).toHaveStyle({
+        fontSize: "28px",
+      });
+      expect(screen.getByAltText("logo")).toHaveStyle({
+        height: "100px",
+        width: "auto",
+        maxHeight: "100px",
+        objectFit: "contain",
+      });
+      if (posicion !== "centro") {
+        expect(screen.getByAltText("logo secundario").style.height).toBe("");
+      }
+
+      usePrintConfig.mockReturnValue({
+        ...configuracion,
+        plantilla: {
+          config_json: { ...configuracion.plantilla.config_json, posicion_logo: posicion },
+        },
+      });
+      rerender(<DocumentoImprimible tipo="voucher_pago" />);
+      expect(screen.getByRole("heading", { name: "Colegio Central" }).style.fontSize).toBe("");
+      const escudoSinConfigurar = screen.getByAltText("logo");
+      expect(escudoSinConfigurar.style.height).toBe("");
+      expect(escudoSinConfigurar).toHaveStyle({
+        maxHeight: posicion === "centro" ? "80px" : "70px",
+        maxWidth: posicion === "centro" ? "120px" : "110px",
+      });
+    },
+  );
 });
