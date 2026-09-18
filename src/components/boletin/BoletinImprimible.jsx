@@ -61,10 +61,15 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
             <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 leading-none mb-1">
               Estudiante
             </p>
-            <p className="text-base font-extrabold uppercase tracking-wide text-slate-800 leading-tight break-words">
+            <p className="text-base font-bold uppercase tracking-wide text-slate-800 leading-tight break-words">
               {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
             </p>
           </div>
+          {boletinData.director_grupo && (
+            <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
+              <Chip label="Director de grupo" value={boletinData.director_grupo} />
+            </div>
+          )}
           <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
             <Chip label="Grado" value={boletinData.curso} highlight />
             {boletinData.jornada && (
@@ -72,9 +77,6 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
             )}
             <Chip label="Periodo" value={boletinData.periodo} highlight />
             <Chip label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
-            {boletinData.director_grupo && (
-              <Chip label="Director de grupo" value={boletinData.director_grupo} />
-            )}
           </div>
         </div>
 
