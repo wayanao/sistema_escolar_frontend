@@ -65,7 +65,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
               {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
             </p>
           </div>
-          <div className="flex flex-wrap items-center text-[11px] divide-x divide-slate-300">
+          <div className="flex flex-wrap items-center text-[11px]">
             {boletinData.director_grupo && (
               <Dato label="Director de grupo" value={boletinData.director_grupo} />
             )}
@@ -83,7 +83,10 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           usaDesarrolloInfantil={usaDesarrolloInfantil}
         />
 
-        <h2 className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 border-slate-800 pb-1 mb-3">
+        <h2
+          className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 pb-1 mb-3"
+          style={{ borderColor: "var(--di-color-primario, #0f314f)" }}
+        >
           Resumen de evaluaciones
         </h2>
 
@@ -333,7 +336,7 @@ function MateriaBoletin({ materia }) {
 
 function Dato({ label, value }) {
   return (
-    <span className="px-3 first:pl-0 last:pr-0">
+    <span className="bi-dato px-3 first:pl-0 last:pr-0">
       <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 mr-1">
         {label}
       </span>

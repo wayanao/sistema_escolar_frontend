@@ -146,7 +146,7 @@
   align-items: center;
   gap: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--di-color-texto-principal, #0f314f);
+  border-bottom: 2px solid var(--di-color-primario, #0f314f);
   margin-bottom: 16px;
 }
 
@@ -255,6 +255,12 @@
   padding-top: 4px;
   font-size: 0.85em;
   color: var(--di-color-texto-secundario, #526775);
+}
+
+/* Separadores entre los datos del estudiante en el boletin (Grado, Jornada,
+   Periodo...), ligados al color primario igual que la cajita de Promedio. */
+.bi-dato + .bi-dato {
+  border-left: 1px solid var(--di-color-primario, #0f314f);
 }
 
 .di-pie {
