@@ -10,6 +10,24 @@ import {
 } from "../../utils/boletines/generacionBoletin";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 
+// Fondos grises derivados del color secundario de la identidad institucional,
+// en vez de un gris fijo: así se ven coherentes con el resto del boletín sin
+// agregar un selector de color aparte.
+const FONDO_SUAVE = {
+  backgroundColor: "color-mix(in srgb, var(--di-color-secundario, #526775) 8%, white)",
+  borderColor: "color-mix(in srgb, var(--di-color-secundario, #526775) 20%, white)",
+};
+const FONDO_TABLA = {
+  backgroundColor: "color-mix(in srgb, var(--di-color-secundario, #526775) 12%, white)",
+};
+// La escala numérica sigue la misma gama que la cajita de Promedio (que ya
+// usa el color primario), en vez de un morado fijo sin relación.
+const ESTILO_ESCALA_NUMERICA = {
+  backgroundColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 8%, white)",
+  borderColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 30%, white)",
+  color: "var(--di-color-primario, #0f314f)",
+};
+
 export default function BoletinImprimible({ boletinData, onVolver }) {
   const usaDesarrolloInfantil = detectarDesarrolloInfantil(
     boletinData.materias,
@@ -38,7 +56,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           { nombre: "Director de Grupo" },
         ]}
       >
-        <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 mb-4 flex flex-col gap-2">
+        <div className="rounded-lg border px-4 py-3 mb-4 flex flex-col gap-2" style={FONDO_SUAVE}>
           <div>
             <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 leading-none mb-1">
               Estudiante
@@ -49,6 +67,9 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           </div>
           <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
             <Chip label="Grado" value={boletinData.curso} highlight />
+            {boletinData.jornada && (
+              <Chip label="Jornada" value={boletinData.jornada} />
+            )}
             <Chip label="Periodo" value={boletinData.periodo} highlight />
             <Chip label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
             {boletinData.director_grupo && (
@@ -81,7 +102,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
         <section className="mt-5 page-break-inside-avoid">
           <p
             className="text-[10px] uppercase tracking-widest font-bold mb-1.5"
-            style={{ color: "var(--di-color-primario, #0f314f)" }}
+            style={{ color: "var(--di-color-texto-principal, #0f314f)" }}
           >
             Observación general
           </p>
@@ -135,7 +156,8 @@ function EscalaYPromedio({ boletinData, usaDesarrolloInfantil }) {
               : ESCALA_NUMERICA.map((item) => (
                   <span
                     key={item.rango}
-                    className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-900 border border-purple-200 rounded px-2 py-0.5 text-[11px]"
+                    className="inline-flex items-center gap-1.5 border rounded px-2 py-0.5 text-[11px]"
+                    style={ESTILO_ESCALA_NUMERICA}
                   >
                     <span className="font-black">{item.rango}</span>
                     <span className="font-semibold">{item.concepto}</span>
@@ -212,7 +234,7 @@ function MateriaBoletin({ materia }) {
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden page-break-inside-avoid">
-      <div className="px-3 py-2 flex justify-between items-center bg-slate-50 border-b border-slate-200">
+      <div className="px-3 py-2 flex justify-between items-center border-b" style={FONDO_SUAVE}>
         <div className="min-w-0">
           <h3 className="font-bold uppercase text-slate-800 tracking-wide text-sm truncate">
             {materia.materia}
@@ -252,7 +274,7 @@ function MateriaBoletin({ materia }) {
         {materia.detalles && materia.detalles.length > 0 ? (
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wide">
+              <tr className="text-slate-600 text-[10px] uppercase tracking-wide" style={FONDO_TABLA}>
                 <th className="text-left px-3 py-1.5 border-b border-slate-200">
                   Logro / Observación
                 </th>

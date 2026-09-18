@@ -79,6 +79,8 @@ describe("DocumentoImprimible", () => {
     );
     expect(root.style.getPropertyValue("--di-color-primario")).toBe("#112233");
     expect(root.style.getPropertyValue("--di-color-secundario")).toBe("#445566");
+    expect(root.style.getPropertyValue("--di-color-texto-principal")).toBe("#112233");
+    expect(root.style.getPropertyValue("--di-color-texto-secundario")).toBe("#445566");
     expect(root.style.getPropertyValue("--di-fuente")).toBe("Georgia, serif");
     expect(root.style.getPropertyValue("--di-fuente-base")).toBe("13px");
     expect(root.style.getPropertyValue("--di-margen")).toBe(
@@ -110,6 +112,25 @@ describe("DocumentoImprimible", () => {
 
     unmount();
     expect(document.body).not.toHaveClass("di-printing-mode");
+  });
+
+  it("con color_texto configurado, las letras dejan de depender del primario/secundario", () => {
+    const configuracion = usePrintConfig.getMockImplementation()();
+    usePrintConfig.mockReturnValue({
+      ...configuracion,
+      branding: {
+        ...configuracion.branding,
+        configuracion_extra: { color_texto: "#ff0000" },
+      },
+    });
+
+    const { container } = render(<DocumentoImprimible tipo="boletin" />);
+
+    const root = container.querySelector(".di-print-root");
+    expect(root.style.getPropertyValue("--di-color-texto-principal")).toBe("#ff0000");
+    expect(root.style.getPropertyValue("--di-color-texto-secundario")).toBe("#ff0000");
+    expect(root.style.getPropertyValue("--di-color-primario")).toBe("#112233");
+    expect(root.style.getPropertyValue("--di-color-secundario")).toBe("#445566");
   });
 
   it("mantiene el contenido imprimible con valores por defecto si falla la configuración", () => {

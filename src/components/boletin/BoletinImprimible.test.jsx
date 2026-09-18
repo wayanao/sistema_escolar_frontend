@@ -70,6 +70,7 @@ describe("BoletinImprimible", () => {
     expect(screen.getByText(new Date().toLocaleDateString("es-CO"))).toBeInTheDocument();
     expect(screen.queryByText("Año")).not.toBeInTheDocument();
     expect(screen.queryByText("Director de grupo")).not.toBeInTheDocument();
+    expect(screen.queryByText("Jornada")).not.toBeInTheDocument();
     expect(screen.getByTestId("documento-imprimible")).toHaveAttribute(
       "data-class-name",
       "di-documento--boletin",
@@ -95,5 +96,24 @@ describe("BoletinImprimible", () => {
 
     expect(screen.getByText("Director de grupo")).toBeInTheDocument();
     expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
+  });
+
+  it("muestra la jornada del curso cuando llega en los datos del boletín", () => {
+    render(
+      <BoletinImprimible
+        boletinData={{
+          estudiante_nombre: "Sara",
+          estudiante_apellido: "López",
+          curso: "Transición",
+          periodo: 1,
+          jornada: "Tarde",
+          materias: [],
+        }}
+        onVolver={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Jornada")).toBeInTheDocument();
+    expect(screen.getByText("Tarde")).toBeInTheDocument();
   });
 });

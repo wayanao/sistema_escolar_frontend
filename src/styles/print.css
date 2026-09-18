@@ -146,7 +146,7 @@
   align-items: center;
   gap: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--di-color-primario, #0f314f);
+  border-bottom: 2px solid var(--di-color-texto-principal, #0f314f);
   margin-bottom: 16px;
 }
 
@@ -177,7 +177,7 @@
 .di-encabezado__nombre {
   font-size: 1.4em;
   font-weight: 700;
-  color: var(--di-color-primario, #0f314f);
+  color: var(--di-color-texto-principal, #0f314f);
   line-height: 1.1;
   margin: 0;
   overflow-wrap: anywhere;
@@ -186,7 +186,7 @@
 .di-encabezado__membrete,
 .di-encabezado__aprobacion {
   font-size: 0.9em;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
   line-height: 1.35;
   margin: 0;
   white-space: pre-wrap;
@@ -196,14 +196,14 @@
 .di-encabezado__eslogan {
   font-style: italic;
   font-weight: 600;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
   font-size: 0.95em;
   margin: 0;
 }
 
 .di-encabezado__identificacion {
   font-size: 0.78em;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
   margin: 0;
   line-height: 1.3;
 }
@@ -220,7 +220,7 @@
   text-align: center;
   font-size: 1.25em;
   font-weight: 700;
-  color: var(--di-color-primario, #0f314f);
+  color: var(--di-color-texto-principal, #0f314f);
   margin: 12px 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -229,7 +229,7 @@
 .di-subtitulo {
   text-align: center;
   font-size: 0.95em;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
   margin: 0 0 14px;
 }
 
@@ -254,7 +254,7 @@
   margin-top: 40px;
   padding-top: 4px;
   font-size: 0.85em;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
 }
 
 .di-pie {
@@ -262,7 +262,7 @@
   padding-top: 10px;
   border-top: 1px solid var(--di-color-secundario, #526775);
   font-size: 0.75em;
-  color: var(--di-color-secundario, #526775);
+  color: var(--di-color-texto-secundario, #526775);
   text-align: center;
 }
 

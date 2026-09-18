@@ -39,7 +39,7 @@ export default function useIdentidadInstitucional() {
 
   const cambiarCampo = useCallback((campo, valor) => {
     const valorNormalizado = normalizarCampoIdentidad(campo, valor);
-    setBranding((actual) => ["membrete", "aprobacion_resolucion"].includes(campo)
+    setBranding((actual) => ["membrete", "aprobacion_resolucion", "color_texto"].includes(campo)
       ? {
           ...actual,
           configuracion_extra: {

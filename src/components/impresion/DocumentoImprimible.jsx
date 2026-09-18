@@ -38,13 +38,24 @@ export default function DocumentoImprimible({
     return () => document.body.classList.remove("di-printing-mode");
   }, []);
 
-  const styleVars = useMemo(() => ({
-    "--di-color-primario": branding?.color_primario || "#0f314f",
-    "--di-color-secundario": branding?.color_secundario || "#526775",
-    "--di-fuente": config.fuente || "Inter, system-ui, sans-serif",
-    "--di-fuente-base": `${config.tamano_fuente_base || 12}px`,
-    "--di-margen": `${config.margen_top || 20}mm ${config.margen_right || 20}mm ${config.margen_bottom || 20}mm ${config.margen_left || 20}mm`,
-  }), [branding, config]);
+  const styleVars = useMemo(() => {
+    const colorPrimario = branding?.color_primario || "#0f314f";
+    const colorSecundario = branding?.color_secundario || "#526775";
+    // Sin "color_texto" configurado, cada texto conserva exactamente el color
+    // que ya tenia (primario o secundario, segun el elemento). Al configurarlo,
+    // ambas variables apuntan al mismo valor y las letras dejan de depender de
+    // los colores de fondo/resaltado.
+    const colorTexto = branding?.configuracion_extra?.color_texto;
+    return {
+      "--di-color-primario": colorPrimario,
+      "--di-color-secundario": colorSecundario,
+      "--di-color-texto-principal": colorTexto || colorPrimario,
+      "--di-color-texto-secundario": colorTexto || colorSecundario,
+      "--di-fuente": config.fuente || "Inter, system-ui, sans-serif",
+      "--di-fuente-base": `${config.tamano_fuente_base || 12}px`,
+      "--di-margen": `${config.margen_top || 20}mm ${config.margen_right || 20}mm ${config.margen_bottom || 20}mm ${config.margen_left || 20}mm`,
+    };
+  }, [branding, config]);
 
   if (loading) {
     return <div className="p-6 text-slate-600">Cargando configuracion de impresion...</div>;

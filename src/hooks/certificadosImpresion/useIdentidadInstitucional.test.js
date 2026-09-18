@@ -43,6 +43,7 @@ describe("useIdentidadInstitucional", () => {
     expect(result.current.branding.codigo_dane).toBe("102030");
     act(() => result.current.cambiarCampo("membrete", "Educación integral\nSede principal"));
     act(() => result.current.cambiarCampo("aprobacion_resolucion", "Resolución de aprobación\nTexto institucional"));
+    act(() => result.current.cambiarCampo("color_texto", "#ff0000"));
 
     await act(async () => {
       await result.current.guardar();
@@ -55,6 +56,7 @@ describe("useIdentidadInstitucional", () => {
         otra_opcion: "conservar",
         membrete: "Educación integral\nSede principal",
         aprobacion_resolucion: "Resolución de aprobación\nTexto institucional",
+        color_texto: "#ff0000",
       },
     });
     expect(cacheMock).toHaveBeenCalledTimes(1);
@@ -71,6 +73,7 @@ describe("useIdentidadInstitucional", () => {
       otra_opcion: "conservar",
       membrete: "",
       aprobacion_resolucion: "Resolución de aprobación\nTexto institucional",
+      color_texto: "#ff0000",
     });
   });
 

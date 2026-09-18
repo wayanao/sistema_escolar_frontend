@@ -145,6 +145,18 @@ export default function IdentidadInstitucionalView({
             value={branding?.color_secundario || "#526775"}
             onChange={(v) => onCambiarCampo("color_secundario", v)}
           />
+          <div className="md:col-span-2">
+            <ColorPicker
+              label="Color del texto"
+              value={branding?.configuracion_extra?.color_texto || "#0f314f"}
+              onChange={(v) => onCambiarCampo("color_texto", v)}
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Aplica solo a las letras de los documentos (nombre del colegio, título,
+              periodo/año, firmas, pie de página) — independiente del color primario y
+              secundario, que siguen controlando fondos y resaltados.
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end">

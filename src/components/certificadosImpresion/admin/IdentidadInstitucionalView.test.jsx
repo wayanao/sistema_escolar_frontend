@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -38,6 +38,9 @@ describe("IdentidadInstitucionalView", () => {
     const aprobacion = screen.getByRole("textbox", { name: "Aprobación de resolución" });
     expect(aprobacion).toHaveValue("Aprobación inicial");
     fireEvent.change(aprobacion, { target: { value: "Resolución de aprobación\nTexto institucional" } });
+    const cajaColorTexto = screen.getByText("Color del texto").closest("div");
+    const [, colorTextoInput] = within(cajaColorTexto).getAllByDisplayValue("#0f314f");
+    fireEvent.change(colorTextoInput, { target: { value: "#ff0000" } });
     const archivo = new File(["logo"], "logo.png", { type: "image/png" });
     await user.upload(container.querySelector('input[type="file"]'), archivo);
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
@@ -45,6 +48,7 @@ describe("IdentidadInstitucionalView", () => {
     expect(onCambiarCampo).toHaveBeenCalledWith("nombre_institucion", "Colegio Central Norte");
     expect(onCambiarCampo).toHaveBeenCalledWith("membrete", "Educación integral\nSede principal");
     expect(onCambiarCampo).toHaveBeenCalledWith("aprobacion_resolucion", "Resolución de aprobación\nTexto institucional");
+    expect(onCambiarCampo).toHaveBeenCalledWith("color_texto", "#ff0000");
     expect(onSubirLogo).toHaveBeenCalledWith(archivo, "principal");
     expect(onGuardar).toHaveBeenCalledTimes(1);
   });
