@@ -65,18 +65,16 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
               {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
             </p>
           </div>
-          {boletinData.director_grupo && (
-            <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
-              <Chip label="Director de grupo" value={boletinData.director_grupo} />
-            </div>
-          )}
-          <div className="flex flex-wrap items-stretch gap-1.5 text-[11px]">
-            <Chip label="Grado" value={boletinData.curso} highlight />
-            {boletinData.jornada && (
-              <Chip label="Jornada" value={boletinData.jornada} />
+          <div className="flex flex-wrap items-center text-[11px] divide-x divide-slate-300">
+            {boletinData.director_grupo && (
+              <Dato label="Director de grupo" value={boletinData.director_grupo} />
             )}
-            <Chip label="Periodo" value={boletinData.periodo} highlight />
-            <Chip label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
+            <Dato label="Grado" value={boletinData.curso} />
+            {boletinData.jornada && (
+              <Dato label="Jornada" value={boletinData.jornada} />
+            )}
+            <Dato label="Periodo" value={boletinData.periodo} />
+            <Dato label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
           </div>
         </div>
 
@@ -333,30 +331,13 @@ function MateriaBoletin({ materia }) {
   );
 }
 
-function Chip({ label, value, highlight }) {
-  const highlightStyle = highlight
-    ? {
-        backgroundColor: "var(--di-color-primario, #0f314f)",
-        borderColor: "var(--di-color-primario, #0f314f)",
-        color: "#ffffff",
-      }
-    : undefined;
-
+function Dato({ label, value }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded px-2 py-0.5 border ${
-        highlight ? "" : "bg-white text-slate-700 border-slate-300"
-      }`}
-      style={highlightStyle}
-    >
-      <span
-        className={`text-[9px] uppercase tracking-widest font-bold ${
-          highlight ? "opacity-75" : "text-slate-500"
-        }`}
-      >
+    <span className="px-3 first:pl-0 last:pr-0">
+      <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 mr-1">
         {label}
       </span>
-      <span className="font-bold">{value}</span>
+      <span className="font-bold text-slate-800">{value}</span>
     </span>
   );
 }
