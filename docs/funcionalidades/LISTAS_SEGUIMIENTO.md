@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Pasos 1 y 2 de 5 hechos.** Existen el servicio, los dos
-  archivos de utils y los dos hooks, con 74 pruebas. Faltan componentes,
-  página y documentación: pasos 3, 4 y 5.
+- Estado: **Pasos 1, 2 y 3 de 5 hechos.** Existen el servicio, los dos
+  archivos de utils, los dos hooks y los seis componentes, con 112 pruebas.
+  Faltan la página con su ruta y su entrada de menú, y la documentación:
+  pasos 4 y 5.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver
@@ -120,13 +121,34 @@ fuera de notas y pagos.
       nombre está libre: entre una cosa y otra, otra pestaña puede haber
       creado la misma columna.
 
-**Componentes** (presentacionales, sin `services/`):
-- `src/components/listasSeguimiento/VistaListasSeguimiento.jsx`
-- `src/components/listasSeguimiento/GestionColumnasSeguimiento.jsx`
-- `src/components/listasSeguimiento/TablaSeguimiento.jsx`
-- `src/components/listasSeguimiento/SeguimientoRow.jsx`
-- `src/components/listasSeguimiento/SeguimientoMobileCard.jsx`
-- `src/components/listasSeguimiento/BarraGuardadoSeguimiento.jsx`
+**Componentes** (presentacionales, sin `services/`). **Los seis hechos
+(2026-09-22)**, con 38 pruebas entre todos:
+- `VistaListasSeguimiento.jsx` — la pantalla entera: selector de curso,
+  estados de vacío, carga y error, y el resto de piezas. Todo por props.
+- `GestionColumnasSeguimiento.jsx` — alta y baja de columnas. El borrado va
+  por chip, con un botón en cada columna, y **no** con un desplegable como en
+  la Planilla del profesor: aquí las columnas ya están a la vista en la
+  cabecera, y elegir en una lista aparte la que estás mirando es un paso de
+  más. El texto del campo es estado **local** del componente: es un borrador
+  de interfaz, no estado de dominio, y se limpia solo cuando `onCrear`
+  devuelve `true`.
+- `TablaSeguimiento.jsx` — pinta **las dos vistas a la vez** (tabla y
+  tarjetas) y esconde una con CSS, en vez de medir la ventana en JavaScript,
+  que en la primera pintada todavía no sabe el ancho real. Consecuencia para
+  quien escriba pruebas: un nombre aparece más de una vez en el DOM, así que
+  hay que buscar el sitio concreto (`columnheader`, `article`) y no el texto
+  suelto.
+- `SeguimientoRow.jsx` y `SeguimientoMobileCard.jsx` — la misma celda en dos
+  formas. **Comparten los nombres accesibles** (`"<columna>: <apellido>
+  <nombre>"` para el check, `"Nota de <columna> para ..."` para la nota), así
+  que lo que se prueba en una vale para la otra y un lector de pantalla oye lo
+  mismo. La nota lleva `maxLength={LIMITE_NOTA_SEGUIMIENTO}`: se corta **al
+  escribir**, que es donde el usuario lo ve, no al enviar, que lo perdería sin
+  avisar.
+- `BarraGuardadoSeguimiento.jsx` — cuenta los cambios y ofrece guardar o
+  descartar. Se habilita con **un** cambio. La vista la esconde si el curso no
+  tiene columnas o no tiene alumnos: una barra que nunca se puede usar solo
+  estorba.
 
 **Página y ruteo:**
 - `src/pages/ListasSeguimientoAdmin.jsx` — composición, sin HTTP directo.
@@ -169,7 +191,8 @@ de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
    40 pruebas: 10 del servicio, 14 de `columnas.js` y 16 de `marcas.js`.
 2. Hooks de consulta y de comando + sus tests. **Hecho (2026-09-22).**
    34 pruebas: 16 del de consulta y 18 del de comando.
-3. Componentes + sus tests. **Pendiente.**
+3. Componentes + sus tests. **Hecho (2026-09-22).** 38 pruebas entre los
+   seis.
 4. Página, ruta y menú (los dos archivos) + test de integración.
    **Pendiente.**
 5. Documentación (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
@@ -183,21 +206,24 @@ empezar el backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 2 del "Plan de fases"**, el 2026-09-22.
-  - El paso 1 quedó commiteado por el usuario como `5fe6998`: el servicio,
-    los dos utils y sus pruebas. **Sin pushear.**
-  - El paso 2 agrega
-    `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js`,
-    `useComandosListasSeguimiento.js` y sus dos archivos de pruebas. **Sin
-    commit todavía.**
-- Verificación: `pnpm run check:deploy` pasa entero — **1917 pruebas en 312
+- Última acción terminada: **paso 3 del "Plan de fases"**, el 2026-09-22.
+  - `5fe6998` — el servicio, los dos utils y sus pruebas (paso 1).
+  - `f27660b` — los dos hooks y sus pruebas (paso 2).
+  - El paso 3 agrega los seis componentes de
+    `src/components/listasSeguimiento/` y sus seis archivos de pruebas. **Sin
+    commit todavía.** Ninguno de los tres pasos está pusheado.
+- Verificación: `pnpm run check:deploy` pasa entero — **1955 pruebas en 318
   archivos, lint limpio, build correcto**. `git diff --check`: limpio. No se
-  tocó ningún archivo existente: los diez son nuevos.
-- Una prueba del paso 2 estaba mal escrita y conviene no repetir el error: la
-  de cancelación resolvía la primera petición al instante, así que cuando
-  llegaba la segunda ya había terminado y no había nada que abortar. Para
-  probar una cancelación, la primera petición tiene que seguir en vuelo; se
-  deja colgada a propósito con `new Promise(() => {})`.
+  tocó ningún archivo existente: los 22 son nuevos.
+- Dos errores de pruebas que conviene no repetir:
+  - En el paso 2, la prueba de cancelación resolvía la primera petición al
+    instante, así que cuando llegaba la segunda ya había terminado y no había
+    nada que abortar. Para probar una cancelación, la primera tiene que seguir
+    en vuelo; se deja colgada a propósito con `new Promise(() => {})`.
+  - En el paso 3, dos pruebas buscaban un nombre con `getByText` y fallaban
+    por encontrarlo varias veces. No era un fallo del componente: tabla y
+    tarjeta se pintan las dos, así que el mismo texto sale más de una vez. Hay
+    que buscar el sitio concreto.
 - Un error que encontraron las pruebas en el paso 1 y conviene no repetir:
   `construirPayloadMarcas` convertía los ids con `Number(valor)`, y en
   JavaScript `Number(null)` vale **0**, no `NaN`. Una celda sin columna habría
@@ -208,22 +234,23 @@ empezar el backend.
   está bloqueado por él. Los cuatro endpoints y sus respuestas están en
   `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Listas de
   seguimiento".
-- Siguiente acción exacta: paso 3 del "Plan de fases", los seis componentes
-  de `src/components/listasSeguimiento/` con sus pruebas. Son
-  **presentacionales**: reciben datos y callbacks por props, no importan
-  `services/` ni son dueños de estado de dominio. Lo que los hooks ya dejan
-  listo para ellos:
-  - `valorDeCelda(estudianteId, columnaId)` devuelve lo que la celda tiene que
-    mostrar ahora, mezclando lo pendiente sobre lo guardado;
-  - `hayCambios` es lo que habilita el botón de guardar —con **un** cambio
-    basta— y lo que la pantalla debe mirar antes de dejar cambiar de curso;
-  - `LIMITE_NOTA_SEGUIMIENTO` es el `maxLength` del campo de nota:
-    `construirPayloadMarcas` recorta pero **no corta**, así que avisar es
-    trabajo del componente;
-  - `creandoColumna` y `eliminandoColumnaId` sirven para deshabilitar botones
-    mientras la acción está en curso.
-  Convención de impresión y ancho: esta pantalla es una grilla normal, no un
-  documento A4; se adapta al ancho de la pantalla, como el resto.
+- Siguiente acción exacta: paso 4 del "Plan de fases", la página, la ruta y
+  el menú, más el test de integración del flujo crítico. Son cuatro archivos
+  y **dos de ellos son de otros módulos**, así que conviene el cuidado de
+  siempre:
+  - `src/pages/ListasSeguimientoAdmin.jsx` — solo composición: llama a los dos
+    hooks y se los pasa a `VistaListasSeguimiento`. Sin HTTP directo y sin
+    transformaciones grandes.
+  - `src/App.jsx` — ruta `/admin/listas-seguimiento` dentro de `AdminRoute`,
+    con `React.lazy` como el resto de páginas.
+  - `src/utils/autenticacion/navegacion.js` y
+    `src/components/autenticacion/NavAdminView.jsx` — **hay que tocar los
+    dos**. El segundo no se genera a partir del primero; si solo se toca uno,
+    la entrada aparece en escritorio y no en móvil, o al revés. Ya está en
+    "Riesgos y mitigación".
+  Lo que la página tiene que conectar y no está en los hooks: avisar antes de
+  cambiar de curso si `hayCambios` es cierto. El hook descarta lo pendiente al
+  cambiar, a propósito, pero quien pregunta es la pantalla.
   **No iniciado.**
 - La documentación transversal (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`) va en el paso 5 de este
