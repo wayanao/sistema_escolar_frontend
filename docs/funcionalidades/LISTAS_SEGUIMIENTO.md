@@ -2,9 +2,13 @@
 
 ## Control
 
-- Estado: **En diseño. Sin código escrito todavía.** Depende del backend
-  (ver `sistema_escolar_api/docs/funcionalidades/LISTAS_SEGUIMIENTO.md`) —
-  no puede empezar hasta que los endpoints existan y estén verificados ahí.
+- Estado: **Paso 1 de 5 hecho.** Existen el servicio y los dos archivos de
+  utils, con 40 pruebas. Faltan hooks, componentes, página y documentación:
+  pasos 2 a 5.
+- La condición para empezar ya se cumplió: el backend tiene los cuatro
+  endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
+  PostgreSQL real. Ver
+  `sistema_escolar_api/docs/funcionalidades/LISTAS_SEGUIMIENTO.md`.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - Repos afectados: este repo y `sistema_escolar_api`. Ver también
@@ -12,7 +16,7 @@
   cubre la parte de datos y endpoints.
 - Riesgo inicial: Bajo. Pantalla nueva; no modifica ninguna pantalla,
   servicio ni hook existente.
-- Última actualización: 2026-09-21.
+- Última actualización: 2026-09-22.
 
 ## Objetivo
 
@@ -52,15 +56,38 @@ fuera de notas y pagos.
   `obtenerCursosListasSeguimiento()`, `obtenerListaSeguimiento(cursoId)`,
   `crearColumnaSeguimiento(cursoId, nombre)`,
   `eliminarColumnaSeguimiento(cursoId, columnaId)`,
-  `guardarMarcasSeguimiento(cursoId, payload)`.
+  `guardarMarcasSeguimiento(cursoId, payload)`. **Hecho (2026-09-22)**, con
+  `listasSeguimientoApi.test.js`. Las cinco aceptan `{ signal }` para
+  cancelar, como el resto de servicios del proyecto, y ninguna decide
+  mensajes de UI: dejan pasar el error para que lo traduzcan los hooks.
 
 **Utils** (sin HTTP, sin React):
 - `src/utils/listasSeguimiento/columnas.js` — validación de nombre, chequeo
-  de duplicado en el cliente antes de la petición (igual a
-  `agregarTipoEvaluacion` en planilla).
+  de duplicado en el cliente antes de la petición. **Hecho (2026-09-22).**
+  Ojo con lo que dice la línea de arriba: se pensó copiar la regla de
+  `agregarTipoEvaluacion` de planilla, que compara con
+  `trim().toLowerCase()`, y **no sirve**. El índice único del backend además
+  colapsa los espacios interiores, así que escribir `"Compró  el libro"` con
+  `"Compró el libro"` ya creada pasaría el filtro del navegador y el
+  servidor respondería 409. `normalizarNombreColumna` replica la regla del
+  backend entera: recorta, colapsa interiores y sube a mayúsculas. Sigue
+  siendo solo comodidad — la verdad la tiene el backend y el 409 hay que
+  tratarlo igual, porque entre el chequeo y la petición otra pestaña puede
+  crear la misma columna.
 - `src/utils/listasSeguimiento/marcas.js` — `normalizarListaSeguimiento`,
   `obtenerMarcaCelda` (default `{marcado: false, nota: ""}`),
-  `construirPayloadMarcas` a partir de los cambios pendientes.
+  `construirPayloadMarcas` a partir de los cambios pendientes. **Hecho
+  (2026-09-22).** Dos cosas para los pasos 2 y 3:
+    - **Se agregó `claveCelda(estudianteId, columnaId)`**, que no estaba en
+      este plan. Existe para que los cambios pendientes se guarden indexados
+      por celda, y con eso sea **estructuralmente imposible** mandar la misma
+      celda dos veces: el backend rechaza el lote entero con 422 si eso pasa,
+      porque escribe todo en una sentencia y PostgreSQL la aborta. El hook de
+      comando del paso 2 tiene que guardar los cambios en un `Map` o un objeto
+      con esa clave, **no en un array**.
+    - `construirPayloadMarcas` recorta la nota pero **no la corta** a 240
+      caracteres. Cortar texto sin avisar es peor que el error; avisar es
+      trabajo de la pantalla, con `LIMITE_NOTA_SEGUIMIENTO`.
 
 **Hooks** (consulta y comando separadas):
 - `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js`
@@ -111,7 +138,8 @@ de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
 
 ## Plan de fases (frontend) — no empieza hasta que el backend esté verificado
 
-1. `listasSeguimientoApi.js` + utils + sus tests. **Pendiente.**
+1. `listasSeguimientoApi.js` + utils + sus tests. **Hecho (2026-09-22).**
+   40 pruebas: 10 del servicio, 14 de `columnas.js` y 16 de `marcas.js`.
 2. Hooks de consulta y de comando + sus tests. **Pendiente.**
 3. Componentes + sus tests. **Pendiente.**
 4. Página, ruta y menú (los dos archivos) + test de integración.
@@ -127,10 +155,37 @@ empezar el backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **ninguna.** Diseño cerrado y documentado en
-  ambos repos; sin código en ninguno de los dos.
-- Siguiente acción exacta: no puede empezar el frontend hasta que el
-  backend tenga los cuatro endpoints implementados y verificados (ver el
-  documento del backend, "Entrega para el siguiente chat"). Recién ahí
-  arranca el paso 1 de este plan.
-- No hay commit en ningún repo para este trabajo todavía.
+- Última acción terminada: **paso 1 del "Plan de fases"**, el 2026-09-22.
+  Agrega `src/services/listasSeguimientoApi.js`,
+  `src/utils/listasSeguimiento/columnas.js`,
+  `src/utils/listasSeguimiento/marcas.js` y sus tres archivos de pruebas.
+  **Sin commit todavía.**
+- Verificación: `pnpm run check:deploy` pasa entero — **1883 pruebas en 310
+  archivos, lint limpio, build correcto**. `git diff --check`: limpio. No se
+  tocó ningún archivo existente: los seis son nuevos.
+- Un error que encontraron las pruebas y conviene no repetir: la primera
+  versión de `construirPayloadMarcas` convertía los ids con `Number(valor)`,
+  y en JavaScript `Number(null)` vale **0**, no `NaN`. Una celda sin columna
+  habría viajado como `columna_id: 0`, un id que parece válido, y el backend
+  la habría rechazado con un 422 difícil de entender. Está arreglado y
+  comentado en el propio archivo.
+- El backend está terminado y verificado, así que nada de aquí en adelante
+  está bloqueado por él. Los cuatro endpoints y sus respuestas están en
+  `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Listas de
+  seguimiento".
+- Siguiente acción exacta: paso 2 del "Plan de fases",
+  `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js` y
+  `useComandosListasSeguimiento.js`, con sus pruebas. Tres cosas a tener
+  presentes al escribirlos:
+  - los cambios pendientes van indexados por `claveCelda`, no en un array
+    (ver arriba el porqué);
+  - el botón de guardar se habilita con **al menos un cambio pendiente**, no
+    con la grilla completa: copiar de Asistencia la regla de "no se puede
+    guardar hasta marcar a todos" no corresponde aquí, y ya está anotado en
+    "Riesgos y mitigación";
+  - el 409 al crear una columna hay que tratarlo aunque el chequeo local haya
+    dicho que el nombre estaba libre.
+  **No iniciado.**
+- La documentación transversal (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
+  `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`) va en el paso 5 de este
+  plan, no en cada paso. Todavía no se ha tocado ninguna.
