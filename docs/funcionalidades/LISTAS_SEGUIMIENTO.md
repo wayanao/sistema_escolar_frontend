@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **Paso 1 de 5 hecho.** Existen el servicio y los dos archivos de
-  utils, con 40 pruebas. Faltan hooks, componentes, página y documentación:
-  pasos 2 a 5.
+- Estado: **Pasos 1 y 2 de 5 hechos.** Existen el servicio, los dos
+  archivos de utils y los dos hooks, con 74 pruebas. Faltan componentes,
+  página y documentación: pasos 3, 4 y 5.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver
@@ -90,8 +90,35 @@ fuera de notas y pagos.
       trabajo de la pantalla, con `LIMITE_NOTA_SEGUIMIENTO`.
 
 **Hooks** (consulta y comando separadas):
-- `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js`
-- `src/hooks/listasSeguimiento/useComandosListasSeguimiento.js`
+- `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js` — **Hecho
+  (2026-09-22)**, 16 pruebas. Carga los cursos al montar y la lista al elegir
+  uno. Cancela la petición anterior con el patrón de `useCursos.js`
+  (`solicitudRef` + `AbortController`): sin eso, elegir 1A y enseguida 2B
+  puede terminar pintando los alumnos de 1A bajo el título de 2B, sin nada en
+  pantalla que lo delate. Devuelve también `setLista`, que usa el hook de
+  comando para agregar una columna recién creada sin recargar toda la lista.
+- `src/hooks/listasSeguimiento/useComandosListasSeguimiento.js` — **Hecho
+  (2026-09-22)**, 18 pruebas. Lo que hay que saber antes de tocarlo:
+    - Los cambios pendientes viven en un **`Map` indexado por `claveCelda`**,
+      nunca en un array. Es lo que hace imposible mandar la misma celda dos
+      veces.
+    - **Volver al valor guardado retira el cambio en vez de apuntarlo.** Sin
+      eso, marcar y desmarcar la misma casilla dejaría el botón "Guardar
+      cambios" encendido sin nada que guardar.
+    - **Borrar una columna descarta los cambios pendientes de esa columna**, y
+      solo de esa. Si se quedaran, el siguiente guardado mandaría celdas de una
+      columna que ya no existe y el backend rechazaría el lote **entero** con
+      422, incluidas las celdas buenas.
+    - **Cambiar de curso descarta lo pendiente.** Conservarlo aplicaría las
+      marcas de un curso sobre otro, que es peor que perderlas. Avisar antes
+      de cambiar es trabajo de la pantalla: para eso el hook expone
+      `hayCambios`.
+    - Al guardar bien, **limpia lo pendiente antes de recargar**. Al revés, si
+      la recarga fallara, lo ya guardado seguiría marcado como pendiente y el
+      usuario lo mandaría dos veces.
+    - El **409 al crear** se trata aunque la comprobación local diga que el
+      nombre está libre: entre una cosa y otra, otra pestaña puede haber
+      creado la misma columna.
 
 **Componentes** (presentacionales, sin `services/`):
 - `src/components/listasSeguimiento/VistaListasSeguimiento.jsx`
@@ -140,7 +167,8 @@ de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
 
 1. `listasSeguimientoApi.js` + utils + sus tests. **Hecho (2026-09-22).**
    40 pruebas: 10 del servicio, 14 de `columnas.js` y 16 de `marcas.js`.
-2. Hooks de consulta y de comando + sus tests. **Pendiente.**
+2. Hooks de consulta y de comando + sus tests. **Hecho (2026-09-22).**
+   34 pruebas: 16 del de consulta y 18 del de comando.
 3. Componentes + sus tests. **Pendiente.**
 4. Página, ruta y menú (los dos archivos) + test de integración.
    **Pendiente.**
@@ -155,36 +183,47 @@ empezar el backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 1 del "Plan de fases"**, el 2026-09-22.
-  Agrega `src/services/listasSeguimientoApi.js`,
-  `src/utils/listasSeguimiento/columnas.js`,
-  `src/utils/listasSeguimiento/marcas.js` y sus tres archivos de pruebas.
-  **Sin commit todavía.**
-- Verificación: `pnpm run check:deploy` pasa entero — **1883 pruebas en 310
+- Última acción terminada: **paso 2 del "Plan de fases"**, el 2026-09-22.
+  - El paso 1 quedó commiteado por el usuario como `5fe6998`: el servicio,
+    los dos utils y sus pruebas. **Sin pushear.**
+  - El paso 2 agrega
+    `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js`,
+    `useComandosListasSeguimiento.js` y sus dos archivos de pruebas. **Sin
+    commit todavía.**
+- Verificación: `pnpm run check:deploy` pasa entero — **1917 pruebas en 312
   archivos, lint limpio, build correcto**. `git diff --check`: limpio. No se
-  tocó ningún archivo existente: los seis son nuevos.
-- Un error que encontraron las pruebas y conviene no repetir: la primera
-  versión de `construirPayloadMarcas` convertía los ids con `Number(valor)`,
-  y en JavaScript `Number(null)` vale **0**, no `NaN`. Una celda sin columna
-  habría viajado como `columna_id: 0`, un id que parece válido, y el backend
-  la habría rechazado con un 422 difícil de entender. Está arreglado y
-  comentado en el propio archivo.
+  tocó ningún archivo existente: los diez son nuevos.
+- Una prueba del paso 2 estaba mal escrita y conviene no repetir el error: la
+  de cancelación resolvía la primera petición al instante, así que cuando
+  llegaba la segunda ya había terminado y no había nada que abortar. Para
+  probar una cancelación, la primera petición tiene que seguir en vuelo; se
+  deja colgada a propósito con `new Promise(() => {})`.
+- Un error que encontraron las pruebas en el paso 1 y conviene no repetir:
+  `construirPayloadMarcas` convertía los ids con `Number(valor)`, y en
+  JavaScript `Number(null)` vale **0**, no `NaN`. Una celda sin columna habría
+  viajado como `columna_id: 0`, un id que parece válido, y el backend la
+  habría rechazado con un 422 difícil de entender. Está arreglado y comentado
+  en el propio archivo.
 - El backend está terminado y verificado, así que nada de aquí en adelante
   está bloqueado por él. Los cuatro endpoints y sus respuestas están en
   `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Listas de
   seguimiento".
-- Siguiente acción exacta: paso 2 del "Plan de fases",
-  `src/hooks/listasSeguimiento/useConsultasListasSeguimiento.js` y
-  `useComandosListasSeguimiento.js`, con sus pruebas. Tres cosas a tener
-  presentes al escribirlos:
-  - los cambios pendientes van indexados por `claveCelda`, no en un array
-    (ver arriba el porqué);
-  - el botón de guardar se habilita con **al menos un cambio pendiente**, no
-    con la grilla completa: copiar de Asistencia la regla de "no se puede
-    guardar hasta marcar a todos" no corresponde aquí, y ya está anotado en
-    "Riesgos y mitigación";
-  - el 409 al crear una columna hay que tratarlo aunque el chequeo local haya
-    dicho que el nombre estaba libre.
+- Siguiente acción exacta: paso 3 del "Plan de fases", los seis componentes
+  de `src/components/listasSeguimiento/` con sus pruebas. Son
+  **presentacionales**: reciben datos y callbacks por props, no importan
+  `services/` ni son dueños de estado de dominio. Lo que los hooks ya dejan
+  listo para ellos:
+  - `valorDeCelda(estudianteId, columnaId)` devuelve lo que la celda tiene que
+    mostrar ahora, mezclando lo pendiente sobre lo guardado;
+  - `hayCambios` es lo que habilita el botón de guardar —con **un** cambio
+    basta— y lo que la pantalla debe mirar antes de dejar cambiar de curso;
+  - `LIMITE_NOTA_SEGUIMIENTO` es el `maxLength` del campo de nota:
+    `construirPayloadMarcas` recorta pero **no corta**, así que avisar es
+    trabajo del componente;
+  - `creandoColumna` y `eliminandoColumnaId` sirven para deshabilitar botones
+    mientras la acción está en curso.
+  Convención de impresión y ancho: esta pantalla es una grilla normal, no un
+  documento A4; se adapta al ancho de la pantalla, como el resto.
   **No iniciado.**
 - La documentación transversal (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`) va en el paso 5 de este
