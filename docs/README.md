@@ -28,6 +28,9 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/OBSERVADOR_ESTUDIANTE.md`: pagina nueva del observador por
   estudiante, con bitacora, impresion y autocorreccion de texto.
   **Disenado, nada implementado.**
+- `funcionalidades/LISTAS_SEGUIMIENTO.md`: pantalla nueva de admin para crear
+  columnas por curso y marcar alumnos con un check y una nota corta.
+  **Disenado, nada implementado.**
 
 ## Control SaaS
 
