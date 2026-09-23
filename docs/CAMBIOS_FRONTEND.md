@@ -1,5 +1,48 @@
 # Cambios Frontend
 
+## 2026-09-22 - Crear una columna de seguimiento en todos los cursos
+
+Ampliacion de la pantalla de abajo. Una casilla junto al campo de nombre,
+"Crear en todos los cursos", que crea la misma columna en todos los cursos
+activos que aun no la tengan. Se crean copias independientes, no una columna
+compartida.
+
+### Lo contrario de lo que hace el alta normal
+
+**Con la casilla marcada, un nombre repetido deja de bloquear.** El alta suelta
+avisa si el curso actual ya tiene esa columna; aqui eso significa justamente
+"creala en los demas", asi que bloquearlo seria impedir lo que se ha pedido. El
+hook valida contra una lista vacia a proposito. Las otras dos reglas -ni vacio
+ni mas de 100 caracteres- se siguen aplicando.
+
+### La casilla no se desmarca sola
+
+Dar de alta tres columnas para todo el colegio y tener que marcarla cada vez
+seria una molestia. El riesgo de dejarla marcada es obvio -crear en 25 cursos
+creyendo que creas en uno-, y se resolvio haciendo el modo **visible**: el
+boton cambia de texto entre "Agregar columna" y "Agregar en todos los cursos".
+
+Al marcarla aparece ademas un aviso previo de que los cursos que ya la tienen
+se saltan. Eso prepara para el resultado: si luego dice que no creo ninguna, ya
+se sabe que no es un error.
+
+### Recargar en vez de agregar
+
+En el alta suelta la columna se agrega a la grilla a mano, porque la respuesta
+trae su id. Aqui la respuesta son conteos, asi que se vuelve a pedir la lista.
+
+### La pagina no cambio
+
+`ListasSeguimientoAdmin.jsx` pasa `crearColumna` tal cual y las opciones fluyen
+solas desde la casilla hasta el hook. Hay prueba de integracion que lo
+confirma: "no hizo falta tocar nada" es la clase de afirmacion que conviene ver
+pasar en verde.
+
+### Pruebas
+
+26 nuevas: 3 del servicio, 6 del formateador del mensaje, 8 del hook, 6 del
+componente y 3 de integracion.
+
 ## 2026-09-22 - Listas de Seguimiento por Curso
 
 Pantalla nueva de admin en `/admin/listas-seguimiento`: por curso se crean

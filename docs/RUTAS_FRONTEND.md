@@ -118,7 +118,10 @@ Notas de UX por ruta admin:
   formas se pintan siempre y se esconde una con CSS, en vez de medir la
   ventana en JavaScript, que en la primera pintada todavia no sabe el ancho
   real. Al cambiar de curso con marcas sin guardar, la pantalla avisa antes de
-  descartarlas.
+  descartarlas. La casilla "Crear en todos los cursos" **no se desmarca sola**
+  despues de crear, para poder dar de alta varias seguidas; a cambio el texto
+  del boton dice siempre en que modo esta, para que nadie cree en 25 cursos
+  creyendo que crea en uno.
 
 ## Navegacion de profesor
 

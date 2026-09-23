@@ -6,9 +6,10 @@
   también cerrado, la propuesta completa.** La pantalla funciona de punta a
   punta y se probó a mano en el navegador contra el backend real. 124 pruebas
   propias en este repo.
-- **Hay una ampliación en diseño, sin código todavía:** una casilla para
-  crear la misma columna en todos los cursos de golpe. Ver la sección
+- **La ampliación "crear una columna en todos los cursos" está terminada**
+  (2026-09-22): una casilla junto al campo de nombre. Ver la sección
   "Ampliación" más abajo, y el diseño completo en el documento del backend.
+  Pendiente de probarla a mano en el navegador.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver

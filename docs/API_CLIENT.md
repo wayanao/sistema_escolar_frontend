@@ -397,6 +397,7 @@ GET    /listas-seguimiento/{cursoId}
 POST   /listas-seguimiento/{cursoId}/columnas
 DELETE /listas-seguimiento/{cursoId}/columnas/{columnaId}
 POST   /listas-seguimiento/{cursoId}/marcas
+POST   /listas-seguimiento/columnas-en-todos-los-cursos
 ```
 
 Uso:
@@ -426,6 +427,25 @@ Tres cosas del contrato que conviene no perder de vista:
 - El limite de la nota son **240 caracteres** y el del nombre de columna
   **100**. Los dos estan tambien en el backend; en el cliente se usan como
   `maxLength`, para avisar antes de gastar una peticion.
+
+`POST /listas-seguimiento/columnas-en-todos-los-cursos` es el alta masiva, sin
+`cursoId` porque no actua sobre un curso. Lo llama
+`crearColumnaEnTodosLosCursos(nombre)` y devuelve `{creadas, omitidas, total}`.
+Lo que hay que saber para consumirlo:
+
+- **Con este endpoint el chequeo local de duplicado no aplica.** El hook valida
+  contra una lista vacia a proposito: escribir un nombre que el curso actual ya
+  tiene significa "creala en los demas". Las otras dos reglas -ni vacio ni
+  demasiado largo- se siguen aplicando.
+- **Responde 200 aunque no cree ninguna.** Pasa siempre que todos los cursos ya
+  la tenian, y es el resultado normal de volver a pulsar. `mensajeAltaMasiva`
+  tiene un texto propio para ese caso, porque un "0 columnas creadas"
+  pareceria un error.
+- **Despues hay que recargar la lista**, no agregar a la grilla a mano como en
+  el alta suelta: la respuesta son conteos, no la columna de este curso.
+- Su `409` no es "ya existe esa columna" sino la carrera entre dos peticiones
+  simultaneas; el mensaje del backend invita a reintentar, y reintentar
+  funciona.
 
 ## Modulos del perfil profesor
 
