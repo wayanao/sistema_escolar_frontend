@@ -350,7 +350,16 @@ cuando aparezca.
 
 ### Plan de fases
 
-1. `ListaSeguimientoImprimible.jsx` con sus pruebas. **Pendiente.**
+1. `ListaSeguimientoImprimible.jsx` con sus pruebas. **Hecho (2026-09-23).**
+   8 pruebas. Dos cosas que conviene saber:
+   - **El componente no recibe las marcas.** No es que las ignore: no tiene
+     con qué pintarlas aunque alguien quisiera. Hay prueba que se lo pasa un
+     estudiante con marcas y nota, y comprueba que no sale nada. Es la forma
+     más barata de garantizar que la plantilla siga saliendo en blanco.
+   - **Solo pinta la rejilla.** El título "Listas de control", el escudo y el
+     curso los pone `DocumentoImprimible`, que es quien sabe de identidad
+     institucional; hay prueba de que este componente no los pinta por su
+     cuenta.
 2. Botón e integración de la vista previa en la pantalla, con sus pruebas,
    incluida la de integración. **Pendiente.**
 3. Documentación (`docs/RUTAS_FRONTEND.md`, `docs/CAMBIOS_FRONTEND.md` y este
