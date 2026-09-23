@@ -6,6 +6,7 @@ const {
   obtenerCursosMock,
   obtenerListaMock,
   crearColumnaMock,
+  crearEnTodosMock,
   eliminarColumnaMock,
   guardarMarcasMock,
   swalFireMock,
@@ -13,6 +14,7 @@ const {
   obtenerCursosMock: vi.fn(),
   obtenerListaMock: vi.fn(),
   crearColumnaMock: vi.fn(),
+  crearEnTodosMock: vi.fn(),
   eliminarColumnaMock: vi.fn(),
   guardarMarcasMock: vi.fn(),
   swalFireMock: vi.fn(),
@@ -21,6 +23,7 @@ const {
 vi.mock("../services/listasSeguimientoApi", () => ({
   obtenerCursosListasSeguimiento: obtenerCursosMock,
   obtenerListaSeguimiento: obtenerListaMock,
+  crearColumnaEnTodosLosCursos: crearEnTodosMock,
   crearColumnaSeguimiento: crearColumnaMock,
   eliminarColumnaSeguimiento: eliminarColumnaMock,
   guardarMarcasSeguimiento: guardarMarcasMock,
@@ -314,5 +317,74 @@ describe("la entrada de menú vive en los dos archivos", () => {
         within(menu).getByRole("link", { name: "Listas de Seguimiento" }),
       ).toHaveAttribute("href", "/admin/listas-seguimiento");
     }
+  });
+});
+
+describe("crear una columna en todos los cursos", () => {
+  it("la opción viaja de la casilla al servicio sin pasar por la página", async () => {
+    // La página no cablea nada nuevo: pasa `crearColumna` tal cual y las
+    // opciones fluyen solas. Esta prueba es lo que lo confirma.
+    crearEnTodosMock.mockResolvedValue({ creadas: 24, omitidas: 1, total: 25 });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    await user.click(screen.getByRole("checkbox", { name: /todos los cursos/i }));
+    await user.type(screen.getByLabelText("Nueva columna"), "Pagó la excursión");
+    await user.click(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    );
+
+    await waitFor(() =>
+      expect(crearEnTodosMock).toHaveBeenCalledWith("Pagó la excursión"),
+    );
+    expect(crearColumnaMock).not.toHaveBeenCalled();
+  });
+
+  it("un nombre que este curso ya tiene sí se manda", async () => {
+    // Con la casilla marcada significa "créala en los demás". Sin ella, la
+    // pantalla lo bloquearía.
+    crearEnTodosMock.mockResolvedValue({ creadas: 24, omitidas: 1, total: 25 });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    await user.click(screen.getByRole("checkbox", { name: /todos los cursos/i }));
+    await user.type(
+      screen.getByLabelText("Nueva columna"),
+      "Asistió a la cumbre",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    );
+
+    await waitFor(() =>
+      expect(crearEnTodosMock).toHaveBeenCalledWith("Asistió a la cumbre"),
+    );
+  });
+
+  it("después de crear vuelve a pedir la lista", async () => {
+    crearEnTodosMock.mockResolvedValue({ creadas: 24, omitidas: 1, total: 25 });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    obtenerListaMock.mockClear();
+    await user.click(screen.getByRole("checkbox", { name: /todos los cursos/i }));
+    await user.type(screen.getByLabelText("Nueva columna"), "Nueva");
+    await user.click(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    );
+
+    await waitFor(() => expect(obtenerListaMock).toHaveBeenCalled());
   });
 });

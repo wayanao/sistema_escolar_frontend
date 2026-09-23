@@ -25,9 +25,14 @@ function GestionColumnasSeguimiento({
   deshabilitado = false,
 }) {
   const [nombre, setNombre] = useState("");
+  // La casilla **no se desmarca** al crear: si estas dando de alta varias
+  // columnas para todo el colegio, desmarcarla cada vez seria una molestia. A
+  // cambio, el texto del boton dice siempre en que modo estas, para que nadie
+  // cree en 25 cursos creyendo que crea en uno.
+  const [enTodosLosCursos, setEnTodosLosCursos] = useState(false);
 
   const crear = async () => {
-    const creada = await onCrear?.(nombre);
+    const creada = await onCrear?.(nombre, { enTodosLosCursos });
     if (creada) setNombre("");
   };
 
@@ -72,9 +77,34 @@ function GestionColumnasSeguimiento({
           className="rounded-lg border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-700 shadow-sm transition-colors hover:border-purple-400 hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={crear}
         >
-          {creando ? "Agregando..." : "Agregar columna"}
+          {creando
+            ? "Agregando..."
+            : enTodosLosCursos
+              ? "Agregar en todos los cursos"
+              : "Agregar columna"}
         </button>
       </div>
+
+      <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+        <input
+          type="checkbox"
+          className="h-4 w-4 cursor-pointer accent-purple-700"
+          checked={enTodosLosCursos}
+          disabled={bloqueado}
+          onChange={(evento) => setEnTodosLosCursos(evento.target.checked)}
+        />
+        Crear en todos los cursos
+      </label>
+
+      {enTodosLosCursos && (
+        // Explica de antemano por qué el aviso puede decir "0 creadas": los
+        // cursos que ya la tienen se saltan, y eso es lo que hace repetible
+        // el botón cuando aparece un curso nuevo.
+        <p className="mt-1 text-xs text-gray-500">
+          Se creará en los cursos que aún no la tengan. Los que ya la tienen se
+          quedan como están.
+        </p>
+      )}
 
       {columnas.length === 0 ? (
         <p className="mt-4 text-sm text-gray-500">

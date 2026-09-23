@@ -251,13 +251,25 @@ Al terminar, un aviso honesto con lo que devuelve el backend:
     - **No crear ninguna se anuncia como éxito**, con icono de acierto, no
       como fallo.
 
-**Pendiente (fase 5):**
+**Hecho (2026-09-22), fase 5:**
 
 - `src/components/listasSeguimiento/GestionColumnasSeguimiento.jsx` — la
-  casilla. Es estado **local** del componente, como el texto del nombre: es
-  un borrador de interfaz, no estado de dominio.
-- `src/pages/ListasSeguimientoAdmin.jsx` — solo si hace falta cablear algo
-  nuevo; la idea es que no.
+  casilla "Crear en todos los cursos". Es estado **local** del componente,
+  como el texto del nombre: es un borrador de interfaz, no estado de dominio.
+  Dos decisiones de uso:
+    - **No se desmarca al crear.** Si estás dando de alta varias columnas
+      para todo el colegio, desmarcarla cada vez sería una molestia. A cambio,
+      **el texto del botón dice siempre en qué modo estás** —"Agregar columna"
+      o "Agregar en todos los cursos"—, para que nadie cree en 25 cursos
+      creyendo que crea en uno.
+    - Con la casilla marcada aparece un aviso previo: "se creará en los cursos
+      que aún no la tengan". Así el "0 creadas" del resultado no parece un
+      error cuando todos ya la tenían.
+- `src/pages/ListasSeguimientoAdmin.jsx` — **no hizo falta tocarla**, que era
+  lo que se esperaba. La página pasa `crearColumna` tal cual y las opciones
+  fluyen solas desde el componente hasta el hook. Hay una prueba de
+  integración que lo confirma, porque "no hizo falta" es justo la clase de
+  afirmación que conviene ver pasar.
 
 No toca `utils/listasSeguimiento/marcas.js` ni ninguno de los componentes de
 la grilla.

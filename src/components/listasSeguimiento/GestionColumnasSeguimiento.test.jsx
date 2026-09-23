@@ -31,7 +31,9 @@ describe("GestionColumnasSeguimiento", () => {
     await user.type(campo, "Fue a la salida");
     await user.click(screen.getByRole("button", { name: "Agregar columna" }));
 
-    expect(onCrear).toHaveBeenCalledWith("Fue a la salida");
+    expect(onCrear).toHaveBeenCalledWith("Fue a la salida", {
+      enTodosLosCursos: false,
+    });
     expect(campo).toHaveValue("");
   });
 
@@ -54,7 +56,7 @@ describe("GestionColumnasSeguimiento", () => {
 
     await user.type(screen.getByLabelText("Nueva columna"), "Con enter{Enter}");
 
-    expect(onCrear).toHaveBeenCalledWith("Con enter");
+    expect(onCrear).toHaveBeenCalledWith("Con enter", { enTodosLosCursos: false });
   });
 
   it("el campo no deja escribir más del límite de la tabla", () => {
@@ -107,5 +109,80 @@ describe("GestionColumnasSeguimiento", () => {
     expect(
       screen.getByRole("button", { name: "Borrar columna Compró el libro" }),
     ).toBeEnabled();
+  });
+});
+
+describe("crear en todos los cursos", () => {
+  const casilla = () => screen.getByRole("checkbox", { name: /todos los cursos/i });
+
+  it("empieza desmarcada: el alta normal es la de un solo curso", () => {
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={vi.fn()} />);
+
+    expect(casilla()).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Agregar columna" }),
+    ).toBeInTheDocument();
+  });
+
+  it("marcarla cambia el texto del botón", async () => {
+    // El modo tiene que verse siempre: la casilla no se desmarca sola al
+    // crear, así que nadie debe poder crear en 25 cursos creyendo que crea
+    // en uno.
+    const user = userEvent.setup();
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={vi.fn()} />);
+
+    await user.click(casilla());
+
+    expect(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    ).toBeInTheDocument();
+  });
+
+  it("avisa de antemano de que los que ya la tienen se saltan", async () => {
+    // Así el "0 creadas" del resultado no parece un error.
+    const user = userEvent.setup();
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={vi.fn()} />);
+
+    expect(screen.queryByText(/se quedan como están/i)).not.toBeInTheDocument();
+    await user.click(casilla());
+
+    expect(screen.getByText(/aún no la tengan/i)).toBeInTheDocument();
+  });
+
+  it("pasa la opción a quien crea", async () => {
+    const onCrear = vi.fn().mockResolvedValue(true);
+    const user = userEvent.setup();
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={onCrear} />);
+
+    await user.click(casilla());
+    await user.type(screen.getByLabelText("Nueva columna"), "Pagó la excursión");
+    await user.click(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    );
+
+    expect(onCrear).toHaveBeenCalledWith("Pagó la excursión", {
+      enTodosLosCursos: true,
+    });
+  });
+
+  it("sigue marcada después de crear, para poder dar de alta varias seguidas", async () => {
+    const onCrear = vi.fn().mockResolvedValue(true);
+    const user = userEvent.setup();
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={onCrear} />);
+
+    await user.click(casilla());
+    await user.type(screen.getByLabelText("Nueva columna"), "Primera");
+    await user.click(
+      screen.getByRole("button", { name: "Agregar en todos los cursos" }),
+    );
+
+    expect(casilla()).toBeChecked();
+    expect(screen.getByLabelText("Nueva columna")).toHaveValue("");
+  });
+
+  it("mientras crea, la casilla tampoco se puede tocar", () => {
+    render(<GestionColumnasSeguimiento columnas={[]} onCrear={vi.fn()} creando />);
+
+    expect(casilla()).toBeDisabled();
   });
 });
