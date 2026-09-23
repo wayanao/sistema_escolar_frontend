@@ -447,6 +447,12 @@ Lo que hay que saber para consumirlo:
   simultaneas; el mensaje del backend invita a reintentar, y reintentar
   funciona.
 
+Al abrir la vista previa de impresion, la pantalla consume ademas
+`GET /branding` y la plantilla activa del tipo `reporte_estudiante`, a traves
+de `DocumentoImprimible`. No son peticiones propias de este modulo: las hace
+la capa de impresion compartida, con su propia cache, y son las mismas que ya
+usan boletin, certificados y cartera.
+
 ## Modulos del perfil profesor
 
 ### Dashboard profesor

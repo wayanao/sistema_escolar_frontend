@@ -6,10 +6,9 @@
   también cerrado, la propuesta completa.** La pantalla funciona de punta a
   punta y se probó a mano en el navegador contra el backend real. 124 pruebas
   propias en este repo.
-- **Hay una segunda ampliación en diseño, sin código todavía:** imprimir la
-  lista en blanco, como plantilla para rellenar a mano. Ver la sección
-  "Ampliación: imprimir" más abajo. **Solo frontend**, sin ningún cambio en el
-  backend.
+- **La ampliación "imprimir la lista en blanco" está terminada** (2026-09-23):
+  las tres fases, **solo frontend** y sin ningún cambio en el backend. Ver la
+  sección "Ampliación: imprimir" más abajo. Pendiente de verla impresa.
 - **La ampliación "crear una columna en todos los cursos" está terminada**
   (2026-09-22): una casilla junto al campo de nombre. Ver la sección
   "Ampliación" más abajo, y el diseño completo en el documento del backend.
@@ -381,7 +380,15 @@ cuando aparezca.
      todos los impresos; si el usuario no lo quiere, se apaga desde Diseño de
      impresos (`mostrar_pie`), que es donde vive esa decisión.
 3. Documentación (`docs/RUTAS_FRONTEND.md`, `docs/CAMBIOS_FRONTEND.md` y este
-   documento). **Pendiente.**
+   documento). **Hecho (2026-09-23).** También se anotó en `docs/API_CLIENT.md`
+   que al abrir la vista previa la pantalla consume `GET /branding` y la
+   plantilla activa, peticiones que no son suyas sino de la capa de impresión
+   compartida.
+
+**Con esto la impresión está terminada.** Falta verla impresa de verdad: las
+pruebas fijan la estructura, pero si las filas tienen alto suficiente para
+escribir a mano y si la rejilla cae bien en la hoja, eso se comprueba
+imprimiendo una.
 
 No hay fase de backend.
 

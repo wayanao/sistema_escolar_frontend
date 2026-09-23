@@ -1,5 +1,67 @@
 # Cambios Frontend
 
+## 2026-09-23 - Imprimir la lista de seguimiento en blanco
+
+Boton "Imprimir lista en blanco" en la pantalla de Listas de Seguimiento.
+Abre una vista previa A4 con el escudo, el titulo "Listas de control", el
+curso, y la rejilla de nombres y columnas **con las celdas vacias**.
+
+### No es un informe, es una plantilla
+
+El usuario lo pidio asi: "que solo aparezca los nombres y las columnas que
+haya creado, sin nada en las celdas". Es la hoja que se lleva para ir marcando
+a mano, no el registro de lo ya marcado.
+
+Eso simplifico el problema entero: sin marcas ni notas que imprimir, no hubo
+que decidir como caben 240 caracteres en una celda de papel.
+
+### La garantia de que siga en blanco
+
+`ListaSeguimientoImprimible` **no recibe las marcas**. No es que las ignore:
+no tiene con que pintarlas. Hay prueba que le pasa un estudiante con marca y
+nota y comprueba que no sale nada. Si alguien quisiera imprimirlas manana,
+tendria que cambiar la forma del componente, y ahi se daria cuenta de que esta
+haciendo otra cosa.
+
+### Sin cambios en el backend
+
+Se reutiliza el tipo de impreso `reporte_estudiante`, que es lo que ya hace
+VistaCarteraVencida para su lista por curso. Los tipos son una lista cerrada
+en el esquema del backend y en una migracion que siembra tres plantillas por
+tipo; crear uno propio habria obligado a tocar ambos, en el repo donde un push
+despliega produccion.
+
+### Lo que si hubo que tocar de la capa compartida
+
+Cinco lineas: el modificador `di-documento--listas` en los tres grupos de
+selectores de `print.css` que fijan el ancho A4 en movil, y en la lista
+equivalente de `DocumentoImprimible.jsx`. Es el punto de extension de esa capa
+-ya habia cuatro tipos- y los demas impresos no cambian.
+
+### El ancho fijo, aqui si
+
+El resto de la pantalla se adapta al ancho. La vista previa no: lleva A4 fijo
+con desplazamiento lateral en movil, como boletin, certificados y cartera. Un
+documento y una pantalla no son lo mismo.
+
+### Sin firmas, y el pie donde corresponde
+
+No se le pasan `firmas`, asi que no salen. El pie con los datos de contacto y
+la fecha lo pone `DocumentoImprimible` para todos los impresos; apagarlo es
+una decision que vive en Diseno de impresos (`mostrar_pie`), no en esta
+pantalla.
+
+### Limite conocido
+
+Con muchas columnas la rejilla deja de caber en A4 vertical: con 3 o 4 entra
+holgada, con 8 las celdas quedan estrechas para marcar a mano, con 12 no
+entra. No se resuelve todavia porque hoy se usan pocas columnas por curso.
+
+### Pruebas
+
+15 nuevas: 8 del componente imprimible y 7 de la vista previa. Una de ellas
+caza el fallo de que el boton seguia apareciendo al deseleccionar el curso.
+
 ## 2026-09-22 - Crear una columna de seguimiento en todos los cursos
 
 Ampliacion de la pantalla de abajo. Una casilla junto al campo de nombre,

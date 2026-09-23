@@ -134,7 +134,14 @@ Notas de UX por ruta admin:
   inferior** mientras se desplaza la lista: es hija directa de la pantalla y no
   de un envoltorio -un elemento `sticky` solo puede moverse dentro de su
   contenedor, y uno de su mismo alto lo deja sin sitio-, y va por encima de las
-  columnas congeladas de la tabla, que se pintarian sobre ella.
+  columnas congeladas de la tabla, que se pintarian sobre ella. Tiene ademas
+  un boton **"Imprimir lista en blanco"** que reemplaza la pantalla por una
+  vista previa A4 -la unica parte de esta pantalla con ancho fijo, porque un
+  impreso no es una pantalla- con el titulo "Listas de control", el curso y la
+  rejilla **sin las marcas**, para llenarla a mano. El boton solo aparece si
+  hay curso, columnas y alumnos. Usa el tipo de impreso `reporte_estudiante`,
+  igual que Cartera Vencida, y registra el modificador
+  `di-documento--listas` en `print.css` y en `DocumentoImprimible`.
 
 ## Navegacion de profesor
 
