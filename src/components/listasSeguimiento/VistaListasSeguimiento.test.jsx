@@ -116,3 +116,77 @@ describe("VistaListasSeguimiento", () => {
     expect(onGuardar).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("imprimir la lista en blanco", () => {
+  const boton = () => screen.queryByRole("button", { name: /imprimir lista/i });
+
+  it("ofrece imprimir cuando hay columnas y alumnos", () => {
+    renderVista();
+
+    expect(boton()).toBeInTheDocument();
+  });
+
+  it("no lo ofrece sin columnas: una hoja con nombres y nada más no sirve", () => {
+    renderVista({ lista: { ...LISTA, columnas: [] } });
+
+    expect(boton()).not.toBeInTheDocument();
+  });
+
+  it("tampoco sin alumnos", () => {
+    renderVista({ lista: { ...LISTA, estudiantes: [] } });
+
+    expect(boton()).not.toBeInTheDocument();
+  });
+
+  it("tampoco sin curso elegido", () => {
+    renderVista({ cursoId: null });
+
+    expect(boton()).not.toBeInTheDocument();
+  });
+
+  it("al pulsarlo reemplaza la pantalla por la vista previa", async () => {
+    const user = userEvent.setup();
+    renderVista();
+
+    await user.click(boton());
+
+    expect(screen.getByRole("button", { name: /Atrás/ })).toBeInTheDocument();
+    // La pantalla de trabajo desaparece: ni selector, ni gestión de columnas.
+    expect(screen.queryByLabelText("Curso")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Nueva columna")).not.toBeInTheDocument();
+  });
+
+  it("Atrás devuelve a la pantalla de trabajo", async () => {
+    const user = userEvent.setup();
+    renderVista();
+
+    await user.click(boton());
+    await user.click(screen.getByRole("button", { name: /Atrás/ }));
+
+    expect(screen.getByLabelText("Curso")).toBeInTheDocument();
+  });
+
+  it("la vista previa no pinta marcas ni notas", async () => {
+    // Es una plantilla en blanco. Si alguna vez saliera una marca, esta prueba
+    // lo caza aunque el fallo estuviera en otro componente.
+    const user = userEvent.setup();
+    renderVista({
+      lista: {
+        ...LISTA,
+        estudiantes: [
+          {
+            estudianteId: 101,
+            nombre: "Juan",
+            apellido: "Pérez",
+            marcas: { 5: { marcado: true, nota: "Llegó tarde" } },
+          },
+        ],
+      },
+    });
+
+    await user.click(boton());
+
+    expect(screen.queryByText("Llegó tarde")).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
+  });
+});

@@ -360,8 +360,26 @@ cuando aparezca.
      curso los pone `DocumentoImprimible`, que es quien sabe de identidad
      institucional; hay prueba de que este componente no los pinta por su
      cuenta.
-2. Botón e integración de la vista previa en la pantalla, con sus pruebas,
-   incluida la de integración. **Pendiente.**
+2. Botón e integración de la vista previa en la pantalla, con sus pruebas.
+   **Hecho (2026-09-23).** 7 pruebas nuevas. Cuatro cosas:
+   - **Hubo que registrar un tipo de documento nuevo**, `di-documento--listas`,
+     en dos sitios de la capa de impresión compartida: los tres grupos de
+     selectores de `src/styles/print.css` que fijan el ancho A4 en móvil, y la
+     lista equivalente dentro de `DocumentoImprimible.jsx`. Es el punto de
+     extensión de ese sistema —ya había cuatro tipos ahí— y son cinco líneas
+     en total, sin cambiar el comportamiento de los otros impresos.
+   - **El botón de imprimir solo aparece si hay curso, columnas y alumnos.**
+     Una hoja con nombres y ninguna casilla no sirve para nada. Lo de "hay
+     curso" lo añadió una prueba: sin esa condición el botón seguía saliendo
+     al deseleccionar el curso, porque la lista anterior sigue un instante en
+     memoria.
+   - **El modo vista previa es estado local de la vista**, no de la página:
+     es un modo de visualización, no estado de dominio, igual que el texto del
+     campo de nueva columna. La página no cambió.
+   - **No se le pasan `firmas`**, así que no salen. El pie con los datos de
+     contacto y la fecha sí sale, porque lo pone `DocumentoImprimible` para
+     todos los impresos; si el usuario no lo quiere, se apaga desde Diseño de
+     impresos (`mostrar_pie`), que es donde vive esa decisión.
 3. Documentación (`docs/RUTAS_FRONTEND.md`, `docs/CAMBIOS_FRONTEND.md` y este
    documento). **Pendiente.**
 
