@@ -117,7 +117,13 @@ Notas de UX por ruta admin:
   el ancho del `main` de `App.jsx` -1600 px centrados, con su padding- como
   todas las demas pantallas: no se pone ancho ni margenes laterales propios.
   Nacio con un `max-w-7xl px-4` propio, que la estrechaba a 1280 y duplicaba
-  el margen; se quito el 2026-09-22. Se adapta al ancho: tabla en escritorio y tarjetas por alumno en movil. Las dos
+  el margen; se quito el 2026-09-22. Se adapta al ancho: **tarjetas por
+  alumno hasta 1024 px y tabla a partir de ahi**. El corte esta en 1024 y no
+  en 768 porque a ese ancho -una tablet en vertical- la tabla con tres
+  columnas no cabe y la ultima queda cortada, sin que nada avise de que se
+  puede desplazar de lado; y porque a ese tamano las tarjetas son mas
+  comodas de marcar con el dedo. Comprobado con capturas a los dos anchos el
+  2026-09-23. Las dos
   formas se pintan siempre y se esconde una con CSS, en vez de medir la
   ventana en JavaScript, que en la primera pintada todavia no sabe el ancho
   real. Al cambiar de curso con marcas sin guardar, la pantalla avisa antes de

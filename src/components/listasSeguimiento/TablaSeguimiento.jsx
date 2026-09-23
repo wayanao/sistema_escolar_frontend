@@ -29,7 +29,11 @@ function TablaSeguimiento({
 
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-md md:block">
+      {/* El corte es 1024 y no 768. A 768 -una tablet en vertical- la tabla
+          con tres columnas no cabe y la ultima queda cortada, sin que nada
+          avise de que se puede desplazar de lado. A ese ancho las tarjetas
+          son mejores, ademas, para marcar con el dedo. */}
+      <div className="hidden overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-md lg:block">
         <table className="min-w-full border-collapse">
           <thead className="bg-purple-50">
             <tr>
@@ -70,7 +74,7 @@ function TablaSeguimiento({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-3 lg:hidden">
         {estudiantes.map((estudiante, indice) => (
           <SeguimientoMobileCard
             key={estudiante.estudianteId}
