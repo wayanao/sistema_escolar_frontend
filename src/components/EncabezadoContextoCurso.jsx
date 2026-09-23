@@ -32,6 +32,19 @@ function DatoCurso({ label, value, tono, translateNo = false }) {
   );
 }
 
+/**
+ * Encabezado de contexto. Nacio para las pantallas de profesor, donde el
+ * contexto son siempre cuatro datos: materia, salon, periodo y fecha.
+ *
+ * `datos` permite usarlo en pantallas con otro contexto sin inventar campos
+ * vacios. Una pantalla de admin por curso solo tiene salon, y mostrarle
+ * "Materia: No seleccionada" pareceria un error, no un dato ausente. Sin
+ * `datos`, el comportamiento es **exactamente** el de siempre.
+ *
+ * `tituloContexto` y `subtituloContexto` existen por lo mismo: "Contexto
+ * seleccionado desde el dashboard" es cierto en planilla y asistencia, y falso
+ * donde el curso se elige en la propia pantalla.
+ */
 function EncabezadoContextoCurso({
   titulo,
   etiqueta,
@@ -40,8 +53,19 @@ function EncabezadoContextoCurso({
   curso,
   periodo,
   fecha,
+  datos,
+  tituloContexto = "Información de trabajo",
+  subtituloContexto = "Contexto seleccionado desde el dashboard.",
   children,
 }) {
+  const datosPorDefecto = [
+    { label: "Materia", value: materia || "No seleccionada", tono: "materia", translateNo: true },
+    { label: "Salón", value: curso || "No seleccionado", tono: "curso", translateNo: true },
+    { label: "Período", value: periodo ? `Período ${periodo}` : "No especificado", tono: "periodo" },
+    { label: "Fecha de trabajo", value: formatearFechaCurso(fecha), tono: "fecha" },
+  ];
+  const datosVisibles = Array.isArray(datos) ? datos : datosPorDefecto;
+
   const gridClass = children
     ? "sm:grid-cols-2 xl:grid-cols-5"
     : "sm:grid-cols-2 lg:grid-cols-4";
@@ -58,14 +82,19 @@ function EncabezadoContextoCurso({
             </div>
             <p className="mt-0.5 text-sm text-gray-600">{descripcion}</p>
             <div className="mb-3 mt-5">
-              <h2 className="text-sm font-bold text-slate-950">Información de trabajo</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Contexto seleccionado desde el dashboard.</p>
+              <h2 className="text-sm font-bold text-slate-950">{tituloContexto}</h2>
+              <p className="mt-0.5 text-xs text-slate-500">{subtituloContexto}</p>
             </div>
             <div className={`grid grid-cols-1 gap-x-6 gap-y-3 ${gridClass}`}>
-              <DatoCurso label="Materia" value={materia || "No seleccionada"} tono="materia" translateNo />
-              <DatoCurso label="Salón" value={curso || "No seleccionado"} tono="curso" translateNo />
-              <DatoCurso label="Período" value={periodo ? `Período ${periodo}` : "No especificado"} tono="periodo" />
-              <DatoCurso label="Fecha de trabajo" value={formatearFechaCurso(fecha)} tono="fecha" />
+              {datosVisibles.map((dato) => (
+                <DatoCurso
+                  key={dato.label}
+                  label={dato.label}
+                  value={dato.value}
+                  tono={dato.tono}
+                  translateNo={dato.translateNo}
+                />
+              ))}
               {children}
             </div>
           </div>

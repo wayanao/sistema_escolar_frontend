@@ -392,6 +392,30 @@ imprimiendo una.
 
 No hay fase de backend.
 
+## Encabezado unificado con Planilla (2026-09-23)
+
+La pantalla usa `src/components/EncabezadoContextoCurso.jsx`, el mismo
+encabezado de Planilla y Asistencia: tarjeta con la barra morada, título,
+etiqueta, descripción y el bloque de contexto.
+
+Ese componente nació para pantallas de **profesor**, donde el contexto son
+siempre cuatro datos —materia, salón, período y fecha— y los pinta todos con
+un "No seleccionada" cuando faltan. Aquí el único contexto es el curso, así
+que tal cual habría mostrado tres campos vacíos que parecen un error, no un
+dato ausente.
+
+Se le añadieron tres props **opcionales**, sin cambiar su comportamiento
+actual: `datos` para dar la lista de datos a pintar, y `tituloContexto` y
+`subtituloContexto`, porque "Contexto seleccionado desde el dashboard" es
+cierto en planilla y falso donde el curso se elige en la propia pantalla. Sin
+esas props, el componente se comporta exactamente como antes, y las pruebas
+de Planilla y Asistencia pasaron sin tocarlas.
+
+Esta pantalla pasa `datos={[]}` y mete el selector de curso dentro del
+encabezado, como Planilla mete el suyo de tipo de evaluación. No se repite el
+curso como dato de solo lectura: el selector ya lo dice, y ponerlo dos veces
+uno al lado del otro era ruido. Se comprobó con una captura.
+
 ## Riesgos y mitigación
 
 | Riesgo | Mitigación |

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EncabezadoContextoCurso from "../EncabezadoContextoCurso";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import BarraGuardadoSeguimiento from "./BarraGuardadoSeguimiento";
 import GestionColumnasSeguimiento from "./GestionColumnasSeguimiento";
@@ -90,31 +91,44 @@ function VistaListasSeguimiento({
     // que se veía más centrada que el resto sin motivo. Solo queda el aire
     // vertical, que el layout no da.
     <div className="py-6">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">
-        Listas de Seguimiento
-      </h1>
-
-      <div className="mb-6 max-w-sm">
-        <label
-          className="mb-1 block text-sm font-medium text-gray-700"
-          htmlFor="curso-listas-seguimiento"
-        >
-          Curso
-        </label>
-        <select
-          id="curso-listas-seguimiento"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-500"
-          value={cursoId ?? ""}
-          onChange={(evento) => onSeleccionarCurso?.(evento.target.value)}
-        >
-          <option value="">Selecciona un curso</option>
-          {cursos.map((curso) => (
-            <option key={curso.id} value={curso.id} translate="no">
-              {curso.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Mismo encabezado que Planilla y Asistencia, pero con el contexto que
+          esta pantalla sí tiene: solo el curso. Se le pasa `datos` para no
+          mostrar "Materia: No seleccionada" y compañía, que aquí no faltan,
+          simplemente no existen. El selector va dentro, como el de tipo de
+          evaluación en Planilla. */}
+      <EncabezadoContextoCurso
+        titulo="Listas de Seguimiento"
+        etiqueta="Registro administrativo"
+        descripcion="Crea columnas propias por curso y marca a cada estudiante."
+        tituloContexto="Curso de trabajo"
+        subtituloContexto="Se elige aquí mismo, en esta pantalla."
+        // Sin datos de solo lectura: el selector de abajo ya dice qué curso
+        // es. En Planilla el contexto viene de otra pantalla y mostrarlo
+        // informa; aquí repetirlo al lado del selector es ruido.
+        datos={[]}
+      >
+        <div className="min-w-0 py-1">
+          <label
+            className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500"
+            htmlFor="curso-listas-seguimiento"
+          >
+            Curso
+          </label>
+          <select
+            id="curso-listas-seguimiento"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
+            value={cursoId ?? ""}
+            onChange={(evento) => onSeleccionarCurso?.(evento.target.value)}
+          >
+            <option value="">Selecciona un curso</option>
+            {cursos.map((curso) => (
+              <option key={curso.id} value={curso.id} translate="no">
+                {curso.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      </EncabezadoContextoCurso>
 
       {sePuedeImprimir && (
         <div className="mb-6">
