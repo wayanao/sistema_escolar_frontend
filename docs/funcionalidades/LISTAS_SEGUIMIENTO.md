@@ -6,6 +6,10 @@
   también cerrado, la propuesta completa.** La pantalla funciona de punta a
   punta y se probó a mano en el navegador contra el backend real. 124 pruebas
   propias en este repo.
+- **Hay una segunda ampliación en diseño, sin código todavía:** imprimir la
+  lista en blanco, como plantilla para rellenar a mano. Ver la sección
+  "Ampliación: imprimir" más abajo. **Solo frontend**, sin ningún cambio en el
+  backend.
 - **La ampliación "crear una columna en todos los cursos" está terminada**
   (2026-09-22): una casilla junto al campo de nombre. Ver la sección
   "Ampliación" más abajo, y el diseño completo en el documento del backend.
@@ -274,6 +278,85 @@ Al terminar, un aviso honesto con lo que devuelve el backend:
 
 No toca `utils/listasSeguimiento/marcas.js` ni ninguno de los componentes de
 la grilla.
+
+## Ampliación: imprimir la lista en blanco (2026-09-23)
+
+**En diseño. Sin código escrito todavía.**
+
+### Qué pidió el usuario, con sus palabras
+
+"Que se imprima la planilla y que solo aparezca los nombres y las columnas que
+haya creado, **sin nada en las celdas**, y que de título tenga *Listas de
+control* y el escudo, ya más nada."
+
+O sea: **no es un informe de lo registrado, es una plantilla en blanco para
+rellenar a mano.** Eso lo simplifica mucho — no hay que imprimir marcas ni
+notas, ni decidir cómo caben 240 caracteres en una celda.
+
+### Decisiones tomadas con el usuario
+
+- **Las celdas van vacías**, aunque en pantalla haya marcas. Se imprime la
+  rejilla, no los datos.
+- **Título: "Listas de control".** No "Listas de Seguimiento": es el nombre
+  que el usuario quiere en el papel.
+- **El curso sí sale**, como subtítulo ("Curso: 1A"). El usuario había dicho
+  "ya más nada", pero al señalarle que dos hojas en blanco de cursos distintos
+  serían indistinguibles, decidió ponerlo.
+- **Las filas van numeradas**, igual que en pantalla.
+- **Sin firmas, sin fecha, sin nada más.** El encabezado institucional —escudo,
+  nombre del colegio— lo pone `DocumentoImprimible` a partir de la plantilla
+  activa, que el admin ya controla desde Diseño de impresos.
+
+### Sin cambios en el backend, y por qué
+
+Se reutiliza `tipo="reporte_estudiante"` en `DocumentoImprimible`, que es
+**exactamente lo que ya hace Cartera Vencida** para imprimir su lista de
+alumnos por curso (`VistaCarteraVencida.jsx`).
+
+Los tipos de impreso son una lista cerrada en dos sitios: el `Literal` de
+`app/schemas/plantilla.py` y las filas sembradas en
+`migrations/20260509_branding_plantillas_impresion.sql` (tres plantillas por
+tipo). Añadir un tipo propio obligaría a tocar el esquema **y** a escribir una
+migración que siembre sus plantillas, en un repo donde eso despliega
+producción. Reutilizar no cuesta nada y el usuario no pidió plantillas
+configurables para este impreso.
+
+### Archivos a crear o tocar
+
+- `src/components/listasSeguimiento/ListaSeguimientoImprimible.jsx` — la
+  rejilla en papel. Presentacional puro: recibe curso, columnas y estudiantes.
+  Celdas vacías y con alto suficiente para escribir a mano.
+- `src/components/listasSeguimiento/VistaListasSeguimiento.jsx` — el botón de
+  imprimir y el modo vista previa, que reemplaza la pantalla por el impreso
+  con los botones "Atrás" e "Imprimir", como hace Cartera Vencida.
+- `src/pages/ListasSeguimientoAdmin.jsx` — solo si hace falta cablear el
+  estado de la vista previa; se intentará que viva en la vista.
+
+### Convención de ancho: aquí sí es A4
+
+El resto de esta pantalla se adapta al ancho, y así está documentado. **La
+vista previa es la excepción**: un impreso lleva ancho fijo A4 con
+desplazamiento lateral en móvil, igual que boletín, certificados y cartera.
+No es una contradicción; es que un documento y una pantalla no son lo mismo.
+
+### Límite conocido, sin resolver
+
+Con muchas columnas la rejilla deja de caber en A4 vertical. Con 3 o 4 entra
+holgada; con 8 las celdas quedan demasiado estrechas para marcar a mano; con
+12 no entra. Las salidas serían imprimir en horizontal, partir en varias
+páginas o dejar elegir qué columnas salen. **No se resuelve ahora** y no
+bloquea: hoy el uso real son pocas columnas por curso. Queda anotado para
+cuando aparezca.
+
+### Plan de fases
+
+1. `ListaSeguimientoImprimible.jsx` con sus pruebas. **Pendiente.**
+2. Botón e integración de la vista previa en la pantalla, con sus pruebas,
+   incluida la de integración. **Pendiente.**
+3. Documentación (`docs/RUTAS_FRONTEND.md`, `docs/CAMBIOS_FRONTEND.md` y este
+   documento). **Pendiente.**
+
+No hay fase de backend.
 
 ## Riesgos y mitigación
 
