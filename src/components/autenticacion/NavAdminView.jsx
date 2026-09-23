@@ -107,6 +107,7 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones }) {
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/certificados">Certificados</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/boletin">Gestión Boletines</NavLink>
               <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/diseno-impresos">Diseño de impresos</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/listas-seguimiento">Listas de Seguimiento</NavLink>
             </div>
           )}
 

@@ -386,6 +386,47 @@ Uso:
   o subsidio. Las referencias libres de subsidios se conservan en la etiqueta
   visible y tambien se reconocen en pagos mixtos.
 
+## Listas de seguimiento
+
+`ListasSeguimientoAdmin.jsx` consume, a traves de
+`src/services/listasSeguimientoApi.js`:
+
+```text
+GET    /cursos
+GET    /listas-seguimiento/{cursoId}
+POST   /listas-seguimiento/{cursoId}/columnas
+DELETE /listas-seguimiento/{cursoId}/columnas/{columnaId}
+POST   /listas-seguimiento/{cursoId}/marcas
+```
+
+Uso:
+
+- El modulo pide su propio `GET /cursos` y arma su propio selector, como ya
+  hacen Boletin y Tipos de Pago.
+- `GET /listas-seguimiento/{cursoId}` trae columnas, alumnos y marcas en **una
+  sola respuesta**, para pintar la pantalla con una peticion. Una celda sin
+  fila no viaja: el default (`marcado: false`, `nota: ""`) lo pone
+  `obtenerMarcaCelda` en el cliente, igual que ya se hace con las notas
+  ausentes de la planilla.
+- El cuerpo de `POST .../marcas` es una lista pelada, el mismo formato que
+  `POST /asistencia`. Lo arma `construirPayloadMarcas`.
+
+Tres cosas del contrato que conviene no perder de vista:
+
+- **El lote no puede llevar la misma celda dos veces.** El backend lo rechaza
+  entero con 422, porque escribe todo en una sentencia y PostgreSQL la aborta.
+  Por eso los cambios pendientes se guardan indexados por celda
+  (`claveCelda`), no en un array: asi mandar un duplicado es imposible, no
+  solo improbable.
+- **El 409 de nombre repetido hay que tratarlo siempre**, aunque el chequeo
+  local diga que el nombre esta libre: entre una cosa y otra otra pestaña
+  puede haberlo creado. `normalizarNombreColumna` replica la regla del indice
+  unico del backend -recorta, colapsa espacios interiores y sube a
+  mayusculas-, pero la verdad la tiene el servidor.
+- El limite de la nota son **240 caracteres** y el del nombre de columna
+  **100**. Los dos estan tambien en el backend; en el cliente se usan como
+  `maxLength`, para avisar antes de gastar una peticion.
+
 ## Modulos del perfil profesor
 
 ### Dashboard profesor

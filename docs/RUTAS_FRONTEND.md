@@ -55,6 +55,7 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | `/admin/planeadores-clases/:planId` | `PlaneadoresClasesAdmin` |
 | `/admin/certificados` | `CertificadosAdmin` |
 | `/admin/diseno-impresos` | `BrandingAdmin` |
+| `/admin/listas-seguimiento` | `ListasSeguimientoAdmin` |
 | `/boletin` | `Boletin` |
 
 ## Rutas de super admin
@@ -76,6 +77,7 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 - Certificados.
 - Boletin.
 - Diseno de impresos.
+- Listas de Seguimiento.
 - Pagos.
 - Tipos de pagos.
 - Cartera vencida.
@@ -111,6 +113,12 @@ Notas de UX por ruta admin:
 - `/admin/planeadores-clases`: bandeja completa y paginada de planeaciones.
 - `/admin/planeadores-clases/:planId`: detalle directo, revision y
   observaciones de una planeacion; es el destino de la campana administrativa.
+- `/admin/listas-seguimiento`: grilla por curso, **no** es documento A4. Se
+  adapta al ancho: tabla en escritorio y tarjetas por alumno en movil. Las dos
+  formas se pintan siempre y se esconde una con CSS, en vez de medir la
+  ventana en JavaScript, que en la primera pintada todavia no sabe el ancho
+  real. Al cambiar de curso con marcas sin guardar, la pantalla avisa antes de
+  descartarlas.
 
 ## Navegacion de profesor
 

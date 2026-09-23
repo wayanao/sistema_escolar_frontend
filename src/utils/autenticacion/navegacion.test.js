@@ -36,6 +36,7 @@ describe("contratos puros de navegacion", () => {
           { id: "certificados", label: "Certificados", to: "/admin/certificados" },
           { id: "boletines", label: "Gestión Boletines", to: "/boletin" },
           { id: "diseno-impresos", label: "Diseño de impresos", to: "/admin/diseno-impresos" },
+          { id: "listas-seguimiento", label: "Listas de Seguimiento", to: "/admin/listas-seguimiento" },
         ],
       },
       {

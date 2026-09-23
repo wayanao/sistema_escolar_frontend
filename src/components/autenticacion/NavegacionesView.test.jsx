@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import NavAdminView from "./NavAdminView";
 import NavProfesorView from "./NavProfesorView";
 import NavSuperAdminView from "./NavSuperAdminView";
-import { PROFESOR_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
+import {
+  ADMIN_DESKTOP_ITEMS,
+  PROFESOR_DESKTOP_ITEMS,
+} from "../../utils/autenticacion/navegacion";
 
 vi.mock("./DesktopAnimatedNav", () => ({
   default: ({ items, variant, ariaLabel }) => (
@@ -145,6 +148,57 @@ describe("vistas de navegacion", () => {
     expect(primerNivel).toStrictEqual(
       PROFESOR_DESKTOP_ITEMS.map((item) => item.label),
     );
+  });
+
+  it("el menu movil de admin lleva las mismas entradas que el de escritorio", async () => {
+    // Gemela de la de profesor, que se escribio despues de que «Observador» se
+    // quedara solo en escritorio sin que nadie lo notara. Para admin no
+    // existia, y el riesgo es el mismo: el menu movil de NavAdminView esta
+    // escrito a mano y NO sale de ADMIN_DESKTOP_ITEMS.
+    //
+    // Se comparan todas las entradas, tambien las de dentro de los grupos, que
+    // es donde es mas facil que se pierda una. En movil solo hay un grupo
+    // abierto a la vez, asi que hay que desplegarlos uno por uno.
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NavAdminView onCerrarSesion={vi.fn()} renderNotificaciones={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Abrir menu de administrador" }));
+    const movil = screen
+      .getAllByRole("navigation")
+      .find((nav) => !nav.getAttribute("aria-label"));
+
+    const enMovil = new Set();
+    const anotarVisibles = () => {
+      within(movil)
+        .getAllByRole("link")
+        .forEach((enlace) => enMovil.add(enlace.getAttribute("href")));
+    };
+
+    anotarVisibles();
+    for (const grupo of ADMIN_DESKTOP_ITEMS.filter((item) => item.type === "group")) {
+      await user.click(within(movil).getByRole("button", { name: grupo.label }));
+      anotarVisibles();
+    }
+
+    const enEscritorio = new Set();
+    ADMIN_DESKTOP_ITEMS.forEach((item) => {
+      if (item.type === "group") {
+        item.children.forEach((hijo) => enEscritorio.add(hijo.to));
+      } else {
+        enEscritorio.add(item.to);
+      }
+    });
+
+    // Se comparan los **destinos**, no los textos. Hoy no coinciden en una
+    // entrada: escritorio dice «Gestión de Pagos» y movil «Pagos», los dos a
+    // /admin/pagos. Es anterior a esta prueba y la de arriba ya lo fija, asi
+    // que igualar los textos no es cosa de esta guarda. Lo que no puede pasar
+    // es que un destino exista en un menu y falte en el otro.
+    expect([...enMovil].sort()).toStrictEqual([...enEscritorio].sort());
   });
 
   it("presenta identidad, ruta y callback de super admin", async () => {

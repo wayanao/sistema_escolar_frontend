@@ -87,9 +87,21 @@ Si falla la validacion, ambos redirigen a `/login`.
 - `NavProfesorView` cuando no hay admin y existe profesor.
 - `NavSuperAdminView` en la ruta `/super-admin`.
 
+La entrada `Listas de Seguimiento`, del grupo Gestion Academica, se agrego el
+2026-09-22. Como todas las del menu admin, vive **en dos archivos**:
+`src/utils/autenticacion/navegacion.js` para escritorio y
+`src/components/autenticacion/NavAdminView.jsx`, a mano, para movil. El segundo
+no se genera a partir del primero, asi que tocar solo uno deja la entrada en
+una de las dos vistas sin que nada falle.
+
 ## Validaciones adicionales en paginas
 
 Algunas paginas administrativas leen `usuario` desde `localStorage` y validan el rol antes de mostrar contenido o continuar.
+
+`/admin/listas-seguimiento` no lee `localStorage` por su cuenta: se apoya solo
+en `AdminRoute`. La proteccion real la da el backend, cuyo router
+`/listas-seguimiento` es admin-only a nivel de router; un profesor recibe 403
+en los cuatro endpoints aunque llegue a la direccion.
 
 ## Riesgo pendiente observado
 

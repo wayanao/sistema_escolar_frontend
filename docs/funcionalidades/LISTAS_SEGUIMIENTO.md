@@ -2,10 +2,10 @@
 
 ## Control
 
-- Estado: **Pasos 1, 2 y 3 de 5 hechos.** Existen el servicio, los dos
-  archivos de utils, los dos hooks y los seis componentes, con 112 pruebas.
-  Faltan la página con su ruta y su entrada de menú, y la documentación:
-  pasos 4 y 5.
+- Estado: **Terminado. Los cinco pasos hechos (2026-09-22) y, con el backend
+  también cerrado, la propuesta completa.** La pantalla funciona de punta a
+  punta y se probó a mano en el navegador contra el backend real. 124 pruebas
+  propias en este repo.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver
@@ -150,15 +150,27 @@ fuera de notas y pagos.
   tiene columnas o no tiene alumnos: una barra que nunca se puede usar solo
   estorba.
 
-**Página y ruteo:**
+**Página y ruteo. Todo hecho (2026-09-22)**, con 5 líneas agregadas en
+total a los archivos compartidos y ninguna borrada:
 - `src/pages/ListasSeguimientoAdmin.jsx` — composición, sin HTTP directo.
-- `src/App.jsx` — ruta `/admin/listas-seguimiento`, dentro de `AdminRoute`.
+  Lleva **una sola** decisión propia, y es porque necesita a los dos hooks a
+  la vez: avisar antes de cambiar de curso si hay marcas sin guardar. El hook
+  de comando las descarta a propósito —aplicarlas a otro curso sería peor que
+  perderlas—, pero descartarlas en silencio sí sería una trampa, así que
+  preguntar es trabajo de la pantalla.
+- `src/App.jsx` — ruta `/admin/listas-seguimiento` dentro de `AdminRoute`,
+  con `React.lazy` como el resto.
 - `src/utils/autenticacion/navegacion.js` — ítem nuevo en
-  `ADMIN_DESKTOP_ITEMS`, grupo "academica".
+  `ADMIN_DESKTOP_ITEMS`, grupo "academica", al final.
 - `src/components/autenticacion/NavAdminView.jsx` — el mismo ítem, a mano,
   en el bloque mobile de "academica". **Este archivo no se genera a partir
   de `navegacion.js`** — hay que tocar los dos o el ítem solo aparece en
   desktop.
+- `src/utils/autenticacion/navegacion.test.js` — hubo que tocarlo también, y
+  no es opcional: congela el árbol entero del menú admin con `toStrictEqual`,
+  a propósito, para que un ítem nuevo no se cuele sin declararse. Es la misma
+  clase de guardián que el censo de repositorios del backend; se declara el
+  ítem y ya.
 
 Cada archivo de código lleva su `*.test.js`/`*.test.jsx` junto, más un test
 de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
@@ -193,10 +205,12 @@ de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
    34 pruebas: 16 del de consulta y 18 del de comando.
 3. Componentes + sus tests. **Hecho (2026-09-22).** 38 pruebas entre los
    seis.
-4. Página, ruta y menú (los dos archivos) + test de integración.
-   **Pendiente.**
+4. Página, ruta y menú (los dos archivos) + test de integración. **Hecho
+   (2026-09-22).** 12 pruebas en `ListasSeguimientoAdmin.test.jsx`, que
+   cubren el flujo crítico completo —elegir curso, marcar, guardar— y dos
+   guardas de que la entrada de menú está en los **dos** archivos.
 5. Documentación (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
-   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`). **Pendiente.**
+   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`). **Hecho (2026-09-22).**
 
 ## Preguntas abiertas
 
@@ -206,15 +220,26 @@ empezar el backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 3 del "Plan de fases"**, el 2026-09-22.
+- Última acción terminada: **paso 4 del "Plan de fases"**, el 2026-09-22.
+  Con él la pantalla ya funciona de punta a punta.
   - `5fe6998` — el servicio, los dos utils y sus pruebas (paso 1).
   - `f27660b` — los dos hooks y sus pruebas (paso 2).
-  - El paso 3 agrega los seis componentes de
-    `src/components/listasSeguimiento/` y sus seis archivos de pruebas. **Sin
-    commit todavía.** Ninguno de los tres pasos está pusheado.
-- Verificación: `pnpm run check:deploy` pasa entero — **1955 pruebas en 318
-  archivos, lint limpio, build correcto**. `git diff --check`: limpio. No se
-  tocó ningún archivo existente: los 22 son nuevos.
+  - `a70326d` — los seis componentes y sus pruebas (paso 3).
+  - El paso 4 agrega `src/pages/ListasSeguimientoAdmin.jsx` y su test de
+    integración, y toca cuatro archivos compartidos con **5 líneas en total**:
+    `App.jsx`, `navegacion.js`, `NavAdminView.jsx` y `navegacion.test.js`.
+    **Sin commit todavía.** Ninguno de los cuatro pasos está pusheado.
+- Verificación: `pnpm run check:deploy` pasa entero — **1967 pruebas en 319
+  archivos, lint limpio, build correcto**. `git diff --check`: limpio.
+- **Falta una guarda que este proyecto ya echó de menos una vez.**
+  `NavegacionesView.test.jsx` tiene una prueba que ata el menú móvil de
+  profesor al de escritorio, escrita después de que «Observador» se quedara
+  solo en escritorio sin que nadie lo notara. **Para admin esa prueba no
+  existe.** Como el encargo pedía no tocar el menú admin más allá de los dos
+  archivos, la guarda de esta funcionalidad se dejó dentro de
+  `ListasSeguimientoAdmin.test.jsx`: protege esta entrada, pero no las demás.
+  Escribir la prueba general de admin sigue pendiente y no es de esta
+  propuesta.
 - Dos errores de pruebas que conviene no repetir:
   - En el paso 2, la prueba de cancelación resolvía la primera petición al
     instante, así que cuando llegaba la segunda ya había terminado y no había
@@ -234,24 +259,46 @@ empezar el backend.
   está bloqueado por él. Los cuatro endpoints y sus respuestas están en
   `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Listas de
   seguimiento".
-- Siguiente acción exacta: paso 4 del "Plan de fases", la página, la ruta y
-  el menú, más el test de integración del flujo crítico. Son cuatro archivos
-  y **dos de ellos son de otros módulos**, así que conviene el cuidado de
-  siempre:
-  - `src/pages/ListasSeguimientoAdmin.jsx` — solo composición: llama a los dos
-    hooks y se los pasa a `VistaListasSeguimiento`. Sin HTTP directo y sin
-    transformaciones grandes.
-  - `src/App.jsx` — ruta `/admin/listas-seguimiento` dentro de `AdminRoute`,
-    con `React.lazy` como el resto de páginas.
-  - `src/utils/autenticacion/navegacion.js` y
-    `src/components/autenticacion/NavAdminView.jsx` — **hay que tocar los
-    dos**. El segundo no se genera a partir del primero; si solo se toca uno,
-    la entrada aparece en escritorio y no en móvil, o al revés. Ya está en
-    "Riesgos y mitigación".
-  Lo que la página tiene que conectar y no está en los hooks: avisar antes de
-  cambiar de curso si `hayCambios` es cierto. El hook descarta lo pendiente al
-  cambiar, a propósito, pero quien pregunta es la pantalla.
-  **No iniciado.**
+- **Probada a mano en el navegador el 2026-09-22, y funciona.** Lo hizo el
+  usuario contra el backend real. Con eso queda cerrado el último hueco de
+  verificación que quedaba: las 124 pruebas automáticas doblan el servicio,
+  así que hasta ese momento ninguna petición real había salido de este código
+  ni el backend le había respondido nunca. Cada eslabón estaba probado por
+  separado —el SQL contra PostgreSQL en el ensayo del backend, las rutas
+  contra la aplicación real, la pantalla contra dobles—, pero la cadena
+  entera no.
+- Documentación transversal actualizada (paso 5): `docs/API_CLIENT.md` (los
+  cinco endpoints que consume el módulo y las tres reglas del contrato que
+  conviene no perder de vista), `docs/RUTAS_FRONTEND.md` (la ruta, la entrada
+  de menú y la nota de UX de que **no** es documento A4), `docs/ROLES_UI.md`
+  (la entrada nueva, y que la protección real la da el router admin-only del
+  backend) y `docs/CAMBIOS_FRONTEND.md` (la entrada del 2026-09-22).
+- **Siguiente acción exacta: ninguna de esta propuesta.** Los dos repos están
+  terminados. Lo que queda son dos cosas que **no** son de esta funcionalidad:
+  - **Pushear.** Nada está pusheado en ninguno de los dos repos. En
+    `sistema_escolar_api` un push a `main` despliega producción
+    automáticamente, así que el backend debería publicarse **antes** que el
+    frontend: al revés, la pantalla existiría contra unos endpoints que
+    todavía no responden. La migración ya está aplicada a los dos tenants, así
+    que ese paso no falta.
+  - **La guarda del menú admin, que ya no falta.** El 2026-09-22 se agregó a
+    `src/components/autenticacion/NavegacionesView.test.jsx` la prueba gemela
+    de la de profesor: compara los **destinos** del menú móvil de admin con
+    los de `ADMIN_DESKTOP_ITEMS`, desplegando cada grupo, y falla si un
+    destino existe en un menú y falta en el otro. Se comprobó que detecta de
+    verdad quitando temporalmente la entrada móvil de esta funcionalidad.
+    Dos cosas que dejó a la vista:
+    - No compara los **textos**, solo los destinos, porque hoy no coinciden
+      en una entrada: escritorio dice «Gestión de Pagos» y móvil «Pagos», los
+      dos a `/admin/pagos`. Es anterior a esta propuesta y la prueba de
+      contratos ya lo fija; igualarlos no es de esta guarda.
+    - La guarda concreta de esta entrada sigue además dentro de
+      `ListasSeguimientoAdmin.test.jsx`, que comprueba etiqueta y destino en
+      los dos menús.
+- Preguntas abiertas: sigue sin responder la del año lectivo, en el documento
+  del backend. No bloquea nada; si algún día se reutiliza el mismo curso de un
+  año al siguiente, las columnas del año anterior seguirán apareciendo y habrá
+  que borrarlas a mano.
 - La documentación transversal (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`) va en el paso 5 de este
   plan, no en cada paso. Todavía no se ha tocado ninguna.

@@ -44,6 +44,7 @@ const CertificadosAdmin = lazy(() => import("./pages/CertificadosAdmin"));
 const BrandingAdmin = lazy(() => import("./pages/BrandingAdmin"));
 const TiposPagosAdmin = lazy(() => import("./pages/TiposPagosAdmin"));
 const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
+const ListasSeguimientoAdmin = lazy(() => import("./pages/ListasSeguimientoAdmin"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const CambiarPassword = lazy(() => import("./pages/CambiarPassword"));
 
@@ -176,6 +177,7 @@ function Layout() {
             <Route path="/admin/planeadores-clases/:planId" element={<AdminRoute><PlaneadoresClasesAdmin /></AdminRoute>} />
             <Route path="/admin/certificados" element={<AdminRoute><CertificadosAdmin /></AdminRoute>} />
             <Route path="/admin/diseno-impresos" element={<AdminRoute><BrandingAdmin /></AdminRoute>} />
+            <Route path="/admin/listas-seguimiento" element={<AdminRoute><ListasSeguimientoAdmin /></AdminRoute>} />
             <Route path="/planilla" element={<ProtectedRoute><Planilla /></ProtectedRoute>} />
             {/* El observador viejo se oculto el 2026-09-10. La direccion se
                 conserva y manda al nuevo: quien la tuviera guardada llega a

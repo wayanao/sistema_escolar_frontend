@@ -1,0 +1,318 @@
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const {
+  obtenerCursosMock,
+  obtenerListaMock,
+  crearColumnaMock,
+  eliminarColumnaMock,
+  guardarMarcasMock,
+  swalFireMock,
+} = vi.hoisted(() => ({
+  obtenerCursosMock: vi.fn(),
+  obtenerListaMock: vi.fn(),
+  crearColumnaMock: vi.fn(),
+  eliminarColumnaMock: vi.fn(),
+  guardarMarcasMock: vi.fn(),
+  swalFireMock: vi.fn(),
+}));
+
+vi.mock("../services/listasSeguimientoApi", () => ({
+  obtenerCursosListasSeguimiento: obtenerCursosMock,
+  obtenerListaSeguimiento: obtenerListaMock,
+  crearColumnaSeguimiento: crearColumnaMock,
+  eliminarColumnaSeguimiento: eliminarColumnaMock,
+  guardarMarcasSeguimiento: guardarMarcasMock,
+}));
+
+vi.mock("sweetalert2", () => ({
+  default: { fire: swalFireMock },
+}));
+
+import ListasSeguimientoAdmin from "./ListasSeguimientoAdmin";
+
+const CURSOS = [
+  { id: 12, nombre: "1A" },
+  { id: 13, nombre: "2B" },
+];
+
+const LISTA = {
+  curso_id: 12,
+  columnas: [{ id: 5, nombre: "Asistió a la cumbre" }],
+  estudiantes: [
+    { estudiante_id: 101, nombre: "Juan", apellido: "Pérez", marcas: {} },
+    {
+      estudiante_id: 102,
+      nombre: "Ana",
+      apellido: "Rojas",
+      marcas: { 5: { marcado: true, nota: "Llegó tarde" } },
+    },
+  ],
+};
+
+/** El check de la tabla de escritorio: la fila y la tarjeta móvil se pintan las dos. */
+const checkDe = (nombre) => screen.getAllByRole("checkbox", { name: nombre })[0];
+
+async function elegirCurso(user, valor = "12") {
+  await user.selectOptions(screen.getByLabelText("Curso"), valor);
+  await waitFor(() =>
+    expect(screen.getByRole("columnheader", { name: "Asistió a la cumbre" }))
+      .toBeInTheDocument(),
+  );
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  obtenerCursosMock.mockResolvedValue(CURSOS);
+  obtenerListaMock.mockResolvedValue(LISTA);
+  guardarMarcasMock.mockResolvedValue({ mensaje: "Cambios guardados", guardadas: 1 });
+  swalFireMock.mockResolvedValue({ isConfirmed: true });
+  vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("ListasSeguimientoAdmin", () => {
+  it("al entrar pide los cursos y espera a que se elija uno", async () => {
+    render(<ListasSeguimientoAdmin />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Elige un curso/i)).toBeInTheDocument();
+    expect(obtenerListaMock).not.toHaveBeenCalled();
+  });
+
+  it("el flujo crítico: elegir curso, marcar una celda y guardar", async () => {
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+
+    await elegirCurso(user);
+
+    // Lo guardado se ve desde el principio.
+    expect(checkDe("Asistió a la cumbre: Rojas Ana")).toBeChecked();
+    expect(checkDe("Asistió a la cumbre: Pérez Juan")).not.toBeChecked();
+    expect(screen.getByText("No hay cambios sin guardar.")).toBeInTheDocument();
+
+    await user.click(checkDe("Asistió a la cumbre: Pérez Juan"));
+
+    expect(screen.getByText("1 cambio sin guardar.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+    await waitFor(() =>
+      expect(guardarMarcasMock).toHaveBeenCalledWith(12, [
+        { columna_id: 5, estudiante_id: 101, marcado: true, nota: "" },
+      ]),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("No hay cambios sin guardar.")).toBeInTheDocument(),
+    );
+  });
+
+  it("tocar la misma celda varias veces manda una sola entrada", async () => {
+    // El backend rechaza el lote ENTERO si una celda viene repetida.
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    const check = checkDe("Asistió a la cumbre: Pérez Juan");
+    await user.click(check);
+    await user.type(
+      screen.getAllByLabelText("Nota de Asistió a la cumbre para Pérez Juan")[0],
+      "ok",
+    );
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+    await waitFor(() => expect(guardarMarcasMock).toHaveBeenCalled());
+    const [, payload] = guardarMarcasMock.mock.calls[0];
+    expect(payload).toHaveLength(1);
+    expect(payload[0]).toMatchObject({ estudiante_id: 101, nota: "ok" });
+  });
+
+  it("marcar y desmarcar deja el botón apagado otra vez", async () => {
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    await user.click(checkDe("Asistió a la cumbre: Pérez Juan"));
+    await user.click(checkDe("Asistió a la cumbre: Pérez Juan"));
+
+    expect(screen.getByRole("button", { name: "Guardar cambios" })).toBeDisabled();
+  });
+
+  it("avisa antes de cambiar de curso con cambios sin guardar", async () => {
+    // El hook los descarta a propósito, pero descartarlos en silencio sería
+    // una trampa. Preguntar es trabajo de la pantalla.
+    swalFireMock.mockResolvedValue({ isConfirmed: false });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+    await user.click(checkDe("Asistió a la cumbre: Pérez Juan"));
+
+    obtenerListaMock.mockClear();
+    await user.selectOptions(screen.getByLabelText("Curso"), "13");
+
+    expect(swalFireMock).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Tienes cambios sin guardar" }),
+    );
+    expect(obtenerListaMock).not.toHaveBeenCalled();
+    expect(screen.getByText("1 cambio sin guardar.")).toBeInTheDocument();
+  });
+
+  it("sin cambios cambia de curso sin preguntar", async () => {
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    swalFireMock.mockClear();
+    obtenerListaMock.mockClear();
+    await user.selectOptions(screen.getByLabelText("Curso"), "13");
+
+    await waitFor(() => expect(obtenerListaMock).toHaveBeenCalledWith(13, expect.anything()));
+    expect(swalFireMock).not.toHaveBeenCalled();
+  });
+
+  it("crear una columna la agrega a la grilla", async () => {
+    crearColumnaMock.mockResolvedValue({ id: 7, nombre: "Compró el libro" });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    await user.type(screen.getByLabelText("Nueva columna"), "Compró el libro");
+    await user.click(screen.getByRole("button", { name: "Agregar columna" }));
+
+    await waitFor(() =>
+      expect(crearColumnaMock).toHaveBeenCalledWith(12, "Compró el libro"),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("columnheader", { name: "Compró el libro" }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("un curso sin columnas muestra los alumnos y esconde la barra", async () => {
+    obtenerListaMock.mockResolvedValue({ ...LISTA, columnas: [] });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+
+    await user.selectOptions(screen.getByLabelText("Curso"), "12");
+
+    await waitFor(() =>
+      expect(screen.getByText(/todavía no tiene columnas/i)).toBeInTheDocument(),
+    );
+    expect(screen.getAllByText("Pérez Juan").length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", { name: "Guardar cambios" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("un error del backend se anuncia en vez de dejar la pantalla en blanco", async () => {
+    obtenerListaMock.mockRejectedValue({
+      response: { status: 404, data: { detail: "Ese curso no existe." } },
+    });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+
+    await user.selectOptions(screen.getByLabelText("Curso"), "12");
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Ese curso no existe."),
+    );
+  });
+
+  it("borrar una columna la quita y recarga", async () => {
+    eliminarColumnaMock.mockResolvedValue({ mensaje: "Columna eliminada" });
+    const user = userEvent.setup();
+    render(<ListasSeguimientoAdmin />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "1A" })).toBeInTheDocument(),
+    );
+    await elegirCurso(user);
+
+    obtenerListaMock.mockResolvedValue({ ...LISTA, columnas: [] });
+    await user.click(
+      screen.getByRole("button", { name: "Borrar columna Asistió a la cumbre" }),
+    );
+
+    await waitFor(() => expect(eliminarColumnaMock).toHaveBeenCalledWith(12, 5));
+    await waitFor(() =>
+      expect(screen.getByText(/todavía no tiene columnas/i)).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("la entrada de menú vive en los dos archivos", () => {
+  it("navegacion.js la declara en el grupo académico", async () => {
+    const { ADMIN_DESKTOP_ITEMS } = await import("../utils/autenticacion/navegacion");
+    const academica = ADMIN_DESKTOP_ITEMS.find((item) => item.id === "academica");
+
+    expect(academica.children).toContainEqual({
+      id: "listas-seguimiento",
+      label: "Listas de Seguimiento",
+      to: "/admin/listas-seguimiento",
+    });
+  });
+
+  it("NavAdminView.jsx la repite a mano para el menú móvil", async () => {
+    // Ese archivo NO se genera a partir de navegacion.js. Si solo se toca uno,
+    // la entrada aparece en escritorio y no en móvil, y nada falla.
+    const { default: NavAdminView } = await import(
+      "../components/autenticacion/NavAdminView"
+    );
+    const { MemoryRouter } = await import("react-router-dom");
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <NavAdminView onCerrarSesion={vi.fn()} renderNotificaciones={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Abrir menu de administrador" }));
+
+    // El menú móvil es el <nav> sin aria-label; el de escritorio sí lo tiene.
+    // Hay que acotar la búsqueda o "Gestión Académica" sale en los dos.
+    const movil = screen
+      .getAllByRole("navigation")
+      .find((nav) => !nav.getAttribute("aria-label"));
+    await user.click(within(movil).getByRole("button", { name: "Gestión Académica" }));
+
+    const escritorio = screen.getByRole("navigation", {
+      name: "Navegación principal de administrador",
+    });
+
+    for (const menu of [escritorio, movil]) {
+      expect(
+        within(menu).getByRole("link", { name: "Listas de Seguimiento" }),
+      ).toHaveAttribute("href", "/admin/listas-seguimiento");
+    }
+  });
+});

@@ -1,5 +1,68 @@
 # Cambios Frontend
 
+## 2026-09-22 - Listas de Seguimiento por Curso
+
+Pantalla nueva de admin en `/admin/listas-seguimiento`: por curso se crean
+columnas con el nombre que el administrador quiera -"Asistio a la cumbre",
+"Compro el libro"- y se marca a cada alumno con un check mas una nota corta.
+No es notas ni asistencia: es el registro libre que hasta ahora no tenia donde
+vivir. Diseno y decisiones en `docs/funcionalidades/LISTAS_SEGUIMIENTO.md`.
+
+### Dos ritmos distintos, a proposito
+
+Las **marcas** se juntan en memoria y se mandan todas juntas con "Guardar
+cambios" mas confirmacion. Guardar en cada click o en cada tecla escrita en una
+nota seria una peticion por pulsacion.
+
+El **alta y baja de columnas** si es inmediata. Cambia la forma de la grilla,
+no su contenido, y esperar al guardado dejaria la pantalla mintiendo sobre que
+columnas existen.
+
+### El detalle que condiciona todo lo demas
+
+El backend escribe el lote entero en una sola sentencia con `ON CONFLICT`, y
+PostgreSQL la aborta **completa** si una celda viene repetida. Por eso los
+cambios pendientes no se guardan en un array sino en un mapa indexado por
+celda: el segundo cambio a una celda pisa al primero, y mandar un duplicado
+pasa de ser improbable a ser imposible.
+
+De ahi salen otras dos reglas del hook de comando:
+
+- borrar una columna descarta los cambios pendientes **de esa columna**; si se
+  quedaran, el siguiente guardado mandaria celdas de una columna que ya no
+  existe y el lote entero se caeria, incluidas las celdas buenas;
+- cambiar de curso descarta lo pendiente, porque aplicarlo a otro curso seria
+  peor que perderlo. La pagina avisa antes: descartarlo en silencio si seria
+  una trampa.
+
+### El chequeo de nombre repetido no se copio de Planilla
+
+Planilla compara con `trim().toLowerCase()` y ahi basta. El indice unico de
+este modulo ademas colapsa los espacios interiores, asi que con esa regla
+escribir "Compro  el libro" con "Compro el libro" ya creada habria pasado el
+filtro del navegador y el servidor habria respondido 409.
+`normalizarNombreColumna` replica la regla del backend entera. Aun asi el 409
+se trata igual: entre el chequeo y la peticion otra pestaña puede colarse.
+
+### Menu
+
+Entrada nueva en Gestion Academica, en los **dos** archivos del menu admin.
+`navegacion.test.js` congela el arbol con `toStrictEqual`, asi que el item hubo
+que declararlo ahi tambien; es un guardian, no un estorbo.
+
+### Pruebas
+
+124 propias: 10 del servicio, 30 de los utils, 34 de los hooks, 38 de los
+componentes y 12 de integracion en la pagina. El flujo critico -elegir curso,
+marcar, guardar- se prueba de punta a punta comprobando el cuerpo exacto que
+sale hacia el backend.
+
+### Comprobado en navegador
+
+Si, el 2026-09-22, contra el backend real. Es lo que cierra el hueco que las
+pruebas no pueden cubrir: todas doblan el servicio, asi que hasta entonces
+ninguna peticion real habia salido de este codigo.
+
 ## 2026-09-13 - Las evidencias del plan aceptan PDF
 
 Los dos espacios de evidencia solo admitian imagenes. Un taller escaneado o una
