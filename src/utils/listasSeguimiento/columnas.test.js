@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ERRORES_NOMBRE_COLUMNA,
   LIMITE_NOMBRE_COLUMNA,
+  mensajeAltaMasiva,
   normalizarNombreColumna,
   validarNombreColumna,
 } from "./columnas";
@@ -103,5 +104,43 @@ describe("validarNombreColumna", () => {
     expect(validarNombreColumna("Nueva", [{ id: 1 }, null])).toMatchObject({
       valido: true,
     });
+  });
+});
+
+describe("mensajeAltaMasiva", () => {
+  it("dice en cuántos cursos se creó y cuántos ya la tenían", () => {
+    expect(mensajeAltaMasiva({ creadas: 9, omitidas: 16, total: 25 })).toBe(
+      "Creada en 9 cursos. 16 ya la tenían.",
+    );
+  });
+
+  it("no suena a fallo cuando no se crea ninguna", () => {
+    // Pasa siempre que todos los cursos ya la tenían, que es el caso normal al
+    // volver a pulsar el botón. Un "0 columnas creadas" parecería un error.
+    expect(mensajeAltaMasiva({ creadas: 0, omitidas: 25, total: 25 })).toBe(
+      "Todos los cursos ya la tenían (25 cursos).",
+    );
+  });
+
+  it("cuando entra en todos, no menciona omitidas", () => {
+    expect(mensajeAltaMasiva({ creadas: 25, omitidas: 0, total: 25 })).toBe(
+      "Creada en los 25 cursos.",
+    );
+  });
+
+  it("avisa si no hay cursos activos", () => {
+    expect(mensajeAltaMasiva({ creadas: 0, omitidas: 0, total: 0 })).toBe(
+      "No hay cursos activos donde crearla.",
+    );
+  });
+
+  it("concuerda el singular", () => {
+    expect(mensajeAltaMasiva({ creadas: 1, omitidas: 1, total: 2 })).toBe(
+      "Creada en 1 curso. 1 ya la tenía.",
+    );
+  });
+
+  it("aguanta que no le llegue nada", () => {
+    expect(mensajeAltaMasiva()).toBe("No hay cursos activos donde crearla.");
   });
 });

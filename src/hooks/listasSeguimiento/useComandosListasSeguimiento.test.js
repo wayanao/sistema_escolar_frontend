@@ -1,15 +1,23 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { crearColumnaMock, eliminarColumnaMock, guardarMarcasMock, swalFireMock } =
+const {
+  crearColumnaMock,
+  crearEnTodosMock,
+  eliminarColumnaMock,
+  guardarMarcasMock,
+  swalFireMock,
+} =
   vi.hoisted(() => ({
     crearColumnaMock: vi.fn(),
+    crearEnTodosMock: vi.fn(),
     eliminarColumnaMock: vi.fn(),
     guardarMarcasMock: vi.fn(),
     swalFireMock: vi.fn(),
   }));
 
 vi.mock("../../services/listasSeguimientoApi", () => ({
+  crearColumnaEnTodosLosCursos: crearEnTodosMock,
   crearColumnaSeguimiento: crearColumnaMock,
   eliminarColumnaSeguimiento: eliminarColumnaMock,
   guardarMarcasSeguimiento: guardarMarcasMock,
@@ -384,5 +392,138 @@ describe("sin curso elegido", () => {
     expect(crearColumnaMock).not.toHaveBeenCalled();
     expect(eliminarColumnaMock).not.toHaveBeenCalled();
     expect(guardarMarcasMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("crear columna en todos los cursos", () => {
+  const resumen = { creadas: 9, omitidas: 16, total: 25 };
+
+  it("usa el endpoint masivo y no el del curso actual", async () => {
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("Pagó la excursión", {
+        enTodosLosCursos: true,
+      });
+    });
+
+    expect(crearEnTodosMock).toHaveBeenCalledWith("Pagó la excursión");
+    expect(crearColumnaMock).not.toHaveBeenCalled();
+  });
+
+  it("un nombre que el curso actual ya tiene SÍ se manda", async () => {
+    // Es lo contrario que en el alta suelta, y es el punto de toda la
+    // ampliación: escribir un nombre que 1A ya tiene significa "créala en los
+    // demás". El backend salta los que ya la tengan.
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("Compró el libro", {
+        enTodosLosCursos: true,
+      });
+    });
+
+    expect(crearEnTodosMock).toHaveBeenCalledWith("Compró el libro");
+  });
+
+  it("pero un nombre vacío o larguísimo se sigue bloqueando", async () => {
+    const { result } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("   ", { enTodosLosCursos: true });
+      await result.current.crearColumna("A".repeat(101), {
+        enTodosLosCursos: true,
+      });
+    });
+
+    expect(crearEnTodosMock).not.toHaveBeenCalled();
+  });
+
+  it("recarga la lista en vez de agregar a mano", async () => {
+    // La respuesta son conteos, no la columna de este curso: no hay nada que
+    // agregar a la grilla.
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result, parametros } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("Nueva", { enTodosLosCursos: true });
+    });
+
+    expect(parametros.recargar).toHaveBeenCalled();
+    expect(parametros.setLista).not.toHaveBeenCalled();
+  });
+
+  it("avisa con los conteos que devolvió el backend", async () => {
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("Nueva", { enTodosLosCursos: true });
+    });
+
+    expect(swalFireMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: "success",
+        text: "Creada en 9 cursos. 16 ya la tenían.",
+      }),
+    );
+  });
+
+  it("no crear ninguna se anuncia como éxito, no como fallo", async () => {
+    crearEnTodosMock.mockResolvedValue({ creadas: 0, omitidas: 25, total: 25 });
+    const { result } = montar();
+
+    let creada;
+    await act(async () => {
+      creada = await result.current.crearColumna("Nueva", {
+        enTodosLosCursos: true,
+      });
+    });
+
+    expect(creada).toBe(true);
+    expect(swalFireMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: "success",
+        text: "Todos los cursos ya la tenían (25 cursos).",
+      }),
+    );
+  });
+
+  it("el 409 de la carrera se muestra con el mensaje del backend", async () => {
+    crearEnTodosMock.mockRejectedValue({
+      response: {
+        status: 409,
+        data: { detail: "Otra persona estaba creando esa misma columna." },
+      },
+    });
+    const { result } = montar();
+
+    let creada;
+    await act(async () => {
+      creada = await result.current.crearColumna("Nueva", {
+        enTodosLosCursos: true,
+      });
+    });
+
+    expect(creada).toBe(false);
+    expect(swalFireMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: "Otra persona estaba creando esa misma columna.",
+      }),
+    );
+  });
+
+  it("sin la opción sigue creando solo en el curso actual", async () => {
+    crearColumnaMock.mockResolvedValue({ id: 7, nombre: "Nueva" });
+    const { result } = montar();
+
+    await act(async () => {
+      await result.current.crearColumna("Nueva");
+    });
+
+    expect(crearColumnaMock).toHaveBeenCalledWith(12, "Nueva");
+    expect(crearEnTodosMock).not.toHaveBeenCalled();
   });
 });

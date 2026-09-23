@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import {
+  crearColumnaEnTodosLosCursos,
   crearColumnaSeguimiento,
   eliminarColumnaSeguimiento,
   guardarMarcasSeguimiento,
 } from "../../services/listasSeguimientoApi";
-import { validarNombreColumna } from "../../utils/listasSeguimiento/columnas";
+import {
+  mensajeAltaMasiva,
+  validarNombreColumna,
+} from "../../utils/listasSeguimiento/columnas";
 import {
   claveCelda,
   construirPayloadMarcas,
@@ -182,10 +186,18 @@ export default function useComandosListasSeguimiento({
   }, [cambios, cursoId, recargar]);
 
   const crearColumna = useCallback(
-    async (nombre) => {
+    async (nombre, { enTodosLosCursos = false } = {}) => {
       if (comandoEnCursoRef.current || !cursoId) return false;
 
-      const validacion = validarNombreColumna(nombre, lista?.columnas);
+      // **Con `enTodosLosCursos`, un nombre repetido deja de ser un error**, y
+      // por eso se valida contra una lista vacia: escribir un nombre que el
+      // curso actual ya tiene significa justamente "creala en los demas". El
+      // backend salta los que ya la tengan, asi que no hay nada que bloquear.
+      // Las otras dos reglas -ni vacio ni demasiado largo- se siguen aplicando.
+      const validacion = validarNombreColumna(
+        nombre,
+        enTodosLosCursos ? [] : lista?.columnas,
+      );
       if (!validacion.valido) {
         await Swal.fire({
           icon: "warning",
@@ -200,6 +212,22 @@ export default function useComandosListasSeguimiento({
       comandoEnCursoRef.current = true;
       setCreandoColumna(true);
       try {
+        if (enTodosLosCursos) {
+          const resumen = await crearColumnaEnTodosLosCursos(validacion.nombre);
+          // Aqui **si** hay que recargar, al contrario que en el alta suelta:
+          // la respuesta son conteos, no la columna de este curso, asi que no
+          // hay nada que agregar a mano a la grilla.
+          await recargar();
+          await Swal.fire({
+            icon: "success",
+            title: "Listo",
+            text: mensajeAltaMasiva(resumen),
+            confirmButtonText: "Entendido",
+            confirmButtonColor: COLOR_BOTON,
+          });
+          return true;
+        }
+
         const creada = await crearColumnaSeguimiento(cursoId, validacion.nombre);
         // Se agrega a la grilla en vez de recargar todo: la respuesta ya trae
         // id y nombre, y una columna recien creada no tiene marcas.
@@ -229,7 +257,7 @@ export default function useComandosListasSeguimiento({
         comandoEnCursoRef.current = false;
       }
     },
-    [cursoId, lista, setLista],
+    [cursoId, lista, recargar, setLista],
   );
 
   const eliminarColumna = useCallback(

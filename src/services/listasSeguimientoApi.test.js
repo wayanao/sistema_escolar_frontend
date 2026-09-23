@@ -13,6 +13,7 @@ vi.mock("../utils/api", () => ({
 }));
 
 import {
+  crearColumnaEnTodosLosCursos,
   crearColumnaSeguimiento,
   eliminarColumnaSeguimiento,
   guardarMarcasSeguimiento,
@@ -153,5 +154,42 @@ describe("lo que el servicio no hace", () => {
 
     const opciones = apiMock.get.mock.calls[0][1];
     expect(opciones).toBeUndefined();
+  });
+});
+
+describe("alta de una columna en todos los cursos", () => {
+  it("usa la ruta sin curso, porque no actúa sobre uno solo", async () => {
+    apiMock.post.mockResolvedValue({ data: { creadas: 9, omitidas: 16, total: 25 } });
+
+    await expect(
+      crearColumnaEnTodosLosCursos("Pagó la excursión"),
+    ).resolves.toEqual({ creadas: 9, omitidas: 16, total: 25 });
+
+    expect(apiMock.post).toHaveBeenCalledWith(
+      "/listas-seguimiento/columnas-en-todos-los-cursos",
+      { nombre: "Pagó la excursión" },
+    );
+  });
+
+  it("pasa la señal cuando se le da", async () => {
+    const controller = new AbortController();
+    apiMock.post.mockResolvedValue({ data: {} });
+
+    await crearColumnaEnTodosLosCursos("Nueva", { signal: controller.signal });
+
+    expect(apiMock.post).toHaveBeenCalledWith(
+      "/listas-seguimiento/columnas-en-todos-los-cursos",
+      { nombre: "Nueva" },
+      { signal: controller.signal },
+    );
+  });
+
+  it("deja pasar el 409 de la carrera sin interpretarlo", async () => {
+    const carrera = Object.assign(new Error("Request failed"), {
+      response: { status: 409, data: { detail: "Otra persona estaba creando..." } },
+    });
+    apiMock.post.mockRejectedValue(carrera);
+
+    await expect(crearColumnaEnTodosLosCursos("Nueva")).rejects.toBe(carrera);
   });
 });

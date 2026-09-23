@@ -229,12 +229,30 @@ Al terminar, un aviso honesto con lo que devuelve el backend:
    tienen, `creadas` es 0. El aviso debe decirlo con naturalidad ("Todos los
    cursos ya la tenían"), no como un fallo.
 
-### Archivos que tocaría
+### Archivos que toca
 
-- `src/services/listasSeguimientoApi.js` — una función nueva,
-  `crearColumnaEnTodosLosCursos(nombre)`.
-- `src/hooks/listasSeguimiento/useComandosListasSeguimiento.js` — el modo
-  nuevo en `crearColumna`, y el aviso con los conteos.
+**Hecho (2026-09-22), fase 4 del plan del backend:**
+
+- `src/services/listasSeguimientoApi.js` — `crearColumnaEnTodosLosCursos(nombre)`.
+  Sin `cursoId`, porque no actúa sobre un curso.
+- `src/utils/listasSeguimiento/columnas.js` — `mensajeAltaMasiva`. **No estaba
+  en esta lista y se agregó**: el texto que ve el usuario es un formateador
+  puro, así que va en utils, donde se prueba solo y sin React. Tiene un texto
+  propio para "no se creó ninguna" porque un "0 columnas creadas" parecería un
+  error cuando en realidad es el resultado normal de volver a pulsar.
+- `src/hooks/listasSeguimiento/useComandosListasSeguimiento.js` — `crearColumna`
+  acepta ahora `{ enTodosLosCursos }`. Tres cosas del modo nuevo:
+    - **El duplicado deja de bloquear.** Se valida contra una lista vacía a
+      propósito: escribir un nombre que el curso actual ya tiene significa
+      "créala en los demás". Las otras dos reglas —ni vacío ni demasiado
+      largo— se siguen aplicando.
+    - **Recarga en vez de agregar a la grilla**, al contrario que el alta
+      suelta: la respuesta son conteos, no la columna de este curso.
+    - **No crear ninguna se anuncia como éxito**, con icono de acierto, no
+      como fallo.
+
+**Pendiente (fase 5):**
+
 - `src/components/listasSeguimiento/GestionColumnasSeguimiento.jsx` — la
   casilla. Es estado **local** del componente, como el texto del nombre: es
   un borrador de interfaz, no estado de dominio.

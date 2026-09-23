@@ -30,6 +30,19 @@ export async function crearColumnaSeguimiento(cursoId, nombre, { signal } = {}) 
   return data;
 }
 
+// Crea la misma columna en todos los cursos activos que aún no la tengan.
+// No lleva `cursoId` a propósito: no actúa sobre un curso sino sobre todos.
+// Devuelve `{creadas, omitidas, total}` y responde 200 aunque no cree ninguna,
+// que es lo normal si todos los cursos ya la tenían.
+export async function crearColumnaEnTodosLosCursos(nombre, { signal } = {}) {
+  const url = "/listas-seguimiento/columnas-en-todos-los-cursos";
+  const cuerpo = { nombre };
+  const { data } = signal
+    ? await api.post(url, cuerpo, { signal })
+    : await api.post(url, cuerpo);
+  return data;
+}
+
 export async function eliminarColumnaSeguimiento(cursoId, columnaId, { signal } = {}) {
   const url = `/listas-seguimiento/${cursoId}/columnas/${columnaId}`;
   const { data } = signal ? await api.delete(url, { signal }) : await api.delete(url);

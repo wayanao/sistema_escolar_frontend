@@ -32,6 +32,28 @@ export function normalizarNombreColumna(nombre) {
     .toUpperCase();
 }
 
+const cursos = (cantidad) => `${cantidad} ${cantidad === 1 ? "curso" : "cursos"}`;
+
+/**
+ * Lo que se le dice al usuario después de crear una columna en todos los cursos.
+ *
+ * Recibe la respuesta del backend, `{creadas, omitidas, total}`.
+ *
+ * **Que no se cree ninguna no es un fallo**, y el mensaje no debe sonar a
+ * fallo: pasa siempre que todos los cursos ya la tenían, que es el caso normal
+ * al volver a pulsar el botón. Por eso hay un texto propio para ese caso en
+ * vez de un "0 columnas creadas" que parece un error.
+ */
+export function mensajeAltaMasiva({ creadas = 0, omitidas = 0, total = 0 } = {}) {
+  if (total === 0) return "No hay cursos activos donde crearla.";
+  if (creadas === 0) return `Todos los cursos ya la tenían (${cursos(total)}).`;
+  if (omitidas === 0) return `Creada en los ${cursos(total)}.`;
+
+  return `Creada en ${cursos(creadas)}. ${omitidas} ya la ${
+    omitidas === 1 ? "tenía" : "tenían"
+  }.`;
+}
+
 /**
  * Valida el nombre antes de pedirle nada al servidor.
  *
