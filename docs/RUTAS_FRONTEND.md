@@ -113,15 +113,22 @@ Notas de UX por ruta admin:
 - `/admin/planeadores-clases`: bandeja completa y paginada de planeaciones.
 - `/admin/planeadores-clases/:planId`: detalle directo, revision y
   observaciones de una planeacion; es el destino de la campana administrativa.
-- `/admin/listas-seguimiento`: grilla por curso, **no** es documento A4. Se
-  adapta al ancho: tabla en escritorio y tarjetas por alumno en movil. Las dos
+- `/admin/listas-seguimiento`: grilla por curso, **no** es documento A4. Usa
+  el ancho del `main` de `App.jsx` -1600 px centrados, con su padding- como
+  todas las demas pantallas: no se pone ancho ni margenes laterales propios.
+  Nacio con un `max-w-7xl px-4` propio, que la estrechaba a 1280 y duplicaba
+  el margen; se quito el 2026-09-22. Se adapta al ancho: tabla en escritorio y tarjetas por alumno en movil. Las dos
   formas se pintan siempre y se esconde una con CSS, en vez de medir la
   ventana en JavaScript, que en la primera pintada todavia no sabe el ancho
   real. Al cambiar de curso con marcas sin guardar, la pantalla avisa antes de
   descartarlas. La casilla "Crear en todos los cursos" **no se desmarca sola**
   despues de crear, para poder dar de alta varias seguidas; a cambio el texto
   del boton dice siempre en que modo esta, para que nadie cree en 25 cursos
-  creyendo que crea en uno.
+  creyendo que crea en uno. La barra de guardado **flota pegada al borde
+  inferior** mientras se desplaza la lista: es hija directa de la pantalla y no
+  de un envoltorio -un elemento `sticky` solo puede moverse dentro de su
+  contenedor, y uno de su mismo alto lo deja sin sitio-, y va por encima de las
+  columnas congeladas de la tabla, que se pintarian sobre ella.
 
 ## Navegacion de profesor
 

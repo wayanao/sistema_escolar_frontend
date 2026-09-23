@@ -34,7 +34,12 @@ function VistaListasSeguimiento({
   const hayCurso = Boolean(cursoId);
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6">
+    // Sin ancho ni márgenes laterales propios: el `main` de `App.jsx` ya
+    // centra todas las pantallas en 1600px y les pone su padding. Ponerlos
+    // aquí otra vez estrechaba esta pantalla a 1280 y duplicaba el margen, así
+    // que se veía más centrada que el resto sin motivo. Solo queda el aire
+    // vertical, que el layout no da.
+    <div className="py-6">
       <h1 className="mb-6 text-2xl font-bold text-gray-900">
         Listas de Seguimiento
       </h1>
@@ -103,14 +108,15 @@ function VistaListasSeguimiento({
           {/* La barra solo aparece si hay algo que marcar. Sin columnas no hay
               celdas, y una barra que nunca se puede usar solo estorba. */}
           {columnas.length > 0 && estudiantes.length > 0 && (
-            <div className="mt-4">
-              <BarraGuardadoSeguimiento
-                cantidadCambios={cantidadCambios}
-                guardando={guardando}
-                onGuardar={onGuardar}
-                onDescartar={onDescartar}
-              />
-            </div>
+            // Sin div envoltorio: la barra es `sticky` y solo puede moverse
+            // dentro de su contenedor. Metida en un div de su mismo alto se
+            // quedaba sin sitio y no se despegaba nunca.
+            <BarraGuardadoSeguimiento
+              cantidadCambios={cantidadCambios}
+              guardando={guardando}
+              onGuardar={onGuardar}
+              onDescartar={onDescartar}
+            />
           )}
         </>
       )}

@@ -14,7 +14,17 @@ function BarraGuardadoSeguimiento({
   const hayCambios = cantidadCambios > 0;
 
   return (
-    <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-4">
+    // Dos detalles que parecen cosmeticos y no lo son:
+    //
+    // - **El margen superior lo pone la barra**, no quien la coloca. `sticky`
+    //   solo puede moverse dentro de su contenedor, asi que envolverla en un
+    //   div de su mismo alto la deja sin sitio y no se despega nunca. Naciendo
+    //   como hija directa de la pantalla, su contenedor es todo el contenido y
+    //   si se queda pegada abajo al desplazar.
+    // - **z-30, por encima de las columnas congeladas de la tabla**, que van a
+    //   z-20 y z-10. Con un z menor, la tabla se pintaba encima de la barra y
+    //   se comia el texto de la izquierda.
+    <div className="sticky bottom-3 z-30 mt-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-4">
       <p className="text-sm text-gray-600">
         {hayCambios
           ? `${cantidadCambios} ${cantidadCambios === 1 ? "cambio sin guardar" : "cambios sin guardar"}.`
