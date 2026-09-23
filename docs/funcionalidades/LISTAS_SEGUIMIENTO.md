@@ -6,6 +6,9 @@
   también cerrado, la propuesta completa.** La pantalla funciona de punta a
   punta y se probó a mano en el navegador contra el backend real. 124 pruebas
   propias en este repo.
+- **Hay una ampliación en diseño, sin código todavía:** una casilla para
+  crear la misma columna en todos los cursos de golpe. Ver la sección
+  "Ampliación" más abajo, y el diseño completo en el documento del backend.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver
@@ -35,7 +38,10 @@ fuera de notas y pagos.
 ## Decisiones ya tomadas (con el usuario)
 
 - Columnas independientes por curso (sin selector para "aplicar a varios
-  cursos a la vez").
+  cursos a la vez"). **Matizado el 2026-09-22:** se añadirá una casilla
+  "crear en todos los cursos", pero sigue sin haber selector de cursos y las
+  columnas siguen siendo independientes; lo que se crea son copias. Ver
+  "Ampliación".
 - Cada celda: check + nota corta opcional, no solo un booleano.
 - Nombre en el menú y en la pantalla: "Listas de Seguimiento", para no
   confundirla con la "Planilla" del profesor (notas).
@@ -188,6 +194,55 @@ de integración del flujo crítico en `ListasSeguimientoAdmin.test.jsx`.
   Asistencia, Boletín, Tipos de Pago, etc.).
 - Sigue la convención de capas de `CLAUDE.md`: página sin HTTP directo,
   componentes sin importar `services/`, un único punto HTTP por módulo.
+
+## Ampliación: crear una columna en todos los cursos (2026-09-22)
+
+**En diseño. Sin código escrito todavía.** El diseño completo, las decisiones
+y el plan de fases están en
+`sistema_escolar_api/docs/funcionalidades/LISTAS_SEGUIMIENTO.md`, sección
+"Ampliación". Aquí solo lo que toca a las pantallas.
+
+### Qué se ve
+
+Una casilla junto al campo de nombre, en `GestionColumnasSeguimiento`:
+**"Crear en todos los cursos"**. Marcada, el botón de agregar deja de crear la
+columna en el curso que estás viendo y la crea en todos los cursos activos que
+aún no la tengan.
+
+Al terminar, un aviso honesto con lo que devuelve el backend:
+"Creada en 9 cursos. 2 ya la tenían."
+
+### Tres cosas que no son evidentes
+
+1. **Con la casilla marcada, un nombre repetido deja de ser un error.** Hoy
+   `validarNombreColumna` bloquea si el curso actual ya tiene esa columna.
+   Con la casilla marcada eso es justo lo contrario de lo que se quiere:
+   escribir un nombre que el curso actual ya tiene significa "créala en los
+   demás". El backend salta los que la tengan, así que la comprobación local
+   de duplicado **no debe aplicarse** en ese modo. Las otras dos
+   validaciones —vacío y largo— sí siguen.
+2. **Después de crear en todos hay que recargar, no agregar a la grilla.** El
+   alta normal se puede agregar a mano porque la respuesta trae `id` y
+   `nombre` de esa columna. La creación masiva devuelve conteos, no la
+   columna del curso actual, así que lo correcto es volver a pedir la lista.
+3. **Puede no crear nada y no ser un error.** Si todos los cursos ya la
+   tienen, `creadas` es 0. El aviso debe decirlo con naturalidad ("Todos los
+   cursos ya la tenían"), no como un fallo.
+
+### Archivos que tocaría
+
+- `src/services/listasSeguimientoApi.js` — una función nueva,
+  `crearColumnaEnTodosLosCursos(nombre)`.
+- `src/hooks/listasSeguimiento/useComandosListasSeguimiento.js` — el modo
+  nuevo en `crearColumna`, y el aviso con los conteos.
+- `src/components/listasSeguimiento/GestionColumnasSeguimiento.jsx` — la
+  casilla. Es estado **local** del componente, como el texto del nombre: es
+  un borrador de interfaz, no estado de dominio.
+- `src/pages/ListasSeguimientoAdmin.jsx` — solo si hace falta cablear algo
+  nuevo; la idea es que no.
+
+No toca `utils/listasSeguimiento/marcas.js` ni ninguno de los componentes de
+la grilla.
 
 ## Riesgos y mitigación
 
