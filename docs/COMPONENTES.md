@@ -681,6 +681,9 @@ Estado actual de componentes y paginas del frontend.
   navegación; consume `useNotificacionesPlaneadores` y delega el marcado en
   `NotificacionesPlaneadoresVista.jsx`. El contrato puro del evento está en
   `utils/planeaciones/notificacionesContratos.js` y su sincronización en hooks.
+  El hook admite **una sola consulta en vuelo** (volver a la pestaña dispara
+  `focus` y `visibilitychange` a la vez) y salta el sondeo de 60 s mientras la
+  pestaña está oculta.
 
 ### Asistencia
 

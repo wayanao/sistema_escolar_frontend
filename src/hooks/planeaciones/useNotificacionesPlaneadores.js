@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { listarNotificacionesPlaneadores } from "../../services/planeacionesApi";
 import { EVENTO_ACTUALIZAR_NOTIFICACIONES_PLANEADORES } from "../../utils/planeaciones/notificacionesContratos";
 
@@ -8,31 +8,45 @@ export default function useNotificacionesPlaneadores(rol) {
   const [items, setItems] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const cargaEnCursoRef = useRef(null);
 
-  const cargar = useCallback(async ({ silencioso = false } = {}) => {
+  const cargar = useCallback(({ silencioso = false } = {}) => {
+    // Volver a la pestaña dispara `focus` y `visibilitychange` casi a la vez.
+    // Sin este candado, cada regreso costaba dos peticiones idénticas.
+    if (cargaEnCursoRef.current) return cargaEnCursoRef.current;
+
     if (!silencioso) setCargando(true);
-    try {
-      const data = await listarNotificacionesPlaneadores(
-        rol === "admin" ? 20 : 8,
-      );
-      setTotal(Number(data?.total_no_leidas) || 0);
-      setTotalProfesores(Number(data?.total_profesores) || 0);
-      setItems(Array.isArray(data?.items) ? data.items : []);
-      setError("");
-    } catch (requestError) {
-      console.error("Error cargando notificaciones de planeadores", requestError);
-      if (!silencioso) setError("No pudimos actualizar las notificaciones.");
-    } finally {
-      if (!silencioso) setCargando(false);
-    }
+
+    const consulta = (async () => {
+      try {
+        const data = await listarNotificacionesPlaneadores(
+          rol === "admin" ? 20 : 8,
+        );
+        setTotal(Number(data?.total_no_leidas) || 0);
+        setTotalProfesores(Number(data?.total_profesores) || 0);
+        setItems(Array.isArray(data?.items) ? data.items : []);
+        setError("");
+      } catch (requestError) {
+        console.error("Error cargando notificaciones de planeadores", requestError);
+        if (!silencioso) setError("No pudimos actualizar las notificaciones.");
+      } finally {
+        if (!silencioso) setCargando(false);
+        cargaEnCursoRef.current = null;
+      }
+    })();
+
+    cargaEnCursoRef.current = consulta;
+    return consulta;
   }, [rol]);
 
   useEffect(() => {
     cargar();
-    const interval = window.setInterval(
-      () => cargar({ silencioso: true }),
-      60_000,
-    );
+    const interval = window.setInterval(() => {
+      // Con la pestaña de fondo nadie está mirando el contador. Al volver, el
+      // listener de visibilidad lo pone al día.
+      if (document.visibilityState === "hidden") return;
+      cargar({ silencioso: true });
+    }, 60_000);
     const actualizar = () => cargar({ silencioso: true });
     const alCambiarVisibilidad = () => {
       if (document.visibilityState === "visible") actualizar();
@@ -51,6 +65,7 @@ export default function useNotificacionesPlaneadores(rol) {
         actualizar,
       );
       document.removeEventListener("visibilitychange", alCambiarVisibilidad);
+      cargaEnCursoRef.current = null;
     };
   }, [cargar]);
 

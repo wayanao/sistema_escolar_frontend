@@ -107,6 +107,70 @@ describe("useNotificacionesPlaneadores", () => {
     await waitFor(() => expect(listarNotificacionesMock).toHaveBeenCalledTimes(4));
   });
 
+  it("no lanza una segunda consulta mientras la primera sigue en vuelo", async () => {
+    let resolverPrimera;
+    listarNotificacionesMock.mockImplementationOnce(
+      () => new Promise((resolve) => {
+        resolverPrimera = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useNotificacionesPlaneadores("admin"));
+    await waitFor(() => expect(listarNotificacionesMock).toHaveBeenCalledTimes(1));
+
+    act(() => window.dispatchEvent(new Event("focus")));
+    expect(listarNotificacionesMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolverPrimera({ total_no_leidas: 2, total_profesores: 0, items: [] });
+    });
+    await waitFor(() => expect(result.current.total).toBe(2));
+
+    // Terminada la primera, un regreso posterior sí vuelve a consultar.
+    act(() => window.dispatchEvent(new Event("focus")));
+    await waitFor(() => expect(listarNotificacionesMock).toHaveBeenCalledTimes(2));
+  });
+
+  it("medición de peticiones: volver a la pestaña y estar oculta cinco minutos", async () => {
+    // Antes: 2 peticiones al volver (el navegador dispara `visibilitychange` y
+    // `focus`, y cada uno cargaba por su cuenta) y 5 con la pestaña oculta.
+    vi.useFakeTimers();
+    const visibilityState = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("visible");
+
+    renderHook(() => useNotificacionesPlaneadores("profesor"));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const alAbrir = listarNotificacionesMock.mock.calls.length;
+    const medicion = {};
+
+    // El profesor vuelve a la pestaña: el navegador dispara los dos eventos.
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      window.dispatchEvent(new Event("focus"));
+      await Promise.resolve();
+    });
+    medicion.alVolverALaPestana = listarNotificacionesMock.mock.calls.length - alAbrir;
+
+    // Cinco minutos con la pestaña de fondo: nadie está mirando el contador.
+    visibilityState.mockReturnValue("hidden");
+    await act(async () => {
+      vi.advanceTimersByTime(5 * 60_000);
+      await Promise.resolve();
+    });
+    medicion.enCincoMinutosOculta =
+      listarNotificacionesMock.mock.calls.length - alAbrir - medicion.alVolverALaPestana;
+
+    expect(alAbrir).toBe(1);
+    expect(medicion).toEqual({
+      alVolverALaPestana: 1,
+      enCincoMinutosOculta: 0,
+    });
+  });
+
   it("mantiene el polling de sesenta segundos y lo limpia al desmontar", async () => {
     vi.useFakeTimers();
     const { unmount } = renderHook(() =>

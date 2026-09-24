@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-09-24 - Notificaciones: una consulta por regreso, y ninguna de fondo
+
+El contador de notificaciones de planeadores consultaba de mas. Medido con la
+prueba de escenario de `useNotificacionesPlaneadores.test.js`:
+
+| Accion | Antes | Ahora |
+|---|---|---|
+| Volver a la pestaña | 2 peticiones | **1** |
+| Cinco minutos con la pestaña oculta | 5 peticiones | **0** |
+
+### Por que se duplicaba
+
+Volver a una pestaña dispara `focus` **y** `visibilitychange`, y cada listener
+cargaba por su cuenta. No era un fallo visible -las dos respuestas dicen lo
+mismo-, solo el doble de trabajo para el servidor en cada regreso.
+
+El candado es una promesa en curso guardada en un ref: mientras haya una
+consulta viva, las siguientes reciben esa misma promesa en vez de abrir otra.
+
+### El polling ya no corre a ciegas
+
+El intervalo de 60 s seguia consultando con la pestaña de fondo, donde nadie
+puede ver el contador. Ahora se salta mientras `visibilityState` es `hidden`,
+y al volver el listener de visibilidad lo pone al dia: el usuario ve lo mismo
+y el servidor deja de atender consultas que nadie mira.
+
 ## 2026-09-24 - Planilla: una escritura por nota y ninguna recarga
 
 Calificar dejo de costar dos peticiones por celda. Medido con la prueba de
