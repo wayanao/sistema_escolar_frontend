@@ -1,5 +1,51 @@
 # Cambios Frontend
 
+## 2026-09-24 - Planilla: una escritura por nota y ninguna recarga
+
+Calificar dejo de costar dos peticiones por celda. Medido con la prueba de
+escenario de `src/pages/Planilla.test.jsx` (diez celdas, un profesor):
+
+| Accion | Antes | Ahora |
+|---|---|---|
+| Salir de diez celdas sin calificar | 10 POST + 10 GET | **0** |
+| Calificar diez notas | 10 POST + 10 GET | **10 POST** |
+
+### De donde salia la mitad del trafico
+
+`guardarNota` llamaba a `cargarPlanilla()` despues de cada POST, que descarga
+la planilla entera. No aportaba nada: el estado local ya se habia actualizado
+de forma optimista **antes** de guardar. Se quito de ahi y se conserva en
+agregar y eliminar tipo de evaluacion, que ocurren una o dos veces por sesion.
+
+La otra mitad era el `onBlur` incondicional: salir de una celda sin tocarla
+guardaba igual. Ahora `hayCambioDeNota` compara con los dos decimales que
+guarda la columna `numeric(3,2)`, asi que `4`, `4.0` y `4.00` son la misma
+nota. Lo mismo al pulsar la carita que ya estaba puesta.
+
+La comparacion vive en el hook, no en los componentes: la vista de escritorio
+y la tarjeta movil tenian el mismo bloque duplicado, y asi hay un solo sitio
+donde se decide si una nota viaja.
+
+### Sin recarga hay que decir la verdad cuando algo falla
+
+Antes el POST no tenia `try/catch`: si fallaba, la pantalla ya mostraba la
+nota como guardada. Ahora la celda se marca en rojo con el titulo "Sin
+guardar", el valor escrito **se conserva** para no perder el trabajo del
+profesor, y un aviso no bloqueante lo dice.
+
+El detalle que decide el comportamiento: una celda pendiente **reintenta
+aunque el valor no haya cambiado**. Sin esa excepcion, la comparacion nueva la
+dejaria atascada para siempre, porque en pantalla ya se ve el valor nuevo.
+
+`guardarNota` devuelve `true` tambien cuando queda pendiente. Solo una nota
+fuera de rango devuelve `false`, que es lo que restaura el valor anterior en
+la celda.
+
+### Dos guardados de la misma celda van en fila
+
+Encolados por `estudiante|columna`. Cruzados, el backend borra e inserta por
+cada uno y podia ganar el valor viejo.
+
 ## 2026-09-23 - Imprimir la lista de seguimiento en blanco
 
 Boton "Imprimir lista en blanco" en la pantalla de Listas de Seguimiento.

@@ -53,6 +53,49 @@ export const calcularPromedioNotas = (notas, columnasVisibles) => {
 export const normalizarNumeroNota = (valor) => Number(String(valor).replace(",", "."));
 
 /**
+ * Nota con los dos decimales que admite la columna `numeric(3,2)` de la base.
+ *
+ * Sirve para que la pantalla muestre lo mismo que quedará guardado sin pedir
+ * la planilla de vuelta al servidor.
+ */
+export const redondearNota = (valor) => {
+    const numero = normalizarNumeroNota(valor);
+    return Number.isFinite(numero) ? Number(numero.toFixed(2)) : numero;
+};
+
+export const claveNota = (estudianteId, descripcion) => `${estudianteId}|${descripcion}`;
+
+/**
+ * ¿Lo que quedó en la celda es distinto de lo que ya está guardado?
+ *
+ * Se compara con los decimales que guarda la base, así que 4, "4.0" y "4.00"
+ * son la misma nota. Sin esta comparación, salir de una celda sin calificarla
+ * costaba una escritura y una recarga completa de la planilla.
+ *
+ * Un valor escrito que no es un número (fuera de rango o con texto) cuenta
+ * como cambio a propósito: así llega a la validación, que es quien avisa al
+ * profesor.
+ */
+export const hayCambioDeNota = (valorEscrito, valorGuardado, tipoEvaluacion = "numerica") => {
+    if (tipoEvaluacion === "desarrollo") {
+        return String(valorEscrito ?? "") !== String(valorGuardado ?? "");
+    }
+
+    const escrito = String(valorEscrito ?? "").trim();
+    const guardado = valorGuardado === null || valorGuardado === undefined
+        ? ""
+        : String(valorGuardado).trim();
+
+    if (escrito === "" || guardado === "") return escrito !== guardado;
+
+    const numeroEscrito = redondearNota(escrito);
+    const numeroGuardado = redondearNota(guardado);
+    if (!Number.isFinite(numeroEscrito) || !Number.isFinite(numeroGuardado)) return true;
+
+    return numeroEscrito !== numeroGuardado;
+};
+
+/**
  * Promedio de las caritas visibles, como número.
  *
  * Las caritas no viven en `notas` sino en `valoraciones`, así que

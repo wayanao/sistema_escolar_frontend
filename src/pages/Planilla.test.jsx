@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -60,7 +60,7 @@ const ESTUDIANTES_INICIALES = [
 
 let columnasServidor;
 
-function prepararApi({ clase = CLASE } = {}) {
+function prepararApi({ clase = CLASE, estudiantes = ESTUDIANTES_INICIALES } = {}) {
   apiMock.get.mockImplementation((url) => {
     if (url === `/mis-clases/${PROFESOR_ID}`) {
       return Promise.resolve({ data: [clase] });
@@ -69,7 +69,7 @@ function prepararApi({ clase = CLASE } = {}) {
       return Promise.resolve({
         data: {
           columnas: [...columnasServidor],
-          data: ESTUDIANTES_INICIALES.map((est) => ({ ...est, notas: { ...est.notas } })),
+          data: estudiantes.map((est) => ({ ...est, notas: { ...est.notas } })),
         },
       });
     }
@@ -163,7 +163,7 @@ describe("flujo de planilla del profesor", () => {
     expect(screen.getAllByText("Ruiz Ana")).toHaveLength(2);
   });
 
-  it("guarda una nota numérica válida y recarga la planilla", async () => {
+  it("guarda una nota numérica válida con una sola escritura y sin recargar la planilla", async () => {
     await abrirPlanilla();
 
     const tabla = screen.getByRole("table");
@@ -185,7 +185,9 @@ describe("flujo de planilla del profesor", () => {
         valoracion: null,
       }),
     );
-    await waitFor(() => expect(contarLlamadasPlanilla()).toBe(2));
+    expect(apiMock.post).toHaveBeenCalledTimes(1);
+    // La planilla solo se pidió al abrir: guardar ya no la descarga entera.
+    expect(contarLlamadasPlanilla()).toBe(1);
     expect(swalFireMock).not.toHaveBeenCalled();
   });
 
@@ -210,7 +212,7 @@ describe("flujo de planilla del profesor", () => {
         valoracion: null,
       }),
     );
-    await waitFor(() => expect(contarLlamadasPlanilla()).toBe(2));
+    expect(contarLlamadasPlanilla()).toBe(1);
     expect(swalFireMock).not.toHaveBeenCalled();
   });
 
@@ -440,6 +442,63 @@ describe("flujo de planilla del profesor", () => {
         valoracion: null,
       }),
     );
+  });
+
+  it("medición de peticiones: salir sin cambiar no gasta red y cada nota cuesta una sola escritura", async () => {
+    // Escenario de medicion del rendimiento de la planilla, con los numeros
+    // que justificaron el cambio. Antes: 20 POST y 21 GET. Ahora: 10 POST y el
+    // GET inicial. Si alguien reintroduce la recarga completa o el guardado
+    // incondicional al salir de la celda, esta prueba lo caza.
+    const ESTUDIANTES_MEDICION = Array.from({ length: 10 }, (_, indice) => ({
+      estudiante_id: 600 + indice,
+      nombre: `Nombre${indice}`,
+      apellido: `Apellido${indice}`,
+      notas: { quiz: 3 },
+    }));
+
+    columnasServidor = ["quiz"];
+    prepararApi({ estudiantes: ESTUDIANTES_MEDICION });
+
+    render(<Planilla />);
+    await screen.findByText(CLASE.materia);
+    const tabla = screen.getByRole("table");
+    await within(tabla).findByText("Apellido0 Nombre0");
+
+    const celdas = within(tabla).getAllByRole("spinbutton");
+    expect(celdas).toHaveLength(10);
+
+    const medicion = {};
+    const getInicial = contarLlamadasPlanilla();
+
+    // Fase 1: el profesor recorre las diez celdas y sale de todas sin tocarlas.
+    await act(async () => {
+      celdas.forEach((celda) => fireEvent.blur(celda));
+    });
+
+    medicion.postAlSalirSinCambiar = apiMock.post.mock.calls.length;
+    medicion.getAlSalirSinCambiar = contarLlamadasPlanilla() - getInicial;
+
+    // Fase 2: ahora sí califica las diez.
+    await act(async () => {
+      celdas.forEach((celda, indice) => {
+        // Nunca 3, que es la nota que ya tenían: eso sería "sin cambio".
+        fireEvent.change(celda, { target: { value: String(4 + (indice % 2)) } });
+        fireEvent.blur(celda);
+      });
+    });
+
+    medicion.postAlCalificarDiez =
+      apiMock.post.mock.calls.length - medicion.postAlSalirSinCambiar;
+    medicion.getAlCalificarDiez =
+      contarLlamadasPlanilla() - getInicial - medicion.getAlSalirSinCambiar;
+
+    expect(medicion).toEqual({
+      postAlSalirSinCambiar: 0,
+      getAlSalirSinCambiar: 0,
+      postAlCalificarDiez: 10,
+      getAlCalificarDiez: 0,
+    });
+    expect(getInicial).toBe(1);
   });
 
   it("en un curso sin nivel definido sigue dejando elegir el tipo de evaluación", async () => {

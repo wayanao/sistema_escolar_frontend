@@ -55,6 +55,7 @@ function Planilla() {
         tipoEliminar,
         setTipoEliminar,
         accionTipoEnCurso,
+        notasSinGuardar,
         guardarNota,
         agregarTipoEvaluacion,
         eliminarTipoEvaluacion,
@@ -136,6 +137,7 @@ function Planilla() {
             guardarNota={guardarNota}
             tipoEvaluacion={tipoEvaluacion}
             formatearEtiquetaColumna={formatearEtiquetaColumna}
+            notasSinGuardar={notasSinGuardar}
         />
     </div>
 );

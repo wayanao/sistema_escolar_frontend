@@ -1,13 +1,16 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { eliminarTipoEvaluacionPlanilla, guardarNotaPlanilla } from "../../services/planillaApi";
 import {
     calcularPromedioNotas,
     calcularPromedioValoraciones,
+    claveNota,
     construirPayloadNota,
     esColumnaInterna,
     formatearEtiquetaColumna,
+    hayCambioDeNota,
     normalizarNumeroNota,
+    redondearNota,
 } from "../../utils/planilla/notas";
 
 export default function useComandosPlanillaProfesor({
@@ -23,11 +26,39 @@ export default function useComandosPlanillaProfesor({
     const [nuevoTipo, setNuevoTipo] = useState("");
     const [tipoEliminar, setTipoEliminar] = useState("");
     const [accionTipoEnCurso, setAccionTipoEnCurso] = useState(null);
+    const [notasSinGuardar, setNotasSinGuardar] = useState({});
+    const guardadosEnCursoRef = useRef(new Map());
+
+    const marcarSinGuardar = useCallback((clave, sinGuardar) => {
+        setNotasSinGuardar((actuales) => {
+            if (Boolean(actuales[clave]) === sinGuardar) return actuales;
+
+            const siguiente = { ...actuales };
+            if (sinGuardar) siguiente[clave] = true;
+            else delete siguiente[clave];
+            return siguiente;
+        });
+    }, []);
 
     const guardarNota = useCallback(async (estudiante_id, descripcion, valor) => {
 
         const valorLimpio = String(valor ?? "").trim();
         if (!valorLimpio && tipoEvaluacion !== "numerica") return;
+
+        const clave = claveNota(estudiante_id, descripcion);
+        const estudiante = estudiantes.find(
+            (est) => Number(est.estudiante_id) === Number(estudiante_id),
+        );
+        const valorGuardado = tipoEvaluacion === "desarrollo"
+            ? estudiante?.valoraciones?.[descripcion]
+            : estudiante?.notas?.[descripcion];
+
+        // Salir de una celda sin calificarla no gasta una peticion. Una celda
+        // pendiente sí reintenta aunque el valor coincida: en pantalla ya se ve
+        // el valor nuevo, pero el servidor todavia no lo tiene.
+        if (!notasSinGuardar[clave] && !hayCambioDeNota(valor, valorGuardado, tipoEvaluacion)) {
+            return true;
+        }
 
         const numero = normalizarNumeroNota(valorLimpio);
         const actualizarNotaLocal = (notaActualizada) => {
@@ -73,44 +104,62 @@ export default function useComandosPlanillaProfesor({
             );
         };
 
-        if (tipoEvaluacion === "numerica" && !valorLimpio) {
-            actualizarNotaLocal(null);
+        const borrandoNota = tipoEvaluacion === "numerica" && !valorLimpio;
 
-            await guardarNotaPlanilla(construirPayloadNota({
-                estudianteId: estudiante_id,
-                asignacionId,
-                periodo,
-                descripcion,
-                tipoEvaluacion,
-            }));
-
-            await cargarPlanilla();
-            return true;
-        }
-
-        if (tipoEvaluacion === "numerica") {
+        if (tipoEvaluacion === "numerica" && !borrandoNota) {
             if (Number.isNaN(numero) || numero < 1 || numero > 5) {
                 await Swal.fire({ icon: 'warning', title: 'Nota inválida', text: 'La nota debe estar entre 1 y 5' });
                 return false;
             }
         }
 
-        actualizarNotaLocal(tipoEvaluacion === "numerica" ? numero : valorLimpio);
+        if (borrandoNota) actualizarNotaLocal(null);
+        else actualizarNotaLocal(tipoEvaluacion === "numerica" ? redondearNota(numero) : valorLimpio);
 
-        await guardarNotaPlanilla(construirPayloadNota({
-                estudianteId: estudiante_id,
-                asignacionId,
-                periodo,
-                descripcion,
-                tipoEvaluacion,
-                nota: tipoEvaluacion === "numerica" ? numero : null,
-                valoracion: tipoEvaluacion === "desarrollo" ? valor : null,
-        }));
+        const payload = construirPayloadNota({
+            estudianteId: estudiante_id,
+            asignacionId,
+            periodo,
+            descripcion,
+            tipoEvaluacion,
+            nota: borrandoNota || tipoEvaluacion !== "numerica" ? null : numero,
+            valoracion: tipoEvaluacion === "desarrollo" ? valor : null,
+        });
 
-          // 🔄 recargar datos
-        await cargarPlanilla();
+        // Dos guardados de la misma celda van en fila, nunca a la vez: cruzados,
+        // podria ganar el valor viejo.
+        const guardadoAnterior = guardadosEnCursoRef.current.get(clave);
+        if (guardadoAnterior) await guardadoAnterior.catch(() => {});
+
+        const guardado = guardarNotaPlanilla(payload);
+        guardadosEnCursoRef.current.set(clave, guardado);
+
+        try {
+            await guardado;
+            marcarSinGuardar(clave, false);
+        } catch (error) {
+            console.error("Error guardando la nota", error);
+            marcarSinGuardar(clave, true);
+            Swal.fire({
+                icon: 'error',
+                title: 'No se guardó',
+                text: 'La nota quedó pendiente. Vuelve a salir de la celda para reintentar.',
+                toast: true,
+                position: 'top-end',
+                timer: 4000,
+                showConfirmButton: false,
+            });
+        } finally {
+            if (guardadosEnCursoRef.current.get(clave) === guardado) {
+                guardadosEnCursoRef.current.delete(clave);
+            }
+        }
+
+        // `true` deja en pantalla lo que escribio el profesor, se haya guardado
+        // o haya quedado pendiente. Solo una nota invalida devuelve `false`, que
+        // es lo que restaura el valor anterior en la celda.
         return true;
-    }, [asignacionId, cargarPlanilla, columnas, periodo, setEstudiantes, tipoEvaluacion]);
+    }, [asignacionId, columnas, estudiantes, marcarSinGuardar, notasSinGuardar, periodo, setEstudiantes, tipoEvaluacion]);
 
     const agregarTipoEvaluacion = useCallback(async () => {
         if (accionTipoEnCurso) return;
@@ -223,6 +272,7 @@ export default function useComandosPlanillaProfesor({
         tipoEliminar,
         setTipoEliminar,
         accionTipoEnCurso,
+        notasSinGuardar,
         guardarNota,
         agregarTipoEvaluacion,
         eliminarTipoEvaluacion,

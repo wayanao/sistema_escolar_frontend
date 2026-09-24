@@ -1,7 +1,10 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
+import { claveNota } from "../../utils/planilla/notas";
 import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
 
-function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+const TITULO_SIN_GUARDAR = "Sin guardar. Vuelve a salir de la celda para reintentar.";
+
+function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar }) {
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
         ? "text-gray-900"
@@ -41,7 +44,12 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                 </div>
             </td>
 
-                {columnas.map((col, index) => (
+                {columnas.map((col, index) => {
+                    const sinGuardar = Boolean(
+                        notasSinGuardar?.[claveNota(est.estudiante_id, col)],
+                    );
+
+                    return (
                     <td
                         key={`${est.estudiante_id}-${col}`}
                         className={`min-w-[100px] border-b border-b-gray-100/70 px-2 py-4 text-center ${
@@ -51,7 +59,12 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                         }`}
                     >
                         {tipoEvaluacion === "desarrollo" ? (
-                            <div className="grid grid-cols-2 gap-1">
+                            <div
+                                className={`grid grid-cols-2 gap-1 ${
+                                    sinGuardar ? "rounded ring-1 ring-red-500" : ""
+                                }`}
+                                title={sinGuardar ? TITULO_SIN_GUARDAR : undefined}
+                            >
                                 {VALORACIONES_DESARROLLO.map((opcion) => {
                                     const activa = est.valoraciones?.[col] === opcion.value;
                                     return (
@@ -85,13 +98,19 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                                         ? est.notas[col]
                                         : ""
                                 }
-                                className="w-full max-w-[70px] px-1 py-1 border border-gray-300 rounded text-center text-sm"
+                                className={`w-full max-w-[70px] px-1 py-1 border rounded text-center text-sm ${
+                                    sinGuardar
+                                        ? "border-red-500 bg-red-50"
+                                        : "border-gray-300"
+                                }`}
+                                title={sinGuardar ? TITULO_SIN_GUARDAR : undefined}
                                 translate="no"
                                 onBlur={(event) => guardarNotaNumerica(event, col)}
                             />
                         )}
                     </td>
-                ))}
+                    );
+                })}
 
             <td className="border-b border-l border-b-gray-100/70 border-l-emerald-100/50 bg-white px-6 py-4 text-center md:sticky md:right-0 md:z-10">
                 <span className={`text-sm font-semibold ${promedioClass}`}>

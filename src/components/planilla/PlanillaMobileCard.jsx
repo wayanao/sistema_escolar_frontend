@@ -1,7 +1,10 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
+import { claveNota } from "../../utils/planilla/notas";
 import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
 
-function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna }) {
+const TITULO_SIN_GUARDAR = "Sin guardar. Vuelve a salir de la celda para reintentar.";
+
+function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar }) {
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
@@ -65,6 +68,9 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                     <div className="space-y-3">
                         {columnas.map((col) => {
                             const etiqueta = formatearEtiquetaColumna(col);
+                            const sinGuardar = Boolean(
+                                notasSinGuardar?.[claveNota(est.estudiante_id, col)],
+                            );
 
                             return (
                                 <div key={`${est.estudiante_id}-${col}-mobile`} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -72,7 +78,11 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                                         <span className="text-sm font-semibold text-gray-800" title={etiqueta} translate="no">
                                             {etiqueta}
                                         </span>
-                                        {tipoEvaluacion !== "desarrollo" && (
+                                        {sinGuardar ? (
+                                            <span className="text-xs font-semibold text-red-600" title={TITULO_SIN_GUARDAR}>
+                                                Sin guardar
+                                            </span>
+                                        ) : tipoEvaluacion !== "desarrollo" && (
                                             <span className="text-xs font-medium text-gray-500">
                                                 1.0 a 5.0
                                             </span>
@@ -117,7 +127,12 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                                                     ? est.notas[col]
                                                     : ""
                                             }
-                                            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                                            className={`h-11 w-full rounded-lg border px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
+                                                sinGuardar
+                                                    ? "border-red-500 bg-red-50"
+                                                    : "border-gray-300 bg-white"
+                                            }`}
+                                            title={sinGuardar ? TITULO_SIN_GUARDAR : undefined}
                                             translate="no"
                                             onBlur={(event) => guardarNotaNumerica(event, col)}
                                         />

@@ -3,13 +3,16 @@ import {
     calcularPromedioEstudiante,
     calcularPromedioValoraciones,
     calcularPromedioNotas,
+    claveNota,
     construirPayloadNota,
     esColumnaInterna,
     formatearEtiquetaColumna,
+    hayCambioDeNota,
     normalizarEstudiantesPlanilla,
     normalizarNumeroNota,
     obtenerColumnasVisibles,
     obtenerNotasVisibles,
+    redondearNota,
 } from "./notas";
 
 describe("contratos puros de la planilla de notas", () => {
@@ -169,5 +172,59 @@ describe("promedio de la planilla en modo carita", () => {
 
     it("no rompe con un estudiante sin ninguno de los dos", () => {
         expect(calcularPromedioEstudiante({}, columnas)).toBe("");
+    });
+});
+
+describe("hayCambioDeNota", () => {
+    it("no ve cambio cuando es la misma nota escrita de otra forma", () => {
+        expect(hayCambioDeNota("4", 4)).toBe(false);
+        expect(hayCambioDeNota("4.0", 4)).toBe(false);
+        expect(hayCambioDeNota("4.00", 4)).toBe(false);
+        expect(hayCambioDeNota("4,0", 4)).toBe(false);
+        expect(hayCambioDeNota("  4  ", 4)).toBe(false);
+    });
+
+    it("no ve cambio mas alla de los dos decimales que guarda la base", () => {
+        expect(hayCambioDeNota("4.567", 4.57)).toBe(false);
+    });
+
+    it("ve cambio cuando la nota es otra", () => {
+        expect(hayCambioDeNota("5", 4)).toBe(true);
+        expect(hayCambioDeNota("4.5", 4)).toBe(true);
+    });
+
+    it("trata la celda vacia y la celda sin nota como lo mismo", () => {
+        expect(hayCambioDeNota("", null)).toBe(false);
+        expect(hayCambioDeNota("", undefined)).toBe(false);
+        expect(hayCambioDeNota("   ", null)).toBe(false);
+    });
+
+    it("ve cambio al borrar una nota y al escribir la primera", () => {
+        expect(hayCambioDeNota("", 4)).toBe(true);
+        expect(hayCambioDeNota("4", null)).toBe(true);
+    });
+
+    it("deja pasar lo que no es un numero para que lo rechace la validacion", () => {
+        expect(hayCambioDeNota("nueve", 4)).toBe(true);
+    });
+
+    it("compara las caritas por su valor exacto", () => {
+        expect(hayCambioDeNota("logrado", "logrado", "desarrollo")).toBe(false);
+        expect(hayCambioDeNota("destacado", "logrado", "desarrollo")).toBe(true);
+        expect(hayCambioDeNota("logrado", undefined, "desarrollo")).toBe(true);
+    });
+});
+
+describe("redondearNota y claveNota", () => {
+    it("recorta la nota a los dos decimales de la base", () => {
+        expect(redondearNota("4.567")).toBe(4.57);
+        expect(redondearNota("4,5")).toBe(4.5);
+        expect(redondearNota(3)).toBe(3);
+    });
+
+    it("da una clave distinta por estudiante y por columna", () => {
+        expect(claveNota(501, "quiz")).toBe(claveNota("501", "quiz"));
+        expect(claveNota(501, "quiz")).not.toBe(claveNota(502, "quiz"));
+        expect(claveNota(501, "quiz")).not.toBe(claveNota(501, "taller"));
     });
 });

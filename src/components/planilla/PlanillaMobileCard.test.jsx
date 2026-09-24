@@ -125,4 +125,30 @@ describe("PlanillaMobileCard", () => {
 
         expect(screen.getByText("No hay tipos de evaluación registrados.")).toBeInTheDocument();
     });
+
+    it("avisa en la tarjeta cuando una nota quedó sin guardar", () => {
+        const est = {
+            estudiante_id: 305,
+            nombre: "Eva",
+            apellido: "Mora",
+            notas: { quiz: 4 },
+            promedio: "4.00",
+        };
+        render(
+            <PlanillaMobileCard
+                est={est}
+                numero={5}
+                columnas={["quiz"]}
+                guardarNota={vi.fn()}
+                tipoEvaluacion="numerica"
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+                notasSinGuardar={{ "305|quiz": true }}
+            />,
+        );
+
+        const input = screen.getByRole("spinbutton");
+        expect(input).toHaveValue(4);
+        expect(input).toHaveClass("border-red-500");
+        expect(screen.getByText("Sin guardar")).toBeInTheDocument();
+    });
 });

@@ -188,15 +188,21 @@ Estado actual de componentes y paginas del frontend.
   errores sin decidir interfaz.
 - `utils/planilla/notas.js` contiene la columna interna reservada, el
   formateo de etiquetas, las notas visibles, el cálculo de promedio, la
-  normalización de coma decimal y la construcción del payload de nota.
+  normalización de coma decimal, la construcción del payload de nota y la
+  comparación `hayCambioDeNota`, que decide si una celda merece una petición.
 - `hooks/planilla/useConsultasPlanillaProfesor.js` carga clases y planilla
   (estudiantes y columnas visibles) y descarta respuestas obsoletas.
 - `hooks/planilla/useComandosPlanillaProfesor.js` administra el guardado y
   limpieza de notas, las valoraciones de desarrollo y el alta/baja de tipos
-  de evaluación con su progreso.
+  de evaluación con su progreso. Guardar una nota cuesta **una sola
+  escritura**: no recarga la planilla, no guarda si el valor no cambió y
+  encola los guardados de una misma celda. Expone `notasSinGuardar`, las
+  celdas cuyo guardado falló.
 - `components/planilla/PlanillaMobileCard.jsx` y
   `components/planilla/PlanillaRow.jsx` presentan la tarjeta móvil y la fila
-  de escritorio de cada estudiante.
+  de escritorio de cada estudiante. Una celda cuyo guardado falló se marca en
+  rojo con el título "Sin guardar" y conserva el valor escrito; volver a salir
+  de ella reintenta.
 - `components/planilla/SelectorTipoEvaluacion.jsx` presenta el control
   `Tipo de calificación`; `components/planilla/GestionTiposEvaluacion.jsx`
   presenta el alta y baja de tipos; `components/planilla/TablaNotasPlanilla.jsx`

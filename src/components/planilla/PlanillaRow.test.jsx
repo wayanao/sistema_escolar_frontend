@@ -5,7 +5,12 @@ import PlanillaRow from "./PlanillaRow";
 
 const formatearEtiquetaColumna = (valor) => (valor === "quiz" ? "Quiz" : valor);
 
-function renderFila({ est, tipoEvaluacion = "numerica", guardarNota = vi.fn() } = {}) {
+function renderFila({
+  est,
+  tipoEvaluacion = "numerica",
+  guardarNota = vi.fn(),
+  notasSinGuardar = {},
+} = {}) {
   render(
     <table>
       <tbody>
@@ -16,6 +21,7 @@ function renderFila({ est, tipoEvaluacion = "numerica", guardarNota = vi.fn() } 
           guardarNota={guardarNota}
           tipoEvaluacion={tipoEvaluacion}
           formatearEtiquetaColumna={formatearEtiquetaColumna}
+          notasSinGuardar={notasSinGuardar}
         />
       </tbody>
     </table>,
@@ -95,6 +101,38 @@ describe("PlanillaRow", () => {
     expect(screen.getByText("—").closest("span.text-sm")).toHaveClass(
       "text-gray-900",
     );
+  });
+
+  it("marca la celda cuyo guardado falló, sin borrar lo que escribió el profesor", () => {
+    const est = {
+      estudiante_id: 305,
+      nombre: "Eva",
+      apellido: "Mora",
+      notas: { quiz: 4 },
+      promedio: "4.00",
+    };
+    renderFila({ est, notasSinGuardar: { "305|quiz": true } });
+
+    const input = screen.getByRole("spinbutton");
+    expect(input).toHaveValue(4);
+    expect(input).toHaveClass("border-red-500");
+    expect(input).toHaveAttribute(
+      "title",
+      "Sin guardar. Vuelve a salir de la celda para reintentar.",
+    );
+  });
+
+  it("no marca las celdas que sí se guardaron", () => {
+    const est = {
+      estudiante_id: 306,
+      nombre: "Noa",
+      apellido: "Lara",
+      notas: { quiz: 4 },
+      promedio: "4.00",
+    };
+    renderFila({ est, notasSinGuardar: { "999|quiz": true } });
+
+    expect(screen.getByRole("spinbutton")).not.toHaveClass("border-red-500");
   });
 
   it("muestra la carita del promedio y nunca su equivalencia numérica", () => {

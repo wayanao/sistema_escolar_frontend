@@ -62,7 +62,7 @@ afterEach(() => {
 });
 
 describe("useComandosPlanillaProfesor", () => {
-    it("guarda una nota numérica válida, actualiza el estudiante localmente y recarga", async () => {
+    it("guarda una nota numérica válida, actualiza el estudiante localmente y no recarga la planilla", async () => {
         const params = crearParametros();
         const { result } = renderHook(() => useComandosPlanillaProfesor(params));
 
@@ -89,7 +89,106 @@ describe("useComandosPlanillaProfesor", () => {
             notas: { quiz: 5, "trabajo grupal": 3 },
             promedio: "4.00",
         });
-        expect(params.cargarPlanilla).toHaveBeenCalledTimes(1);
+        // La pantalla ya quedó al día sola: pedir la planilla entera era la
+        // segunda petición de cada nota.
+        expect(params.cargarPlanilla).not.toHaveBeenCalled();
+        expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("no gasta una petición cuando el profesor sale de la celda sin cambiar la nota", async () => {
+        const params = crearParametros();
+        const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+        let exito;
+        await act(async () => {
+            exito = await result.current.guardarNota(502, "quiz", "2.00");
+        });
+
+        expect(exito).toBe(true);
+        expect(guardarNotaPlanillaMock).not.toHaveBeenCalled();
+        expect(params.setEstudiantes).not.toHaveBeenCalled();
+        expect(params.cargarPlanilla).not.toHaveBeenCalled();
+    });
+
+    it("no gasta una petición al volver a pulsar la carita que ya estaba puesta", async () => {
+        const estudiantes = [
+            { estudiante_id: 501, nombre: "Ana", apellido: "Ruiz", notas: {}, valoraciones: { quiz: "logrado" } },
+        ];
+        const params = crearParametros({ tipoEvaluacion: "desarrollo", estudiantes });
+        const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+        await act(async () => {
+            await result.current.guardarNota(501, "quiz", "logrado");
+        });
+        expect(guardarNotaPlanillaMock).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await result.current.guardarNota(501, "quiz", "destacado");
+        });
+        expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("marca la nota como pendiente cuando el guardado falla y la reintenta aunque el valor no cambie", async () => {
+        guardarNotaPlanillaMock.mockRejectedValueOnce(new Error("sin red"));
+        const params = crearParametros();
+        const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+        let exito;
+        await act(async () => {
+            exito = await result.current.guardarNota(502, "quiz", "5");
+        });
+
+        // El valor se queda en pantalla: `false` lo habría borrado de la celda.
+        expect(exito).toBe(true);
+        expect(result.current.notasSinGuardar).toEqual({ "502|quiz": true });
+        expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
+            icon: "error",
+            title: "No se guardó",
+        }));
+
+        // Mismo valor que ya se ve en pantalla: sin la marca de pendiente esto
+        // no volvería a intentarse y la nota se perdería.
+        await act(async () => {
+            await result.current.guardarNota(502, "quiz", "5");
+        });
+
+        expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(2);
+        await waitFor(() => expect(result.current.notasSinGuardar).toEqual({}));
+    });
+
+    it("encola dos guardados de la misma celda en vez de lanzarlos a la vez", async () => {
+        const resolvers = [];
+        guardarNotaPlanillaMock.mockImplementation(
+            () => new Promise((resolve) => resolvers.push(resolve)),
+        );
+        const params = crearParametros();
+        const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+        let primero;
+        let segundo;
+        act(() => {
+            primero = result.current.guardarNota(502, "quiz", "4");
+            segundo = result.current.guardarNota(502, "quiz", "5");
+        });
+
+        await waitFor(() => expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(1));
+        expect(resolvers).toHaveLength(1);
+
+        await act(async () => {
+            resolvers[0]({});
+            await primero;
+        });
+
+        await waitFor(() => expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(2));
+        await act(async () => {
+            resolvers[1]({});
+            await segundo;
+        });
+
+        // El último valor es el que llega de último al servidor.
+        expect(guardarNotaPlanillaMock.mock.calls.at(-1)[0]).toEqual(
+            expect.objectContaining({ nota: 5 }),
+        );
     });
 
     it("rechaza una nota fuera de rango, avisa y no llama al backend", async () => {
