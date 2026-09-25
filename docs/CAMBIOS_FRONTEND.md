@@ -13,7 +13,8 @@ letra de los logros (sigue en 12 px) ni las caritas (16 px):
 - La escala de valoracion es una leyenda de un renglon, sin recuadro.
 - Cada materia: nombre y docente en un renglon, encabezado de columnas y filas
   mas delgados, columnas P1-P4 de `w-12` a `w-10`.
-- Observacion general de 4 a 3 renglones; menos aire en titulo y firmas
+- Observacion general con espacio para 3 renglones (antes 4) y en blanco:
+  sin el fondo de rayas guia, que tambien salia impreso; menos aire en titulo y firmas
   (reglas `.di-documento--boletin` en `print.css`, solo para el boletin).
 
 Medido en la pagina de prueba (papel oficio, margen de plantilla 20 mm):

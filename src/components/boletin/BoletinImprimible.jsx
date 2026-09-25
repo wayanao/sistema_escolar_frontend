@@ -123,13 +123,10 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
             data-placeholder="Escriba aquí la observación general del estudiante…"
             className="di-observacion-editable rounded-lg border border-slate-300 bg-white text-slate-800"
             style={{
-              // Tres renglones para escribir a mano.
+              // Espacio para tres renglones, en blanco (sin rayas guía).
               minHeight: "82px",
               padding: "6px 14px",
               lineHeight: "24px",
-              backgroundImage:
-                "repeating-linear-gradient(transparent, transparent 23px, #e2e8f0 23px, #e2e8f0 24px)",
-              backgroundPosition: "0 6px",
               outline: "none",
               whiteSpace: "pre-wrap",
             }}
