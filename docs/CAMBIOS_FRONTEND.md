@@ -44,6 +44,9 @@ letra de los logros (sigue en 12 px) ni las caritas (16 px):
   membrete era de 2 px; el cambio es solo para el boletin).
 - Las rayas de firma (antes negras) y la del pie (antes color secundario) usan
   el mismo estilo que las de arriba: 1 px del color primario.
+- Cada logro empieza con una viñeta: un punto de 5 px del color primario, con
+  sangria para que el segundo renglon quede alineado con el texto. Medido: la
+  altura de cada materia no cambia (48,8 mm preescolar, 48,1 mm primaria).
 - Cada materia: nombre y docente en un renglon, encabezado de columnas y filas
   mas delgados, columnas P1-P4 de `w-12` a `w-10`.
 - Observacion general con espacio para 3 renglones (antes 4) y en blanco:

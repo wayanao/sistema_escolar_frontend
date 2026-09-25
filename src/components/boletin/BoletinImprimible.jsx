@@ -308,11 +308,22 @@ function MateriaBoletin({ materia }) {
                     className="border-b border-slate-100 last:border-b-0"
                   >
                     <td className="px-3 py-1 text-slate-700 break-words whitespace-normal max-w-[300px]">
-                      {detalle.observacion?.trim() || (
-                        <span className="text-slate-400 italic">
-                          Sin observación
+                      {/* Viñeta del color primario; si el logro ocupa dos
+                          renglones, el segundo queda alineado con el texto. */}
+                      <div className="flex items-start gap-1.5">
+                        <span
+                          aria-hidden="true"
+                          className="mt-[6px] h-[5px] w-[5px] shrink-0 rounded-full"
+                          style={{ backgroundColor: "var(--di-color-primario, #0f314f)" }}
+                        />
+                        <span className="min-w-0">
+                          {detalle.observacion?.trim() || (
+                            <span className="text-slate-400 italic">
+                              Sin observación
+                            </span>
+                          )}
                         </span>
-                      )}
+                      </div>
                     </td>
                     <td className={celdaPeriodo}>
                       {formatearValoracionPeriodo(detalle, "1")}
