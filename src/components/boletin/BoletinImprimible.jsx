@@ -102,7 +102,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           )}
         </div>
 
-        <section className="mt-5 page-break-inside-avoid">
+        <section className="mt-5 break-inside-avoid">
           <p
             className="text-[10px] uppercase tracking-widest font-bold mb-1.5"
             style={{ color: "var(--di-color-texto-principal, #0f314f)" }}
@@ -236,7 +236,7 @@ function MateriaBoletin({ materia }) {
       : null;
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden page-break-inside-avoid">
+    <div className="border border-slate-200 rounded-lg overflow-hidden break-inside-avoid">
       <div className="px-3 py-2 flex justify-between items-center border-b" style={FONDO_SUAVE}>
         <div className="min-w-0">
           <h3 className="font-bold uppercase text-slate-800 tracking-wide text-sm truncate">

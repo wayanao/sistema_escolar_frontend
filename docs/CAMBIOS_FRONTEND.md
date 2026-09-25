@@ -1,5 +1,20 @@
 # Cambios Frontend
 
+## 2026-09-25 - Boletin y reporte parcial: ninguna materia partida entre hojas
+
+`BoletinImprimible` y `ReporteParcialPreview` pedian no partir cada materia con
+la clase `page-break-inside-avoid`, que no existe en Tailwind 3 ni en el CSS del
+proyecto: el navegador la ignoraba. Ahora usan `break-inside-avoid`, la clase
+real de Tailwind (`break-inside: avoid`). En el boletin aplica a cada materia y
+a la observacion general.
+
+Medido en la pagina de prueba (papel oficio, encabezado solo en la hoja 1):
+
+| Datos de prueba | Antes | Ahora |
+|---|---|---|
+| Preescolar (8 dimensiones) | 3 hojas, 1 materia partida | 3 hojas, **ninguna partida** |
+| Primaria (9 materias) | 3 hojas, 1 materia partida | 3 hojas, **ninguna partida** |
+
 ## 2026-09-25 - Boletin: el encabezado sale solo en la primera hoja
 
 Al imprimir, el encabezado del boletin (escudo, nombre, membrete, NIT,

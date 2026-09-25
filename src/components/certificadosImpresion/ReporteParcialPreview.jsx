@@ -114,7 +114,7 @@ function ReporteParcialCurso({ estudiantes }) {
             }
 
             return estudiante.materias.map((materia, index) => (
-              <tr key={`${estudiante.id}-${materia.asignacion_id}-${index}`} className="page-break-inside-avoid">
+              <tr key={`${estudiante.id}-${materia.asignacion_id}-${index}`} className="break-inside-avoid">
                 <td className="px-2 py-2 align-top">
                   {index === 0 && (
                     <>
@@ -161,7 +161,7 @@ function ReporteParcialEstudiante({ estudiante }) {
       </div>
 
       {estudiante.materias.map((materia) => (
-        <article key={`${estudiante.id}-${materia.asignacion_id}`} className="page-break-inside-avoid overflow-hidden rounded-lg border border-slate-200">
+        <article key={`${estudiante.id}-${materia.asignacion_id}`} className="break-inside-avoid overflow-hidden rounded-lg border border-slate-200">
           <header className="flex items-start justify-between gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2">
             <div className="min-w-0">
               <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">{materia.nombre}</h3>
