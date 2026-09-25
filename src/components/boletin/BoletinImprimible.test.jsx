@@ -66,6 +66,11 @@ describe("BoletinImprimible", () => {
     expect(screen.getAllByRole("heading", { name: "Dimensión comunicativa" })).toHaveLength(1);
     expect(screen.getByText("Expresa sus ideas")).toBeInTheDocument();
     expect(screen.getByText("Escucha a sus compañeros")).toBeInTheDocument();
+    // Las caritas de preescolar se ven más grandes que las notas numéricas.
+    expect(screen.getByText("Expresa sus ideas").closest("tr").cells[1]).toHaveClass(
+      "text-base",
+      "leading-none",
+    );
     expect(screen.getByText("Fecha")).toBeInTheDocument();
     expect(screen.getByText(new Date().toLocaleDateString("es-CO"))).toBeInTheDocument();
     expect(screen.queryByText("Año")).not.toBeInTheDocument();

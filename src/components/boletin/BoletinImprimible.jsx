@@ -296,32 +296,39 @@ function MateriaBoletin({ materia }) {
               </tr>
             </thead>
             <tbody>
-              {materia.detalles.map((detalle, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-slate-100 last:border-b-0"
-                >
-                  <td className="px-3 py-1.5 text-slate-700 break-words whitespace-normal max-w-[300px]">
-                    {detalle.observacion?.trim() || (
-                      <span className="text-slate-400 italic">
-                        Sin observación
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-1.5 text-center font-semibold text-slate-700">
-                    {formatearValoracionPeriodo(detalle, "1")}
-                  </td>
-                  <td className="px-2 py-1.5 text-center font-semibold text-slate-700">
-                    {formatearValoracionPeriodo(detalle, "2")}
-                  </td>
-                  <td className="px-2 py-1.5 text-center font-semibold text-slate-700">
-                    {formatearValoracionPeriodo(detalle, "3")}
-                  </td>
-                  <td className="px-2 py-1.5 text-center font-semibold text-slate-700">
-                    {formatearValoracionPeriodo(detalle, "4")}
-                  </td>
-                </tr>
-              ))}
+              {materia.detalles.map((detalle, index) => {
+                // Las caritas de preescolar van más grandes que las notas; con
+                // leading-none no agrandan la fila (la manda el texto del logro).
+                const celdaPeriodo = `px-2 py-1.5 text-center font-semibold text-slate-700${
+                  detalle.tipo_evaluacion === "desarrollo" ? " text-base leading-none" : ""
+                }`;
+                return (
+                  <tr
+                    key={index}
+                    className="border-b border-slate-100 last:border-b-0"
+                  >
+                    <td className="px-3 py-1.5 text-slate-700 break-words whitespace-normal max-w-[300px]">
+                      {detalle.observacion?.trim() || (
+                        <span className="text-slate-400 italic">
+                          Sin observación
+                        </span>
+                      )}
+                    </td>
+                    <td className={celdaPeriodo}>
+                      {formatearValoracionPeriodo(detalle, "1")}
+                    </td>
+                    <td className={celdaPeriodo}>
+                      {formatearValoracionPeriodo(detalle, "2")}
+                    </td>
+                    <td className={celdaPeriodo}>
+                      {formatearValoracionPeriodo(detalle, "3")}
+                    </td>
+                    <td className={celdaPeriodo}>
+                      {formatearValoracionPeriodo(detalle, "4")}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (

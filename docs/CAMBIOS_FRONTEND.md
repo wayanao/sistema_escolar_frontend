@@ -1,5 +1,13 @@
 # Cambios Frontend
 
+## 2026-09-25 - Boletin: caritas de preescolar mas grandes
+
+En la tabla de logros, las caritas de P1 a P4 pasan de 12 px a 16 px
+(`text-base leading-none`, solo en filas `tipo_evaluacion: "desarrollo"`). Las
+notas numericas no cambian. Medido en la pagina de prueba (preescolar, oficio):
+la fila sigue midiendo 45 px porque su alto lo pone el texto del logro, y el
+boletin ocupa las mismas hojas que antes.
+
 ## 2026-09-24 - Impresos: lo que se ve en pantalla es lo que sale en papel
 
 El boletin (y todo impreso de `DocumentoImprimible`) se veia ordenado en
