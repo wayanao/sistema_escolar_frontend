@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-09-25 - Boletin compacto: cabe en dos hojas oficio
+
+Se compacto la maquetacion del boletin sin quitar informacion ni achicar la
+letra de los logros (sigue en 12 px) ni las caritas (16 px):
+
+- Estudiante, datos, promedio y puesto van en un solo recuadro. Promedio y
+  puesto son dos indicadores pequenos con tinte del color primario (antes, un
+  bloque macizo grande). Los datos van en columnas (grid) para que no quede una
+  raya suelta al partir renglon; se quita "Periodo" de la ficha porque ya sale
+  bajo el titulo.
+- La escala de valoracion es una leyenda de un renglon, sin recuadro.
+- Cada materia: nombre y docente en un renglon, encabezado de columnas y filas
+  mas delgados, columnas P1-P4 de `w-12` a `w-10`.
+- Observacion general de 4 a 3 renglones; menos aire en titulo y firmas
+  (reglas `.di-documento--boletin` en `print.css`, solo para el boletin).
+
+Medido en la pagina de prueba (papel oficio, margen de plantilla 20 mm):
+
+| Parte | Antes | Ahora |
+|---|---|---|
+| Encabezado y titulo | 79,5 mm | 71 mm |
+| Estudiante + escala + promedio y puesto | 61,7 mm | 30,6 mm |
+| Cada materia (3 logros) | 61,4 mm | 48,8 mm |
+| Observacion hasta firmas | 47,9 mm | 30,4 mm |
+| Preescolar, 8 dimensiones | 717 mm, 3 hojas | 558 mm, **2 hojas** |
+| Primaria, 9 materias | 778 mm, 3 hojas | 601 mm, **2 hojas** |
+
+El espacio entre el marco y el contenido es el margen de la plantilla menos la
+orilla de 8 mm. Con la plantilla en 13 mm queda en 5 mm y el preescolar de
+prueba baja a 544 mm (sigue en 2 hojas).
+
 ## 2026-09-25 - Boletin y reporte parcial: ninguna materia partida entre hojas
 
 `BoletinImprimible` y `ReporteParcialPreview` pedian no partir cada materia con

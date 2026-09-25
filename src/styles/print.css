@@ -302,6 +302,16 @@
   border-left: 1px solid var(--di-color-primario, #0f314f);
 }
 
+/* Boletin compacto: menos espacio vacio alrededor del titulo y antes de las
+   firmas, para que quepa en dos hojas sin achicar la letra. Los demas
+   impresos conservan sus espacios. */
+.di-documento--boletin .di-encabezado { padding-bottom: 8px; margin-bottom: 8px; }
+.di-documento--boletin .di-titulo { margin: 4px 0 2px; }
+.di-documento--boletin .di-subtitulo { margin: 0 0 8px; }
+.di-documento--boletin .di-cuerpo { margin: 0; }
+.di-documento--boletin .di-firmas { margin-top: 14px; }
+.di-documento--boletin .di-pie { margin-top: 12px; }
+
 .di-pie {
   margin-top: 30px;
   padding-top: 10px;
@@ -458,6 +468,12 @@
      siguen repitiendo. */
   .di-documento--boletin .di-tabla-documento > thead {
     display: table-row-group;
+  }
+
+  /* Sin repetirse, el encabezado del boletin no necesita el aire extra que
+     lo separa del contenido en las hojas siguientes. */
+  .di-documento--boletin .di-tabla-documento > thead > tr > td {
+    padding-bottom: 0;
   }
 
   .di-tabla-documento > tbody {

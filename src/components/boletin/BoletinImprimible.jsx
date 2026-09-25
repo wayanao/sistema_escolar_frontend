@@ -20,11 +20,11 @@ const FONDO_SUAVE = {
 const FONDO_TABLA = {
   backgroundColor: "color-mix(in srgb, var(--di-color-secundario, #526775) 12%, white)",
 };
-// La escala numérica sigue la misma gama que la cajita de Promedio (que ya
-// usa el color primario), en vez de un morado fijo sin relación.
-const ESTILO_ESCALA_NUMERICA = {
-  backgroundColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 8%, white)",
-  borderColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 30%, white)",
+// Promedio y puesto: tinte suave del color primario en vez de un bloque
+// macizo, para que no dominen la hoja ni gasten tanta tinta.
+const FONDO_INDICADOR = {
+  backgroundColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 9%, white)",
+  borderColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 25%, white)",
   color: "var(--di-color-primario, #0f314f)",
 };
 
@@ -33,6 +33,13 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
     boletinData.materias,
   );
   const materias = consolidarMateriasBoletin(boletinData.materias);
+  // El periodo no va aquí: ya sale bajo el título del boletín.
+  const datos = [
+    boletinData.director_grupo && ["Director de grupo", boletinData.director_grupo],
+    ["Grado", boletinData.curso],
+    boletinData.jornada && ["Jornada", boletinData.jornada],
+    ["Fecha", new Date().toLocaleDateString("es-CO")],
+  ].filter(Boolean);
 
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
@@ -56,41 +63,43 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           { nombre: "Director de Grupo" },
         ]}
       >
-        <div className="rounded-lg border px-4 py-3 mb-4 flex flex-col gap-2" style={FONDO_SUAVE}>
-          <div>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 leading-none mb-1">
+        {/* Ficha: estudiante y sus datos a la izquierda, promedio y puesto a la
+            derecha, en un solo recuadro. */}
+        <div className="rounded-lg border mb-2 flex items-stretch overflow-hidden" style={FONDO_SUAVE}>
+          <div className="flex-1 min-w-0 px-3 py-2">
+            <p className="text-[9px] uppercase tracking-widest font-bold text-slate-500 leading-none">
               Estudiante
             </p>
-            <p className="text-base font-bold uppercase tracking-wide text-slate-800 leading-tight break-words">
+            <p className="text-[15px] font-bold uppercase tracking-wide text-slate-800 leading-tight mt-1 break-words">
               {boletinData.estudiante_apellido} {boletinData.estudiante_nombre}
             </p>
+            {/* Una columna por dato: si no caben, no queda una raya suelta al
+                comienzo de un renglón. */}
+            <div
+              className="mt-1.5 grid gap-y-1"
+              style={{ gridTemplateColumns: `repeat(${datos.length}, auto)`, justifyContent: "start" }}
+            >
+              {datos.map(([label, value]) => (
+                <Dato key={label} label={label} value={value} />
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center text-[11px]">
-            {boletinData.director_grupo && (
-              <Dato label="Director de grupo" value={boletinData.director_grupo} />
-            )}
-            <Dato label="Grado" value={boletinData.curso} />
-            {boletinData.jornada && (
-              <Dato label="Jornada" value={boletinData.jornada} />
-            )}
-            <Dato label="Periodo" value={boletinData.periodo} />
-            <Dato label="Fecha" value={new Date().toLocaleDateString("es-CO")} />
-          </div>
+          <Indicadores
+            boletinData={boletinData}
+            usaDesarrolloInfantil={usaDesarrolloInfantil}
+          />
         </div>
 
-        <EscalaYPromedio
-          boletinData={boletinData}
-          usaDesarrolloInfantil={usaDesarrolloInfantil}
-        />
+        <Escala usaDesarrolloInfantil={usaDesarrolloInfantil} />
 
         <h2
-          className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 pb-1 mb-3"
+          className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 pb-0.5 mb-2"
           style={{ borderColor: "var(--di-color-primario, #0f314f)" }}
         >
           Resumen de evaluaciones
         </h2>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {materias.map((materia) => (
             <MateriaBoletin key={`${materia.materia_id}-${materia.boletin_id}`} materia={materia} />
           ))}
@@ -102,9 +111,9 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           )}
         </div>
 
-        <section className="mt-5 break-inside-avoid">
+        <section className="mt-3 break-inside-avoid">
           <p
-            className="text-[10px] uppercase tracking-widest font-bold mb-1.5"
+            className="text-[10px] uppercase tracking-widest font-bold mb-1"
             style={{ color: "var(--di-color-texto-principal, #0f314f)" }}
           >
             Observación general
@@ -116,12 +125,13 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
             data-placeholder="Escriba aquí la observación general del estudiante…"
             className="di-observacion-editable rounded-lg border border-slate-300 bg-white text-slate-800"
             style={{
-              minHeight: "110px",
-              padding: "10px 14px",
+              // Tres renglones para escribir a mano.
+              minHeight: "82px",
+              padding: "6px 14px",
               lineHeight: "24px",
               backgroundImage:
                 "repeating-linear-gradient(transparent, transparent 23px, #e2e8f0 23px, #e2e8f0 24px)",
-              backgroundPosition: "0 14px",
+              backgroundPosition: "0 6px",
               outline: "none",
               whiteSpace: "pre-wrap",
             }}
@@ -132,90 +142,86 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
   );
 }
 
-function EscalaYPromedio({ boletinData, usaDesarrolloInfantil }) {
+function Indicadores({ boletinData, usaDesarrolloInfantil }) {
   const promedio = calcularPromedioGeneral(boletinData.materias);
   const valoracionPromedio = usaDesarrolloInfantil
     ? valoracionDesdePromedio(Number(promedio) || null)
     : null;
+  const hayPuesto = boletinData.puesto && boletinData.total_estudiantes > 0;
 
   return (
-    <div className="rounded-lg border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-stretch">
-        <div className="flex-1 p-3">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">
-            Escala de valoración
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {usaDesarrolloInfantil
-              ? Object.entries(VALORACIONES_DESARROLLO).map(([key, item]) => (
-                  <span
-                    key={key}
-                    className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded px-2 py-0.5 text-[11px] font-semibold"
-                  >
-                    <span>{item.emoji}</span>
-                    <span>{item.label}</span>
-                  </span>
-                ))
-              : ESCALA_NUMERICA.map((item) => (
-                  <span
-                    key={item.rango}
-                    className="inline-flex items-center gap-1.5 border rounded px-2 py-0.5 text-[11px]"
-                    style={ESTILO_ESCALA_NUMERICA}
-                  >
-                    <span className="font-black">{item.rango}</span>
-                    <span className="font-semibold">{item.concepto}</span>
-                  </span>
-                ))}
-          </div>
-        </div>
-        <div
-          className="border-l border-slate-200 px-5 py-3 flex items-stretch text-white min-w-[140px] divide-x divide-white/20"
-          style={{ backgroundColor: "var(--di-color-primario, #0f314f)" }}
+    <div className="flex shrink-0 border-l" style={FONDO_INDICADOR}>
+      <Indicador
+        titulo="Promedio"
+        detalle={usaDesarrolloInfantil ? valoracionPromedio?.label || "general" : "general"}
+      >
+        {/* En desarrollo el promedio existe como número para poder rankear,
+            pero el boletín nunca lo muestra: se traduce a su carita. */}
+        {usaDesarrolloInfantil ? (
+          <span title={valoracionPromedio?.label || "Sin calificar"}>
+            {valoracionPromedio?.emoji || "—"}
+          </span>
+        ) : (
+          <span className={promedio >= 3.0 || promedio == 0 ? "" : "text-red-700"}>
+            {promedio}
+          </span>
+        )}
+      </Indicador>
+      {hayPuesto && (
+        <Indicador
+          titulo="Puesto"
+          detalle={`de ${boletinData.total_estudiantes}`}
+          conSeparador
         >
-          <div className="flex flex-col items-center justify-center px-2">
-            <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">
-              Promedio
+          {boletinData.puesto}
+        </Indicador>
+      )}
+    </div>
+  );
+}
+
+function Indicador({ titulo, detalle, conSeparador = false, children }) {
+  return (
+    <div
+      className={`flex flex-col items-center justify-center px-4 min-w-[76px] ${conSeparador ? "border-l" : ""}`}
+      style={conSeparador ? { borderColor: FONDO_INDICADOR.borderColor } : undefined}
+    >
+      <span className="text-[8.5px] uppercase tracking-widest font-bold opacity-80">
+        {titulo}
+      </span>
+      <span className="text-2xl font-black leading-none my-0.5">{children}</span>
+      <span className="text-[8.5px] uppercase tracking-widest font-semibold opacity-80">
+        {detalle}
+      </span>
+    </div>
+  );
+}
+
+// La escala va en un solo renglón, como leyenda, sin recuadro propio.
+function Escala({ usaDesarrolloInfantil }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-1 text-[10.5px] text-slate-700">
+      <span className="text-[8.5px] uppercase tracking-widest font-bold text-slate-500">
+        Escala de valoración
+      </span>
+      {usaDesarrolloInfantil
+        ? Object.entries(VALORACIONES_DESARROLLO).map(([key, item]) => (
+            <span key={key} className="inline-flex items-center gap-1 font-semibold">
+              <span className="text-sm leading-none">{item.emoji}</span>
+              <span>{item.label}</span>
             </span>
-            {/* En desarrollo el promedio existe como número para poder rankear,
-                pero el boletín nunca lo muestra: se traduce a su carita. */}
-            {usaDesarrolloInfantil ? (
+          ))
+        : ESCALA_NUMERICA.map((item) => (
+            <span key={item.rango} className="inline-flex items-center gap-1">
               <span
-                className="text-3xl leading-none mt-1"
-                title={valoracionPromedio?.label || "Sin calificar"}
+                className="font-black"
+                style={{ color: "var(--di-color-primario, #0f314f)" }}
               >
-                {valoracionPromedio?.emoji || "—"}
+                {item.rango}
               </span>
-            ) : (
-              <span
-                className={`text-3xl font-black leading-none mt-1 ${
-                  promedio >= 3.0 || promedio == 0 ? "text-white" : "text-red-300"
-                }`}
-              >
-                {promedio}
-              </span>
-            )}
-            <span className="text-[10px] uppercase tracking-widest font-semibold opacity-70 mt-1">
-              {usaDesarrolloInfantil
-                ? valoracionPromedio?.label || "general"
-                : "general"}
+              <span className="font-semibold">{item.concepto}</span>
             </span>
-          </div>
-          {boletinData.puesto &&
-            boletinData.total_estudiantes > 0 && (
-              <div className="flex flex-col items-center justify-center px-3">
-                <span className="text-[10px] uppercase tracking-widest font-bold opacity-80">
-                  Puesto
-                </span>
-                <span className="text-3xl font-black leading-none mt-1">
-                  {boletinData.puesto}
-                </span>
-                <span className="text-[10px] uppercase tracking-widest font-semibold opacity-70 mt-1">
-                  de {boletinData.total_estudiantes}
-                </span>
-              </div>
-            )}
-        </div>
-      </div>
+          ))}
     </div>
   );
 }
@@ -236,34 +242,35 @@ function MateriaBoletin({ materia }) {
       : null;
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden break-inside-avoid">
-      <div className="px-3 py-2 flex justify-between items-center border-b" style={FONDO_SUAVE}>
-        <div className="min-w-0">
-          <h3 className="font-bold uppercase text-slate-800 tracking-wide text-sm truncate">
+    <div className="border border-slate-200 rounded-md overflow-hidden break-inside-avoid">
+      {/* Nombre de la materia y docente en un solo renglón */}
+      <div className="px-3 py-1 flex justify-between items-center gap-3 border-b" style={FONDO_SUAVE}>
+        <div className="min-w-0 truncate leading-tight">
+          <h3 className="inline font-bold uppercase text-slate-800 tracking-wide text-[13px]">
             {materia.materia}
           </h3>
-          <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-0.5">
+          <span className="text-[10px] text-slate-500 ml-2">
             Docente: {materia.profesor_nombre} {materia.profesor_apellido || ""}
-          </p>
+          </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {tipoMateria === "desarrollo" ? (
-            <span className="inline-flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-800">
-              <span className="text-xl leading-none">
+            <span className="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-800">
+              <span className="text-base leading-none">
                 {valoracionMateria?.emoji || "—"}
               </span>
-              <span className="text-[10px] font-black uppercase tracking-widest">
+              <span className="text-[9px] font-black uppercase tracking-widest">
                 {valoracionMateria?.label || "Sin calificar"}
               </span>
             </span>
           ) : (
             <>
               <span
-                className={`text-[10px] font-black tracking-widest px-2 py-0.5 rounded border ${styles.text} ${styles.bg}`}
+                className={`text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded border ${styles.text} ${styles.bg}`}
               >
                 {desempeno}
               </span>
-              <span className={`text-2xl font-black leading-none ${styles.text}`}>
+              <span className={`text-lg font-black leading-none ${styles.text}`}>
                 {materia.definitiva !== null
                   ? materia.definitiva.toFixed(1)
                   : "---"}
@@ -277,20 +284,20 @@ function MateriaBoletin({ materia }) {
         {materia.detalles && materia.detalles.length > 0 ? (
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="text-slate-600 text-[10px] uppercase tracking-wide" style={FONDO_TABLA}>
-                <th className="text-left px-3 py-1.5 border-b border-slate-200">
+              <tr className="text-slate-600 text-[9px] uppercase tracking-wide" style={FONDO_TABLA}>
+                <th className="text-left px-3 py-0.5 border-b border-slate-200">
                   Logro / Observación
                 </th>
-                <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">
+                <th className="text-center px-1 py-0.5 w-10 border-b border-slate-200">
                   P1
                 </th>
-                <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">
+                <th className="text-center px-1 py-0.5 w-10 border-b border-slate-200">
                   P2
                 </th>
-                <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">
+                <th className="text-center px-1 py-0.5 w-10 border-b border-slate-200">
                   P3
                 </th>
-                <th className="text-center px-2 py-1.5 w-12 border-b border-slate-200">
+                <th className="text-center px-1 py-0.5 w-10 border-b border-slate-200">
                   P4
                 </th>
               </tr>
@@ -299,7 +306,7 @@ function MateriaBoletin({ materia }) {
               {materia.detalles.map((detalle, index) => {
                 // Las caritas de preescolar van más grandes que las notas; con
                 // leading-none no agrandan la fila (la manda el texto del logro).
-                const celdaPeriodo = `px-2 py-1.5 text-center font-semibold text-slate-700${
+                const celdaPeriodo = `px-1 py-1 text-center font-semibold text-slate-700${
                   detalle.tipo_evaluacion === "desarrollo" ? " text-base leading-none" : ""
                 }`;
                 return (
@@ -307,7 +314,7 @@ function MateriaBoletin({ materia }) {
                     key={index}
                     className="border-b border-slate-100 last:border-b-0"
                   >
-                    <td className="px-3 py-1.5 text-slate-700 break-words whitespace-normal max-w-[300px]">
+                    <td className="px-3 py-1 text-slate-700 break-words whitespace-normal max-w-[300px]">
                       {detalle.observacion?.trim() || (
                         <span className="text-slate-400 italic">
                           Sin observación
@@ -332,7 +339,7 @@ function MateriaBoletin({ materia }) {
             </tbody>
           </table>
         ) : (
-          <div className="text-center py-3 text-slate-400 text-[10px] uppercase font-semibold">
+          <div className="text-center py-2 text-slate-400 text-[10px] uppercase font-semibold">
             Calificación y observaciones pendientes por ingresar.
           </div>
         )}
@@ -341,14 +348,16 @@ function MateriaBoletin({ materia }) {
   );
 }
 
+// Etiqueta arriba y valor abajo; la raya de color entre datos la pone
+// `.bi-dato + .bi-dato` en print.css.
 function Dato({ label, value }) {
   return (
-    <span className="bi-dato px-3 first:pl-0 last:pr-0">
-      <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 mr-1">
+    <div className="bi-dato px-3 first:pl-0 last:pr-0">
+      <p className="text-[8.5px] uppercase tracking-widest font-bold text-slate-500 leading-tight">
         {label}
-      </span>
-      <span className="font-bold text-slate-800">{value}</span>
-    </span>
+      </p>
+      <p className="text-[11px] font-bold text-slate-800 leading-tight">{value}</p>
+    </div>
   );
 }
 
