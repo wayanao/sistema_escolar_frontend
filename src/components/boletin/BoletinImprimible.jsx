@@ -184,12 +184,16 @@ function Indicador({ titulo, detalle, conSeparador = false, children }) {
   );
 }
 
-// La escala va en un solo renglón, como leyenda, sin recuadro propio. Su margen
-// inferior (mb-10, 40 px) conserva el espacio que antes ocupaba el título
-// "Resumen de evaluaciones", para que las materias no queden pegadas.
+// La escala va en un solo renglón, como leyenda, cerrada por una línea del
+// color primario igual a la del membrete. Entre la escala y la primera materia
+// quedan los mismos 40 px que ocupaba el título "Resumen de evaluaciones"
+// (pb-2 + línea + mb-8), para que las materias no queden pegadas.
 function Escala({ usaDesarrolloInfantil }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-10 px-1 text-[10.5px] text-slate-700">
+    <div
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 pb-2 mb-8 px-1 border-b text-[10.5px] text-slate-700"
+      style={{ borderColor: "var(--di-color-primario, #0f314f)" }}
+    >
       <span className="text-[8.5px] uppercase tracking-widest font-bold text-slate-500">
         Escala de valoración
       </span>

@@ -305,11 +305,22 @@
 /* Boletin compacto: menos espacio vacio alrededor del titulo y antes de las
    firmas, para que quepa en dos hojas sin achicar la letra. Los demas
    impresos conservan sus espacios. */
-.di-documento--boletin .di-encabezado { padding-bottom: 8px; margin-bottom: 8px; }
+.di-documento--boletin .di-encabezado {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  /* Linea mas delgada, igual a la que cierra la escala de valoracion. */
+  border-bottom-width: 1px;
+}
 .di-documento--boletin .di-titulo { margin: 4px 0 2px; }
 .di-documento--boletin .di-subtitulo { margin: 0 0 8px; }
 .di-documento--boletin .di-cuerpo { margin: 0; }
 .di-documento--boletin .di-firmas { margin-top: 14px; }
+/* Rayas de firma y del pie iguales a las de arriba (membrete y escala):
+   1 px y color primario, en vez de negro y color secundario. */
+.di-documento--boletin .di-firmas__linea,
+.di-documento--boletin .di-pie {
+  border-top: 1px solid var(--di-color-primario, #0f314f);
+}
 .di-documento--boletin .di-pie { margin-top: 12px; }
 
 .di-pie {
@@ -474,6 +485,33 @@
      lo separa del contenido en las hojas siguientes. */
   .di-documento--boletin .di-tabla-documento > thead > tr > td {
     padding-bottom: 0;
+  }
+
+  /* Boletin: el marco cubre la hoja completa y el pie (direccion, telefono,
+     correo) va pegado abajo en cada hoja, como el pie de pagina de Word. Las
+     firmas se quedan donde termina el contenido. Funciona porque el navegador
+     repite en cada hoja impresa los elementos con position: fixed. */
+  .di-documento--boletin {
+    border: 0;
+    /* Relleno de abajo de cada hoja (se repite por box-decoration-break):
+       el margen de la plantilla mas el espacio que ocupa el pie. */
+    padding-bottom: calc(max(4mm, calc(var(--di-margen-inf, 20mm) - var(--di-orilla, 8mm))) + 9mm);
+  }
+
+  .di-print-root:has(.di-documento--boletin)::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    border: 1.5px solid var(--di-color-primario, #0f314f);
+    pointer-events: none;
+  }
+
+  .di-documento--boletin .di-pie {
+    position: fixed;
+    margin: 0;
+    left: max(4mm, calc(var(--di-margen-izq, 20mm) - var(--di-orilla, 8mm)));
+    right: max(4mm, calc(var(--di-margen-der, 20mm) - var(--di-orilla, 8mm)));
+    bottom: max(3mm, calc(var(--di-margen-inf, 20mm) - var(--di-orilla, 8mm)));
   }
 
   .di-tabla-documento > tbody {

@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-09-25 - Boletin: pie de pagina abajo en cada hoja y marco completo
+
+Al imprimir, el pie del boletin (direccion, telefono, correo) quedaba pegado a
+las firmas y el marco se cerraba donde terminaba el contenido: en la ultima hoja
+el pie flotaba a 58,7 mm del borde de abajo. Ahora, solo en `print.css` y solo
+para `.di-documento--boletin`:
+
+- El pie es `position: fixed`: el navegador lo repite abajo en **cada** hoja,
+  como el pie de pagina de Word. No hay forma confiable de ponerlo solo en la
+  ultima hoja, porque los cortes dependen del papel elegido al imprimir.
+- El marco pasa del borde del documento a un `::before` fijo de hoja completa,
+  asi cubre toda la hoja tambien en la ultima.
+- El relleno inferior del documento (repetido por hoja con
+  `box-decoration-break: clone`) reserva 9 mm para el pie.
+- Las firmas siguen donde termina el contenido. En pantalla no cambia nada.
+
+Medido en la pagina de prueba (papel oficio):
+
+| Margen de plantilla | Hojas (preescolar / primaria) | Pie, desde el borde de abajo |
+|---|---|---|
+| 13 mm | 2 / 2 | 13,8 mm en cada hoja |
+| 20 mm | 3 / 3 | 20,9 mm en cada hoja |
+
+Con 20 mm el espacio reservado para el pie agrega una hoja a boletines como el
+de prueba; con 13 mm (recomendado) siguen siendo dos.
+
 ## 2026-09-25 - Boletin compacto: cabe en dos hojas oficio
 
 Se compacto la maquetacion del boletin sin quitar informacion ni achicar la
@@ -12,7 +38,12 @@ letra de los logros (sigue en 12 px) ni las caritas (16 px):
   bajo el titulo.
 - La escala de valoracion es una leyenda de un renglon, sin recuadro.
 - Se quito el titulo "Resumen de evaluaciones" (y su raya). La escala conserva
-  el mismo espacio que habia hasta la primera materia (40 px, `mb-10`).
+  el mismo espacio que habia hasta la primera materia (40 px: `pb-2`, una linea
+  del color primario y `mb-8`).
+- La linea bajo el membrete y la que cierra la escala miden 1 px (la del
+  membrete era de 2 px; el cambio es solo para el boletin).
+- Las rayas de firma (antes negras) y la del pie (antes color secundario) usan
+  el mismo estilo que las de arriba: 1 px del color primario.
 - Cada materia: nombre y docente en un renglon, encabezado de columnas y filas
   mas delgados, columnas P1-P4 de `w-12` a `w-10`.
 - Observacion general con espacio para 3 renglones (antes 4) y en blanco:
