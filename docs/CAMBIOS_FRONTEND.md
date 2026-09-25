@@ -6,8 +6,8 @@ Se compacto la maquetacion del boletin sin quitar informacion ni achicar la
 letra de los logros (sigue en 12 px) ni las caritas (16 px):
 
 - Estudiante, datos, promedio y puesto van en un solo recuadro. Promedio y
-  puesto son dos indicadores pequenos con tinte del color primario (antes, un
-  bloque macizo grande). Los datos van en columnas (grid) para que no quede una
+  puesto conservan el color primario macizo con letra blanca, pero como dos
+  indicadores pequenos (antes, un bloque grande aparte). Los datos van en columnas (grid) para que no quede una
   raya suelta al partir renglon; se quita "Periodo" de la ficha porque ya sale
   bajo el titulo.
 - La escala de valoracion es una leyenda de un renglon, sin recuadro.

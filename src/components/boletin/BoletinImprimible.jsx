@@ -20,12 +20,10 @@ const FONDO_SUAVE = {
 const FONDO_TABLA = {
   backgroundColor: "color-mix(in srgb, var(--di-color-secundario, #526775) 12%, white)",
 };
-// Promedio y puesto: tinte suave del color primario en vez de un bloque
-// macizo, para que no dominen la hoja ni gasten tanta tinta.
+// Promedio y puesto: color primario macizo con letra blanca, en tamaño compacto.
 const FONDO_INDICADOR = {
-  backgroundColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 9%, white)",
-  borderColor: "color-mix(in srgb, var(--di-color-primario, #0f314f) 25%, white)",
-  color: "var(--di-color-primario, #0f314f)",
+  backgroundColor: "var(--di-color-primario, #0f314f)",
+  color: "#ffffff",
 };
 
 export default function BoletinImprimible({ boletinData, onVolver }) {
@@ -150,7 +148,7 @@ function Indicadores({ boletinData, usaDesarrolloInfantil }) {
   const hayPuesto = boletinData.puesto && boletinData.total_estudiantes > 0;
 
   return (
-    <div className="flex shrink-0 border-l" style={FONDO_INDICADOR}>
+    <div className="flex shrink-0" style={FONDO_INDICADOR}>
       <Indicador
         titulo="Promedio"
         detalle={usaDesarrolloInfantil ? valoracionPromedio?.label || "general" : "general"}
@@ -162,7 +160,7 @@ function Indicadores({ boletinData, usaDesarrolloInfantil }) {
             {valoracionPromedio?.emoji || "—"}
           </span>
         ) : (
-          <span className={promedio >= 3.0 || promedio == 0 ? "" : "text-red-700"}>
+          <span className={promedio >= 3.0 || promedio == 0 ? "" : "text-red-300"}>
             {promedio}
           </span>
         )}
@@ -183,8 +181,7 @@ function Indicadores({ boletinData, usaDesarrolloInfantil }) {
 function Indicador({ titulo, detalle, conSeparador = false, children }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center px-4 min-w-[76px] ${conSeparador ? "border-l" : ""}`}
-      style={conSeparador ? { borderColor: FONDO_INDICADOR.borderColor } : undefined}
+      className={`flex flex-col items-center justify-center px-4 min-w-[76px] ${conSeparador ? "border-l border-white/20" : ""}`}
     >
       <span className="text-[8.5px] uppercase tracking-widest font-bold opacity-80">
         {titulo}
