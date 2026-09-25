@@ -62,7 +62,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
               Estudiante
             </p>
             <p className="text-base font-bold uppercase tracking-wide text-slate-800 leading-tight break-words">
-              {boletinData.estudiante_apellido}, {boletinData.estudiante_nombre}
+              {boletinData.estudiante_apellido} {boletinData.estudiante_nombre}
             </p>
           </div>
           <div className="flex flex-wrap items-center text-[11px]">
