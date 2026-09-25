@@ -52,7 +52,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
         titulo="Boletín Académico Informativo"
         subtitulo={`Periodo ${boletinData.periodo} · Año Lectivo ${new Date().getFullYear()}`}
         firmas={[
-          { nombre: "Director del Colegio" },
+          { nombre: "Director(a)" },
           { nombre: "Director de Grupo" },
         ]}
       >
