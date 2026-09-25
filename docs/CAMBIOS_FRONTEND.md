@@ -1,5 +1,21 @@
 # Cambios Frontend
 
+## 2026-09-25 - Boletin: el encabezado sale solo en la primera hoja
+
+Al imprimir, el encabezado del boletin (escudo, nombre, membrete, NIT,
+resolucion, eslogan y titulo) se repetia en cada hoja, porque va en el `thead`
+de `.di-tabla-documento` y el navegador repite esa parte al empezar cada hoja.
+Ahora, solo para `.di-documento--boletin`, ese `thead` se imprime como fila
+normal (`display: table-row-group`) y sale una vez, como en pantalla. Los demas
+impresos lo siguen repitiendo.
+
+Medido en la pagina de prueba (papel oficio):
+
+| Datos de prueba | Antes | Ahora |
+|---|---|---|
+| Preescolar (8 dimensiones) | encabezado en hojas 1-3, 3 hojas | solo hoja 1, 3 hojas |
+| Primaria (9 materias) | encabezado en hojas 1-4, 4 hojas | solo hoja 1, **3 hojas** |
+
 ## 2026-09-25 - Boletin: caritas de preescolar mas grandes
 
 En la tabla de logros, las caritas de P1 a P4 pasan de 12 px a 16 px

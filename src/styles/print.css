@@ -452,6 +452,14 @@
     display: table-header-group;
   }
 
+  /* En el boletin el encabezado (escudo, nombre, membrete, titulo) sale solo
+     en la primera hoja, como en pantalla: como fila normal de la tabla el
+     navegador ya no lo repite al empezar cada hoja. Los demas impresos lo
+     siguen repitiendo. */
+  .di-documento--boletin .di-tabla-documento > thead {
+    display: table-row-group;
+  }
+
   .di-tabla-documento > tbody {
     display: table-row-group;
   }
