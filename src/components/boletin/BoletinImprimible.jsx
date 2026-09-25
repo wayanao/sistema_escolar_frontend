@@ -90,13 +90,6 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
 
         <Escala usaDesarrolloInfantil={usaDesarrolloInfantil} />
 
-        <h2
-          className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-700 border-b-2 pb-0.5 mb-2"
-          style={{ borderColor: "var(--di-color-primario, #0f314f)" }}
-        >
-          Resumen de evaluaciones
-        </h2>
-
         <div className="space-y-2">
           {materias.map((materia) => (
             <MateriaBoletin key={`${materia.materia_id}-${materia.boletin_id}`} materia={materia} />
@@ -191,10 +184,12 @@ function Indicador({ titulo, detalle, conSeparador = false, children }) {
   );
 }
 
-// La escala va en un solo renglón, como leyenda, sin recuadro propio.
+// La escala va en un solo renglón, como leyenda, sin recuadro propio. Su margen
+// inferior (mb-10, 40 px) conserva el espacio que antes ocupaba el título
+// "Resumen de evaluaciones", para que las materias no queden pegadas.
 function Escala({ usaDesarrolloInfantil }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-1 text-[10.5px] text-slate-700">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-10 px-1 text-[10.5px] text-slate-700">
       <span className="text-[8.5px] uppercase tracking-widest font-bold text-slate-500">
         Escala de valoración
       </span>

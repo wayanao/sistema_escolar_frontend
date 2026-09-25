@@ -11,6 +11,8 @@ letra de los logros (sigue en 12 px) ni las caritas (16 px):
   raya suelta al partir renglon; se quita "Periodo" de la ficha porque ya sale
   bajo el titulo.
 - La escala de valoracion es una leyenda de un renglon, sin recuadro.
+- Se quito el titulo "Resumen de evaluaciones" (y su raya). La escala conserva
+  el mismo espacio que habia hasta la primera materia (40 px, `mb-10`).
 - Cada materia: nombre y docente en un renglon, encabezado de columnas y filas
   mas delgados, columnas P1-P4 de `w-12` a `w-10`.
 - Observacion general con espacio para 3 renglones (antes 4) y en blanco:
