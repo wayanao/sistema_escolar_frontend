@@ -46,6 +46,12 @@ export default function DocumentoImprimible({
     // ambas variables apuntan al mismo valor y las letras dejan de depender de
     // los colores de fondo/resaltado.
     const colorTexto = branding?.configuracion_extra?.color_texto;
+    // Cada margen por separado: print.css los mide desde la orilla del papel
+    // y le resta la franja blanca que queda por fuera del marco.
+    const margenSup = `${config.margen_top || 20}mm`;
+    const margenDer = `${config.margen_right || 20}mm`;
+    const margenInf = `${config.margen_bottom || 20}mm`;
+    const margenIzq = `${config.margen_left || 20}mm`;
     return {
       "--di-color-primario": colorPrimario,
       "--di-color-secundario": colorSecundario,
@@ -53,7 +59,11 @@ export default function DocumentoImprimible({
       "--di-color-texto-secundario": colorTexto || colorSecundario,
       "--di-fuente": config.fuente || "Inter, system-ui, sans-serif",
       "--di-fuente-base": `${config.tamano_fuente_base || 12}px`,
-      "--di-margen": `${config.margen_top || 20}mm ${config.margen_right || 20}mm ${config.margen_bottom || 20}mm ${config.margen_left || 20}mm`,
+      "--di-margen": `${margenSup} ${margenDer} ${margenInf} ${margenIzq}`,
+      "--di-margen-sup": margenSup,
+      "--di-margen-der": margenDer,
+      "--di-margen-inf": margenInf,
+      "--di-margen-izq": margenIzq,
     };
   }, [branding, config]);
 

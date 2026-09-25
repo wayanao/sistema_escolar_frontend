@@ -93,9 +93,13 @@ está implementado dentro de `src/pages/CertificadosAdmin.jsx`.
 - `DocumentoImprimible` conserva encabezado, logos, datos institucionales,
   firmas, pie, variables visuales y dos botones que invocan `window.print()`.
   Ante un error de configuración continúa con valores por defecto.
-- `print.css` fija A4 vertical al imprimir. En móvil, certificados y otros
-  documentos anchos mantienen 210 mm y usan scroll horizontal; pestañas,
-  filtros y editores también conservan sus variantes responsive existentes.
+- `print.css` no fija tamaño de papel: se imprime en el que se elija en la
+  ventana de imprimir (carta, oficio...). En computador la hoja en pantalla
+  mide lo mismo que el papel impreso (ancho carta/oficio, orilla de 8 mm y
+  marco); ver `CAMBIOS_FRONTEND.md` (2026-09-24, impresos). En móvil,
+  certificados y otros documentos anchos mantienen 210 mm y usan scroll
+  horizontal; pestañas, filtros y editores también conservan sus variantes
+  responsive existentes.
 - Esta infraestructura tiene consumidores en boletines, observaciones,
   cartera, pagos, planeador y ventas. Durante la modularización no se moverá a
   un dominio exclusivo de certificados ni se cambiará su contrato sin proteger
@@ -525,8 +529,9 @@ caracterización para la construcción de reportes y el wrapper imprimible.
   hooks. La capa 6 debe convertir la página en la raíz explícita de composición
   sin duplicar cargas ni comandos.
 - Las vistas imprimibles siguen dependiendo de dimensiones y reglas de
-  `print.css`; la verificación final debe conservar A4, scroll horizontal móvil
-  y ambos comandos de impresión.
+  `print.css`; la verificación final debe conservar que la hoja en pantalla
+  coincida con la impresa, el scroll horizontal móvil y ambos comandos de
+  impresión.
 - La infraestructura de impresión continúa teniendo consumidores externos al
   módulo; el cierre debe revisar duplicados sin mover ni especializar ese
   contrato compartido.

@@ -86,6 +86,11 @@ describe("DocumentoImprimible", () => {
     expect(root.style.getPropertyValue("--di-margen")).toBe(
       "11mm 12mm 13mm 14mm",
     );
+    // print.css mide cada margen desde la orilla del papel.
+    expect(root.style.getPropertyValue("--di-margen-sup")).toBe("11mm");
+    expect(root.style.getPropertyValue("--di-margen-der")).toBe("12mm");
+    expect(root.style.getPropertyValue("--di-margen-inf")).toBe("13mm");
+    expect(root.style.getPropertyValue("--di-margen-izq")).toBe("14mm");
     expect(screen.getByText("Colegio Central")).toBeInTheDocument();
     expect(screen.getByText("Aprender para crecer")).toBeInTheDocument();
     expect(screen.getByAltText("logo")).toHaveAttribute(

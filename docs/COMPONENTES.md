@@ -1165,7 +1165,12 @@ Notas:
 - `src/index.css`: estilos globales cargados desde `main.jsx`.
 - `styles/print.css`: estilos para impresion.
 
-`styles/print.css` contiene las reglas moviles de documentos imprimibles:
+En computador, `styles/print.css` dibuja la hoja en pantalla con las mismas
+medidas del papel impreso: ancho carta/oficio, orilla blanca de 8 mm, marco y
+el margen de la plantilla medido desde la orilla del papel. Al imprimir no
+fija tamaño de papel (se elige en la ventana de imprimir).
+
+`styles/print.css` contiene tambien las reglas moviles de documentos imprimibles:
 
 - documentos comunes: se adaptan al ancho disponible;
 - boletin/certificados/cartera: mantienen `210mm` de ancho y se desplazan

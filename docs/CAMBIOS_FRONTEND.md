@@ -1,5 +1,42 @@
 # Cambios Frontend
 
+## 2026-09-24 - Impresos: lo que se ve en pantalla es lo que sale en papel
+
+El boletin (y todo impreso de `DocumentoImprimible`) se veia ordenado en
+pantalla y salia descuadrado al imprimir. Medido con una pagina de prueba que
+usa el menu, el boletin y el CSS reales, impresa a PDF con Chrome (boletin de
+preescolar de 8 dimensiones con 3 logros):
+
+| Medida | Antes (pantalla / papel A4) | Ahora (pantalla / papel oficio) |
+|---|---|---|
+| Ancho de la tabla de logros | 201,6 mm / **128,7 mm** | 167,2 mm / **167,2 mm** |
+| Renglones por observacion | 2 / 3 | 2 / 2 |
+| Del borde del papel al marco, hoja 1 | - / 30,8 mm (hoja 2: 10,2) | 8 mm / 8 mm en todas |
+| Del borde del papel al texto (margen 20 mm) | - / 40 mm | 20 mm / 20 mm |
+
+### Por que se descuadraba
+
+1. En computador la hoja se dibujaba de hasta 250 mm, mas ancha que el papel.
+2. Al imprimir, el resto de la pagina (menu, relleno del `<main>`) solo se
+   volvia invisible: seguia ocupando su espacio, empujaba la hoja 1 unos 20 mm
+   hacia abajo y la encogia de ancho.
+3. Encima del margen de la plantilla, `@page` sumaba 10 mm por lado.
+
+### Que cambio (`print.css` y `DocumentoImprimible.jsx`)
+
+- La hoja en pantalla (desde 641 px) tiene las medidas del papel: ancho
+  carta/oficio (215,9 mm), orilla blanca de 8 mm, marco y el texto al margen
+  que configura el colegio, medido desde la orilla del papel como en Word.
+  Por eso el marco que antes solo salia impreso ahora tambien se ve en pantalla.
+- Al imprimir, lo que no es el documento sale con `display: none` y sus
+  contenedores quedan sin relleno ni alto propio (`:has()`).
+- `@page` ya no fija A4: el papel se elige en la ventana de imprimir. Su unico
+  margen es la orilla de 8 mm (las impresoras no alcanzan el borde), asi que el
+  navegador ya no pone su propio encabezado y pie (fecha, URL, numero de pagina).
+- `DocumentoImprimible` expone cada margen por separado (`--di-margen-sup`,
+  `-der`, `-inf`, `-izq`); `--di-margen` se conserva.
+- En movil (<= 640 px) la vista en pantalla no cambia.
+
 ## 2026-09-24 - Notificaciones: una consulta por regreso, y ninguna de fondo
 
 El contador de notificaciones de planeadores consultaba de mas. Medido con la

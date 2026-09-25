@@ -15,8 +15,26 @@
   box-sizing: border-box;
 }
 
-/* En pantalla, aprovechamos un poco mas el ancho del viewport para que la
-   vista previa no quede tan estrecha; al imprimir vuelve a 210mm (A4). */
+/* Medidas del papel, las mismas en pantalla y al imprimir: ancho carta/oficio
+   (21,59 cm) y una orilla blanca de 8mm por fuera del marco, que es la franja
+   del borde del papel donde las impresoras no alcanzan a imprimir.
+   Si cambia la orilla, cambiar tambien el margin de @page al final. */
+.di-print-root {
+  --di-ancho-papel: 215.9mm;
+  --di-orilla: 8mm;
+}
+
+/* Espacio entre el marco y el texto. El margen que configura el colegio se
+   mide desde la orilla del papel (como en Word), asi que por dentro del marco
+   queda ese margen menos la orilla, con un minimo para que el texto no lo toque. */
+.di-documento {
+  --di-relleno:
+    max(4mm, calc(var(--di-margen-sup, 20mm) - var(--di-orilla, 8mm)))
+    max(4mm, calc(var(--di-margen-der, 20mm) - var(--di-orilla, 8mm)))
+    max(4mm, calc(var(--di-margen-inf, 20mm) - var(--di-orilla, 8mm)))
+    max(4mm, calc(var(--di-margen-izq, 20mm) - var(--di-orilla, 8mm)));
+}
+
 @media screen {
   .di-print-root {
     width: 100%;
@@ -24,10 +42,28 @@
   }
 
   .di-documento {
-    max-width: min(95vw, 250mm);
     box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.25);
     margin: 24px auto;
     border-radius: 6px;
+  }
+}
+
+/* En computador la hoja en pantalla es el papel tal cual saldra impreso:
+   mismo ancho, misma orilla blanca, mismo marco y misma distancia hasta el
+   texto. Si la vista previa fuera distinta, al imprimir todo se reacomodaria
+   y el documento saldria descuadrado respecto a lo que se ve. */
+@media screen and (min-width: 641px) {
+  .di-print-root > .di-documento {
+    width: calc(var(--di-ancho-papel) - 2 * var(--di-orilla));
+    max-width: calc(100% - 2 * var(--di-orilla));
+    margin: calc(24px + var(--di-orilla)) auto;
+    padding: var(--di-relleno);
+    border: 1.5px solid var(--di-color-primario, #0f314f);
+    border-radius: 0;
+    /* La primera sombra pinta la orilla blanca del papel alrededor del marco. */
+    box-shadow:
+      0 0 0 var(--di-orilla) #ffffff,
+      0 10px 30px calc(var(--di-orilla) - 10px) rgba(15, 23, 42, 0.25);
   }
 }
 
@@ -362,10 +398,12 @@
      usar box-decoration-break: clone para que el borde se redibuje en
      cada fragmento (cada hoja impresa). */
   .di-documento {
+    width: auto;
+    max-width: none;
     box-shadow: none;
     border-radius: 0;
-    margin: 0 auto;
-    padding: var(--di-margen, 20mm);
+    margin: 0;
+    padding: var(--di-relleno);
     border: 1.5px solid var(--di-color-primario, #0f314f);
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
@@ -377,11 +415,30 @@
   body.di-printing-mode * { visibility: hidden; }
   body.di-printing-mode .di-print-root,
   body.di-printing-mode .di-print-root * { visibility: visible; }
+
+  /* Lo demas de la pagina (menu, botones) tampoco ocupa espacio en el papel.
+     Si solo fuera invisible, seguiria empujando la hoja hacia abajo. */
+  body.di-printing-mode :not(:has(.di-print-root)):not(.di-print-root):not(.di-print-root *) {
+    display: none !important;
+  }
+
+  /* Los contenedores del documento no agregan margenes, relleno ni alto
+     propio: la hoja arranca en la orilla del papel y ocupa todo su ancho. */
+  body.di-printing-mode :has(.di-print-root) {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
   body.di-printing-mode .di-print-root {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: static;
+    width: auto;
+    margin: 0;
+    padding: 0;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -403,8 +460,10 @@
     padding-bottom: 4mm;
   }
 
+  /* Sin tamano fijo: sale en el papel que se elija en la ventana de imprimir
+     (carta, oficio...). El unico margen del navegador es la orilla blanca
+     por fuera del marco; debe coincidir con --di-orilla. */
   @page {
-    size: A4 portrait;
-    margin: 10mm;
+    margin: 8mm;
   }
 }
