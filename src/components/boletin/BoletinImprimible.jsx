@@ -102,7 +102,8 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           )}
         </div>
 
-        <section className="mt-3 break-inside-avoid">
+        {/* mt-8: aire entre la última materia y la observación general */}
+        <section className="mt-8 break-inside-avoid">
           <p
             className="text-[10px] uppercase tracking-widest font-bold mb-1"
             style={{ color: "var(--di-color-texto-principal, #0f314f)" }}
