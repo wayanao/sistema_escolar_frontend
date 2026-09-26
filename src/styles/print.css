@@ -314,7 +314,9 @@
 .di-documento--boletin .di-titulo { margin: 4px 0 2px; }
 .di-documento--boletin .di-subtitulo { margin: 0 0 8px; }
 .di-documento--boletin .di-cuerpo { margin: 0; }
-.di-documento--boletin .di-firmas { margin-top: 14px; }
+/* Aire entre la observacion general y las rayas de firma: 40 px de aqui mas
+   los 40 px de .di-firmas__linea (unos 21 mm para firmar a mano). */
+.di-documento--boletin .di-firmas { margin-top: 40px; }
 /* Rayas de firma y del pie iguales a las de arriba (membrete y escala):
    1 px y color primario, en vez de negro y color secundario. */
 .di-documento--boletin .di-firmas__linea,

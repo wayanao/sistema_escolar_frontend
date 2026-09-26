@@ -44,6 +44,9 @@ letra de los logros (sigue en 12 px) ni las caritas (16 px):
   membrete era de 2 px; el cambio es solo para el boletin).
 - Las rayas de firma (antes negras) y la del pie (antes color secundario) usan
   el mismo estilo que las de arriba: 1 px del color primario.
+- Mas aire entre la observacion general y las firmas: `.di-firmas` pasa de
+  14 px a 40 px de margen (21,3 mm medidos del cuadro a la raya de firma).
+  Los boletines de prueba siguen en 2 hojas oficio.
 - Cada logro empieza con una viñeta: un punto de 5 px del color primario, con
   sangria para que el segundo renglon quede alineado con el texto. Medido: la
   altura de cada materia no cambia (48,8 mm preescolar, 48,1 mm primaria).
