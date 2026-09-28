@@ -53,6 +53,9 @@ describe("PlantillasAdminView", () => {
     await user.click(screen.getByRole("checkbox", { name: "Mostrar membrete" }));
     await user.click(screen.getByRole("checkbox", { name: "Mostrar aprobación de resolución" }));
     await user.click(screen.getByRole("checkbox", { name: "Mostrar pie de página" }));
+    const tamanoPapel = screen.getByRole("combobox", { name: "Tamaño del papel" });
+    expect(tamanoPapel).toHaveValue("");
+    await user.selectOptions(tamanoPapel, "oficio");
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
 
     expect(callbacks.onCambiarTipoActivo).toHaveBeenCalledWith("voucher_pago");
@@ -66,6 +69,7 @@ describe("PlantillasAdminView", () => {
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_membrete", false);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_aprobacion_resolucion", false);
     expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("mostrar_pie", false);
+    expect(callbacks.onActualizarCampoConfig).toHaveBeenCalledWith("tamano_papel", "oficio");
     expect(callbacks.onGuardarConfig).toHaveBeenCalledTimes(1);
   });
 });

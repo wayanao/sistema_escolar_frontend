@@ -94,7 +94,12 @@ está implementado dentro de `src/pages/CertificadosAdmin.jsx`.
   firmas, pie, variables visuales y dos botones que invocan `window.print()`.
   Ante un error de configuración continúa con valores por defecto.
 - `print.css` no fija tamaño de papel: se imprime en el que se elija en la
-  ventana de imprimir (carta, oficio...). En computador la hoja en pantalla
+  ventana de imprimir (carta, oficio...), salvo que la plantilla lo fije con
+  `config_json.tamano_papel` (`carta`, `oficio` 21,6 × 33, `legal`, `a4`;
+  vacío = según la impresora). En ese caso `DocumentoImprimible` agrega una
+  regla `@page { size }` y la hoja en pantalla toma ese ancho. Es una clave
+  nueva dentro del JSON libre de la plantilla: el backend la guarda sin
+  cambios. En computador la hoja en pantalla
   mide lo mismo que el papel impreso (ancho carta/oficio, orilla de 8 mm y
   marco); ver `CAMBIOS_FRONTEND.md` (2026-09-24, impresos). En móvil,
   certificados y otros documentos anchos mantienen 210 mm y usan scroll

@@ -163,6 +163,42 @@ describe("DocumentoImprimible", () => {
     );
   });
 
+  it("fija la hoja solo cuando la plantilla elige un tamaño de papel", () => {
+    usePrintConfig.mockReturnValue({
+      loading: false,
+      error: null,
+      branding: null,
+      plantilla: { config_json: { tamano_papel: "oficio" } },
+    });
+    const { container, rerender } = render(
+      <DocumentoImprimible tipo="boletin">
+        <p>Contenido</p>
+      </DocumentoImprimible>,
+    );
+
+    const root = container.querySelector(".di-print-root");
+    expect(root.querySelector("style").textContent).toBe(
+      "@media print { @page { size: 215.9mm 330.2mm; } }",
+    );
+    expect(root.style.getPropertyValue("--di-ancho-papel")).toBe("215.9mm");
+
+    // Sin tamaño elegido se conserva el comportamiento de siempre: manda el
+    // papel de la ventana de imprimir y print.css pone el ancho de la hoja.
+    usePrintConfig.mockReturnValue({
+      loading: false,
+      error: null,
+      branding: null,
+      plantilla: { config_json: {} },
+    });
+    rerender(
+      <DocumentoImprimible tipo="boletin">
+        <p>Contenido</p>
+      </DocumentoImprimible>,
+    );
+    expect(root.querySelector("style")).toBeNull();
+    expect(root.style.getPropertyValue("--di-ancho-papel")).toBe("");
+  });
+
   it("organiza membrete, identificación y aprobación, conserva sus líneas y permite ocultarlos", () => {
     const configuracion = usePrintConfig.getMockImplementation()();
     const membrete = "Educación integral\nSede principal";

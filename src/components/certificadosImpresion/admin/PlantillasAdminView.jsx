@@ -11,6 +11,7 @@ import {
   LIMITES_TAMANO_ESLOGAN,
   obtenerTamanoEslogan,
 } from "../../../utils/certificadosImpresion/tamanoEslogan";
+import { TAMANOS_PAPEL } from "../../../utils/certificadosImpresion/tamanoPapel";
 
 const TIPOS = [
   { key: "boletin", label: "Boletín de notas" },
@@ -194,6 +195,7 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
   const tamanoNombreColegio = obtenerTamanoNombreColegio(config);
   const tamanoEsloganId = useId();
   const tamanoEslogan = obtenerTamanoEslogan(config);
+  const tamanoPapelId = useId();
 
   return (
     <div className="bg-white rounded-lg shadow border border-slate-200 p-4 sm:p-6">
@@ -305,6 +307,25 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
               </button>
             ))}
           </div>
+        </Campo>
+
+        <Campo label="Tamaño del papel" htmlFor={tamanoPapelId}>
+          <select
+            id={tamanoPapelId}
+            value={config.tamano_papel || ""}
+            onChange={(e) => set("tamano_papel", e.target.value)}
+            className="w-full border border-slate-300 rounded px-3 py-2"
+          >
+            <option value="">Según la impresora</option>
+            {TAMANOS_PAPEL.map((tamano) => (
+              <option key={tamano.valor} value={tamano.valor}>{tamano.etiqueta}</option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500 mt-1">
+            Fija la hoja al imprimir y al descargar el PDF, para que no se corte ni
+            se achique. Con &quot;Según la impresora&quot; se usa el papel que se
+            elija en la ventana de imprimir.
+          </p>
         </Campo>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">

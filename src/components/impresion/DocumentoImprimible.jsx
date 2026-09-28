@@ -3,6 +3,10 @@ import usePrintConfig from "../../hooks/certificadosImpresion/usePrintConfig";
 import { obtenerTamanoEscudo } from "../../utils/certificadosImpresion/tamanoEscudo";
 import { obtenerTamanoNombreColegio } from "../../utils/certificadosImpresion/tamanoNombreColegio";
 import { obtenerTamanoEslogan } from "../../utils/certificadosImpresion/tamanoEslogan";
+import {
+  obtenerTamanoPapel,
+  reglaTamanoPapel,
+} from "../../utils/certificadosImpresion/tamanoPapel";
 import "../../styles/print.css";
 
 /**
@@ -30,6 +34,8 @@ export default function DocumentoImprimible({
   const { branding, plantilla, loading, error } = usePrintConfig(tipo);
 
   const config = useMemo(() => plantilla?.config_json || {}, [plantilla?.config_json]);
+  // Papel fijado por la plantilla (null = el que se elija al imprimir).
+  const tamanoPapel = obtenerTamanoPapel(config);
 
   // Marca el body cuando este wrapper esta montado, para que @media print
   // sepa que debe ocultar todo lo demas. No afecta impresos legacy.
@@ -64,8 +70,11 @@ export default function DocumentoImprimible({
       "--di-margen-der": margenDer,
       "--di-margen-inf": margenInf,
       "--di-margen-izq": margenIzq,
+      // Con papel fijado, la hoja en pantalla toma su ancho (si no, print.css
+      // usa el de carta/oficio).
+      ...(tamanoPapel && { "--di-ancho-papel": `${tamanoPapel.anchoMm}mm` }),
     };
-  }, [branding, config]);
+  }, [branding, config, tamanoPapel]);
 
   if (loading) {
     return <div className="p-6 text-slate-600">Cargando configuracion de impresion...</div>;
@@ -177,6 +186,9 @@ export default function DocumentoImprimible({
 
   return (
     <div className={`di-print-root ${usaScrollMovil ? "di-print-root--scroll-mobile" : ""}`} style={styleVars}>
+      {/* Fija el tamaño de la hoja al imprimir y al guardar el PDF, para que
+          el documento se arme para el papel real y no se corte ni se achique. */}
+      {tamanoPapel && <style>{reglaTamanoPapel(tamanoPapel)}</style>}
       <article
         className={`di-documento ${className} ${bordeado ? "di-documento--bordeado" : ""}`}
       >

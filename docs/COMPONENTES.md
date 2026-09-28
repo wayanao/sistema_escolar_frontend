@@ -1168,7 +1168,8 @@ Notas:
 En computador, `styles/print.css` dibuja la hoja en pantalla con las mismas
 medidas del papel impreso: ancho carta/oficio, orilla blanca de 8 mm, marco y
 el margen de la plantilla medido desde la orilla del papel. Al imprimir no
-fija tamaño de papel (se elige en la ventana de imprimir).
+fija tamaño de papel (se elige en la ventana de imprimir), salvo que la
+plantilla elija uno en "Tamaño del papel" (`config_json.tamano_papel`).
 
 `styles/print.css` contiene tambien las reglas moviles de documentos imprimibles:
 

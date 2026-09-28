@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-09-26 - Impresos: tamaño de papel fijado por plantilla
+
+Al descargar el boletin como PDF, Chrome no ofrece el oficio colombiano
+(21,6 × 33 cm): su opcion larga es Legal (35,6 cm). Medido en un PDF real del
+colegio: pagina de 215,9 × 355,6 mm. Impreso en oficio, o se achicaba entero
+(con "Ajustar") o se perdian los ultimos 2,6 cm, con la raya de abajo del marco
+y el pie (al 100 %).
+
+Ahora cada plantilla de "Diseño de impresos" tiene **Tamaño del papel**:
+"Según la impresora" (por defecto, el comportamiento de antes), Carta, Oficio
+(21,6 × 33), Legal o A4. Se guarda como `config_json.tamano_papel` (clave
+nueva en el JSON libre; el backend no cambia). Con un tamaño elegido,
+`DocumentoImprimible` agrega `@media print { @page { size } }` y pone
+`--di-ancho-papel` con ese ancho para la hoja en pantalla. Contrato puro en
+`utils/certificadosImpresion/tamanoPapel.js`.
+
+Medido en la pagina de prueba (sin elegir papel en la impresion):
+
+| Plantilla | PDF | Marco abajo | Pie |
+|---|---|---|---|
+| Sin tamaño | 215,9 × 279,4 mm (el de Chrome) | 8,3 mm | en cada hoja |
+| Oficio | **215,9 × 330,2 mm** | 8,3 mm | en cada hoja |
+
 ## 2026-09-25 - Boletin: pie de pagina abajo en cada hoja y marco completo
 
 Al imprimir, el pie del boletin (direccion, telefono, correo) quedaba pegado a
