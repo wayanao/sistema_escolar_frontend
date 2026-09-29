@@ -338,7 +338,7 @@ vista previa es la excepción**: un impreso lleva ancho fijo A4 con
 desplazamiento lateral en móvil, igual que boletín, certificados y cartera.
 No es una contradicción; es que un documento y una pantalla no son lo mismo.
 
-### Límite conocido, sin resolver
+### Límite conocido, en parte resuelto (2026-09-28)
 
 Con muchas columnas la rejilla deja de caber en A4 vertical. Con 3 o 4 entra
 holgada; con 8 las celdas quedan demasiado estrechas para marcar a mano; con
@@ -346,6 +346,26 @@ holgada; con 8 las celdas quedan demasiado estrechas para marcar a mano; con
 páginas o dejar elegir qué columnas salen. **No se resuelve ahora** y no
 bloquea: hoy el uso real son pocas columnas por curso. Queda anotado para
 cuando aparezca.
+
+**Apareció el 2026-09-28:** el usuario lo vio impreso, "corrido hacia un
+lado". Con muchas columnas la tabla quedaba más ancha que la hoja y se salía
+del marco por la derecha, arrastrando el encabezado. Reproducido pasando a PDF
+con Chrome una copia de la hoja: con 4 y 8 columnas cabía; con 14 se salía.
+Además, con pocas columnas la columna "Estudiante" se quedaba con casi todo el
+espacio sobrante y dejaba un hueco a la derecha de los nombres.
+
+Arreglo, solo en `ListaSeguimientoImprimible.jsx`:
+
+- Títulos de columna con `overflow-wrap: anywhere`: si un nombre no cabe, se
+  parte, y la tabla se encoge hasta caber en la hoja.
+- Columna "Estudiante" con `w-px` y `whitespace-nowrap`: queda del ancho del
+  nombre más largo, en un renglón, y el espacio sobrante pasa a las casillas.
+
+Resultado medido en la misma copia: con 14 columnas todo queda dentro del
+marco (probado con un nombre largo de cuatro palabras); con 4 columnas las
+casillas salen más anchas. **Lo que sigue pendiente:** con muchas columnas
+los títulos quedan partidos a mitad de palabra en 2 o 3 renglones. La salida
+de fondo sigue siendo imprimir en horizontal.
 
 ### Plan de fases
 

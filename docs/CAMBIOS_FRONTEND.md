@@ -1,5 +1,16 @@
 # Cambios Frontend
 
+## 2026-09-28 - Listas de control: la tabla impresa ya no se sale de la hoja
+
+Con muchas columnas, la lista en blanco salia "corrida hacia un lado": la
+tabla quedaba mas ancha que la hoja y se salia del marco por la derecha. Y con
+pocas columnas, la columna "Estudiante" dejaba un hueco a la derecha de los
+nombres. Ahora, solo en `ListaSeguimientoImprimible.jsx`, los titulos de
+columna se parten si no caben y la columna de nombres queda del ancho del
+nombre mas largo; el espacio sobrante pasa a las casillas. Los demas impresos
+no cambian. Detalle y medicion en
+`docs/funcionalidades/LISTAS_SEGUIMIENTO.md`, "Limite conocido".
+
 ## 2026-09-26 - Impresos: tamaño de papel fijado por plantilla
 
 Al descargar el boletin como PDF, Chrome no ofrece el oficio colombiano

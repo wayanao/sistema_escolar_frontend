@@ -28,13 +28,20 @@ function ListaSeguimientoImprimible({ columnas = [], estudiantes = [] }) {
           <th className="w-8 border border-slate-400 bg-slate-100 px-1 py-2 text-center font-semibold">
             #
           </th>
-          <th className="border border-slate-400 bg-slate-100 px-2 py-2 text-left font-semibold">
+          {/* `w-px` + `whitespace-nowrap`: la columna queda del ancho del
+              nombre más largo, en un solo renglón. Sin esto se quedaba con casi
+              todo el espacio sobrante y dejaba un hueco a la derecha; así ese
+              espacio pasa a las casillas, que es donde se escribe a mano. */}
+          <th className="w-px whitespace-nowrap border border-slate-400 bg-slate-100 px-2 py-2 text-left font-semibold">
             Estudiante
           </th>
           {columnas.map((columna) => (
+            // `overflow-wrap: anywhere`: si el nombre de la columna no cabe, se
+            // parte. Sin esto, con muchas columnas la tabla quedaba más ancha
+            // que la hoja y se salía del marco por la derecha.
             <th
               key={columna.id}
-              className="border border-slate-400 bg-slate-100 px-1 py-2 text-center font-semibold"
+              className="border border-slate-400 bg-slate-100 px-1 py-2 text-center font-semibold [overflow-wrap:anywhere]"
               translate="no"
             >
               {columna.nombre}
@@ -49,7 +56,7 @@ function ListaSeguimientoImprimible({ columnas = [], estudiantes = [] }) {
             <td className="border border-slate-400 px-1 text-center tabular-nums">
               {indice + 1}
             </td>
-            <td className="border border-slate-400 px-2 capitalize" translate="no">
+            <td className="whitespace-nowrap border border-slate-400 px-2 capitalize" translate="no">
               {`${estudiante.apellido} ${estudiante.nombre}`.trim()}
             </td>
             {columnas.map((columna) => (
