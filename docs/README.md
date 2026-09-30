@@ -31,6 +31,10 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/LISTAS_SEGUIMIENTO.md`: pantalla nueva de admin para crear
   columnas por curso y marcar alumnos con un check y una nota corta.
   **Disenado, nada implementado.**
+- `funcionalidades/ANIO_LECTIVO.md`: selector discreto de año lectivo para
+  el admin, consulta de años cerrados y pantalla para preparar y activar el
+  año siguiente. El documento principal esta en el backend.
+  **Disenado, nada implementado.**
 
 ## Control SaaS
 
