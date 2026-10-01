@@ -15,7 +15,7 @@
   idénticas a las de hoy".
 - Depende de: fases 1 a 3 del backend en producción antes de la fase 4 de
   este repo.
-- Última actualización: 2026-09-30.
+- Última actualización: 2026-10-01.
 
 ## Objetivo
 
@@ -240,8 +240,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 - Última acción terminada: **diseño y documentación**, 2026-09-29,
   ampliado el 2026-09-30 con el diálogo de materias, la fase 7 y los
-  conceptos de pago por año. Nada implementado en este repo.
+  conceptos de pago por año. Nada implementado en este repo. Comprobado el
+  2026-10-01: lo único con "año lectivo" en `src/` es el campo de texto del
+  certificado de matrícula (`hooks/certificadosImpresion/`), que existe
+  desde junio de 2026 y no es parte de esta funcionalidad.
 - Siguiente acción de este repo: ninguna hasta que las fases 1 a 3 del
-  backend estén en producción. La siguiente acción del proyecto es la fase 0
-  del backend.
+  backend estén en producción. Al 2026-10-01 el backend terminó la fase 1
+  (migración B aplicada en producción) y lo siguiente es su fase 2; el
+  estado al día está en la "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
