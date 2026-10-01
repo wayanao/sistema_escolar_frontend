@@ -33,7 +33,7 @@
 
 ## Decisiones ya tomadas (con el usuario, 2026-09-29)
 
-Las decisiones numeradas (16 al 2026-09-30) están en el documento del
+Las decisiones numeradas (17 al 2026-09-30) están en el documento del
 backend. Las que cambian pantallas:
 
 - Cursos nuevos cada año → los selectores de curso muestran solo los del
@@ -53,6 +53,12 @@ backend. Las que cambian pantallas:
   (decisión 15).
 - Planes de clase: el profesor usa uno de 2026 como base al crear uno nuevo;
   se copia solo el texto, no las evidencias (decisión 16).
+- Conceptos de pago por año (decisión 17) → la pantalla de Tipos de pago
+  muestra y edita los conceptos del año que se está mirando. Al preparar
+  2027 se copian siempre, y el admin los ajusta mirando 2027 (por ejemplo,
+  la mensualidad desde febrero) sin tocar 2026.
+- Un año cerrado se ve como se veía al cerrarse (decisión 13) → no cambia
+  nada en el frontend: el boletín que llega del backend ya viene así.
 
 Decisiones de diseño de este repo (propuestas por el asistente, a confirmar
 al empezar la fase 4):
@@ -134,8 +140,8 @@ Las fases 0 a 3 son solo del backend. Este repo empieza en la fase 4.
    - Estudiantes: `hooks/estudiantesObservador/useListadoEstudiantesAdmin.js`.
    - Pagos: el listado de estudiantes de `services/pagosApi.js` y las deudas
      de `services/estudiantesObservadorApi.js`.
-   - Cartera: `services/carteraTiposPagoApi.js` (resumen, detalle, cursos
-     para tipos de pago).
+   - Cartera y tipos de pago: `services/carteraTiposPagoApi.js` (resumen,
+     detalle, listado de conceptos y cursos para tipos de pago).
    - Dashboard del admin, listas de seguimiento y observador del admin: se
      confirman al empezar.
 3. Pantallas que **no** dependen del año (inventario, ventas, egresos,
@@ -161,7 +167,8 @@ Las fases 0 a 3 son solo del backend. Este repo empieza en la fase 4.
 1. Página nueva `/admin/anios-lectivos` (guard `AdminRoute`), con tres
    pasos:
    1. **Crear 2027 y copiar** cursos, con casillas para precios, carga
-      académica y director de grupo.
+      académica y director de grupo. Los conceptos de pago se copian
+      siempre, sin casilla.
    2. **Matricular**: por curso de origen, elegir el curso destino, ver la
       lista y desmarcar a quien no pasa con ese grupo. Los valores
       especiales copiados aparecen marcados "revisar".
@@ -232,8 +239,8 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 ## Entrega para el siguiente chat
 
 - Última acción terminada: **diseño y documentación**, 2026-09-29,
-  ampliado el 2026-09-30 con el diálogo de materias y la fase 7. Nada
-  implementado en este repo.
+  ampliado el 2026-09-30 con el diálogo de materias, la fase 7 y los
+  conceptos de pago por año. Nada implementado en este repo.
 - Siguiente acción de este repo: ninguna hasta que las fases 1 a 3 del
   backend estén en producción. La siguiente acción del proyecto es la fase 0
   del backend.
