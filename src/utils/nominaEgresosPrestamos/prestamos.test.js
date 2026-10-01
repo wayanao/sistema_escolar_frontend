@@ -49,9 +49,10 @@ describe("utilidades de préstamos", () => {
         expect(obtenerNombreProfesor([], "3")).toBe("Profesor seleccionado");
     });
 
-    it("conserva la fecha por defecto en UTC", () => {
+    it("usa la fecha de Colombia: a las 9:30 p. m. del 7 sigue siendo 7", () => {
+        // 02:30 UTC del 8 son las 21:30 del 7 en Colombia. Antes daba "2026-08-08".
         expect(fechaPrestamoPorDefecto(new Date("2026-08-08T02:30:00.000Z"))).toBe(
-            "2026-08-08"
+            "2026-08-07"
         );
     });
 

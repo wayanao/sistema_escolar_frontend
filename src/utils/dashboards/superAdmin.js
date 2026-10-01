@@ -2,6 +2,8 @@
 // Incluye la regla de clase por estado que la capa 5 extrajo de la página. La
 // lectura de los campos del diálogo sí permanece fuera, porque toca el DOM.
 
+import { fechaIsoColombia } from "../fechaColombia";
+
 export const ESTADOS_TENANT = ["activo", "en_mora", "suspendido", "cancelado"];
 
 export const ESTADO_TENANT_POR_DEFECTO = "suspendido";
@@ -37,7 +39,8 @@ export const escapeHtml = (value) =>
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 
-export const fechaIsoDeHoy = (ahora) => ahora.toISOString().slice(0, 10);
+// La fecha de Colombia, no la UTC (ver utils/fechaColombia.js).
+export const fechaIsoDeHoy = (ahora) => fechaIsoColombia(ahora);
 
 export const erroresDePassword = (value) => {
     const errors = [];

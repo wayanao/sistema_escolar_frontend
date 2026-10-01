@@ -59,6 +59,10 @@ describe("fechaIsoDeHoy", () => {
     it("recorta la marca de tiempo a la fecha", () => {
         expect(fechaIsoDeHoy(new Date("2026-08-07T15:20:00Z"))).toBe("2026-08-07");
     });
+
+    it("de noche usa la fecha de Colombia, no la UTC", () => {
+        expect(fechaIsoDeHoy(new Date("2026-10-01T04:00:00Z"))).toBe("2026-09-30");
+    });
 });
 
 describe("erroresDePassword", () => {

@@ -14,6 +14,7 @@ import useFormularioPlaneacionProfesor from "../hooks/planeaciones/useFormulario
 import useGuardadoPlaneacionProfesor from "../hooks/planeaciones/useGuardadoPlaneacionProfesor";
 import useHistorialPlaneacionesProfesor from "../hooks/planeaciones/useHistorialPlaneacionesProfesor";
 import useSeguimientoPlaneacionProfesor from "../hooks/planeaciones/useSeguimientoPlaneacionProfesor";
+import { fechaIsoColombia } from "../utils/fechaColombia";
 import { obtenerEstadoGuardadoVisual } from "../utils/planeaciones/profesor";
 
 function subirAlInicio() {
@@ -71,7 +72,7 @@ function PlanDeClases() {
   } = useFormularioPlaneacionProfesor({
     profesorId,
     asignacionId,
-    fechaInicial: fechaDesdeUrl || new Date().toISOString().split("T")[0],
+    fechaInicial: fechaDesdeUrl || fechaIsoColombia(),
   });
   const {
     historial,

@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-09-30 - Fechas por defecto con la hora de Colombia
+
+`new Date().toISOString()` da la fecha en UTC, cinco horas por delante de
+Colombia: desde las 7 p. m. devolvia la de mañana. Un profesor que abria un
+plan de clases nuevo en la noche veia propuesta la fecha del dia siguiente.
+
+- `src/utils/fechaColombia.js` (nuevo, en la raiz de `utils/` porque lo usan
+  varios modulos): `fechaIsoColombia()`, la fecha de hoy en
+  `America/Bogota` como AAAA-MM-DD, sin importar la zona del equipo.
+- Lo usan: la fecha por defecto del plan de clases nuevo
+  (`pages/PlanDeClases.jsx`), la de un prestamo nuevo
+  (`utils/nominaEgresosPrestamos/prestamos.js`), la del alta de colegio del
+  super admin (`utils/dashboards/superAdmin.js`) y el nombre del CSV de
+  cartera vencida (`pages/CarteraVencidaAdmin.jsx`).
+- La prueba "conserva la fecha por defecto en UTC" de prestamos fijaba el
+  comportamiento viejo a proposito, durante la modularizacion. Se invirtio:
+  a las 02:30 UTC del 8 de agosto ahora da el 7, no el 8.
+- Pagos, egresos y reportes ya calculaban la fecha local con su propio
+  ajuste y no se tocaron.
+- Mismo error que el backend tenia con la deuda; ver
+  `sistema_escolar_api/docs/CAMBIOS_BACKEND.md`, 2026-09-30.
+
+Verificacion: `pnpm run check:deploy` → 2039 pruebas pasan, lint limpio y
+build correcto.
+
 ## 2026-09-28 - Listas de control: la tabla impresa ya no se sale de la hoja
 
 Con muchas columnas, la lista en blanco salia "corrida hacia un lado": la

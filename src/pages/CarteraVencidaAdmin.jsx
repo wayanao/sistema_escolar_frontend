@@ -4,6 +4,7 @@ import VistaCarteraVencida from "../components/carteraTiposPago/VistaCarteraVenc
 import useCarteraVencida from "../hooks/carteraTiposPago/useCarteraVencida";
 import { construirCsvCartera } from "../utils/carteraTiposPago/cartera";
 import { nombreCompleto } from "../utils/carteraTiposPago/formatos";
+import { fechaIsoColombia } from "../utils/fechaColombia";
 
 function CarteraVencidaAdmin() {
     const navigate = useNavigate();
@@ -47,7 +48,7 @@ function CarteraVencidaAdmin() {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `cartera_vencida_${new Date().toISOString().slice(0, 10)}.csv`;
+        anchor.download = `cartera_vencida_${fechaIsoColombia()}.csv`;
         anchor.click();
         URL.revokeObjectURL(url);
     };

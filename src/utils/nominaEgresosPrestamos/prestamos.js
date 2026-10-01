@@ -1,3 +1,5 @@
+import { fechaIsoColombia } from "../fechaColombia";
+
 export const ESTADO_PRESTAMO_PENDIENTE = "Pendiente";
 
 export const ESTADO_PRESTAMO_PAGADO = "Pagado";
@@ -18,8 +20,10 @@ export const obtenerNombreProfesor = (profesores, id) => {
     return `${profesor.apellido} ${profesor.nombre}`;
 };
 
-// Conserva la fecha UTC que usa hoy el formulario de préstamos.
-export const fechaPrestamoPorDefecto = (ahora) => ahora.toISOString().split("T")[0];
+// La fecha de Colombia. Antes era la UTC, que desde las 7 p. m. daba la de
+// mañana; se conservo asi durante la modularizacion y se corrigio a proposito
+// el 2026-09-30 (ver utils/fechaColombia.js).
+export const fechaPrestamoPorDefecto = (ahora) => fechaIsoColombia(ahora);
 
 export const validarPrestamo = ({ profesorId, monto }) => {
     if (!profesorId) {
