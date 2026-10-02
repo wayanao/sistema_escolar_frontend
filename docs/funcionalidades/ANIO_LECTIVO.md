@@ -178,9 +178,28 @@ Las fases 0 a 3 son solo del backend. Este repo empieza en la fase 4.
 3. Pagos: si existe un año en preparación o el estudiante tiene deuda de
    años anteriores, aparece un selector "Año del pago". Por defecto, el año
    activo.
-4. Documentación: `RUTAS_FRONTEND.md` (ruta nueva), `API_CLIENT.md`,
+4. Deuda de años anteriores (decisión 2): el detalle de deudas del
+   estudiante en Pagos y Cartera vencida la muestran aparte, por año. Tiene
+   que estar en producción **antes de activar 2027** (fase 6): desde ese
+   día, lo que se deba de 2026 solo llega en ese campo.
+5. Documentación: `RUTAS_FRONTEND.md` (ruta nueva), `API_CLIENT.md`,
    `COMPONENTES.md`, `ROLES_UI.md` (la entrada de menú del admin),
    `CAMBIOS_FRONTEND.md`.
+
+Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
+2026-10-01; ver `sistema_escolar_api/docs/API_ENDPOINTS.md`):
+
+- `POST /pagos` y `POST /pagos/adelanto` aceptan `anio_lectivo_id` opcional
+  en el cuerpo. `GET /estudiantes/{id}/deudas`,
+  `GET /pagos/vencidos/opciones/{id}` y `GET /pagos/adelanto/opciones/{id}`
+  lo aceptan como parámetro opcional (`?anio_lectivo_id=`). Sin él, todo es
+  del año activo, como hoy, así que el frontend actual sigue igual.
+- `GET /estudiantes/{id}/deudas` y cada estudiante de `GET /cartera/mora`
+  traen `deuda_anios_anteriores`: una lista por año con `anio_lectivo_id`,
+  `anio`, `curso_id`, `deudas` y `total_deuda`, aparte de la deuda del año.
+  En cartera puede venir un estudiante con `total` 0 que solo debe de años
+  anteriores. `GET /cartera/mora/resumen` trae `total_anios_anteriores`.
+  Mientras haya un solo año, la lista viene vacía y el total en 0.
 
 ### Fase 6 — Activar el año
 
@@ -246,6 +265,9 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   desde junio de 2026 y no es parte de esta funcionalidad.
 - Siguiente acción de este repo: ninguna hasta que las fases 1 a 3 del
   backend estén en producción. Al 2026-10-01 el backend terminó la fase 1
-  (migración B aplicada en producción) y lo siguiente es su fase 2; el
-  estado al día está en la "Entrega" del documento del backend.
+  y escribió el código de su fase 2 (cobros por año), que todavía no está
+  desplegado; lo siguiente allá es su fase 3. El contrato que dejó la fase
+  2 para las pantallas de pagos y cartera está en la fase 5 de este
+  documento. El estado al día está en la "Entrega" del documento del
+  backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
