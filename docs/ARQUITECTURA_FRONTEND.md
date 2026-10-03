@@ -35,6 +35,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/components/autenticacion/`: vistas presentacionales de login, cambio de
   password, estado del tenant y navegación de admin, profesor y super admin,
   incluido el menú animado de escritorio compartido por dos roles.
+- `src/components/anioLectivo/`: selector de año de la barra del admin y aviso
+  "Estás viendo el año ...", solo presentación (ver "Año lectivo").
 - `src/components/certificadosImpresion/`: selección, vistas imprimibles y
   formularios presentacionales de identidad y plantillas.
 - `src/components/boletin/`: vistas presentacionales de generación,
@@ -92,6 +94,8 @@ Estado documentado del frontend `frontend-react`.
 - `src/hooks/`: hooks propios del frontend.
 - `src/hooks/autenticacion/`: lectura local y guards de sesión, consulta del
   estado tenant y comandos de login, cambio de password y logout.
+- `src/hooks/anioLectivo/`: el proveedor del año que mira el admin (el único
+  Context del proyecto), `useAnioLectivo` y `useAnioLectivoEnPantalla`.
 - `src/hooks/asistencia/`: consultas cancelables y comandos del flujo docente
   de asistencia, separados entre estado remoto y marcación editable.
 - `src/hooks/planilla/`: consultas cancelables de clases y planilla, y
@@ -140,6 +144,8 @@ Estado documentado del frontend `frontend-react`.
   React ni decisiones de interfaz.
 - `src/services/autenticacionApi.js`: contratos HTTP de login, logout, cambio
   obligatorio de password y estado del tenant.
+- `src/services/aniosLectivosApi.js`: contrato HTTP de la lista de años
+  lectivos (`GET /anios-lectivos`).
 - `src/services/planeacionesApi.js`: contrato HTTP compartido por los flujos de
   planeaciones del profesor y del administrador, incluidas notificaciones y
   descarga autenticada de imágenes como blob.
@@ -184,6 +190,9 @@ Estado documentado del frontend `frontend-react`.
   la escala de desarrollo infantil, en las dos direcciones. Compartida por
   boletines y planilla, como `periodoProfesor.js`; la escala vive en
   `src/constants/`.
+- `src/utils/anioLectivo.js`: contrato puro del año lectivo (lista de años,
+  año activo, etiquetas, aviso, pantallas que siguen el año y
+  `parametrosAnio`). En la raíz porque lo usarán varios módulos.
 - `src/utils/autenticacion/`: contratos puros de sesión, login, password y
   navegación, sin HTTP, React, DOM ni almacenamiento.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil
@@ -265,6 +274,9 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - Si no existe ningun usuario/profesor en sesion, redirige a `/login`.
 - Una sesión válida monta después `TenantStatusBannerView` con la consulta de
   `useEstadoTenant`; los guards internos de rol y password conservan su orden.
+- Para el admin, el layout va envuelto en `AnioLectivoProvider` y suma, debajo
+  del aviso del tenant, el aviso del año lectivo. El profesor no tiene
+  proveedor. Ver "Año lectivo".
 
 ## Autenticación, sesión y navegación
 
@@ -289,6 +301,32 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - Los conectores antiguos `LoginForm`, `NavAdmin`, `NavProfesor`,
   `NavSuperAdmin` y `TenantStatusBanner` fueron retirados después de confirmar
   que no tenían consumidores adicionales.
+
+## Año lectivo
+
+Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
+(no es un módulo de la migración). Desde el paso 4.1 de su fase 4 (2026-10-03):
+
+- `AnioLectivoProvider` carga una sola vez `GET /anios-lectivos` y guarda en
+  memoria el año que mira el admin. Recargar vuelve al año activo: no se
+  guarda en `localStorage` a propósito.
+- **Es el único Context del proyecto, y debe seguir siéndolo.** Se usó porque
+  la barra y la página abierta tienen que ver el mismo año, y la página tiene
+  que enterarse en el momento en que cambia; `localStorage` no avisa a lo que
+  ya está en pantalla. Las demás selecciones de trabajo siguen el patrón de
+  siempre (por ejemplo, `periodoProfesor.js`).
+- `useAnioLectivo()` fuera del proveedor (el profesor, las pruebas de página
+  que no lo montan) devuelve el comportamiento de antes: año activo, sin
+  parámetros y sin selector.
+- `parametrosAnio` devuelve `{}` mirando el año activo, así que cada petición
+  queda idéntica a la de antes; solo mirando otro año viaja
+  `anio_lectivo_id`.
+- Al cambiar de año, `App.jsx` reinicia la página abierta (`RutasDelAnio`
+  pone el año en la `key` de las rutas): ningún curso ni filtro del año
+  anterior queda pegado.
+- El selector y el aviso solo aparecen en las pantallas de
+  `RUTAS_POR_ANIO` y con más de un año. La lista crece con cada paso de la
+  fase 4; en el 4.1 está vacía.
 
 ## Administración académica y horarios
 

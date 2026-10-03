@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   navSuperAdmin: vi.fn(),
   tenantView: vi.fn(),
   notificaciones: vi.fn(),
+  listarAniosLectivos: vi.fn(),
 }));
 
 vi.mock("./pages/Login", () => ({
@@ -38,6 +39,9 @@ vi.mock("./hooks/autenticacion/useCerrarSesion", () => ({
 vi.mock("./hooks/autenticacion/useEstadoTenant", () => ({
   useEstadoTenant: mocks.useEstadoTenant,
 }));
+vi.mock("./services/aniosLectivosApi", () => ({
+  listarAniosLectivos: mocks.listarAniosLectivos,
+}));
 
 vi.mock("./components/autenticacion/NavAdminView", () => ({
   default: (props) => {
@@ -46,6 +50,7 @@ vi.mock("./components/autenticacion/NavAdminView", () => ({
       <div data-testid="nav-admin">
         <button type="button" onClick={props.onCerrarSesion}>Cerrar sesión admin</button>
         {props.renderNotificaciones(mocks.onNavigate)}
+        {props.renderSelectorAnio?.()}
       </div>
     );
   },
@@ -85,6 +90,9 @@ vi.mock("./components/planeaciones/NotificacionesPlaneadores", () => ({
   },
 }));
 
+const ANIO_2026 = { id: 1, anio: 2026, estado: "activo" };
+const ANIO_2027 = { id: 2, anio: 2027, estado: "preparacion" };
+
 function guardarSesion(clave, datos) {
   localStorage.setItem(clave, JSON.stringify(datos));
 }
@@ -109,6 +117,7 @@ describe("composicion de autenticacion y navegacion", () => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.useCerrarSesion.mockReturnValue(mocks.cerrarSesion);
     mocks.useEstadoTenant.mockReturnValue(aviso);
+    mocks.listarAniosLectivos.mockResolvedValue([ANIO_2026]);
   });
 
   it("conecta la sesion admin con su vista, notificaciones, tenant y logout", async () => {
@@ -121,6 +130,7 @@ describe("composicion de autenticacion y navegacion", () => {
     const propsNavegacion = mocks.navAdmin.mock.calls.at(-1)[0];
     expect(propsNavegacion.onCerrarSesion).toBe(mocks.cerrarSesion);
     expect(propsNavegacion.renderNotificaciones).toEqual(expect.any(Function));
+    expect(propsNavegacion.renderSelectorAnio).toEqual(expect.any(Function));
     expect(mocks.navProfesor).not.toHaveBeenCalled();
     expect(mocks.notificaciones).toHaveBeenCalledWith({
       rol: "admin",
@@ -136,6 +146,25 @@ describe("composicion de autenticacion y navegacion", () => {
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión admin" }));
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
+
+    // Con un solo año, lo único nuevo es una petición: ni selector ni aviso.
+    expect(mocks.listarAniosLectivos).toHaveBeenCalledTimes(1);
+    expect(mocks.listarAniosLectivos).toHaveBeenCalledWith({ signal: expect.any(AbortSignal) });
+    expect(screen.queryByRole("combobox", { name: "Año lectivo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("con dos años, el inicio del admin no muestra selector ni aviso: no depende del año", async () => {
+    guardarSesion("usuario", { id: 3, rol: "admin", debe_cambiar_password: false });
+    mocks.listarAniosLectivos.mockResolvedValue([ANIO_2027, ANIO_2026]);
+
+    renderApp("/dashboard-admin");
+
+    expect(await screen.findByTestId("dashboard-admin")).toBeInTheDocument();
+    await waitFor(() => expect(mocks.listarAniosLectivos).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(screen.queryByRole("combobox", { name: "Año lectivo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("conecta la sesion profesor con su vista y el rol externo exacto", async () => {
@@ -153,6 +182,8 @@ describe("composicion de autenticacion y navegacion", () => {
       rol: "profesor",
       onNavigate: mocks.onNavigate,
     });
+    // El profesor no tiene selector ni pide la lista de años.
+    expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión profesor" }));
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
@@ -174,6 +205,7 @@ describe("composicion de autenticacion y navegacion", () => {
       onCerrarSesion: mocks.cerrarSesion,
     });
     expect(mocks.useEstadoTenant).not.toHaveBeenCalled();
+    expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión super admin" }));
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
@@ -187,5 +219,6 @@ describe("composicion de autenticacion y navegacion", () => {
     expect(mocks.useEstadoTenant).not.toHaveBeenCalled();
     expect(mocks.navAdmin).not.toHaveBeenCalled();
     expect(mocks.navProfesor).not.toHaveBeenCalled();
+    expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
   });
 });

@@ -84,6 +84,29 @@ describe("vistas de navegacion", () => {
     expect(screen.queryByRole("button", { name: "Cartera" })).not.toBeInTheDocument();
   });
 
+  it("dibuja en la barra del admin el selector de año que recibe, y nada sin él", () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <NavAdminView
+          onCerrarSesion={vi.fn()}
+          renderNotificaciones={renderNotificaciones}
+          renderSelectorAnio={() => <select aria-label="Año lectivo" />}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("combobox", { name: "Año lectivo" })).toBeInTheDocument();
+    unmount();
+
+    render(
+      <MemoryRouter>
+        <NavAdminView onCerrarSesion={vi.fn()} renderNotificaciones={renderNotificaciones} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
   it("conserva contratos y callbacks de profesor", async () => {
     const user = userEvent.setup();
     const onCerrarSesion = vi.fn();

@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Fase 4 iniciada el 2026-10-03**, con la autorización del
-  usuario: inventario confirmado y plan por pasos, solo documento. Todavía
-  no hay código de esta funcionalidad. La fase 3 del backend está en GitHub
+- Estado: **Fase 4 en curso**, iniciada el 2026-10-03 con la autorización
+  del usuario: inventario y plan por pasos (commit `dbb0e48`) y **paso 4.1
+  (la base: años, selector y aviso) escrito y probado, sin commit**. Con un
+  solo año no cambia nada visible. La fase 3 del backend está en GitHub
   desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -409,6 +410,83 @@ prepara 2027 en la fase 5 (Cursos, Horarios, Tipos de pago y Estudiantes);
 4.5 y 4.6 sirven para consultar 2026 después de activar 2027 (fase 6), y
 4.7 tiene que estar antes de que exista un segundo año (fase 5).
 
+Plan aprobado por el usuario el 2026-10-03, tal como está, junto con el paso
+4.1 ("Hagamos la A para empezar el 4.1").
+
+**Avance del 2026-10-03 — paso 4.1, la base: años, selector y aviso (sin
+commit):**
+
+- Primera pregunta abierta respondida antes de empezar: el selector y el
+  aviso **se esconden** en las pantallas que no dependen del año (opción A).
+- Código, todo nuevo salvo dos archivos:
+  - `services/aniosLectivosApi.js`: `listarAniosLectivos({ signal })` →
+    `GET /anios-lectivos`.
+  - `utils/anioLectivo.js`: normalizar la lista (descarta filas inválidas),
+    año activo, etiquetas ("2026 · Cerrado"), `parametrosAnio` (mirando el
+    activo, un `{}` congelado y siempre el mismo; mirando otro,
+    `{ anio_lectivo_id }`), `RUTAS_POR_ANIO` (las pantallas que siguen el
+    año; vacía en este paso), `esRutaPorAnio` (con `exacta`, para que
+    `/admin` no alcance a `/admin/pagos`) y `construirAvisoAnio`.
+  - `hooks/anioLectivo/useAnioLectivo.js`: el Context y el hook; fuera del
+    proveedor, el comportamiento de antes. `AnioLectivoProvider.jsx`: carga
+    la lista una vez, guarda en memoria el año elegido (elegir el activo es
+    lo mismo que no elegir), corta la petición al desmontarse y, si falla,
+    deja todo como antes. `useAnioLectivoEnPantalla.js`: selector solo con
+    más de un año y en una pantalla del año; aviso solo en esas pantallas y
+    mirando otro año; al volver a una pantalla del año, el año elegido sigue.
+  - `components/anioLectivo/`: `SelectorAnioLectivoView` y
+    `AvisoAnioLectivoView`, solo presentación. El aviso, en azul para no
+    confundirlo con el de mora.
+  - `App.jsx`: el proveedor envuelve solo el layout del admin; el aviso va
+    debajo del aviso del tenant; `RutasDelAnio` pone el año elegido en la
+    `key` de las rutas: al cambiar de año la página empieza de cero, y cargar
+    la lista no la reinicia (la `key` usa el año elegido a mano, `null` para
+    el activo).
+  - `components/autenticacion/NavAdminView.jsx`: prop opcional
+    `renderSelectorAnio`, dibujada junto a las notificaciones. Sin ella, la
+    barra queda igual que antes.
+- Por qué `RUTAS_POR_ANIO` empieza vacía: cada paso agrega sus pantallas
+  cuando ya cargan los datos del año elegido. Así ningún paso deja una
+  pantalla mostrando un año con los datos de otro.
+- Peticiones, comprobadas en pruebas: con un año, las de hoy quedan idénticas
+  (no se tocó ningún servicio existente) y se suma `GET /anios-lectivos`,
+  una vez. El profesor, el super admin y quien no tiene sesión no la hacen.
+- Pruebas: 46 nuevas.
+  - Siete archivos nuevos: `utils/anioLectivo.test.js`,
+    `services/aniosLectivosApi.test.js`, `AnioLectivoProvider.test.jsx`,
+    `useAnioLectivoEnPantalla.test.jsx`, las pruebas de las dos vistas y
+    `App.anioLectivo.test.jsx`. Este último prueba el mecanismo completo con
+    una pantalla del año inventada: cambiar de año reinicia la página con el
+    año nuevo, cargar la lista no la reinicia, "Volver a 2026" vuelve, y en
+    una pantalla que no depende del año no hay selector ni aviso.
+  - Una más en `NavegacionesView.test.jsx` (la barra dibuja el selector que
+    recibe) y una en `App.composicion.test.jsx` (con dos años, el inicio no
+    muestra selector ni aviso).
+  - Ajustadas a propósito: `App.test.jsx` y `App.composicion.test.jsx`
+    simulan el servicio nuevo. Sin eso, el layout del admin pedía la lista
+    por la red durante la prueba: no fallaba, pero una prueba no debe salir a
+    la red. `App.composicion.test.jsx` comprueba además cuántas veces se
+    pide. Las 27 pruebas de `App` y de la barra pasaron sin tocarlas antes de
+    ese ajuste.
+  - Quince versiones dañadas del código hacen fallar alguna prueba: mandar
+    parámetros con el activo, quitar la `key`, usar el año efectivo en la
+    `key` (reiniciaría la página al cargar la lista), no tratar "elegir el
+    activo" como no elegir, proveedor también para el profesor, selector o
+    aviso en cualquier pantalla, no cortar la petición, barra que ignora el
+    selector, una pantalla ya en la lista en este paso, `/admin` alcanzando a
+    `/admin/pagos`, ruta equivocada, el selector avisando el año como texto,
+    `seleccionarAnio` sin aceptar texto y el aviso de cerrado sin "Solo
+    consulta".
+- Documentación: `ARQUITECTURA_FRONTEND.md` (sección "Año lectivo", con la
+  regla del único Context), `API_CLIENT.md`, `COMPONENTES.md`,
+  `CAMBIOS_FRONTEND.md` y `docs/README.md`.
+- Verificación: `pnpm run check:deploy` → **2085 pruebas pasan** (antes
+  2039), lint limpio y build correcto; `git diff --check` limpio.
+- Efecto al publicar: ninguno visible; una petición más cuando el admin abre
+  o recarga la aplicación. Revisión en local: con un solo año no se ve nada
+  nuevo; basta comprobar que el admin y el profesor entran y navegan como
+  siempre.
+
 ### Fase 5 — Preparar el año siguiente
 
 1. Página nueva `/admin/anios-lectivos` (guard `AdminRoute`), con tres
@@ -499,9 +577,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Preguntas abiertas
 
-- Fase 4, antes del paso 4.1: ¿el selector (y el aviso) se esconde o se
-  desactiva en las pantallas que no dependen del año? Cuáles son, en el
-  "Inventario confirmado el 2026-10-03".
+- ~~Fase 4, antes del paso 4.1: ¿el selector (y el aviso) se esconde o se
+  desactiva en las pantallas que no dependen del año?~~ **Respondida el
+  2026-10-03: se esconde (opción A).** Motivo: en Pagos, un selector gris
+  que dijera "2026" podría hacer creer que el pago va a 2026; escondido, esa
+  duda no existe. Aceptado lo que cuesta: en esas pantallas no se ve qué año
+  está elegido; se vuelve a ver al regresar a una pantalla del año.
 - Fase 4, antes del paso 4.2 (encontrada el 2026-10-03): ¿qué puede hacer
   el admin cuando mira
   un año **en preparación**? Los documentos no lo dejan claro. Por un lado,
@@ -522,11 +603,10 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **inventario y plan por pasos de la fase 4**
-  (2026-10-03, solo documento), con la autorización del usuario para
-  empezar la fase 4. Ver "Inventario confirmado el 2026-10-03" y "Plan por
-  pasos" en la fase 4. Todavía no hay código de esta funcionalidad en este
-  repo.
+- Última acción terminada: **paso 4.1 de la fase 4** (la base: años,
+  selector y aviso), 2026-10-03, escrito y probado, **sin commit**. Ver su
+  "Avance" en la fase 4. Antes, el mismo día: inventario y plan por pasos
+  (commit `dbb0e48`), aprobados por el usuario junto con el paso 4.1.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -550,14 +630,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción de este repo: que el usuario revise y apruebe el plan
-  por pasos de la fase 4. Con él quedan aceptados las dos decisiones de
-  diseño "a confirmar al empezar la fase 4", los cambios del inventario
-  (Pagos, el inicio y Reportes siempre en el año activo) y el costo de una
-  petición. Después, antes del paso 4.1, hacerle la primera pregunta
-  abierta (selector y aviso en las pantallas que no dependen del año), y
-  antes del 4.2 la segunda (qué puede hacer el admin en un año en
-  preparación). De una en una. El contrato de la fase 2 para pagos y
+- Siguiente acción de este repo: que el usuario revise y haga el commit del
+  paso 4.1. Después, el **paso 4.2** (Administración y horarios), solo con
+  su visto bueno. Antes de empezarlo, hacerle la segunda pregunta abierta
+  (qué puede hacer el admin mirando un año en preparación), porque decide
+  los botones de esas pantallas. El contrato de la fase 2 para pagos y
   cartera sigue en la fase 5 de este documento. El estado al día está en la
   "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

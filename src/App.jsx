@@ -6,6 +6,11 @@ import NavAdminView from "./components/autenticacion/NavAdminView";
 import NavProfesorView from "./components/autenticacion/NavProfesorView";
 import NavSuperAdminView from "./components/autenticacion/NavSuperAdminView";
 import TenantStatusBannerView from "./components/autenticacion/TenantStatusBannerView";
+import AvisoAnioLectivoView from "./components/anioLectivo/AvisoAnioLectivoView";
+import SelectorAnioLectivoView from "./components/anioLectivo/SelectorAnioLectivoView";
+import AnioLectivoProvider from "./hooks/anioLectivo/AnioLectivoProvider";
+import useAnioLectivo from "./hooks/anioLectivo/useAnioLectivo";
+import useAnioLectivoEnPantalla from "./hooks/anioLectivo/useAnioLectivoEnPantalla";
 import { useCerrarSesion } from "./hooks/autenticacion/useCerrarSesion";
 import { useEstadoTenant } from "./hooks/autenticacion/useEstadoTenant";
 import {
@@ -56,6 +61,25 @@ function renderNotificacionesProfesor(onNavigate) {
   return <NotificacionesPlaneadores rol="profesor" onNavigate={onNavigate} />;
 }
 
+function SelectorAnioLectivoAdmin() {
+  const { mostrarSelector, opciones, anioSeleccionadoId, seleccionarAnio } =
+    useAnioLectivoEnPantalla();
+
+  if (!mostrarSelector) return null;
+
+  return (
+    <SelectorAnioLectivoView
+      opciones={opciones}
+      anioSeleccionadoId={anioSeleccionadoId}
+      onCambiar={seleccionarAnio}
+    />
+  );
+}
+
+function renderSelectorAnioAdmin() {
+  return <SelectorAnioLectivoAdmin />;
+}
+
 function PageLoader() {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
@@ -96,6 +120,7 @@ function NavegacionSesion({ esAdmin }) {
     <NavAdminView
       onCerrarSesion={cerrarSesion}
       renderNotificaciones={renderNotificacionesAdmin}
+      renderSelectorAnio={renderSelectorAnioAdmin}
     />
   ) : (
     <NavProfesorView
@@ -120,6 +145,19 @@ function NavegacionSuperAdmin() {
 function AvisoEstadoTenant() {
   const aviso = useEstadoTenant();
   return <TenantStatusBannerView aviso={aviso} />;
+}
+
+function AvisoAnioLectivo() {
+  const { aviso, volverAlActivo } = useAnioLectivoEnPantalla();
+  return <AvisoAnioLectivoView aviso={aviso} onVolver={volverAlActivo} />;
+}
+
+// Al cambiar de año, la página abierta empieza de cero (la `key`): ningún
+// curso ni filtro del año anterior queda pegado, y cada pantalla carga con el
+// año nuevo. Mirando el activo, y siempre para el profesor, la `key` no cambia.
+function RutasDelAnio({ children }) {
+  const { anioSeleccionadoId } = useAnioLectivo();
+  return <Routes key={anioSeleccionadoId ?? "anio-activo"}>{children}</Routes>;
 }
 
 function App() {
@@ -153,13 +191,14 @@ function Layout() {
     return <Navigate to={RUTAS_SESION.LOGIN} />;
   }
 
-  return (
+  const layout = (
     <div className="notranslate min-h-screen bg-slate-50" translate="no">
       <NavegacionSesion esAdmin={esAdmin} />
       <AvisoEstadoTenant />
+      {esAdmin ? <AvisoAnioLectivo /> : null}
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
         <Suspense fallback={<PageLoader />}>
-          <Routes>
+          <RutasDelAnio>
             <Route path={RUTAS_SESION.INICIO_PROFESOR} element={<ProtectedRoute><DashboardProfesor /></ProtectedRoute>} />
             <Route path={RUTAS_SESION.INICIO_ADMIN} element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/pagos" element={<AdminRoute><PagosAdmin /></AdminRoute>} />
@@ -193,11 +232,15 @@ function Layout() {
             <Route path="/planeador-anual" element={<ProtectedRoute><PlaneadorAnual /></ProtectedRoute>} />
             <Route path="/ingreso-boletin" element={<ProtectedRoute><IngresoBoletinProfesor /></ProtectedRoute>} />
             <Route path="/boletin" element={<AdminRoute><Boletin /></AdminRoute>} />
-          </Routes>
+          </RutasDelAnio>
         </Suspense>
       </main>
     </div>
   );
+
+  // El año lectivo es solo del admin: el profesor no tiene proveedor, ni
+  // selector, ni pide la lista de años (solo trabaja en el año activo).
+  return esAdmin ? <AnioLectivoProvider>{layout}</AnioLectivoProvider> : layout;
 }
 
 export default App;

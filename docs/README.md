@@ -34,7 +34,7 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/ANIO_LECTIVO.md`: selector discreto de año lectivo para
   el admin, consulta de años cerrados y pantalla para preparar y activar el
   año siguiente. El documento principal esta en el backend.
-  **Disenado, nada implementado.**
+  **Fase 4 en curso** (paso 4.1, la base del selector, el 2026-10-03).
 
 ## Control SaaS
 

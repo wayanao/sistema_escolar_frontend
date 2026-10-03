@@ -5,6 +5,7 @@ import App from "./App";
 
 const mocks = vi.hoisted(() => ({
   useEstadoTenant: vi.fn(),
+  listarAniosLectivos: vi.fn(),
 }));
 
 vi.mock("./pages/Login", () => ({
@@ -43,6 +44,11 @@ vi.mock("./components/autenticacion/TenantStatusBannerView", () => ({
 vi.mock("./hooks/autenticacion/useEstadoTenant", () => ({
   useEstadoTenant: mocks.useEstadoTenant,
 }));
+// El layout del admin pide la lista de años al montarse: aquí nunca sale a la
+// red.
+vi.mock("./services/aniosLectivosApi", () => ({
+  listarAniosLectivos: mocks.listarAniosLectivos,
+}));
 
 function guardarSesion(clave, datos) {
   localStorage.setItem(clave, JSON.stringify(datos));
@@ -61,6 +67,8 @@ describe("rutas de autenticacion y sesion", () => {
     localStorage.clear();
     mocks.useEstadoTenant.mockReset();
     mocks.useEstadoTenant.mockReturnValue(null);
+    mocks.listarAniosLectivos.mockReset();
+    mocks.listarAniosLectivos.mockResolvedValue([{ id: 1, anio: 2026, estado: "activo" }]);
   });
 
   it("mantiene /login publica aunque exista una sesion", () => {

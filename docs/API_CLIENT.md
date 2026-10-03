@@ -80,6 +80,26 @@ GET /tenant/status
 - `en_mora`: muestra banner de pago.
 - `suspendido` y `cancelado`: el bloqueo real lo aplica el backend.
 
+## Años lectivos
+
+`services/aniosLectivosApi.js` encapsula:
+
+```text
+GET /anios-lectivos
+```
+
+- Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
+  todos los años; el profesor, solo el activo.
+- `AnioLectivoProvider`, que envuelve solo el layout del admin, la pide una
+  vez cada vez que se abre o recarga la aplicación (no al cambiar de
+  pantalla). El profesor no la hace. Si falla, todo sigue como antes.
+- Las lecturas que aceptan `?anio_lectivo_id=` lo recibirán solo cuando el
+  admin mire un año que no es el activo (`parametrosAnio` en
+  `utils/anioLectivo.js`); mirando el activo, cada petición queda idéntica a
+  la de antes. Desde el paso 4.1 (2026-10-03) ninguna lo manda todavía: cada
+  paso de la fase 4 conecta sus pantallas. Contrato completo del backend y
+  plan en `docs/funcionalidades/ANIO_LECTIVO.md`.
+
 ## Super admin
 
 `SuperAdminDashboard.jsx` consume:

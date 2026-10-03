@@ -5,7 +5,7 @@ import { ADMIN_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "../../utils/autenticacion/sesion";
 import DesktopAnimatedNav from "./DesktopAnimatedNav";
 
-function NavAdminView({ onCerrarSesion, renderNotificaciones }) {
+function NavAdminView({ onCerrarSesion, renderNotificaciones, renderSelectorAnio }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMobileGroup, setOpenMobileGroup] = useState(null);
 
@@ -61,6 +61,8 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones }) {
         <div className="ml-auto lg:ml-0">
           {renderNotificaciones(closeMobile)}
         </div>
+        {/* Selector de año: no dibuja nada mientras el colegio tenga un solo año. */}
+        {renderSelectorAnio ? renderSelectorAnio() : null}
         <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
         <button onClick={onCerrarSesion} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesión</button>
 

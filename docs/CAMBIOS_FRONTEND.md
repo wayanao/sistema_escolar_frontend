@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-10-03 - Año lectivo: la base del selector de año (fase 4, paso 4.1)
+
+Primer código de la función "Año lectivo" en este repo. Con un solo año, como
+hoy en producción, no cambia nada visible: el selector y el aviso solo
+aparecen cuando el colegio tiene más de un año (desde la fase 5).
+
+- Nuevos: `services/aniosLectivosApi.js` (`GET /anios-lectivos`),
+  `utils/anioLectivo.js` (contrato puro, con `parametrosAnio`),
+  `hooks/anioLectivo/` (`AnioLectivoProvider`, `useAnioLectivo` y
+  `useAnioLectivoEnPantalla`) y `components/anioLectivo/` (selector y aviso).
+- `App.jsx`: el proveedor envuelve solo el layout del admin, el aviso va
+  debajo del aviso del tenant y `RutasDelAnio` reinicia la página al cambiar
+  de año. `NavAdminView` recibe `renderSelectorAnio`, como las notificaciones.
+- Decidido con el usuario: el selector y el aviso no aparecen en las
+  pantallas que no dependen del año (opción A). En este paso ninguna pantalla
+  sigue el año todavía (`RUTAS_POR_ANIO` vacía); cada paso agrega las suyas.
+- Peticiones: las de hoy quedan idénticas y se suma `GET /anios-lectivos`, una
+  vez cada vez que el admin abre o recarga la aplicación. El profesor no la
+  hace.
+- Primer `createContext` del proyecto: ver "Año lectivo" en
+  `ARQUITECTURA_FRONTEND.md`.
+- Pruebas: 46 nuevas (44 en siete archivos nuevos y 2 en archivos
+  existentes). Ajustadas a propósito `App.test.jsx` y
+  `App.composicion.test.jsx`: simulan el servicio nuevo para no salir a la red,
+  y la de composición comprueba cuántas veces se pide la lista. Quince
+  versiones dañadas del código hacen fallar alguna prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.1".
+
+Verificacion: `pnpm run check:deploy` → 2085 pruebas pasan (antes 2039),
+lint limpio y build correcto. `git diff --check` limpio.
+
 ## 2026-09-30 - Fechas por defecto con la hora de Colombia
 
 `new Date().toISOString()` da la fecha en UTC, cinco horas por delante de

@@ -673,7 +673,18 @@ Estado actual de componentes y paginas del frontend.
   cambio obligatorio de password, tenant y navegación por rol.
 - `pages/Login.jsx` y `pages/CambiarPassword.jsx`: raíces de composición de los
   dos formularios.
-- `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant.
+- `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant. En
+  el layout del admin conecta también el año lectivo: `AnioLectivoProvider`,
+  el selector (que `NavAdminView` dibuja con `renderSelectorAnio`, como las
+  notificaciones) y el aviso, y reinicia la página al cambiar de año
+  (`RutasDelAnio`).
+- `components/anioLectivo/SelectorAnioLectivoView.jsx`: la cajita para elegir
+  el año en la barra del admin. Solo aparece con más de un año y en las
+  pantallas que siguen el año.
+- `components/anioLectivo/AvisoAnioLectivoView.jsx`: el aviso debajo de la
+  navegación ("Estás viendo el año 2026 (cerrado). Solo consulta.", "Estás
+  preparando el año 2027.") con el botón para volver al año activo. Mismo
+  lugar y forma que el aviso del tenant, en azul.
 - `components/autenticacion/DesktopAnimatedNav.jsx`: presentación compartida
   de escritorio para admin y profesor.
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
@@ -1083,6 +1094,13 @@ Notas:
   `/auth/cambiar-password` y `/tenant/status`.
 - `utils/autenticacion/`: claves, contratos, validaciones, payloads,
   redirecciones y navegación puros.
+- `hooks/anioLectivo/`: `AnioLectivoProvider` (carga los años una vez y
+  guarda en memoria el que mira el admin), `useAnioLectivo` (fuera del
+  proveedor, el comportamiento de antes) y `useAnioLectivoEnPantalla` (une el
+  año con la pantalla abierta para el selector y el aviso).
+- `services/aniosLectivosApi.js`: frontera HTTP de `/anios-lectivos`.
+- `utils/anioLectivo.js`: contrato puro del año lectivo, con
+  `parametrosAnio` (`{}` mirando el año activo).
 
 - `hooks/asistencia/useConsultasAsistenciaProfesor.js`: carga cancelable de
   estudiantes, clases e historial.
