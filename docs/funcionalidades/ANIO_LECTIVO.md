@@ -17,7 +17,7 @@
   idénticas a las de hoy".
 - Depende de: fases 1 a 3 del backend en producción antes de la fase 4 de
   este repo.
-- Última actualización: 2026-10-02.
+- Última actualización: 2026-10-03.
 
 ## Objetivo
 
@@ -315,6 +315,19 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 - Fase 4: ¿el selector se esconde o se desactiva en las pantallas que no
   dependen del año?
+- Fase 4 (encontrada el 2026-10-03): ¿qué puede hacer el admin cuando mira
+  un año **en preparación**? Los documentos no lo dejan claro. Por un lado,
+  el punto 4 de la fase 4 oculta crear, editar y borrar en todo año que no
+  sea el activo, y el objetivo 2 habla de "solo consulta". Por otro, el
+  aviso propuesto para ese año es "Estás preparando el año 2027", el
+  documento del backend dice que la fase 4 va antes de la 5 porque el admin
+  necesita las pantallas de siempre mirando 2027 para prepararlo, la
+  decisión 17 dice que los conceptos de 2027 se ajustan en Tipos de pago, y
+  la guardia del backend deja guardar al admin en un año en preparación
+  (`exigir_anio_editable`: solo un año cerrado lo frena). Además, crear un
+  curso o un concepto siempre lo crea en el año activo (pregunta abierta del
+  backend para la fase 5): un botón de crear visible mientras se mira 2027
+  lo crearía en 2026. **Sin respuesta del usuario.**
 
 ## Entrega para el siguiente chat
 
@@ -329,11 +342,23 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   fase 2 sí está en GitHub. Se anotó aquí el contrato completo, en
   "Contrato del backend para la fase 4". Sigue sin haber código de esta
   funcionalidad en este repo.
+- 2026-10-03, comprobado al retomar: el backend tiene hechos los 11
+  commits de su fase 3 (el último, `9edbe5d`, es el paso 3.7b), pero
+  ninguno está en GitHub (`git fetch`: `ahead 11`). La fase 3 **no** está
+  en producción, así que la fase 4 sigue sin empezar. Pasan
+  `scripts/verify.py` del backend (2016 pruebas, con un `DATABASE_URL`
+  inventado como en CI) y `pnpm run check:deploy` de este repo (2039
+  pruebas, lint y build; en una primera corrida, 3 pruebas se pasaron del
+  límite de 5 s por lentitud del equipo, pasan solas y la segunda corrida
+  completa salió limpia). Se anotó una segunda pregunta abierta de la fase
+  4 (qué puede hacer el admin mirando un año en preparación).
 - Siguiente acción de este repo: la **fase 4** (selector de año), cuando la
   fase 3 del backend esté en producción y con el visto bueno del usuario.
-  Antes de empezarla, preguntarle la pregunta abierta de la fase 4 (¿el
-  selector se esconde o se desactiva en las pantallas que no dependen del
-  año?). El contrato de la fase 2 para pagos y cartera sigue en la fase 5
-  de este documento. El estado al día está en la "Entrega" del documento
-  del backend.
+  Antes de empezarla, hacerle las dos preguntas abiertas de la fase 4, de
+  una en una: si el selector se esconde o se desactiva en las pantallas que
+  no dependen del año, y qué puede hacer el admin mirando un año en
+  preparación. Y confirmar con él las dos decisiones de diseño "a confirmar
+  al empezar la fase 4". El contrato de la fase 2 para pagos y cartera
+  sigue en la fase 5 de este documento. El estado al día está en la
+  "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
