@@ -2,7 +2,9 @@
 
 ## Control
 
-- Estado: **Diseñado, nada implementado.** Ninguna fase iniciada.
+- Estado: **Diseñado, nada implementado.** Ninguna fase de este repo
+  iniciada. El backend terminó su fase 3 el 2026-10-02 (sin subir); su
+  contrato está en "Contrato del backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - Repos afectados: este repo y `sistema_escolar_api`. **El documento
@@ -15,7 +17,7 @@
   idénticas a las de hoy".
 - Depende de: fases 1 a 3 del backend en producción antes de la fase 4 de
   este repo.
-- Última actualización: 2026-10-01.
+- Última actualización: 2026-10-02.
 
 ## Objetivo
 
@@ -162,6 +164,65 @@ Las fases 0 a 3 son solo del backend. Este repo empieza en la fase 4.
    lo del año elegido; `pnpm run check:deploy` pasa; el usuario lo revisa en
    local.
 
+#### Contrato del backend para la fase 4 (su fase 3, terminada el 2026-10-02)
+
+Fuente: `sistema_escolar_api/docs/API_ENDPOINTS.md` y la fase 3 de
+`sistema_escolar_api/docs/funcionalidades/ANIO_LECTIVO.md`. Antes de usarlo,
+confirmar que la fase 3 del backend ya está en producción.
+
+- **Lista de años:** `GET /anios-lectivos` → `[{ "id", "anio", "estado" }]`,
+  el más reciente primero. Estados: `preparacion`, `activo`, `cerrado`,
+  `reabierto`. El admin recibe todos; el profesor, solo el activo.
+- **Regla común de las lecturas:** aceptan `?anio_lectivo_id=` opcional. Sin
+  él, el año activo, con la misma respuesta de siempre (por eso
+  `parametrosAnio` debe devolver `{}` con el activo). Un año que no existe da
+  `404` (en pagos, `400`); un profesor que pide otro año, `403`.
+- **Lecturas que aceptan el año:**
+  - Cursos: `GET /cursos` (con y sin paginar).
+  - Conceptos: `GET /tipos-pagos` y `GET /tipos-pagos/detallado`.
+  - Estudiantes: `GET /estudiantes` (sin año o con el activo, todos con su
+    curso actual, como hoy; con otro año, los matriculados de ese año con el
+    curso de ese año), `GET /estudiantes/{id}/detalles` y
+    `GET /estudiantes/{id}/deudas`.
+  - Clases y horarios del admin: `GET /asignaciones/lista`,
+    `GET /hora/horarios-admin` y `GET /profesores/{id}/disponibilidad`.
+  - Boletín y reporte parcial: `GET /boletines/admin/generar/{estudiante}/{periodo}`
+    y `GET /boletines/admin/reporte-parcial/{estudiante}/{periodo}`.
+  - Cartera: `GET /cartera/mora` y `GET /cartera/mora/resumen`. Mirando el
+    activo, solo estudiantes activos y con ventas, como hoy; mirando otro
+    año, todos los matriculados de ese año que deben (también retirados) y
+    sin ventas (decisiones 18 y 19 del backend).
+  - Observador: `GET /observador/{estudiante_id}` (el profesor solo el
+    activo).
+  - Planes del admin: `GET /admin/plan-de-clases` (un año que no existe da
+    la lista vacía).
+  - Pagos (fase 2): `GET /pagos/vencidos/opciones/{id}` y
+    `GET /pagos/adelanto/opciones/{id}`; `POST /pagos` y
+    `POST /pagos/adelanto` con `anio_lectivo_id` en el cuerpo.
+- **Sin año, a propósito:** lo que parte de un id (un curso, una clase, un
+  concepto, un plan) ya implica su año. Lo que ve el profesor (mis clases,
+  sus cursos, su inicio, cumpleaños) es siempre del año activo.
+- **Escrituras (la guardia):** el backend responde, y la pantalla muestra el
+  `detail` tal cual:
+  - `409` `{"detail": "El año lectivo 2026 está cerrado. Solo se puede consultar."}`
+    al guardar algo de un año cerrado (admin y profesor).
+  - `403` `{"detail": "Solo se pueden guardar cambios en el año lectivo activo."}`
+    al profesor en un año en preparación o reabierto.
+  - Límite conocido: en asistencia, boletín y observaciones, para una clase
+    de un año que ya no es el activo, el backend responde antes `403`
+    ("El estudiante no pertenece a esta asignación").
+  - `POST /listas-seguimiento/columnas-en-todos-los-cursos?anio_lectivo_id=`
+    crea la columna en los cursos de ese año (sin año, del activo).
+  - Crear un curso o un concepto siempre lo crea en el año activo (pregunta
+    abierta del backend para la fase 5).
+- **Materias (punto 5):** `PUT /materias/{id}` responde `409` con
+  `{"detail": {"codigo": "materia_usada_en_otro_anio", "mensaje": "..."}}`
+  si el nombre cambia y la materia se usa en otro año. "Cambiar igual"
+  reenvía el mismo cuerpo con `"confirmar_cambio_nombre": true`. El `409` de
+  nombre repetido sigue trayendo `detail` de texto. Hoy
+  `obtenerMensajeErrorMateria` espera texto y mostraría `[object Object]`;
+  no puede pasar con un solo año, y el diálogo de este punto lo resuelve.
+
 ### Fase 5 — Preparar el año siguiente
 
 1. Página nueva `/admin/anios-lectivos` (guard `AdminRoute`), con tres
@@ -263,11 +324,16 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   2026-10-01: lo único con "año lectivo" en `src/` es el campo de texto del
   certificado de matrícula (`hooks/certificadosImpresion/`), que existe
   desde junio de 2026 y no es parte de esta funcionalidad.
-- Siguiente acción de este repo: ninguna hasta que las fases 1 a 3 del
-  backend estén en producción. Al 2026-10-01 el backend terminó la fase 1
-  y escribió el código de su fase 2 (cobros por año), que todavía no está
-  desplegado; lo siguiente allá es su fase 3. El contrato que dejó la fase
-  2 para las pantallas de pagos y cartera está en la fase 5 de este
-  documento. El estado al día está en la "Entrega" del documento del
-  backend.
+- 2026-10-02: el backend terminó su fase 3 (lecturas por año, aviso al
+  renombrar materias y guardia de escritura), todavía sin subir a GitHub; su
+  fase 2 sí está en GitHub. Se anotó aquí el contrato completo, en
+  "Contrato del backend para la fase 4". Sigue sin haber código de esta
+  funcionalidad en este repo.
+- Siguiente acción de este repo: la **fase 4** (selector de año), cuando la
+  fase 3 del backend esté en producción y con el visto bueno del usuario.
+  Antes de empezarla, preguntarle la pregunta abierta de la fase 4 (¿el
+  selector se esconde o se desactiva en las pantallas que no dependen del
+  año?). El contrato de la fase 2 para pagos y cartera sigue en la fase 5
+  de este documento. El estado al día está en la "Entrega" del documento
+  del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
