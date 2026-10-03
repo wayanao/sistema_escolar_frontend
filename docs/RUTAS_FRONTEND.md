@@ -58,6 +58,14 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | `/admin/listas-seguimiento` | `ListasSeguimientoAdmin` |
 | `/boletin` | `Boletin` |
 
+`/admin` guarda su pestaña en la dirección desde el 2026-10-03 (año lectivo,
+fase 4, paso 4.2): `/admin?modulo=profesores`, `cursos`, `materias`,
+`asignar-clases` u `orden-boletin`. Sin `modulo`, o con uno desconocido, abre
+Profesores, como antes. Cambiar de pestaña reemplaza la dirección, así que no
+suma pasos al botón Atrás. Motivo: la pestaña sobrevive cuando la página se
+reinicia al cambiar de año, y la barra sabe si la pestaña abierta depende del
+año (ver `docs/funcionalidades/ANIO_LECTIVO.md`).
+
 ## Rutas de super admin
 
 Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "super_admin"`.

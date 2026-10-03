@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../components/administracionAcademica/profesores/CrearProfesor", () => ({
@@ -20,10 +21,32 @@ vi.mock("./OrdenBoletin", () => ({
 
 import Admin from "./Admin";
 
+function UbicacionActual() {
+    const { pathname, search } = useLocation();
+    const navegar = useNavigate();
+    return (
+        <>
+            <p data-testid="ubicacion">{`${pathname}${search}`}</p>
+            <button type="button" onClick={() => navegar(-1)}>Atrás</button>
+        </>
+    );
+}
+
+// Desde el paso 4.2 del año lectivo, la pestaña vive en la dirección
+// (`?modulo=`), así que la página necesita un router.
+function renderAdmin(entradas = ["/admin"]) {
+    return render(
+        <MemoryRouter initialEntries={entradas} initialIndex={entradas.length - 1}>
+            <Admin />
+            <UbicacionActual />
+        </MemoryRouter>,
+    );
+}
+
 describe("composición de administración académica", () => {
     it("conserva pestañas, selección inicial y carga diferida de los módulos académicos", async () => {
         const user = userEvent.setup();
-        render(<Admin />);
+        renderAdmin();
 
         expect(screen.getByRole("heading", { name: "Administración académica" })).toBeInTheDocument();
         expect(await screen.findByText("Contenido de profesores")).toBeInTheDocument();
@@ -66,5 +89,45 @@ describe("composición de administración académica", () => {
         expect(await screen.findByText("Contenido de orden boletín")).toBeInTheDocument();
         expect(ordenBoletin).toHaveAttribute("aria-current", "page");
         expect(asignaciones).not.toHaveAttribute("aria-current");
+    });
+
+    it("escribe en la dirección la pestaña elegida, con los ids que usa el año lectivo", async () => {
+        const user = userEvent.setup();
+        renderAdmin();
+        await screen.findByText("Contenido de profesores");
+
+        await user.click(screen.getByRole("button", { name: "Cursos" }));
+        expect(screen.getByTestId("ubicacion")).toHaveTextContent("/admin?modulo=cursos");
+
+        await user.click(screen.getByRole("button", { name: "Asignaciones" }));
+        expect(screen.getByTestId("ubicacion")).toHaveTextContent("/admin?modulo=asignar-clases");
+
+        await user.click(screen.getByRole("button", { name: "Orden boletín" }));
+        expect(screen.getByTestId("ubicacion")).toHaveTextContent("/admin?modulo=orden-boletin");
+    });
+
+    it("abre la pestaña que dice la dirección, y Profesores si no dice una válida", async () => {
+        const { unmount } = renderAdmin(["/admin?modulo=cursos"]);
+
+        expect(await screen.findByText("Contenido de cursos")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Cursos" })).toHaveAttribute("aria-current", "page");
+        unmount();
+
+        renderAdmin(["/admin?modulo=inventada"]);
+
+        expect(await screen.findByText("Contenido de profesores")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Profesores" })).toHaveAttribute("aria-current", "page");
+    });
+
+    it("cambiar de pestaña no suma pasos al botón Atrás", async () => {
+        const user = userEvent.setup();
+        renderAdmin(["/inicio", "/admin"]);
+        await screen.findByText("Contenido de profesores");
+
+        await user.click(screen.getByRole("button", { name: "Cursos" }));
+        await user.click(screen.getByRole("button", { name: "Materias" }));
+        await user.click(screen.getByRole("button", { name: "Atrás" }));
+
+        expect(screen.getByTestId("ubicacion")).toHaveTextContent("/inicio");
     });
 });

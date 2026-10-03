@@ -111,3 +111,21 @@ describe("useDisponibilidadAsignacion", () => {
         expect(result.current.disponibilidad).toBeNull();
     });
 });
+
+describe("useDisponibilidadAsignacion con un año elegido", () => {
+    it("pide la disponibilidad del profesor en ese año", async () => {
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        const { result } = renderHook(() => useDisponibilidadAsignacion({
+            profesorId: "11",
+            dia: "Lunes",
+            editandoId: null,
+            parametrosAnio,
+        }));
+
+        await waitFor(() => expect(result.current.disponibilidad).toEqual({ jornadas: [] }));
+        expect(obtenerDisponibilidadMock).toHaveBeenCalledWith("11", { dia: "Lunes" }, {
+            signal: expect.any(AbortSignal),
+            parametrosAnio,
+        });
+    });
+});

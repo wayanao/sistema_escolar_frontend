@@ -1,3 +1,5 @@
+// `puedeEditar` en falso (un año cerrado) deja el orden solo para consultar:
+// sin A-Z, sin guardar y sin mover materias.
 export default function VistaOrdenBoletin({
   cargandoCursos,
   cargandoOrden,
@@ -7,6 +9,7 @@ export default function VistaOrdenBoletin({
   guardando,
   materias,
   mensaje,
+  puedeEditar = true,
   onCambiarCurso,
   onGuardarOrden,
   onMoverAPosicion,
@@ -44,24 +47,26 @@ export default function VistaOrdenBoletin({
             </select>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button
-              type="button"
-              onClick={onOrdenarAlfabetico}
-              disabled={guardando || materias.length === 0}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
-            >
-              A-Z
-            </button>
-            <button
-              type="button"
-              onClick={onGuardarOrden}
-              disabled={guardando || materias.length === 0}
-              className="rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-800 disabled:opacity-60"
-            >
-              {guardando ? "Guardando..." : "Guardar orden"}
-            </button>
-          </div>
+          {puedeEditar && (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={onOrdenarAlfabetico}
+                disabled={guardando || materias.length === 0}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+              >
+                A-Z
+              </button>
+              <button
+                type="button"
+                onClick={onGuardarOrden}
+                disabled={guardando || materias.length === 0}
+                className="rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-800 disabled:opacity-60"
+              >
+                {guardando ? "Guardando..." : "Guardar orden"}
+              </button>
+            </div>
+          )}
         </div>
 
         {cursoSeleccionado && (
@@ -115,17 +120,19 @@ export default function VistaOrdenBoletin({
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-sm font-black text-white">
                     {index + 1}
                   </span>
-                  <input
-                    type="number"
-                    min="1"
-                    max={materias.length}
-                    value={index + 1}
-                    onChange={(event) =>
-                      onMoverAPosicion(index, event.target.value)
-                    }
-                    className="h-10 w-20 rounded-lg border border-gray-300 px-2 text-center text-sm font-bold text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
-                    aria-label={`Posición de ${materia.materia_nombre}`}
-                  />
+                  {puedeEditar && (
+                    <input
+                      type="number"
+                      min="1"
+                      max={materias.length}
+                      value={index + 1}
+                      onChange={(event) =>
+                        onMoverAPosicion(index, event.target.value)
+                      }
+                      className="h-10 w-20 rounded-lg border border-gray-300 px-2 text-center text-sm font-bold text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                      aria-label={`Posición de ${materia.materia_nombre}`}
+                    />
+                  )}
                 </div>
 
                 <div className="min-w-0">
@@ -144,28 +151,30 @@ export default function VistaOrdenBoletin({
                   </p>
                 </div>
 
-                <div className="flex gap-2 sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => onMoverMateria(index, -1)}
-                    disabled={index === 0 || guardando}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-lg font-black text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
-                    title="Subir"
-                    aria-label={`Subir ${materia.materia_nombre}`}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onMoverMateria(index, 1)}
-                    disabled={index === materias.length - 1 || guardando}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-lg font-black text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
-                    title="Bajar"
-                    aria-label={`Bajar ${materia.materia_nombre}`}
-                  >
-                    ↓
-                  </button>
-                </div>
+                {puedeEditar && (
+                  <div className="flex gap-2 sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => onMoverMateria(index, -1)}
+                      disabled={index === 0 || guardando}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-lg font-black text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
+                      title="Subir"
+                      aria-label={`Subir ${materia.materia_nombre}`}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onMoverMateria(index, 1)}
+                      disabled={index === materias.length - 1 || guardando}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-lg font-black text-gray-700 transition hover:bg-gray-50 disabled:opacity-40"
+                      title="Bajar"
+                      aria-label={`Bajar ${materia.materia_nombre}`}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                )}
               </article>
             ))}
           </div>

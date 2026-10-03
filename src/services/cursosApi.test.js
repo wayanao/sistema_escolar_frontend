@@ -48,6 +48,21 @@ describe("contrato HTTP de cursos", () => {
         });
     });
 
+    it("mirando otro año agrega anio_lectivo_id al filtro de estado", async () => {
+        const controller = new AbortController();
+        apiMock.get.mockResolvedValue({ data: [] });
+
+        await listarCursos("activo", {
+            signal: controller.signal,
+            parametrosAnio: { anio_lectivo_id: 2 },
+        });
+
+        expect(apiMock.get).toHaveBeenCalledWith("/cursos", {
+            params: { estado: "activo", anio_lectivo_id: 2 },
+            signal: controller.signal,
+        });
+    });
+
     it("crea y actualiza conservando el payload exacto", async () => {
         const payload = {
             nombre: "6A",

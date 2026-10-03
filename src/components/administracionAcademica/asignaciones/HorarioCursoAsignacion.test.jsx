@@ -53,3 +53,23 @@ describe("HorarioCursoAsignacion", () => {
         expect(onDesactivar).toHaveBeenCalledWith(ASIGNACION);
     });
 });
+
+describe("HorarioCursoAsignacion en un año cerrado", () => {
+    it("muestra las clases sin Editar ni Desactivar", () => {
+        render(
+            <HorarioCursoAsignacion
+                asignaciones={[ASIGNACION]}
+                cursoSeleccionado={{ id: 21, nombre: "5A" }}
+                editandoId={null}
+                puedeEditar={false}
+                onEditar={vi.fn()}
+                onDesactivar={vi.fn()}
+                guardando={false}
+            />,
+        );
+
+        expect(screen.getByText("MATEMÁTICAS")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Desactivar" })).not.toBeInTheDocument();
+    });
+});

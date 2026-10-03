@@ -112,3 +112,18 @@ describe("useDatosAsignaciones", () => {
         expect(result.current.profesores).toEqual([{ id: 12 }]);
     });
 });
+
+describe("useDatosAsignaciones con un año elegido", () => {
+    it("pide los cursos y las clases de ese año; profesores y materias no tienen año", async () => {
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        const { result } = renderHook(() => useDatosAsignaciones({ parametrosAnio }));
+
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        const conAnio = { signal: expect.any(AbortSignal), parametrosAnio };
+        const sinAnio = { signal: expect.any(AbortSignal) };
+        expect(listarCursosMock).toHaveBeenCalledWith(conAnio);
+        expect(listarAsignacionesMock).toHaveBeenCalledWith(conAnio);
+        expect(listarProfesoresMock).toHaveBeenCalledWith(sinAnio);
+        expect(listarMateriasMock).toHaveBeenCalledWith(sinAnio);
+    });
+});

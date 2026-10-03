@@ -3,10 +3,13 @@ import {
     formatearHora12,
 } from "../../../utils/administracionAcademica/asignaciones";
 
+// `puedeEditar` en falso (un año cerrado) quita Editar y Desactivar: el
+// horario queda solo para consultar.
 function HorarioCursoAsignacion({
     asignaciones,
     cursoSeleccionado,
     editandoId,
+    puedeEditar = true,
     onEditar,
     onDesactivar,
     guardando,
@@ -61,23 +64,25 @@ function HorarioCursoAsignacion({
                                                 {clase.profesor_nombre}
                                             </div>
 
-                                            <div className="flex gap-2 mt-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onEditar(clase)}
-                                                    className="text-xs font-semibold text-blue-700 hover:text-blue-900"
-                                                >
-                                                    Editar
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onDesactivar(clase)}
-                                                    disabled={guardando}
-                                                    className="text-xs font-semibold text-red-600 hover:text-red-800 disabled:opacity-60"
-                                                >
-                                                    Desactivar
-                                                </button>
-                                            </div>
+                                            {puedeEditar && (
+                                                <div className="flex gap-2 mt-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onEditar(clase)}
+                                                        className="text-xs font-semibold text-blue-700 hover:text-blue-900"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onDesactivar(clase)}
+                                                        disabled={guardando}
+                                                        className="text-xs font-semibold text-red-600 hover:text-red-800 disabled:opacity-60"
+                                                    >
+                                                        Desactivar
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 )}

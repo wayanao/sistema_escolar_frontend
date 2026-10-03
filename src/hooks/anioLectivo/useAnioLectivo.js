@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { SIN_PARAMETROS_DE_ANIO } from "../../utils/anioLectivo";
+import { SIN_PARAMETROS_DE_ANIO, permisosAnio } from "../../utils/anioLectivo";
 
 // El año que mira el admin, compartido entre la barra de navegación y la
 // página abierta. Es el primer Context del proyecto, y a propósito el único:
@@ -18,6 +18,7 @@ const SIN_PROVEEDOR = Object.freeze({
   anioSeleccionadoId: null,
   hayVariosAnios: false,
   parametros: SIN_PARAMETROS_DE_ANIO,
+  permisos: permisosAnio(null, null),
   seleccionarAnio: () => {},
   volverAlActivo: () => {},
 });

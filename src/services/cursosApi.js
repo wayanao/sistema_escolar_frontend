@@ -1,7 +1,9 @@
 import api from "../utils/api";
 
-export async function listarCursos(estado, { signal } = {}) {
-    const opciones = { params: { estado } };
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); sin él, la petición es la de siempre.
+export async function listarCursos(estado, { signal, parametrosAnio } = {}) {
+    const opciones = { params: { estado, ...parametrosAnio } };
     if (signal) opciones.signal = signal;
 
     const { data } = await api.get("/cursos", opciones);

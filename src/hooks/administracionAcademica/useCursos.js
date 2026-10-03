@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listarCursos } from "../../services/cursosApi";
 import { listarProfesores } from "../../services/profesoresApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 
-export default function useCursos() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Los profesores no tienen año.
+export default function useCursos({ parametrosAnio } = {}) {
     const [cursos, setCursos] = useState([]);
     const [estadoFiltro, setEstadoFiltro] = useState("activo");
     const [profesores, setProfesores] = useState([]);
@@ -19,9 +22,10 @@ export default function useCursos() {
         solicitudRef.current = controller;
 
         try {
-            const data = await listarCursos(estadoFiltro, {
-                signal: controller.signal,
-            });
+            const data = await listarCursos(
+                estadoFiltro,
+                opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+            );
 
             if (solicitudRef.current !== controller || controller.signal.aborted) return;
             setCursos(data);
@@ -33,7 +37,7 @@ export default function useCursos() {
                 solicitudRef.current = null;
             }
         }
-    }, [estadoFiltro]);
+    }, [estadoFiltro, parametrosAnio]);
 
     useEffect(() => {
         void recargar();

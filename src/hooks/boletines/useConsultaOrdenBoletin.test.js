@@ -81,3 +81,18 @@ describe("useConsultaOrdenBoletin", () => {
     expect(result.current.materias).toEqual([]);
   });
 });
+
+describe("useConsultaOrdenBoletin con un año elegido", () => {
+  it("pide los cursos de ese año; el orden de cada curso parte de su id", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const { result } = renderHook(() => useConsultaOrdenBoletin({ parametrosAnio }));
+
+    await waitFor(() => expect(result.current.cargandoCursos).toBe(false));
+    await waitFor(() => expect(obtenerOrdenMock).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.cargandoOrden).toBe(false));
+    expect(listarCursosMock).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+      parametrosAnio,
+    });
+  });
+});

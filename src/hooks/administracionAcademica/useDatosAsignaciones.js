@@ -5,8 +5,11 @@ import {
     listarMateriasAsignacion,
     listarProfesoresAsignacion,
 } from "../../services/asignacionesApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 
-export default function useDatosAsignaciones() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Cursos y clases son de un año; profesores y materias no.
+export default function useDatosAsignaciones({ parametrosAnio } = {}) {
     const [profesores, setProfesores] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [materias, setMaterias] = useState([]);
@@ -27,11 +30,12 @@ export default function useDatosAsignaciones() {
 
         try {
             const opciones = { signal: controller.signal };
+            const opcionesDelAnio = opcionesConAnio(opciones, parametrosAnio);
             const [profesoresData, cursosData, materiasData, asignacionesData] = await Promise.all([
                 listarProfesoresAsignacion(opciones),
-                listarCursosAsignacion(opciones),
+                listarCursosAsignacion(opcionesDelAnio),
                 listarMateriasAsignacion(opciones),
-                listarAsignaciones(opciones),
+                listarAsignaciones(opcionesDelAnio),
             ]);
 
             if (solicitudRef.current !== controller || controller.signal.aborted) return;
@@ -48,7 +52,7 @@ export default function useDatosAsignaciones() {
                 setCargando(false);
             }
         }
-    }, []);
+    }, [parametrosAnio]);
 
     useEffect(() => {
         void recargar();

@@ -1,11 +1,15 @@
 import FormularioAsignacion from "./FormularioAsignacion";
 import HorarioCursoAsignacion from "./HorarioCursoAsignacion";
 import SelectorCursoAsignacion from "./SelectorCursoAsignacion";
+import useAnioLectivo from "../../../hooks/anioLectivo/useAnioLectivo";
 import useComandosAsignaciones from "../../../hooks/administracionAcademica/useComandosAsignaciones";
 import useDatosAsignaciones from "../../../hooks/administracionAcademica/useDatosAsignaciones";
 import useDisponibilidadAsignacion from "../../../hooks/administracionAcademica/useDisponibilidadAsignacion";
 
 function AsignarClase() {
+    // Una clase pertenece al año de su curso, así que en un año en preparación
+    // se pueden armar las de ese año; en uno cerrado, solo consultarlas.
+    const { parametros, permisos } = useAnioLectivo();
     const {
         profesores,
         cursos,
@@ -13,7 +17,7 @@ function AsignarClase() {
         listaAsignaciones,
         cargando,
         recargar,
-    } = useDatosAsignaciones();
+    } = useDatosAsignaciones({ parametrosAnio: parametros });
     const {
         cursoId,
         profesorId,
@@ -42,6 +46,7 @@ function AsignarClase() {
         profesorId,
         dia,
         editandoId,
+        parametrosAnio: parametros,
     });
 
     if (cargando) {
@@ -61,29 +66,32 @@ function AsignarClase() {
                 onSeleccionarCurso={seleccionarCurso}
             />
 
-            <FormularioAsignacion
-                cursoId={cursoId}
-                profesorId={profesorId}
-                materiaId={materiaId}
-                dia={dia}
-                horaInicio={horaInicio}
-                horaFin={horaFin}
-                editandoId={editandoId}
-                guardando={guardando}
-                mensajeEstado={mensajeEstado}
-                profesores={profesores}
-                materias={materias}
-                disponibilidad={disponibilidad}
-                cargandoDisponibilidad={cargandoDisponibilidad}
-                onActualizarCampo={actualizarCampo}
-                onCancelarEdicion={cancelarEdicion}
-                onGuardar={guardarAsignacion}
-            />
+            {permisos.puedeEditar && (
+                <FormularioAsignacion
+                    cursoId={cursoId}
+                    profesorId={profesorId}
+                    materiaId={materiaId}
+                    dia={dia}
+                    horaInicio={horaInicio}
+                    horaFin={horaFin}
+                    editandoId={editandoId}
+                    guardando={guardando}
+                    mensajeEstado={mensajeEstado}
+                    profesores={profesores}
+                    materias={materias}
+                    disponibilidad={disponibilidad}
+                    cargandoDisponibilidad={cargandoDisponibilidad}
+                    onActualizarCampo={actualizarCampo}
+                    onCancelarEdicion={cancelarEdicion}
+                    onGuardar={guardarAsignacion}
+                />
+            )}
 
             <HorarioCursoAsignacion
                 asignaciones={asignacionesCurso}
                 cursoSeleccionado={cursoSeleccionado}
                 editandoId={editandoId}
+                puedeEditar={permisos.puedeEditar}
                 onEditar={iniciarEdicion}
                 onDesactivar={desactivarAsignacion}
                 guardando={guardando}

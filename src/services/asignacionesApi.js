@@ -12,8 +12,10 @@ export async function listarProfesoresAsignacion({ signal } = {}) {
     return data;
 }
 
-export async function listarCursosAsignacion({ signal } = {}) {
-    const { data } = await getConOpciones("/cursos", { signal });
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); sin él, cada petición es la de siempre.
+export async function listarCursosAsignacion({ signal, parametrosAnio } = {}) {
+    const { data } = await getConOpciones("/cursos", { params: parametrosAnio, signal });
     return data;
 }
 
@@ -22,15 +24,22 @@ export async function listarMateriasAsignacion({ signal } = {}) {
     return data;
 }
 
-export async function listarAsignaciones({ signal } = {}) {
-    const { data } = await getConOpciones("/asignaciones/lista", { signal });
+export async function listarAsignaciones({ signal, parametrosAnio } = {}) {
+    const { data } = await getConOpciones("/asignaciones/lista", {
+        params: parametrosAnio,
+        signal,
+    });
     return data;
 }
 
-export async function obtenerDisponibilidadProfesor(profesorId, params, { signal } = {}) {
+export async function obtenerDisponibilidadProfesor(
+    profesorId,
+    params,
+    { signal, parametrosAnio } = {},
+) {
     const { data } = await getConOpciones(
         `/profesores/${profesorId}/disponibilidad`,
-        { params, signal },
+        { params: parametrosAnio ? { ...params, ...parametrosAnio } : params, signal },
     );
     return data;
 }

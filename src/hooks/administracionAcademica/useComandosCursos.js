@@ -101,7 +101,9 @@ export default function useComandosCursos({
             }
         } catch (error) {
             console.error("Error cambiando estado del curso:", error);
-            window.alert("No se pudo cambiar el estado del curso");
+            // El mensaje del backend tal cual, como al guardar: por ejemplo,
+            // el 409 de un año lectivo cerrado.
+            window.alert(obtenerMensajeErrorCurso(error, "No se pudo cambiar el estado del curso"));
         }
     };
 

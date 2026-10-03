@@ -123,3 +123,19 @@ describe("useCursos", () => {
         expect(signal.aborted).toBe(true);
     });
 });
+
+describe("useCursos con un año elegido", () => {
+    it("pide los cursos de ese año; los profesores no tienen año", async () => {
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        const { result } = renderHook(() => useCursos({ parametrosAnio }));
+
+        await waitFor(() => expect(result.current.cursos).toHaveLength(1));
+        expect(listarCursosMock).toHaveBeenCalledWith("activo", {
+            signal: expect.any(AbortSignal),
+            parametrosAnio,
+        });
+        expect(listarProfesoresMock).toHaveBeenCalledWith("activo", {
+            signal: expect.any(AbortSignal),
+        });
+    });
+});

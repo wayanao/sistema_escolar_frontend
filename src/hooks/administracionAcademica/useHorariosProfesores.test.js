@@ -89,3 +89,16 @@ describe("useHorariosProfesores", () => {
         expect(signal.aborted).toBe(true);
     });
 });
+
+describe("useHorariosProfesores con un año elegido", () => {
+    it("pide los horarios de ese año", async () => {
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        const { result } = renderHook(() => useHorariosProfesores({ parametrosAnio }));
+
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        expect(listarHorariosAdminMock).toHaveBeenCalledWith({
+            signal: expect.any(AbortSignal),
+            parametrosAnio,
+        });
+    });
+});

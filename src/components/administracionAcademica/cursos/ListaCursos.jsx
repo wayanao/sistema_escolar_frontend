@@ -8,9 +8,12 @@ import {
     obtenerEtiquetaNivelCurso,
 } from "../../../utils/administracionAcademica/cursos";
 
+// `puedeEditar` en falso (un año cerrado) quita la columna de acciones: la
+// lista queda solo para consultar.
 export default function ListaCursos({
     cursos,
     estadoFiltro,
+    puedeEditar = true,
     onCambiarEstadoFiltro,
     onCambiarEstado,
     onEditar,
@@ -39,7 +42,7 @@ export default function ListaCursos({
                             <th className="p-2 border-b">Jornada</th>
                             <th className="p-2 border-b">Nivel</th>
                             <th className="p-2 border-b">Estado</th>
-                            <th className="p-2 border-b text-right">Acciones</th>
+                            {puedeEditar && <th className="p-2 border-b text-right">Acciones</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -61,27 +64,29 @@ export default function ListaCursos({
                                         {obtenerEtiquetaEstadoCurso(curso.estado || "activo")}
                                     </span>
                                 </td>
-                                <td className="p-2 text-right">
-                                    <div className="flex flex-wrap items-center justify-end gap-2">
-                                        <select
-                                            value={curso.estado || "activo"}
-                                            onChange={(event) => onCambiarEstado(curso, event.target.value)}
-                                            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
-                                        >
-                                            {ESTADOS_CURSO.map((item) => (
-                                                <option key={item.value} value={item.value}>
-                                                    {item.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            onClick={() => onEditar(curso)}
-                                            className="text-purple-700 hover:underline"
-                                        >
-                                            Editar
-                                        </button>
-                                    </div>
-                                </td>
+                                {puedeEditar && (
+                                    <td className="p-2 text-right">
+                                        <div className="flex flex-wrap items-center justify-end gap-2">
+                                            <select
+                                                value={curso.estado || "activo"}
+                                                onChange={(event) => onCambiarEstado(curso, event.target.value)}
+                                                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                                            >
+                                                {ESTADOS_CURSO.map((item) => (
+                                                    <option key={item.value} value={item.value}>
+                                                        {item.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                onClick={() => onEditar(curso)}
+                                                className="text-purple-700 hover:underline"
+                                            >
+                                                Editar
+                                            </button>
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>

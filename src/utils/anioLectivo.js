@@ -30,7 +30,19 @@ export const SIN_PARAMETROS_DE_ANIO = Object.freeze({});
 // ni el selector ni el aviso (decidido con el usuario el 2026-10-03): así,
 // por ejemplo en Pagos, nadie cree que el pago va al año que dice arriba.
 // `exacta` es para "/admin", que no debe alcanzar a "/admin/pagos".
-export const RUTAS_POR_ANIO = Object.freeze([]);
+// `parametro` y `valores` limitan una pantalla con pestañas a las pestañas
+// del año: Administración guarda la suya en `?modulo=` (`pages/Admin.jsx`), y
+// Profesores y Materias no tienen año.
+export const RUTAS_POR_ANIO = Object.freeze([
+  // Paso 4.2.
+  {
+    ruta: "/admin",
+    exacta: true,
+    parametro: "modulo",
+    valores: ["cursos", "asignar-clases", "orden-boletin"],
+  },
+  { ruta: "/admin/horarios" },
+]);
 
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;
 
@@ -69,10 +81,47 @@ export function parametrosAnio(anioSeleccionadoId, anioActivoId) {
   return { anio_lectivo_id: anioSeleccionadoId };
 }
 
-export function esRutaPorAnio(pathname, rutas) {
-  return rutas.some(({ ruta, exacta }) =>
-    exacta ? pathname === ruta : pathname === ruta || pathname.startsWith(`${ruta}/`),
-  );
+// Para los servicios: agrega el año a las opciones solo mirando otro año. Con
+// el activo devuelve las mismas opciones, así que la llamada al servicio queda
+// letra por letra como antes (sin una clave `parametrosAnio` vacía).
+export function opcionesConAnio(opciones, parametrosAnio) {
+  if (!parametrosAnio || Object.keys(parametrosAnio).length === 0) return opciones;
+  return { ...opciones, parametrosAnio };
+}
+
+// `ubicacion` es la de React Router: `{ pathname, search }`.
+export function esRutaPorAnio({ pathname, search = "" }, rutas) {
+  const consulta = new URLSearchParams(search);
+
+  return rutas.some(({ ruta, exacta, parametro, valores }) => {
+    const coincide = exacta
+      ? pathname === ruta
+      : pathname === ruta || pathname.startsWith(`${ruta}/`);
+    return coincide && (!parametro || valores.includes(consulta.get(parametro)));
+  });
+}
+
+// Espejo de `ESTADOS_EDITABLES_POR_ADMIN` del backend
+// (`app/services/anio_lectivo.py`): además del activo, el admin guarda en un
+// año en preparación o reabierto; en uno cerrado, nadie.
+const ESTADOS_EDITABLES_POR_ADMIN = new Set([ESTADO_PREPARACION, ESTADO_REABIERTO]);
+
+const PERMISOS_ANIO_ACTIVO = Object.freeze({ esAnioActivo: true, puedeEditar: true });
+
+// Qué botones mostrar mirando un año (decidido con el usuario el 2026-10-03):
+// en el activo, como siempre; en uno en preparación o reabierto, editar lo que
+// ya existe en ese año, pero no crear cursos ni conceptos, porque el backend
+// los crea en el activo (`esAnioActivo` falso); en uno cerrado o desconocido,
+// solo consultar. Es comodidad: quien de verdad lo garantiza es el backend,
+// con su 409.
+export function permisosAnio(anioSeleccionado, anioActivo) {
+  if (!anioSeleccionado || !anioActivo || anioSeleccionado.id === anioActivo.id) {
+    return PERMISOS_ANIO_ACTIVO;
+  }
+  return {
+    esAnioActivo: false,
+    puedeEditar: ESTADOS_EDITABLES_POR_ADMIN.has(anioSeleccionado.estado),
+  };
 }
 
 function mensajeAvisoAnio({ anio, estado }) {

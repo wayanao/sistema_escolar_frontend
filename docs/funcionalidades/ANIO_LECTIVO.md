@@ -3,9 +3,10 @@
 ## Control
 
 - Estado: **Fase 4 en curso**, iniciada el 2026-10-03 con la autorización
-  del usuario: inventario y plan por pasos (commit `dbb0e48`) y **paso 4.1
-  (la base: años, selector y aviso) escrito y probado, sin commit**. Con un
-  solo año no cambia nada visible. La fase 3 del backend está en GitHub
+  del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
+  base: años, selector y aviso; commit `4b14347`) y **paso 4.2
+  (Administración y horarios por año) escrito y probado, sin commit**. Con
+  un solo año no cambia nada visible en datos ni botones. La fase 3 del backend está en GitHub
   desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -486,6 +487,112 @@ commit):**
   o recarga la aplicación. Revisión en local: con un solo año no se ve nada
   nuevo; basta comprobar que el admin y el profesor entran y navegan como
   siempre.
+- Commit `4b14347` (hecho por el usuario el 2026-10-03).
+
+**Avance del 2026-10-03 — paso 4.2, Administración y horarios por año (sin
+commit):**
+
+- Aprobado por el usuario el 2026-10-03 ("si sigue"), después de responder
+  la segunda pregunta abierta (el admin edita lo que ya existe en un año en
+  preparación) y de aceptar que la pestaña de Administración quede en la
+  dirección.
+- Hallazgo al empezar: las pestañas de Administración eran un estado de la
+  página. Con el selector, cambiar de año (que reinicia la página) habría
+  devuelto a Profesores, y la cajita habría salido también en Profesores y
+  Materias, que no tienen año. Arreglo aprobado: la pestaña en `?modulo=`.
+- Código:
+  - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` con `/admin` (solo las
+    pestañas `cursos`, `asignar-clases` y `orden-boletin`) y
+    `/admin/horarios`; `esRutaPorAnio` recibe la ubicación (`pathname` y
+    `search`) y entiende `parametro` y `valores`; `opcionesConAnio`, que
+    agrega `parametrosAnio` a las opciones de un servicio solo mirando otro
+    año; y `permisosAnio` (`esAnioActivo`, `puedeEditar`), espejo de
+    `ESTADOS_EDITABLES_POR_ADMIN` del backend.
+  - `useAnioLectivo` y el proveedor comparten `permisos`;
+    `useAnioLectivoEnPantalla` mira también la pestaña.
+  - Servicios con `parametrosAnio` opcional: `cursosApi.listarCursos` (junto
+    al `estado`), `asignacionesApi.listarCursosAsignacion`,
+    `listarAsignaciones` y `obtenerDisponibilidadProfesor` (junto a `dia`),
+    `horariosApi.listarHorariosAdmin` y `boletinesApi.listarCursosBoletines`.
+    Sin él, cada llamada a `api` es la de antes, letra por letra.
+  - Hooks con `{ parametrosAnio }` opcional: `useCursos`,
+    `useDatosAsignaciones` (profesores y materias sin año),
+    `useDisponibilidadAsignacion`, `useHorariosPorCurso`,
+    `useHorariosProfesores` y `useConsultaOrdenBoletin`. Los contenedores
+    (`CrearCurso`, `AsignarClase`, los dos horarios y
+    `pages/OrdenBoletin.jsx`) leen `useAnioLectivo()` y se lo pasan; los
+    hooks de dominio no leen el Context.
+  - Botones: en Cursos, el formulario aparece para crear solo mirando el año
+    activo, y para editar si el año lo permite; en un año cerrado,
+    `ListaCursos` queda sin acciones. En Asignaciones, en un año cerrado, sin
+    formulario y sin Editar ni Desactivar. En Orden boletín, en un año
+    cerrado, sin A-Z, sin guardar y sin mover. Horarios ya era de solo
+    consulta.
+  - `useComandosCursos`: al cambiar el estado de un curso muestra el mensaje
+    del backend tal cual, como ya hacía al guardar, para que se lea el 409
+    de un año cerrado. Sin mensaje del backend, el texto de siempre.
+  - `pages/Admin.jsx`: la pestaña en `?modulo=`, con `replace` (no suma
+    pasos al botón Atrás); sin `modulo`, o con uno desconocido, Profesores.
+- Peticiones con el año activo: idénticas. Lo prueban las pruebas de siempre
+  de Cursos, Asignaciones, Horarios, Orden boletín y sus servicios, que
+  pasaron sin tocarlas. Contra el código nuevo fallaron solo las 4 esperadas:
+  `Admin.test.jsx`, que ahora necesita un router, y tres del contrato puro
+  que fijaban a propósito el estado del 4.1.
+- Pruebas: 35 nuevas.
+  - Dos archivos nuevos, `AdministracionPorAnio.test.jsx` y
+    `OrdenBoletin.anioLectivo.test.jsx`: las pantallas completas mirando un
+    año en preparación (piden lo de ese año; Cursos no ofrece crear, pero
+    deja editar; se puede asignar clases y ordenar) y uno cerrado (solo
+    consulta).
+  - En archivos existentes: los cuatro servicios con año; los seis hooks con
+    año; `ListaCursos`, `HorarioCursoAsignacion` y `VistaOrdenBoletin` en
+    solo consulta; los permisos del proveedor; `Admin` con la pestaña en la
+    dirección (los ids, la entrada directa, una pestaña desconocida y el
+    botón Atrás); el contrato puro (las rutas reales del paso, las pestañas,
+    `opcionesConAnio` y `permisosAnio`); y el mensaje del backend al cambiar
+    el estado de un curso.
+  - Ajustadas a propósito: `Admin.test.jsx`, envuelta en un router (lo que
+    comprueba no cambió), y, en `utils/anioLectivo.test.js`, la que fijaba
+    "ninguna pantalla sigue el año" (ahora fija las de este paso) y las dos
+    de rutas (por la nueva forma de llamar a `esRutaPorAnio`).
+  - Veintiséis versiones dañadas del código hacen fallar alguna prueba: cada
+    lectura sin año, un catálogo con año, cada servicio ignorando el año, la
+    disponibilidad perdiendo el día, `opcionesConAnio` agregando un año
+    vacío, crear cursos mirando otro año, cada botón de editar en un año
+    cerrado, la pestaña con `push` o ignorada, un id de pestaña equivocado,
+    la ruta ignorando la pestaña, preparación no editable, un año cerrado
+    editable y el mensaje del backend escondido.
+- Documentación: `RUTAS_FRONTEND.md` (`/admin?modulo=`), `API_CLIENT.md`,
+  `COMPONENTES.md`, `ARQUITECTURA_FRONTEND.md` (cómo se conecta una pantalla
+  al año) y `CAMBIOS_FRONTEND.md`.
+- Verificación:
+  - Las pruebas del paso (los archivos que toca, más los de `App` y del año
+    lectivo): **248 pasan en 53 archivos**, en varias corridas.
+  - `pnpm run check:deploy` completo **no salió limpio** al cerrar el paso:
+    en tres intentos fallaron 1, 2 y 6 pruebas, cada vez otras y todas de
+    pantallas que este paso no toca. Las que se revisaron fallaron por tiempo
+    agotado (más de 5 s) o por no encontrar a tiempo algo en pantalla; del
+    primer intento no se guardó el motivo. Cada archivo que falló pasa solo.
+    El equipo tenía menos de 3 GB de memoria libre y la corrida pasó de 2,5 a
+    21 minutos: es la carga del equipo, no el código.
+  - Las 331 corridas en cuatro tandas, con dos procesos: componentes 119
+    archivos y 491 pruebas; hooks 97 y 547; páginas, 27 de 31 en la tanda y
+    las otras 4 aparte, 22 de 22 (en la tanda, dos dieron tiempo agotado, una
+    comprobación de Planilla falló y un archivo no llegó a arrancar);
+    servicios, contratos puros y `App`, 84 y 845. En total, las 2120 pruebas
+    pasan (antes 2085).
+  - Lint limpio, después de corregir dos avisos de la prueba nueva de
+    Horarios (una tabla de casos, reescrita como dos pruebas iguales). Build
+    correcto. `git diff --check` limpio.
+  - Pendiente antes de subir: una corrida limpia de `pnpm run check:deploy`
+    con el equipo más libre.
+- Efecto al publicar: con un solo año, ningún cambio en datos ni botones.
+  Lo único visible: la dirección de Administración muestra la pestaña
+  (`/admin?modulo=cursos`) y, al recargar, la página se queda en esa pestaña.
+  Revisión en local: en Administración, cambiar de pestaña (cambia la
+  dirección) y recargar (sigue en la misma); Cursos, Asignaciones, Orden
+  boletín y Horarios, iguales que en producción. **Solo mirar**: guardar en
+  local escribe en la base real.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -583,10 +690,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   que dijera "2026" podría hacer creer que el pago va a 2026; escondido, esa
   duda no existe. Aceptado lo que cuesta: en esas pantallas no se ve qué año
   está elegido; se vuelve a ver al regresar a una pantalla del año.
-- Fase 4, antes del paso 4.2 (encontrada el 2026-10-03): ¿qué puede hacer
-  el admin cuando mira
-  un año **en preparación**? Los documentos no lo dejan claro. Por un lado,
-  el punto 4 de la fase 4 oculta crear, editar y borrar en todo año que no
+- **Respondida el 2026-10-03, antes del paso 4.2: el admin sí puede editar
+  lo que ya existe en un año en preparación**, menos crear cursos o
+  conceptos y todo lo de Estudiantes, que siguen solo mirando el año activo
+  hasta la fase 5 (hallazgos 2 y 3). Se le explicó que lo que cambie mirando
+  2027 solo se ve en 2027 (cada año tiene sus cursos, clases, horarios,
+  conceptos y precios), y que lo que no es de un año (el nombre de una
+  materia, los datos de un estudiante) es uno solo para todos. La pregunta,
+  tal como estaba: ~~Fase 4, antes del paso 4.2: ¿qué puede hacer el admin
+  cuando mira un año **en preparación**? Los documentos no lo dejan claro.
+  Por un lado, el punto 4 de la fase 4 oculta crear, editar y borrar en todo
+  año que no
   sea el activo, y el objetivo 2 habla de "solo consulta". Por otro, el
   aviso propuesto para ese año es "Estás preparando el año 2027", el
   documento del backend dice que la fase 4 va antes de la 5 porque el admin
@@ -599,14 +713,15 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   lo crearía en 2026. Lo que no depende de esta respuesta ya está en el
   plan: crear cursos o conceptos y todo lo de Estudiantes van solo mirando
   el año activo (hallazgos 2 y 3 del inventario), y un año cerrado es de
-  solo consulta. **Sin respuesta del usuario.**
+  solo consulta.~~
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.1 de la fase 4** (la base: años,
-  selector y aviso), 2026-10-03, escrito y probado, **sin commit**. Ver su
+- Última acción terminada: **paso 4.2 de la fase 4** (Cursos, Asignaciones,
+  Orden boletín y Horarios con el año elegido; la pestaña de Administración
+  en la dirección), 2026-10-03, escrito y probado, **sin commit**. Ver su
   "Avance" en la fase 4. Antes, el mismo día: inventario y plan por pasos
-  (commit `dbb0e48`), aprobados por el usuario junto con el paso 4.1.
+  (commit `dbb0e48`) y paso 4.1 (commit `4b14347`).
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -631,10 +746,9 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.1. Después, el **paso 4.2** (Administración y horarios), solo con
-  su visto bueno. Antes de empezarlo, hacerle la segunda pregunta abierta
-  (qué puede hacer el admin mirando un año en preparación), porque decide
-  los botones de esas pantallas. El contrato de la fase 2 para pagos y
+  paso 4.2. Después, el **paso 4.3** (Tipos de pago y cartera vencida),
+  solo con su visto bueno. Es zona de dinero: antes de tocarlo, explicarle
+  el cambio, archivo por archivo. El contrato de la fase 2 para pagos y
   cartera sigue en la fase 5 de este documento. El estado al día está en la
   "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

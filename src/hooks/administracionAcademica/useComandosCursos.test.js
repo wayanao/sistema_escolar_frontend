@@ -240,3 +240,17 @@ describe("useComandosCursos", () => {
         expect(setCursos).not.toHaveBeenCalled();
     });
 });
+
+describe("useComandosCursos y el año lectivo", () => {
+    it("si el backend rechaza el cambio de estado, muestra su mensaje tal cual", async () => {
+        const detalle = "El año lectivo 2026 está cerrado. Solo se puede consultar.";
+        window.confirm.mockReturnValue(true);
+        cambiarEstadoMock.mockRejectedValue({ response: { status: 409, data: { detail: detalle } } });
+        const { result, setCursos } = crearHook();
+
+        await act(async () => result.current.cambiarEstado(CURSO, "inactivo"));
+
+        expect(window.alert).toHaveBeenCalledWith(detalle);
+        expect(setCursos).not.toHaveBeenCalled();
+    });
+});

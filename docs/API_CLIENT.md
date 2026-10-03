@@ -93,12 +93,19 @@ GET /anios-lectivos
 - `AnioLectivoProvider`, que envuelve solo el layout del admin, la pide una
   vez cada vez que se abre o recarga la aplicación (no al cambiar de
   pantalla). El profesor no la hace. Si falla, todo sigue como antes.
-- Las lecturas que aceptan `?anio_lectivo_id=` lo recibirán solo cuando el
-  admin mire un año que no es el activo (`parametrosAnio` en
-  `utils/anioLectivo.js`); mirando el activo, cada petición queda idéntica a
-  la de antes. Desde el paso 4.1 (2026-10-03) ninguna lo manda todavía: cada
-  paso de la fase 4 conecta sus pantallas. Contrato completo del backend y
-  plan en `docs/funcionalidades/ANIO_LECTIVO.md`.
+- Las lecturas que aceptan `?anio_lectivo_id=` lo reciben solo cuando el
+  admin mira un año que no es el activo (`parametrosAnio` y
+  `opcionesConAnio` en `utils/anioLectivo.js`); mirando el activo, cada
+  petición queda idéntica a la de antes. Cada paso de la fase 4 conecta sus
+  pantallas. Contrato completo del backend y plan en
+  `docs/funcionalidades/ANIO_LECTIVO.md`.
+- Desde el paso 4.2 (2026-10-03) lo mandan, mirando otro año:
+  `GET /cursos` (Cursos y Orden boletín, con su `estado` en Cursos),
+  `GET /cursos` y `GET /asignaciones/lista` de Asignaciones,
+  `GET /profesores/{id}/disponibilidad` (junto a `dia` y
+  `excluir_asignacion_id`) y `GET /hora/horarios-admin`. Profesores y
+  materias no tienen año. El orden de un curso
+  (`GET /cursos/{id}/orden-boletin`) parte de su id y no lo lleva.
 
 ## Super admin
 

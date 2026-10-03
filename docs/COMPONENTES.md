@@ -716,6 +716,17 @@ Estado actual de componentes y paginas del frontend.
 - `pages/OrdenBoletin.jsx`: raíz cargada por la pestaña de Administración para
   definir el orden de materias por curso, con flechas, posición numérica y
   guardado por curso.
+- `pages/Admin.jsx`: la pestaña abierta vive en la dirección
+  (`/admin?modulo=cursos`) desde el paso 4.2 del año lectivo (2026-10-03);
+  las pestañas se ven igual.
+- Año lectivo, paso 4.2: Cursos, Asignaciones, Orden boletín y los dos
+  horarios cargan los datos del año que mira el admin (sus contenedores leen
+  `useAnioLectivo()` y pasan `parametrosAnio` a sus hooks). Los botones siguen
+  el estado de ese año: en uno en preparación se edita lo que ya existe, pero
+  el formulario de Cursos no ofrece crear (un curso nuevo nacería en el año
+  activo); en uno cerrado, `ListaCursos`, `HorarioCursoAsignacion` y
+  `VistaOrdenBoletin` (prop `puedeEditar`) quedan solo para consultar, y no se
+  muestran los formularios de curso ni de clase.
 
 ### Boletin
 

@@ -68,6 +68,33 @@ describe("contrato HTTP de asignaciones académicas", () => {
         expect(apiMock.get.mock.calls[0][1].params).toBe(params);
     });
 
+    it("mirando otro año, cursos, clases y disponibilidad llevan anio_lectivo_id", async () => {
+        const controller = new AbortController();
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        apiMock.get.mockResolvedValue({ data: [] });
+
+        await listarCursosAsignacion({ signal: controller.signal, parametrosAnio });
+        await listarAsignaciones({ signal: controller.signal, parametrosAnio });
+        await obtenerDisponibilidadProfesor(
+            11,
+            { dia: "Lunes" },
+            { signal: controller.signal, parametrosAnio },
+        );
+
+        expect(apiMock.get).toHaveBeenNthCalledWith(1, "/cursos", {
+            params: parametrosAnio,
+            signal: controller.signal,
+        });
+        expect(apiMock.get).toHaveBeenNthCalledWith(2, "/asignaciones/lista", {
+            params: parametrosAnio,
+            signal: controller.signal,
+        });
+        expect(apiMock.get).toHaveBeenNthCalledWith(3, "/profesores/11/disponibilidad", {
+            params: { dia: "Lunes", anio_lectivo_id: 2 },
+            signal: controller.signal,
+        });
+    });
+
     it("crea y actualiza conservando el payload exacto", async () => {
         const payload = {
             profesor_id: 11,

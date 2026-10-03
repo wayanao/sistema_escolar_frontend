@@ -93,6 +93,24 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.anioSeleccionadoId).toBe(2);
   });
 
+  it("comparte qué se puede hacer en el año que se mira", async () => {
+    mocks.listarAniosLectivos.mockResolvedValue([
+      ANIO_2027,
+      ANIO_2026,
+      { id: 3, anio: 2025, estado: "cerrado" },
+    ]);
+    const { result } = renderConProveedor();
+    await waitFor(() => expect(result.current.anios).toHaveLength(3));
+
+    expect(result.current.permisos).toEqual({ esAnioActivo: true, puedeEditar: true });
+
+    act(() => result.current.seleccionarAnio(2));
+    expect(result.current.permisos).toEqual({ esAnioActivo: false, puedeEditar: true });
+
+    act(() => result.current.seleccionarAnio(3));
+    expect(result.current.permisos).toEqual({ esAnioActivo: false, puedeEditar: false });
+  });
+
   it("los parámetros conservan su identidad mientras no cambia el año", async () => {
     const { result, rerender } = await renderConDosAnios();
 
@@ -141,6 +159,7 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.anioSeleccionadoId).toBeNull();
     expect(result.current.hayVariosAnios).toBe(false);
     expect(result.current.parametros).toBe(SIN_PARAMETROS_DE_ANIO);
+    expect(result.current.permisos).toEqual({ esAnioActivo: true, puedeEditar: true });
     expect(() => result.current.seleccionarAnio(1)).not.toThrow();
     expect(() => result.current.volverAlActivo()).not.toThrow();
     expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();

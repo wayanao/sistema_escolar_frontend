@@ -4,6 +4,7 @@ import {
   encontrarAnioActivo,
   normalizarAniosLectivos,
   parametrosAnio,
+  permisosAnio,
 } from "../../utils/anioLectivo";
 import { ContextoAnioLectivo } from "./useAnioLectivo";
 
@@ -62,6 +63,7 @@ export default function AnioLectivoProvider({ children }) {
       anioSeleccionadoId,
       hayVariosAnios: anios.length > 1,
       parametros: parametrosAnio(anioSeleccionadoId, anioActivo?.id ?? null),
+      permisos: permisosAnio(anioSeleccionado, anioActivo),
       seleccionarAnio,
       volverAlActivo,
     }),

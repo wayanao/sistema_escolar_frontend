@@ -16,7 +16,7 @@ import useAnioLectivo from "./useAnioLectivo";
 // Inventario...) no aparece ninguno de los dos, aunque haya otro año elegido:
 // al volver a una pantalla del año, el selector sigue donde quedó.
 export default function useAnioLectivoEnPantalla() {
-  const { pathname } = useLocation();
+  const ubicacion = useLocation();
   const {
     anioActivo,
     anioSeleccionado,
@@ -26,7 +26,7 @@ export default function useAnioLectivoEnPantalla() {
     volverAlActivo,
   } = useAnioLectivo();
 
-  const enPantallaDelAnio = esRutaPorAnio(pathname, RUTAS_POR_ANIO);
+  const enPantallaDelAnio = esRutaPorAnio(ubicacion, RUTAS_POR_ANIO);
 
   const opciones = useMemo(
     () => anios.map((anio) => ({ valor: anio.id, etiqueta: etiquetaAnioLectivo(anio) })),

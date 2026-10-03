@@ -1,4 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const CrearProfesor = lazy(() => import("../components/administracionAcademica/profesores/CrearProfesor"));
 const CrearCurso = lazy(() => import("../components/administracionAcademica/cursos/CrearCurso"));
@@ -34,13 +35,26 @@ const modulosAdmin = [
     },
 ];
 
+// La pestaña vive en la dirección (`/admin?modulo=cursos`) y no en un estado:
+// así sobrevive cuando la página se reinicia al cambiar de año, y la barra
+// sabe si la pestaña abierta depende del año (`RUTAS_POR_ANIO` en
+// `utils/anioLectivo.js` repite los ids de las pestañas del año). `replace`
+// evita que cada clic en una pestaña sume un paso al botón Atrás.
+const PARAMETRO_MODULO = "modulo";
+
 function Admin() {
-    const [moduloActivoId, setModuloActivoId] = useState("profesores");
+    const [parametros, setParametros] = useSearchParams();
+    const moduloSolicitado = parametros.get(PARAMETRO_MODULO);
     const moduloActivo = useMemo(
-        () => modulosAdmin.find((modulo) => modulo.id === moduloActivoId) || modulosAdmin[0],
-        [moduloActivoId]
+        () => modulosAdmin.find((modulo) => modulo.id === moduloSolicitado) || modulosAdmin[0],
+        [moduloSolicitado]
     );
+    const moduloActivoId = moduloActivo.id;
     const ModuloActivo = moduloActivo.componente;
+
+    const setModuloActivoId = (id) => {
+        setParametros({ [PARAMETRO_MODULO]: id }, { replace: true });
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 px-3 py-4 sm:px-5 sm:py-6">

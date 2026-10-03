@@ -3,8 +3,19 @@ import api from "../utils/api";
 const getConSignal = (url, signal) =>
   signal ? api.get(url, { signal }) : api.get(url);
 
-export async function listarCursosBoletines({ signal } = {}) {
-  const { data } = await getConSignal("/cursos", signal);
+// Como `getConSignal`, con parámetros opcionales: sin ninguno de los dos, la
+// llamada a `api` es la de siempre.
+const getConOpciones = (url, { params, signal } = {}) => {
+  const opciones = {};
+  if (params) opciones.params = params;
+  if (signal) opciones.signal = signal;
+  return Object.keys(opciones).length > 0 ? api.get(url, opciones) : api.get(url);
+};
+
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); hoy lo manda el orden del boletín (paso 4.2).
+export async function listarCursosBoletines({ signal, parametrosAnio } = {}) {
+  const { data } = await getConOpciones("/cursos", { params: parametrosAnio, signal });
   return data;
 }
 

@@ -1,7 +1,9 @@
+import useAnioLectivo from "../../../hooks/anioLectivo/useAnioLectivo";
 import useHorariosProfesores from "../../../hooks/administracionAcademica/useHorariosProfesores";
 import CalendarioProfesores from "./CalendarioProfesores";
 
 function HorariosProfesores() {
+    const { parametros } = useAnioLectivo();
     const {
         horarios,
         cargando,
@@ -9,7 +11,7 @@ function HorariosProfesores() {
         setProfesorSeleccionado,
         profesoresUnicos,
         horariosDelProfesor,
-    } = useHorariosProfesores();
+    } = useHorariosProfesores({ parametrosAnio: parametros });
 
     return (
         <CalendarioProfesores

@@ -53,3 +53,41 @@ describe("VistaOrdenBoletin", () => {
     expect(onMoverMateria).toHaveBeenCalledWith(0, 1);
   });
 });
+
+describe("VistaOrdenBoletin en un año cerrado", () => {
+  it("muestra el orden sin A-Z, sin guardar y sin mover materias", () => {
+    render(
+      <VistaOrdenBoletin
+        cargandoCursos={false}
+        cargandoOrden={false}
+        cursoId="4"
+        cursos={[{ id: 4, nombre: "Sexto", jornada: "Tarde" }]}
+        cursoSeleccionado={{ id: 4, nombre: "Sexto", jornada: "Tarde" }}
+        guardando={false}
+        materias={[
+          {
+            curso_id: 4,
+            materia_id: 10,
+            materia_nombre: "Biología",
+            profesor_nombre: "Carlos",
+            horarios: 3,
+          },
+        ]}
+        mensaje=""
+        puedeEditar={false}
+        onCambiarCurso={vi.fn()}
+        onGuardarOrden={vi.fn()}
+        onMoverAPosicion={vi.fn()}
+        onMoverMateria={vi.fn()}
+        onOrdenarAlfabetico={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Biología")).toBeInTheDocument();
+    expect(screen.getByText("1", { selector: "span.rounded-lg" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "A-Z" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guardar orden" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Subir Biología" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("spinbutton", { name: "Posición de Biología" })).not.toBeInTheDocument();
+  });
+});

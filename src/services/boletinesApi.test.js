@@ -59,6 +59,21 @@ describe("contrato HTTP de generación administrativa de boletines", () => {
       signal: controller.signal,
     });
   });
+
+  it("mirando otro año, los cursos llevan anio_lectivo_id", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarCursosBoletines({
+      signal: controller.signal,
+      parametrosAnio: { anio_lectivo_id: 2 },
+    });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/cursos", {
+      params: { anio_lectivo_id: 2 },
+      signal: controller.signal,
+    });
+  });
 });
 
 describe("contrato HTTP de ingreso docente a boletines", () => {

@@ -65,3 +65,15 @@ describe("ListaCursos", () => {
         expect(onEditar).toHaveBeenCalledWith(CURSOS[0]);
     });
 });
+
+describe("ListaCursos en un año cerrado", () => {
+    it("queda solo para consultar: sin columna de acciones, sin Editar y sin cambiar estado", () => {
+        render(<ListaCursos {...PROPS_BASE} puedeEditar={false} />);
+
+        expect(screen.getByRole("row", { name: /6A/ })).toBeInTheDocument();
+        expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+        // Solo queda el filtro de estado de la lista, no el de cada curso.
+        expect(screen.getAllByRole("combobox")).toHaveLength(1);
+    });
+});

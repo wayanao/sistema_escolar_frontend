@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-10-03 - Año lectivo: Administración y horarios por año (fase 4, paso 4.2)
+
+Cursos, Asignaciones, Orden boletín y los dos horarios cargan los datos del
+año que mira el admin. Con un solo año, como hoy, no cambia nada en datos ni
+botones.
+
+- `/admin` guarda su pestaña en la dirección (`?modulo=cursos`), con
+  `replace`: sobrevive al reinicio de la página al cambiar de año, y la barra
+  sabe si la pestaña depende del año. Profesores y Materias no tienen año.
+- `utils/anioLectivo.js`: `RUTAS_POR_ANIO` con esas pestañas y
+  `/admin/horarios`, `opcionesConAnio` y `permisosAnio`.
+- Servicios con `parametrosAnio` opcional (`cursosApi`, `asignacionesApi`,
+  `horariosApi`, `boletinesApi.listarCursosBoletines`) y hooks con
+  `{ parametrosAnio }`; los contenedores lo toman de `useAnioLectivo()`. Sin
+  año, cada llamada es la de antes, letra por letra.
+- Botones según el estado del año (decidido con el usuario): en preparación
+  se edita lo que existe, pero no se crean cursos; en un año cerrado, solo
+  consulta.
+- Al cambiar el estado de un curso se muestra el mensaje del backend, como
+  al guardar.
+- Pruebas: 35 nuevas; ajustadas a propósito `Admin.test.jsx` (router) y tres
+  del contrato puro que fijaban el estado del 4.1. Veintiséis versiones
+  dañadas del código hacen fallar alguna prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.2".
+
+Verificacion: las 2120 pruebas pasan (antes 2085), corridas en cuatro tandas
+porque `pnpm run check:deploy` completo dio tiempo agotado en pruebas
+distintas en cada intento, con el equipo sin memoria libre (cada archivo que
+falló pasa solo). Lint limpio, build correcto y `git diff --check` limpio.
+Pendiente: una corrida limpia de `check:deploy` con el equipo más libre.
+
 ## 2026-10-03 - Año lectivo: la base del selector de año (fase 4, paso 4.1)
 
 Primer código de la función "Año lectivo" en este repo. Con un solo año, como

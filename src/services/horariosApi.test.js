@@ -52,4 +52,19 @@ describe("contrato HTTP de horarios administrativos", () => {
             signal: controller.signal,
         });
     });
+
+    it("mirando otro año lleva anio_lectivo_id", async () => {
+        const controller = new AbortController();
+        apiMock.get.mockResolvedValue({ data: [] });
+
+        await listarHorariosAdmin({
+            signal: controller.signal,
+            parametrosAnio: { anio_lectivo_id: 2 },
+        });
+
+        expect(apiMock.get).toHaveBeenCalledWith("/hora/horarios-admin", {
+            params: { anio_lectivo_id: 2 },
+            signal: controller.signal,
+        });
+    });
 });

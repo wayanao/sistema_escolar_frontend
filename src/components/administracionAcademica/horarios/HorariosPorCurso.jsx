@@ -1,7 +1,9 @@
+import useAnioLectivo from "../../../hooks/anioLectivo/useAnioLectivo";
 import useHorariosPorCurso from "../../../hooks/administracionAcademica/useHorariosPorCurso";
 import CalendarioPorCurso from "./CalendarioPorCurso";
 
 function HorariosPorCurso() {
+    const { parametros } = useAnioLectivo();
     const {
         horarios,
         cargando,
@@ -11,7 +13,7 @@ function HorariosPorCurso() {
         setBusqueda,
         cursosFiltrados,
         horariosDelCurso,
-    } = useHorariosPorCurso();
+    } = useHorariosPorCurso({ parametrosAnio: parametros });
 
     return (
         <CalendarioPorCurso

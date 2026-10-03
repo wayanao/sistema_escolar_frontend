@@ -5,8 +5,11 @@ import {
   obtenerOrdenBoletin,
 } from "../../services/boletinesApi";
 import { ordenarPorBoletin } from "../../utils/boletines/ordenBoletin";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 
-export default function useConsultaOrdenBoletin() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// El orden de cada curso parte de su id, así que no necesita año.
+export default function useConsultaOrdenBoletin({ parametrosAnio } = {}) {
   const [cursos, setCursos] = useState([]);
   const [cursoId, setCursoId] = useState("");
   const [materias, setMaterias] = useState([]);
@@ -29,9 +32,9 @@ export default function useConsultaOrdenBoletin() {
       setErrorCursos(null);
 
       try {
-        const respuesta = await listarCursosBoletines({
-          signal: controller.signal,
-        });
+        const respuesta = await listarCursosBoletines(
+          opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+        );
         if (controller.signal.aborted) return;
         const data = Array.isArray(respuesta) ? respuesta : [];
         setCursos(data);
@@ -51,7 +54,7 @@ export default function useConsultaOrdenBoletin() {
 
     void cargarCursos();
     return () => controller.abort();
-  }, []);
+  }, [parametrosAnio]);
 
   useEffect(() => {
     if (!cursoId) {

@@ -1,8 +1,10 @@
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useComandosOrdenBoletin from "../hooks/boletines/useComandosOrdenBoletin";
 import useConsultaOrdenBoletin from "../hooks/boletines/useConsultaOrdenBoletin";
 import VistaOrdenBoletin from "../components/boletin/VistaOrdenBoletin";
 
 export default function OrdenBoletin() {
+  const { parametros, permisos } = useAnioLectivo();
   const {
     cargandoCursos,
     cargandoOrden,
@@ -12,7 +14,7 @@ export default function OrdenBoletin() {
     materias: materiasIniciales,
     mensaje: mensajeConsulta,
     cambiarCurso,
-  } = useConsultaOrdenBoletin();
+  } = useConsultaOrdenBoletin({ parametrosAnio: parametros });
   const {
     guardando,
     materias,
@@ -37,6 +39,7 @@ export default function OrdenBoletin() {
       guardando={guardando}
       materias={materias}
       mensaje={mensaje}
+      puedeEditar={permisos.puedeEditar}
       onCambiarCurso={cambiarCurso}
       onGuardarOrden={guardarOrden}
       onMoverAPosicion={moverAPosicion}

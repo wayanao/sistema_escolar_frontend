@@ -4,8 +4,10 @@ import {
     obtenerHorariosProfesor,
     obtenerProfesoresUnicosHorario,
 } from "../../utils/administracionAcademica/horarios";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 
-export default function useHorariosProfesores() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+export default function useHorariosProfesores({ parametrosAnio } = {}) {
     const [horarios, setHorarios] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [profesorSeleccionado, setProfesorSeleccionado] = useState("");
@@ -15,7 +17,9 @@ export default function useHorariosProfesores() {
 
         const cargarHorarios = async () => {
             try {
-                const data = await listarHorariosAdmin({ signal: controller.signal });
+                const data = await listarHorariosAdmin(
+                    opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+                );
                 if (controller.signal.aborted) return;
 
                 setHorarios(data);
@@ -35,7 +39,7 @@ export default function useHorariosProfesores() {
 
         void cargarHorarios();
         return () => controller.abort();
-    }, []);
+    }, [parametrosAnio]);
 
     const profesoresUnicos = useMemo(
         () => obtenerProfesoresUnicosHorario(horarios),
