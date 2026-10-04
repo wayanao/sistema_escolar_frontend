@@ -88,6 +88,14 @@ describe("useConsultasTiposPago", () => {
         expect(result.current.detalle).toBeNull();
     });
 
+    it("sin año elegido, conceptos y cursos se piden sin año", async () => {
+        const { result } = renderHook(() => useConsultasTiposPago());
+        await waitFor(() => expect(result.current.cursos).toEqual(cursos));
+
+        expect(serviceMock.obtenerTiposPagoDetallados).toHaveBeenCalledWith({});
+        expect(serviceMock.obtenerCursosParaTiposPago).toHaveBeenCalledWith({});
+    });
+
     it("propaga el error de detalle y siempre finaliza su carga", async () => {
         const error = new Error("Detalle no disponible");
         serviceMock.obtenerDetalleTipoPago.mockRejectedValue(error);
@@ -100,5 +108,66 @@ describe("useConsultasTiposPago", () => {
 
         expect(result.current.detalle).toEqual(tiposPagos[0]);
         expect(result.current.loadingDetalle).toBe(false);
+    });
+});
+
+describe("useConsultasTiposPago con un año elegido", () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+
+    beforeEach(() => {
+        serviceMock.obtenerTiposPagoDetallados.mockResolvedValue(tiposPagos);
+        serviceMock.obtenerTiposPago.mockResolvedValue(tiposPagos);
+        serviceMock.obtenerCursosParaTiposPago.mockResolvedValue(cursos);
+        serviceMock.obtenerDetalleTipoPago.mockResolvedValue({ id: 1 });
+    });
+
+    it("pide conceptos y cursos de ese año, también al recargar después de guardar", async () => {
+        const { result } = renderHook(() => useConsultasTiposPago({ parametrosAnio }));
+        await waitFor(() => expect(result.current.tiposPagos).toEqual(tiposPagos));
+        await waitFor(() => expect(result.current.cursos).toEqual(cursos));
+
+        expect(serviceMock.obtenerTiposPagoDetallados).toHaveBeenCalledWith({ parametrosAnio });
+        expect(serviceMock.obtenerCursosParaTiposPago).toHaveBeenCalledWith({ parametrosAnio });
+
+        // `cargarTiposPagos` es lo que llaman los guardados para refrescar.
+        serviceMock.obtenerTiposPagoDetallados.mockClear();
+        await act(() => result.current.cargarTiposPagos());
+        expect(serviceMock.obtenerTiposPagoDetallados).toHaveBeenCalledTimes(1);
+        expect(serviceMock.obtenerTiposPagoDetallados).toHaveBeenCalledWith({ parametrosAnio });
+    });
+
+    it("si cambia el año, vuelve a pedir conceptos y cursos con el año nuevo", async () => {
+        const { result, rerender } = renderHook(
+            ({ anio }) => useConsultasTiposPago({ parametrosAnio: anio }),
+            { initialProps: { anio: parametrosAnio } },
+        );
+        await waitFor(() => expect(result.current.cursos).toEqual(cursos));
+
+        const otroAnio = { anio_lectivo_id: 3 };
+        rerender({ anio: otroAnio });
+
+        await waitFor(() => expect(serviceMock.obtenerTiposPagoDetallados)
+            .toHaveBeenLastCalledWith({ parametrosAnio: otroAnio }));
+        expect(serviceMock.obtenerCursosParaTiposPago)
+            .toHaveBeenLastCalledWith({ parametrosAnio: otroAnio });
+    });
+
+    it("el listado de respaldo también es de ese año", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        serviceMock.obtenerTiposPagoDetallados.mockRejectedValue(new Error("No disponible"));
+
+        const { result } = renderHook(() => useConsultasTiposPago({ parametrosAnio }));
+        await waitFor(() => expect(result.current.tiposPagos).toEqual(tiposPagos));
+
+        expect(serviceMock.obtenerTiposPago).toHaveBeenCalledWith({ parametrosAnio });
+    });
+
+    it("el detalle de un concepto parte de su id, sin año", async () => {
+        const { result } = renderHook(() => useConsultasTiposPago({ parametrosAnio }));
+        await waitFor(() => expect(result.current.tiposPagos).toEqual(tiposPagos));
+
+        await act(() => result.current.seleccionarTipo(tiposPagos[0]));
+
+        expect(serviceMock.obtenerDetalleTipoPago).toHaveBeenCalledWith(1);
     });
 });

@@ -296,6 +296,8 @@ function VistaCarteraVencida({
     onImprimirEstudiante,
     onCobrar,
     onToggleExpandido,
+    // Falso mirando un año que no es el activo: Pagos cobra en el activo.
+    puedeCobrar = true,
 }) {
 
     if (reporteImpresion) {
@@ -563,15 +565,17 @@ function VistaCarteraVencida({
                                                         >
                                                             Imprimir
                                                         </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                onCobrar(i);
-                                                            }}
-                                                            className="text-xs px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap"
-                                                        >
-                                                            💰 Cobrar
-                                                        </button>
+                                                        {puedeCobrar && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    onCobrar(i);
+                                                                }}
+                                                                className="text-xs px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap"
+                                                            >
+                                                                💰 Cobrar
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>

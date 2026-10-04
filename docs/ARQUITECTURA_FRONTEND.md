@@ -327,13 +327,20 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - El selector y el aviso solo aparecen en las pantallas de
   `RUTAS_POR_ANIO` y con más de un año. La lista crece con cada paso de la
   fase 4: desde el 4.2, las pestañas Cursos, Asignaciones y Orden boletín de
-  `/admin` (por eso su pestaña vive en `?modulo=`) y `/admin/horarios`.
+  `/admin` (por eso su pestaña vive en `?modulo=`) y `/admin/horarios`; desde
+  el 4.3, `/admin/tipos-pagos` y `/admin/cartera-vencida`.
 - Cómo se conecta una pantalla (desde el paso 4.2): su contenedor o página
   lee `useAnioLectivo()` y pasa `parametrosAnio` a sus hooks; cada hook lo
   agrega con `opcionesConAnio`, que no cambia nada mirando el activo, y cada
   servicio lo convierte en `?anio_lectivo_id=`. Los hooks de dominio no leen
   el Context. Los botones siguen `permisos` (`esAnioActivo`, `puedeEditar`),
   espejo del backend por comodidad: la protección real es su 409.
+- Dos trampas de una pantalla del año (paso 4.3): recargar la página vuelve al
+  año activo, así que un botón que refresca con `window.location.reload()`
+  tiene que, mirando otro año, volver a pedir los datos (Cartera vencida:
+  `recargar` de `useCarteraVencida`); y un botón que lleva a una pantalla que
+  no sigue el año (Cartera → Pagos) no se ofrece mirando otro año, porque
+  allí se trabajaría en el activo.
 
 ## Administración académica y horarios
 

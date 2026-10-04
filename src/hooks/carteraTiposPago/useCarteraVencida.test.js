@@ -91,4 +91,88 @@ describe("useCarteraVencida", () => {
         expect(result.current.items).toEqual([]);
         expect(consoleError).toHaveBeenCalledWith("Error cargando cartera vencida:", error);
     });
+
+    it("sin año elegido, resumen y lista se piden sin año", async () => {
+        const { result } = renderHook(() => useCarteraVencida());
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+
+        expect(serviceMock.obtenerResumenCarteraVencida).toHaveBeenCalledWith({});
+        expect(serviceMock.obtenerDetalleCarteraVencida).toHaveBeenCalledWith({});
+    });
+});
+
+describe("useCarteraVencida con un año elegido", () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+
+    beforeEach(() => {
+        serviceMock.obtenerResumenCarteraVencida.mockResolvedValue({ total_deuda: 310000 });
+        serviceMock.obtenerDetalleCarteraVencida.mockResolvedValue(items);
+    });
+
+    it("pide resumen y lista de ese año", async () => {
+        const { result } = renderHook(() => useCarteraVencida({ parametrosAnio }));
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+
+        expect(serviceMock.obtenerResumenCarteraVencida).toHaveBeenCalledWith({ parametrosAnio });
+        expect(serviceMock.obtenerDetalleCarteraVencida).toHaveBeenCalledWith({ parametrosAnio });
+        expect(result.current.items).toEqual(items);
+    });
+
+    it("si cambia el año, vuelve a pedir la cartera con el año nuevo", async () => {
+        const { result, rerender } = renderHook(
+            ({ anio }) => useCarteraVencida({ parametrosAnio: anio }),
+            { initialProps: { anio: parametrosAnio } },
+        );
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+
+        const otroAnio = { anio_lectivo_id: 3 };
+        rerender({ anio: otroAnio });
+
+        await waitFor(() => expect(serviceMock.obtenerResumenCarteraVencida)
+            .toHaveBeenLastCalledWith({ parametrosAnio: otroAnio }));
+        expect(serviceMock.obtenerDetalleCarteraVencida)
+            .toHaveBeenLastCalledWith({ parametrosAnio: otroAnio });
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+    });
+
+    it("recargar vuelve a pedir la cartera del mismo año y conserva los filtros", async () => {
+        const { result } = renderHook(() => useCarteraVencida({ parametrosAnio }));
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        act(() => result.current.setFiltroCurso("10"));
+
+        serviceMock.obtenerDetalleCarteraVencida.mockResolvedValue([items[1]]);
+        act(() => result.current.recargar());
+
+        await waitFor(() => expect(result.current.items).toEqual([items[1]]));
+        expect(serviceMock.obtenerResumenCarteraVencida).toHaveBeenCalledTimes(2);
+        expect(serviceMock.obtenerResumenCarteraVencida).toHaveBeenLastCalledWith({ parametrosAnio });
+        expect(serviceMock.obtenerDetalleCarteraVencida).toHaveBeenLastCalledWith({ parametrosAnio });
+        expect(result.current.filtroCurso).toBe("10");
+        expect(result.current.cargando).toBe(false);
+    });
+
+    it("si se recarga antes de que llegue la respuesta, la vieja no pisa a la nueva", async () => {
+        let responderLaVieja;
+        serviceMock.obtenerResumenCarteraVencida
+            .mockReturnValueOnce(new Promise((resolve) => {
+                responderLaVieja = resolve;
+            }))
+            .mockResolvedValueOnce({ total_deuda: 200000 });
+        serviceMock.obtenerDetalleCarteraVencida
+            .mockResolvedValueOnce([items[0]])
+            .mockResolvedValueOnce([items[1]]);
+
+        const { result } = renderHook(() => useCarteraVencida({ parametrosAnio }));
+        act(() => result.current.recargar());
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        expect(result.current.items).toEqual([items[1]]);
+
+        await act(async () => {
+            responderLaVieja({ total_deuda: 110000 });
+        });
+
+        expect(result.current.resumen).toEqual({ total_deuda: 200000 });
+        expect(result.current.items).toEqual([items[1]]);
+        expect(result.current.cargando).toBe(false);
+    });
 });

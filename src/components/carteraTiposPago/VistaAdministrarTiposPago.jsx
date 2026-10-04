@@ -109,7 +109,12 @@ function VistaAdministrarTiposPago({
     quitarCurso,
     guardarAsignacionCursos,
     seleccionarTipoParaConfigurar,
+    // Según el año que mira el admin (`permisosAnio`): crear solo en el activo;
+    // editar también en uno en preparación; en uno cerrado, solo consulta.
+    puedeCrear = true,
+    puedeEditar = true,
 }) {
+    const mostrarFormulario = editingTipoId ? puedeEditar : puedeCrear;
     const esMensual = config.tipo_cobro === "mensual";
     const esAnual = config.tipo_cobro === "anual";
     const rangoMesesValido = esRangoMesesValido(config);
@@ -144,48 +149,50 @@ function VistaAdministrarTiposPago({
                     </ol>
                 </div>
 
-                <form onSubmit={handleSubmit} className="mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
-                            <input
-                                type="text"
-                                value={nuevoTipoPago}
-                                onChange={(e) => setNuevoTipoPago(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                placeholder="Ej: Matrícula, Copias..."
-                                required
-                            />
+                {mostrarFormulario && (
+                    <form onSubmit={handleSubmit} className="mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
+                                <input
+                                    type="text"
+                                    value={nuevoTipoPago}
+                                    onChange={(e) => setNuevoTipoPago(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Ej: Matrícula, Copias..."
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Valor base / Costo</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={valorTipoPago}
+                                    onChange={(e) => setValorTipoPago(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="0.00"
+                                    required
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Valor base / Costo</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={valorTipoPago}
-                                onChange={(e) => setValorTipoPago(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                placeholder="0.00"
-                                required
-                            />
-                        </div>
-                    </div>
 
-                    <div className="mt-4 flex gap-2">
-                        <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium">
-                            {editingTipoId ? "Actualizar Concepto" : "Guardar Concepto"}
-                        </button>
-                        {editingTipoId && (
-                            <button
-                                type="button"
-                                onClick={cancelarEdicion}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                            >
-                                Cancelar
+                        <div className="mt-4 flex gap-2">
+                            <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium">
+                                {editingTipoId ? "Actualizar Concepto" : "Guardar Concepto"}
                             </button>
-                        )}
-                    </div>
-                </form>
+                            {editingTipoId && (
+                                <button
+                                    type="button"
+                                    onClick={cancelarEdicion}
+                                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                                >
+                                    Cancelar
+                                </button>
+                            )}
+                        </div>
+                    </form>
+                )}
 
                 <div className="mt-2">
                     <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -268,13 +275,15 @@ function VistaAdministrarTiposPago({
                                                 >
                                                     ⚙️ Configurar
                                                 </button>
-                                                <button
-                                                    onClick={() => handleEdit(tp)}
-                                                    className="text-blue-600 hover:text-blue-800 text-xs"
-                                                    title="Editar nombre/valor"
-                                                >
-                                                    ✏️
-                                                </button>
+                                                {puedeEditar && (
+                                                    <button
+                                                        onClick={() => handleEdit(tp)}
+                                                        className="text-blue-600 hover:text-blue-800 text-xs"
+                                                        title="Editar nombre/valor"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                         );
@@ -312,7 +321,10 @@ function VistaAdministrarTiposPago({
                     {loadingDetalle ? (
                         <p className="text-gray-500">Cargando...</p>
                     ) : (
-                        <>
+                        // En un año que no se puede editar, la configuración se
+                        // ve con todos sus campos bloqueados. `min-w-0` evita que
+                        // la tabla de cursos ensanche la página en el celular.
+                        <fieldset disabled={!puedeEditar} className="min-w-0 space-y-6">
                             {/* --- Vista previa de estado de cartera --- */}
                             {carteraPreview && (
                                 carteraPreview.publicado ? (
@@ -533,15 +545,17 @@ function VistaAdministrarTiposPago({
                                 </section>
                             )}
 
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={guardarConfiguracion}
-                                    disabled={guardandoConfig || !rangoMesesValido}
-                                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
-                                >
-                                    {guardandoConfig ? "Guardando..." : "Guardar configuración"}
-                                </button>
-                            </div>
+                            {puedeEditar && (
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={guardarConfiguracion}
+                                        disabled={guardandoConfig || !rangoMesesValido}
+                                        className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
+                                    >
+                                        {guardandoConfig ? "Guardando..." : "Guardar configuración"}
+                                    </button>
+                                </div>
+                            )}
 
                             {/* --- Panel: asignación a cursos --- */}
                             <section className="border-t border-gray-200 pt-6">
@@ -668,21 +682,23 @@ function VistaAdministrarTiposPago({
                                     </div>
                                 )}
 
-                                <div className="flex justify-end mt-4">
-                                    <button
-                                        onClick={guardarAsignacionCursos}
-                                        disabled={guardandoCursos || !cursosAsignadosDirty}
-                                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {guardandoCursos
-                                            ? "Guardando..."
-                                            : cursosAsignadosDirty
-                                                ? "Guardar asignación de cursos"
-                                                : "Asignación de cursos guardada"}
-                                    </button>
-                                </div>
+                                {puedeEditar && (
+                                    <div className="flex justify-end mt-4">
+                                        <button
+                                            onClick={guardarAsignacionCursos}
+                                            disabled={guardandoCursos || !cursosAsignadosDirty}
+                                            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {guardandoCursos
+                                                ? "Guardando..."
+                                                : cursosAsignadosDirty
+                                                    ? "Guardar asignación de cursos"
+                                                    : "Asignación de cursos guardada"}
+                                        </button>
+                                    </div>
+                                )}
                             </section>
-                        </>
+                        </fieldset>
                     )}
                 </div>
             )}

@@ -1,27 +1,35 @@
 import api from "../utils/api";
 
-export const obtenerResumenCarteraVencida = async () => {
-    const response = await api.get("/cartera/mora/resumen");
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); sin él, la llamada a `api` es la de siempre, con un
+// solo argumento. Guardar no lo necesita: cada concepto ya es de un año.
+const getConAnio = (url, parametrosAnio) =>
+    parametrosAnio ? api.get(url, { params: parametrosAnio }) : api.get(url);
+
+export const obtenerResumenCarteraVencida = async ({ parametrosAnio } = {}) => {
+    const response = await getConAnio("/cartera/mora/resumen", parametrosAnio);
     return response.data;
 };
 
-export const obtenerDetalleCarteraVencida = async () => {
-    const response = await api.get("/cartera/mora");
+export const obtenerDetalleCarteraVencida = async ({ parametrosAnio } = {}) => {
+    const response = await getConAnio("/cartera/mora", parametrosAnio);
     return response.data;
 };
 
-export const obtenerTiposPagoDetallados = async () => {
-    const response = await api.get("/tipos-pagos/detallado");
+export const obtenerTiposPagoDetallados = async ({ parametrosAnio } = {}) => {
+    const response = await getConAnio("/tipos-pagos/detallado", parametrosAnio);
     return response.data;
 };
 
-export const obtenerTiposPago = async () => {
-    const response = await api.get("/tipos-pagos");
+export const obtenerTiposPago = async ({ parametrosAnio } = {}) => {
+    const response = await getConAnio("/tipos-pagos", parametrosAnio);
     return response.data;
 };
 
-export const obtenerCursosParaTiposPago = async () => {
-    const response = await api.get("/cursos");
+// Los cursos a los que se les pone precio: los del mismo año del concepto (el
+// backend rechaza un curso de otro año).
+export const obtenerCursosParaTiposPago = async ({ parametrosAnio } = {}) => {
+    const response = await getConAnio("/cursos", parametrosAnio);
     return response.data;
 };
 

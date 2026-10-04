@@ -103,3 +103,68 @@ describe("VistaAdministrarTiposPago", () => {
         expect(screen.queryByText("Mes final", { selector: "label" })).not.toBeInTheDocument();
     });
 });
+
+describe("VistaAdministrarTiposPago según el año que se mira", () => {
+    const conPanelAbierto = (props) => ({
+        ...props,
+        selectedTipoId: 1,
+        detalle: tipoPago,
+        config: { ...CONFIG_DEFAULT, tipo_cobro: "mensual", mes_inicial: 2, mes_final: 11 },
+        cursosAsignados: [{ curso_id: 10, curso_nombre: "5A", valor: 350000, activo: true }],
+        cursosDisponibles: [{ id: 20, nombre: "6B" }],
+        cursoAAgregar: "20",
+        cursosAsignadosDirty: true,
+    });
+
+    it("sin poder crear, el formulario solo aparece para editar un concepto", () => {
+        const props = { ...crearProps(), puedeCrear: false };
+        const { rerender } = render(<VistaAdministrarTiposPago {...props} />);
+
+        expect(screen.queryByRole("button", { name: "Guardar Concepto" })).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("Ej: Matrícula, Copias...")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByTitle("Editar nombre/valor"));
+        expect(props.handleEdit).toHaveBeenCalledWith(tipoPago);
+
+        rerender(<VistaAdministrarTiposPago {...props} editingTipoId={1} />);
+        expect(screen.getByRole("button", { name: "Actualizar Concepto" })).toBeInTheDocument();
+    });
+
+    it("en un año que se edita, la configuración y los precios se pueden guardar", () => {
+        const props = conPanelAbierto({ ...crearProps(), puedeCrear: false, puedeEditar: true });
+        render(<VistaAdministrarTiposPago {...props} />);
+
+        expect(screen.getByText("Tipo de cobro", { selector: "label" }).parentElement.querySelector("select"))
+            .not.toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
+        fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+        fireEvent.click(screen.getByRole("button", { name: "Guardar asignación de cursos" }));
+
+        expect(props.guardarConfiguracion).toHaveBeenCalledTimes(1);
+        expect(props.agregarCursoLocal).toHaveBeenCalledTimes(1);
+        expect(props.guardarAsignacionCursos).toHaveBeenCalledTimes(1);
+    });
+
+    it("en un año cerrado solo se consulta: sin crear, sin ✏️ y la configuración bloqueada", () => {
+        const props = conPanelAbierto({ ...crearProps(), puedeCrear: false, puedeEditar: false });
+        render(<VistaAdministrarTiposPago {...props} />);
+
+        expect(screen.queryByRole("button", { name: "Guardar Concepto" })).not.toBeInTheDocument();
+        expect(screen.queryByTitle("Editar nombre/valor")).not.toBeInTheDocument();
+        // Configurar sigue abriendo el concepto, para mirarlo.
+        expect(screen.getByRole("button", { name: "⚙️ Configurar" })).toBeEnabled();
+
+        expect(screen.getByText("Tipo de cobro", { selector: "label" }).parentElement.querySelector("select"))
+            .toBeDisabled();
+        expect(screen.getByText("Mes final", { selector: "label" }).parentElement.querySelector("select"))
+            .toBeDisabled();
+        expect(screen.getByDisplayValue("350000")).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Agregar" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Quitar" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "+ Agregar todos los cursos" })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "Guardar configuración" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Guardar asignación de cursos" })).not.toBeInTheDocument();
+        // Cerrar el panel sí se puede.
+        expect(screen.getByRole("button", { name: "✕ Cerrar" })).toBeEnabled();
+    });
+});

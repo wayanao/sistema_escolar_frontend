@@ -79,4 +79,14 @@ describe("VistaCarteraVencida", () => {
         expect(props.onImprimirEstudiante).toHaveBeenCalledWith(item);
         expect(props.onCobrar).toHaveBeenCalledWith(item);
     });
+
+    it("sin poder cobrar (otro año), no aparece Cobrar y lo demás sigue", () => {
+        render(<VistaCarteraVencida {...propsBase} puedeCobrar={false} />);
+
+        expect(screen.getByText("Pérez, Ana")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /Cobrar/ })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Imprimir" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "↻ Actualizar" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "⬇ Exportar CSV" })).toBeInTheDocument();
+    });
 });

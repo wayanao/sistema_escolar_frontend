@@ -4,10 +4,11 @@
 
 - Estado: **Fase 4 en curso**, iniciada el 2026-10-03 con la autorización
   del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
-  base: años, selector y aviso; commit `4b14347`) y **paso 4.2
-  (Administración y horarios por año) escrito y probado, sin commit**. Con
-  un solo año no cambia nada visible en datos ni botones. La fase 3 del backend está en GitHub
-  desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
+  base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
+  y horarios por año; commit `78c48f7`) y **paso 4.3 (Tipos de pago y
+  Cartera vencida por año) escrito y probado, sin commit**. Con un solo año
+  no cambia nada visible en datos ni botones. La fase 3 del backend está en
+  GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
@@ -585,7 +586,8 @@ commit):**
     Horarios (una tabla de casos, reescrita como dos pruebas iguales). Build
     correcto. `git diff --check` limpio.
   - Pendiente antes de subir: una corrida limpia de `pnpm run check:deploy`
-    con el equipo más libre.
+    con el equipo más libre. *Hecha el 2026-10-03, con el paso 4.3 encima:
+    limpia, 2144 pruebas, lint y build (ver su "Avance").*
 - Efecto al publicar: con un solo año, ningún cambio en datos ni botones.
   Lo único visible: la dirección de Administración muestra la pestaña
   (`/admin?modulo=cursos`) y, al recargar, la página se queda en esa pestaña.
@@ -593,6 +595,103 @@ commit):**
   dirección) y recargar (sigue en la misma); Cursos, Asignaciones, Orden
   boletín y Horarios, iguales que en producción. **Solo mirar**: guardar en
   local escribe en la base real.
+- Commit `78c48f7` (hecho por el usuario el 2026-10-03).
+
+**Avance del 2026-10-03 — paso 4.3, Tipos de pago y Cartera vencida por año
+(sin commit):**
+
+- Zona de dinero: antes de tocar nada se le explicó al usuario el cambio,
+  archivo por archivo, y lo aprobó el 2026-10-03 ("si"), con dos decisiones
+  de detalle propuestas por el asistente: esconder "Cobrar" y que
+  "Actualizar" no salte de año (abajo). Ninguna pregunta abierta afectaba
+  este paso: la de crear cursos o conceptos nuevos en el año en preparación
+  es para antes de la fase 5, y mientras tanto crear un concepto queda
+  oculto mirando otro año (hallazgo 3).
+- Caracterización: las 82 pruebas que ya tenían estas dos pantallas (página,
+  vistas, hooks, servicio y contratos puros) pasaban antes del cambio. Contra
+  el código nuevo pasaron 81 sin tocarlas; falló solo la que fijaba a
+  propósito que Tipos de pago todavía no seguía el año.
+- Código:
+  - `services/carteraTiposPagoApi.js`: las cinco lecturas de estas pantallas
+    (conceptos detallados, su lista de respaldo, cursos para los precios, y
+    resumen y lista de cartera) aceptan `{ parametrosAnio }`. Sin año, la
+    llamada a `api` es la de antes, con un solo argumento. Lo que se guarda y
+    el detalle de un concepto parten de su id y no cambian.
+  - `useConsultasTiposPago({ parametrosAnio })`: conceptos y cursos del año,
+    también al recargar la lista después de guardar (los guardados llaman a
+    `cargarTiposPagos`). `useCarteraVencida({ parametrosAnio })`: resumen y
+    lista del año, y `recargar`, que vuelve a pedirlos sin recargar la
+    página; una respuesta vieja ya no pisa a una nueva.
+  - `pages/TiposPagosAdmin.jsx` y `pages/CarteraVencidaAdmin.jsx` leen
+    `useAnioLectivo()` y se lo pasan a sus hooks.
+  - Botones de Tipos de pago (`VistaAdministrarTiposPago`, props
+    `puedeCrear` y `puedeEditar`): en el año activo, como siempre; en uno en
+    preparación no aparece el formulario para crear (un concepto nuevo
+    nacería en el activo), pero se editan nombre, valor, configuración y
+    precios por curso; en uno cerrado, sin ✏️, y "⚙️ Configurar" abre el
+    concepto para mirarlo, con los campos bloqueados (un `fieldset`
+    desactivado, patrón que ya usa `PlantillasAdminView`) y sin los dos
+    botones de guardar.
+  - Cartera vencida, mirando otro año: **sin "Cobrar"** (`VistaCarteraVencida`,
+    prop `puedeCobrar`), porque Pagos cobra siempre en el año activo y la
+    deuda de ese año iría a otro; vuelve en la fase 5, con el selector "Año
+    del pago". Y **"Actualizar" vuelve a pedir la cartera de ese año**: hasta
+    ahora recargaba la página, y recargar vuelve al año activo. En el año
+    activo, los dos botones siguen igual. Retirados con deuda y sin ventas
+    (decisiones 18 y 19 del backend) se muestran tal cual llegan.
+  - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` suma `/admin/tipos-pagos` y
+    `/admin/cartera-vencida`.
+- No se tocó: Pagos, el inicio del admin (su resumen de cartera sigue siendo
+  del año activo), el diseño de impresos ni el backend.
+- Peticiones con el año activo: idénticas. Lo prueban las pruebas de página
+  de siempre, que comprueban cada llamada con un solo argumento y pasaron sin
+  tocarlas, y una nueva del servicio que cuenta los argumentos.
+- Pruebas: 24 nuevas.
+  - Dos archivos nuevos, `TiposPagosAdmin.anioLectivo.test.jsx` y
+    `CarteraVencidaAdmin.anioLectivo.test.jsx`, con las pantallas completas:
+    en preparación, conceptos y cursos de ese año, sin crear, editar y
+    configurar con los cursos de ese año (y la lista se vuelve a pedir del
+    mismo año después de guardar); en un año cerrado, sin ✏️, configuración
+    bloqueada y ningún guardado; la cartera de otro año sin "Cobrar", y
+    "Actualizar" que pide otra vez ese año sin recargar la página; en el año
+    activo, "Actualizar" recarga la página y "Cobrar" sigue.
+  - En archivos existentes: el servicio (con las opciones del activo, un solo
+    argumento; con otro año, las cinco lecturas con `anio_lectivo_id`; el
+    detalle y los guardados sin año), los dos hooks (sin año, con año, si
+    cambia el año, la lista de respaldo, `recargar` y la respuesta vieja que
+    llega tarde), las dos vistas y el contrato puro.
+  - Ajustada a propósito: en `utils/anioLectivo.test.js`, la que fijaba que
+    Tipos de pago todavía no seguía el año.
+  - Treinta y una versiones dañadas del código hacen fallar alguna prueba:
+    cada lectura del servicio sin año, el servicio ignorando el año o
+    mandando un segundo argumento vacío, cada hook sin año o sin vigilar el
+    año, la respuesta vieja que pisa a la nueva, `recargar` que no recarga,
+    cada página sin año, crear o editar donde no se puede, cada botón de
+    guardar y la configuración sin bloquear en un año cerrado, "Cobrar" desde
+    otro año (en la página y en la vista), "Actualizar" que siempre o nunca
+    recarga la página, y cada pantalla fuera de `RUTAS_POR_ANIO`.
+- Hallazgos, sin tocar (anotados para cuando hagan falta):
+  - En Tipos de pago, el `409` de año cerrado saldría con el título de otro
+    aviso ("Concepto duplicado" o "Migración pendiente"). Solo puede pasar
+    desde la fase 6: ver el punto 4 de esa fase.
+  - El estado de cuenta impreso y el CSV de Cartera no dicen de qué año son:
+    pregunta abierta para antes de la fase 5.
+- Documentación: `API_CLIENT.md`, `ARQUITECTURA_FRONTEND.md` (las dos
+  trampas de una pantalla del año: recargar vuelve al activo, y un botón que
+  lleva a una pantalla sin año), `COMPONENTES.md` y `CAMBIOS_FRONTEND.md`.
+- Verificación: `pnpm run check:deploy` **limpio en una sola corrida**:
+  **2144 pruebas pasan** en 333 archivos (antes 2120), lint limpio y build
+  correcto. Con eso queda hecha también la corrida limpia que el paso 4.2
+  dejó pendiente. `git diff --check` limpio. Las pruebas del paso, solas,
+  no muestran ningún aviso; el "Not implemented: navigation to another
+  Document" de la corrida completa sale de pruebas de pantallas que ya
+  cambiaban `window.location.href` (inicio de sesión, sesión vencida,
+  Asistencia, Planilla), no de este paso.
+- Efecto al publicar: ninguno visible mientras haya un solo año. Revisión en
+  local (solo mirar: guardar en local escribe en la base real): Tipos de pago
+  (lista, "⚙️ Configurar" de un concepto con sus precios) y Cartera vencida
+  (lista, filtro por curso, "Cobrar" y "↻ Actualizar"), iguales que en
+  producción.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -642,6 +741,14 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
    "2027", porque el paso cierra el año actual para todos, incluidos los
    profesores.
 3. Reabrir y volver a cerrar un año pasado, con la misma confirmación.
+4. Ojo, hallazgo del paso 4.3: en Tipos de pago, si el backend rechaza un
+   guardado con el `409` de año cerrado, el aviso sale con un título que no es
+   el suyo, aunque con el texto correcto: "Concepto duplicado" al editar un
+   concepto (`useFormularioTipoPago`) y "Migración pendiente", más un comando
+   de consola, al guardar la configuración (`useConfiguracionTipoPago`). Hoy no
+   puede pasar: mirando un año cerrado esos botones no aparecen. Desde esta
+   fase sí, si el año se cierra mientras la pantalla está abierta. Arreglarlo
+   antes de activar el primer año.
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -714,14 +821,24 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   plan: crear cursos o conceptos y todo lo de Estudiantes van solo mirando
   el año activo (hallazgos 2 y 3 del inventario), y un año cerrado es de
   solo consulta.~~
+- Antes de la fase 5 (encontrada en el paso 4.3): el estado de cuenta que
+  imprime Cartera vencida y su archivo CSV no dicen de qué año son. Mirando
+  otro año (por ejemplo, la matrícula de 2027 en preparación, o 2026 ya
+  cerrado), un papel entregado a una familia no diría a qué año pertenece la
+  deuda. ¿Se agrega el año al impreso y al nombre del CSV? Sería algo nuevo,
+  que no está en los documentos, así que no se hizo. No bloquea la fase 4:
+  mientras haya un solo año, no se puede mirar otro. **Sin respuesta del
+  usuario.**
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.2 de la fase 4** (Cursos, Asignaciones,
-  Orden boletín y Horarios con el año elegido; la pestaña de Administración
-  en la dirección), 2026-10-03, escrito y probado, **sin commit**. Ver su
-  "Avance" en la fase 4. Antes, el mismo día: inventario y plan por pasos
-  (commit `dbb0e48`) y paso 4.1 (commit `4b14347`).
+- Última acción terminada: **paso 4.3 de la fase 4** (Tipos de pago y
+  Cartera vencida con el año elegido; mirando otro año, sin "Cobrar" y con
+  "Actualizar" que no salta de año), 2026-10-03, escrito y probado, **sin
+  commit**. Ver su "Avance" en la fase 4. Antes, el mismo día: inventario y
+  plan por pasos (commit `dbb0e48`), paso 4.1 (commit `4b14347`) y paso 4.2
+  (commit `78c48f7`). Al retomar, el documento todavía decía "sin commit"
+  del 4.2; `git log` mostraba el commit, y se corrigió.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -746,9 +863,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.2. Después, el **paso 4.3** (Tipos de pago y cartera vencida),
-  solo con su visto bueno. Es zona de dinero: antes de tocarlo, explicarle
-  el cambio, archivo por archivo. El contrato de la fase 2 para pagos y
-  cartera sigue en la fase 5 de este documento. El estado al día está en la
-  "Entrega" del documento del backend.
+  paso 4.3. Después, el **paso 4.4** (Estudiantes: lista, ficha con detalle
+  y deudas, y el observador de la ficha), solo con su visto bueno. Antes de
+  tocarlo, la caracterización de `EstudiantesAdmin.jsx`, que no tiene prueba
+  de página (hallazgo 4). Mirando otro año, Estudiantes queda en solo
+  consulta (hallazgo 2). La ficha muestra deudas (`/estudiantes/{id}/deudas`):
+  como en el 4.3, explicarle el cambio al usuario antes de tocarla. El contrato de la fase 2 para pagos y cartera sigue
+  en la fase 5 de este documento. El estado al día está en la "Entrega" del
+  documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

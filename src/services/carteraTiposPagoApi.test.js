@@ -106,6 +106,64 @@ describe("carteraTiposPagoApi", () => {
         expect(api.put).toHaveBeenNthCalledWith(2, "/tipos-pagos/3/cursos", asignacion);
     });
 
+    it("con las opciones del año activo, cada lectura llama a api como siempre", async () => {
+        // Los hooks pasan `{}` mirando el año activo (`opcionesConAnio`).
+        api.get.mockResolvedValue({ data: [] });
+
+        await obtenerResumenCarteraVencida({});
+        await obtenerDetalleCarteraVencida({});
+        await obtenerTiposPagoDetallados({});
+        await obtenerTiposPago({});
+        await obtenerCursosParaTiposPago({});
+
+        expect(api.get.mock.calls).toEqual([
+            ["/cartera/mora/resumen"],
+            ["/cartera/mora"],
+            ["/tipos-pagos/detallado"],
+            ["/tipos-pagos"],
+            ["/cursos"],
+        ]);
+        // Un solo argumento, sin un segundo vacío.
+        expect(api.get.mock.calls.map((llamada) => llamada.length)).toEqual([1, 1, 1, 1, 1]);
+    });
+
+    it("mirando otro año, las cinco lecturas llevan anio_lectivo_id", async () => {
+        const parametrosAnio = { anio_lectivo_id: 2 };
+        api.get.mockResolvedValue({ data: [] });
+
+        await obtenerResumenCarteraVencida({ parametrosAnio });
+        await obtenerDetalleCarteraVencida({ parametrosAnio });
+        await obtenerTiposPagoDetallados({ parametrosAnio });
+        await obtenerTiposPago({ parametrosAnio });
+        await obtenerCursosParaTiposPago({ parametrosAnio });
+
+        const conAnio = { params: { anio_lectivo_id: 2 } };
+        expect(api.get.mock.calls).toEqual([
+            ["/cartera/mora/resumen", conAnio],
+            ["/cartera/mora", conAnio],
+            ["/tipos-pagos/detallado", conAnio],
+            ["/tipos-pagos", conAnio],
+            ["/cursos", conAnio],
+        ]);
+    });
+
+    it("el detalle de un concepto y lo que se guarda no llevan año: parten de su id", async () => {
+        api.get.mockResolvedValue({ data: {} });
+        api.put.mockResolvedValue({ status: 200, data: {} });
+
+        await obtenerDetalleTipoPago(4);
+        await actualizarTipoPago(4, { nombre: "MATRÍCULA", valor: 1 });
+        await actualizarConfiguracionTipoPago(4, { activo: true });
+        await actualizarCursosTipoPago(4, { cursos: [] });
+
+        expect(api.get.mock.calls).toEqual([["/tipos-pagos/4/detalle"]]);
+        expect(api.put.mock.calls).toEqual([
+            ["/tipos-pagos/4", { nombre: "MATRÍCULA", valor: 1 }],
+            ["/tipos-pagos/4/configuracion", { activo: true }],
+            ["/tipos-pagos/4/cursos", { cursos: [] }],
+        ]);
+    });
+
     it("propaga sin reinterpretar los errores del transporte", async () => {
         const error = new Error("Sin conexión");
         api.get.mockRejectedValue(error);

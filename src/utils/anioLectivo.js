@@ -42,6 +42,9 @@ export const RUTAS_POR_ANIO = Object.freeze([
     valores: ["cursos", "asignar-clases", "orden-boletin"],
   },
   { ruta: "/admin/horarios" },
+  // Paso 4.3.
+  { ruta: "/admin/tipos-pagos" },
+  { ruta: "/admin/cartera-vencida" },
 ]);
 
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;

@@ -1,12 +1,18 @@
 import Swal from "sweetalert2";
 import VistaAdministrarTiposPago from "../components/carteraTiposPago/VistaAdministrarTiposPago";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useAsignacionCursosTipoPago from "../hooks/carteraTiposPago/useAsignacionCursosTipoPago";
 import useConfiguracionTipoPago from "../hooks/carteraTiposPago/useConfiguracionTipoPago";
 import useConsultasTiposPago from "../hooks/carteraTiposPago/useConsultasTiposPago";
 import useFormularioTipoPago from "../hooks/carteraTiposPago/useFormularioTipoPago";
 
 function TiposPagosAdmin() {
-    const consultas = useConsultasTiposPago();
+    const { parametros, permisos } = useAnioLectivo();
+    // Un concepto nuevo siempre nace en el año activo, así que mirando otro año
+    // solo se edita lo que ya existe en él, si el año lo permite (en
+    // preparación, sí; en un año cerrado, no).
+    const { esAnioActivo: puedeCrear, puedeEditar } = permisos;
+    const consultas = useConsultasTiposPago({ parametrosAnio: parametros });
     const formulario = useFormularioTipoPago({
         cargarTiposPagos: consultas.cargarTiposPagos,
     });
@@ -50,6 +56,8 @@ function TiposPagosAdmin() {
                     {...formulario}
                     {...configuracion}
                     {...asignacion}
+                    puedeCrear={puedeCrear}
+                    puedeEditar={puedeEditar}
                     seleccionarTipoParaConfigurar={seleccionarTipoParaConfigurar}
                 />
             </div>

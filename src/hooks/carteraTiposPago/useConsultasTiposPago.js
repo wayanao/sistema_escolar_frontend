@@ -5,13 +5,17 @@ import {
     obtenerTiposPago,
     obtenerTiposPagoDetallados,
 } from "../../services/carteraTiposPagoApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import {
     calcularResumenEstados,
     filtrarTiposPagoPorEstado,
     obtenerMensajeConceptosVacios,
 } from "../../utils/carteraTiposPago/tiposPago";
 
-export default function useConsultasTiposPago() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Conceptos y cursos son los de ese año, también al recargar después de
+// guardar. El detalle de un concepto parte de su id y no lo necesita.
+export default function useConsultasTiposPago({ parametrosAnio } = {}) {
     const [tiposPagos, setTiposPagos] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [estadoFiltro, setEstadoFiltro] = useState("activo");
@@ -20,28 +24,29 @@ export default function useConsultasTiposPago() {
     const [loadingDetalle, setLoadingDetalle] = useState(false);
 
     const cargarTiposPagos = useCallback(async () => {
+        const opciones = opcionesConAnio({}, parametrosAnio);
         try {
-            const data = await obtenerTiposPagoDetallados();
+            const data = await obtenerTiposPagoDetallados(opciones);
             setTiposPagos(data || []);
         } catch (error) {
             console.error("Error cargando tipos de pagos detallado, fallback a básico", error);
             try {
-                const data = await obtenerTiposPago();
+                const data = await obtenerTiposPago(opciones);
                 setTiposPagos(data || []);
             } catch (fallbackError) {
                 console.error("Error cargando tipos de pagos:", fallbackError);
             }
         }
-    }, []);
+    }, [parametrosAnio]);
 
     const cargarCursos = useCallback(async () => {
         try {
-            const data = await obtenerCursosParaTiposPago();
+            const data = await obtenerCursosParaTiposPago(opcionesConAnio({}, parametrosAnio));
             setCursos(data || []);
         } catch (error) {
             console.error("Error cargando cursos:", error);
         }
-    }, []);
+    }, [parametrosAnio]);
 
     useEffect(() => {
         cargarTiposPagos();

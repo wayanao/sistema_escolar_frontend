@@ -1,5 +1,33 @@
 # Cambios Frontend
 
+## 2026-10-03 - Año lectivo: Tipos de pago y Cartera vencida por año (fase 4, paso 4.3)
+
+Tipos de pago y Cartera vencida cargan los datos del año que mira el admin.
+Con un solo año, como hoy, no cambia nada en datos, botones ni peticiones.
+
+- `services/carteraTiposPagoApi.js`: las cinco lecturas de las dos pantallas
+  aceptan `{ parametrosAnio }`; sin él, la llamada a `api` es la de antes, con
+  un solo argumento. Guardar no cambia: cada concepto ya es de un año.
+- `useConsultasTiposPago` y `useCarteraVencida` reciben `{ parametrosAnio }`;
+  las páginas lo toman de `useAnioLectivo()`. `useCarteraVencida` suma
+  `recargar` y descarta una respuesta vieja que llegue tarde.
+- Tipos de pago: en un año en preparación no se ofrece crear conceptos
+  (nacerían en el activo), pero se editan los existentes; en uno cerrado,
+  solo consulta (sin ✏️; la configuración se abre bloqueada y sin guardar).
+- Cartera vencida, mirando otro año: sin "Cobrar" (Pagos cobra en el año
+  activo; vuelve con el selector "Año del pago" de la fase 5), y "Actualizar"
+  vuelve a pedir la cartera de ese año en vez de recargar la página, que
+  volvería al año activo.
+- `RUTAS_POR_ANIO` suma `/admin/tipos-pagos` y `/admin/cartera-vencida`.
+- Pruebas: 24 nuevas; ajustada a propósito la del contrato puro que fijaba
+  que Tipos de pago todavía no seguía el año. Treinta y una versiones dañadas
+  del código hacen fallar alguna prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.3".
+
+Verificacion: `pnpm run check:deploy` limpio en una sola corrida: las 2144
+pruebas pasan (antes 2120), lint limpio y build correcto. Cierra también el
+pendiente del paso 4.2 (su corrida limpia). `git diff --check` limpio.
+
 ## 2026-10-03 - Año lectivo: Administración y horarios por año (fase 4, paso 4.2)
 
 Cursos, Asignaciones, Orden boletín y los dos horarios cargan los datos del

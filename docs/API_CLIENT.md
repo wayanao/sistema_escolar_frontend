@@ -106,6 +106,12 @@ GET /anios-lectivos
   `excluir_asignacion_id`) y `GET /hora/horarios-admin`. Profesores y
   materias no tienen año. El orden de un curso
   (`GET /cursos/{id}/orden-boletin`) parte de su id y no lo lleva.
+- Desde el paso 4.3 (2026-10-03), también: `GET /tipos-pagos/detallado`,
+  `GET /tipos-pagos` (la lista de respaldo) y `GET /cursos` de Tipos de pago,
+  y `GET /cartera/mora/resumen` y `GET /cartera/mora` de Cartera vencida. El
+  detalle de un concepto y lo que se guarda parten de su id y no lo llevan.
+  El resumen de cartera del inicio del admin y Pagos siguen siempre con el
+  año activo.
 
 ## Super admin
 
@@ -320,6 +326,12 @@ Uso:
 - El campo define el ultimo periodo cobrable, no una fecha de vencimiento. Para
   un calendario febrero-noviembre se guardan `mes_inicial: 2`, `mes_final: 11`
   y `frecuencia_meses: 1`.
+- Año lectivo (paso 4.3, 2026-10-03): mirando un año que no es el activo, los
+  conceptos y los cursos para los precios son los de ese año
+  (`?anio_lectivo_id=`). En un año en preparación no se ofrece crear conceptos
+  (`POST /tipos-pagos` crea siempre en el activo), pero se editan los
+  existentes; en un año cerrado, solo consulta. Lo garantiza el backend con su
+  `409`.
 
 `PagosAdmin.jsx` tambien consulta:
 
@@ -389,6 +401,12 @@ Uso:
   estudiante o curso.
 - La informacion respeta la regla central de cobros del backend, incluyendo
   valores personalizados por estudiante cuando existan.
+- Año lectivo (paso 4.3, 2026-10-03): `CarteraVencidaAdmin.jsx` pide la
+  cartera del año que mira el admin (`?anio_lectivo_id=` solo mirando otro
+  año). Mirando otro año, el backend trae también a los retirados que deben y
+  no trae ventas; la pantalla no ofrece "Cobrar" (Pagos cobra en el año
+  activo) y "Actualizar" vuelve a pedir las dos lecturas en vez de recargar la
+  página. El dashboard pide siempre el año activo.
 
 ## Reportes
 

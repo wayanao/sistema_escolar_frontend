@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import VistaCarteraVencida from "../components/carteraTiposPago/VistaCarteraVencida";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCarteraVencida from "../hooks/carteraTiposPago/useCarteraVencida";
 import { construirCsvCartera } from "../utils/carteraTiposPago/cartera";
 import { nombreCompleto } from "../utils/carteraTiposPago/formatos";
@@ -8,7 +9,8 @@ import { fechaIsoColombia } from "../utils/fechaColombia";
 
 function CarteraVencidaAdmin() {
     const navigate = useNavigate();
-    const cartera = useCarteraVencida();
+    const { parametros, permisos } = useAnioLectivo();
+    const cartera = useCarteraVencida({ parametrosAnio: parametros });
     const [expandido, setExpandido] = useState(null);
     const [reporteImpresion, setReporteImpresion] = useState(null);
 
@@ -53,13 +55,26 @@ function CarteraVencidaAdmin() {
         URL.revokeObjectURL(url);
     };
 
+    // Mirando el año activo, "Actualizar" recarga la página, como siempre.
+    // Mirando otro año, vuelve a pedir la cartera de ese año: recargar la página
+    // volvería al año activo sin avisar.
+    const actualizar = permisos.esAnioActivo
+        ? () => window.location.reload()
+        : cartera.recargar;
+
+    // Pagos cobra siempre en el año activo: mirando otro año, "Cobrar" llevaría
+    // la deuda de ese año al activo. Vuelve en la fase 5, con el selector "Año
+    // del pago".
+    const puedeCobrar = permisos.esAnioActivo;
+
     return (
         <VistaCarteraVencida
             {...cartera}
+            puedeCobrar={puedeCobrar}
             expandido={expandido}
             reporteImpresion={reporteImpresion}
             onCerrarReporte={() => setReporteImpresion(null)}
-            onActualizar={() => window.location.reload()}
+            onActualizar={actualizar}
             onExportar={exportarCSV}
             onImprimirCurso={abrirReporteCurso}
             onImprimirEstudiante={abrirReporteEstudiante}

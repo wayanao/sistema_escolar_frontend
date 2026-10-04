@@ -106,11 +106,17 @@ describe("pantallas que siguen el año", () => {
     expect(enRuta("/admin", "?modulo=inventada")).toBe(false);
   });
 
+  it("desde el paso 4.3 siguen el año Tipos de pago y Cartera vencida", () => {
+    expect(enRuta("/admin/tipos-pagos")).toBe(true);
+    expect(enRuta("/admin/cartera-vencida")).toBe(true);
+  });
+
   it("las pantallas que todavía no siguen el año, o que no dependen de él, quedan fuera", () => {
     for (const ruta of [
       "/admin/estudiantes",
+      // Pagos cobra siempre en el año activo; tendrá su propio selector en la
+      // fase 5.
       "/admin/pagos",
-      "/admin/tipos-pagos",
       "/dashboard-admin",
       "/admin/nomina",
     ]) {

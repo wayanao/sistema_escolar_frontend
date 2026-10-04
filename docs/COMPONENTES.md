@@ -871,6 +871,14 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   genera mensualidades y permite adelantos.`.
 - `pages/CarteraVencidaAdmin.jsx` y `pages/TiposPagosAdmin.jsx`: raíces de
   composición del módulo.
+- Año lectivo, paso 4.3 (2026-10-03): las dos pantallas cargan los datos del
+  año que mira el admin (sus páginas leen `useAnioLectivo()` y pasan
+  `parametrosAnio` a sus hooks). `VistaAdministrarTiposPago` recibe
+  `puedeCrear` y `puedeEditar`: en un año en preparación no se ofrece crear,
+  pero se edita lo que existe; en uno cerrado no hay ✏️, y la configuración
+  se abre para mirar, con sus campos bloqueados y sin botones de guardar.
+  `VistaCarteraVencida` recibe `puedeCobrar` (falso mirando otro año: Pagos
+  cobra en el activo). Las dos props valen `true` si no llegan, como antes.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
   formulario básico, configuración y asignación de cursos.
 - `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.
