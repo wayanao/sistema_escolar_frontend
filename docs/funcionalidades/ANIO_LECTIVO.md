@@ -2,16 +2,18 @@
 
 ## Control
 
-- Estado: **Fase 4 con código completo**, iniciada el 2026-10-03 con la autorización
-  del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
+- Estado: **Fase 5 iniciada el 2026-10-05 con autorización explícita del
+  usuario; inventario y plan por pasos escritos, sin código todavía.** La
+  fase 4 quedó completa en el commit `8eac0ce`. Se inició el 2026-10-03 con
+  la autorización del usuario: inventario y plan por pasos (commit
+  `dbb0e48`), paso 4.1 (la
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
   y horarios por año; commit `78c48f7`), paso 4.3 (Tipos de pago y Cartera
   vencida por año; commit `0798f21`), paso 4.4 (Estudiantes por año; commit
   `c7f0622`), paso 4.5 (Boletines y certificados por año; commit `2140fae`)
   paso 4.6 (Listas de seguimiento y bandeja de planes por año; commit
-  `72be3da`) y **paso 4.7 (diálogo al renombrar materias) escrito y probado,
-  sin commit**. Con un solo año no cambia nada visible en datos ni botones.
-  La fase 5 no ha comenzado. La fase 3 del backend está en
+  `72be3da`) y **paso 4.7 (diálogo al renombrar materias, `8eac0ce`)**. Con
+  un solo año no cambia nada visible en datos ni botones. La fase 3 del backend está en
   GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -1033,6 +1035,57 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
   anteriores. `GET /cartera/mora/resumen` trae `total_anios_anteriores`.
   Mientras haya un solo año, la lista viene vacía y el total en 0.
 
+**Inicio autorizado e inventario confirmado el 2026-10-05:**
+
+- El usuario autorizó expresamente la fase 5 y aprobó: crear cursos y
+  conceptos nuevos en el año en preparación enviando `anio_lectivo_id`; poner
+  el año consultado en el impreso y nombre del CSV de Cartera; y proponer el
+  año consultado en el certificado de matrícula. Mirando el activo se seguirá
+  omitiendo el año para conservar cada petición anterior.
+- Ambos repos estaban en `main` y limpios al iniciar: frontend `8eac0ce` y
+  backend `ce8d7a7`, ambos `ahead 8` respecto de su remoto conocido. No se
+  hizo `fetch`, push, despliegue ni acceso a producción.
+- `AnioLectivoProvider` ya tiene la lista, el activo y el seleccionado, pero
+  todavía no puede recargarla después de crear 2027. El servicio solo tiene
+  `GET /anios-lectivos`; la ruta, página y entradas de menú de preparación no
+  existen.
+- Administración y Tipos de pago ya consultan y editan el año seleccionado,
+  pero ocultan “Crear” fuera del activo y sus servicios envían el cuerpo de
+  siempre. Al habilitar altas en preparación se añadirá el año únicamente en
+  ese caso.
+- Estudiantes ya carga cursos y matrículas del año seleccionado, pero deja
+  toda escritura fuera del activo. La fase 5 habilitará solo el alta en el
+  año en preparación; editar datos globales y cambiar estados seguirá fuera
+  de ese flujo.
+- Pagos usa siempre el activo: deudas, conceptos, cuotas vencidas, adelantos y
+  cuerpos no llevan año. Su selector será propio de la pantalla, activo por
+  defecto, y no dependerá del selector general oculto. El historial queda
+  como hoy y las ventas solo pertenecen al activo.
+- `deuda_anios_anteriores` ya llega del backend, pero los hooks de Pagos,
+  Cartera y la ficha del estudiante la descartan. El impreso y el CSV tampoco
+  reciben el año. El certificado de matrícula inicia su campo con el año del
+  reloj, no con el año seleccionado.
+
+El plan completo, incluidos los pasos 5.1 a 5.6 del backend, está en el
+documento principal. Los pasos de este repo son:
+
+1. **5.7 — Pantalla base:** servicio, ruta `AdminRoute`, menú y página para
+   crear/copiar 2027; recargar el proveedor; permitir altas manuales de cursos
+   y conceptos en preparación enviando el año solo entonces.
+2. **5.8 — Matrículas y resumen:** promoción por curso, estudiantes marcados,
+   valores especiales por revisar, alta de estudiante en 2027 y resumen sin
+   activar.
+3. **5.9 — Pagos y deuda anterior:** selector propio de año, activo por
+   defecto; recargar deudas/opciones/conceptos y agregar el año al cuerpo solo
+   si se eligió otro. Mostrar las deudas anteriores en Pagos, Cartera y ficha
+   de Estudiantes sin mezclar ventas.
+4. **5.10 — Documentos:** año consultado en el estado de cartera, nombre del
+   CSV y valor propuesto del certificado de matrícula.
+
+Cada paso empieza con caracterización, termina con pruebas específicas,
+`pnpm run check:deploy` y `git diff --check`, actualiza este documento y se
+detiene antes del siguiente.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -1131,14 +1184,15 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   plan: crear cursos o conceptos y todo lo de Estudiantes van solo mirando
   el año activo (hallazgos 2 y 3 del inventario), y un año cerrado es de
   solo consulta.~~
-- Antes de la fase 5 (encontrada en el paso 4.3): el estado de cuenta que
+- ~~Antes de la fase 5 (encontrada en el paso 4.3): el estado de cuenta que
   imprime Cartera vencida y su archivo CSV no dicen de qué año son. Mirando
   otro año (por ejemplo, la matrícula de 2027 en preparación, o 2026 ya
   cerrado), un papel entregado a una familia no diría a qué año pertenece la
   deuda. ¿Se agrega el año al impreso y al nombre del CSV? Sería algo nuevo,
   que no está en los documentos, así que no se hizo. No bloquea la fase 4:
-  mientras haya un solo año, no se puede mirar otro. **Sin respuesta del
-  usuario.**
+  mientras haya un solo año, no se puede mirar otro.~~ **Respondida el
+  2026-10-05: sí.** El impreso y el nombre del CSV identificarán el año
+  consultado en el paso 5.10.
 - Encontrada en el paso 4.5, de antes de esta función (ver su hallazgo):
   Boletines y Certificados solo listan estudiantes **activos**, así que hoy
   no se le puede sacar un certificado ni un boletín a un retirado o a un
@@ -1152,24 +1206,34 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   fase 6, cuando el admin tenga que imprimir 2026. **Pregunta hecha al
   usuario al cerrar el paso 4.5; respondió "continúa" sin decidirla, así que
   sigue abierta y no se tocó.**
-- Antes de la fase 5 (encontrada en el paso 4.5): el certificado de
+- ~~Antes de la fase 5 (encontrada en el paso 4.5): el certificado de
   matrícula lleva el año en un campo de texto que propone el año del
   calendario (`useConsultasCertificadosAdmin`, existe desde junio de 2026 y
   no es parte de esta función). Mirando 2027 en preparación propondría 2026
-  junto al curso de 2027. ¿Debe proponer el año que se está mirando? **Sin
-  respuesta del usuario.**
+  junto al curso de 2027. ¿Debe proponer el año que se está mirando?~~
+  **Respondida el 2026-10-05: sí.** Se hará en el paso 5.10; el campo seguirá
+  siendo editable.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.7 de la fase 4** (diálogo al renombrar
-  una materia usada en otro año), 2026-10-05, escrito y probado, **sin
-  commit**. Con él, la fase 4 tiene el código completo. Ver su "Avance".
+- Última acción terminada con código: **paso 4.7 de la fase 4** (diálogo al
+  renombrar una materia usada en otro año), commit `8eac0ce` del 2026-10-05.
+  La documentación principal del backend quedó en `ce8d7a7`. Con él, la fase
+  4 está completa. Ver su "Avance".
   Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
   (`78c48f7`) y paso 4.3 (`0798f21`), el 2026-10-03; paso 4.4 (`c7f0622`) y
-  paso 4.5 (`2140fae`) y paso 4.6 (`72be3da`), el 2026-10-05. Ninguno de
-  esos siete commits está en GitHub todavía (al iniciar el 4.7,
-  `git status`: `ahead 7`); subirlos lo decide el usuario.
+  paso 4.5 (`2140fae`) y paso 4.6 (`72be3da`), el 2026-10-05. Al iniciar la
+  fase 5, este repo estaba limpio y `ahead 8`; subirlo lo decide el usuario.
+- **Fase 5 iniciada el 2026-10-05 con autorización explícita del usuario:**
+  inventario y plan escritos, todavía sin código. El usuario aprobó las altas
+  manuales de cursos/conceptos en preparación, el año en el impreso/CSV de
+  Cartera y el año seleccionado como propuesta del certificado de matrícula.
+  Los pasos del frontend son 5.7 a 5.10; los pasos 5.1 a 5.6 corresponden al
+  backend y deben terminar primero según sus dependencias. Verificación del
+  paso documental: `pnpm run check:deploy`, 2210 pruebas en 341 archivos,
+  lint y build limpios; backend `scripts/verify.py`, 2016 pruebas, Ruff y
+  `pip check` limpios; `git diff --check` limpio en ambos repos.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1193,12 +1257,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.7. Después viene la **fase 5 — Preparar el año siguiente**, pero no
-  se inicia sin autorización explícita y sin responder antes las preguntas
-  que la afectan: crear cursos y conceptos nuevos en el año en preparación
-  (pregunta del backend), año en el impreso/CSV de Cartera y año propuesto en
-  el certificado de matrícula. Sigue abierta, para antes de la fase 6, la
-  pregunta de Certificados y los estudiantes retirados. El contrato de la
-  fase 2 para pagos y cartera está en la fase 5 de este documento.
+- Siguiente acción de este repo: ninguna todavía. El usuario revisa y hace el
+  commit de este inventario/plan; después empieza en el backend el **paso 5.1
+  — Blindar la matrícula y el curso vigente**, solo con autorización
+  explícita para ese paso. El primer código de este repo será el 5.7, cuando
+  los contratos 5.1 a 5.6 que necesita estén listos. Sigue abierta, para antes
+  de la fase 6, la pregunta separada de Certificados y estudiantes
+  retirados/egresados.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
