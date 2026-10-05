@@ -329,7 +329,7 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   fase 4: desde el 4.2, las pestañas Cursos, Asignaciones y Orden boletín de
   `/admin` (por eso su pestaña vive en `?modulo=`) y `/admin/horarios`; desde
   el 4.3, `/admin/tipos-pagos` y `/admin/cartera-vencida`; desde el 4.4,
-  `/admin/estudiantes`.
+  `/admin/estudiantes`; desde el 4.5, `/boletin` y `/admin/certificados`.
 - Cómo se conecta una pantalla (desde el paso 4.2): su contenedor o página
   lee `useAnioLectivo()` y pasa `parametrosAnio` a sus hooks; cada hook lo
   agrega con `opcionesConAnio`, que no cambia nada mirando el activo, y cada

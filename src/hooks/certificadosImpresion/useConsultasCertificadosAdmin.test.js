@@ -257,3 +257,65 @@ describe("useConsultasCertificadosAdmin", () => {
     expect(signal.aborted).toBe(true);
   });
 });
+
+describe("useConsultasCertificadosAdmin con un año elegido", () => {
+  const parametrosAnio = { anio_lectivo_id: 2 };
+  const conAnio = { signal: expect.any(AbortSignal), parametrosAnio };
+
+  it("pide cursos y estudiantes de ese año; las materias, sin año", async () => {
+    const { result } = renderHook(() => useConsultasCertificadosAdmin({ parametrosAnio }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(apiMock.listarCursosCertificados).toHaveBeenCalledWith(conAnio);
+    expect(apiMock.listarEstudiantesCertificados).toHaveBeenCalledWith(conAnio);
+    expect(apiMock.listarMateriasCertificados).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("el certificado de notas y el reporte parcial son de ese año; la asistencia parte de la clase", async () => {
+    const { result } = renderHook(() => useConsultasCertificadosAdmin({ parametrosAnio }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificado(8);
+    });
+    expect(apiMock.generarBoletinCertificado).toHaveBeenCalledWith(8, 1, conAnio);
+
+    await act(async () => {
+      await result.current.generarReporteParcialEstudiante(8);
+    });
+    expect(apiMock.generarReporteParcialCertificado).toHaveBeenCalledWith(8, 1, conAnio);
+    expect(apiMock.listarHistorialAsistenciaCertificados).toHaveBeenCalledWith(44, 1, {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("si cambia el año, vuelve a pedir la base y genera con el año nuevo", async () => {
+    const { result, rerender } = renderHook(
+      ({ anio }) => useConsultasCertificadosAdmin({ parametrosAnio: anio }),
+      { initialProps: { anio: parametrosAnio } },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const otroAnio = { anio_lectivo_id: 3 };
+    const conOtroAnio = { signal: expect.any(AbortSignal), parametrosAnio: otroAnio };
+    rerender({ anio: otroAnio });
+
+    await waitFor(() =>
+      expect(apiMock.listarEstudiantesCertificados).toHaveBeenLastCalledWith(conOtroAnio),
+    );
+    expect(apiMock.listarCursosCertificados).toHaveBeenLastCalledWith(conOtroAnio);
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificado(8);
+    });
+    expect(apiMock.generarBoletinCertificado).toHaveBeenLastCalledWith(8, 1, conOtroAnio);
+
+    await act(async () => {
+      await result.current.generarReporteParcialEstudiante(8);
+    });
+    expect(apiMock.generarReporteParcialCertificado).toHaveBeenLastCalledWith(8, 1, conOtroAnio);
+  });
+});

@@ -5,9 +5,12 @@ import {
   listarCursosBoletines,
   listarEstudiantesBoletines,
 } from "../../services/boletinesApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import { filtrarEstudiantes } from "../../utils/boletines/generacionBoletin";
 
-export default function useConsultaBoletinesAdministrativos() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Cursos, estudiantes y el boletín son los de ese año.
+export default function useConsultaBoletinesAdministrativos({ parametrosAnio } = {}) {
   const [cargando, setCargando] = useState(true);
   const [cursos, setCursos] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
@@ -28,9 +31,10 @@ export default function useConsultaBoletinesAdministrativos() {
       setErrorCarga(null);
 
       try {
+        const opciones = opcionesConAnio({ signal: controller.signal }, parametrosAnio);
         const [dataCursos, dataEstudiantes] = await Promise.all([
-          listarCursosBoletines({ signal: controller.signal }),
-          listarEstudiantesBoletines({ signal: controller.signal }),
+          listarCursosBoletines(opciones),
+          listarEstudiantesBoletines(opciones),
         ]);
         if (controller.signal.aborted) return;
         setCursos(dataCursos);
@@ -47,7 +51,7 @@ export default function useConsultaBoletinesAdministrativos() {
 
     void cargarBase();
     return () => controller.abort();
-  }, []);
+  }, [parametrosAnio]);
 
   useEffect(
     () => () => {
@@ -70,9 +74,11 @@ export default function useConsultaBoletinesAdministrativos() {
       setErrorBoletin(null);
 
       try {
-        const data = await generarBoletinAdministrativo(estudianteId, periodo, {
-          signal: controller.signal,
-        });
+        const data = await generarBoletinAdministrativo(
+          estudianteId,
+          periodo,
+          opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+        );
         if (controller.signal.aborted) return { cancelado: true };
         setBoletinData(data);
         return { data };
@@ -87,7 +93,7 @@ export default function useConsultaBoletinesAdministrativos() {
         }
       }
     },
-    [periodo],
+    [periodo, parametrosAnio],
   );
 
   const limpiarBoletin = useCallback(() => {

@@ -133,3 +133,37 @@ describe("contrato HTTP del orden del boletín", () => {
     await expect(obtenerOrdenBoletin(4)).rejects.toBe(error);
   });
 });
+
+describe("contrato HTTP de boletines y el año lectivo (paso 4.5)", () => {
+  it("con las opciones del año activo, estudiantes y boletín se piden como siempre", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantesBoletines({ signal: controller.signal });
+    await generarBoletinAdministrativo(8, 2, { signal: controller.signal });
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/estudiantes", { signal: controller.signal }],
+      ["/boletines/admin/generar/8/2", { signal: controller.signal }],
+    ]);
+  });
+
+  it("mirando otro año, estudiantes y boletín llevan anio_lectivo_id", async () => {
+    const controller = new AbortController();
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantesBoletines({ signal: controller.signal, parametrosAnio });
+    await generarBoletinAdministrativo(8, 2, { signal: controller.signal, parametrosAnio });
+    await generarBoletinAdministrativo(8, 3, { parametrosAnio });
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/estudiantes", { params: { anio_lectivo_id: 2 }, signal: controller.signal }],
+      [
+        "/boletines/admin/generar/8/2",
+        { params: { anio_lectivo_id: 2 }, signal: controller.signal },
+      ],
+      ["/boletines/admin/generar/8/3", { params: { anio_lectivo_id: 2 } }],
+    ]);
+  });
+});

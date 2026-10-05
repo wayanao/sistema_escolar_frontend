@@ -115,6 +115,13 @@ describe("pantallas que siguen el año", () => {
     expect(enRuta("/admin/estudiantes")).toBe(true);
   });
 
+  it("desde el paso 4.5 siguen el año Boletines y Certificados", () => {
+    expect(enRuta("/boletin")).toBe(true);
+    expect(enRuta("/admin/certificados")).toBe(true);
+    // El ingreso de boletines del profesor es otra pantalla: no sigue el año.
+    expect(enRuta("/ingreso-boletin")).toBe(false);
+  });
+
   it("las pantallas que todavía no siguen el año, o que no dependen de él, quedan fuera", () => {
     for (const ruta of [
       // Pagos cobra siempre en el año activo; tendrá su propio selector en la
@@ -123,9 +130,7 @@ describe("pantallas que siguen el año", () => {
       "/dashboard-admin",
       "/admin/nomina",
       "/admin/reportes",
-      // Las de los pasos 4.5 y 4.6, todavía sin conectar.
-      "/boletin",
-      "/admin/certificados",
+      // Las del paso 4.6, todavía sin conectar.
       "/admin/listas-seguimiento",
       "/admin/planeadores-clases",
     ]) {

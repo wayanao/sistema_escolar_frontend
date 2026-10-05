@@ -117,6 +117,12 @@ GET /anios-lectivos
   `GET /estudiantes/{id}/deudas` y `GET /observador/{id}` de la ficha (junto
   al `periodo`). El observador del profesor no lo manda nunca. Pagos usa su
   propia consulta de deudas y sigue en el año activo.
+- Desde el paso 4.5 (2026-10-05), también Boletines y Certificados:
+  `GET /cursos`, `GET /estudiantes`,
+  `GET /boletines/admin/generar/{estudiante}/{periodo}` y
+  `GET /boletines/admin/reporte-parcial/{estudiante}/{periodo}`. Las materias
+  (`GET /materias`) y el historial de asistencia (parte de una clase) van sin
+  año, como el ingreso de boletines del profesor.
 
 ## Super admin
 
@@ -708,6 +714,13 @@ Uso:
 - La impresion usa `DocumentoImprimible` con la plantilla de
   `reporte_estudiante`, manteniendo branding, encabezado, firmas y pie de
   pagina del sistema de impresos existente.
+- Año lectivo (paso 4.5, 2026-10-05): mirando un año que no es el activo,
+  cursos, estudiantes, certificado de notas y reporte parcial son de ese año
+  (`?anio_lectivo_id=`); las materias y la asistencia van sin año.
+- Ojo, hallazgo del 2026-10-05: `GET /estudiantes` va sin `estado`, y el
+  backend responde entonces solo activos. El filtro de estado de la pantalla,
+  salvo "Activos", sale siempre vacío, y no se puede generar el certificado de
+  un retirado. Pregunta abierta en `docs/funcionalidades/ANIO_LECTIVO.md`.
 
 ## Egresos
 

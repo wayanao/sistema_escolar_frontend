@@ -47,6 +47,9 @@ export const RUTAS_POR_ANIO = Object.freeze([
   { ruta: "/admin/cartera-vencida" },
   // Paso 4.4.
   { ruta: "/admin/estudiantes" },
+  // Paso 4.5.
+  { ruta: "/boletin" },
+  { ruta: "/admin/certificados" },
 ]);
 
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;

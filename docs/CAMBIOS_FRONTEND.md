@@ -1,5 +1,34 @@
 # Cambios Frontend
 
+## 2026-10-05 - Año lectivo: Boletines y certificados por año (fase 4, paso 4.5)
+
+Gestión de boletines y Certificados cargan los datos del año que mira el
+admin: cursos, estudiantes, boletín, certificado de notas y reporte parcial.
+Con un solo año, como hoy, no cambia nada en datos ni peticiones. Son
+pantallas de solo consulta: no hay botones que esconder.
+
+- `services/boletinesApi.js` (`listarEstudiantesBoletines`,
+  `generarBoletinAdministrativo`) y `services/certificadosImpresionApi.js`
+  (`generarReporteParcialCertificado`) aceptan `parametrosAnio`; sin él,
+  cada llamada a `api` es la de antes. Materias y asistencia, sin año.
+- `useConsultaBoletinesAdministrativos` y `useConsultasCertificadosAdmin`
+  reciben `{ parametrosAnio }`; las páginas lo toman de `useAnioLectivo()`.
+- `RUTAS_POR_ANIO` suma `/boletin` y `/admin/certificados`.
+- Hallazgo, de antes de esta función: las dos listas piden `GET /estudiantes`
+  sin estado y el backend responde solo activos; en Certificados, los filtros
+  Retirados, Egresados e Inactivos salen siempre vacíos. No se tocó (cambiaría
+  una petición del año activo); queda como pregunta abierta.
+- Pruebas: 13 nuevas; ajustada a propósito la del contrato puro que fijaba
+  que estas pantallas todavía no seguían el año. Veinte versiones dañadas del
+  código hacen fallar alguna prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.5".
+
+Verificacion: la primera corrida de `pnpm run check:deploy` falló en 1 de
+2180 pruebas por tiempo agotado (`IngresoBoletinProfesor.test.jsx`, que no
+usa nada de lo cambiado y pasa sola), sin llegar al lint ni al build. La
+segunda corrida completa salió limpia: las 2180 pruebas pasan (antes 2167),
+lint limpio y build correcto. `git diff --check` limpio.
+
 ## 2026-10-05 - Año lectivo: Estudiantes por año (fase 4, paso 4.4)
 
 La lista de Estudiantes y la ficha de cada uno (resumen, deudas y observador)

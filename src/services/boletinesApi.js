@@ -13,25 +13,27 @@ const getConOpciones = (url, { params, signal } = {}) => {
 };
 
 // `parametrosAnio` solo llega mirando un año que no es el activo
-// (`opcionesConAnio`); hoy lo manda el orden del boletín (paso 4.2).
+// (`opcionesConAnio`); lo mandan el orden del boletín (paso 4.2) y Boletines y
+// Certificados (paso 4.5).
 export async function listarCursosBoletines({ signal, parametrosAnio } = {}) {
   const { data } = await getConOpciones("/cursos", { params: parametrosAnio, signal });
   return data;
 }
 
-export async function listarEstudiantesBoletines({ signal } = {}) {
-  const { data } = await getConSignal("/estudiantes", signal);
+// Con otro año, los matriculados de ese año, cada uno con su curso de ese año.
+export async function listarEstudiantesBoletines({ signal, parametrosAnio } = {}) {
+  const { data } = await getConOpciones("/estudiantes", { params: parametrosAnio, signal });
   return data;
 }
 
 export async function generarBoletinAdministrativo(
   estudianteId,
   periodo,
-  { signal } = {},
+  { signal, parametrosAnio } = {},
 ) {
-  const { data } = await getConSignal(
+  const { data } = await getConOpciones(
     `/boletines/admin/generar/${estudianteId}/${periodo}`,
-    signal,
+    { params: parametrosAnio, signal },
   );
   return data;
 }

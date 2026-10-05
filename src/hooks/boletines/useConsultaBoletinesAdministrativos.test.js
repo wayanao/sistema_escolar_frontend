@@ -96,3 +96,46 @@ describe("useConsultaBoletinesAdministrativos", () => {
     expect(result.current.boletinData).toBeNull();
   });
 });
+
+describe("useConsultaBoletinesAdministrativos con un año elegido", () => {
+  const parametrosAnio = { anio_lectivo_id: 2 };
+
+  it("pide cursos, estudiantes y el boletín de ese año", async () => {
+    generarBoletinMock.mockResolvedValue({ periodo: 1 });
+    const { result } = renderHook(() =>
+      useConsultaBoletinesAdministrativos({ parametrosAnio }),
+    );
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    const conAnio = { signal: expect.any(AbortSignal), parametrosAnio };
+    expect(listarCursosMock).toHaveBeenCalledWith(conAnio);
+    expect(listarEstudiantesMock).toHaveBeenCalledWith(conAnio);
+
+    await act(async () => {
+      await result.current.consultarBoletin(8);
+    });
+    expect(generarBoletinMock).toHaveBeenCalledWith(8, 1, conAnio);
+  });
+
+  it("si cambia el año, vuelve a pedir la base y el boletín con el año nuevo", async () => {
+    generarBoletinMock.mockResolvedValue({ periodo: 1 });
+    const { result, rerender } = renderHook(
+      ({ anio }) => useConsultaBoletinesAdministrativos({ parametrosAnio: anio }),
+      { initialProps: { anio: parametrosAnio } },
+    );
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    const otroAnio = { anio_lectivo_id: 3 };
+    const conOtroAnio = { signal: expect.any(AbortSignal), parametrosAnio: otroAnio };
+    rerender({ anio: otroAnio });
+
+    await waitFor(() => expect(listarEstudiantesMock).toHaveBeenLastCalledWith(conOtroAnio));
+    expect(listarCursosMock).toHaveBeenLastCalledWith(conOtroAnio);
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    await act(async () => {
+      await result.current.consultarBoletin(8);
+    });
+    expect(generarBoletinMock).toHaveBeenLastCalledWith(8, 1, conOtroAnio);
+  });
+});

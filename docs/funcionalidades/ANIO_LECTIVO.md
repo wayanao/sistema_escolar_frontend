@@ -6,9 +6,10 @@
   del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
   y horarios por año; commit `78c48f7`), paso 4.3 (Tipos de pago y Cartera
-  vencida por año; commit `0798f21`) y **paso 4.4 (Estudiantes por año)
-  escrito y probado, sin commit**. Con un solo año no cambia nada visible en
-  datos ni botones. La fase 3 del backend está en
+  vencida por año; commit `0798f21`), paso 4.4 (Estudiantes por año; commit
+  `c7f0622`) y **paso 4.5 (Boletines y certificados por año) escrito y
+  probado, sin commit**. Con un solo año no cambia nada visible en datos ni
+  botones. La fase 3 del backend está en
   GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -776,6 +777,84 @@ commit):**
   Estudiantes y su filtro de estado, y la ficha de un estudiante (resumen,
   "Estado Financiero" y observador), iguales que en producción. Los botones
   "Nuevo Estudiante", "Editar" y el selector de estado siguen ahí.
+- Commit `c7f0622` (hecho por el usuario el 2026-10-05).
+
+**Avance del 2026-10-05 — paso 4.5, Boletines y certificados por año (sin
+commit):**
+
+- Aprobado por el usuario el 2026-10-05 ("OK"). No es zona de dinero y las
+  dos pantallas solo consultan e imprimen: no hay botones que esconder.
+  Ninguna pregunta abierta afectaba este paso.
+- Las dos páginas ya tenían prueba de página. Contra el código nuevo, de las
+  133 pruebas que ya había en todo lo tocado (incluidos el orden del boletín y
+  el ingreso de boletines del profesor, que comparten el servicio) falló
+  solo la esperada: la del contrato puro que fijaba que estas pantallas
+  todavía no seguían el año.
+- Código:
+  - `services/boletinesApi.js`: `listarEstudiantesBoletines` y
+    `generarBoletinAdministrativo` aceptan `parametrosAnio`, como ya lo hacía
+    `listarCursosBoletines` desde el paso 4.2.
+    `services/certificadosImpresionApi.js`:
+    `generarReporteParcialCertificado` también; las otras tres lecturas de
+    Certificados son las mismas de boletines, reexportadas. Sin año, cada
+    petición es la de antes.
+  - Hooks con `{ parametrosAnio }`: `useConsultaBoletinesAdministrativos`
+    (cursos, estudiantes y el boletín) y `useConsultasCertificadosAdmin`
+    (cursos, estudiantes, certificado de notas y reporte parcial). Las
+    materias son un catálogo y el historial de asistencia parte de una
+    clase: van sin año. Los dos vuelven a pedir si el año cambia.
+  - `pages/Boletin.jsx` y `pages/CertificadosAdmin.jsx` leen
+    `useAnioLectivo()` y se lo pasan a sus hooks.
+  - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` suma `/boletin` y
+    `/admin/certificados`. El ingreso de boletines del profesor
+    (`/ingreso-boletin`) es otra pantalla y no sigue el año.
+- No se tocó: el certificado de matrícula (no pide nada al backend; ver la
+  pregunta abierta de su año), el diseño de impresos ni el backend.
+- Hallazgo, de antes de esta función (no lo causa el año lectivo): las
+  listas de Boletines y de Certificados piden `GET /estudiantes` sin estado,
+  y el backend responde entonces solo los activos (su valor por defecto desde
+  el 2026-06-03, `6d4e75c`). Certificados se hizo un día después
+  (`803894d`, 2026-06-04) con un filtro propio de Activos, Retirados,
+  Egresados, Inactivos y Todos: **hoy esos filtros, salvo Activos, salen
+  siempre vacíos**, y no se le puede sacar el certificado a un retirado. Sus
+  pruebas no lo ven porque simulan el servicio con un retirado incluido. Con
+  el año lectivo pasa lo mismo mirando un año pasado: quien ya no está activo
+  no aparece, y suele ser quien pide un certificado. Este paso no lo empeora
+  ni lo arregla: con el año activo, cada petición es la de siempre. Ver la
+  pregunta abierta.
+- Pruebas: 13 nuevas.
+  - Dos archivos nuevos, `Boletin.anioLectivo.test.jsx` y
+    `CertificadosAdmin.anioLectivo.test.jsx`, con las páginas completas
+    mirando un año cerrado y las peticiones reales: cursos y estudiantes de
+    ese año, el boletín, el certificado de notas y el reporte parcial de ese
+    año, y las materias y la asistencia sin año.
+  - En archivos existentes: los dos servicios (con las opciones del activo,
+    la llamada de siempre; con otro año, cada lectura con `anio_lectivo_id`;
+    materias e historial sin año), los dos hooks (con año y si cambia el
+    año, también al generar) y el contrato puro (y que `/ingreso-boletin`
+    no sigue el año).
+  - Ajustada a propósito: la del contrato puro que fijaba que estas
+    pantallas todavía no seguían el año.
+  - Veinte versiones dañadas del código hacen fallar alguna prueba: cada
+    lectura de los servicios sin año, el reporte parcial con un segundo
+    argumento vacío, cada hook sin año o sin vigilar el año (base, boletín,
+    certificado y reporte), las materias o la asistencia con año, cada
+    página sin año y cada pantalla fuera de `RUTAS_POR_ANIO`.
+- Documentación: `API_CLIENT.md` (también el hallazgo, en Certificados),
+  `ARQUITECTURA_FRONTEND.md`, `COMPONENTES.md` y `CAMBIOS_FRONTEND.md`. En
+  este documento, las dos preguntas abiertas nuevas y el punto 5 de la fase
+  6.
+- Verificación: la primera corrida de `pnpm run check:deploy` **no salió
+  limpia**: falló 1 de 2180 pruebas por tiempo agotado
+  (`IngresoBoletinProfesor.test.jsx`, que esperaba a un alumno mientras la
+  lista de clases todavía cargaba), y por eso no llegó al lint ni al build.
+  Esa pantalla no usa nada de lo que cambió, y su archivo pasó solo dos
+  veces seguidas. La segunda corrida completa, con más memoria libre, salió
+  **limpia**: **2180 pruebas pasan** en 337 archivos (antes 2167), lint
+  limpio y build correcto. `git diff --check` limpio.
+- Efecto al publicar: ninguno visible mientras haya un solo año. Revisión en
+  local (solo mirar): generar el boletín de un estudiante, y en Certificados
+  un certificado de notas y un reporte parcial, iguales que en producción.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -837,6 +916,10 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
    puede pasar: mirando un año cerrado esos botones no aparecen. Desde esta
    fase sí, si el año se cierra mientras la pantalla está abierta. Arreglarlo
    antes de activar el primer año.
+5. Ojo, hallazgo del paso 4.5: para que el admin pueda imprimir boletines y
+   certificados de 2026 después de activar 2027, esas dos listas tienen que
+   traer también a quien ya no esté activo (los marcados "no continúa" pasan
+   a retirados al activar). Hoy solo traen activos: ver la pregunta abierta.
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -917,16 +1000,34 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   que no está en los documentos, así que no se hizo. No bloquea la fase 4:
   mientras haya un solo año, no se puede mirar otro. **Sin respuesta del
   usuario.**
+- Encontrada en el paso 4.5, de antes de esta función (ver su hallazgo):
+  Boletines y Certificados solo listan estudiantes **activos**, así que hoy
+  no se le puede sacar un certificado ni un boletín a un retirado o a un
+  egresado, y mirando un año pasado tampoco a quien ya no siga activo. ¿Se
+  arregla como cambio aparte? Propuesta del asistente: solo en Certificados,
+  pidiendo todos los estados (`?estado=todos`). Su filtro propio ya abre en
+  "Activos", así que nada cambia a la vista hasta que alguien elija
+  "Retirados", y el certificado de notas cubre lo que suele pedir quien se
+  va. Boletines quedaría como está. Cambiaría una petición del año activo,
+  por eso no entró en el paso 4.5. Hace falta como muy tarde antes de la
+  fase 6, cuando el admin tenga que imprimir 2026. **Pregunta hecha al
+  usuario al cerrar el paso 4.5.**
+- Antes de la fase 5 (encontrada en el paso 4.5): el certificado de
+  matrícula lleva el año en un campo de texto que propone el año del
+  calendario (`useConsultasCertificadosAdmin`, existe desde junio de 2026 y
+  no es parte de esta función). Mirando 2027 en preparación propondría 2026
+  junto al curso de 2027. ¿Debe proponer el año que se está mirando? **Sin
+  respuesta del usuario.**
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.4 de la fase 4** (Estudiantes con el
-  año elegido: lista, ficha y observador de la ficha; mirando otro año,
-  solo consulta), 2026-10-05, escrito y probado, **sin commit**. Ver su
-  "Avance" en la fase 4. Antes, el 2026-10-03: inventario y plan por pasos
+- Última acción terminada: **paso 4.5 de la fase 4** (Boletines y
+  certificados con el año elegido), 2026-10-05, escrito y probado, **sin
+  commit**. Ver su "Avance" en la fase 4. Antes: inventario y plan por pasos
   (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2 (`78c48f7`) y paso 4.3
-  (`0798f21`). Ninguno de esos commits está en GitHub todavía (al
-  2026-10-05, `git status`: `ahead 4`); subirlos lo decide el usuario.
+  (`0798f21`), el 2026-10-03, y paso 4.4 (`c7f0622`), el 2026-10-05.
+  Ninguno de esos commits está en GitHub todavía (al 2026-10-05,
+  `git status`: `ahead 5`); subirlos lo decide el usuario.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -951,9 +1052,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.4. Después, el **paso 4.5** (Boletines y certificados: cursos,
-  estudiantes, boletín y reporte parcial del año elegido; son pantallas de
-  solo consulta), solo con su visto bueno. El contrato de la fase 2 para
-  pagos y cartera sigue en la fase 5 de este documento. El estado al día
-  está en la "Entrega" del documento del backend.
+  paso 4.5, y responda la pregunta de las listas que solo traen activos (ver
+  "Preguntas abiertas"). Después, el **paso 4.6** (Listas de seguimiento y
+  bandeja de planes del admin, con la caracterización de
+  `PlaneadoresClasesAdmin.jsx` primero, hallazgo 4), solo con su visto
+  bueno. El contrato de la fase 2 para pagos y cartera sigue en la fase 5 de
+  este documento. El estado al día está en la "Entrega" del documento del
+  backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

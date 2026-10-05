@@ -4,11 +4,15 @@ import CertificadoMatriculaPreview from "../components/certificadosImpresion/Cer
 import CertificadoNotasPreview from "../components/certificadosImpresion/CertificadoNotasPreview";
 import ReporteParcialPreview from "../components/certificadosImpresion/ReporteParcialPreview";
 import SeleccionCertificados from "../components/certificadosImpresion/SeleccionCertificados";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useConsultasCertificadosAdmin from "../hooks/certificadosImpresion/useConsultasCertificadosAdmin";
 
 export default function CertificadosAdmin() {
   const [tabActiva, setTabActiva] = useState("notas");
-  const consultas = useConsultasCertificadosAdmin();
+  // Solo consulta e imprime: el año elegido cambia qué se ve, no hay botones
+  // que esconder.
+  const { parametros } = useAnioLectivo();
+  const consultas = useConsultasCertificadosAdmin({ parametrosAnio: parametros });
 
   if (consultas.certificado) {
     return (

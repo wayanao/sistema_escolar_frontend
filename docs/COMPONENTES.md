@@ -748,6 +748,10 @@ Estado actual de componentes y paginas del frontend.
 - `services/boletinesApi.js`: frontera HTTP única del módulo.
 - `utils/boletines/`: cálculos, normalización, filtros, movimientos y payloads
   puros.
+- Año lectivo, paso 4.5 (2026-10-05): `pages/Boletin.jsx` lee
+  `useAnioLectivo()`; cursos, estudiantes y el boletín son los del año que
+  mira el admin. Solo consulta e imprime: no hay botones que esconder. El
+  ingreso de boletines del profesor no sigue el año.
 
 ### Certificados e impresión
 
@@ -769,6 +773,11 @@ Estado actual de componentes y paginas del frontend.
   plantillas.
 - `utils/certificadosImpresion/`: filtros, cálculos, consolidación académica y
   contratos puros de los documentos.
+- Año lectivo, paso 4.5 (2026-10-05): `pages/CertificadosAdmin.jsx` lee
+  `useAnioLectivo()`; cursos, estudiantes, certificado de notas y reporte
+  parcial son los del año que mira el admin. El certificado de matrícula no
+  cambió (su año sigue siendo un campo de texto; ver la pregunta abierta en
+  `docs/funcionalidades/ANIO_LECTIVO.md`).
 
 ### Estudiantes y observador
 

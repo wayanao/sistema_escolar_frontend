@@ -1,8 +1,12 @@
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useConsultaBoletinesAdministrativos from "../hooks/boletines/useConsultaBoletinesAdministrativos";
 import BoletinImprimible from "../components/boletin/BoletinImprimible";
 import SeleccionBoletinAdministrativo from "../components/boletin/SeleccionBoletinAdministrativo";
 
 export default function Boletin() {
+  // Solo consulta e imprime: el año elegido cambia qué se ve, no hay botones
+  // que esconder.
+  const { parametros } = useAnioLectivo();
   const {
     boletinData,
     busqueda,
@@ -17,7 +21,7 @@ export default function Boletin() {
     cambiarPeriodo,
     consultarBoletin,
     limpiarBoletin,
-  } = useConsultaBoletinesAdministrativos();
+  } = useConsultaBoletinesAdministrativos({ parametrosAnio: parametros });
 
   const generarBoletin = async (estudianteId) => {
     const { error } = await consultarBoletin(estudianteId);

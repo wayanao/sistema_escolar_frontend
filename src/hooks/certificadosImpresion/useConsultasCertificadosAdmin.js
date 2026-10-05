@@ -8,6 +8,7 @@ import {
   listarHistorialAsistenciaCertificados,
   listarMateriasCertificados,
 } from "../../services/certificadosImpresionApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import {
   MATERIA_TODAS,
   PERIODOS_NUMERICOS,
@@ -27,7 +28,10 @@ function esCancelacion(error, signal) {
   return signal.aborted || error?.name === "AbortError" || error?.code === "ERR_CANCELED";
 }
 
-export default function useConsultasCertificadosAdmin() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Cursos, estudiantes, boletines y reportes parciales son los de ese año; las
+// materias son un catálogo y el historial de asistencia parte de una clase.
+export default function useConsultasCertificadosAdmin({ parametrosAnio } = {}) {
   const [cursos, setCursos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
   const [materias, setMaterias] = useState([]);
@@ -54,9 +58,10 @@ export default function useConsultasCertificadosAdmin() {
       setLoading(true);
       setError("");
       try {
+        const opcionesDelAnio = opcionesConAnio({ signal: controller.signal }, parametrosAnio);
         const [datosCursos, datosEstudiantes, datosMaterias] = await Promise.all([
-          listarCursosCertificados({ signal: controller.signal }),
-          listarEstudiantesCertificados({ signal: controller.signal }),
+          listarCursosCertificados(opcionesDelAnio),
+          listarEstudiantesCertificados(opcionesDelAnio),
           listarMateriasCertificados({ signal: controller.signal }),
         ]);
         if (controller.signal.aborted) return;
@@ -74,7 +79,7 @@ export default function useConsultasCertificadosAdmin() {
 
     void cargarBase();
     return () => controller.abort();
-  }, []);
+  }, [parametrosAnio]);
 
   useEffect(
     () => () => {
@@ -123,9 +128,11 @@ export default function useConsultasCertificadosAdmin() {
         : [Number(periodo)];
       const boletines = await Promise.all(
         periodosConsultar.map((periodoItem) =>
-          generarBoletinCertificado(estudianteId, periodoItem, {
-            signal: controller.signal,
-          })),
+          generarBoletinCertificado(
+            estudianteId,
+            periodoItem,
+            opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+          )),
       );
       if (controller.signal.aborted) return { cancelado: true };
       const data = construirCertificadoNotas({
@@ -149,7 +156,7 @@ export default function useConsultasCertificadosAdmin() {
     } finally {
       finalizarConsulta(controller);
     }
-  }, [cursosPorId, estudiantes, finalizarConsulta, iniciarConsulta, periodo]);
+  }, [cursosPorId, estudiantes, finalizarConsulta, iniciarConsulta, parametrosAnio, periodo]);
 
   const generarCertificadoMatricula = useCallback((estudianteId) => {
     consultaRef.current?.abort();
@@ -190,9 +197,11 @@ export default function useConsultasCertificadosAdmin() {
       : Number(materiaReporte);
     const respuestas = await Promise.allSettled(
       estudiantesObjetivo.map((estudiante) =>
-        generarReporteParcialCertificado(estudiante.id, periodoNumero, {
-          signal: controller.signal,
-        })),
+        generarReporteParcialCertificado(
+          estudiante.id,
+          periodoNumero,
+          opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+        )),
     );
     if (controller.signal.aborted) return { cancelado: true };
 
@@ -259,7 +268,14 @@ export default function useConsultasCertificadosAdmin() {
     setReporteParcial(data);
     window.scrollTo({ top: 0, behavior: "smooth" });
     return { data };
-  }, [cursoSeleccionado, cursosPorId, materiaReporte, materias, periodoReporte]);
+  }, [
+    cursoSeleccionado,
+    cursosPorId,
+    materiaReporte,
+    materias,
+    parametrosAnio,
+    periodoReporte,
+  ]);
 
   const generarReporteParcialEstudiante = useCallback(async (estudianteId) => {
     const controller = iniciarConsulta({ estudianteId });

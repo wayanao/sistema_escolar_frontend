@@ -17,14 +17,19 @@ export async function listarMateriasCertificados({ signal } = {}) {
   return respuesta.data;
 }
 
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); sin él, la petición es la de siempre.
 export async function generarReporteParcialCertificado(
   estudianteId,
   periodo,
-  { signal } = {},
+  { signal, parametrosAnio } = {},
 ) {
   const ruta = `/boletines/admin/reporte-parcial/${estudianteId}/${periodo}`;
-  const respuesta = signal
-    ? await api.get(ruta, { signal })
+  const opciones = {};
+  if (parametrosAnio) opciones.params = parametrosAnio;
+  if (signal) opciones.signal = signal;
+  const respuesta = Object.keys(opciones).length > 0
+    ? await api.get(ruta, opciones)
     : await api.get(ruta);
   return respuesta.data;
 }

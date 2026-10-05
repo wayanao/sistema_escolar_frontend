@@ -102,3 +102,35 @@ describe("contrato HTTP de certificados", () => {
     });
   });
 });
+
+describe("contrato HTTP de certificados y el año lectivo (paso 4.5)", () => {
+  it("mirando otro año, el reporte parcial y las consultas base llevan anio_lectivo_id", async () => {
+    const controller = new AbortController();
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await generarReporteParcialCertificado(8, 3, { signal: controller.signal, parametrosAnio });
+    await generarReporteParcialCertificado(8, 4, { parametrosAnio });
+    await listarCursosCertificados({ parametrosAnio });
+    await listarEstudiantesCertificados({ parametrosAnio });
+    await generarBoletinCertificado(8, 1, { parametrosAnio });
+
+    const conAnio = { params: { anio_lectivo_id: 2 } };
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/boletines/admin/reporte-parcial/8/3", { ...conAnio, signal: controller.signal }],
+      ["/boletines/admin/reporte-parcial/8/4", conAnio],
+      ["/cursos", conAnio],
+      ["/estudiantes", conAnio],
+      ["/boletines/admin/generar/8/1", conAnio],
+    ]);
+  });
+
+  it("las materias y el historial de asistencia no llevan año", async () => {
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarMateriasCertificados();
+    await listarHistorialAsistenciaCertificados(44, 2);
+
+    expect(apiMock.get.mock.calls).toEqual([["/materias"], ["/asistencia/historial/44/2"]]);
+  });
+});
