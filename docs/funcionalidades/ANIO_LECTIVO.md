@@ -5,9 +5,10 @@
 - Estado: **Fase 4 en curso**, iniciada el 2026-10-03 con la autorización
   del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
-  y horarios por año; commit `78c48f7`) y **paso 4.3 (Tipos de pago y
-  Cartera vencida por año) escrito y probado, sin commit**. Con un solo año
-  no cambia nada visible en datos ni botones. La fase 3 del backend está en
+  y horarios por año; commit `78c48f7`), paso 4.3 (Tipos de pago y Cartera
+  vencida por año; commit `0798f21`) y **paso 4.4 (Estudiantes por año)
+  escrito y probado, sin commit**. Con un solo año no cambia nada visible en
+  datos ni botones. La fase 3 del backend está en
   GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -692,6 +693,89 @@ commit):**
   (lista, "⚙️ Configurar" de un concepto con sus precios) y Cartera vencida
   (lista, filtro por curso, "Cobrar" y "↻ Actualizar"), iguales que en
   producción.
+- Commit `0798f21` (hecho por el usuario el 2026-10-03).
+
+**Avance del 2026-10-05 — paso 4.4, Estudiantes por año (sin commit):**
+
+- Aprobado por el usuario el 2026-10-05 ("SI"), después de explicarle el
+  cambio archivo por archivo, porque la ficha muestra deudas. Ninguna
+  pregunta abierta afectaba este paso.
+- Caracterización primero (hallazgo 4 del inventario): la página no tenía
+  prueba. `pages/EstudiantesAdmin.test.jsx`, 7 pruebas escritas y pasadas
+  contra el código anterior: la lista de activos y los cursos con sus
+  peticiones exactas, el filtro de estado, la ficha (resumen, deudas y
+  observador, con lo que muestra), editar (`GET` y `PUT`), crear (`POST`,
+  con los cursos que ofrece el formulario), cambiar el estado (`PATCH`, con
+  su confirmación) y quien no es admin vuelve al inicio de sesión sin pedir
+  nada.
+- Contra el código nuevo, de las pruebas que ya había en todo lo tocado
+  (218) fallaron solo las 2 esperadas: la del contrato puro que fijaba que
+  Estudiantes no seguía el año, y la del hook de la lista, que fijaba la
+  llamada al servicio sin opciones (ahora va con `{}`; la petición al backend
+  es la misma, letra por letra, como prueban el servicio y la página).
+- Código:
+  - `services/estudiantesObservadorApi.js`: la lista (`?estado=` más el
+    año), los cursos, el resumen de la ficha y sus deudas aceptan
+    `{ parametrosAnio }`. `services/observadorApi.js`: `obtenerObservador`
+    también, junto al periodo. Sin año, cada petición es la de antes.
+  - Hooks con `{ parametrosAnio }`: `useListadoEstudiantesAdmin`,
+    `useDetalleEstudianteAdmin` y `useObservadorEstudiante`, que vuelven a
+    pedir si el año cambia. El de la ficha y el de la lista siguen
+    descartando respuestas viejas, como antes.
+  - `pages/EstudiantesAdmin.jsx` lee `useAnioLectivo()` y se lo pasa a sus
+    hooks; `ObservadorEnFichaAdmin` (conector) lo lee para el observador de
+    la ficha. La pantalla del observador del profesor (`pages/Observador.jsx`)
+    no lo pasa: sigue igual.
+  - Mirando otro año, **aunque esté en preparación**, solo consulta (hallazgo
+    2): sin "Nuevo Estudiante" (`EncabezadoEstudiantesAdmin`, prop
+    `puedeCrear`) y sin la columna de acciones, es decir, sin cambiar el
+    estado ni "Editar" (`ListaEstudiantesAdmin`, prop `puedeEditar`). La
+    ficha se sigue abriendo. Por eso la regla es `esAnioActivo` y no
+    `puedeEditar`: un estudiante no es de un año, y editarlo mirando otro
+    cambiaría también sus datos de hoy.
+  - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` suma `/admin/estudiantes`.
+- La ficha mirando otro año: notas, faltas, observaciones, observador y
+  deudas son las de ese año, y el curso que muestra es el de ese año (el de
+  la lista, resuelto con los cursos de ese año). Los productos de inventario
+  no son de un año: salen todos, como hoy.
+- No se tocó: Pagos (usa su propia consulta de deudas, `pagosApi`), la
+  pantalla del observador del profesor ni el backend.
+- Pruebas: 23 nuevas, las 7 de la caracterización y 16 del año.
+  - Archivo nuevo `EstudiantesAdmin.anioLectivo.test.jsx`, con la página
+    completa: en preparación, lista y cursos de ese año (el curso que se ve
+    es el de ese año) y sin "Nuevo Estudiante", "Editar" ni la columna de
+    acciones; en un año cerrado, el filtro de estado sigue pidiendo ese año,
+    y la ficha pide resumen, deudas y observador de ese año y los muestra.
+  - En archivos existentes: los dos servicios (con las opciones del activo,
+    la llamada de siempre; con otro año, cada lectura con `anio_lectivo_id`;
+    el observador, el año junto al periodo), los tres hooks (sin año, con
+    año y si cambia el año; el del observador, exactamente como siempre sin
+    año), las dos vistas de la lista en solo consulta y el contrato puro
+    (que además fija las pantallas que todavía no siguen el año: Pagos, el
+    inicio, Reportes y las de los pasos 4.5 y 4.6).
+  - Ajustadas a propósito: la del contrato puro que fijaba que Estudiantes
+    no seguía el año, y la del hook de la lista (llamada al servicio con
+    `{}`).
+  - Veinticinco versiones dañadas del código hacen fallar alguna prueba:
+    cada lectura de los dos servicios sin año, el servicio con un segundo
+    argumento vacío, el observador perdiendo el periodo, cada hook sin año o
+    sin vigilar el año, la página sin año en la lista o en la ficha, la
+    página dejando modificar mirando otro año (también con `puedeEditar` en
+    vez de `esAnioActivo`), cada botón o columna siempre visible (en la
+    página y en las vistas), el observador de la ficha sin año y la pantalla
+    fuera de `RUTAS_POR_ANIO`.
+- Documentación: `API_CLIENT.md`, `ARQUITECTURA_FRONTEND.md`,
+  `COMPONENTES.md` y `CAMBIOS_FRONTEND.md`. En la fase 5 de este documento
+  (punto 4), el hallazgo de la ficha y la deuda de años anteriores.
+- Verificación: `pnpm run check:deploy` **limpio en una sola corrida**:
+  **2167 pruebas pasan** en 335 archivos (antes 2144), lint limpio y build
+  correcto. `git diff --check` limpio. Las pruebas del paso, solas, no
+  muestran ningún aviso.
+- Efecto al publicar: ninguno visible mientras haya un solo año. Revisión en
+  local (solo mirar: guardar en local escribe en la base real): la lista de
+  Estudiantes y su filtro de estado, y la ficha de un estudiante (resumen,
+  "Estado Financiero" y observador), iguales que en producción. Los botones
+  "Nuevo Estudiante", "Editar" y el selector de estado siguen ahí.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -712,7 +796,11 @@ commit):**
 4. Deuda de años anteriores (decisión 2): el detalle de deudas del
    estudiante en Pagos y Cartera vencida la muestran aparte, por año. Tiene
    que estar en producción **antes de activar 2027** (fase 6): desde ese
-   día, lo que se deba de 2026 solo llega en ese campo.
+   día, lo que se deba de 2026 solo llega en ese campo. Hallazgo del paso
+   4.4: la ficha de Estudiantes (`DetalleEstudianteAdmin`, "Estado
+   Financiero") tampoco la muestra, aunque su `GET /estudiantes/{id}/deudas`
+   ya la trae; conviene sumarla aquí, o el admin dejaría de ver en la ficha
+   lo que se debe de 2026.
 5. Documentación: `RUTAS_FRONTEND.md` (ruta nueva), `API_CLIENT.md`,
    `COMPONENTES.md`, `ROLES_UI.md` (la entrada de menú del admin),
    `CAMBIOS_FRONTEND.md`.
@@ -832,13 +920,13 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.3 de la fase 4** (Tipos de pago y
-  Cartera vencida con el año elegido; mirando otro año, sin "Cobrar" y con
-  "Actualizar" que no salta de año), 2026-10-03, escrito y probado, **sin
-  commit**. Ver su "Avance" en la fase 4. Antes, el mismo día: inventario y
-  plan por pasos (commit `dbb0e48`), paso 4.1 (commit `4b14347`) y paso 4.2
-  (commit `78c48f7`). Al retomar, el documento todavía decía "sin commit"
-  del 4.2; `git log` mostraba el commit, y se corrigió.
+- Última acción terminada: **paso 4.4 de la fase 4** (Estudiantes con el
+  año elegido: lista, ficha y observador de la ficha; mirando otro año,
+  solo consulta), 2026-10-05, escrito y probado, **sin commit**. Ver su
+  "Avance" en la fase 4. Antes, el 2026-10-03: inventario y plan por pasos
+  (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2 (`78c48f7`) y paso 4.3
+  (`0798f21`). Ninguno de esos commits está en GitHub todavía (al
+  2026-10-05, `git status`: `ahead 4`); subirlos lo decide el usuario.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -863,12 +951,9 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.3. Después, el **paso 4.4** (Estudiantes: lista, ficha con detalle
-  y deudas, y el observador de la ficha), solo con su visto bueno. Antes de
-  tocarlo, la caracterización de `EstudiantesAdmin.jsx`, que no tiene prueba
-  de página (hallazgo 4). Mirando otro año, Estudiantes queda en solo
-  consulta (hallazgo 2). La ficha muestra deudas (`/estudiantes/{id}/deudas`):
-  como en el 4.3, explicarle el cambio al usuario antes de tocarla. El contrato de la fase 2 para pagos y cartera sigue
-  en la fase 5 de este documento. El estado al día está en la "Entrega" del
-  documento del backend.
+  paso 4.4. Después, el **paso 4.5** (Boletines y certificados: cursos,
+  estudiantes, boletín y reporte parcial del año elegido; son pantallas de
+  solo consulta), solo con su visto bueno. El contrato de la fase 2 para
+  pagos y cartera sigue en la fase 5 de este documento. El estado al día
+  está en la "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

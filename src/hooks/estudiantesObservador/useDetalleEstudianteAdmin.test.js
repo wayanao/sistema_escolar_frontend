@@ -112,3 +112,53 @@ describe("useDetalleEstudianteAdmin", () => {
     expect(result.current.loadingDetalles).toBe(false);
   });
 });
+
+describe("useDetalleEstudianteAdmin y el año que mira el admin", () => {
+  beforeEach(() => {
+    obtenerDetalleMock.mockResolvedValue({ promedio_general: 4 });
+    obtenerDeudasMock.mockResolvedValue({ deudas: [{ deuda: 300000 }], total_deuda: 300000 });
+  });
+
+  it("sin año elegido, la ficha se pide sin año", async () => {
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await act(async () => {
+      await result.current.verDetalles({ id: 11, nombre: "Ana" });
+    });
+
+    expect(obtenerDetalleMock).toHaveBeenCalledWith(11, {});
+    expect(obtenerDeudasMock).toHaveBeenCalledWith(11, {});
+  });
+
+  it("con un año elegido, el resumen y las deudas son de ese año", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const { result } = renderHook(() => useDetalleEstudianteAdmin({ parametrosAnio }));
+
+    await act(async () => {
+      await result.current.verDetalles({ id: 11, nombre: "Ana" });
+    });
+
+    expect(obtenerDetalleMock).toHaveBeenCalledWith(11, { parametrosAnio });
+    expect(obtenerDeudasMock).toHaveBeenCalledWith(11, { parametrosAnio });
+    expect(result.current.detallesEstudiante).toMatchObject({
+      promedio_general: 4,
+      total_deuda: 300000,
+    });
+  });
+
+  it("si cambia el año, la ficha siguiente se pide con el año nuevo", async () => {
+    const { result, rerender } = renderHook(
+      ({ anio }) => useDetalleEstudianteAdmin({ parametrosAnio: anio }),
+      { initialProps: { anio: { anio_lectivo_id: 2 } } },
+    );
+    const otroAnio = { anio_lectivo_id: 3 };
+    rerender({ anio: otroAnio });
+
+    await act(async () => {
+      await result.current.verDetalles({ id: 11, nombre: "Ana" });
+    });
+
+    expect(obtenerDetalleMock).toHaveBeenCalledWith(11, { parametrosAnio: otroAnio });
+    expect(obtenerDeudasMock).toHaveBeenCalledWith(11, { parametrosAnio: otroAnio });
+  });
+});

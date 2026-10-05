@@ -23,10 +23,18 @@ import api from "../utils/api";
  *
  * Un `404` significa que el estudiante no existe, y es distinto de una lista
  * vacía, que significa que todavía nadie le ha escrito nada.
+ *
+ * `parametrosAnio` solo lo manda la ficha del admin, mirando un año que no es
+ * el activo; el profesor ve siempre el año activo (el servidor le respondería
+ * `403` si pidiera otro).
  */
-export async function obtenerObservador(estudianteId, { periodo, signal } = {}) {
+export async function obtenerObservador(
+  estudianteId,
+  { periodo, signal, parametrosAnio } = {},
+) {
   const config = {};
   if (periodo) config.params = { periodo };
+  if (parametrosAnio) config.params = { ...config.params, ...parametrosAnio };
   if (signal) config.signal = signal;
 
   const { data } = await api.get(`/observador/${estudianteId}`, config);

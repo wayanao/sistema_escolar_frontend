@@ -3,9 +3,15 @@ import {
   listarCursosEstudiantes,
   listarEstudiantes,
 } from "../../services/estudiantesObservadorApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import { filtrarEstudiantesAdmin } from "../../utils/estudiantesObservador/estudiantes";
 
-export default function useListadoEstudiantesAdmin({ habilitado = true } = {}) {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Estudiantes y cursos son los de ese año.
+export default function useListadoEstudiantesAdmin({
+  habilitado = true,
+  parametrosAnio,
+} = {}) {
   const [estudiantes, setEstudiantes] = useState([]);
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,9 +28,10 @@ export default function useListadoEstudiantesAdmin({ habilitado = true } = {}) {
     setError(null);
 
     try {
+      const opciones = opcionesConAnio({}, parametrosAnio);
       const [estudiantesData, cursosData] = await Promise.all([
-        listarEstudiantes(estadoFiltro),
-        listarCursosEstudiantes(),
+        listarEstudiantes(estadoFiltro, opciones),
+        listarCursosEstudiantes(opciones),
       ]);
 
       if (solicitudRef.current !== solicitudId) return;
@@ -36,7 +43,7 @@ export default function useListadoEstudiantesAdmin({ habilitado = true } = {}) {
     } finally {
       if (solicitudRef.current === solicitudId) setLoading(false);
     }
-  }, [estadoFiltro, habilitado]);
+  }, [estadoFiltro, habilitado, parametrosAnio]);
 
   useEffect(() => {
     if (habilitado) void recargar();

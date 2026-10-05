@@ -112,6 +112,11 @@ GET /anios-lectivos
   detalle de un concepto y lo que se guarda parten de su id y no lo llevan.
   El resumen de cartera del inicio del admin y Pagos siguen siempre con el
   año activo.
+- Desde el paso 4.4 (2026-10-05), también Estudiantes: `GET /estudiantes`
+  (junto a su `estado`), `GET /cursos`, `GET /estudiantes/{id}/detalles`,
+  `GET /estudiantes/{id}/deudas` y `GET /observador/{id}` de la ficha (junto
+  al `periodo`). El observador del profesor no lo manda nunca. Pagos usa su
+  propia consulta de deudas y sigue en el año activo.
 
 ## Super admin
 
@@ -155,6 +160,11 @@ Uso:
 - El resumen del estudiante combina el detalle amplio con
   `/estudiantes/{estudiante_id}/deudas` para que el estado financiero no
   dependa de notas, observaciones o inventario.
+- Año lectivo (paso 4.4, 2026-10-05): mirando un año que no es el activo, la
+  lista son los matriculados de ese año con su curso de ese año, y la ficha
+  (resumen, deudas y observador) es la de ese año (`?anio_lectivo_id=`). La
+  pantalla queda en solo consulta: no ofrece crear, editar ni cambiar el
+  estado, porque un estudiante no es de un año.
 
 `CrearProfesor.jsx` consume:
 

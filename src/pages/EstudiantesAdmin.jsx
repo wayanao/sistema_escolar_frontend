@@ -4,6 +4,7 @@ import DetalleEstudianteAdmin from "../components/estudiantesObservador/admin/De
 import EncabezadoEstudiantesAdmin from "../components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import ListaEstudiantesAdmin from "../components/estudiantesObservador/admin/ListaEstudiantesAdmin";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioEstadoEstudianteAdmin from "../hooks/estudiantesObservador/useCambioEstadoEstudianteAdmin";
 import useDetalleEstudianteAdmin from "../hooks/estudiantesObservador/useDetalleEstudianteAdmin";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
@@ -12,6 +13,12 @@ import useListadoEstudiantesAdmin from "../hooks/estudiantesObservador/useListad
 function EstudiantesAdmin() {
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+  const { parametros, permisos } = useAnioLectivo();
+  // Mirando otro año, aunque esté en preparación, solo consulta: un estudiante
+  // no es de un año, así que crearlo, editarlo o cambiarle el estado desde
+  // otro año cambiaría también el de hoy (y el backend todavía no valida de
+  // qué año es el curso que se le pone).
+  const sePuedeModificar = permisos.esAnioActivo;
   const {
     setEstudiantes,
     estudiantesFiltrados,
@@ -23,7 +30,10 @@ function EstudiantesAdmin() {
     setEstadoFiltro,
     error: errorListado,
     recargar: cargarDatos,
-  } = useListadoEstudiantesAdmin({ habilitado: usuario?.rol === "admin" });
+  } = useListadoEstudiantesAdmin({
+    habilitado: usuario?.rol === "admin",
+    parametrosAnio: parametros,
+  });
   const {
     selectedEstudiante,
     setSelectedEstudiante,
@@ -31,7 +41,7 @@ function EstudiantesAdmin() {
     loadingDetalles,
     verDetalles,
     cerrarModal,
-  } = useDetalleEstudianteAdmin();
+  } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
   const {
     showForm,
     editingId,
@@ -114,6 +124,7 @@ function EstudiantesAdmin() {
         onCambiarEstadoFiltro={setEstadoFiltro}
         showForm={showForm}
         onAlternarFormulario={alternarFormulario}
+        puedeCrear={sePuedeModificar}
       />
       <FormularioEstudianteAdmin
         visible={showForm}
@@ -130,6 +141,7 @@ function EstudiantesAdmin() {
         onVerDetalles={verDetalles}
         onCambiarEstado={cambiarEstadoEstudiante}
         onEditar={cargarEstudianteAEditar}
+        puedeEditar={sePuedeModificar}
       />
       <DetalleEstudianteAdmin
         estudiante={selectedEstudiante}

@@ -86,6 +86,41 @@ describe("contrato HTTP de estudiantes y observador", () => {
     expect(apiMock.get).toHaveBeenNthCalledWith(4, "/planilla/44");
   });
 
+  it("con las opciones del año activo, las lecturas de la pantalla llaman a api como siempre", async () => {
+    // Los hooks pasan `{}` mirando el año activo (`opcionesConAnio`).
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantes("activo", {});
+    await listarCursosEstudiantes({});
+    await obtenerDetalleEstudiante(11, {});
+    await obtenerDeudasEstudiante(11, {});
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/estudiantes", { params: { estado: "activo" } }],
+      ["/cursos"],
+      ["/estudiantes/11/detalles"],
+      ["/estudiantes/11/deudas"],
+    ]);
+  });
+
+  it("mirando otro año, las cuatro lecturas llevan anio_lectivo_id", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantes("todos", { parametrosAnio });
+    await listarCursosEstudiantes({ parametrosAnio });
+    await obtenerDetalleEstudiante(11, { parametrosAnio });
+    await obtenerDeudasEstudiante(11, { parametrosAnio });
+
+    const conAnio = { params: { anio_lectivo_id: 2 } };
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/estudiantes", { params: { estado: "todos", anio_lectivo_id: 2 } }],
+      ["/cursos", conAnio],
+      ["/estudiantes/11/detalles", conAnio],
+      ["/estudiantes/11/deudas", conAnio],
+    ]);
+  });
+
   it("propaga la señal en la consulta y conserva el payload del observador", async () => {
     const controller = new AbortController();
     const observacion = { conductual: "Avance" };

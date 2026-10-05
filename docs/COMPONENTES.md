@@ -792,6 +792,13 @@ Estado actual de componentes y paginas del frontend.
   del observador.
 - `services/estudiantesObservadorApi.js`: frontera HTTP única del módulo.
 - `utils/estudiantesObservador/`: contratos y transformaciones puras.
+- Año lectivo, paso 4.4 (2026-10-05): la lista y la ficha cargan los datos del
+  año que mira el admin (la página lee `useAnioLectivo()` y pasa
+  `parametrosAnio` a sus hooks). Mirando otro año, aunque esté en preparación,
+  es solo consulta: `EncabezadoEstudiantesAdmin` (prop `puedeCrear`) no
+  muestra "Nuevo Estudiante" y `ListaEstudiantesAdmin` (prop `puedeEditar`)
+  no muestra la columna de acciones; la ficha se sigue abriendo. Las dos
+  props valen `true` si no llegan, como antes.
 
 ### Observador del estudiante unificado
 
@@ -827,7 +834,9 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   en papel no se pinta el color del profesor.
 - `components/observador/ObservadorEnFichaAdmin.jsx`: conector que monta la
   vista del profesor dentro de la ficha del admin, en solo lectura y con la
-  impresión limitada al documento general.
+  impresión limitada al documento general. Desde el paso 4.4 del año lectivo
+  (2026-10-05) muestra la bitácora del año que mira el admin
+  (`useAnioLectivo`); la pantalla del profesor ve siempre la del año activo.
 - `utils/observador/impresion.js`: qué anotaciones entran, las firmas de cada
   reporte y los títulos, como contratos puros. Incluye la lista recortada que ve
   un admin.

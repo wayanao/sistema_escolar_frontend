@@ -111,14 +111,23 @@ describe("pantallas que siguen el año", () => {
     expect(enRuta("/admin/cartera-vencida")).toBe(true);
   });
 
+  it("desde el paso 4.4 sigue el año Estudiantes", () => {
+    expect(enRuta("/admin/estudiantes")).toBe(true);
+  });
+
   it("las pantallas que todavía no siguen el año, o que no dependen de él, quedan fuera", () => {
     for (const ruta of [
-      "/admin/estudiantes",
       // Pagos cobra siempre en el año activo; tendrá su propio selector en la
       // fase 5.
       "/admin/pagos",
       "/dashboard-admin",
       "/admin/nomina",
+      "/admin/reportes",
+      // Las de los pasos 4.5 y 4.6, todavía sin conectar.
+      "/boletin",
+      "/admin/certificados",
+      "/admin/listas-seguimiento",
+      "/admin/planeadores-clases",
     ]) {
       expect(enRuta(ruta)).toBe(false);
     }

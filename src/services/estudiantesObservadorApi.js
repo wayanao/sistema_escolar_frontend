@@ -1,12 +1,21 @@
 import api from "../utils/api";
 
-export async function listarEstudiantes(estado) {
-  const { data } = await api.get("/estudiantes", { params: { estado } });
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); sin él, cada petición es la de siempre.
+const getConAnio = (url, parametrosAnio) =>
+  parametrosAnio ? api.get(url, { params: parametrosAnio }) : api.get(url);
+
+// Con otro año, el backend devuelve los matriculados de ese año, cada uno con
+// su curso de ese año.
+export async function listarEstudiantes(estado, { parametrosAnio } = {}) {
+  const { data } = await api.get("/estudiantes", {
+    params: { estado, ...parametrosAnio },
+  });
   return data;
 }
 
-export async function listarCursosEstudiantes() {
-  const { data } = await api.get("/cursos");
+export async function listarCursosEstudiantes({ parametrosAnio } = {}) {
+  const { data } = await getConAnio("/cursos", parametrosAnio);
   return data;
 }
 
@@ -32,13 +41,15 @@ export async function cambiarEstadoEstudiante(estudianteId, estado) {
   return data;
 }
 
-export async function obtenerDetalleEstudiante(estudianteId) {
-  const { data } = await api.get(`/estudiantes/${estudianteId}/detalles`);
+// La ficha del admin: notas, faltas y observaciones, y las deudas, del año
+// que mira (sin año, del activo).
+export async function obtenerDetalleEstudiante(estudianteId, { parametrosAnio } = {}) {
+  const { data } = await getConAnio(`/estudiantes/${estudianteId}/detalles`, parametrosAnio);
   return data;
 }
 
-export async function obtenerDeudasEstudiante(estudianteId) {
-  const { data } = await api.get(`/estudiantes/${estudianteId}/deudas`);
+export async function obtenerDeudasEstudiante(estudianteId, { parametrosAnio } = {}) {
+  const { data } = await getConAnio(`/estudiantes/${estudianteId}/deudas`, parametrosAnio);
   return data;
 }
 

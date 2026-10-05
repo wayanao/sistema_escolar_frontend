@@ -37,7 +37,10 @@ describe("useListadoEstudiantesAdmin", () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(listarEstudiantesMock).toHaveBeenCalledWith("activo");
+    // Sin año elegido, las opciones van vacías: la petición es la de siempre
+    // (lo prueban el servicio y la página).
+    expect(listarEstudiantesMock).toHaveBeenCalledWith("activo", {});
+    expect(listarCursosMock).toHaveBeenCalledWith({});
     expect(result.current.cursos).toEqual([{ id: 4, nombre: "5A" }]);
 
     act(() => result.current.setSearchTerm("pardo"));
@@ -91,5 +94,42 @@ describe("useListadoEstudiantesAdmin", () => {
     });
 
     expect(result.current.error).toBeNull();
+  });
+});
+
+describe("useListadoEstudiantesAdmin con un año elegido", () => {
+  const parametrosAnio = { anio_lectivo_id: 2 };
+
+  it("pide estudiantes y cursos de ese año, también al cambiar el estado", async () => {
+    listarEstudiantesMock.mockResolvedValue([]);
+    const { result } = renderHook(() => useListadoEstudiantesAdmin({ parametrosAnio }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(listarEstudiantesMock).toHaveBeenCalledWith("activo", { parametrosAnio });
+    expect(listarCursosMock).toHaveBeenCalledWith({ parametrosAnio });
+
+    act(() => result.current.setEstadoFiltro("todos"));
+    await waitFor(() =>
+      expect(listarEstudiantesMock).toHaveBeenLastCalledWith("todos", { parametrosAnio }),
+    );
+  });
+
+  it("si cambia el año, vuelve a pedir con el año nuevo", async () => {
+    listarEstudiantesMock.mockResolvedValue([]);
+    const { result, rerender } = renderHook(
+      ({ anio }) => useListadoEstudiantesAdmin({ parametrosAnio: anio }),
+      { initialProps: { anio: parametrosAnio } },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const otroAnio = { anio_lectivo_id: 3 };
+    rerender({ anio: otroAnio });
+
+    await waitFor(() =>
+      expect(listarEstudiantesMock).toHaveBeenLastCalledWith("activo", {
+        parametrosAnio: otroAnio,
+      }),
+    );
+    expect(listarCursosMock).toHaveBeenLastCalledWith({ parametrosAnio: otroAnio });
   });
 });

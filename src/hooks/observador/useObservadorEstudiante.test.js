@@ -181,3 +181,39 @@ describe("useObservadorEstudiante", () => {
     expect(result.current.error).toBeNull();
   });
 });
+
+describe("useObservadorEstudiante y el año lectivo", () => {
+  it("sin año (la pantalla del profesor), pide exactamente como siempre", async () => {
+    const { result } = renderHook(() =>
+      useObservadorEstudiante({ estudianteId: 42, periodo: "todos" }),
+    );
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    expect(obtenerObservadorMock.mock.calls[0]).toEqual([
+      42,
+      { periodo: null, signal: expect.any(AbortSignal) },
+    ]);
+  });
+
+  it("con el año que mira el admin, lo manda y vuelve a preguntar si cambia", async () => {
+    const { result, rerender } = renderHook(
+      ({ anio }) =>
+        useObservadorEstudiante({ estudianteId: 42, periodo: "2", parametrosAnio: anio }),
+      { initialProps: { anio: { anio_lectivo_id: 2 } } },
+    );
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+    expect(obtenerObservadorMock.mock.calls[0]).toEqual([
+      42,
+      {
+        periodo: 2,
+        signal: expect.any(AbortSignal),
+        parametrosAnio: { anio_lectivo_id: 2 },
+      },
+    ]);
+
+    rerender({ anio: { anio_lectivo_id: 3 } });
+
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
+    expect(obtenerObservadorMock.mock.calls[1][1].parametrosAnio).toEqual({ anio_lectivo_id: 3 });
+  });
+});

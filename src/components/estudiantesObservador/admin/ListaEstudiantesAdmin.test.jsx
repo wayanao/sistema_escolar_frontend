@@ -50,3 +50,34 @@ describe("ListaEstudiantesAdmin", () => {
     expect(screen.getByText("No se encontraron estudiantes")).toBeInTheDocument();
   });
 });
+
+describe("ListaEstudiantesAdmin mirando otro año", () => {
+  it("sin poder editar, no hay acciones, pero la ficha se sigue abriendo", async () => {
+    const user = userEvent.setup();
+    const estudiante = {
+      id: 11,
+      nombre: "Ana",
+      apellido: "Rojas",
+      curso_id: 4,
+      estado: "retirado",
+    };
+    const props = {
+      estudiantes: [estudiante],
+      cursos: [{ id: 4, nombre: "5A" }],
+      onVerDetalles: vi.fn(),
+      onCambiarEstado: vi.fn(),
+      onEditar: vi.fn(),
+      puedeEditar: false,
+    };
+    render(<ListaEstudiantesAdmin {...props} />);
+
+    // El estado se sigue viendo; lo que no aparece es cambiarlo ni editar.
+    expect(screen.getByText("Retirado")).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+
+    await user.click(screen.getByText(/Rojas Ana/));
+    expect(props.onVerDetalles).toHaveBeenCalledWith(estudiante);
+  });
+});

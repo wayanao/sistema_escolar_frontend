@@ -7,6 +7,8 @@ export default function EncabezadoEstudiantesAdmin({
   onCambiarEstadoFiltro,
   showForm,
   onAlternarFormulario,
+  // Falso mirando un año que no es el activo: Estudiantes es solo consulta.
+  puedeCrear = true,
 }) {
   return (
     <>
@@ -40,12 +42,14 @@ export default function EncabezadoEstudiantesAdmin({
             ))}
           </select>
         </div>
-        <button
-          onClick={onAlternarFormulario}
-          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-        >
-          {showForm ? "Cancelar" : "Nuevo Estudiante"}
-        </button>
+        {puedeCrear && (
+          <button
+            onClick={onAlternarFormulario}
+            className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            {showForm ? "Cancelar" : "Nuevo Estudiante"}
+          </button>
+        )}
       </div>
     </>
   );

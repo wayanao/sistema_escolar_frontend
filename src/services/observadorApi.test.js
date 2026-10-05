@@ -59,6 +59,20 @@ describe("contrato HTTP del observador del estudiante", () => {
     });
   });
 
+  it("mirando otro año (la ficha del admin), manda el año junto al periodo", async () => {
+    const controller = new AbortController();
+    const parametrosAnio = { anio_lectivo_id: 3 };
+    apiMock.get.mockResolvedValue({ data: { nivel: null, anotaciones: [] } });
+
+    await obtenerObservador(42, { periodo: 2, signal: controller.signal, parametrosAnio });
+    await obtenerObservador(42, { periodo: null, parametrosAnio });
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/observador/42", { params: { periodo: 2, anio_lectivo_id: 3 }, signal: controller.signal }],
+      ["/observador/42", { params: { anio_lectivo_id: 3 } }],
+    ]);
+  });
+
   it("pide los alumnos del profesor sin mandarle ninguna clase", async () => {
     const alumnos = [{ estudiante_id: 11, nombre: "Ana", curso: "PRIMERO-A" }];
     apiMock.get.mockResolvedValue({ data: alumnos });

@@ -16,6 +16,9 @@ export default function ListaEstudiantesAdmin({
   onVerDetalles,
   onCambiarEstado,
   onEditar,
+  // Falso mirando un año que no es el activo: sin cambiar el estado ni
+  // editar (la ficha se sigue abriendo).
+  puedeEditar = true,
 }) {
   return (
     <div className="bg-white rounded-lg shadow-md">
@@ -34,9 +37,11 @@ export default function ListaEstudiantesAdmin({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
+              {puedeEditar && (
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -79,34 +84,36 @@ export default function ListaEstudiantesAdmin({
                     )}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-2">
-                    <select
-                      value={estudiante.estado || "activo"}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        onCambiarEstado(estudiante, e.target.value);
-                      }}
-                      className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
-                    >
-                      {ESTADOS_ESTUDIANTE.map((estado) => (
-                        <option key={estado.value} value={estado.value}>
-                          {estado.label}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditar(estudiante.id);
-                      }}
-                      className="text-purple-700 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-md transition-colors"
-                    >
-                      Editar
-                    </button>
-                  </div>
-                </td>
+                {puedeEditar && (
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end gap-2">
+                      <select
+                        value={estudiante.estado || "activo"}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          onCambiarEstado(estudiante, e.target.value);
+                        }}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700"
+                      >
+                        {ESTADOS_ESTUDIANTE.map((estado) => (
+                          <option key={estado.value} value={estado.value}>
+                            {estado.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditar(estudiante.id);
+                        }}
+                        className="text-purple-700 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-md transition-colors"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

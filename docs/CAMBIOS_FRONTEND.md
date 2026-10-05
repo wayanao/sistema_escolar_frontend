@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-10-05 - Año lectivo: Estudiantes por año (fase 4, paso 4.4)
+
+La lista de Estudiantes y la ficha de cada uno (resumen, deudas y observador)
+cargan los datos del año que mira el admin. Con un solo año, como hoy, no
+cambia nada en datos, botones ni peticiones.
+
+- Caracterización primero: `pages/EstudiantesAdmin.test.jsx` (7 pruebas), la
+  página no tenía prueba. Fija la lista, el filtro, la ficha, editar, crear,
+  cambiar el estado y la redirección de quien no es admin.
+- `services/estudiantesObservadorApi.js` (lista, cursos, resumen y deudas de
+  la ficha) y `services/observadorApi.js` (`obtenerObservador`) aceptan
+  `{ parametrosAnio }`; sin él, cada llamada a `api` es la de antes.
+- `useListadoEstudiantesAdmin`, `useDetalleEstudianteAdmin` y
+  `useObservadorEstudiante` reciben `{ parametrosAnio }`; la página y
+  `ObservadorEnFichaAdmin` lo toman de `useAnioLectivo()`. La pantalla del
+  observador del profesor no lo pasa y queda igual.
+- Mirando otro año, aunque esté en preparación, solo consulta: sin "Nuevo
+  Estudiante" ni la columna de acciones (cambiar estado y "Editar"); la ficha
+  se sigue abriendo. Un estudiante no es de un año: editarlo mirando otro
+  cambiaría también sus datos de hoy.
+- `RUTAS_POR_ANIO` suma `/admin/estudiantes`.
+- Pruebas: 23 nuevas (las 7 de caracterización y 16 del año); ajustadas a
+  propósito la del contrato puro que fijaba que Estudiantes no seguía el año
+  y la del hook de la lista, que ahora pasa `{}` al servicio (la petición es
+  la misma). Veinticinco versiones dañadas del código hacen fallar alguna
+  prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.4".
+
+Verificacion: `pnpm run check:deploy` limpio en una sola corrida: las 2167
+pruebas pasan (antes 2144), lint limpio y build correcto. `git diff --check`
+limpio.
+
 ## 2026-10-03 - Año lectivo: Tipos de pago y Cartera vencida por año (fase 4, paso 4.3)
 
 Tipos de pago y Cartera vencida cargan los datos del año que mira el admin.

@@ -26,3 +26,23 @@ describe("EncabezadoEstudiantesAdmin", () => {
     expect(screen.getByRole("option", { name: "Todos" })).toBeInTheDocument();
   });
 });
+
+describe("EncabezadoEstudiantesAdmin mirando otro año", () => {
+  it("sin poder crear, no ofrece Nuevo Estudiante y deja buscar y filtrar", async () => {
+    const user = userEvent.setup();
+    const props = {
+      searchTerm: "",
+      onCambiarBusqueda: vi.fn(),
+      estadoFiltro: "activo",
+      onCambiarEstadoFiltro: vi.fn(),
+      showForm: false,
+      onAlternarFormulario: vi.fn(),
+      puedeCrear: false,
+    };
+    render(<EncabezadoEstudiantesAdmin {...props} />);
+
+    expect(screen.queryByRole("button", { name: "Nuevo Estudiante" })).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByRole("combobox"), "todos");
+    expect(props.onCambiarEstadoFiltro).toHaveBeenCalledWith("todos");
+  });
+});

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ObservadorImprimible from "./ObservadorImprimible";
 import VistaObservadorEstudiante from "./VistaObservadorEstudiante";
+import useAnioLectivo from "../../hooks/anioLectivo/useAnioLectivo";
 import useObservadorEstudiante, {
   ERROR_ESTUDIANTE_NO_EXISTE,
 } from "../../hooks/observador/useObservadorEstudiante";
@@ -31,6 +32,9 @@ import {
  *   así que «Solo mis anotaciones» le saldría siempre en blanco;
  * - no hay «Volver a la lista» ni título: la ficha ya dice de quién es.
  *
+ * Y una que no es de permisos: muestra la bitácora del año lectivo que mira el
+ * admin (`useAnioLectivo`); la profesora ve siempre la del año activo.
+ *
  * Es un **conector**: enlaza el hook con la vista y guarda el estado local de
  * la sección, como `NotificacionesPlaneadores` en su módulo.
  */
@@ -38,10 +42,12 @@ export default function ObservadorEnFichaAdmin({ estudiante }) {
   const [periodo, setPeriodo] = useState(PERIODO_TODOS);
   const [agrupacion, setAgrupacion] = useState(AGRUPACION_DIMENSION);
   const [imprimiendo, setImprimiendo] = useState(null);
+  const { parametros } = useAnioLectivo();
 
   const { nivel, anotaciones, cargando, error, recargar } = useObservadorEstudiante({
     estudianteId: estudiante?.id,
     periodo,
+    parametrosAnio: parametros,
   });
 
   const alumno = titularObservador({ ...estudiante, nivel });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { obtenerObservador } from "../../services/observadorApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import { periodoParaConsulta } from "../../utils/observador/anotaciones";
 
 /**
@@ -24,7 +25,10 @@ export const ERROR_CONSULTA = "consulta";
 
 const SIN_CARGAR = { estudianteId: null, nivel: null, anotaciones: [] };
 
-export default function useObservadorEstudiante({ estudianteId, periodo }) {
+/** `parametrosAnio` solo lo pasa la ficha del admin (`ObservadorEnFichaAdmin`),
+ * con el año que mira; la pantalla del profesor no lo pasa y ve el año
+ * activo. Cambiar de año vuelve a preguntar. */
+export default function useObservadorEstudiante({ estudianteId, periodo, parametrosAnio }) {
   // Lo cargado se guarda junto al alumno del que salió. Sin eso, abrir un
   // segundo alumno enseñaría un instante el nivel del anterior: el título
   // diría "Luis · Primaria" cuando Luis es de preescolar. Al cambiar solo de
@@ -53,10 +57,13 @@ export default function useObservadorEstudiante({ estudianteId, periodo }) {
     setCargando(true);
     setError(null);
 
-    obtenerObservador(estudianteId, {
-      periodo: periodoParaConsulta(periodo),
-      signal: controller.signal,
-    })
+    obtenerObservador(
+      estudianteId,
+      opcionesConAnio(
+        { periodo: periodoParaConsulta(periodo), signal: controller.signal },
+        parametrosAnio,
+      ),
+    )
       .then((data) => {
         if (!vigente()) return;
         setCargado({
@@ -81,7 +88,7 @@ export default function useObservadorEstudiante({ estudianteId, periodo }) {
     return () => {
       controller.abort();
     };
-  }, [estudianteId, periodo, intento]);
+  }, [estudianteId, periodo, intento, parametrosAnio]);
 
   /** Vuelve a pedir la bitácora. Sirve para el botón de reintentar cuando la
    * consulta falla y para refrescar después de guardar una anotación. */

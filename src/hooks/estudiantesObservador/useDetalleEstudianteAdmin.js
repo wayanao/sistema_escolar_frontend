@@ -3,9 +3,12 @@ import {
   obtenerDetalleEstudiante,
   obtenerDeudasEstudiante,
 } from "../../services/estudiantesObservadorApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import { normalizarDetalleEstudiante } from "../../utils/estudiantesObservador/estudiantes";
 
-export default function useDetalleEstudianteAdmin() {
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// El resumen y las deudas de la ficha son los de ese año.
+export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
   const [selectedEstudiante, setSelectedEstudiante] = useState(null);
   const [detallesEstudiante, setDetallesEstudiante] = useState(null);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
@@ -27,9 +30,10 @@ export default function useDetalleEstudianteAdmin() {
     setErrorDetalle(null);
 
     try {
+      const opciones = opcionesConAnio({}, parametrosAnio);
       const [detallesRes, deudasRes] = await Promise.allSettled([
-        obtenerDetalleEstudiante(estudiante.id),
-        obtenerDeudasEstudiante(estudiante.id),
+        obtenerDetalleEstudiante(estudiante.id, opciones),
+        obtenerDeudasEstudiante(estudiante.id, opciones),
       ]);
 
       if (solicitudRef.current !== solicitudId) return;
@@ -61,7 +65,7 @@ export default function useDetalleEstudianteAdmin() {
     } finally {
       if (solicitudRef.current === solicitudId) setLoadingDetalles(false);
     }
-  }, []);
+  }, [parametrosAnio]);
 
   const cerrarModal = useCallback(() => {
     solicitudRef.current += 1;
