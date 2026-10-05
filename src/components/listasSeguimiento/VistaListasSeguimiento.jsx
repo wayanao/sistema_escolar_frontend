@@ -32,6 +32,9 @@ function VistaListasSeguimiento({
   guardando = false,
   onGuardar,
   onDescartar,
+  // Falso mirando un año cerrado: solo consulta. Sin crear ni borrar columnas,
+  // con las casillas bloqueadas y sin la barra de guardar.
+  puedeEditar = true,
 }) {
   const columnas = lista?.columnas ?? [];
   const estudiantes = lista?.estudiantes ?? [];
@@ -169,25 +172,43 @@ function VistaListasSeguimiento({
 
       {hayCurso && !error && !cargando && (
         <>
-          <GestionColumnasSeguimiento
-            columnas={columnas}
-            onCrear={onCrearColumna}
-            creando={creandoColumna}
-            onEliminar={onEliminarColumna}
-            eliminandoColumnaId={eliminandoColumnaId}
-          />
+          {puedeEditar && (
+            <GestionColumnasSeguimiento
+              columnas={columnas}
+              onCrear={onCrearColumna}
+              creando={creandoColumna}
+              onEliminar={onEliminarColumna}
+              eliminandoColumnaId={eliminandoColumnaId}
+            />
+          )}
 
-          <TablaSeguimiento
-            columnas={columnas}
-            estudiantes={estudiantes}
-            valorDeCelda={valorDeCelda}
-            onAlternarMarca={onAlternarMarca}
-            onEscribirNota={onEscribirNota}
-          />
+          {/* En solo consulta, un `fieldset` desactivado bloquea casillas y
+              notas sin tocar la tabla. Solo entonces: en un año que se edita,
+              la tabla queda como siempre, sin envoltorio. `min-w-0` deja que
+              la tabla ancha siga desplazándose en el celular. */}
+          {puedeEditar ? (
+            <TablaSeguimiento
+              columnas={columnas}
+              estudiantes={estudiantes}
+              valorDeCelda={valorDeCelda}
+              onAlternarMarca={onAlternarMarca}
+              onEscribirNota={onEscribirNota}
+            />
+          ) : (
+            <fieldset disabled className="min-w-0">
+              <TablaSeguimiento
+                columnas={columnas}
+                estudiantes={estudiantes}
+                valorDeCelda={valorDeCelda}
+                onAlternarMarca={onAlternarMarca}
+                onEscribirNota={onEscribirNota}
+              />
+            </fieldset>
+          )}
 
           {/* La barra solo aparece si hay algo que marcar. Sin columnas no hay
               celdas, y una barra que nunca se puede usar solo estorba. */}
-          {columnas.length > 0 && estudiantes.length > 0 && (
+          {puedeEditar && columnas.length > 0 && estudiantes.length > 0 && (
             // Sin div envoltorio: la barra es `sticky` y solo puede moverse
             // dentro de su contenedor. Metida en un div de su mismo alto se
             // quedaba sin sitio y no se despegaba nunca.

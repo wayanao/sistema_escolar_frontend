@@ -123,6 +123,13 @@ GET /anios-lectivos
   `GET /boletines/admin/reporte-parcial/{estudiante}/{periodo}`. Las materias
   (`GET /materias`) y el historial de asistencia (parte de una clase) van sin
   año, como el ingreso de boletines del profesor.
+- Desde el paso 4.6 (2026-10-05), también Listas de seguimiento
+  (`GET /cursos` y la escritura
+  `POST /listas-seguimiento/columnas-en-todos-los-cursos`, que sin año crea
+  en los cursos del año activo) y la bandeja de planes del admin
+  (`GET /admin/plan-de-clases`, junto a sus filtros, en la bandeja y en sus
+  dos contadores). La lista de un curso, sus columnas y marcas, y el detalle,
+  la revisión y las evidencias de un plan parten de un id y no lo llevan.
 
 ## Super admin
 
@@ -506,7 +513,13 @@ Lo que hay que saber para consumirlo:
   el alta suelta: la respuesta son conteos, no la columna de este curso.
 - Su `409` no es "ya existe esa columna" sino la carrera entre dos peticiones
   simultaneas; el mensaje del backend invita a reintentar, y reintentar
-  funciona.
+  funciona. Desde el año lectivo, también puede ser el `409` de un año
+  cerrado.
+- **Año lectivo (paso 4.6, 2026-10-05):** sin `?anio_lectivo_id=`, el backend
+  crea en los cursos del año activo. Mirando otro año, el cliente lo manda
+  (`crearColumnaEnTodosLosCursos(nombre, { parametrosAnio })`); mirando el
+  activo, la llamada es la de siempre. En un año cerrado la pantalla es de
+  solo consulta y no ofrece crear.
 
 Al abrir la vista previa de impresion, la pantalla consume ademas
 `GET /branding` y la plantilla activa del tipo `reporte_estudiante`, a traves

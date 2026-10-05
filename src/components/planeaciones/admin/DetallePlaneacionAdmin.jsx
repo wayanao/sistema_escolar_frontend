@@ -29,6 +29,9 @@ function DetallePlaneacionAdmin({
   onAprobar,
   onSolicitarAjuste,
   onEliminarImagen,
+  // Falso mirando un año cerrado: solo consulta, sin revisión ni borrar
+  // evidencias.
+  puedeEditar = true,
 }) {
   if (cargando) {
     return (
@@ -86,19 +89,21 @@ function DetallePlaneacionAdmin({
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <PlanRecibidoDetalle
             plan={plan}
-            onEliminarImagen={onEliminarImagen}
+            onEliminarImagen={puedeEditar ? onEliminarImagen : undefined}
             eliminandoImagen={eliminandoImagen}
           />
         </section>
 
-        <FormularioRevision
-          plan={plan}
-          observacion={observacion}
-          accionRevision={accionRevision}
-          onCambiarObservacion={onCambiarObservacion}
-          onAprobar={onAprobar}
-          onSolicitarAjuste={onSolicitarAjuste}
-        />
+        {puedeEditar && (
+          <FormularioRevision
+            plan={plan}
+            observacion={observacion}
+            accionRevision={accionRevision}
+            onCambiarObservacion={onCambiarObservacion}
+            onAprobar={onAprobar}
+            onSolicitarAjuste={onSolicitarAjuste}
+          />
+        )}
 
         <HistorialObservaciones
           observaciones={observaciones}
@@ -516,7 +521,9 @@ function Evidencias({ plan, onEliminarImagen, eliminandoImagen }) {
           <ImagenPlanCard
             key={imagen.slot}
             imagen={imagen}
-            onEliminarImagen={() => onEliminarImagen(plan.id, imagen.slot)}
+            onEliminarImagen={
+              onEliminarImagen ? () => onEliminarImagen(plan.id, imagen.slot) : undefined
+            }
             eliminando={eliminandoImagen === imagen.slot}
           />
         ))}
@@ -562,14 +569,16 @@ function ImagenPlanCard({ imagen, onEliminarImagen, eliminando }) {
             {esPdf ? "Abrir documento" : "Ver completa"}
           </button>
         </div>
-        <button
-          type="button"
-          onClick={onEliminarImagen}
-          disabled={eliminando}
-          className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
-        >
-          {eliminando && <SpinnerPlaneacionAdmin />} Borrar
-        </button>
+        {onEliminarImagen && (
+          <button
+            type="button"
+            onClick={onEliminarImagen}
+            disabled={eliminando}
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+          >
+            {eliminando && <SpinnerPlaneacionAdmin />} Borrar
+          </button>
+        )}
       </div>
     </div>
   );

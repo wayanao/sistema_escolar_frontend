@@ -329,7 +329,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   fase 4: desde el 4.2, las pestañas Cursos, Asignaciones y Orden boletín de
   `/admin` (por eso su pestaña vive en `?modulo=`) y `/admin/horarios`; desde
   el 4.3, `/admin/tipos-pagos` y `/admin/cartera-vencida`; desde el 4.4,
-  `/admin/estudiantes`; desde el 4.5, `/boletin` y `/admin/certificados`.
+  `/admin/estudiantes`; desde el 4.5, `/boletin` y `/admin/certificados`;
+  desde el 4.6, `/admin/listas-seguimiento` y `/admin/planeadores-clases`
+  (con el detalle de un plan).
 - Cómo se conecta una pantalla (desde el paso 4.2): su contenedor o página
   lee `useAnioLectivo()` y pasa `parametrosAnio` a sus hooks; cada hook lo
   agrega con `opcionesConAnio`, que no cambia nada mirando el activo, y cada
@@ -342,6 +344,10 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   `recargar` de `useCarteraVencida`); y un botón que lleva a una pantalla que
   no sigue el año (Cartera → Pagos) no se ofrece mirando otro año, porque
   allí se trabajaría en el activo.
+- Una tercera, del paso 4.6: una escritura que actúa sobre "todos los cursos"
+  no parte de un id, así que también tiene que llevar el año (Listas de
+  seguimiento: `crearColumnaEnTodosLosCursos`); sin él, el backend escribe en
+  el año activo.
 
 ## Administración académica y horarios
 

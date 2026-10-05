@@ -7,9 +7,11 @@
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
   y horarios por año; commit `78c48f7`), paso 4.3 (Tipos de pago y Cartera
   vencida por año; commit `0798f21`), paso 4.4 (Estudiantes por año; commit
-  `c7f0622`) y **paso 4.5 (Boletines y certificados por año) escrito y
-  probado, sin commit**. Con un solo año no cambia nada visible en datos ni
-  botones. La fase 3 del backend está en
+  `c7f0622`), paso 4.5 (Boletines y certificados por año; commit `2140fae`)
+  y **paso 4.6 (Listas de seguimiento y bandeja de planes por año) escrito y
+  probado, sin commit**. Con él, todas las pantallas del inventario siguen el
+  año; falta el 4.7 (diálogo de materias). Con un solo año no cambia nada
+  visible en datos ni botones. La fase 3 del backend está en
   GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -855,6 +857,100 @@ commit):**
 - Efecto al publicar: ninguno visible mientras haya un solo año. Revisión en
   local (solo mirar): generar el boletín de un estudiante, y en Certificados
   un certificado de notas y un reporte parcial, iguales que en producción.
+- Commit `2140fae` (hecho por el usuario el 2026-10-05).
+
+**Avance del 2026-10-05 — paso 4.6, Listas de seguimiento y bandeja de
+planes por año (sin commit):**
+
+- Aprobado por el usuario el 2026-10-05 ("CONTINUA"). La pregunta abierta de
+  Certificados (listas que solo traen activos) no la decide ese "continúa":
+  sigue abierta y no se tocó. Ninguna pregunta abierta afectaba este paso.
+- Caracterización primero (hallazgo 4 del inventario): la bandeja de planes
+  no tenía prueba de página. `pages/PlaneadoresClasesAdmin.test.jsx`, 3
+  pruebas escritas y pasadas contra el código anterior: la bandeja con sus
+  dos contadores y sus peticiones exactas, "marcar como visto" (`PATCH` de la
+  revisión y recarga) y el detalle de un plan con su aprobación. Listas de
+  seguimiento ya tenía prueba de página.
+- Contra el código nuevo, de las 394 pruebas que ya había en todo lo tocado
+  (incluidos los planes del profesor y las pruebas de `App`) fallaron 5: la
+  del contrato puro que fijaba que estas pantallas todavía no seguían el año
+  (esperada) y 4 de Listas que fijaban que "crear en todos los cursos" llama
+  al servicio con un solo argumento. En vez de ajustarlas, el hook se cambió
+  para que, mirando el año activo, la llamada sea exactamente la de antes;
+  las 4 pasaron sin tocarlas.
+- Código:
+  - Bandeja de planes: `listarPlaneacionesAdmin` suma `parametrosAnio` a sus
+    filtros; `useListadoPlaneacionesAdmin` lo pasa en la bandeja y en sus dos
+    contadores (los profesores no tienen año). El detalle, la revisión, las
+    observaciones y las evidencias parten del id del plan.
+  - Listas: `obtenerCursosListasSeguimiento` y `crearColumnaEnTodosLosCursos`
+    aceptan `parametrosAnio`. **El alta masiva es una escritura que necesita
+    el año**: sin él, el backend crea la columna en los cursos del año
+    activo, así que mirando 2027 iría a los de 2026. La lista de un curso,
+    las columnas sueltas y las marcas parten del curso.
+  - Páginas: `PlaneadoresClasesAdmin.jsx` y `ListasSeguimientoAdmin.jsx` leen
+    `useAnioLectivo()`.
+  - Botones: en un año cerrado, solo consulta. En la bandeja, sin casillas ni
+    "Marcar como vistos" (marcar es guardar una revisión); en el detalle de
+    un plan (`DetallePlaneacionAdmin`, prop `puedeEditar`), sin el formulario
+    de revisión ni "Borrar" en las evidencias; en Listas
+    (`VistaListasSeguimiento`, prop `puedeEditar`), sin crear ni borrar
+    columnas, con las casillas y notas bloqueadas (un `fieldset`
+    desactivado, solo en ese caso: en un año que se edita la tabla queda sin
+    envoltorio) y sin la barra de guardar. En un año en preparación, todo se
+    puede, como en el activo.
+  - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` suma `/admin/listas-seguimiento`
+    y `/admin/planeadores-clases`, que incluye el detalle de un plan.
+- Límite conocido del detalle de un plan: parte del id y no trae su año, así
+  que sus botones siguen el año que mira el admin. Si no coinciden (por
+  ejemplo, se abre un plan de 2026 y después se pulsa "Volver a 2027" en el
+  aviso), el backend rechaza con su `409` y el detalle muestra ese mensaje.
+- Hallazgo del backend, para la fase 6 (no se toca aquí): la lista de un
+  curso toma sus estudiantes de `estudiantes.curso_id`
+  (`listas_seguimiento_repository.leer_estudiantes_del_curso`), o sea, del
+  año activo. Mirando otro año, la lista de un curso sale sin estudiantes: en
+  2027 en preparación hasta activarlo, y en 2026 después de activar 2027.
+  Amplía el hallazgo del paso 3.7b (las marcas validan con el mismo campo).
+- Pruebas: 24 nuevas, las 3 de la caracterización y 21 del año.
+  - Dos archivos nuevos, `PlaneadoresClasesAdmin.anioLectivo.test.jsx` y
+    `ListasSeguimientoAdmin.anioLectivo.test.jsx`, con las peticiones reales:
+    en un año cerrado, la bandeja y sus contadores de ese año sin casillas
+    ni "Marcar como vistos", el detalle de un plan sin revisión, y Listas con
+    los cursos de ese año, casillas bloqueadas y sin crear ni guardar; en
+    preparación, la bandeja de ese año con "Marcar como vistos", y el alta
+    de una columna en todos los cursos **con el año**.
+  - En archivos existentes: los dos servicios (con las opciones del activo,
+    la llamada de siempre, incluso el mismo objeto de filtros; con otro año,
+    el año en la bandeja, en los cursos y en el alta masiva), los tres hooks
+    (con año y si cambia el año; el alta masiva, sin opciones con el
+    activo), el detalle de un plan y la vista de Listas en los dos casos, y
+    el contrato puro (también que los planes del profesor no tienen
+    selector).
+  - Ajustada a propósito: solo la del contrato puro que fijaba que estas
+    pantallas todavía no seguían el año.
+  - Veintinueve versiones dañadas del código hacen fallar alguna prueba:
+    cada lectura y el alta masiva sin año, la bandeja copiando siempre sus
+    filtros, un segundo argumento vacío, cada hook sin año o sin vigilar el
+    año, el alta masiva siempre con opciones, cada página sin año o siempre
+    editable, "Marcar como vistos" y las casillas en un año cerrado, el
+    formulario de revisión y "Borrar" siempre visibles, la gestión de
+    columnas y la barra siempre visibles, las casillas sin bloquear y cada
+    pantalla fuera de `RUTAS_POR_ANIO`. Cuatro de ellas se repitieron aparte:
+    en la primera vuelta no se aplicaron porque esos archivos usan finales de
+    línea de Windows, y el script buscaba los de Unix.
+- Documentación: `API_CLIENT.md`, `ARQUITECTURA_FRONTEND.md` (una tercera
+  trampa: una escritura sobre "todos los cursos" también lleva el año),
+  `COMPONENTES.md`, `CAMBIOS_FRONTEND.md` y
+  `docs/funcionalidades/LISTAS_SEGUIMIENTO.md`. En este documento, el punto 6
+  de la fase 6.
+- Verificación: `pnpm run check:deploy` **limpio en una sola corrida**:
+  **2204 pruebas pasan** en 340 archivos (antes 2180), lint limpio y build
+  correcto. `git diff --check` limpio. Las pruebas del paso, solas, no
+  muestran ningún aviso.
+- Efecto al publicar: ninguno visible mientras haya un solo año. Revisión en
+  local (solo mirar): la bandeja de planes con sus filtros y el detalle de un
+  plan, y en Listas de seguimiento un curso con sus columnas, iguales que en
+  producción, con todos sus botones.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -920,6 +1016,11 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
    certificados de 2026 después de activar 2027, esas dos listas tienen que
    traer también a quien ya no esté activo (los marcados "no continúa" pasan
    a retirados al activar). Hoy solo traen activos: ver la pregunta abierta.
+6. Ojo, hallazgo del paso 4.6 (del backend): la lista de seguimiento de un
+   curso toma sus estudiantes de `estudiantes.curso_id`, así que la de un
+   curso de 2026 saldrá vacía después de activar 2027. Si se quiere
+   consultar las listas de 2026, el backend tiene que leerlas por matrícula,
+   como el boletín desde el paso 3.5a.
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1011,7 +1112,8 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   va. Boletines quedaría como está. Cambiaría una petición del año activo,
   por eso no entró en el paso 4.5. Hace falta como muy tarde antes de la
   fase 6, cuando el admin tenga que imprimir 2026. **Pregunta hecha al
-  usuario al cerrar el paso 4.5.**
+  usuario al cerrar el paso 4.5; respondió "continúa" sin decidirla, así que
+  sigue abierta y no se tocó.**
 - Antes de la fase 5 (encontrada en el paso 4.5): el certificado de
   matrícula lleva el año en un campo de texto que propone el año del
   calendario (`useConsultasCertificadosAdmin`, existe desde junio de 2026 y
@@ -1021,13 +1123,14 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.5 de la fase 4** (Boletines y
-  certificados con el año elegido), 2026-10-05, escrito y probado, **sin
-  commit**. Ver su "Avance" en la fase 4. Antes: inventario y plan por pasos
-  (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2 (`78c48f7`) y paso 4.3
-  (`0798f21`), el 2026-10-03, y paso 4.4 (`c7f0622`), el 2026-10-05.
-  Ninguno de esos commits está en GitHub todavía (al 2026-10-05,
-  `git status`: `ahead 5`); subirlos lo decide el usuario.
+- Última acción terminada: **paso 4.6 de la fase 4** (Listas de
+  seguimiento y bandeja de planes con el año elegido), 2026-10-05, escrito y
+  probado, **sin commit**. Ver su "Avance" en la fase 4. Antes: inventario y
+  plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
+  (`78c48f7`) y paso 4.3 (`0798f21`), el 2026-10-03; paso 4.4 (`c7f0622`) y
+  paso 4.5 (`2140fae`), el 2026-10-05. Ninguno de esos commits está en
+  GitHub todavía (al 2026-10-05, `git status`: `ahead 6`); subirlos lo
+  decide el usuario.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1052,11 +1155,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.5, y responda la pregunta de las listas que solo traen activos (ver
-  "Preguntas abiertas"). Después, el **paso 4.6** (Listas de seguimiento y
-  bandeja de planes del admin, con la caracterización de
-  `PlaneadoresClasesAdmin.jsx` primero, hallazgo 4), solo con su visto
-  bueno. El contrato de la fase 2 para pagos y cartera sigue en la fase 5 de
-  este documento. El estado al día está en la "Entrega" del documento del
-  backend.
+  paso 4.6. Después, el **paso 4.7** (diálogo de materias: si al renombrar
+  llega el `409` con el código `materia_usada_en_otro_anio`, "Cambiar igual"
+  o "Crear una materia nueva"; punto 5 de la fase 4), solo con su visto
+  bueno; es el último de la fase 4. Sigue abierta la pregunta de Certificados
+  (listas que solo traen activos). El contrato de la fase 2 para pagos y
+  cartera sigue en la fase 5 de este documento. El estado al día está en la
+  "Entrega" del documento del backend.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

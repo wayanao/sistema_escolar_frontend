@@ -62,9 +62,12 @@ export async function listarProfesoresPlaneaciones() {
   return data;
 }
 
-export async function listarPlaneacionesAdmin(params, { signal } = {}) {
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`); se suma a los filtros. Sin él, la petición es la de
+// siempre. El detalle, la revisión y las evidencias parten del id del plan.
+export async function listarPlaneacionesAdmin(params, { signal, parametrosAnio } = {}) {
   const { data } = await api.get("/admin/plan-de-clases", {
-    params,
+    params: parametrosAnio ? { ...params, ...parametrosAnio } : params,
     signal,
   });
   return data;

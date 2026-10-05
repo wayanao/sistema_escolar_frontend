@@ -143,3 +143,42 @@ describe("useListadoPlaneacionesAdmin", () => {
     expect(result.current.total).toBe(0);
   });
 });
+
+describe("useListadoPlaneacionesAdmin y el año lectivo", () => {
+  it("pide la bandeja y sus contadores del año que se mira; los profesores, sin año", async () => {
+    listarPlaneacionesMock.mockResolvedValue({ items: [], total: 0 });
+    const parametrosAnio = { anio_lectivo_id: 3 };
+
+    const { result } = renderHook(() =>
+      useListadoPlaneacionesAdmin({
+        ...crearPropiedades("vista=todas&estado=pendiente"),
+        parametrosAnio,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+    await waitFor(() => expect(listarPlaneacionesMock).toHaveBeenCalledTimes(3));
+    for (const [, opciones] of listarPlaneacionesMock.mock.calls) {
+      expect(opciones).toEqual({ signal: expect.any(AbortSignal), parametrosAnio });
+    }
+    expect(listarProfesoresMock).toHaveBeenCalledWith();
+  });
+
+  it("si cambia el año, vuelve a pedir la bandeja y los contadores con el año nuevo", async () => {
+    listarPlaneacionesMock.mockResolvedValue({ items: [], total: 0 });
+    const props = crearPropiedades("vista=todas&estado=pendiente");
+
+    const { rerender } = renderHook(
+      ({ anio }) => useListadoPlaneacionesAdmin({ ...props, parametrosAnio: anio }),
+      { initialProps: { anio: { anio_lectivo_id: 3 } } },
+    );
+    await waitFor(() => expect(listarPlaneacionesMock).toHaveBeenCalledTimes(3));
+
+    rerender({ anio: { anio_lectivo_id: 4 } });
+
+    await waitFor(() => expect(listarPlaneacionesMock).toHaveBeenCalledTimes(6));
+    expect(
+      listarPlaneacionesMock.mock.calls.slice(3).map(([, opciones]) => opciones.parametrosAnio),
+    ).toEqual([{ anio_lectivo_id: 4 }, { anio_lectivo_id: 4 }, { anio_lectivo_id: 4 }]);
+  });
+});

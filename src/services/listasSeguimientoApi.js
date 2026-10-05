@@ -11,8 +11,20 @@ import api from "../utils/api";
 const getConSignal = (url, signal) =>
   signal ? api.get(url, { signal }) : api.get(url);
 
-export async function obtenerCursosListasSeguimiento({ signal } = {}) {
-  const { data } = await getConSignal("/cursos", signal);
+// Las opciones de una petición: `params` y `signal` solo si llegan, para que
+// sin ellos la llamada a `api` sea la de siempre.
+const opcionesDePeticion = ({ params, signal } = {}) => {
+  const opciones = {};
+  if (params) opciones.params = params;
+  if (signal) opciones.signal = signal;
+  return Object.keys(opciones).length > 0 ? opciones : null;
+};
+
+// `parametrosAnio` solo llega mirando un año que no es el activo
+// (`opcionesConAnio`): los cursos de ese año. Sin él, los del activo.
+export async function obtenerCursosListasSeguimiento({ signal, parametrosAnio } = {}) {
+  const opciones = opcionesDePeticion({ params: parametrosAnio, signal });
+  const { data } = opciones ? await api.get("/cursos", opciones) : await api.get("/cursos");
   return data;
 }
 
@@ -34,11 +46,19 @@ export async function crearColumnaSeguimiento(cursoId, nombre, { signal } = {}) 
 // No lleva `cursoId` a propósito: no actúa sobre un curso sino sobre todos.
 // Devuelve `{creadas, omitidas, total}` y responde 200 aunque no cree ninguna,
 // que es lo normal si todos los cursos ya la tenían.
-export async function crearColumnaEnTodosLosCursos(nombre, { signal } = {}) {
+//
+// **Sin `parametrosAnio` crea en los cursos del año activo**: mirando otro
+// año, el año tiene que viajar (`?anio_lectivo_id=`) o las columnas irían a
+// los cursos de otro año.
+export async function crearColumnaEnTodosLosCursos(
+  nombre,
+  { signal, parametrosAnio } = {},
+) {
   const url = "/listas-seguimiento/columnas-en-todos-los-cursos";
   const cuerpo = { nombre };
-  const { data } = signal
-    ? await api.post(url, cuerpo, { signal })
+  const opciones = opcionesDePeticion({ params: parametrosAnio, signal });
+  const { data } = opciones
+    ? await api.post(url, cuerpo, opciones)
     : await api.post(url, cuerpo);
   return data;
 }

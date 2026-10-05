@@ -527,3 +527,44 @@ describe("crear columna en todos los cursos", () => {
     expect(crearEnTodosMock).not.toHaveBeenCalled();
   });
 });
+
+describe("crear columna en todos los cursos y el año lectivo", () => {
+  const resumen = { creadas: 3, omitidas: 0, total: 3 };
+
+  it("mirando otro año, el año viaja con el alta masiva", async () => {
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const { result } = montar({ parametrosAnio });
+
+    await act(async () => {
+      await result.current.crearColumna("Pagó la excursión", { enTodosLosCursos: true });
+    });
+
+    expect(crearEnTodosMock).toHaveBeenCalledWith("Pagó la excursión", { parametrosAnio });
+  });
+
+  it("mirando el año activo, la llamada de siempre, sin opciones", async () => {
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result } = montar({ parametrosAnio: {} });
+
+    await act(async () => {
+      await result.current.crearColumna("Pagó la excursión", { enTodosLosCursos: true });
+    });
+
+    expect(crearEnTodosMock.mock.calls).toEqual([["Pagó la excursión"]]);
+  });
+
+  it("si cambia el año, el alta masiva lleva el año nuevo", async () => {
+    crearEnTodosMock.mockResolvedValue(resumen);
+    const { result, rerender, parametros } = montar({ parametrosAnio: { anio_lectivo_id: 2 } });
+
+    rerender({ ...parametros, parametrosAnio: { anio_lectivo_id: 3 } });
+    await act(async () => {
+      await result.current.crearColumna("Pagó la excursión", { enTodosLosCursos: true });
+    });
+
+    expect(crearEnTodosMock).toHaveBeenCalledWith("Pagó la excursión", {
+      parametrosAnio: { anio_lectivo_id: 3 },
+    });
+  });
+});

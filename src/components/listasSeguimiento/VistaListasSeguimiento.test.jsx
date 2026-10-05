@@ -190,3 +190,29 @@ describe("imprimir la lista en blanco", () => {
     expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
   });
 });
+
+describe("VistaListasSeguimiento en un año cerrado", () => {
+  it("solo consulta: sin columnas nuevas ni borrar, casillas bloqueadas y sin guardar", () => {
+    renderVista({ puedeEditar: false, cantidadCambios: 0 });
+
+    expect(screen.getAllByRole("checkbox", { name: "Asistió a la cumbre: Pérez Juan" })[0])
+      .toBeDisabled();
+    expect(screen.getAllByRole("textbox", { name: /Nota de Asistió a la cumbre/ })[0])
+      .toBeDisabled();
+    expect(screen.queryByPlaceholderText(/Ej: Asistió a la cumbre/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Borrar columna Asistió a la cumbre" }))
+      .not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guardar cambios" })).not.toBeInTheDocument();
+    // Imprimir la lista en blanco sigue disponible.
+    expect(screen.getByRole("button", { name: "Imprimir lista en blanco" })).toBeInTheDocument();
+  });
+
+  it("en un año que se edita, todo sigue a la vista y las casillas se pueden marcar", () => {
+    renderVista();
+
+    expect(screen.getAllByRole("checkbox", { name: "Asistió a la cumbre: Pérez Juan" })[0])
+      .toBeEnabled();
+    expect(screen.getByPlaceholderText(/Ej: Asistió a la cumbre/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guardar cambios" })).toBeInTheDocument();
+  });
+});

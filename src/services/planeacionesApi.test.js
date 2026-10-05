@@ -185,3 +185,36 @@ describe("contrato HTTP de planeaciones administrativas", () => {
     await expect(obtenerPlaneacionAdmin(9)).rejects.toBe(requestError);
   });
 });
+
+describe("bandeja del admin y el año lectivo (paso 4.6)", () => {
+  it("con las opciones del año activo, los filtros viajan tal cual", async () => {
+    const controller = new AbortController();
+    const params = { estado_revision: "pendiente", limit: 12, offset: 0 };
+    apiMock.get.mockResolvedValue({ data: { items: [], total: 0 } });
+
+    await listarPlaneacionesAdmin(params, { signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/admin/plan-de-clases", {
+      params,
+      signal: controller.signal,
+    });
+    expect(apiMock.get.mock.calls[0][1].params).toBe(params);
+  });
+
+  it("mirando otro año, el año se suma a los filtros sin tocarlos", async () => {
+    const controller = new AbortController();
+    const params = { estado_revision: "pendiente", limit: 12, offset: 0 };
+    apiMock.get.mockResolvedValue({ data: { items: [], total: 0 } });
+
+    await listarPlaneacionesAdmin(params, {
+      signal: controller.signal,
+      parametrosAnio: { anio_lectivo_id: 3 },
+    });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/admin/plan-de-clases", {
+      params: { estado_revision: "pendiente", limit: 12, offset: 0, anio_lectivo_id: 3 },
+      signal: controller.signal,
+    });
+    expect(params).toEqual({ estado_revision: "pendiente", limit: 12, offset: 0 });
+  });
+});

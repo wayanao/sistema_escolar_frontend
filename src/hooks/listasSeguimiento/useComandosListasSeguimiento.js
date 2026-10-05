@@ -6,6 +6,7 @@ import {
   eliminarColumnaSeguimiento,
   guardarMarcasSeguimiento,
 } from "../../services/listasSeguimientoApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import {
   mensajeAltaMasiva,
   validarNombreColumna,
@@ -34,11 +35,15 @@ const mensajeDeError = (error, porDefecto) => {
 // - El **alta y baja de columnas** si es inmediata, con confirmacion. Cambia
 //   la forma de la grilla, no su contenido, y esperar a "Guardar" dejaria la
 //   pantalla mintiendo sobre que columnas existen.
+//
+// `parametrosAnio`: el año que mira el admin. Solo lo necesita "en todos los
+// cursos", que sin él crea en los del año activo; lo demás parte del curso.
 export default function useComandosListasSeguimiento({
   cursoId,
   lista,
   setLista,
   recargar,
+  parametrosAnio,
 }) {
   // Indexados por celda, NUNCA en un array. Es lo que hace imposible mandar la
   // misma celda dos veces: el backend escribe el lote en una sola sentencia y
@@ -213,7 +218,12 @@ export default function useComandosListasSeguimiento({
       setCreandoColumna(true);
       try {
         if (enTodosLosCursos) {
-          const resumen = await crearColumnaEnTodosLosCursos(validacion.nombre);
+          // Mirando otro año, el año viaja (sin él, las columnas irían a los
+          // cursos del año activo); mirando el activo, la llamada de siempre.
+          const opcionesDelAnio = opcionesConAnio(undefined, parametrosAnio);
+          const resumen = opcionesDelAnio
+            ? await crearColumnaEnTodosLosCursos(validacion.nombre, opcionesDelAnio)
+            : await crearColumnaEnTodosLosCursos(validacion.nombre);
           // Aqui **si** hay que recargar, al contrario que en el alta suelta:
           // la respuesta son conteos, no la columna de este curso, asi que no
           // hay nada que agregar a mano a la grilla.
@@ -257,7 +267,7 @@ export default function useComandosListasSeguimiento({
         comandoEnCursoRef.current = false;
       }
     },
-    [cursoId, lista, recargar, setLista],
+    [cursoId, lista, parametrosAnio, recargar, setLista],
   );
 
   const eliminarColumna = useCallback(

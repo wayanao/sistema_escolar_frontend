@@ -566,6 +566,14 @@ Estado actual de componentes y paginas del frontend.
   administración pueda abrir el material enlazado al revisar.
 - `pages/PlaneadoresClasesAdmin.jsx` queda como raíz de composición de la
   bandeja y el detalle, responsable únicamente de hooks, rutas y navegación.
+- Año lectivo, paso 4.6 (2026-10-05): la bandeja y sus contadores son los del
+  año que mira el admin (la página lee `useAnioLectivo()`). En un año cerrado,
+  solo consulta: la página no pasa las casillas ni "Marcar como vistos" a
+  `ResultadosPlaneacionesAdmin`, y `DetallePlaneacionAdmin` (prop
+  `puedeEditar`, `true` si no llega) esconde el formulario de revisión y el
+  botón "Borrar" de las evidencias. Listas de seguimiento hace lo mismo con
+  `VistaListasSeguimiento` (prop `puedeEditar`): ver
+  `docs/funcionalidades/LISTAS_SEGUIMIENTO.md`.
 - La columna lateral `Envios recibidos` y su scroll vertical interno fueron
   retirados. La lista usa todo el ancho disponible y el desplazamiento normal
   de la pagina.

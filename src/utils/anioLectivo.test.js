@@ -122,6 +122,12 @@ describe("pantallas que siguen el año", () => {
     expect(enRuta("/ingreso-boletin")).toBe(false);
   });
 
+  it("desde el paso 4.6 siguen el año Listas de seguimiento y la bandeja de planes, con su detalle", () => {
+    expect(enRuta("/admin/listas-seguimiento")).toBe(true);
+    expect(enRuta("/admin/planeadores-clases")).toBe(true);
+    expect(enRuta("/admin/planeadores-clases/91")).toBe(true);
+  });
+
   it("las pantallas que todavía no siguen el año, o que no dependen de él, quedan fuera", () => {
     for (const ruta of [
       // Pagos cobra siempre en el año activo; tendrá su propio selector en la
@@ -130,9 +136,8 @@ describe("pantallas que siguen el año", () => {
       "/dashboard-admin",
       "/admin/nomina",
       "/admin/reportes",
-      // Las del paso 4.6, todavía sin conectar.
-      "/admin/listas-seguimiento",
-      "/admin/planeadores-clases",
+      // Lo del profesor (sus planes, sus listas) no tiene selector.
+      "/plan-de-clases",
     ]) {
       expect(enRuta(ruta)).toBe(false);
     }

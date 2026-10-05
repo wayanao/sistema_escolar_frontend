@@ -50,6 +50,10 @@ export const RUTAS_POR_ANIO = Object.freeze([
   // Paso 4.5.
   { ruta: "/boletin" },
   { ruta: "/admin/certificados" },
+  // Paso 4.6. La bandeja de planes incluye el detalle de un plan
+  // (`/admin/planeadores-clases/:planId`).
+  { ruta: "/admin/listas-seguimiento" },
+  { ruta: "/admin/planeadores-clases" },
 ]);
 
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;

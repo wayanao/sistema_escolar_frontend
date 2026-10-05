@@ -232,6 +232,12 @@ Al terminar, un aviso honesto con lo que devuelve el backend:
 3. **Puede no crear nada y no ser un error.** Si todos los cursos ya la
    tienen, `creadas` es 0. El aviso debe decirlo con naturalidad ("Todos los
    cursos ya la tenían"), no como un fallo.
+4. **"Todos los cursos" son los de un año** (año lectivo, paso 4.6,
+   2026-10-05). Sin `?anio_lectivo_id=`, el backend crea en los cursos del año
+   activo. Mirando otro año con el selector, la pantalla lo manda; mirando el
+   activo, la petición es la de siempre. En un año cerrado la pantalla es de
+   solo consulta: no ofrece crear ni borrar columnas, bloquea las casillas y
+   no muestra la barra de guardar. Detalle en `ANIO_LECTIVO.md`.
 
 ### Archivos que toca
 

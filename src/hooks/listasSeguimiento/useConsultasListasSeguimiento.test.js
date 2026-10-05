@@ -196,3 +196,34 @@ describe("recargar", () => {
     expect(obtenerListaMock).toHaveBeenCalledWith(12, expect.anything());
   });
 });
+
+describe("los cursos y el año lectivo", () => {
+  it("sin año, los cursos se piden como siempre; con año, los de ese año", async () => {
+    const { result } = renderHook(() => useConsultasListasSeguimiento());
+    await waitFor(() => expect(result.current.cursos).toEqual(CURSOS));
+    expect(obtenerCursosMock).toHaveBeenCalledWith({ signal: expect.any(AbortSignal) });
+
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const otro = renderHook(() => useConsultasListasSeguimiento({ parametrosAnio }));
+    await waitFor(() => expect(otro.result.current.cursos).toEqual(CURSOS));
+    expect(obtenerCursosMock).toHaveBeenLastCalledWith({
+      signal: expect.any(AbortSignal),
+      parametrosAnio,
+    });
+  });
+
+  it("si cambia el año, vuelve a pedir los cursos con el año nuevo", async () => {
+    const { result, rerender } = renderHook(
+      ({ anio }) => useConsultasListasSeguimiento({ parametrosAnio: anio }),
+      { initialProps: { anio: { anio_lectivo_id: 2 } } },
+    );
+    await waitFor(() => expect(result.current.cursos).toEqual(CURSOS));
+
+    rerender({ anio: { anio_lectivo_id: 3 } });
+
+    await waitFor(() => expect(obtenerCursosMock).toHaveBeenLastCalledWith({
+      signal: expect.any(AbortSignal),
+      parametrosAnio: { anio_lectivo_id: 3 },
+    }));
+  });
+});

@@ -3,6 +3,7 @@ import {
   listarPlaneacionesAdmin,
   listarProfesoresPlaneaciones,
 } from "../../services/planeacionesApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import {
   crearParametrosPlanes,
   ESTADOS_FILTRABLES,
@@ -10,9 +11,12 @@ import {
   PAGE_SIZE,
 } from "../../utils/planeaciones/admin";
 
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// La bandeja y sus contadores son los de ese año; los profesores, no.
 export default function useListadoPlaneacionesAdmin({
   searchParams,
   setSearchParams,
+  parametrosAnio,
 }) {
   const vistaInicial = ["realizadas", "programadas", "todas"].includes(
     searchParams.get("vista"),
@@ -133,9 +137,10 @@ export default function useListadoPlaneacionesAdmin({
           limit: PAGE_SIZE,
           offset: (pagina - 1) * PAGE_SIZE,
         });
-        const data = await listarPlaneacionesAdmin(params, {
-          signal: controller.signal,
-        });
+        const data = await listarPlaneacionesAdmin(
+          params,
+          opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+        );
         const respuesta = normalizarRespuestaPlanes(data);
         setPlanes(respuesta.items);
         setTotal(respuesta.total);
@@ -155,7 +160,7 @@ export default function useListadoPlaneacionesAdmin({
 
     void cargar();
     return () => controller.abort();
-  }, [estado, filtrosAplicados, pagina, recargas, vista]);
+  }, [estado, filtrosAplicados, pagina, parametrosAnio, recargas, vista]);
 
   useEffect(() => {
     if (!vista) {
@@ -175,7 +180,7 @@ export default function useListadoPlaneacionesAdmin({
           limit: 1,
           offset: 0,
         }),
-        { signal: controller.signal },
+        opcionesConAnio({ signal: controller.signal }, parametrosAnio),
       ).then((data) => normalizarRespuestaPlanes(data).total);
 
     const cargarConteos = async () => {
@@ -204,7 +209,7 @@ export default function useListadoPlaneacionesAdmin({
 
     void cargarConteos();
     return () => controller.abort();
-  }, [filtrosAplicados, recargas, vista]);
+  }, [filtrosAplicados, parametrosAnio, recargas, vista]);
 
   useEffect(() => {
     if (!cargando && pagina > totalPaginas) setPagina(totalPaginas);

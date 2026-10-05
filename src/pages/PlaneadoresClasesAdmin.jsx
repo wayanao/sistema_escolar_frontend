@@ -3,6 +3,7 @@ import DetallePlaneacionAdmin from "../components/planeaciones/admin/DetallePlan
 import EncabezadoPlaneacionesAdmin from "../components/planeaciones/admin/EncabezadoPlaneacionesAdmin";
 import FiltrosPlaneacionesAdmin from "../components/planeaciones/admin/FiltrosPlaneacionesAdmin";
 import ResultadosPlaneacionesAdmin from "../components/planeaciones/admin/ResultadosPlaneacionesAdmin";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useDetallePlaneacionAdmin from "../hooks/planeaciones/useDetallePlaneacionAdmin";
 import useListadoPlaneacionesAdmin from "../hooks/planeaciones/useListadoPlaneacionesAdmin";
 import useRevisionMasivaPlaneacionesAdmin from "../hooks/planeaciones/useRevisionMasivaPlaneacionesAdmin";
@@ -31,6 +32,7 @@ function PlaneadoresClasesAdmin() {
 function ListadoPlaneadoresAdmin() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { parametros, permisos } = useAnioLectivo();
   const {
     profesores,
     planes,
@@ -60,6 +62,7 @@ function ListadoPlaneadoresAdmin() {
   } = useListadoPlaneacionesAdmin({
     searchParams,
     setSearchParams,
+    parametrosAnio: parametros,
   });
   const {
     seleccionados,
@@ -120,11 +123,13 @@ function ListadoPlaneadoresAdmin() {
           onCambiarPagina={cambiarPagina}
           onAbrirPlan={abrirPlan}
           seleccionados={seleccionados}
-          idsMarcables={idsMarcables}
+          // En un año cerrado, solo consulta: sin casillas ni "Marcar como
+          // vistos" (marcar es guardar una revisión).
+          idsMarcables={permisos.puedeEditar ? idsMarcables : []}
           marcando={marcando}
           progreso={progreso}
           resumen={resumen}
-          onAlternarPlan={alternar}
+          onAlternarPlan={permisos.puedeEditar ? alternar : undefined}
           onAlternarTodos={alternarTodos}
           onMarcarVistos={marcarComoVistos}
         />
@@ -136,6 +141,10 @@ function ListadoPlaneadoresAdmin() {
 function DetallePlaneadorAdmin({ planId }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // El detalle parte del id del plan y no trae su año: los botones siguen el
+  // año que mira el admin. Si no coincidieran, el backend responde su 409 y el
+  // detalle muestra el mensaje.
+  const { permisos } = useAnioLectivo();
   const {
     plan,
     observaciones,
@@ -167,6 +176,7 @@ function DetallePlaneadorAdmin({ planId }) {
       accionRevision={accionRevision}
       mensaje={mensaje}
       eliminandoImagen={eliminandoImagen}
+      puedeEditar={permisos.puedeEditar}
       onVolver={volver}
       onCambiarObservacion={setObservacion}
       onAprobar={marcarRevisado}

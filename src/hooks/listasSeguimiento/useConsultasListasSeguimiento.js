@@ -3,6 +3,7 @@ import {
   obtenerCursosListasSeguimiento,
   obtenerListaSeguimiento,
 } from "../../services/listasSeguimientoApi";
+import { opcionesConAnio } from "../../utils/anioLectivo";
 import { normalizarListaSeguimiento } from "../../utils/listasSeguimiento/marcas";
 
 const LISTA_VACIA = normalizarListaSeguimiento(null);
@@ -14,7 +15,10 @@ const LISTA_VACIA = normalizarListaSeguimiento(null);
 // Este módulo pide su propio GET /cursos y arma su propio selector, como ya
 // hacen Boletín y Tipos de Pago. No se extrae un componente común hasta que
 // haga falta: es política establecida del proyecto.
-export default function useConsultasListasSeguimiento() {
+//
+// `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
+// Los cursos son los de ese año; la lista de un curso parte de su id.
+export default function useConsultasListasSeguimiento({ parametrosAnio } = {}) {
   const [cursos, setCursos] = useState([]);
   const [cursoId, setCursoId] = useState(null);
   const [lista, setLista] = useState(LISTA_VACIA);
@@ -35,7 +39,9 @@ export default function useConsultasListasSeguimiento() {
   useEffect(() => {
     const controller = new AbortController();
 
-    obtenerCursosListasSeguimiento({ signal: controller.signal })
+    obtenerCursosListasSeguimiento(
+      opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+    )
       .then((data) => {
         if (!controller.signal.aborted) setCursos(Array.isArray(data) ? data : []);
       })
@@ -44,7 +50,7 @@ export default function useConsultasListasSeguimiento() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [parametrosAnio]);
 
   const recargar = useCallback(async () => {
     if (!cursoId) {

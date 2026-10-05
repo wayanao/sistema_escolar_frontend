@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import VistaListasSeguimiento from "../components/listasSeguimiento/VistaListasSeguimiento";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useComandosListasSeguimiento from "../hooks/listasSeguimiento/useComandosListasSeguimiento";
 import useConsultasListasSeguimiento from "../hooks/listasSeguimiento/useConsultasListasSeguimiento";
 
@@ -8,12 +9,15 @@ import useConsultasListasSeguimiento from "../hooks/listasSeguimiento/useConsult
 // Solo cablea: llama a los dos hooks y le pasa sus piezas a la vista. Sin HTTP
 // directo, sin transformaciones grandes y sin bloques visuales propios.
 function ListasSeguimientoAdmin() {
-  const consultas = useConsultasListasSeguimiento();
+  // El año que mira el admin: sus cursos y, en un año cerrado, solo consulta.
+  const { parametros, permisos } = useAnioLectivo();
+  const consultas = useConsultasListasSeguimiento({ parametrosAnio: parametros });
   const comandos = useComandosListasSeguimiento({
     cursoId: consultas.cursoId,
     lista: consultas.lista,
     setLista: consultas.setLista,
     recargar: consultas.recargar,
+    parametrosAnio: parametros,
   });
 
   // El único trozo de lógica que vive aquí, y es porque es lo único que
@@ -59,6 +63,7 @@ function ListasSeguimientoAdmin() {
       guardando={comandos.guardando}
       onGuardar={comandos.guardarCambios}
       onDescartar={comandos.descartarCambios}
+      puedeEditar={permisos.puedeEditar}
     />
   );
 }

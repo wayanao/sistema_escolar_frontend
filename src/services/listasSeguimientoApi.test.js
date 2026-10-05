@@ -193,3 +193,44 @@ describe("alta de una columna en todos los cursos", () => {
     await expect(crearColumnaEnTodosLosCursos("Nueva")).rejects.toBe(carrera);
   });
 });
+
+describe("contrato HTTP de listas de seguimiento y el año lectivo (paso 4.6)", () => {
+  it("con las opciones del año activo, cursos y alta masiva van como siempre", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+    apiMock.post.mockResolvedValue({ data: {} });
+
+    await obtenerCursosListasSeguimiento({});
+    await obtenerCursosListasSeguimiento({ signal: controller.signal });
+    await crearColumnaEnTodosLosCursos("Pagó la excursión", {});
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/cursos"],
+      ["/cursos", { signal: controller.signal }],
+    ]);
+    expect(apiMock.post.mock.calls).toEqual([
+      ["/listas-seguimiento/columnas-en-todos-los-cursos", { nombre: "Pagó la excursión" }],
+    ]);
+  });
+
+  it("mirando otro año, los cursos y el alta masiva llevan anio_lectivo_id", async () => {
+    const controller = new AbortController();
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.get.mockResolvedValue({ data: [] });
+    apiMock.post.mockResolvedValue({ data: {} });
+
+    await obtenerCursosListasSeguimiento({ signal: controller.signal, parametrosAnio });
+    await crearColumnaEnTodosLosCursos("Pagó la excursión", { parametrosAnio });
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/cursos", { params: { anio_lectivo_id: 2 }, signal: controller.signal }],
+    ]);
+    expect(apiMock.post.mock.calls).toEqual([
+      [
+        "/listas-seguimiento/columnas-en-todos-los-cursos",
+        { nombre: "Pagó la excursión" },
+        { params: { anio_lectivo_id: 2 } },
+      ],
+    ]);
+  });
+});

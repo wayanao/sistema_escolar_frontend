@@ -243,3 +243,25 @@ describe("DetallePlaneacionAdmin", () => {
     expect(onEliminarImagen).toHaveBeenCalledWith(91, "imagen1");
   });
 });
+
+describe("DetallePlaneacionAdmin y el año lectivo", () => {
+  const conEvidencia = { ...planBase, imagen1: "evidencia.webp" };
+
+  it("en un año que se edita, se revisa y se puede borrar una evidencia", () => {
+    render(<DetallePlaneacionAdmin {...crearProps({ plan: conEvidencia })} />);
+
+    expect(screen.getByText("Revisión y comentario al profesor")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Borrar/ })).toBeInTheDocument();
+  });
+
+  it("en un año cerrado, solo consulta: sin revisión ni Borrar, y se puede volver", () => {
+    const props = crearProps({ plan: conEvidencia, puedeEditar: false });
+    render(<DetallePlaneacionAdmin {...props} />);
+
+    expect(screen.getByText("Evidencias enviadas")).toBeInTheDocument();
+    expect(screen.queryByText("Revisión y comentario al profesor")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Aprobar|Solicitar ajuste/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Borrar/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Volver a la bandeja/ })).toBeInTheDocument();
+  });
+});

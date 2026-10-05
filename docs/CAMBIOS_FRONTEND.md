@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-10-05 - Año lectivo: Listas de seguimiento y bandeja de planes por año (fase 4, paso 4.6)
+
+Listas de seguimiento y la bandeja de planes del admin cargan los datos del
+año que mira el admin. Con un solo año, como hoy, no cambia nada en datos,
+botones ni peticiones.
+
+- Caracterización primero: `pages/PlaneadoresClasesAdmin.test.jsx` (3
+  pruebas), la bandeja no tenía prueba de página.
+- `listarPlaneacionesAdmin` suma el año a sus filtros (bandeja y contadores);
+  `obtenerCursosListasSeguimiento` y `crearColumnaEnTodosLosCursos` aceptan
+  `parametrosAnio`. El alta masiva es una escritura: sin el año, el backend
+  crea en los cursos del año activo. Sin año elegido, cada llamada es la de
+  antes.
+- En un año cerrado, solo consulta: la bandeja sin casillas ni "Marcar como
+  vistos", el detalle de un plan sin revisión ni "Borrar" en las evidencias
+  (`DetallePlaneacionAdmin`, prop `puedeEditar`), y Listas sin crear ni
+  borrar columnas, con las casillas bloqueadas y sin la barra de guardar
+  (`VistaListasSeguimiento`, prop `puedeEditar`).
+- `RUTAS_POR_ANIO` suma `/admin/listas-seguimiento` y
+  `/admin/planeadores-clases` (con el detalle de un plan).
+- Hallazgo del backend, para la fase 6: la lista de un curso toma sus
+  estudiantes de `estudiantes.curso_id`, así que mirando otro año sale sin
+  estudiantes.
+- Pruebas: 24 nuevas (3 de caracterización y 21 del año); ajustada a
+  propósito solo la del contrato puro. Veintinueve versiones dañadas del
+  código hacen fallar alguna prueba.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.6".
+
+Verificacion: `pnpm run check:deploy` limpio en una sola corrida: las 2204
+pruebas pasan (antes 2180), lint limpio y build correcto. `git diff --check`
+limpio.
+
 ## 2026-10-05 - Año lectivo: Boletines y certificados por año (fase 4, paso 4.5)
 
 Gestión de boletines y Certificados cargan los datos del año que mira el
