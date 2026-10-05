@@ -98,7 +98,10 @@ Estado actual de componentes y paginas del frontend.
 - `components/administracionAcademica/cursos/CrearCurso.jsx`: contenedor de
   creación, edición, estado y listado de cursos.
 - `components/administracionAcademica/materias/CrearMateria.jsx`: contenedor de
-  creación, edición, estado y listado de materias.
+  creación, edición, estado y listado de materias. Compone
+  `DialogoCambioNombreMateria` cuando el backend avisa que un cambio de nombre
+  también afectaría otros años; el diálogo solo presenta el mensaje y delega
+  "Cambiar igual" o "Crear una materia nueva".
 - `components/administracionAcademica/profesores/CrearProfesor.jsx`: contenedor
   de creación, edición, búsqueda, estado y listado de profesores.
 - `pages/OrdenBoletin.jsx`: raíz de composición del orden responsive de

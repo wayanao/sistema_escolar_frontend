@@ -348,6 +348,11 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   no parte de un id, así que también tiene que llevar el año (Listas de
   seguimiento: `crearColumnaEnTodosLosCursos`); sin él, el backend escribe en
   el año activo.
+- Materias no pertenece a un año y no sigue el selector. Desde el paso 4.7,
+  `useComandosMaterias` reconoce únicamente el `409` con código
+  `materia_usada_en_otro_anio`; una vista presentacional muestra el mensaje del
+  backend. La confirmación explícita agrega `confirmar_cambio_nombre: true`, y
+  la alternativa cambia el formulario a creación sin guardar automáticamente.
 
 ## Administración académica y horarios
 

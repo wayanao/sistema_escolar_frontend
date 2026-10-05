@@ -1,5 +1,29 @@
 # Cambios Frontend
 
+## 2026-10-05 - Año lectivo: diálogo al renombrar materias (fase 4, paso 4.7)
+
+La pantalla de Materias ya entiende el aviso estructurado del backend cuando
+un cambio de nombre también modificaría boletines y certificados de otro año.
+Con este paso queda completo el código de la fase 4.
+
+- La edición normal conserva el mismo `PUT /materias/{id}` y el mismo cuerpo.
+  Solo el `409` con código `materia_usada_en_otro_anio` abre el diálogo; los
+  demás errores siguen mostrando el detalle de siempre.
+- "Cambiar igual" reenvía el mismo cambio con
+  `confirmar_cambio_nombre: true`. "Crear una materia nueva" cambia el
+  formulario a creación con el nombre propuesto y espera que el usuario pulse
+  guardar; no crea nada automáticamente.
+- `DialogoCambioNombreMateria` es solo presentación. La detección del contrato
+  vive en la utilidad pura y la coordinación en `useComandosMaterias`; el
+  frontend no calcula en qué años se usa la materia.
+- Caracterización previa: 25 pruebas de Materias pasaron antes del cambio. Se
+  agregaron 6 pruebas para el contrato, el hook, el diálogo y los dos flujos
+  completos de la pantalla.
+- Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`, "Avance del paso 4.7".
+
+Verificacion: `pnpm run check:deploy` limpio en una sola corrida: 2210 pruebas
+en 341 archivos, lint limpio y build correcto. `git diff --check` limpio.
+
 ## 2026-10-05 - Año lectivo: Listas de seguimiento y bandeja de planes por año (fase 4, paso 4.6)
 
 Listas de seguimiento y la bandeja de planes del admin cargan los datos del

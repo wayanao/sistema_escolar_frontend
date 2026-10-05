@@ -13,6 +13,8 @@ export const CLASES_ESTADO_MATERIA = {
     inactivo: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
+const CODIGO_MATERIA_USADA_EN_OTRO_ANIO = "materia_usada_en_otro_anio";
+
 export function normalizarNombreMateria(value) {
     return String(value || "")
         .trim()
@@ -25,7 +27,29 @@ export function obtenerMensajeErrorMateria(error, fallback) {
     if (Array.isArray(detail)) {
         return detail.map((item) => item.msg || item.message || String(item)).join("\n");
     }
+    if (detail && typeof detail === "object") {
+        return detail.mensaje || fallback;
+    }
     return detail || fallback;
+}
+
+export function obtenerAvisoMateriaUsadaEnOtroAnio(error) {
+    const detail = error?.response?.data?.detail;
+    if (
+        error?.response?.status !== 409
+        || !detail
+        || typeof detail !== "object"
+        || detail.codigo !== CODIGO_MATERIA_USADA_EN_OTRO_ANIO
+        || typeof detail.mensaje !== "string"
+        || !detail.mensaje.trim()
+    ) {
+        return null;
+    }
+
+    return {
+        codigo: detail.codigo,
+        mensaje: detail.mensaje,
+    };
 }
 
 export function obtenerEtiquetaEstadoMateria(estado) {

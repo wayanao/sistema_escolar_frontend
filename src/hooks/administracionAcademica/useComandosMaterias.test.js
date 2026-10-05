@@ -133,6 +133,84 @@ describe("useComandosMaterias", () => {
         expect(recargar).not.toHaveBeenCalled();
     });
 
+    it("ofrece confirmar el cambio de nombre y solo entonces reenvía el campo explícito", async () => {
+        const error = {
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        };
+        actualizarMock.mockRejectedValueOnce(error);
+        const { result, recargar } = crearHook();
+        act(() => {
+            result.current.iniciarEdicion(MATERIA);
+            result.current.actualizarCampo("nombre", "  matemáticas avanzadas  ");
+        });
+
+        await act(async () => result.current.guardarMateria());
+
+        expect(actualizarMock).toHaveBeenNthCalledWith(1, 31, {
+            nombre: "MATEMÁTICAS AVANZADAS",
+            estado: "activo",
+        });
+        expect(result.current.avisoCambioNombre).toEqual({
+            mensaje: "Esta materia se usa en 2026.",
+        });
+        expect(window.alert).not.toHaveBeenCalled();
+        expect(recargar).not.toHaveBeenCalled();
+
+        await act(async () => result.current.confirmarCambioNombre());
+
+        expect(actualizarMock).toHaveBeenNthCalledWith(2, 31, {
+            nombre: "MATEMÁTICAS AVANZADAS",
+            estado: "activo",
+            confirmar_cambio_nombre: true,
+        });
+        expect(window.alert).toHaveBeenCalledWith("Materia actualizada 🔥");
+        expect(recargar).toHaveBeenCalledTimes(1);
+        expect(result.current.avisoCambioNombre).toBeNull();
+        expect(result.current.editId).toBeNull();
+    });
+
+    it("pasa a creación con el nombre propuesto sin crear hasta que el usuario guarde", async () => {
+        actualizarMock.mockRejectedValueOnce({
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        });
+        const { result } = crearHook();
+        act(() => {
+            result.current.iniciarEdicion(MATERIA);
+            result.current.actualizarCampo("nombre", "Matemáticas avanzadas");
+        });
+        await act(async () => result.current.guardarMateria());
+
+        act(() => result.current.crearMateriaNuevaDesdeAviso());
+
+        expect(result.current.avisoCambioNombre).toBeNull();
+        expect(result.current.editId).toBeNull();
+        expect(result.current.nombre).toBe("MATEMÁTICAS AVANZADAS");
+        expect(crearMock).not.toHaveBeenCalled();
+
+        await act(async () => result.current.guardarMateria());
+
+        expect(crearMock).toHaveBeenCalledWith({
+            nombre: "MATEMÁTICAS AVANZADAS",
+            estado: "activo",
+        });
+    });
+
     it("confirma el cambio de estado, actualiza la lista y sincroniza la edición", async () => {
         window.confirm.mockReturnValue(true);
         const { result, setMaterias, obtenerMaterias } = crearHook({

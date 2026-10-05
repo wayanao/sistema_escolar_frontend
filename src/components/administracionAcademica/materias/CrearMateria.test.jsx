@@ -133,4 +133,91 @@ describe("flujo de materias de administración académica", () => {
             );
         });
     });
+
+    it("muestra el aviso del backend y confirma el mismo cambio de nombre", async () => {
+        prepararApi({
+            materias: [{ id: 31, nombre: "MATEMÁTICAS", estado: "activo" }],
+        });
+        apiMock.put.mockRejectedValueOnce({
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        });
+        const user = userEvent.setup();
+        render(<CrearMateria />);
+        await user.click(await screen.findByRole("button", { name: "Editar" }));
+        const nombre = screen.getByPlaceholderText("Matemáticas, Biología...");
+        await user.clear(nombre);
+        await user.type(nombre, "Matemáticas avanzadas");
+
+        await user.click(screen.getByRole("button", { name: "Actualizar Materia" }));
+
+        expect(await screen.findByRole("dialog")).toHaveTextContent(
+            "Esta materia se usa en 2026.",
+        );
+        expect(apiMock.put).toHaveBeenNthCalledWith(1, "/materias/31", {
+            nombre: "MATEMÁTICAS AVANZADAS",
+            estado: "activo",
+        });
+        expect(window.alert).not.toHaveBeenCalled();
+
+        await user.click(screen.getByRole("button", { name: "Cambiar igual" }));
+
+        await waitFor(() => {
+            expect(apiMock.put).toHaveBeenNthCalledWith(2, "/materias/31", {
+                nombre: "MATEMÁTICAS AVANZADAS",
+                estado: "activo",
+                confirmar_cambio_nombre: true,
+            });
+        });
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(window.alert).toHaveBeenCalledWith("Materia actualizada 🔥");
+    });
+
+    it("abre la creación con el nombre nuevo y espera el guardado del usuario", async () => {
+        prepararApi({
+            materias: [{ id: 31, nombre: "MATEMÁTICAS", estado: "activo" }],
+        });
+        apiMock.put.mockRejectedValueOnce({
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        });
+        const user = userEvent.setup();
+        render(<CrearMateria />);
+        await user.click(await screen.findByRole("button", { name: "Editar" }));
+        const nombre = screen.getByPlaceholderText("Matemáticas, Biología...");
+        await user.clear(nombre);
+        await user.type(nombre, "Matemáticas avanzadas");
+        await user.click(screen.getByRole("button", { name: "Actualizar Materia" }));
+        await user.click(await screen.findByRole("button", {
+            name: "Crear una materia nueva",
+        }));
+
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.getByText("📚 Crear Materia")).toBeInTheDocument();
+        expect(nombre).toHaveValue("MATEMÁTICAS AVANZADAS");
+        expect(apiMock.post).not.toHaveBeenCalled();
+
+        await user.click(screen.getByRole("button", { name: "Crear Materia" }));
+
+        await waitFor(() => {
+            expect(apiMock.post).toHaveBeenCalledWith("/materia", {
+                nombre: "MATEMÁTICAS AVANZADAS",
+                estado: "activo",
+            });
+        });
+    });
 });

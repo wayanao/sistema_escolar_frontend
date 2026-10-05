@@ -7,6 +7,7 @@ import {
     ESTADOS_MATERIA,
     FILTROS_MATERIA,
     normalizarNombreMateria,
+    obtenerAvisoMateriaUsadaEnOtroAnio,
     obtenerEtiquetaEstadoMateria,
     obtenerMensajeErrorMateria,
 } from "./materias";
@@ -45,6 +46,38 @@ describe("utilidades puras de materias", () => {
             response: { data: { detail: "Duplicada" } },
         }, "Fallback")).toBe("Duplicada");
         expect(obtenerMensajeErrorMateria(new Error("Red"), "Fallback")).toBe("Fallback");
+    });
+
+    it("reconoce solo el aviso de renombrado definido por el backend", () => {
+        const aviso = {
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        };
+
+        expect(obtenerAvisoMateriaUsadaEnOtroAnio(aviso)).toEqual({
+            codigo: "materia_usada_en_otro_anio",
+            mensaje: "Esta materia se usa en 2026.",
+        });
+        expect(obtenerAvisoMateriaUsadaEnOtroAnio({
+            ...aviso,
+            response: { ...aviso.response, status: 400 },
+        })).toBeNull();
+        expect(obtenerAvisoMateriaUsadaEnOtroAnio({
+            response: { status: 409, data: { detail: "Nombre repetido" } },
+        })).toBeNull();
+        expect(obtenerAvisoMateriaUsadaEnOtroAnio({
+            response: {
+                status: 409,
+                data: { detail: { codigo: "otro_conflicto", mensaje: "Otro" } },
+            },
+        })).toBeNull();
     });
 
     it("expone estados, filtros, etiquetas y clases actuales", () => {

@@ -2,16 +2,16 @@
 
 ## Control
 
-- Estado: **Fase 4 en curso**, iniciada el 2026-10-03 con la autorización
+- Estado: **Fase 4 con código completo**, iniciada el 2026-10-03 con la autorización
   del usuario: inventario y plan por pasos (commit `dbb0e48`), paso 4.1 (la
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
   y horarios por año; commit `78c48f7`), paso 4.3 (Tipos de pago y Cartera
   vencida por año; commit `0798f21`), paso 4.4 (Estudiantes por año; commit
   `c7f0622`), paso 4.5 (Boletines y certificados por año; commit `2140fae`)
-  y **paso 4.6 (Listas de seguimiento y bandeja de planes por año) escrito y
-  probado, sin commit**. Con él, todas las pantallas del inventario siguen el
-  año; falta el 4.7 (diálogo de materias). Con un solo año no cambia nada
-  visible en datos ni botones. La fase 3 del backend está en
+  paso 4.6 (Listas de seguimiento y bandeja de planes por año; commit
+  `72be3da`) y **paso 4.7 (diálogo al renombrar materias) escrito y probado,
+  sin commit**. Con un solo año no cambia nada visible en datos ni botones.
+  La fase 5 no ha comenzado. La fase 3 del backend está en
   GitHub desde el 2026-10-03 (`9edbe5d`); su contrato está en "Contrato del
   backend para la fase 4", más abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
@@ -28,7 +28,7 @@
   este repo. Cumplido el 2026-10-03: el usuario subió la fase 3 a
   producción (`origin/main` en `9edbe5d`); el despliegue en Render no se ve
   desde el repo.
-- Última actualización: 2026-10-03.
+- Última actualización: 2026-10-05.
 
 ## Objetivo
 
@@ -860,7 +860,7 @@ commit):**
 - Commit `2140fae` (hecho por el usuario el 2026-10-05).
 
 **Avance del 2026-10-05 — paso 4.6, Listas de seguimiento y bandeja de
-planes por año (sin commit):**
+planes por año (commit `72be3da`):**
 
 - Aprobado por el usuario el 2026-10-05 ("CONTINUA"). La pregunta abierta de
   Certificados (listas que solo traen activos) no la decide ese "continúa":
@@ -951,6 +951,44 @@ planes por año (sin commit):**
   local (solo mirar): la bandeja de planes con sus filtros y el detalle de un
   plan, y en Listas de seguimiento un curso con sus columnas, iguales que en
   producción, con todos sus botones.
+- Commit `72be3da` (hecho por el usuario el 2026-10-05).
+
+**Avance del 2026-10-05 — paso 4.7, diálogo al renombrar materias (sin
+commit). Con él, el código de la fase 4 queda completo:**
+
+- Aprobado por el usuario el 2026-10-05 ("SI"). Se confirmó antes que ambos
+  repos estaban en `main` y limpios; Git mostró que el 4.6 ya estaba en el
+  commit `72be3da`, aunque la entrega anterior todavía decía "sin commit".
+  Ninguna pregunta abierta afecta este paso.
+- Caracterización primero: las 25 pruebas existentes de Materias pasaron
+  antes del cambio. Fijan el `PUT` y su cuerpo normal, la creación, los
+  mensajes de error, el formulario y el listado.
+- Código:
+  - `utils/administracionAcademica/materias.js` reconoce únicamente el
+    `409` cuyo `detail.codigo` es `materia_usada_en_otro_anio` y conserva el
+    `detail.mensaje` del backend. No decide si una materia se usa en otro año.
+  - `useComandosMaterias` guarda el cambio que produjo el aviso. "Cambiar
+    igual" repite el mismo `PUT` con `confirmar_cambio_nombre: true`; "Crear
+    una materia nueva" cambia el formulario de edición a creación con el
+    nombre propuesto y **no guarda** hasta que el usuario pulse "Crear
+    Materia".
+  - `DialogoCambioNombreMateria` es una vista presentacional y accesible, con
+    el mensaje del backend y exactamente esas dos decisiones.
+- Compatibilidad: una edición normal sigue enviando el mismo cuerpo, sin
+  `confirmar_cambio_nombre`; los demás errores siguen el flujo anterior. Con
+  un solo año el backend no devuelve este aviso, así que no aparece nada
+  nuevo.
+- Pruebas: 6 nuevas (utilidad pura, dos del hook, diálogo y dos flujos
+  completos de `CrearMateria`). Primero fallaron contra el código anterior
+  por las piezas ausentes; después, la red específica quedó en 31 pruebas.
+- Documentación: `API_CLIENT.md`, `ARQUITECTURA_FRONTEND.md`,
+  `COMPONENTES.md`, `CAMBIOS_FRONTEND.md`, `docs/README.md` y este documento.
+- Verificación: `pnpm run check:deploy` **limpio en una sola corrida**:
+  **2210 pruebas pasan** en 341 archivos (antes 2204), lint limpio y build
+  correcto. `git diff --check` limpio.
+- Efecto al publicar: ninguno visible mientras haya un solo año. Con varios
+  años, el admin recibe la elección explícita que exige la decisión 12, sin
+  que el frontend invente el alcance del cambio.
 
 ### Fase 5 — Preparar el año siguiente
 
@@ -1123,14 +1161,15 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada: **paso 4.6 de la fase 4** (Listas de
-  seguimiento y bandeja de planes con el año elegido), 2026-10-05, escrito y
-  probado, **sin commit**. Ver su "Avance" en la fase 4. Antes: inventario y
+- Última acción terminada: **paso 4.7 de la fase 4** (diálogo al renombrar
+  una materia usada en otro año), 2026-10-05, escrito y probado, **sin
+  commit**. Con él, la fase 4 tiene el código completo. Ver su "Avance".
+  Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
   (`78c48f7`) y paso 4.3 (`0798f21`), el 2026-10-03; paso 4.4 (`c7f0622`) y
-  paso 4.5 (`2140fae`), el 2026-10-05. Ninguno de esos commits está en
-  GitHub todavía (al 2026-10-05, `git status`: `ahead 6`); subirlos lo
-  decide el usuario.
+  paso 4.5 (`2140fae`) y paso 4.6 (`72be3da`), el 2026-10-05. Ninguno de
+  esos siete commits está en GitHub todavía (al iniciar el 4.7,
+  `git status`: `ahead 7`); subirlos lo decide el usuario.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1155,11 +1194,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
 - Siguiente acción de este repo: que el usuario revise y haga el commit del
-  paso 4.6. Después, el **paso 4.7** (diálogo de materias: si al renombrar
-  llega el `409` con el código `materia_usada_en_otro_anio`, "Cambiar igual"
-  o "Crear una materia nueva"; punto 5 de la fase 4), solo con su visto
-  bueno; es el último de la fase 4. Sigue abierta la pregunta de Certificados
-  (listas que solo traen activos). El contrato de la fase 2 para pagos y
-  cartera sigue en la fase 5 de este documento. El estado al día está en la
-  "Entrega" del documento del backend.
+  paso 4.7. Después viene la **fase 5 — Preparar el año siguiente**, pero no
+  se inicia sin autorización explícita y sin responder antes las preguntas
+  que la afectan: crear cursos y conceptos nuevos en el año en preparación
+  (pregunta del backend), año en el impreso/CSV de Cartera y año propuesto en
+  el certificado de matrícula. Sigue abierta, para antes de la fase 6, la
+  pregunta de Certificados y los estudiantes retirados. El contrato de la
+  fase 2 para pagos y cartera está en la fase 5 de este documento.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

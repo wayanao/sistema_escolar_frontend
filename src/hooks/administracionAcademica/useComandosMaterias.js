@@ -7,6 +7,7 @@ import {
 import {
     aplicarEstadoMateria,
     construirPayloadMateria,
+    obtenerAvisoMateriaUsadaEnOtroAnio,
     obtenerMensajeErrorMateria,
 } from "../../utils/administracionAcademica/materias";
 
@@ -22,6 +23,7 @@ export default function useComandosMaterias({
 }) {
     const [editId, setEditId] = useState(null);
     const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
+    const [cambioNombrePendiente, setCambioNombrePendiente] = useState(null);
 
     const actualizarCampo = (campo, valor) => {
         setFormulario((actual) => ({ ...actual, [campo]: valor }));
@@ -30,6 +32,13 @@ export default function useComandosMaterias({
     const limpiarFormulario = () => {
         setEditId(null);
         setFormulario(FORMULARIO_INICIAL);
+        setCambioNombrePendiente(null);
+    };
+
+    const completarGuardado = (mensaje) => {
+        window.alert(mensaje);
+        limpiarFormulario();
+        void recargar();
     };
 
     const guardarMateria = async () => {
@@ -39,24 +48,60 @@ export default function useComandosMaterias({
             return;
         }
 
+        const payload = construirPayloadMateria({ nombre, estado });
+
         try {
-            const payload = construirPayloadMateria({ nombre, estado });
             if (editId) {
                 await actualizarMateria(editId, payload);
             } else {
                 await crearMateria(payload);
             }
 
-            window.alert(editId ? "Materia actualizada 🔥" : "Materia creada 🔥");
-            limpiarFormulario();
-            void recargar();
+            completarGuardado(editId ? "Materia actualizada 🔥" : "Materia creada 🔥");
+        } catch (error) {
+            const aviso = editId
+                ? obtenerAvisoMateriaUsadaEnOtroAnio(error)
+                : null;
+            if (aviso) {
+                setCambioNombrePendiente({
+                    materiaId: editId,
+                    payload,
+                    mensaje: aviso.mensaje,
+                });
+                return;
+            }
+
+            console.error(error);
+            window.alert(obtenerMensajeErrorMateria(error, "No se pudo guardar la materia"));
+        }
+    };
+
+    const confirmarCambioNombre = async () => {
+        if (!cambioNombrePendiente) return;
+
+        const { materiaId, payload } = cambioNombrePendiente;
+        try {
+            await actualizarMateria(materiaId, {
+                ...payload,
+                confirmar_cambio_nombre: true,
+            });
+            completarGuardado("Materia actualizada 🔥");
         } catch (error) {
             console.error(error);
             window.alert(obtenerMensajeErrorMateria(error, "No se pudo guardar la materia"));
         }
     };
 
+    const crearMateriaNuevaDesdeAviso = () => {
+        if (!cambioNombrePendiente) return;
+
+        setEditId(null);
+        setFormulario(cambioNombrePendiente.payload);
+        setCambioNombrePendiente(null);
+    };
+
     const iniciarEdicion = (materia) => {
+        setCambioNombrePendiente(null);
         setEditId(materia.id);
         setFormulario({
             nombre: materia.nombre,
@@ -98,8 +143,13 @@ export default function useComandosMaterias({
     return {
         ...formulario,
         editId,
+        avisoCambioNombre: cambioNombrePendiente
+            ? { mensaje: cambioNombrePendiente.mensaje }
+            : null,
         actualizarCampo,
         guardarMateria,
+        confirmarCambioNombre,
+        crearMateriaNuevaDesdeAviso,
         iniciarEdicion,
         cancelarEdicion: limpiarFormulario,
         cambiarEstado,

@@ -1,5 +1,6 @@
 import useComandosMaterias from "../../../hooks/administracionAcademica/useComandosMaterias";
 import useMaterias from "../../../hooks/administracionAcademica/useMaterias";
+import DialogoCambioNombreMateria from "./DialogoCambioNombreMateria";
 import FormularioMateria from "./FormularioMateria";
 import ListaMaterias from "./ListaMaterias";
 
@@ -15,8 +16,11 @@ function CrearMateria() {
     editId,
     nombre,
     estado,
+    avisoCambioNombre,
     actualizarCampo,
     guardarMateria,
+    confirmarCambioNombre,
+    crearMateriaNuevaDesdeAviso,
     iniciarEdicion,
     cancelarEdicion,
     cambiarEstado,
@@ -39,6 +43,13 @@ function CrearMateria() {
         onCambiarEstado={cambiarEstado}
         onEditar={iniciarEdicion}
       />
+      {avisoCambioNombre && (
+        <DialogoCambioNombreMateria
+          mensaje={avisoCambioNombre.mensaje}
+          onCambiarIgual={confirmarCambioNombre}
+          onCrearNueva={crearMateriaNuevaDesdeAviso}
+        />
+      )}
     </div>
   );
 }

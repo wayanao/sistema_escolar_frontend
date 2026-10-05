@@ -229,6 +229,11 @@ Uso:
 - Permite filtrar `inactivo` o `todos`.
 - El cambio de estado no borra la materia ni su historial.
 - El backend bloquea nuevas asignaciones para materias `inactivo`.
+- Al renombrar, la primera petición conserva el cuerpo normal. Si el backend
+  responde `409` con `detail.codigo = "materia_usada_en_otro_anio"`, la UI
+  muestra `detail.mensaje` y deja elegir entre crear otra materia o reenviar el
+  mismo `PUT` con `confirmar_cambio_nombre: true`. El frontend no deduce en qué
+  años se usa la materia.
 
 `OrdenBoletin.jsx` consume:
 
