@@ -77,9 +77,9 @@ describe("VistaListasSeguimiento", () => {
   it("con datos muestra columnas, alumnos y la barra de guardado", () => {
     renderVista({ cantidadCambios: 2 });
 
-    // El nombre de la columna sale en tres sitios a la vez -la etiqueta de
-    // gestión, la cabecera de la tabla y la tarjeta móvil-, así que se busca
-    // el sitio concreto en vez del texto suelto.
+    // El nombre de la columna sale en dos sitios a la vez -la etiqueta de
+    // gestión y la cabecera de la tabla-, así que se busca el sitio concreto
+    // en vez del texto suelto.
     expect(
       screen.getByRole("columnheader", { name: "Asistió a la cumbre" }),
     ).toBeInTheDocument();

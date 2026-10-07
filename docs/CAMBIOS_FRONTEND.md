@@ -1,5 +1,26 @@
 # Cambios Frontend
 
+## 2026-10-07 - Listas de Seguimiento: la misma tabla en el celular
+
+A pedido del usuario, `/admin/listas-seguimiento` muestra en el celular y en
+la tablet la misma tabla que en el PC, en vez de una tarjeta por alumno.
+
+- Si no cabe, la tabla se desliza de lado; el número y el nombre siguen fijos
+  a la izquierda.
+- Por debajo de 640 px la columna del nombre va más angosta y el nombre se
+  parte en renglones, para dejar sitio a las casillas. Desde 640 px la tabla
+  queda exactamente como antes.
+- `SeguimientoMobileCard.jsx` queda sin usar y no se borró: pendiente de la
+  decisión del usuario.
+- No cambian guardar, imprimir, las columnas, los hooks, el servicio ni el
+  backend.
+- Detalle en `docs/funcionalidades/LISTAS_SEGUIMIENTO.md`, "Cambio: la tabla
+  también en el celular".
+
+Verificación: las 78 pruebas del módulo pasaban antes y pasan después.
+`pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos, lint y
+build correctos; `git diff --check` limpio. Capturas a 360, 390 y 1024 px.
+
 ## 2026-10-05 - Año lectivo: diálogo al renombrar materias (fase 4, paso 4.7)
 
 La pantalla de Materias ya entiende el aviso estructurado del backend cuando

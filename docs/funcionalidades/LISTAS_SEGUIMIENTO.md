@@ -13,6 +13,9 @@
   (2026-09-22): una casilla junto al campo de nombre. Ver la sección
   "Ampliación" más abajo, y el diseño completo en el documento del backend.
   Pendiente de probarla a mano en el navegador.
+- **En el celular se ve la misma tabla que en el PC** (2026-10-07). Ya no hay
+  tarjetas. Solo frontend. Ver "Cambio: la tabla también en el celular" más
+  abajo.
 - La condición para empezar ya se cumplió: el backend tiene los cuatro
   endpoints, la migración aplicada a los dos tenants y su SQL ensayado contra
   PostgreSQL real. Ver
@@ -24,7 +27,7 @@
   cubre la parte de datos y endpoints.
 - Riesgo inicial: Bajo. Pantalla nueva; no modifica ninguna pantalla,
   servicio ni hook existente.
-- Última actualización: 2026-09-22.
+- Última actualización: 2026-10-07.
 
 ## Objetivo
 
@@ -147,14 +150,16 @@ fuera de notas y pagos.
   que en la primera pintada todavía no sabe el ancho real. Consecuencia para
   quien escriba pruebas: un nombre aparece más de una vez en el DOM, así que
   hay que buscar el sitio concreto (`columnheader`, `article`) y no el texto
-  suelto.
+  suelto. **Cambiado el 2026-10-07:** ya solo pinta la tabla, en todos los
+  anchos. Ver "Cambio: la tabla también en el celular".
 - `SeguimientoRow.jsx` y `SeguimientoMobileCard.jsx` — la misma celda en dos
   formas. **Comparten los nombres accesibles** (`"<columna>: <apellido>
   <nombre>"` para el check, `"Nota de <columna> para ..."` para la nota), así
   que lo que se prueba en una vale para la otra y un lector de pantalla oye lo
   mismo. La nota lleva `maxLength={LIMITE_NOTA_SEGUIMIENTO}`: se corta **al
   escribir**, que es donde el usuario lo ve, no al enviar, que lo perdería sin
-  avisar.
+  avisar. **Desde el 2026-10-07 la tarjeta no se usa**: el archivo sigue en el
+  repo, con su prueba, hasta que el usuario decida si se borra.
 - `BarraGuardadoSeguimiento.jsx` — cuenta los cambios y ofrece guardar o
   descartar. Se habilita con **un** cambio. La vista la esconde si el curso no
   tiene columnas o no tiene alumnos: una barra que nunca se puede usar solo
@@ -442,6 +447,66 @@ encabezado, como Planilla mete el suyo de tipo de evaluación. No se repite el
 curso como dato de solo lectura: el selector ya lo dice, y ponerlo dos veces
 uno al lado del otro era ruido. Se comprobó con una captura.
 
+## Cambio: la tabla también en el celular (2026-10-07)
+
+**Lo que pidió el usuario:** "que esa lista de estudiantes se vea así como en
+el PC". Por debajo de 1024 px (celular y tablet) la pantalla mostraba
+tarjetas, una por alumno. Ahora muestra la misma tabla en todos los anchos.
+
+### Cómo queda
+
+- Si la tabla no cabe, se desliza de lado. El número y el nombre ya eran
+  columnas fijas a la izquierda (`sticky`), así que al deslizar siempre se
+  sabe de quién es la fila.
+- **Por debajo de 640 px (`sm`) la columna del nombre va más angosta**:
+  relleno `px-3` en vez de `px-6`, y el nombre en un bloque de `w-32` que se
+  parte en renglones (`break-words` por si una sola palabra no cabe). Con el
+  ancho del PC, un nombre largo ocupaba casi toda la pantalla del celular y no
+  dejaba sitio para marcar.
+- **Desde 640 px queda exactamente como antes**: `px-6`, `truncate` y un solo
+  renglón. Las clases del PC no cambiaron; solo pasaron a llevar `sm:`.
+- La columna `#` y las columnas de marcas conservan su ancho.
+
+### Archivos
+
+- `TablaSeguimiento.jsx`: quita las tarjetas y el `hidden lg:block` de la
+  tabla, y el relleno de la cabecera "Estudiante" baja en el celular.
+- `SeguimientoRow.jsx`: la celda del nombre, como se describe arriba.
+- `TablaSeguimiento.test.jsx`: la prueba que contaba dos vistas ahora
+  comprueba que no hay tarjetas y que la tabla no lleva `hidden`. **Se
+  comprobó que falla con la versión anterior** del componente.
+- Dos comentarios de pruebas (`VistaListasSeguimiento.test.jsx` y
+  `ListasSeguimientoAdmin.test.jsx`) hablaban de la tarjeta móvil y se
+  corrigieron, sin tocar su lógica.
+
+No cambian guardar, imprimir, las columnas, los hooks, el servicio ni el
+backend.
+
+### Cómo se verificó
+
+- Capturas a 360 y 390 px reales, y a 1024 px. Un detalle por si hace falta
+  repetirlas: Chrome sin ventana (`--headless=new`) no baja de 504 px de
+  ancho y recorta la foto, así que a 390 parece que todo se sale por la
+  derecha. La pantalla se metió en un `iframe` del ancho exacto, y ahí la
+  página mide lo mismo que la ventana: nada se sale.
+- A 390 px los nombres de prueba, de hasta seis palabras ("Barrios De La Hoz
+  Juan Sebastián"), caben en dos renglones; uno muy largo podría ocupar tres.
+  La casilla de la primera columna se ve entera, y al deslizar, número y
+  nombre se quedan fijos.
+- Las 78 pruebas del módulo pasaban antes del cambio y pasan después.
+  `pnpm run check:deploy` limpio: 2227 pruebas en 343 archivos, lint y build
+  correctos. `git diff --check` limpio.
+
+### Pendiente
+
+- `SeguimientoMobileCard.jsx` y su prueba quedan **sin usar**. No se
+  borraron: lo decide el usuario.
+- Un detalle **anterior a este cambio**: en las capturas con la tabla
+  deslizada asoma una franja de unos 4 px junto a la columna `#`. Sale igual
+  en la tabla del PC, cuyas clases no cambiaron, y esas mismas capturas
+  dejaron filas en blanco, así que puede deberse a la forma de capturar. Si
+  se ve en un celular real, se revisa aparte.
+
 ## Riesgos y mitigación
 
 | Riesgo | Mitigación |
@@ -555,3 +620,7 @@ empezar el backend.
 - La documentación transversal (`docs/API_CLIENT.md`, `docs/RUTAS_FRONTEND.md`,
   `docs/ROLES_UI.md`, `docs/CAMBIOS_FRONTEND.md`) va en el paso 5 de este
   plan, no en cada paso. Todavía no se ha tocado ninguna.
+- **2026-10-07: la tabla también en el celular.** Ver la sección "Cambio: la
+  tabla también en el celular". Siguiente acción: que el usuario lo pruebe en
+  su celular y decida si se borra `SeguimientoMobileCard.jsx`, que quedó sin
+  usar.

@@ -54,7 +54,10 @@ const LISTA = {
   ],
 };
 
-/** El check de la tabla de escritorio: la fila y la tarjeta móvil se pintan las dos. */
+/**
+ * El check de una celda. El `[0]` viene de cuando también se pintaba la
+ * tarjeta móvil; desde el 2026-10-07 solo hay tabla y hay un único check.
+ */
 const checkDe = (nombre) => screen.getAllByRole("checkbox", { name: nombre })[0];
 
 async function elegirCurso(user, valor = "12") {

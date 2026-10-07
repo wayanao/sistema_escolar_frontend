@@ -48,22 +48,21 @@ describe("TablaSeguimiento", () => {
     expect(filas[1]).toHaveTextContent("Rojas Ana");
   });
 
-  it("pinta las dos vistas a la vez y esconde una con CSS", () => {
-    // Se pintan las dos y se elige con clases, en vez de medir la ventana en
-    // JavaScript: en la primera pintada todavía no se sabe el ancho real.
+  it("muestra la misma tabla en el celular y en el PC, sin tarjetas", () => {
+    // Pedido del usuario el 2026-10-07: en el celular, la tabla del PC. Antes
+    // había tarjetas por debajo de 1024 px y la tabla se escondía con
+    // `hidden lg:block`; esta prueba falla si vuelve a esconderse.
     renderTabla();
 
-    expect(screen.getAllByRole("article")).toHaveLength(2);
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.queryAllByRole("article")).toHaveLength(0);
+    expect(screen.getByRole("table").parentElement).not.toHaveClass("hidden");
   });
 
   it("un curso sin columnas muestra a los alumnos igual, no es un error", () => {
     // Es la pantalla recién estrenada: el documento lo fija como invariante.
     renderTabla({ columnas: [] });
 
-    // Dos veces: una en la tabla y otra en la tarjeta, que se pintan siempre
-    // las dos y se esconde una con CSS.
-    expect(screen.getAllByText("Pérez Juan")).toHaveLength(2);
+    expect(screen.getByText("Pérez Juan")).toBeInTheDocument();
     expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
   });
 

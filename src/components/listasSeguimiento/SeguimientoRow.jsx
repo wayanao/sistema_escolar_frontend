@@ -28,9 +28,13 @@ function SeguimientoRow({
         </span>
       </td>
 
-      <td className="sticky left-16 z-10 truncate border-b border-r border-b-gray-100/70 border-r-violet-100/50 bg-white px-6 py-4">
+      {/* En el celular la columna va mas angosta y el nombre se parte en
+          renglones: con el ancho del PC ocuparia casi toda la pantalla y no
+          quedaria sitio para marcar. Desde `sm` (640 px) queda como siempre,
+          en un solo renglon. */}
+      <td className="sticky left-16 z-10 border-b border-r border-b-gray-100/70 border-r-violet-100/50 bg-white px-3 py-4 sm:truncate sm:px-6">
         <div
-          className="text-sm font-medium capitalize text-gray-900"
+          className="w-32 break-words text-sm font-medium capitalize text-gray-900 sm:w-auto"
           title={nombreCompleto}
           translate="no"
         >
