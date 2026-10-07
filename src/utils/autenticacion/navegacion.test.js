@@ -27,6 +27,12 @@ describe("contratos puros de navegacion", () => {
     expect(resumirItems(ADMIN_DESKTOP_ITEMS)).toStrictEqual([
       { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
       {
+        id: "anios-lectivos",
+        type: "link",
+        label: "Años lectivos",
+        to: "/admin/anios-lectivos",
+      },
+      {
         id: "academica",
         type: "group",
         label: "Gestión Académica",
@@ -89,6 +95,7 @@ describe("contratos puros de navegacion", () => {
   it.each([
     [ADMIN_DESKTOP_ITEMS, "/dashboard-admin", "dashboard"],
     [ADMIN_DESKTOP_ITEMS, "/dashboard-admin/detalle", "dashboard"],
+    [ADMIN_DESKTOP_ITEMS, "/admin/anios-lectivos", "anios-lectivos"],
     [ADMIN_DESKTOP_ITEMS, "/admin/planeadores-clases/18", "academica"],
     [ADMIN_DESKTOP_ITEMS, "/admin/pagos/18", "cartera"],
     [ADMIN_DESKTOP_ITEMS, "/admin", "administracion"],

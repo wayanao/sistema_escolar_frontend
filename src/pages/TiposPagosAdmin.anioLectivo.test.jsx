@@ -27,10 +27,12 @@ const PARAMETROS_2027 = { anio_lectivo_id: 2 };
 const EN_PREPARACION = {
     parametros: PARAMETROS_2027,
     permisos: { esAnioActivo: false, puedeEditar: true },
+    anioSeleccionado: { id: 2, anio: 2027, estado: "preparacion" },
 };
 const CERRADO = {
     parametros: { anio_lectivo_id: 3 },
     permisos: { esAnioActivo: false, puedeEditar: false },
+    anioSeleccionado: { id: 3, anio: 2025, estado: "cerrado" },
 };
 
 const MATRICULA_2027 = {
@@ -63,7 +65,7 @@ beforeEach(() => {
 });
 
 describe("Tipos de pago mirando otro año", () => {
-    it("en preparación pide conceptos y cursos de ese año, no ofrece crear y deja editar", async () => {
+    it("en preparación pide conceptos y cursos de ese año, crea allí y deja editar", async () => {
         mocks.anioLectivo = EN_PREPARACION;
         render(<TiposPagosAdmin />);
 
@@ -71,8 +73,18 @@ describe("Tipos de pago mirando otro año", () => {
         const conAnio = { params: PARAMETROS_2027 };
         expect(apiMock.get).toHaveBeenCalledWith("/tipos-pagos/detallado", conAnio);
         await waitFor(() => expect(apiMock.get).toHaveBeenCalledWith("/cursos", conAnio));
-        // Un concepto nuevo nacería en el año activo: mirando otro año no se crea.
-        expect(screen.queryByRole("button", { name: "Guardar Concepto" })).not.toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText("Ej: Matrícula, Copias..."), {
+            target: { value: "Transporte" },
+        });
+        fireEvent.change(screen.getByPlaceholderText("0.00"), {
+            target: { value: "125000" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Guardar Concepto" }));
+        await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith("/tipos-pagos", {
+            nombre: "Transporte",
+            valor: 125000,
+            anio_lectivo_id: 2,
+        }));
 
         fireEvent.click(screen.getByTitle("Editar nombre/valor"));
         fireEvent.click(screen.getByRole("button", { name: "Actualizar Concepto" }));
@@ -81,10 +93,11 @@ describe("Tipos de pago mirando otro año", () => {
             "/tipos-pagos/7",
             { nombre: "MATRÍCULA", valor: 400000 },
         ));
-        // Después de guardar, la lista se vuelve a pedir del mismo año.
+        // Después de crear y después de editar, la lista se vuelve a pedir del mismo año.
         await waitFor(() => expect(
             apiMock.get.mock.calls.filter(([url]) => url === "/tipos-pagos/detallado"),
         ).toEqual([
+            ["/tipos-pagos/detallado", conAnio],
             ["/tipos-pagos/detallado", conAnio],
             ["/tipos-pagos/detallado", conAnio],
         ]));

@@ -15,3 +15,17 @@ export async function listarAniosLectivos({ signal } = {}) {
     : await api.get("/anios-lectivos");
   return data;
 }
+
+// El backend calcula N+1: el cliente no envía ni decide el número del año.
+export async function crearAnioLectivo() {
+  const { data } = await api.post("/anios-lectivos");
+  return data;
+}
+
+export async function copiarConfiguracionAnio(anioLectivoId, opciones) {
+  const { data } = await api.post(
+    `/anios-lectivos/${anioLectivoId}/copiar-configuracion`,
+    opciones,
+  );
+  return data;
+}

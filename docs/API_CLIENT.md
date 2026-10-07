@@ -86,13 +86,25 @@ GET /tenant/status
 
 ```text
 GET /anios-lectivos
+POST /anios-lectivos
+POST /anios-lectivos/{anio_lectivo_id}/copiar-configuracion
 ```
 
 - Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
   todos los años; el profesor, solo el activo.
 - `AnioLectivoProvider`, que envuelve solo el layout del admin, la pide una
   vez cada vez que se abre o recarga la aplicación (no al cambiar de
-  pantalla). El profesor no la hace. Si falla, todo sigue como antes.
+  pantalla). Desde el paso 5.7 también puede volver a pedirla después de crear
+  el siguiente año y dejarlo seleccionado. El profesor no la hace. Si la
+  carga inicial falla, todo sigue como antes.
+- `POST /anios-lectivos` no recibe cuerpo: el servidor calcula exactamente
+  `N+1`. La copia recibe las tres decisiones explícitas
+  (`copiar_precios`, `copiar_carga_academica`, `copiar_directores`); cursos y
+  conceptos de pago se copian siempre por regla del backend.
+- En el paso 5.7, `POST /cursos` y `POST /tipos-pagos` suman
+  `anio_lectivo_id` solo al crear mirando un año en `preparacion`. En el año
+  activo conservan exactamente su cuerpo anterior, y las actualizaciones por
+  id nunca reciben ese campo.
 - Las lecturas que aceptan `?anio_lectivo_id=` lo reciben solo cuando el
   admin mira un año que no es el activo (`parametrosAnio` y
   `opcionesConAnio` en `utils/anioLectivo.js`); mirando el activo, cada
@@ -356,10 +368,10 @@ Uso:
   y `frecuencia_meses: 1`.
 - Año lectivo (paso 4.3, 2026-10-03): mirando un año que no es el activo, los
   conceptos y los cursos para los precios son los de ese año
-  (`?anio_lectivo_id=`). En un año en preparación no se ofrece crear conceptos
-  (`POST /tipos-pagos` crea siempre en el activo), pero se editan los
-  existentes; en un año cerrado, solo consulta. Lo garantiza el backend con su
-  `409`.
+  (`?anio_lectivo_id=`). Desde el paso 5.7 se puede crear un concepto en
+  preparación enviando ese `anio_lectivo_id`; también se editan los
+  existentes. En un año cerrado queda solo consulta. Lo garantiza el backend
+  con su `409`.
 
 `PagosAdmin.jsx` tambien consulta:
 

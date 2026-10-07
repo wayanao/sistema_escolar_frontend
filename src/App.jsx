@@ -32,6 +32,7 @@ const PlanDeClases = lazy(() => import("./pages/PlanDeClases"));
 const DashboardProfesor = lazy(() => import("./pages/DashboardProfesor"));
 const PlaneadorAnual = lazy(() => import("./pages/PlaneadorAnual"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AniosLectivosAdmin = lazy(() => import("./pages/AniosLectivosAdmin"));
 const IngresoBoletinProfesor = lazy(() => import("./pages/IngresoBoletinProfesor"));
 const RankingRendimiento = lazy(() => import("./pages/RankingRendimiento"));
 const RankingMejorRendimiento = lazy(() => import("./pages/RankingMejorRendimiento"));
@@ -201,6 +202,7 @@ function Layout() {
           <RutasDelAnio>
             <Route path={RUTAS_SESION.INICIO_PROFESOR} element={<ProtectedRoute><DashboardProfesor /></ProtectedRoute>} />
             <Route path={RUTAS_SESION.INICIO_ADMIN} element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/anios-lectivos" element={<AdminRoute><AniosLectivosAdmin /></AdminRoute>} />
             <Route path="/admin/pagos" element={<AdminRoute><PagosAdmin /></AdminRoute>} />
             <Route path="/admin/tipos-pagos" element={<AdminRoute><TiposPagosAdmin /></AdminRoute>} />
             <Route path="/admin/cartera-vencida" element={<AdminRoute><CarteraVencidaAdmin /></AdminRoute>} />

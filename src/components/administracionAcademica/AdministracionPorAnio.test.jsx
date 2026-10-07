@@ -33,10 +33,12 @@ const PARAMETROS_2027 = { anio_lectivo_id: 2 };
 const EN_PREPARACION = {
     parametros: PARAMETROS_2027,
     permisos: { esAnioActivo: false, puedeEditar: true },
+    anioSeleccionado: { id: 2, anio: 2027, estado: "preparacion" },
 };
 const CERRADO = {
     parametros: { anio_lectivo_id: 3 },
     permisos: { esAnioActivo: false, puedeEditar: false },
+    anioSeleccionado: { id: 3, anio: 2025, estado: "cerrado" },
 };
 
 const CURSO_2027 = { id: 50, nombre: "PRIMERO A", jornada: "Mañana", estado: "activo" };
@@ -64,6 +66,7 @@ function prepararApi({ clases = [] } = {}) {
         if (url === "/hora/horarios-admin") return Promise.resolve({ data: [] });
         return Promise.reject(new Error(`Consulta no simulada: ${url}`));
     });
+    apiMock.post.mockResolvedValue({ data: {} });
     apiMock.put.mockResolvedValue({ data: {} });
 }
 
@@ -83,7 +86,7 @@ afterEach(() => {
 });
 
 describe("Cursos mirando otro año", () => {
-    it("en preparación pide los cursos de ese año, no ofrece crear y deja editar", async () => {
+    it("en preparación pide los cursos de ese año, crea allí y deja editar", async () => {
         mocks.anioLectivo = EN_PREPARACION;
         prepararApi();
         const user = userEvent.setup();
@@ -95,8 +98,16 @@ describe("Cursos mirando otro año", () => {
             params: { estado: "activo", anio_lectivo_id: 2 },
             signal: expect.any(AbortSignal),
         });
-        // Un curso nuevo nacería en el año activo: mirando otro año no se crea.
-        expect(screen.queryByRole("button", { name: "Crear Curso" })).not.toBeInTheDocument();
+        await user.type(screen.getByPlaceholderText("Nombre (6A, 7B...)"), "SEGUNDO A");
+        await user.click(screen.getByRole("button", { name: "Crear Curso" }));
+        await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith("/cursos", {
+            nombre: "SEGUNDO A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: null,
+            director_grupo_id: null,
+            anio_lectivo_id: 2,
+        }));
 
         await user.click(screen.getByRole("button", { name: "Editar" }));
         await user.click(screen.getByRole("button", { name: "Actualizar Curso" }));

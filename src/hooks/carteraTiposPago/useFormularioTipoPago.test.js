@@ -62,6 +62,26 @@ describe("useFormularioTipoPago", () => {
         );
     });
 
+    it("agrega el año únicamente al crear un concepto en preparación", async () => {
+        const { result } = renderHook(() => useFormularioTipoPago({
+            cargarTiposPagos,
+            anioLectivoIdCreacion: 2,
+        }));
+
+        act(() => {
+            result.current.setNuevoTipoPago("Transporte");
+            result.current.setValorTipoPago("125000");
+        });
+        await act(async () => result.current.handleSubmit({ preventDefault: vi.fn() }));
+
+        expect(serviceMock.crearTipoPago).toHaveBeenCalledWith({
+            nombre: "Transporte",
+            valor: 125000,
+            anio_lectivo_id: 2,
+        });
+        expect(serviceMock.actualizarTipoPago).not.toHaveBeenCalled();
+    });
+
     it("conserva el aviso de conflicto duplicado", async () => {
         const error = { response: { status: 409, data: { detail: "Nombre repetido" } } };
         serviceMock.crearTipoPago.mockRejectedValue(error);

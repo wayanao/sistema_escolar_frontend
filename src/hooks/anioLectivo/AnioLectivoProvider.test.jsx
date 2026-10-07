@@ -93,6 +93,24 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.anioSeleccionadoId).toBe(2);
   });
 
+  it("recarga la lista y puede dejar seleccionado el año recién creado", async () => {
+    mocks.listarAniosLectivos
+      .mockResolvedValueOnce([ANIO_2026])
+      .mockResolvedValueOnce([ANIO_2027, ANIO_2026]);
+    const { result } = renderConProveedor();
+    await waitFor(() => expect(result.current.anios).toEqual([ANIO_2026]));
+
+    await act(async () => {
+      await result.current.recargarAnios({ seleccionarId: ANIO_2027.id });
+    });
+
+    expect(mocks.listarAniosLectivos).toHaveBeenNthCalledWith(2);
+    expect(result.current.anios).toEqual([ANIO_2027, ANIO_2026]);
+    expect(result.current.anioSeleccionado).toEqual(ANIO_2027);
+    expect(result.current.anioSeleccionadoId).toBe(ANIO_2027.id);
+    expect(result.current.parametros).toEqual({ anio_lectivo_id: ANIO_2027.id });
+  });
+
   it("comparte qué se puede hacer en el año que se mira", async () => {
     mocks.listarAniosLectivos.mockResolvedValue([
       ANIO_2027,
@@ -162,6 +180,7 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.permisos).toEqual({ esAnioActivo: true, puedeEditar: true });
     expect(() => result.current.seleccionarAnio(1)).not.toThrow();
     expect(() => result.current.volverAlActivo()).not.toThrow();
+    expect(result.current.recargarAnios).toEqual(expect.any(Function));
     expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
   });
 });

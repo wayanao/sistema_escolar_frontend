@@ -1,6 +1,12 @@
 export const ADMIN_DESKTOP_ITEMS = [
   { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
   {
+    id: "anios-lectivos",
+    type: "link",
+    label: "Años lectivos",
+    to: "/admin/anios-lectivos",
+  },
+  {
     id: "academica",
     type: "group",
     label: "Gestión Académica",

@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Fase 5 iniciada el 2026-10-05 con autorización explícita del
-  usuario; inventario y plan por pasos escritos, sin código todavía.** La
-  fase 4 quedó completa en el commit `8eac0ce`. Se inició el 2026-10-03 con
+- Estado: **Fase 5 en curso; paso 5.7 terminado localmente el 2026-10-06,
+  pendiente de revisión y commit del usuario.** Los pasos 5.1 a 5.6 del
+  backend ya están terminados. La fase 4 quedó completa en el commit
+  `8eac0ce`. Se inició el 2026-10-03 con
   la autorización del usuario: inventario y plan por pasos (commit
   `dbb0e48`), paso 4.1 (la
   base: años, selector y aviso; commit `4b14347`), paso 4.2 (Administración
@@ -30,7 +31,7 @@
   este repo. Cumplido el 2026-10-03: el usuario subió la fase 3 a
   producción (`origin/main` en `9edbe5d`); el despliegue en Render no se ve
   desde el repo.
-- Última actualización: 2026-10-05.
+- Última actualización: 2026-10-06.
 
 ## Objetivo
 
@@ -1086,6 +1087,34 @@ Cada paso empieza con caracterización, termina con pruebas específicas,
 `pnpm run check:deploy` y `git diff --check`, actualiza este documento y se
 detiene antes del siguiente.
 
+**Avance del 2026-10-06 — paso 5.7 terminado localmente, sin commit:**
+
+- Antes del cambio pasaron **94 pruebas de caracterización** de años,
+  navegación, rutas, Cursos y Tipos de pago. Las pruebas nuevas se
+  escribieron primero y fallaron porque aún no existían la pantalla, los dos
+  comandos HTTP, la recarga del proveedor ni las altas dirigidas a 2027.
+- Nueva ruta de admin `/admin/anios-lectivos`, visible en los menús de
+  escritorio y móvil. La página permite crear exactamente el siguiente año
+  sin enviar su número y copiar desde el activo: los cursos y conceptos se
+  copian siempre; precios, carga académica y directores solo si el admin marca
+  sus casillas. El backend sigue siendo quien decide el año y si puede
+  editarse.
+- `AnioLectivoProvider` puede recargar la lista después del alta y dejar el
+  año nuevo seleccionado. Si 2027 ya existía al abrir la página, los enlaces
+  a Cursos y Tipos de pago lo seleccionan antes de navegar; así no apuntan por
+  accidente a 2026.
+- Cursos y Tipos de pago permiten crear mirando un año en `preparacion` y
+  agregan `anio_lectivo_id` únicamente en esa alta. Una edición nunca recibe
+  ese campo. Mirando el activo, cuerpos y peticiones quedan idénticos a los
+  anteriores; un año cerrado sigue siendo solo consulta.
+- No se tocó matriculación, resumen visual, activación, fórmulas de cobro,
+  cartera ni migraciones. No hubo acceso a una base real, producción, push ni
+  despliegue. Esos flujos empiezan en los pasos siguientes.
+- Pruebas específicas: **110 pasan en 14 archivos**. La primera verificación
+  global tuvo un único timeout antiguo de plantillas (pasó aislado en 844 ms);
+  al repetirla completa quedó limpia: **2220 pruebas pasan en 342 archivos**,
+  lint limpio y build correcto.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -1216,24 +1245,22 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada con código: **paso 4.7 de la fase 4** (diálogo al
-  renombrar una materia usada en otro año), commit `8eac0ce` del 2026-10-05.
-  La documentación principal del backend quedó en `ce8d7a7`. Con él, la fase
-  4 está completa. Ver su "Avance".
+- Última acción terminada con código: **paso 5.7 de la fase 5**, pantalla
+  base para crear/copiar el siguiente año y altas manuales de cursos y
+  conceptos en preparación. Está terminado localmente, todavía sin commit.
+  El paso anterior de este repo fue 4.7, commit `8eac0ce` del 2026-10-05.
   Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
   (`78c48f7`) y paso 4.3 (`0798f21`), el 2026-10-03; paso 4.4 (`c7f0622`) y
   paso 4.5 (`2140fae`) y paso 4.6 (`72be3da`), el 2026-10-05. Al iniciar la
   fase 5, este repo estaba limpio y `ahead 8`; subirlo lo decide el usuario.
-- **Fase 5 iniciada el 2026-10-05 con autorización explícita del usuario:**
-  inventario y plan escritos, todavía sin código. El usuario aprobó las altas
+- **Fase 5 iniciada el 2026-10-05 con autorización explícita del usuario.**
+  El usuario aprobó las altas
   manuales de cursos/conceptos en preparación, el año en el impreso/CSV de
   Cartera y el año seleccionado como propuesta del certificado de matrícula.
-  Los pasos del frontend son 5.7 a 5.10; los pasos 5.1 a 5.6 corresponden al
-  backend y deben terminar primero según sus dependencias. Verificación del
-  paso documental: `pnpm run check:deploy`, 2210 pruebas en 341 archivos,
-  lint y build limpios; backend `scripts/verify.py`, 2016 pruebas, Ruff y
-  `pip check` limpios; `git diff --check` limpio en ambos repos.
+  Los pasos 5.1 a 5.6 del backend ya terminaron; el último es el commit local
+  `102ec77`. Al iniciar 5.7, ambos repos estaban en `main` y limpios; el
+  backend permanece limpio y `ahead 5`.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1257,11 +1284,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción de este repo: ninguna todavía. El usuario revisa y hace el
-  commit de este inventario/plan; después empieza en el backend el **paso 5.1
-  — Blindar la matrícula y el curso vigente**, solo con autorización
-  explícita para ese paso. El primer código de este repo será el 5.7, cuando
-  los contratos 5.1 a 5.6 que necesita estén listos. Sigue abierta, para antes
-  de la fase 6, la pregunta separada de Certificados y estudiantes
-  retirados/egresados.
+- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.7**.
+  Después, y solo con autorización explícita, se inicia el **paso 5.8 —
+  Matrículas y resumen en el frontend**. Sigue abierta, para antes de la fase
+  6, la pregunta separada de Certificados y estudiantes
+  retirados/egresados; no bloqueó 5.7.
+- Verificación de 5.7: 110 pruebas específicas en 14 archivos;
+  `pnpm run check:deploy` limpio con 2220 pruebas en 342 archivos, lint y
+  build correctos; `git diff --check` limpio.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

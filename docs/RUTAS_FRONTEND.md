@@ -2,7 +2,7 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
-Ultima revision documental: 2026-08-08.
+Ultima revision documental: 2026-10-06.
 
 ## Rutas publicas
 
@@ -39,6 +39,7 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | Ruta | Componente |
 | --- | --- |
 | `/dashboard-admin` | `AdminDashboard` |
+| `/admin/anios-lectivos` | `AniosLectivosAdmin` |
 | `/admin` | `Admin` |
 | `/admin/pagos` | `PagosAdmin` |
 | `/admin/tipos-pagos` | `TiposPagosAdmin` |
@@ -65,6 +66,11 @@ Profesores, como antes. Cambiar de pestaña reemplaza la dirección, así que no
 suma pasos al botón Atrás. Motivo: la pestaña sobrevive cuando la página se
 reinicia al cambiar de año, y la barra sabe si la pestaña abierta depende del
 año (ver `docs/funcionalidades/ANIO_LECTIVO.md`).
+
+`/admin/anios-lectivos` es la pantalla base de preparación del siguiente año
+(fase 5, paso 5.7). Solo el admin puede abrirla. Crear y copiar no dependen del
+selector general: el backend valida el destino. Sus enlaces a Cursos y Tipos
+de pago seleccionan primero el año en preparación.
 
 ## Rutas de super admin
 

@@ -25,6 +25,7 @@ export default function useComandosCursos({
     estadoFiltro,
     recargar,
     setCursos,
+    anioLectivoIdCreacion = null,
 }) {
     const [editId, setEditId] = useState(null);
     const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
@@ -51,7 +52,11 @@ export default function useComandosCursos({
             if (editId) {
                 await actualizarCurso(editId, payload);
             } else {
-                await crearCurso(payload);
+                await crearCurso(
+                    anioLectivoIdCreacion
+                        ? { ...payload, anio_lectivo_id: anioLectivoIdCreacion }
+                        : payload
+                );
             }
 
             window.alert(editId ? "Curso actualizado 🔥" : "Curso creado 🔥");

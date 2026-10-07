@@ -17,6 +17,9 @@ vi.mock("./pages/DashboardProfesor", () => ({
 vi.mock("./pages/AdminDashboard", () => ({
   default: () => <div data-testid="dashboard-admin">Dashboard admin</div>,
 }));
+vi.mock("./pages/AniosLectivosAdmin", () => ({
+  default: () => <div data-testid="anios-lectivos-admin">Años lectivos</div>,
+}));
 vi.mock("./pages/SuperAdminDashboard", () => ({
   default: () => <div data-testid="dashboard-super-admin">Dashboard super admin</div>,
 }));
@@ -124,6 +127,14 @@ describe("rutas de autenticacion y sesion", () => {
 
     expect(screen.getByTestId("nav-admin")).toBeInTheDocument();
     expect(await screen.findByTestId("dashboard-admin")).toBeInTheDocument();
+  });
+
+  it("protege la pantalla de años lectivos como ruta de administrador", async () => {
+    guardarSesion("usuario", { id: 3, rol: "admin", debe_cambiar_password: false });
+
+    renderApp("/admin/anios-lectivos");
+
+    expect(await screen.findByTestId("anios-lectivos-admin")).toBeInTheDocument();
   });
 
   it("redirige una ruta admin a /login para una sesion profesor", async () => {

@@ -55,6 +55,22 @@ export default function AnioLectivoProvider({ children }) {
 
   const volverAlActivo = useCallback(() => setAnioSeleccionadoId(null), []);
 
+  const recargarAnios = useCallback(async ({ seleccionarId = null } = {}) => {
+    const normalizados = normalizarAniosLectivos(await listarAniosLectivos());
+    setAnios(normalizados);
+
+    if (seleccionarId !== null) {
+      const id = Number(seleccionarId);
+      const elegido = normalizados.find((anio) => anio.id === id);
+      const activo = encontrarAnioActivo(normalizados);
+      setAnioSeleccionadoId(
+        elegido && elegido.id !== activo?.id ? elegido.id : null,
+      );
+    }
+
+    return normalizados;
+  }, []);
+
   const valor = useMemo(
     () => ({
       anios,
@@ -66,8 +82,17 @@ export default function AnioLectivoProvider({ children }) {
       permisos: permisosAnio(anioSeleccionado, anioActivo),
       seleccionarAnio,
       volverAlActivo,
+      recargarAnios,
     }),
-    [anioActivo, anioSeleccionado, anioSeleccionadoId, anios, seleccionarAnio, volverAlActivo],
+    [
+      anioActivo,
+      anioSeleccionado,
+      anioSeleccionadoId,
+      anios,
+      recargarAnios,
+      seleccionarAnio,
+      volverAlActivo,
+    ],
   );
 
   return <ContextoAnioLectivo.Provider value={valor}>{children}</ContextoAnioLectivo.Provider>;

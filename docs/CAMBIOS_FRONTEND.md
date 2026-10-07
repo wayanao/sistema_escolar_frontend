@@ -21,6 +21,33 @@ Verificación: las 78 pruebas del módulo pasaban antes y pasan después.
 `pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos, lint y
 build correctos; `git diff --check` limpio. Capturas a 360, 390 y 1024 px.
 
+## 2026-10-06 - Año lectivo: pantalla base para preparar 2027 (fase 5, paso 5.7)
+
+El admin ya puede crear exactamente el siguiente año y copiar la estructura
+base desde `/admin/anios-lectivos`. La ruta usa `AdminRoute` y aparece tanto
+en escritorio como en móvil.
+
+- El frontend no envía el número al crear: el backend calcula `N+1`. Cursos y
+  conceptos se copian siempre; precios por curso, carga académica y directores
+  son las tres casillas opcionales.
+- El proveedor recarga los años después del alta y selecciona el nuevo. Si ya
+  existía un año en preparación, los enlaces a Cursos y Tipos de pago lo
+  seleccionan antes de navegar.
+- Cursos y conceptos pueden crearse en preparación: solo esa alta suma
+  `anio_lectivo_id`. Mirando el activo, las peticiones conservan exactamente
+  el cuerpo anterior; editar tampoco manda el año. Un año cerrado sigue en
+  solo consulta.
+- No se tocó matriculación, resumen, activación, cálculo financiero,
+  migraciones ni producción. Esos alcances no pertenecen a 5.7.
+- Caracterización previa: 94 pruebas. Pruebas específicas finales: 110 en 14
+  archivos.
+- Detalle y siguiente acción en
+  `docs/funcionalidades/ANIO_LECTIVO.md`, “Avance del 2026-10-06 — paso 5.7”.
+
+Verificación: una primera corrida tuvo un único timeout antiguo de plantillas
+(pasó aislado en 844 ms). La repetición completa quedó limpia: 2220 pruebas
+en 342 archivos, lint limpio y build correcto.
+
 ## 2026-10-05 - Año lectivo: diálogo al renombrar materias (fase 4, paso 4.7)
 
 La pantalla de Materias ya entiende el aviso estructurado del backend cuando
@@ -149,9 +176,10 @@ Con un solo año, como hoy, no cambia nada en datos, botones ni peticiones.
 - `useConsultasTiposPago` y `useCarteraVencida` reciben `{ parametrosAnio }`;
   las páginas lo toman de `useAnioLectivo()`. `useCarteraVencida` suma
   `recargar` y descarta una respuesta vieja que llegue tarde.
-- Tipos de pago: en un año en preparación no se ofrece crear conceptos
-  (nacerían en el activo), pero se editan los existentes; en uno cerrado,
-  solo consulta (sin ✏️; la configuración se abre bloqueada y sin guardar).
+- Tipos de pago: en ese paso todavía no se ofrecía crear conceptos en
+  preparación (habrían nacido en el activo), pero se editaban los existentes;
+  en uno cerrado, solo consulta (sin ✏️; la configuración se abre bloqueada y
+  sin guardar). El alta en preparación se habilitó después, en el paso 5.7.
 - Cartera vencida, mirando otro año: sin "Cobrar" (Pagos cobra en el año
   activo; vuelve con el selector "Año del pago" de la fase 5), y "Actualizar"
   vuelve a pedir la cartera de ese año en vez de recargar la página, que

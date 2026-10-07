@@ -94,6 +94,11 @@ La entrada `Listas de Seguimiento`, del grupo Gestion Academica, se agrego el
 no se genera a partir del primero, asi que tocar solo uno deja la entrada en
 una de las dos vistas sin que nada falle.
 
+Desde el 2026-10-06, el admin tiene además la entrada `Años lectivos` en los
+dos menús. Abre `/admin/anios-lectivos` bajo `AdminRoute`; profesor y
+`super_admin` no reciben esa opción. La autorización real de crear o copiar
+un año vuelve a validarla el backend.
+
 ## Validaciones adicionales en paginas
 
 Algunas paginas administrativas leen `usuario` desde `localStorage` y validan el rol antes de mostrar contenido o continuar.

@@ -6,7 +6,10 @@ import {
 } from "../../services/carteraTiposPagoApi";
 import { crearPayloadTipoPago } from "../../utils/carteraTiposPago/tiposPago";
 
-export default function useFormularioTipoPago({ cargarTiposPagos }) {
+export default function useFormularioTipoPago({
+    cargarTiposPagos,
+    anioLectivoIdCreacion = null,
+}) {
     const [nuevoTipoPago, setNuevoTipoPago] = useState("");
     const [valorTipoPago, setValorTipoPago] = useState("");
     const [editingTipoId, setEditingTipoId] = useState(null);
@@ -17,7 +20,10 @@ export default function useFormularioTipoPago({ cargarTiposPagos }) {
 
         try {
             const isEditing = editingTipoId !== null;
-            const payload = crearPayloadTipoPago(nuevoTipoPago, valorTipoPago);
+            const payloadBase = crearPayloadTipoPago(nuevoTipoPago, valorTipoPago);
+            const payload = !isEditing && anioLectivoIdCreacion
+                ? { ...payloadBase, anio_lectivo_id: anioLectivoIdCreacion }
+                : payloadBase;
             const response = isEditing
                 ? await actualizarTipoPago(editingTipoId, payload)
                 : await crearTipoPago(payload);

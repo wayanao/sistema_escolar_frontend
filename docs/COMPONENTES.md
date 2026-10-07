@@ -903,9 +903,10 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - Año lectivo, paso 4.3 (2026-10-03): las dos pantallas cargan los datos del
   año que mira el admin (sus páginas leen `useAnioLectivo()` y pasan
   `parametrosAnio` a sus hooks). `VistaAdministrarTiposPago` recibe
-  `puedeCrear` y `puedeEditar`: en un año en preparación no se ofrece crear,
-  pero se edita lo que existe; en uno cerrado no hay ✏️, y la configuración
-  se abre para mirar, con sus campos bloqueados y sin botones de guardar.
+  `puedeCrear` y `puedeEditar`: desde el paso 5.7, en un año en preparación
+  se puede crear enviando su id y editar lo que existe; en uno cerrado no hay
+  alta ni ✏️, y la configuración se abre para mirar, con sus campos
+  bloqueados y sin botones de guardar.
   `VistaCarteraVencida` recibe `puedeCobrar` (falso mirando otro año: Pagos
   cobra en el activo). Las dos props valen `true` si no llegan, como antes.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
@@ -1143,10 +1144,15 @@ Notas:
 - `utils/autenticacion/`: claves, contratos, validaciones, payloads,
   redirecciones y navegación puros.
 - `hooks/anioLectivo/`: `AnioLectivoProvider` (carga los años una vez y
-  guarda en memoria el que mira el admin), `useAnioLectivo` (fuera del
-  proveedor, el comportamiento de antes) y `useAnioLectivoEnPantalla` (une el
-  año con la pantalla abierta para el selector y el aviso).
-- `services/aniosLectivosApi.js`: frontera HTTP de `/anios-lectivos`.
+  guarda en memoria el que mira el admin; desde 5.7 puede recargar y
+  seleccionar el recién creado), `useAnioLectivo` (fuera del proveedor, el
+  comportamiento de antes) y `useAnioLectivoEnPantalla` (une el año con la
+  pantalla abierta para el selector y el aviso).
+- `pages/AniosLectivosAdmin.jsx`: pantalla admin del paso 5.7. Crea el
+  siguiente año, copia su configuración con tres opciones y enlaza a las
+  altas manuales; matriculación y resumen pertenecen al paso 5.8.
+- `services/aniosLectivosApi.js`: frontera HTTP de listar, crear y copiar
+  `/anios-lectivos`.
 - `utils/anioLectivo.js`: contrato puro del año lectivo, con
   `parametrosAnio` (`{}` mirando el año activo).
 

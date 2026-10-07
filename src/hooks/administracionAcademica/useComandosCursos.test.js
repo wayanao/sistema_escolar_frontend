@@ -22,7 +22,11 @@ const CURSO = {
     estado: "activo",
 };
 
-function crearHook({ estadoFiltro = "activo", cursos = [CURSO] } = {}) {
+function crearHook({
+    estadoFiltro = "activo",
+    cursos = [CURSO],
+    anioLectivoIdCreacion = null,
+} = {}) {
     let listaCursos = cursos;
     const recargar = vi.fn().mockResolvedValue(undefined);
     const setCursos = vi.fn((actualizar) => {
@@ -39,6 +43,7 @@ function crearHook({ estadoFiltro = "activo", cursos = [CURSO] } = {}) {
             estadoFiltro,
             recargar,
             setCursos,
+            anioLectivoIdCreacion,
         })),
     };
 }
@@ -142,6 +147,22 @@ describe("useComandosCursos", () => {
             estado: "activo",
             nivel: "preescolar",
             director_grupo_id: null,
+        });
+    });
+
+    it("agrega el año únicamente al crear en preparación", async () => {
+        const { result } = crearHook({ anioLectivoIdCreacion: 2 });
+        act(() => result.current.actualizarCampo("nombre", "6A"));
+
+        await act(async () => result.current.guardarCurso());
+
+        expect(crearMock).toHaveBeenCalledWith({
+            nombre: "6A",
+            jornada: "Mañana",
+            estado: "activo",
+            nivel: null,
+            director_grupo_id: null,
+            anio_lectivo_id: 2,
         });
     });
 

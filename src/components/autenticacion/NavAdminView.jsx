@@ -86,6 +86,7 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones, renderSelectorAnio
       {isMenuOpen && (
         <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
           <NavLink onClick={closeMobile} className={mobileLinkClass} to={RUTAS_SESION.INICIO_ADMIN}>Dashboard</NavLink>
+          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/anios-lectivos">Años lectivos</NavLink>
 
           <button
             type="button"

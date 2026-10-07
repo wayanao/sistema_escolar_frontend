@@ -21,6 +21,7 @@ const SIN_PROVEEDOR = Object.freeze({
   permisos: permisosAnio(null, null),
   seleccionarAnio: () => {},
   volverAlActivo: () => {},
+  recargarAnios: async () => [],
 });
 
 export default function useAnioLectivo() {

@@ -5,16 +5,17 @@ import useAsignacionCursosTipoPago from "../hooks/carteraTiposPago/useAsignacion
 import useConfiguracionTipoPago from "../hooks/carteraTiposPago/useConfiguracionTipoPago";
 import useConsultasTiposPago from "../hooks/carteraTiposPago/useConsultasTiposPago";
 import useFormularioTipoPago from "../hooks/carteraTiposPago/useFormularioTipoPago";
+import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
 function TiposPagosAdmin() {
-    const { parametros, permisos } = useAnioLectivo();
-    // Un concepto nuevo siempre nace en el año activo, así que mirando otro año
-    // solo se edita lo que ya existe en él, si el año lo permite (en
-    // preparación, sí; en un año cerrado, no).
-    const { esAnioActivo: puedeCrear, puedeEditar } = permisos;
+    const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
+    const esPreparacion = anioSeleccionado?.estado === ESTADO_PREPARACION;
+    const puedeCrear = permisos.esAnioActivo || esPreparacion;
+    const { puedeEditar } = permisos;
     const consultas = useConsultasTiposPago({ parametrosAnio: parametros });
     const formulario = useFormularioTipoPago({
         cargarTiposPagos: consultas.cargarTiposPagos,
+        anioLectivoIdCreacion: esPreparacion ? anioSeleccionado.id : null,
     });
     const configuracion = useConfiguracionTipoPago({
         selectedTipoId: consultas.selectedTipoId,

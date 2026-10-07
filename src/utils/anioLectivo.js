@@ -122,10 +122,9 @@ const PERMISOS_ANIO_ACTIVO = Object.freeze({ esAnioActivo: true, puedeEditar: tr
 
 // Qué botones mostrar mirando un año (decidido con el usuario el 2026-10-03):
 // en el activo, como siempre; en uno en preparación o reabierto, editar lo que
-// ya existe en ese año, pero no crear cursos ni conceptos, porque el backend
-// los crea en el activo (`esAnioActivo` falso); en uno cerrado o desconocido,
-// solo consultar. Es comodidad: quien de verdad lo garantiza es el backend,
-// con su 409.
+// ya existe; en uno cerrado o desconocido, solo consultar. Desde la fase 5,
+// Cursos y Tipos de pago permiten además crear en `preparacion` enviando el id
+// de ese año. Es comodidad: quien de verdad lo garantiza es el backend.
 export function permisosAnio(anioSeleccionado, anioActivo) {
   if (!anioSeleccionado || !anioActivo || anioSeleccionado.id === anioActivo.id) {
     return PERMISOS_ANIO_ACTIVO;
