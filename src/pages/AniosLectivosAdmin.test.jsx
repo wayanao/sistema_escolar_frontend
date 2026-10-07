@@ -52,6 +52,26 @@ beforeEach(() => {
 });
 
 describe("preparación del año lectivo", () => {
+  it("usa todo el ancho disponible y mantiene acciones adaptables en móvil", () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+
+    const { container } = renderPagina();
+    const pagina = container.firstElementChild;
+
+    expect(pagina).toHaveClass("w-full");
+    expect(pagina).not.toHaveClass("max-w-5xl");
+    expect(
+      screen.getByRole("button", { name: "Copiar configuración de 2026" }),
+    ).toHaveClass("w-full", "sm:w-auto");
+    expect(screen.getByRole("link", { name: "Administrar cursos" })).toHaveClass(
+      "w-full",
+      "sm:w-auto",
+    );
+  });
+
   it("crea exactamente el siguiente año y recarga el proveedor dejándolo elegido", async () => {
     const user = userEvent.setup();
     renderPagina();

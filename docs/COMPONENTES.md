@@ -1150,7 +1150,10 @@ Notas:
   pantalla abierta para el selector y el aviso).
 - `pages/AniosLectivosAdmin.jsx`: pantalla admin del paso 5.7. Crea el
   siguiente año, copia su configuración con tres opciones y enlaza a las
-  altas manuales; matriculación y resumen pertenecen al paso 5.8.
+  altas manuales; matriculación y resumen pertenecen al paso 5.8. Usa todo el
+  ancho del `main` global, con tarjetas de menor padding y acciones apiladas a
+  ancho completo en móvil; las opciones y conteos se reparten en columnas
+  según aumenta la pantalla.
 - `services/aniosLectivosApi.js`: frontera HTTP de listar, crear y copiar
   `/anios-lectivos`.
 - `utils/anioLectivo.js`: contrato puro del año lectivo, con

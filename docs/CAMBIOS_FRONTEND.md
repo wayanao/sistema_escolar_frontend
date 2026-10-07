@@ -33,20 +33,24 @@ en escritorio como en móvil.
 - El proveedor recarga los años después del alta y selecciona el nuevo. Si ya
   existía un año en preparación, los enlaces a Cursos y Tipos de pago lo
   seleccionan antes de navegar.
+- La página ya no añade el límite interno `max-w-5xl`: ocupa el ancho del
+  contenedor global de la aplicación. En móvil reduce padding, apila botones y
+  enlaces a ancho completo y deja las opciones en una columna; en pantallas
+  mayores distribuye opciones y conteos en varias columnas.
 - Cursos y conceptos pueden crearse en preparación: solo esa alta suma
   `anio_lectivo_id`. Mirando el activo, las peticiones conservan exactamente
   el cuerpo anterior; editar tampoco manda el año. Un año cerrado sigue en
   solo consulta.
 - No se tocó matriculación, resumen, activación, cálculo financiero,
   migraciones ni producción. Esos alcances no pertenecen a 5.7.
-- Caracterización previa: 94 pruebas. Pruebas específicas finales: 110 en 14
+- Caracterización previa: 94 pruebas. Pruebas específicas finales: 111 en 14
   archivos.
 - Detalle y siguiente acción en
   `docs/funcionalidades/ANIO_LECTIVO.md`, “Avance del 2026-10-06 — paso 5.7”.
 
 Verificación: una primera corrida tuvo un único timeout antiguo de plantillas
-(pasó aislado en 844 ms). La repetición completa quedó limpia: 2220 pruebas
-en 342 archivos, lint limpio y build correcto.
+(pasó aislado en 844 ms). Tras el ajuste responsive, la repetición completa
+quedó limpia: 2221 pruebas en 342 archivos, lint limpio y build correcto.
 
 ## 2026-10-05 - Año lectivo: diálogo al renombrar materias (fase 4, paso 4.7)
 

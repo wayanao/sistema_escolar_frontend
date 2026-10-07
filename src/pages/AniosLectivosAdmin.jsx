@@ -76,29 +76,31 @@ function AniosLectivosAdmin() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 py-2">
+    <div className="w-full space-y-4 py-2 sm:space-y-6">
       <header>
         <p className="text-sm font-semibold uppercase tracking-wide text-purple-700">
           Preparación institucional
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-gray-900">Años lectivos</h1>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">
+          Años lectivos
+        </h1>
         <p className="mt-2 text-gray-600">
           Crea el siguiente año y copia su estructura antes de matricular estudiantes.
         </p>
       </header>
 
       {error && (
-        <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-800">
+        <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-red-800 sm:p-4">
           {error}
         </div>
       )}
       {mensaje && (
-        <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-800">
+        <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 sm:p-4">
           {mensaje}
         </div>
       )}
 
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-xl font-bold text-gray-900">1. Crear el siguiente año</h2>
         {anioActivo ? (
           <p className="mt-2 text-sm text-gray-600">
@@ -125,7 +127,7 @@ function AniosLectivosAdmin() {
             type="button"
             onClick={crearSiguiente}
             disabled={creando || !siguienteAnio}
-            className="mt-4 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {creando ? "Creando..." : `Crear ${siguienteAnio ?? "siguiente año"}`}
           </button>
@@ -133,25 +135,25 @@ function AniosLectivosAdmin() {
       </section>
 
       {anioPreparacion && anioActivo && (
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-xl font-bold text-gray-900">2. Copiar configuración</h2>
           <p className="mt-2 text-sm text-gray-600">
             Los cursos activos de {anioActivo.anio} se copian a {anioPreparacion.anio}.
             Los conceptos de pago se copian siempre.
           </p>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
             {[
               ["copiar_precios", "Copiar precios por curso"],
               ["copiar_carga_academica", "Copiar carga académica"],
               ["copiar_directores", "Copiar directores de grupo"],
             ].map(([campo, etiqueta]) => (
-              <label key={campo} className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-800">
+              <label key={campo} className="flex min-w-0 items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-800">
                 <input
                   type="checkbox"
                   checked={opciones[campo]}
                   onChange={() => cambiarOpcion(campo)}
-                  className="mt-0.5 h-4 w-4"
+                  className="mt-0.5 h-4 w-4 shrink-0"
                 />
                 <span>{etiqueta}</span>
               </label>
@@ -162,13 +164,13 @@ function AniosLectivosAdmin() {
             type="button"
             onClick={copiarConfiguracion}
             disabled={copiando}
-            className="mt-5 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {copiando ? "Copiando..." : `Copiar configuración de ${anioActivo.anio}`}
           </button>
 
           {resultadoCopia && (
-            <div className="mt-5 grid gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:grid-cols-2">
+            <div className="mt-5 grid gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:grid-cols-2 lg:grid-cols-5">
               <span>{resultadoCopia.cursos} cursos</span>
               <span>{resultadoCopia.conceptos_pago} conceptos de pago</span>
               <span>{resultadoCopia.precios_curso} precios por curso</span>
@@ -180,24 +182,24 @@ function AniosLectivosAdmin() {
       )}
 
       {anioPreparacion && (
-        <section className="rounded-xl border border-blue-200 bg-blue-50 p-6">
+        <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-6">
           <h2 className="text-lg font-bold text-blue-950">Continuar la preparación</h2>
           <p className="mt-1 text-sm text-blue-900">
             Al continuar, trabajarás en {anioPreparacion.anio} para agregar registros
             que no vinieron de la copia.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               to="/admin?modulo=cursos"
               onClick={() => seleccionarAnio(anioPreparacion.id)}
-              className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow-sm hover:bg-blue-100"
+              className="w-full rounded-lg bg-white px-4 py-2 text-center font-semibold text-blue-800 shadow-sm hover:bg-blue-100 sm:w-auto"
             >
               Administrar cursos
             </Link>
             <Link
               to="/admin/tipos-pagos"
               onClick={() => seleccionarAnio(anioPreparacion.id)}
-              className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow-sm hover:bg-blue-100"
+              className="w-full rounded-lg bg-white px-4 py-2 text-center font-semibold text-blue-800 shadow-sm hover:bg-blue-100 sm:w-auto"
             >
               Administrar conceptos de pago
             </Link>

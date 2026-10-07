@@ -1099,6 +1099,11 @@ detiene antes del siguiente.
   copian siempre; precios, carga académica y directores solo si el admin marca
   sus casillas. El backend sigue siendo quien decide el año y si puede
   editarse.
+- Ajuste visual pedido por el usuario: la página usa todo el ancho disponible
+  del `main` compartido (que ya limita la aplicación a 1600 px), sin un
+  `max-w` más pequeño. En móvil reduce espacios, apila las acciones a ancho
+  completo y mantiene las opciones en una columna; desde tableta/escritorio
+  las distribuye progresivamente.
 - `AnioLectivoProvider` puede recargar la lista después del alta y dejar el
   año nuevo seleccionado. Si 2027 ya existía al abrir la página, los enlaces
   a Cursos y Tipos de pago lo seleccionan antes de navegar; así no apuntan por
@@ -1110,9 +1115,10 @@ detiene antes del siguiente.
 - No se tocó matriculación, resumen visual, activación, fórmulas de cobro,
   cartera ni migraciones. No hubo acceso a una base real, producción, push ni
   despliegue. Esos flujos empiezan en los pasos siguientes.
-- Pruebas específicas: **110 pasan en 14 archivos**. La primera verificación
+- Pruebas específicas: **111 pasan en 14 archivos**. La primera verificación
   global tuvo un único timeout antiguo de plantillas (pasó aislado en 844 ms);
-  al repetirla completa quedó limpia: **2220 pruebas pasan en 342 archivos**,
+  después del ajuste responsive se repitió completa y quedó limpia: **2221
+  pruebas pasan en 342 archivos**,
   lint limpio y build correcto.
 
 ### Fase 6 — Activar el año
@@ -1289,7 +1295,7 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   Matrículas y resumen en el frontend**. Sigue abierta, para antes de la fase
   6, la pregunta separada de Certificados y estudiantes
   retirados/egresados; no bloqueó 5.7.
-- Verificación de 5.7: 110 pruebas específicas en 14 archivos;
-  `pnpm run check:deploy` limpio con 2220 pruebas en 342 archivos, lint y
+- Verificación de 5.7: 111 pruebas específicas en 14 archivos;
+  `pnpm run check:deploy` limpio con 2221 pruebas en 342 archivos, lint y
   build correctos; `git diff --check` limpio.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.
