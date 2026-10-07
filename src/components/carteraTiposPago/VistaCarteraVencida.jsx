@@ -15,6 +15,7 @@
  */
 
 import React from "react";
+import DeudasAniosAnterioresView from "../anioLectivo/DeudasAniosAnterioresView";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import { calcularTotalesCartera } from "../../utils/carteraTiposPago/cartera";
 import {
@@ -104,6 +105,10 @@ function TablaVentasPendientes({ ventas }) {
 function BloqueEstudianteCartera({ item }) {
     const conceptos = item.conceptos || [];
     const ventasPendientes = item.ventas_pendientes || [];
+    const totalAniosAnteriores = (item.deuda_anios_anteriores || []).reduce(
+        (total, anio) => total + Number(anio?.total_deuda || 0),
+        0,
+    );
 
     return (
         <section className="rounded-lg border border-slate-200 overflow-hidden bg-white" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
@@ -120,12 +125,20 @@ function BloqueEstudianteCartera({ item }) {
             </div>
 
             <div className="p-3 space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className={`grid grid-cols-2 gap-2 ${totalAniosAnteriores > 0 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
                     <DatoResumen label="Académica" value={formatMoney(item.deuda_academica)} />
                     <DatoResumen label="Inventario" value={formatMoney(item.deuda_inventario)} />
                     <DatoResumen label="Mora" value={formatMoney(item.mora)} />
                     <DatoResumen label="Cuotas vencidas" value={item.cuotas_vencidas || 0} accent />
+                    {totalAniosAnteriores > 0 && (
+                        <DatoResumen label="Años anteriores" value={formatMoney(totalAniosAnteriores)} />
+                    )}
                 </div>
+
+                <DeudasAniosAnterioresView
+                    deudasAnios={item.deuda_anios_anteriores}
+                    formatearMonto={formatMoney}
+                />
 
                 <div>
                     <h4 className="text-[10px] uppercase tracking-widest font-bold text-slate-600 mb-1">
@@ -264,6 +277,7 @@ function BadgeTipoDeuda({ tipo }) {
         academica: { label: "Académica", cls: "bg-blue-100 text-blue-800 border-blue-200" },
         inventario: { label: "Inventario", cls: "bg-amber-100 text-amber-800 border-amber-200" },
         mora: { label: "Con mora", cls: "bg-rose-100 text-rose-800 border-rose-200" },
+        anteriores: { label: "Años anteriores", cls: "bg-orange-100 text-orange-800 border-orange-200" },
     };
     const meta = map[tipo] || map.academica;
     return (
@@ -296,9 +310,19 @@ function VistaCarteraVencida({
     onImprimirEstudiante,
     onCobrar,
     onToggleExpandido,
-    // Falso mirando un año que no es el activo: Pagos cobra en el activo.
     puedeCobrar = true,
 }) {
+    const totalAniosAnterioresFiltrado = itemsFiltrados.reduce(
+        (total, item) =>
+            total + (item.deuda_anios_anteriores || []).reduce(
+                (subtotal, anio) => subtotal + Number(anio?.total_deuda || 0),
+                0,
+            ),
+        0,
+    );
+    const hayDeudasAnteriores =
+        Number(resumen?.total_anios_anteriores || 0) > 0 ||
+        totalAniosAnterioresFiltrado > 0;
 
     if (reporteImpresion) {
         return (
@@ -399,6 +423,15 @@ function VistaCarteraVencida({
                     accent="slate"
                     subtitle="Recargos por cuotas vencidas"
                 />
+                {hayDeudasAnteriores && (
+                    <KpiCard
+                        icon="🗓️"
+                        label="Deuda de años anteriores"
+                        value={formatMoney(resumen?.total_anios_anteriores)}
+                        accent="amber"
+                        subtitle="Separada del año consultado"
+                    />
+                )}
             </div>
 
             {/* Distribución por curso */}
@@ -486,6 +519,11 @@ function VistaCarteraVencida({
                         Mora: <strong>{formatMoney(totales.mora)}</strong>
                     </span>
                 )}
+                {totalAniosAnterioresFiltrado > 0 && (
+                    <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold">
+                        Años anteriores: <strong>{formatMoney(totalAniosAnterioresFiltrado)}</strong>
+                    </span>
+                )}
             </div>
 
             {/* Tabla */}
@@ -505,7 +543,12 @@ function VistaCarteraVencida({
                                     <th className="px-3 py-3 text-right">Académica</th>
                                     <th className="px-3 py-3 text-right">Inventario</th>
                                     <th className="px-3 py-3 text-right">Mora</th>
-                                    <th className="px-3 py-3 text-right">Total</th>
+                                    <th className="px-3 py-3 text-right">
+                                        {hayDeudasAnteriores ? "Año consultado" : "Total"}
+                                    </th>
+                                    {hayDeudasAnteriores && (
+                                        <th className="px-3 py-3 text-right">Años anteriores</th>
+                                    )}
                                     <th className="px-3 py-3">Indicador</th>
                                     <th className="px-3 py-3 text-right">Acciones</th>
                                 </tr>
@@ -529,6 +572,9 @@ function VistaCarteraVencida({
                                                                 {i.deuda_academica > 0 && <BadgeTipoDeuda tipo="academica" />}
                                                                 {i.deuda_inventario > 0 && <BadgeTipoDeuda tipo="inventario" />}
                                                                 {i.mora > 0 && <BadgeTipoDeuda tipo="mora" />}
+                                                                {(i.deuda_anios_anteriores || []).some(
+                                                                    (anio) => Number(anio?.total_deuda || 0) > 0,
+                                                                ) && <BadgeTipoDeuda tipo="anteriores" />}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -546,6 +592,17 @@ function VistaCarteraVencida({
                                                 <td className="px-3 py-2 text-right text-rose-800 font-bold">
                                                     {formatMoney(i.total)}
                                                 </td>
+                                                {hayDeudasAnteriores && (
+                                                    <td className="px-3 py-2 text-right text-orange-800 font-bold">
+                                                        {(() => {
+                                                            const totalAnterior = (i.deuda_anios_anteriores || []).reduce(
+                                                                (total, anio) => total + Number(anio?.total_deuda || 0),
+                                                                0,
+                                                            );
+                                                            return totalAnterior > 0 ? formatMoney(totalAnterior) : "—";
+                                                        })()}
+                                                    </td>
+                                                )}
                                                 <td className="px-3 py-2 min-w-[120px]">
                                                     <div className="h-2 bg-gray-100 rounded overflow-hidden">
                                                         <div
@@ -582,7 +639,7 @@ function VistaCarteraVencida({
 
                                             {abierto && (
                                                 <tr className="bg-purple-50/30">
-                                                    <td colSpan={8} className="px-6 py-4">
+                                                    <td colSpan={hayDeudasAnteriores ? 9 : 8} className="px-6 py-4">
                                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                                             {/* Conceptos académicos */}
                                                             <div className="bg-white rounded-lg border border-gray-200 p-3">
@@ -649,6 +706,11 @@ function VistaCarteraVencida({
                                                                 )}
                                                             </div>
                                                         </div>
+                                                        <DeudasAniosAnterioresView
+                                                            deudasAnios={i.deuda_anios_anteriores}
+                                                            formatearMonto={formatMoney}
+                                                            className="mt-4"
+                                                        />
                                                     </td>
                                                 </tr>
                                             )}

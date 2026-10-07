@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import DeudasAniosAnterioresView from "../components/anioLectivo/DeudasAniosAnterioresView";
 import ComprobantePago from "../components/pagos/ComprobantePago";
 import FormularioPago from "../components/pagos/FormularioPago";
 import HistorialPagos from "../components/pagos/HistorialPagos";
 import ListaEstudiantesPagos from "../components/pagos/ListaEstudiantesPagos";
+import SelectorAnioPago from "../components/pagos/SelectorAnioPago";
 import ValoresPersonalizadosPago from "../components/pagos/ValoresPersonalizadosPago";
+import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useAnulacionPago from "../hooks/pagos/useAnulacionPago";
 import useCatalogosPagos from "../hooks/pagos/useCatalogosPagos";
 import useConsultasEstudiantePagos from "../hooks/pagos/useConsultasEstudiantePagos";
@@ -13,6 +16,7 @@ import useFormularioPago from "../hooks/pagos/useFormularioPago";
 import useOpcionesAdelanto from "../hooks/pagos/useOpcionesAdelanto";
 import useRegistroPago from "../hooks/pagos/useRegistroPago";
 import useValoresPersonalizadosPago from "../hooks/pagos/useValoresPersonalizadosPago";
+import { ESTADO_PREPARACION, parametrosAnio } from "../utils/anioLectivo";
 
 const notificarErrorCargaEstudiantes = () =>
   Swal.fire("Error", "Error al cargar estudiantes", "error");
@@ -20,15 +24,34 @@ const notificarErrorCargaEstudiantes = () =>
 function PagosAdmin() {
   const navigate = useNavigate();
   const location = useLocation();
+  const preseleccionRef = useRef({
+    estudianteId: location.state?.estudiante_id ?? null,
+    anioLectivoId: location.state?.anio_lectivo_id ?? null,
+  });
   // Si llegamos desde Cartera Vencida / Resumen estudiante con un id preseleccionado
-  const estudianteIdPreseleccionado = location.state?.estudiante_id ?? null;
+  const estudianteIdPreseleccionado = preseleccionRef.current.estudianteId;
+  const { anios, anioActivo } = useAnioLectivo();
+  // `null` conserva el año activo y, con él, las peticiones anteriores.
+  const [anioPagoId, setAnioPagoId] = useState(null);
+  const anioPago = useMemo(
+    () => anios.find((anio) => anio.id === anioPagoId) ?? anioActivo,
+    [anioActivo, anioPagoId, anios],
+  );
+  const parametrosAnioPago = useMemo(
+    () => parametrosAnio(anioPagoId, anioActivo?.id ?? null),
+    [anioActivo?.id, anioPagoId],
+  );
+  const esAnioPagoActivo = !parametrosAnioPago.anio_lectivo_id;
+
   const { estudiantes, cursos, tiposPagos, loading } = useCatalogosPagos({
     alErrorEstudiantes: notificarErrorCargaEstudiantes,
+    parametrosAnio: parametrosAnioPago,
   });
   const {
     pagos,
     ventasPendientes,
     deudasEstudiante,
+    deudaAniosAnteriores,
     valoresPersonalizados,
     selectedEstudiante,
     opcionesVencidas,
@@ -39,8 +62,9 @@ function PagosAdmin() {
     cargarDeudasEstudiante,
     cargarVentasPendientes,
     cargarOpcionesVencidas,
+    recargarDatosDelAnio,
     actualizarValoresPersonalizados,
-  } = useConsultasEstudiantePagos();
+  } = useConsultasEstudiantePagos({ parametrosAnio: parametrosAnioPago });
   const {
     opcionesAdelanto,
     loadingOpcionesAdelanto,
@@ -48,7 +72,8 @@ function PagosAdmin() {
     cargarOpcionesAdelanto,
     reiniciarOpcionesAdelanto,
     limpiarOpcionesAdelanto,
-  } = useOpcionesAdelanto();
+  } = useOpcionesAdelanto({ parametrosAnio: parametrosAnioPago });
+  const ventasDelAnioPago = esAnioPagoActivo ? ventasPendientes : [];
   const {
     pagoData,
     modoPago,
@@ -83,7 +108,7 @@ function PagosAdmin() {
     todasLasCuotasSeleccionadas,
   } = useFormularioPago({
     selectedEstudiante,
-    ventasPendientes,
+    ventasPendientes: ventasDelAnioPago,
     deudasEstudiante,
     tiposPagos,
     opcionesVencidas,
@@ -124,6 +149,7 @@ function PagosAdmin() {
     cargarVentasPendientes,
     cargarDeudasEstudiante,
     cargarOpcionesVencidas,
+    anioLectivoId: parametrosAnioPago.anio_lectivo_id,
   });
   const { anularPago } = useAnulacionPago({
     selectedEstudiante,
@@ -134,8 +160,45 @@ function PagosAdmin() {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [pagoAImprimir, setPagoAImprimir] = useState(null);
+  const anioCargadoRef = useRef(null);
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
+
+  useEffect(() => {
+    const idPreseleccionado = Number(preseleccionRef.current.anioLectivoId);
+    if (!idPreseleccionado || !anioActivo) return;
+    const existe = anios.some((anio) => anio.id === idPreseleccionado);
+    if (!existe) return;
+    setAnioPagoId(idPreseleccionado === anioActivo.id ? null : idPreseleccionado);
+  }, [anioActivo, anios]);
+
+  // Al cambiar el año, se descarta cualquier selección de cuotas del año
+  // anterior y se vuelven a pedir únicamente los datos financieros que sí
+  // dependen del año. Historial y ventas permanecen como estaban.
+  useEffect(() => {
+    const anioActualId = anioPago?.id ?? null;
+    if (anioActualId === null) return;
+    if (anioCargadoRef.current === null) {
+      anioCargadoRef.current = anioActualId;
+      return;
+    }
+    if (anioCargadoRef.current === anioActualId) return;
+    anioCargadoRef.current = anioActualId;
+
+    reiniciarOpcionesAdelanto();
+    reiniciarValorPersonalizado();
+    if (selectedEstudiante) {
+      prepararFormulario(selectedEstudiante.id);
+      recargarDatosDelAnio(selectedEstudiante.id);
+    }
+  }, [
+    anioPago?.id,
+    prepararFormulario,
+    recargarDatosDelAnio,
+    reiniciarOpcionesAdelanto,
+    reiniciarValorPersonalizado,
+    selectedEstudiante,
+  ]);
 
   // Auto-seleccionar estudiante y abrir formulario cuando se navega
   // con estado desde Cartera Vencida ("Cobrar") u otra pantalla.
@@ -190,6 +253,20 @@ function PagosAdmin() {
     )?.nombre || "Sin curso";
   };
 
+  const hayAnioEnPreparacion = anios.some(
+    (anio) => anio.estado === ESTADO_PREPARACION,
+  );
+  const mostrarSelectorAnioPago = Boolean(
+    selectedEstudiante &&
+    anios.length > 1 &&
+    (hayAnioEnPreparacion || deudaAniosAnteriores.length > 0 || !esAnioPagoActivo),
+  );
+
+  const cambiarAnioPago = (anioId) => {
+    if (!anioActivo || !anios.some((anio) => anio.id === anioId)) return;
+    setAnioPagoId(anioId === anioActivo.id ? null : anioId);
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -222,6 +299,20 @@ function PagosAdmin() {
                 </button>
               </div>
 
+              {mostrarSelectorAnioPago && (
+                <SelectorAnioPago
+                  anios={anios}
+                  anioSeleccionado={anioPago}
+                  esAnioActivo={esAnioPagoActivo}
+                  onCambiar={cambiarAnioPago}
+                />
+              )}
+
+              <DeudasAniosAnterioresView
+                deudasAnios={deudaAniosAnteriores}
+                className="mb-5"
+              />
+
               <ValoresPersonalizadosPago
                 tiposPagos={tiposPagos}
                 valoresPersonalizados={valoresPersonalizados}
@@ -239,7 +330,7 @@ function PagosAdmin() {
                   modoPago={modoPago}
                   abonoLibre={abonoLibre}
                   registrandoPago={registrandoPago}
-                  ventasPendientes={ventasPendientes}
+                  ventasPendientes={ventasDelAnioPago}
                   deudasEstudiante={deudasEstudiante}
                   deudaPendienteSeleccionada={deudaPendienteSeleccionada}
                   opcionVencidaSeleccionada={opcionVencidaSeleccionada}

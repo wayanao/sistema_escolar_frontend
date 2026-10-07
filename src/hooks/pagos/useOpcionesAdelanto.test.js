@@ -79,4 +79,54 @@ describe("useOpcionesAdelanto", () => {
     expect(pagosApi.obtenerOpcionesAdelanto).not.toHaveBeenCalled();
     expect(result.current.loadingOpcionesAdelanto).toBe(false);
   });
+
+  it("consulta los adelantos del año del pago", async () => {
+    pagosApi.obtenerOpcionesAdelanto.mockResolvedValue({ opciones: [] });
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const { result } = renderHook(() => useOpcionesAdelanto({ parametrosAnio }));
+
+    await act(async () => {
+      await result.current.cargarOpcionesAdelanto(7);
+    });
+
+    expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7, {
+      parametrosAnio,
+    });
+  });
+
+  it("ignora opciones tardías del año anterior", async () => {
+    let resolverAnioAnterior;
+    pagosApi.obtenerOpcionesAdelanto.mockImplementation((_id, opciones) => {
+      if (opciones?.parametrosAnio?.anio_lectivo_id === 2) {
+        return Promise.resolve({
+          opciones: [{ tipo_pago_id: 22, periodos_disponibles: [] }],
+        });
+      }
+      return new Promise((resolve) => {
+        resolverAnioAnterior = resolve;
+      });
+    });
+
+    const { result, rerender } = renderHook(
+      ({ parametrosAnio }) => useOpcionesAdelanto({ parametrosAnio }),
+      { initialProps: { parametrosAnio: {} } },
+    );
+    act(() => {
+      void result.current.cargarOpcionesAdelanto(7);
+    });
+
+    const parametros2027 = { anio_lectivo_id: 2 };
+    rerender({ parametrosAnio: parametros2027 });
+    await act(async () => {
+      await result.current.cargarOpcionesAdelanto(7);
+    });
+    expect(result.current.opcionesAdelanto[0]?.tipo_pago_id).toBe(22);
+
+    await act(async () => {
+      resolverAnioAnterior({
+        opciones: [{ tipo_pago_id: 11, periodos_disponibles: [] }],
+      });
+    });
+    expect(result.current.opcionesAdelanto[0]?.tipo_pago_id).toBe(22);
+  });
 });

@@ -2,8 +2,9 @@
 
 ## Control
 
-- Estado: **Fase 5 en curso; paso 5.8 terminado localmente el 2026-10-07,
-  pendiente de revisión y commit del usuario.** El paso 5.7 quedó en los
+- Estado: **Fase 5 en curso; paso 5.9 terminado localmente el 2026-10-07,
+  pendiente de revisión y commit del usuario.** El paso 5.8 quedó confirmado
+  en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
   terminados. La fase 4 quedó completa en el commit
   `8eac0ce`. Se inició el 2026-10-03 con
@@ -1059,14 +1060,13 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
   toda escritura fuera del activo. La fase 5 habilitará solo el alta en el
   año en preparación; editar datos globales y cambiar estados seguirá fuera
   de ese flujo.
-- Pagos usa siempre el activo: deudas, conceptos, cuotas vencidas, adelantos y
-  cuerpos no llevan año. Su selector será propio de la pantalla, activo por
-  defecto, y no dependerá del selector general oculto. El historial queda
-  como hoy y las ventas solo pertenecen al activo.
-- `deuda_anios_anteriores` ya llega del backend, pero los hooks de Pagos,
-  Cartera y la ficha del estudiante la descartan. El impreso y el CSV tampoco
-  reciben el año. El certificado de matrícula inicia su campo con el año del
-  reloj, no con el año seleccionado.
+- Antes del paso 5.9, Pagos usaba siempre el activo. El paso ya agregó su
+  selector propio, activo por defecto e independiente del selector general;
+  el historial quedó como estaba y las ventas siguen perteneciendo al activo.
+- Antes del paso 5.9, los hooks descartaban `deuda_anios_anteriores`; ya se
+  conserva y muestra separada. El impreso y el CSV todavía no reciben el año,
+  y el certificado de matrícula inicia su campo con el año del reloj: ambos
+  pendientes corresponden al paso 5.10.
 
 El plan completo, incluidos los pasos 5.1 a 5.6 del backend, está en el
 documento principal. Los pasos de este repo son:
@@ -1122,7 +1122,7 @@ detiene antes del siguiente.
   pruebas pasan en 342 archivos**,
   lint limpio y build correcto.
 
-**Avance del 2026-10-07 — paso 5.8 terminado localmente, sin commit:**
+**Avance del 2026-10-07 — paso 5.8 terminado (`817c47e`):**
 
 - Antes de tocar el flujo pasaron **31 pruebas de caracterización en 7
   archivos**: años lectivos, cursos y el alta/listado de estudiantes. Las
@@ -1158,6 +1158,36 @@ detiene antes del siguiente.
   bases reales ni producción. Tampoco hubo commit, push ni despliegue.
 - Pruebas específicas: **37 pasan en 8 archivos**. Verificación global:
   **2227 pruebas pasan en 343 archivos**, lint limpio y build correcto.
+
+**Avance del 2026-10-07 — paso 5.9 terminado localmente, sin commit:**
+
+- Antes del cambio pasaron **114 pruebas de caracterización en 22 archivos**
+  de Pagos, Cartera y la ficha de Estudiantes. Las pruebas nuevas se
+  escribieron primero: 16 fallaron porque todavía no se enviaba el año, no
+  existía el selector propio y las tres pantallas descartaban la deuda
+  anterior.
+- Pagos tiene un selector propio, independiente del selector general y con el
+  año activo como valor inicial. Se muestra al seleccionar un estudiante si
+  existe un año en preparación o hay deuda anterior. Cartera puede abrir
+  Pagos conservando el año que se estaba consultando.
+- Al elegir otro año se recargan conceptos, deuda, cuotas vencidas, opciones
+  de adelanto y valores personalizados. `anio_lectivo_id` viaja en esas
+  lecturas y en el cuerpo del pago normal o adelantado solo para ese otro
+  año. Con el activo se conservan las llamadas y los cuerpos anteriores.
+- El historial de pagos y las ventas continúan sin filtro por año. Las ventas
+  solo se ofrecen para cobrar mirando el activo y se ocultan en el formulario
+  de otro año. El frontend no calcula deuda ni meses cobrables: muestra las
+  opciones del backend.
+- Si una respuesta del año anterior llega después de cambiar el selector, se
+  descarta para que no reemplace la deuda ni las opciones visibles.
+- `deuda_anios_anteriores` se presenta en un componente compartido y separado
+  de la deuda consultada. Pagos muestra el detalle por año; Cartera agrega su
+  total y detalle sin sumarlo al total actual; la ficha del estudiante también
+  lo conserva y lo muestra. Con la lista vacía no aparece ningún bloque nuevo.
+- No se modificó código del backend, fórmulas financieras, migraciones, bases
+  reales ni producción. Tampoco hubo commit, push ni despliegue.
+- Pruebas específicas: **76 pasan en 12 archivos**. Verificación global:
+  **2245 pruebas pasan en 344 archivos**, lint limpio y build correcto.
 
 ### Fase 6 — Activar el año
 
@@ -1289,10 +1319,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada con código: **paso 5.8 de la fase 5**, matrículas
-  por promoción, alta directa de estudiante en preparación y resumen sin
-  activar. Está terminado localmente, todavía sin commit. El paso 5.7 quedó
-  en `0848214` y su ajuste responsive en `e3aced5`.
+- Última acción terminada con código: **paso 5.9 de la fase 5**, selector
+  propio de Pagos y deuda anterior separada en Pagos, Cartera y la ficha del
+  estudiante. Está terminado localmente, todavía sin commit. El paso 5.8
+  quedó en `817c47e`; el paso 5.7 quedó en `0848214` y su ajuste responsive
+  en `e3aced5`.
   El paso anterior a la fase 5 fue 4.7, commit `8eac0ce` del 2026-10-05.
   Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
@@ -1305,7 +1336,8 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   Cartera y el año seleccionado como propuesta del certificado de matrícula.
   Los pasos 5.1 a 5.6 del backend ya terminaron; el último es el commit local
   `102ec77`. Al iniciar 5.7, ambos repos estaban en `main` y limpios; el
-  backend permanece limpio y `ahead 5`.
+  backend registró después el paso 5.8 en `d3cdfd3`. Al cerrar 5.9 está
+  `ahead 6` y solo tiene pendiente esta actualización del documento principal.
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1329,12 +1361,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.8**.
-  Después, y solo con autorización explícita, se inicia el **paso 5.9 —
-  Pagos y deuda anterior en el frontend**. Sigue abierta, para antes de la fase
-  6, la pregunta separada de Certificados y estudiantes
-  retirados/egresados; no bloqueó 5.8.
-- Verificación de 5.8: 37 pruebas específicas en 8 archivos;
-  `pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos, lint y
+- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.9**.
+  Después, y solo con autorización explícita, se inicia el **paso 5.10 — año
+  en los documentos del frontend**. Sigue abierta, para antes de la fase 6,
+  la pregunta separada de Certificados y estudiantes retirados/egresados; no
+  bloqueó 5.9.
+- Verificación de 5.9: 76 pruebas específicas en 12 archivos;
+  `pnpm run check:deploy` limpio con 2245 pruebas en 344 archivos, lint y
   build correctos. `git diff --check` quedó limpio.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

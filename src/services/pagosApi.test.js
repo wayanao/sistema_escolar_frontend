@@ -41,6 +41,30 @@ describe("pagosApi", () => {
     expect(api.get).toHaveBeenCalledWith(ruta);
   });
 
+  it.each([
+    ["obtenerTiposPagos", [], "/tipos-pagos"],
+    ["obtenerDeudasEstudiante", [7], "/estudiantes/7/deudas"],
+    ["obtenerOpcionesVencidas", [7], "/pagos/vencidos/opciones/7"],
+    ["obtenerOpcionesAdelanto", [7], "/pagos/adelanto/opciones/7"],
+    [
+      "obtenerValoresPersonalizados",
+      [7],
+      "/estudiantes/7/valores-pago-personalizados",
+    ],
+  ])("%s consulta el año del pago solo cuando se envía", async (metodo, argumentos, ruta) => {
+    const datos = { contrato: metodo, anio: 2027 };
+    api.get.mockResolvedValue({ data: datos });
+
+    await expect(
+      pagosApi[metodo](...argumentos, {
+        parametrosAnio: { anio_lectivo_id: 2 },
+      })
+    ).resolves.toBe(datos);
+    expect(api.get).toHaveBeenCalledWith(ruta, {
+      params: { anio_lectivo_id: 2 },
+    });
+  });
+
   it("guarda el valor personalizado con su payload intacto", async () => {
     const payload = { valor: 85000, motivo: "Acuerdo", activo: true };
     const datos = { valores: [{ id: 3 }] };

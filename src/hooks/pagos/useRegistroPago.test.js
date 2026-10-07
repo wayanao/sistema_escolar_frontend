@@ -122,4 +122,21 @@ describe("useRegistroPago", () => {
     expect(result.current.registrandoPago).toBe(false);
     consoleError.mockRestore();
   });
+
+  it("dirige el pago y sus recargas al año elegido", async () => {
+    const props = crearProps({ anioLectivoId: 2 });
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+    pagosApi.registrarPago.mockResolvedValue({ pago_id: 42 });
+    const { result } = renderHook(() => useRegistroPago(props));
+
+    await act(async () => result.current.registrarPago({ preventDefault: vi.fn() }));
+
+    expect(pagosApi.registrarPago).toHaveBeenCalledWith(
+      expect.objectContaining({ anio_lectivo_id: 2 })
+    );
+    expect(props.cargarHistorialPagos).toHaveBeenCalledWith(7);
+    expect(props.cargarVentasPendientes).toHaveBeenCalledWith(7);
+    expect(props.cargarDeudasEstudiante).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+  });
 });

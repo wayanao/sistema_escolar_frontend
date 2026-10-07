@@ -341,9 +341,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - Dos trampas de una pantalla del año (paso 4.3): recargar la página vuelve al
   año activo, así que un botón que refresca con `window.location.reload()`
   tiene que, mirando otro año, volver a pedir los datos (Cartera vencida:
-  `recargar` de `useCarteraVencida`); y un botón que lleva a una pantalla que
-  no sigue el año (Cartera → Pagos) no se ofrece mirando otro año, porque
-  allí se trabajaría en el activo.
+  `recargar` de `useCarteraVencida`); y una navegación entre pantallas debe
+  conservar el año si la pantalla de destino lo admite. Desde el paso 5.9,
+  Cartera → Pagos lo lleva en `location.state` al selector propio de Pagos.
 - Una tercera, del paso 4.6: una escritura que actúa sobre "todos los cursos"
   no parte de un id, así que también tiene que llevar el año (Listas de
   seguimiento: `crearColumnaEnTodosLosCursos`); sin él, el backend escribe en
@@ -453,9 +453,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   edición de conceptos, estados activo/inactivo/borrador, configuración de
   cobro y mora, calendario recurrente con mes inicial/final, y reemplazo de
   asignaciones por curso.
-- Ambas rutas permanecen bajo `AdminRoute`. La navegación `Cobrar` conserva
-  `/admin/pagos` con `{ state: { estudiante_id } }`; `PagosAdmin` no forma parte
-  de este módulo.
+- Ambas rutas permanecen bajo `AdminRoute`. La navegación `Cobrar` abre
+  `/admin/pagos` con el estudiante y, mirando otro año, también con
+  `anio_lectivo_id`; `PagosAdmin` no forma parte de este módulo.
 - Las páginas son raíces de composición y conectan los hooks con
   `components/carteraTiposPago/`. Las vistas reciben datos y callbacks y no
   conocen servicios, rutas ni estado de dominio.
@@ -479,6 +479,11 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - `services/pagosApi.js` es la única frontera HTTP. Los hooks separan catálogos,
   consultas por estudiante, opciones de adelanto, formulario, valores
   personalizados, registro y anulación.
+- Año lectivo (paso 5.9): Pagos tiene un selector local, activo por defecto.
+  Solo otro año añade `anio_lectivo_id` a lecturas y cuerpos; historial y
+  ventas siguen sin año, y las ventas no se ofrecen fuera del activo. El
+  bloque compartido `DeudasAniosAnterioresView` mantiene la deuda anterior
+  separada en Pagos, Cartera y la ficha del estudiante.
 - `utils/pagos/` conserva contratos y transformaciones puras, incluidas
   normalización de opciones, cálculos en centavos y payloads diferentes para
   pago normal y adelantado.

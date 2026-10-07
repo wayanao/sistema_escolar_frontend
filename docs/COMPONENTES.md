@@ -824,6 +824,10 @@ Estado actual de componentes y paginas del frontend.
   un año cerrado vuelve a ser únicamente consulta; mirando el activo conserva
   el comando anterior. Las props siguen valiendo `true` si no llegan, como
   antes.
+- Año lectivo, paso 5.9 (2026-10-07): la ficha conserva
+  `deuda_anios_anteriores` de la respuesta financiera y la presenta por año en
+  un bloque separado. Si el año consultado está al día pero existe deuda
+  anterior, el texto lo aclara sin decir que no hay ninguna deuda.
 
 ### Observador del estudiante unificado
 
@@ -912,8 +916,12 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   se puede crear enviando su id y editar lo que existe; en uno cerrado no hay
   alta ni ✏️, y la configuración se abre para mirar, con sus campos
   bloqueados y sin botones de guardar.
-  `VistaCarteraVencida` recibe `puedeCobrar` (falso mirando otro año: Pagos
-  cobra en el activo). Las dos props valen `true` si no llegan, como antes.
+  `VistaCarteraVencida` conserva la prop `puedeCobrar`, que vale `true` si no
+  llega, como antes.
+- Año lectivo, paso 5.9 (2026-10-07): Cartera muestra
+  `total_anios_anteriores` y el detalle por estudiante en columnas y bloques
+  separados, sin sumarlos al total del año consultado. `Cobrar` está disponible
+  también mirando otro año y navega a Pagos con ese año en `location.state`.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
   formulario básico, configuración y asignación de cursos.
 - `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.
@@ -988,6 +996,11 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   selección e impresión activa.
 - `components/pagos/ListaEstudiantesPagos.jsx` presenta búsqueda controlada,
   carga, estado vacío y selección con documento y curso.
+- `components/pagos/SelectorAnioPago.jsx` presenta el selector propio de la
+  pantalla. Inicia en el activo y no usa el selector general del admin.
+- `components/anioLectivo/DeudasAniosAnterioresView.jsx` presenta por año el
+  contrato ya calculado por el backend y se comparte con Pagos, Cartera y la
+  ficha de Estudiantes.
 - `components/pagos/ValoresPersonalizadosPago.jsx` presenta el formulario y
   listado de ajustes individuales.
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
@@ -1023,6 +1036,11 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - Los metodos de pago deben sumar el total calculado y el backend vuelve a
   validar meses, asignacion y valor vigente.
 - Un error al consultar adelantos no impide usar el pago normal.
+- Año lectivo, paso 5.9 (2026-10-07): al elegir otro año se recargan conceptos,
+  deudas, cuotas, adelantos y valores personalizados y el pago lleva su id.
+  Historial y ventas conservan sus contratos; las ventas se excluyen del
+  formulario fuera del activo. Las respuestas tardías de un año anterior se
+  descartan.
 - `pages/ReportesAdmin.jsx` permite filtrar el detalle de ingresos por
   `Subsidio` y muestra su referencia, incluso dentro de pagos mixtos.
 

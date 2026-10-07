@@ -51,10 +51,11 @@ export const normalizarOpcionesAdelanto = (opciones) =>
     };
   });
 
-export const crearPayloadPagoNormal = (pagoData, estudianteId) => {
+export const crearPayloadPagoNormal = (pagoData, estudianteId, anioLectivoId) => {
   const payload = {
     ...pagoData,
     estudiante_id: pagoData.estudiante_id || estudianteId,
+    ...(anioLectivoId ? { anio_lectivo_id: anioLectivoId } : {}),
   };
   delete payload.tipo_pago_id_adelanto;
   delete payload.cantidad_meses;
@@ -73,9 +74,11 @@ export const crearPayloadPagoNormal = (pagoData, estudianteId) => {
 export const crearPayloadPagoAdelantado = (
   pagoData,
   estudianteId,
-  esDistribucionAdelanto
+  esDistribucionAdelanto,
+  anioLectivoId,
 ) => ({
   estudiante_id: estudianteId,
+  ...(anioLectivoId ? { anio_lectivo_id: anioLectivoId } : {}),
   tipo_pago_id: Number(pagoData.tipo_pago_id_adelanto),
   ...(esDistribucionAdelanto
     ? { monto_distribuir: Number(pagoData.monto_distribuir) }

@@ -79,6 +79,7 @@ export default function FormularioPago({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
           <select
+            aria-label="Concepto de Pago"
             value={pagoData.venta_id ? `CargoVenta_${pagoData.venta_id}` : pagoData.descripcion}
             onChange={(event) => onSeleccionarConceptoPendiente(event.target.value)}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"

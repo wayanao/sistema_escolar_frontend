@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-10-07 - Año lectivo: Pagos y deuda anterior (fase 5, paso 5.9)
+
+Pagos ya permite elegir el año que se va a cobrar, con el activo como valor
+inicial y sin depender del selector general del admin.
+
+- Al elegir otro año se recargan conceptos, deuda, cuotas vencidas, adelantos
+  y valores personalizados. Las lecturas y el pago llevan
+  `anio_lectivo_id` solo entonces; con el activo conservan los contratos
+  anteriores.
+- El historial no cambia y las ventas siguen perteneciendo al activo: no se
+  recargan por año ni se ofrecen en el formulario de otro período.
+- Una respuesta tardía del año anterior se descarta para que no reemplace la
+  información visible.
+- La deuda de años anteriores se muestra separada en Pagos, Cartera y la ficha
+  de Estudiantes. Cartera conserva sus totales actuales y permite abrir Pagos
+  con el mismo año mediante `Cobrar`.
+- Caracterización previa: 114 pruebas en 22 archivos. Las pruebas nuevas se
+  escribieron primero y 16 fallaron por las piezas todavía ausentes. Pruebas
+  específicas finales: 76 en 12 archivos.
+- No se cambiaron fórmulas financieras, backend, migraciones, bases reales ni
+  producción.
+
+Verificación: `pnpm run check:deploy` limpio con 2245 pruebas en 344 archivos,
+lint y build correctos; `git diff --check` limpio.
+
 ## 2026-10-07 - Listas de Seguimiento: la misma tabla en el celular
 
 A pedido del usuario, `/admin/listas-seguimiento` muestra en el celular y en

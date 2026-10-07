@@ -5,31 +5,48 @@ const obtenerDatos = async (solicitud) => {
   return respuesta.data;
 };
 
+// El año solo viaja cuando el admin eligió uno distinto del activo. Sin él,
+// `api.get` recibe exactamente los mismos argumentos que antes de 5.9.
+const getConAnio = (url, parametrosAnio) =>
+  parametrosAnio?.anio_lectivo_id
+    ? api.get(url, { params: parametrosAnio })
+    : api.get(url);
+
 const pagosApi = {
   obtenerEstudiantes: () => obtenerDatos(api.get("/estudiantes")),
 
-  obtenerTiposPagos: () => obtenerDatos(api.get("/tipos-pagos")),
+  obtenerTiposPagos: ({ parametrosAnio } = {}) =>
+    obtenerDatos(getConAnio("/tipos-pagos", parametrosAnio)),
 
   obtenerHistorialPagos: (estudianteId) =>
     obtenerDatos(api.get(`/pagos/${estudianteId}`)),
 
-  obtenerDeudasEstudiante: (estudianteId) =>
-    obtenerDatos(api.get(`/estudiantes/${estudianteId}/deudas`)),
+  obtenerDeudasEstudiante: (estudianteId, { parametrosAnio } = {}) =>
+    obtenerDatos(
+      getConAnio(`/estudiantes/${estudianteId}/deudas`, parametrosAnio)
+    ),
 
   obtenerVentasPendientes: (estudianteId) =>
     obtenerDatos(api.get(`/api/ventas/pendientes/${estudianteId}`)),
 
-  obtenerOpcionesVencidas: (estudianteId) =>
-    obtenerDatos(api.get(`/pagos/vencidos/opciones/${estudianteId}`)),
+  obtenerOpcionesVencidas: (estudianteId, { parametrosAnio } = {}) =>
+    obtenerDatos(
+      getConAnio(`/pagos/vencidos/opciones/${estudianteId}`, parametrosAnio)
+    ),
 
-  obtenerOpcionesAdelanto: (estudianteId) =>
-    obtenerDatos(api.get(`/pagos/adelanto/opciones/${estudianteId}`)),
+  obtenerOpcionesAdelanto: (estudianteId, { parametrosAnio } = {}) =>
+    obtenerDatos(
+      getConAnio(`/pagos/adelanto/opciones/${estudianteId}`, parametrosAnio)
+    ),
 
   obtenerCursos: () => obtenerDatos(api.get("/cursos")),
 
-  obtenerValoresPersonalizados: (estudianteId) =>
+  obtenerValoresPersonalizados: (estudianteId, { parametrosAnio } = {}) =>
     obtenerDatos(
-      api.get(`/estudiantes/${estudianteId}/valores-pago-personalizados`)
+      getConAnio(
+        `/estudiantes/${estudianteId}/valores-pago-personalizados`,
+        parametrosAnio
+      )
     ),
 
   guardarValorPersonalizado: (estudianteId, tipoPagoId, payload) =>

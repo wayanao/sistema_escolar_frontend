@@ -52,6 +52,7 @@ const LUIS = {
 
 beforeEach(() => {
     apiMock.get.mockReset();
+    mocks.navigateMock.mockReset();
     apiMock.get.mockImplementation((url) => {
         if (url === "/cartera/mora/resumen") {
             return Promise.resolve({ data: { total_deuda: 400000, total_estudiantes: 1 } });
@@ -66,7 +67,7 @@ afterEach(() => {
 });
 
 describe("Cartera vencida mirando otro año", () => {
-    it("pide el resumen y la lista de ese año y no ofrece Cobrar", async () => {
+    it("pide ese año y Cobrar lo conserva al abrir Pagos", async () => {
         mocks.anioLectivo = CERRADO;
 
         render(<CarteraVencidaAdmin />);
@@ -76,8 +77,10 @@ describe("Cartera vencida mirando otro año", () => {
             ["/cartera/mora/resumen", CERRADO_CON_ANIO],
             ["/cartera/mora", CERRADO_CON_ANIO],
         ]);
-        // Pagos cobra en el año activo: desde otro año no se ofrece cobrar.
-        expect(screen.queryByRole("button", { name: /Cobrar/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /Cobrar/ }));
+        expect(mocks.navigateMock).toHaveBeenCalledWith("/admin/pagos", {
+            state: { estudiante_id: 2, anio_lectivo_id: 3 },
+        });
         expect(screen.getByRole("button", { name: "Imprimir" })).toBeInTheDocument();
     });
 

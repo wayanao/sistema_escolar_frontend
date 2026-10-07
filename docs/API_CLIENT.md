@@ -2,7 +2,7 @@
 
 Estado actual del consumo de API desde el frontend.
 
-Ultima revision documental: 2026-08-08.
+Ultima revision documental: 2026-10-07.
 
 ## Cliente Axios principal
 
@@ -137,13 +137,12 @@ GET /anios-lectivos/{anio_lectivo_id}/resumen
   `GET /tipos-pagos` (la lista de respaldo) y `GET /cursos` de Tipos de pago,
   y `GET /cartera/mora/resumen` y `GET /cartera/mora` de Cartera vencida. El
   detalle de un concepto y lo que se guarda parten de su id y no lo llevan.
-  El resumen de cartera del inicio del admin y Pagos siguen siempre con el
-  año activo.
+  El resumen de cartera del inicio del admin sigue siempre con el año activo.
 - Desde el paso 4.4 (2026-10-05), también Estudiantes: `GET /estudiantes`
   (junto a su `estado`), `GET /cursos`, `GET /estudiantes/{id}/detalles`,
   `GET /estudiantes/{id}/deudas` y `GET /observador/{id}` de la ficha (junto
   al `periodo`). El observador del profesor no lo manda nunca. Pagos usa su
-  propia consulta de deudas y sigue en el año activo.
+  propia consulta de deudas; desde el paso 5.9 tiene su selector local.
 - Desde el paso 4.5 (2026-10-05), también Boletines y Certificados:
   `GET /cursos`, `GET /estudiantes`,
   `GET /boletines/admin/generar/{estudiante}/{periodo}` y
@@ -445,6 +444,14 @@ Uso:
   cobrables siguen siendo exclusivamente los que calcula y valida el backend.
 - Los adelantos no se mezclan con cargos de inventario ni conceptos unicos.
 - La anulacion de pagos pide motivo y depende del endpoint auditado del backend.
+- Año lectivo (paso 5.9, 2026-10-07): Pagos inicia en el año activo y solo al
+  elegir otro añade `?anio_lectivo_id=` a tipos de pago, deudas, cuotas
+  vencidas, adelantos y valores personalizados. `POST /pagos` y
+  `POST /pagos/adelanto` agregan `anio_lectivo_id` al cuerpo en ese mismo caso.
+  Historial y ventas conservan sus peticiones anteriores; las ventas no se
+  ofrecen en el formulario de otro año. La deuda anterior viene en
+  `deuda_anios_anteriores` y se muestra aparte, sin recalcularla ni sumarla a
+  la deuda consultada.
 
 ## Cartera vencida
 
@@ -465,9 +472,11 @@ Uso:
 - Año lectivo (paso 4.3, 2026-10-03): `CarteraVencidaAdmin.jsx` pide la
   cartera del año que mira el admin (`?anio_lectivo_id=` solo mirando otro
   año). Mirando otro año, el backend trae también a los retirados que deben y
-  no trae ventas; la pantalla no ofrece "Cobrar" (Pagos cobra en el año
-  activo) y "Actualizar" vuelve a pedir las dos lecturas en vez de recargar la
-  página. El dashboard pide siempre el año activo.
+  no trae ventas; "Actualizar" vuelve a pedir las dos lecturas en vez de
+  recargar la página. Desde el paso 5.9, `deuda_anios_anteriores` y
+  `total_anios_anteriores` se muestran separados del total del año consultado,
+  y "Cobrar" abre Pagos conservando ese año. El dashboard pide siempre el año
+  activo.
 
 ## Reportes
 

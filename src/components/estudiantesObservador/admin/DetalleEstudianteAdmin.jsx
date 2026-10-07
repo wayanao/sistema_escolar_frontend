@@ -1,3 +1,4 @@
+import DeudasAniosAnterioresView from "../../anioLectivo/DeudasAniosAnterioresView";
 import ObservadorEnFichaAdmin from "../../observador/ObservadorEnFichaAdmin";
 
 /**
@@ -14,6 +15,10 @@ export default function DetalleEstudianteAdmin({
   onCerrar,
 }) {
   if (!estudiante) return null;
+
+  const hayDeudasAnteriores = (detalles?.deuda_anios_anteriores || []).some(
+    (item) => Number(item?.total_deuda || 0) > 0,
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
@@ -131,11 +136,18 @@ export default function DetalleEstudianteAdmin({
                     <div className="flex items-center gap-2 text-green-700 bg-green-100 p-2 rounded-lg">
                       <span>✅</span>{" "}
                       <p className="text-sm font-semibold">
-                        Sin deudas pendientes.
+                        {hayDeudasAnteriores
+                          ? "Sin deudas pendientes en el año consultado."
+                          : "Sin deudas pendientes."}
                       </p>
                     </div>
                   )}
                 </div>
+
+                <DeudasAniosAnterioresView
+                  deudasAnios={detalles.deuda_anios_anteriores}
+                  className="mb-4"
+                />
 
                 <div className="flex-1">
                   <h4 className="font-medium text-red-800 border-b border-red-200 pb-1 mb-2">

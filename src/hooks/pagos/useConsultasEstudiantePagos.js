@@ -1,11 +1,15 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import pagosApi from "../../services/pagosApi";
 import { normalizarOpcionesVencidas } from "../../utils/pagos/contratos";
 
-export default function useConsultasEstudiantePagos() {
+export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
+  const anioLectivoId = parametrosAnio?.anio_lectivo_id;
+  const anioLectivoIdRef = useRef(anioLectivoId);
+  anioLectivoIdRef.current = anioLectivoId;
   const [pagos, setPagos] = useState([]);
   const [ventasPendientes, setVentasPendientes] = useState([]);
   const [deudasEstudiante, setDeudasEstudiante] = useState([]);
+  const [deudaAniosAnteriores, setDeudaAniosAnteriores] = useState([]);
   const [valoresPersonalizados, setValoresPersonalizados] = useState([]);
   const [selectedEstudiante, setSelectedEstudiante] = useState(null);
   const [opcionesVencidas, setOpcionesVencidas] = useState([]);
@@ -23,14 +27,21 @@ export default function useConsultasEstudiantePagos() {
   }, []);
 
   const cargarDeudasEstudiante = useCallback(async (estudianteId) => {
+    const anioSolicitud = anioLectivoId;
     try {
-      const data = await pagosApi.obtenerDeudasEstudiante(estudianteId);
+      const data = anioSolicitud
+        ? await pagosApi.obtenerDeudasEstudiante(estudianteId, { parametrosAnio })
+        : await pagosApi.obtenerDeudasEstudiante(estudianteId);
+      if (anioLectivoIdRef.current !== anioSolicitud) return;
       setDeudasEstudiante(data.deudas || []);
+      setDeudaAniosAnteriores(data.deuda_anios_anteriores || []);
     } catch (error) {
+      if (anioLectivoIdRef.current !== anioSolicitud) return;
       console.error("Error cargando deudas del estudiante:", error);
       setDeudasEstudiante([]);
+      setDeudaAniosAnteriores([]);
     }
-  }, []);
+  }, [anioLectivoId, parametrosAnio]);
 
   const cargarVentasPendientes = useCallback(async (estudianteId) => {
     try {
@@ -45,33 +56,63 @@ export default function useConsultasEstudiantePagos() {
   const cargarOpcionesVencidas = useCallback(
     async (estudianteId = selectedEstudiante?.id) => {
       if (!estudianteId) return;
+      const anioSolicitud = anioLectivoId;
       setLoadingOpcionesVencidas(true);
       setErrorOpcionesVencidas("");
       try {
-        const data = await pagosApi.obtenerOpcionesVencidas(estudianteId);
+        const data = anioSolicitud
+          ? await pagosApi.obtenerOpcionesVencidas(estudianteId, { parametrosAnio })
+          : await pagosApi.obtenerOpcionesVencidas(estudianteId);
+        if (anioLectivoIdRef.current !== anioSolicitud) return;
         setOpcionesVencidas(normalizarOpcionesVencidas(data?.opciones));
       } catch (error) {
+        if (anioLectivoIdRef.current !== anioSolicitud) return;
         console.error("Error cargando cuotas vencidas:", error);
         setOpcionesVencidas([]);
         setErrorOpcionesVencidas(
           error.response?.data?.detail || "No se pudieron consultar los meses vencidos."
         );
       } finally {
-        setLoadingOpcionesVencidas(false);
+        if (anioLectivoIdRef.current === anioSolicitud) {
+          setLoadingOpcionesVencidas(false);
+        }
       }
     },
-    [selectedEstudiante?.id]
+    [anioLectivoId, parametrosAnio, selectedEstudiante?.id]
   );
 
   const cargarValoresPersonalizados = useCallback(async (estudianteId) => {
+    const anioSolicitud = anioLectivoId;
     try {
-      const data = await pagosApi.obtenerValoresPersonalizados(estudianteId);
+      const data = anioSolicitud
+        ? await pagosApi.obtenerValoresPersonalizados(estudianteId, { parametrosAnio })
+        : await pagosApi.obtenerValoresPersonalizados(estudianteId);
+      if (anioLectivoIdRef.current !== anioSolicitud) return;
       setValoresPersonalizados(Array.isArray(data) ? data : []);
     } catch (error) {
+      if (anioLectivoIdRef.current !== anioSolicitud) return;
       console.error("Error cargando valores personalizados:", error);
       setValoresPersonalizados([]);
     }
-  }, []);
+  }, [anioLectivoId, parametrosAnio]);
+
+  const recargarDatosDelAnio = useCallback((estudianteId) => {
+    if (!estudianteId) return Promise.resolve();
+    setDeudasEstudiante([]);
+    setDeudaAniosAnteriores([]);
+    setOpcionesVencidas([]);
+    setErrorOpcionesVencidas("");
+    setValoresPersonalizados([]);
+    return Promise.all([
+      cargarDeudasEstudiante(estudianteId),
+      cargarOpcionesVencidas(estudianteId),
+      cargarValoresPersonalizados(estudianteId),
+    ]);
+  }, [
+    cargarDeudasEstudiante,
+    cargarOpcionesVencidas,
+    cargarValoresPersonalizados,
+  ]);
 
   const seleccionarEstudiante = useCallback(
     (estudiante) => {
@@ -80,16 +121,12 @@ export default function useConsultasEstudiantePagos() {
       setErrorOpcionesVencidas("");
       cargarHistorialPagos(estudiante.id);
       cargarVentasPendientes(estudiante.id);
-      cargarDeudasEstudiante(estudiante.id);
-      cargarOpcionesVencidas(estudiante.id);
-      cargarValoresPersonalizados(estudiante.id);
+      recargarDatosDelAnio(estudiante.id);
     },
     [
-      cargarDeudasEstudiante,
       cargarHistorialPagos,
-      cargarOpcionesVencidas,
-      cargarValoresPersonalizados,
       cargarVentasPendientes,
+      recargarDatosDelAnio,
     ]
   );
 
@@ -97,6 +134,7 @@ export default function useConsultasEstudiantePagos() {
     pagos,
     ventasPendientes,
     deudasEstudiante,
+    deudaAniosAnteriores,
     valoresPersonalizados,
     selectedEstudiante,
     opcionesVencidas,
@@ -108,6 +146,7 @@ export default function useConsultasEstudiantePagos() {
     cargarVentasPendientes,
     cargarOpcionesVencidas,
     cargarValoresPersonalizados,
+    recargarDatosDelAnio,
     actualizarValoresPersonalizados: setValoresPersonalizados,
   };
 }

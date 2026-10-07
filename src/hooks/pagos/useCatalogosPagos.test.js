@@ -61,4 +61,26 @@ describe("useCatalogosPagos", () => {
     expect(consoleError).toHaveBeenCalledTimes(3);
     consoleError.mockRestore();
   });
+
+  it("recarga solo los conceptos cuando cambia el año del pago", async () => {
+    pagosApi.obtenerEstudiantes.mockResolvedValue([]);
+    pagosApi.obtenerCursos.mockResolvedValue([]);
+    pagosApi.obtenerTiposPagos.mockResolvedValue([]);
+    const parametros2027 = { anio_lectivo_id: 2 };
+
+    const { result, rerender } = renderHook(
+      ({ parametrosAnio }) => useCatalogosPagos({ parametrosAnio }),
+      { initialProps: { parametrosAnio: {} } },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    rerender({ parametrosAnio: parametros2027 });
+
+    await waitFor(() => expect(pagosApi.obtenerTiposPagos).toHaveBeenCalledTimes(2));
+    expect(pagosApi.obtenerTiposPagos).toHaveBeenLastCalledWith({
+      parametrosAnio: parametros2027,
+    });
+    expect(pagosApi.obtenerEstudiantes).toHaveBeenCalledTimes(1);
+    expect(pagosApi.obtenerCursos).toHaveBeenCalledTimes(1);
+  });
 });

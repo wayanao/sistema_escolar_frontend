@@ -104,6 +104,10 @@ export function filtrarEstudiantesObservador(estudiantes, busqueda) {
 
 export function normalizarDetalleEstudiante(detallesBase, deudasData) {
   const deudas = deudasData.deudas || detallesBase.deudas || [];
+  const deudaAniosAnteriores =
+    deudasData.deuda_anios_anteriores ||
+    detallesBase.deuda_anios_anteriores ||
+    [];
 
   return {
     notas: [],
@@ -113,6 +117,7 @@ export function normalizarDetalleEstudiante(detallesBase, deudasData) {
     productos_inventario: [],
     ...detallesBase,
     deudas,
+    deuda_anios_anteriores: deudaAniosAnteriores,
     total_deuda:
       deudasData.total_deuda ??
       detallesBase.total_deuda ??

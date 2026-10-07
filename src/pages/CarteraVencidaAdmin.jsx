@@ -62,15 +62,9 @@ function CarteraVencidaAdmin() {
         ? () => window.location.reload()
         : cartera.recargar;
 
-    // Pagos cobra siempre en el año activo: mirando otro año, "Cobrar" llevaría
-    // la deuda de ese año al activo. Vuelve en la fase 5, con el selector "Año
-    // del pago".
-    const puedeCobrar = permisos.esAnioActivo;
-
     return (
         <VistaCarteraVencida
             {...cartera}
-            puedeCobrar={puedeCobrar}
             expandido={expandido}
             reporteImpresion={reporteImpresion}
             onCerrarReporte={() => setReporteImpresion(null)}
@@ -79,7 +73,9 @@ function CarteraVencidaAdmin() {
             onImprimirCurso={abrirReporteCurso}
             onImprimirEstudiante={abrirReporteEstudiante}
             onCobrar={(item) =>
-                navigate("/admin/pagos", { state: { estudiante_id: item.estudiante_id } })
+                navigate("/admin/pagos", {
+                    state: { estudiante_id: item.estudiante_id, ...parametros },
+                })
             }
             onToggleExpandido={(estudianteId) =>
                 setExpandido((prev) => (prev === estudianteId ? null : estudianteId))

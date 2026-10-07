@@ -90,6 +90,7 @@ describe("contratos puros de estudiantes", () => {
   });
 
   it("normaliza el detalle y prioriza deudas y total del endpoint financiero", () => {
+    const deudaAniosAnteriores = [{ anio: 2025, total_deuda: 40 }];
     expect(
       normalizarDetalleEstudiante(
         {
@@ -100,6 +101,7 @@ describe("contratos puros de estudiantes", () => {
         {
           deudas: [{ deuda: 35 }, { deuda: "15" }],
           total_deuda: 50,
+          deuda_anios_anteriores: deudaAniosAnteriores,
         },
       ),
     ).toMatchObject({
@@ -108,6 +110,7 @@ describe("contratos puros de estudiantes", () => {
       observaciones: [],
       deudas: [{ deuda: 35 }, { deuda: "15" }],
       total_deuda: 50,
+      deuda_anios_anteriores: deudaAniosAnteriores,
     });
   });
 

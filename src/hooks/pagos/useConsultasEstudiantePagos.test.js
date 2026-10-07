@@ -87,4 +87,79 @@ describe("useConsultasEstudiantePagos", () => {
 
     expect(result.current.valoresPersonalizados).toEqual([{ id: 2 }]);
   });
+
+  it("consulta el año del pago y conserva aparte la deuda anterior", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    const deudaAnterior = [{
+      anio_lectivo_id: 1,
+      anio: 2026,
+      total_deuda: 400000,
+      deudas: [{ concepto: "Pensión", deuda: 400000 }],
+    }];
+    pagosApi.obtenerHistorialPagos.mockResolvedValue([]);
+    pagosApi.obtenerDeudasEstudiante.mockResolvedValue({
+      deudas: [{ concepto: "Matrícula", deuda: 300000 }],
+      deuda_anios_anteriores: deudaAnterior,
+    });
+    pagosApi.obtenerVentasPendientes.mockResolvedValue([]);
+    pagosApi.obtenerOpcionesVencidas.mockResolvedValue({ opciones: [] });
+    pagosApi.obtenerValoresPersonalizados.mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      useConsultasEstudiantePagos({ parametrosAnio })
+    );
+    act(() => result.current.seleccionarEstudiante(estudiante));
+
+    await waitFor(() => expect(result.current.loadingOpcionesVencidas).toBe(false));
+    expect(result.current.deudaAniosAnteriores).toBe(deudaAnterior);
+    expect(pagosApi.obtenerDeudasEstudiante).toHaveBeenCalledWith(7, {
+      parametrosAnio,
+    });
+    expect(pagosApi.obtenerOpcionesVencidas).toHaveBeenCalledWith(7, {
+      parametrosAnio,
+    });
+    expect(pagosApi.obtenerValoresPersonalizados).toHaveBeenCalledWith(7, {
+      parametrosAnio,
+    });
+    expect(pagosApi.obtenerHistorialPagos).toHaveBeenCalledWith(7);
+    expect(pagosApi.obtenerVentasPendientes).toHaveBeenCalledWith(7);
+  });
+
+  it("descarta una respuesta tardía del año que ya dejó de estar seleccionado", async () => {
+    let resolverAnioAnterior;
+    pagosApi.obtenerDeudasEstudiante.mockImplementation((_id, opciones) => {
+      if (opciones?.parametrosAnio?.anio_lectivo_id === 2) {
+        return Promise.resolve({ deudas: [{ concepto: "Matrícula 2027" }] });
+      }
+      return new Promise((resolve) => {
+        resolverAnioAnterior = resolve;
+      });
+    });
+    pagosApi.obtenerOpcionesVencidas.mockResolvedValue({ opciones: [] });
+    pagosApi.obtenerValoresPersonalizados.mockResolvedValue([]);
+
+    const { result, rerender } = renderHook(
+      ({ parametrosAnio }) => useConsultasEstudiantePagos({ parametrosAnio }),
+      { initialProps: { parametrosAnio: {} } },
+    );
+    act(() => {
+      void result.current.cargarDeudasEstudiante(7);
+    });
+
+    const parametros2027 = { anio_lectivo_id: 2 };
+    rerender({ parametrosAnio: parametros2027 });
+    await act(async () => {
+      await result.current.cargarDeudasEstudiante(7);
+    });
+    expect(result.current.deudasEstudiante).toEqual([
+      { concepto: "Matrícula 2027" },
+    ]);
+
+    await act(async () => {
+      resolverAnioAnterior({ deudas: [{ concepto: "Pensión 2026" }] });
+    });
+    expect(result.current.deudasEstudiante).toEqual([
+      { concepto: "Matrícula 2027" },
+    ]);
+  });
 });

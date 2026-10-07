@@ -4,6 +4,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import pagosApi from "../services/pagosApi";
 import Swal from "sweetalert2";
+import { ContextoAnioLectivo } from "../hooks/anioLectivo/useAnioLectivo";
 import PagosAdmin from "./PagosAdmin";
 
 vi.mock("../services/pagosApi", () => ({
@@ -87,11 +88,36 @@ function ObservadorRuta() {
   );
 }
 
-function renderPagos(initialEntries = ["/admin/pagos"]) {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
+const contextoDosAnios = {
+  anios: [
+    { id: 2, anio: 2027, estado: "preparacion" },
+    { id: 1, anio: 2026, estado: "activo" },
+  ],
+  anioActivo: { id: 1, anio: 2026, estado: "activo" },
+  anioSeleccionado: { id: 1, anio: 2026, estado: "activo" },
+  anioSeleccionadoId: null,
+  hayVariosAnios: true,
+  parametros: {},
+  permisos: { esAnioActivo: true, puedeEditar: true },
+  seleccionarAnio: vi.fn(),
+  volverAlActivo: vi.fn(),
+  recargarAnios: vi.fn(),
+};
+
+function renderPagos(initialEntries = ["/admin/pagos"], contextoAnio = null) {
+  const pagina = (
+    <>
       <PagosAdmin />
       <ObservadorRuta />
+    </>
+  );
+  return render(
+    <MemoryRouter initialEntries={initialEntries}>
+      {contextoAnio ? (
+        <ContextoAnioLectivo.Provider value={contextoAnio}>
+          {pagina}
+        </ContextoAnioLectivo.Provider>
+      ) : pagina}
     </MemoryRouter>
   );
 }
@@ -318,5 +344,92 @@ describe("PagosAdmin - caracterización", () => {
         { tipo: "subsidio", monto: 150000, nota: "Convenio 2026" },
       ],
     });
+  });
+
+  it("elige explícitamente otro año, recarga sus cobros y no mezcla ventas", async () => {
+    const user = userEvent.setup();
+    const parametros2027 = { parametrosAnio: { anio_lectivo_id: 2 } };
+    pagosApi.obtenerTiposPagos.mockImplementation((opciones) =>
+      Promise.resolve(
+        opciones?.parametrosAnio?.anio_lectivo_id === 2
+          ? [{ id: 21, nombre: "Matrícula", valor: 300000, activo: true }]
+          : [{ id: 11, nombre: "Pensión", valor: 100000, activo: true }]
+      )
+    );
+    pagosApi.obtenerDeudasEstudiante.mockImplementation((_id, opciones) =>
+      Promise.resolve(
+        opciones?.parametrosAnio?.anio_lectivo_id === 2
+          ? {
+              deudas: [{
+                concepto: "Matrícula",
+                concepto_id: 21,
+                tipo_cobro: "anual",
+                deuda: 300000,
+                pagado: 0,
+              }],
+              deuda_anios_anteriores: [],
+            }
+          : {
+              deudas: [deudaMensual],
+              deuda_anios_anteriores: [{
+                anio_lectivo_id: 9,
+                anio: 2025,
+                curso_id: 3,
+                deudas: [{ concepto: "Pensión", deuda: 50000 }],
+                total_deuda: 50000,
+              }],
+            }
+      )
+    );
+    pagosApi.obtenerOpcionesVencidas.mockImplementation((_id, opciones) =>
+      Promise.resolve(
+        opciones?.parametrosAnio?.anio_lectivo_id === 2
+          ? { opciones: [] }
+          : cuotasVencidas
+      )
+    );
+    pagosApi.obtenerValoresPersonalizados.mockResolvedValue([]);
+    pagosApi.obtenerVentasPendientes.mockResolvedValue([
+      { id: 80, descripcion: "Uniforme", total: 90000 },
+    ]);
+
+    renderPagos(["/admin/pagos"], contextoDosAnios);
+    await seleccionarEstudiante(user);
+
+    expect(screen.getByRole("heading", { name: "Deudas de años anteriores" })).toBeInTheDocument();
+    expect(screen.getByText("Año 2025")).toBeInTheDocument();
+    const selector = screen.getByRole("combobox", { name: "Año del pago" });
+    expect(selector).toHaveValue("1");
+
+    await user.selectOptions(selector, "2");
+
+    await waitFor(() => {
+      expect(pagosApi.obtenerTiposPagos).toHaveBeenLastCalledWith(parametros2027);
+      expect(pagosApi.obtenerDeudasEstudiante).toHaveBeenLastCalledWith(7, parametros2027);
+      expect(pagosApi.obtenerOpcionesVencidas).toHaveBeenLastCalledWith(7, parametros2027);
+      expect(pagosApi.obtenerValoresPersonalizados).toHaveBeenLastCalledWith(7, parametros2027);
+    });
+    expect(pagosApi.obtenerEstudiantes).toHaveBeenCalledTimes(1);
+    expect(pagosApi.obtenerCursos).toHaveBeenCalledTimes(1);
+    expect(pagosApi.obtenerHistorialPagos).toHaveBeenCalledTimes(1);
+    expect(pagosApi.obtenerVentasPendientes).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "+ Nuevo Pago/Factura" }));
+    expect(screen.queryByRole("option", { name: /Uniforme/ })).not.toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Concepto de Pago" }),
+      "Matrícula",
+    );
+    await user.click(screen.getByLabelText("efectivo"));
+    await user.click(screen.getByRole("button", { name: "Registrar Pago" }));
+
+    await waitFor(() => expect(pagosApi.registrarPago).toHaveBeenCalled());
+    expect(pagosApi.registrarPago).toHaveBeenCalledWith(
+      expect.objectContaining({
+        estudiante_id: 7,
+        descripcion: "Matrícula",
+        anio_lectivo_id: 2,
+      })
+    );
   });
 });

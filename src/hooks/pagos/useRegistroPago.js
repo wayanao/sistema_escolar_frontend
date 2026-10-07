@@ -24,6 +24,7 @@ export default function useRegistroPago({
   cargarVentasPendientes,
   cargarDeudasEstudiante,
   cargarOpcionesVencidas,
+  anioLectivoId,
 }) {
   const [registrandoPago, setRegistrandoPago] = useState(false);
 
@@ -48,7 +49,7 @@ export default function useRegistroPago({
       }
       if (saldoAdelantoSinDistribuir > 0) {
         Swal.fire(
-          "Monto fuera del año actual",
+          "Monto fuera del año seleccionado",
           `${formatearMoneda(saldoAdelantoSinDistribuir)} quedarían sin un mes asignado. Reduce el monto.`,
           "warning"
         );
@@ -130,11 +131,16 @@ export default function useRegistroPago({
       let resultado;
       if (modoPago === "adelantado") {
         resultado = await pagosApi.registrarPagoAdelantado(
-          crearPayloadPagoAdelantado(pagoData, estudianteId, esDistribucionAdelanto)
+          crearPayloadPagoAdelantado(
+            pagoData,
+            estudianteId,
+            esDistribucionAdelanto,
+            anioLectivoId,
+          )
         );
       } else {
         resultado = await pagosApi.registrarPago(
-          crearPayloadPagoNormal(pagoData, estudianteId)
+          crearPayloadPagoNormal(pagoData, estudianteId, anioLectivoId)
         );
       }
       reiniciarFormularioTrasRegistro(estudianteId);

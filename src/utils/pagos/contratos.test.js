@@ -136,6 +136,28 @@ describe("contratos de pagos", () => {
     expect(pago.aplicaciones[0].monto).toBe("100000");
   });
 
+  it("agrega el año únicamente al pago dirigido a otro año", () => {
+    const pago = {
+      estudiante_id: 7,
+      descripcion: "Matrícula",
+      fecha: "2026-11-04",
+      monto: "300000",
+      venta_id: null,
+      metodos: [{ tipo: "efectivo", monto: "300000", nota: "" }],
+      tipo_pago_id_adelanto: "",
+      cantidad_meses: 1,
+      modalidad_adelanto: "meses",
+      monto_distribuir: "",
+      aplicaciones: [],
+    };
+
+    expect(crearPayloadPagoNormal(pago, 7)).not.toHaveProperty("anio_lectivo_id");
+    expect(crearPayloadPagoNormal(pago, 7, 2)).toMatchObject({
+      estudiante_id: 7,
+      anio_lectivo_id: 2,
+    });
+  });
+
   it("conserva una venta y elimina aplicaciones vacías en el payload normal", () => {
     const pago = {
       estudiante_id: 7,
@@ -182,5 +204,23 @@ describe("contratos de pagos", () => {
       metodos: [{ tipo: "subsidio", monto: 150000, nota: "Convenio" }],
     });
     expect(pago.metodos[0].monto).toBe("150000");
+  });
+
+  it("agrega el año únicamente al adelanto dirigido a otro año", () => {
+    const pago = {
+      tipo_pago_id_adelanto: "11",
+      cantidad_meses: "2",
+      monto_distribuir: "",
+      fecha: "2026-11-04",
+      metodos: [{ tipo: "efectivo", monto: "200000", nota: "" }],
+    };
+
+    expect(crearPayloadPagoAdelantado(pago, 7, false)).not.toHaveProperty(
+      "anio_lectivo_id"
+    );
+    expect(crearPayloadPagoAdelantado(pago, 7, false, 2)).toMatchObject({
+      estudiante_id: 7,
+      anio_lectivo_id: 2,
+    });
   });
 });
