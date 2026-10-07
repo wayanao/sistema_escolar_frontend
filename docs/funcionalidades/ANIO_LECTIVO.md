@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Fase 5 en curso; paso 5.7 terminado localmente el 2026-10-06,
-  pendiente de revisión y commit del usuario.** Los pasos 5.1 a 5.6 del
-  backend ya están terminados. La fase 4 quedó completa en el commit
+- Estado: **Fase 5 en curso; paso 5.8 terminado localmente el 2026-10-07,
+  pendiente de revisión y commit del usuario.** El paso 5.7 quedó en los
+  commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
+  terminados. La fase 4 quedó completa en el commit
   `8eac0ce`. Se inició el 2026-10-03 con
   la autorización del usuario: inventario y plan por pasos (commit
   `dbb0e48`), paso 4.1 (la
@@ -31,7 +32,7 @@
   este repo. Cumplido el 2026-10-03: el usuario subió la fase 3 a
   producción (`origin/main` en `9edbe5d`); el despliegue en Render no se ve
   desde el repo.
-- Última actualización: 2026-10-06.
+- Última actualización: 2026-10-07.
 
 ## Objetivo
 
@@ -1087,7 +1088,7 @@ Cada paso empieza con caracterización, termina con pruebas específicas,
 `pnpm run check:deploy` y `git diff --check`, actualiza este documento y se
 detiene antes del siguiente.
 
-**Avance del 2026-10-06 — paso 5.7 terminado localmente, sin commit:**
+**Avance del 2026-10-06 — paso 5.7 terminado (`0848214` y `e3aced5`):**
 
 - Antes del cambio pasaron **94 pruebas de caracterización** de años,
   navegación, rutas, Cursos y Tipos de pago. Las pruebas nuevas se
@@ -1120,6 +1121,43 @@ detiene antes del siguiente.
   después del ajuste responsive se repitió completa y quedó limpia: **2221
   pruebas pasan en 342 archivos**,
   lint limpio y build correcto.
+
+**Avance del 2026-10-07 — paso 5.8 terminado localmente, sin commit:**
+
+- Antes de tocar el flujo pasaron **31 pruebas de caracterización en 7
+  archivos**: años lectivos, cursos y el alta/listado de estudiantes. Las
+  pruebas nuevas se escribieron primero y fallaron por los cuatro contratos
+  HTTP y las vistas que todavía no existían.
+- La misma página `/admin/anios-lectivos` permite elegir un curso de 2026 y
+  su destino de 2027. El backend entrega los candidatos; la pantalla marca
+  inicialmente a quienes todavía no están matriculados y el admin puede
+  desmarcarlos antes de enviar sus identificadores. Quienes ya están en 2027
+  aparecen bloqueados para no repetirlos.
+- El resultado muestra cuántos quedaron matriculados y presenta cada valor
+  especial copiado con la marca visible **Revisar**. La pantalla no calcula
+  cuotas, precios ni deudas: únicamente muestra los datos devueltos por el
+  backend.
+- Si la matrícula se guarda pero falla la recarga posterior del resumen, el
+  éxito se conserva y se muestra una advertencia separada. Así el admin no
+  recibe un falso error que pudiera llevarlo a repetir una operación ya
+  guardada.
+- Si se limpia el curso de origen antes de terminar su consulta, también se
+  limpia el indicador de carga; no queda un mensaje de espera atascado.
+- El resumen de 2027 presenta cursos, conceptos, estudiantes matriculados,
+  valores especiales, pagos y total pagado recibidos del backend. No existe
+  botón de activar; esa acción sigue reservada para la fase 6.
+- Desde Estudiantes, mirando un año en `preparacion`, se habilita únicamente
+  el alta directa con los cursos de ese año mediante
+  `POST /anios-lectivos/{id}/estudiantes`. Editar datos globales y cambiar el
+  estado permanecen ocultos. Mirando el año activo se conserva exactamente
+  el `POST /estudiantes` anterior.
+- Las nuevas secciones mantienen el ancho amplio aprobado en 5.7 y se apilan
+  en móvil; las tarjetas de candidatos y del resumen agregan columnas de
+  forma progresiva en pantallas mayores.
+- No se tocó el backend, activación, fórmulas de cobro, cartera, migraciones,
+  bases reales ni producción. Tampoco hubo commit, push ni despliegue.
+- Pruebas específicas: **37 pasan en 8 archivos**. Verificación global:
+  **2227 pruebas pasan en 343 archivos**, lint limpio y build correcto.
 
 ### Fase 6 — Activar el año
 
@@ -1251,10 +1289,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada con código: **paso 5.7 de la fase 5**, pantalla
-  base para crear/copiar el siguiente año y altas manuales de cursos y
-  conceptos en preparación. Está terminado localmente, todavía sin commit.
-  El paso anterior de este repo fue 4.7, commit `8eac0ce` del 2026-10-05.
+- Última acción terminada con código: **paso 5.8 de la fase 5**, matrículas
+  por promoción, alta directa de estudiante en preparación y resumen sin
+  activar. Está terminado localmente, todavía sin commit. El paso 5.7 quedó
+  en `0848214` y su ajuste responsive en `e3aced5`.
+  El paso anterior a la fase 5 fue 4.7, commit `8eac0ce` del 2026-10-05.
   Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
   (`78c48f7`) y paso 4.3 (`0798f21`), el 2026-10-03; paso 4.4 (`c7f0622`) y
@@ -1290,12 +1329,12 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.7**.
-  Después, y solo con autorización explícita, se inicia el **paso 5.8 —
-  Matrículas y resumen en el frontend**. Sigue abierta, para antes de la fase
+- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.8**.
+  Después, y solo con autorización explícita, se inicia el **paso 5.9 —
+  Pagos y deuda anterior en el frontend**. Sigue abierta, para antes de la fase
   6, la pregunta separada de Certificados y estudiantes
-  retirados/egresados; no bloqueó 5.7.
-- Verificación de 5.7: 111 pruebas específicas en 14 archivos;
-  `pnpm run check:deploy` limpio con 2221 pruebas en 342 archivos, lint y
-  build correctos; `git diff --check` limpio.
+  retirados/egresados; no bloqueó 5.8.
+- Verificación de 5.8: 37 pruebas específicas en 8 archivos;
+  `pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos, lint y
+  build correctos. `git diff --check` quedó limpio.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

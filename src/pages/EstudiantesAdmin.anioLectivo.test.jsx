@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Estudiantes mirando un año que no es el activo (paso 4.4 del año lectivo).
@@ -30,10 +30,12 @@ const { apiMock } = mocks;
 const EN_PREPARACION = {
   parametros: { anio_lectivo_id: 2 },
   permisos: { esAnioActivo: false, puedeEditar: true },
+  anioSeleccionado: { id: 2, anio: 2027, estado: "preparacion" },
 };
 const CERRADO = {
   parametros: { anio_lectivo_id: 3 },
   permisos: { esAnioActivo: false, puedeEditar: false },
+  anioSeleccionado: { id: 3, anio: 2025, estado: "cerrado" },
 };
 
 // Los matriculados de ese año, cada uno con su curso de ese año. Luis se
@@ -41,6 +43,11 @@ const CERRADO = {
 const CURSOS_DEL_ANIO = [{ id: 50, nombre: "PRIMERO A" }];
 const ANA = { id: 11, nombre: "Ana", apellido: "Rojas", estado: "activo", curso_id: 50 };
 const LUIS = { id: 12, nombre: "Luis", apellido: "Pardo", estado: "retirado", curso_id: 50 };
+
+const controlDe = (contenedor, etiqueta) =>
+  within(contenedor)
+    .getByText(etiqueta, { selector: "label" })
+    .parentElement.querySelector("input, select, textarea");
 
 beforeEach(() => {
   Object.values(apiMock).forEach((mock) => mock.mockReset());
@@ -70,15 +77,18 @@ beforeEach(() => {
     }
     return Promise.reject(new Error(`GET inesperado: ${url}`));
   });
+  apiMock.post.mockResolvedValue({ data: { id: 30, anio_lectivo_id: 2 } });
   localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+  vi.spyOn(window, "alert").mockImplementation(() => {});
 });
 
 afterEach(() => {
   localStorage.clear();
+  vi.restoreAllMocks();
 });
 
 describe("Estudiantes mirando otro año", () => {
-  it("en preparación pide estudiantes y cursos de ese año y es solo consulta", async () => {
+  it("en preparación permite solo el alta directa con los cursos de ese año", async () => {
     mocks.anioLectivo = EN_PREPARACION;
 
     render(<EstudiantesAdmin />);
@@ -91,13 +101,32 @@ describe("Estudiantes mirando otro año", () => {
     // El curso que se ve es el de ese año.
     expect(within(screen.getByText("Rojas Ana").closest("tr")).getByText("PRIMERO A"))
       .toBeInTheDocument();
-    // Un estudiante no es de un año: mirando otro, aunque esté en preparación,
-    // no se crea, no se edita ni se le cambia el estado.
-    expect(screen.queryByRole("button", { name: "Nuevo Estudiante" })).not.toBeInTheDocument();
+    // El alta crea los datos globales y solo la matrícula de 2027. Editar o
+    // cambiar el estado global sigue prohibido fuera del año activo.
+    fireEvent.click(screen.getByRole("button", { name: "Nuevo Estudiante" }));
+    const formulario = screen.getByText("🎓 Crear Nuevo Estudiante").parentElement;
+    fireEvent.change(controlDe(formulario, "Nombre *"), { target: { value: "Carla" } });
+    fireEvent.change(controlDe(formulario, "Apellidos *"), { target: { value: "Gómez" } });
+    fireEvent.change(controlDe(formulario, "Tipo de Documento *"), {
+      target: { value: "Registro Civil" },
+    });
+    fireEvent.change(controlDe(formulario, "Documento de Identidad *"), {
+      target: { value: "2002" },
+    });
+    fireEvent.change(controlDe(formulario, "Curso *"), { target: { value: "50" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear Estudiante" }));
+
+    await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith(
+      "/anios-lectivos/2/estudiantes",
+      expect.objectContaining({
+        nombre: "Carla",
+        apellido: "Gómez",
+        documento_identidad: "2002",
+        curso_id: "50",
+      }),
+    ));
     expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
-    // Solo queda el filtro de estado.
-    expect(screen.getAllByRole("combobox")).toHaveLength(1);
   });
 
   it("en un año cerrado, el filtro de estado sigue pidiendo ese año", async () => {

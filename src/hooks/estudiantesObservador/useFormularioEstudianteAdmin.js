@@ -10,7 +10,10 @@ import {
   normalizarEstudianteParaEdicion,
 } from "../../utils/estudiantesObservador/estudiantes";
 
-export default function useFormularioEstudianteAdmin({ recargar } = {}) {
+export default function useFormularioEstudianteAdmin({
+  recargar,
+  crearEstudianteFn = crearEstudiante,
+} = {}) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [estudianteData, setEstudianteData] = useState(
@@ -59,7 +62,7 @@ export default function useFormularioEstudianteAdmin({ recargar } = {}) {
       if (modo === "edicion") {
         await actualizarEstudiante(editingId, payload);
       } else {
-        await crearEstudiante(payload);
+        await crearEstudianteFn(payload);
       }
 
       setEstudianteData(crearEstudianteInicial());
@@ -70,7 +73,7 @@ export default function useFormularioEstudianteAdmin({ recargar } = {}) {
     } catch (error) {
       return { estado: "error", error, modo };
     }
-  }, [editingId, estudianteData, recargar]);
+  }, [crearEstudianteFn, editingId, estudianteData, recargar]);
 
   return {
     showForm,

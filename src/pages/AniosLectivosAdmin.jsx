@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
+import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
+import usePreparacionMatriculas from "../hooks/anioLectivo/usePreparacionMatriculas";
 import {
   copiarConfiguracionAnio,
   crearAnioLectivo,
@@ -35,6 +38,7 @@ function AniosLectivosAdmin() {
     [anios],
   );
   const siguienteAnio = anioActivo ? anioActivo.anio + 1 : null;
+  const preparacion = usePreparacionMatriculas(anioPreparacion);
 
   const crearSiguiente = async () => {
     setCreando(true);
@@ -67,6 +71,7 @@ function AniosLectivosAdmin() {
         opciones,
       );
       setResultadoCopia(resultado.copiados);
+      await preparacion.recargarPreparacion();
       setMensaje(`La configuración de ${anioActivo.anio} se copió a ${anioPreparacion.anio}.`);
     } catch (err) {
       setError(detalleError(err, "No se pudo copiar la configuración."));
@@ -89,9 +94,9 @@ function AniosLectivosAdmin() {
         </p>
       </header>
 
-      {error && (
+      {(error || preparacion.error) && (
         <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-red-800 sm:p-4">
-          {error}
+          {error || preparacion.error}
         </div>
       )}
       {mensaje && (
@@ -136,7 +141,7 @@ function AniosLectivosAdmin() {
 
       {anioPreparacion && anioActivo && (
         <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-          <h2 className="text-xl font-bold text-gray-900">2. Copiar configuración</h2>
+          <h2 className="text-xl font-bold text-gray-900">Copiar configuración</h2>
           <p className="mt-2 text-sm text-gray-600">
             Los cursos activos de {anioActivo.anio} se copian a {anioPreparacion.anio}.
             Los conceptos de pago se copian siempre.
@@ -203,8 +208,44 @@ function AniosLectivosAdmin() {
             >
               Administrar conceptos de pago
             </Link>
+            <Link
+              to="/admin/estudiantes"
+              onClick={() => seleccionarAnio(anioPreparacion.id)}
+              className="w-full rounded-lg bg-white px-4 py-2 text-center font-semibold text-blue-800 shadow-sm hover:bg-blue-100 sm:w-auto"
+            >
+              Crear estudiante en {anioPreparacion.anio}
+            </Link>
           </div>
         </section>
+      )}
+
+      {anioPreparacion && anioActivo && (
+        <MatriculasPreparacionView
+          anioActivo={anioActivo}
+          anioPreparacion={anioPreparacion}
+          cursosOrigen={preparacion.cursosOrigen}
+          cursosDestino={preparacion.cursosDestino}
+          cursoOrigenId={preparacion.cursoOrigenId}
+          cursoDestinoId={preparacion.cursoDestinoId}
+          candidatos={preparacion.candidatos}
+          seleccionados={preparacion.seleccionados}
+          cargandoPreparacion={preparacion.cargandoPreparacion}
+          cargandoCandidatos={preparacion.cargandoCandidatos}
+          promoviendo={preparacion.promoviendo}
+          resultado={preparacion.resultadoPromocion}
+          onCambiarOrigen={preparacion.cambiarCursoOrigen}
+          onCambiarDestino={preparacion.setCursoDestinoId}
+          onAlternarEstudiante={preparacion.alternarEstudiante}
+          onPromover={preparacion.promover}
+        />
+      )}
+
+      {anioPreparacion && (
+        <ResumenPreparacionView
+          anio={anioPreparacion.anio}
+          resumen={preparacion.resumen}
+          cargando={preparacion.cargandoPreparacion}
+        />
       )}
     </div>
   );

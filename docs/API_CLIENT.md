@@ -88,6 +88,10 @@ GET /tenant/status
 GET /anios-lectivos
 POST /anios-lectivos
 POST /anios-lectivos/{anio_lectivo_id}/copiar-configuracion
+GET /anios-lectivos/{anio_lectivo_id}/matriculas/candidatos?curso_origen_id={curso_id}
+POST /anios-lectivos/{anio_lectivo_id}/matriculas/promocion
+POST /anios-lectivos/{anio_lectivo_id}/estudiantes
+GET /anios-lectivos/{anio_lectivo_id}/resumen
 ```
 
 - Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
@@ -101,6 +105,17 @@ POST /anios-lectivos/{anio_lectivo_id}/copiar-configuracion
   `N+1`. La copia recibe las tres decisiones explícitas
   (`copiar_precios`, `copiar_carga_academica`, `copiar_directores`); cursos y
   conceptos de pago se copian siempre por regla del backend.
+- Desde el paso 5.8, candidatos recibe el curso del año activo. Promoción
+  recibe `curso_origen_id`, `curso_destino_id` y la lista exacta
+  `estudiante_ids` que dejó marcada el admin. Los ya matriculados llegan
+  identificados por el backend y quedan bloqueados en la pantalla.
+- La respuesta de promoción incluye los valores especiales copiados. El
+  frontend los muestra con la marca `Revisar`; no calcula valores ni decide
+  qué se cobra. Si después falla la recarga del resumen, conserva el éxito de
+  la promoción para no sugerir que debe repetirse.
+- El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
+  año en preparación. El resumen presenta literalmente los conteos y el total
+  que devuelve el backend y no activa el año.
 - En el paso 5.7, `POST /cursos` y `POST /tipos-pagos` suman
   `anio_lectivo_id` solo al crear mirando un año en `preparacion`. En el año
   activo conservan exactamente su cuerpo anterior, y las actualizaciones por
@@ -170,6 +185,7 @@ Uso:
 GET /estudiantes
 GET /estudiantes?estado=activo|retirado|egresado|inactivo|todos
 POST /estudiantes
+POST /anios-lectivos/{anio_lectivo_id}/estudiantes
 GET /estudiantes/{estudiante_id}
 PUT /estudiantes/{estudiante_id}
 GET /estudiantes/{estudiante_id}/detalles
@@ -188,8 +204,13 @@ Uso:
 - Año lectivo (paso 4.4, 2026-10-05): mirando un año que no es el activo, la
   lista son los matriculados de ese año con su curso de ese año, y la ficha
   (resumen, deudas y observador) es la de ese año (`?anio_lectivo_id=`). La
-  pantalla queda en solo consulta: no ofrece crear, editar ni cambiar el
-  estado, porque un estudiante no es de un año.
+  pantalla queda en solo consulta salvo el alta descrita a continuación,
+  porque los datos personales y el estado global de un estudiante no son de
+  un año.
+- Año lectivo (paso 5.8, 2026-10-07): mirando un año en `preparacion`, se
+  puede crear un estudiante nuevo y matricularlo directamente allí. Usa el
+  endpoint específico del año y sus cursos. Editar y cambiar estado siguen
+  prohibidos. Mirando el activo conserva el `POST /estudiantes` anterior.
 
 `CrearProfesor.jsx` consume:
 

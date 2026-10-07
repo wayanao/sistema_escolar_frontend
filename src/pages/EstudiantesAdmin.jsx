@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DetalleEstudianteAdmin from "../components/estudiantesObservador/admin/DetalleEstudianteAdmin";
 import EncabezadoEstudiantesAdmin from "../components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin";
@@ -9,16 +9,19 @@ import useCambioEstadoEstudianteAdmin from "../hooks/estudiantesObservador/useCa
 import useDetalleEstudianteAdmin from "../hooks/estudiantesObservador/useDetalleEstudianteAdmin";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import useListadoEstudiantesAdmin from "../hooks/estudiantesObservador/useListadoEstudiantesAdmin";
+import { crearEstudianteEnPreparacion } from "../services/aniosLectivosApi";
+import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
 function EstudiantesAdmin() {
   const navigate = useNavigate();
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
-  const { parametros, permisos } = useAnioLectivo();
-  // Mirando otro año, aunque esté en preparación, solo consulta: un estudiante
-  // no es de un año, así que crearlo, editarlo o cambiarle el estado desde
-  // otro año cambiaría también el de hoy (y el backend todavía no valida de
-  // qué año es el curso que se le pone).
-  const sePuedeModificar = permisos.esAnioActivo;
+  const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
+  const esPreparacion = anioSeleccionado?.estado === ESTADO_PREPARACION;
+  // En preparación solo se habilita el alta: crea los datos globales y una
+  // matrícula de ese año. Editar o cambiar el estado global sigue reservado
+  // al activo para no alterar 2026 desde la vista de 2027.
+  const puedeCrear = permisos.esAnioActivo || esPreparacion;
+  const puedeEditar = permisos.esAnioActivo;
   const {
     setEstudiantes,
     estudiantesFiltrados,
@@ -42,6 +45,10 @@ function EstudiantesAdmin() {
     verDetalles,
     cerrarModal,
   } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
+  const crearEnPreparacion = useCallback(
+    (payload) => crearEstudianteEnPreparacion(anioSeleccionado?.id, payload),
+    [anioSeleccionado?.id],
+  );
   const {
     showForm,
     editingId,
@@ -51,7 +58,10 @@ function EstudiantesAdmin() {
     cancelarFormulario,
     cargarEstudianteAEditar: cargarEdicion,
     guardarEstudiante,
-  } = useFormularioEstudianteAdmin({ recargar: cargarDatos });
+  } = useFormularioEstudianteAdmin({
+    recargar: cargarDatos,
+    crearEstudianteFn: esPreparacion ? crearEnPreparacion : undefined,
+  });
   const { cambiarEstado: ejecutarCambioEstado } =
     useCambioEstadoEstudianteAdmin({
       estadoFiltro,
@@ -124,7 +134,7 @@ function EstudiantesAdmin() {
         onCambiarEstadoFiltro={setEstadoFiltro}
         showForm={showForm}
         onAlternarFormulario={alternarFormulario}
-        puedeCrear={sePuedeModificar}
+        puedeCrear={puedeCrear}
       />
       <FormularioEstudianteAdmin
         visible={showForm}
@@ -141,7 +151,7 @@ function EstudiantesAdmin() {
         onVerDetalles={verDetalles}
         onCambiarEstado={cambiarEstadoEstudiante}
         onEditar={cargarEstudianteAEditar}
-        puedeEditar={sePuedeModificar}
+        puedeEditar={puedeEditar}
       />
       <DetalleEstudianteAdmin
         estudiante={selectedEstudiante}

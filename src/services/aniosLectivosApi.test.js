@@ -13,8 +13,12 @@ vi.mock("../utils/api", () => ({
 
 import {
   copiarConfiguracionAnio,
+  crearEstudianteEnPreparacion,
   crearAnioLectivo,
+  listarCandidatosMatricula,
   listarAniosLectivos,
+  obtenerResumenAnio,
+  promoverEstudiantes,
 } from "./aniosLectivosApi";
 
 beforeEach(() => {
@@ -75,6 +79,55 @@ describe("contrato HTTP de años lectivos", () => {
     expect(apiMock.post).toHaveBeenCalledWith(
       "/anios-lectivos/3/copiar-configuracion",
       opciones,
+    );
+  });
+
+  it("consulta candidatos del curso y el resumen del año en preparación", async () => {
+    const candidatos = { candidatos: [{ id: 1, nombre: "Ana" }] };
+    const resumen = { resumen: { estudiantes_matriculados: 1 } };
+    apiMock.get
+      .mockResolvedValueOnce({ data: candidatos })
+      .mockResolvedValueOnce({ data: resumen });
+
+    await expect(listarCandidatosMatricula(3, 10)).resolves.toBe(candidatos);
+    await expect(obtenerResumenAnio(3)).resolves.toBe(resumen);
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(
+      1,
+      "/anios-lectivos/3/matriculas/candidatos",
+      { params: { curso_origen_id: 10 } },
+    );
+    expect(apiMock.get).toHaveBeenNthCalledWith(
+      2,
+      "/anios-lectivos/3/resumen",
+    );
+  });
+
+  it("promueve la selección explícita y permite el alta directa en preparación", async () => {
+    const promocion = {
+      curso_origen_id: 10,
+      curso_destino_id: 20,
+      estudiante_ids: [1, 2],
+    };
+    const estudiante = { nombre: "Ana", apellido: "Rojas", curso_id: 20 };
+    const promovidos = { cantidad_matriculados: 2 };
+    const creado = { id: 30, anio_lectivo_id: 3, curso_vigente_id: null };
+    apiMock.post
+      .mockResolvedValueOnce({ data: promovidos })
+      .mockResolvedValueOnce({ data: creado });
+
+    await expect(promoverEstudiantes(3, promocion)).resolves.toBe(promovidos);
+    await expect(crearEstudianteEnPreparacion(3, estudiante)).resolves.toBe(creado);
+
+    expect(apiMock.post).toHaveBeenNthCalledWith(
+      1,
+      "/anios-lectivos/3/matriculas/promocion",
+      promocion,
+    );
+    expect(apiMock.post).toHaveBeenNthCalledWith(
+      2,
+      "/anios-lectivos/3/estudiantes",
+      estudiante,
     );
   });
 });

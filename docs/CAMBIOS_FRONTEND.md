@@ -21,6 +21,33 @@ Verificación: las 78 pruebas del módulo pasaban antes y pasan después.
 `pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos, lint y
 build correctos; `git diff --check` limpio. Capturas a 360, 390 y 1024 px.
 
+## 2026-10-07 - Año lectivo: matrículas y resumen de preparación (fase 5, paso 5.8)
+
+La preparación de 2027 ya permite matricular por curso, crear directamente un
+estudiante nuevo y revisar el resumen sin activar el año.
+
+- En `/admin/anios-lectivos`, el admin elige curso origen y destino. Los
+  candidatos disponibles llegan marcados y puede desmarcar a quienes no pasan
+  con el grupo; quien ya está en 2027 aparece bloqueado.
+- El resultado presenta los valores especiales copiados con la marca
+  `Revisar`. Ni esa vista ni el resumen calculan dinero: muestran la respuesta
+  del backend.
+- Un fallo al recargar el resumen después de una promoción guardada se muestra
+  como advertencia, sin convertir la promoción exitosa en un error repetible.
+- Limpiar el curso de origen durante su consulta detiene correctamente el
+  indicador de carga y evita dejar la pantalla esperando indefinidamente.
+- Estudiantes permite únicamente el alta mientras se mira 2027 en
+  preparación, usando sus cursos y el endpoint propio del año. Editar datos o
+  cambiar estados continúa deshabilitado fuera del año activo.
+- El resumen presenta cursos, conceptos, matriculados, valores especiales,
+  pagos y total pagado. No incorpora activación; eso corresponde a la fase 6.
+- Caracterización previa: 31 pruebas en 7 archivos. Pruebas específicas
+  finales: 37 en 8 archivos.
+- No se modificaron backend, cobros, cartera, migraciones ni producción.
+
+Verificación: `pnpm run check:deploy` limpio con 2227 pruebas en 343 archivos,
+lint y build correctos; `git diff --check` limpio.
+
 ## 2026-10-06 - Año lectivo: pantalla base para preparar 2027 (fase 5, paso 5.7)
 
 El admin ya puede crear exactamente el siguiente año y copiar la estructura

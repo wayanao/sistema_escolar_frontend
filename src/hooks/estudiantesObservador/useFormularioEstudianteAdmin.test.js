@@ -66,6 +66,29 @@ describe("useFormularioEstudianteAdmin", () => {
     expect(recargar).toHaveBeenCalledTimes(1);
   });
 
+  it("permite dirigir únicamente el alta a otro contrato", async () => {
+    const crearEnPreparacion = vi.fn().mockResolvedValue({ id: 30 });
+    const { result } = renderHook(() =>
+      useFormularioEstudianteAdmin({ crearEstudianteFn: crearEnPreparacion }),
+    );
+
+    act(() => {
+      result.current.setEstudianteData((actual) => ({
+        ...actual,
+        nombre: "Carla",
+        apellido: "Gómez",
+        curso_id: "50",
+      }));
+    });
+
+    await act(async () => result.current.guardarEstudiante());
+
+    expect(crearEnPreparacion).toHaveBeenCalledWith(
+      expect.objectContaining({ nombre: "Carla", curso_id: "50" }),
+    );
+    expect(crearMock).not.toHaveBeenCalled();
+  });
+
   it("carga la edición, adapta nulls y actualiza el identificador vigente", async () => {
     obtenerMock.mockResolvedValue({
       id: 12,

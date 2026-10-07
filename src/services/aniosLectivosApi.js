@@ -29,3 +29,41 @@ export async function copiarConfiguracionAnio(anioLectivoId, opciones) {
   );
   return data;
 }
+
+export async function listarCandidatosMatricula(
+  anioLectivoId,
+  cursoOrigenId,
+  { signal } = {},
+) {
+  const opciones = { params: { curso_origen_id: cursoOrigenId } };
+  if (signal) opciones.signal = signal;
+  const { data } = await api.get(
+    `/anios-lectivos/${anioLectivoId}/matriculas/candidatos`,
+    opciones,
+  );
+  return data;
+}
+
+export async function promoverEstudiantes(anioLectivoId, seleccion) {
+  const { data } = await api.post(
+    `/anios-lectivos/${anioLectivoId}/matriculas/promocion`,
+    seleccion,
+  );
+  return data;
+}
+
+export async function crearEstudianteEnPreparacion(anioLectivoId, estudiante) {
+  const { data } = await api.post(
+    `/anios-lectivos/${anioLectivoId}/estudiantes`,
+    estudiante,
+  );
+  return data;
+}
+
+export async function obtenerResumenAnio(anioLectivoId, { signal } = {}) {
+  const url = `/anios-lectivos/${anioLectivoId}/resumen`;
+  const { data } = signal
+    ? await api.get(url, { signal })
+    : await api.get(url);
+  return data;
+}

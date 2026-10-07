@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   anioLectivo: null,
   copiarConfiguracionAnio: vi.fn(),
+  listarCandidatosMatricula: vi.fn(),
+  listarCursos: vi.fn(),
   crearAnioLectivo: vi.fn(),
+  obtenerResumenAnio: vi.fn(),
+  promoverEstudiantes: vi.fn(),
   recargarAnios: vi.fn(),
   seleccionarAnio: vi.fn(),
 }));
@@ -21,12 +25,62 @@ vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
 vi.mock("../services/aniosLectivosApi", () => ({
   copiarConfiguracionAnio: mocks.copiarConfiguracionAnio,
   crearAnioLectivo: mocks.crearAnioLectivo,
+  listarCandidatosMatricula: mocks.listarCandidatosMatricula,
+  obtenerResumenAnio: mocks.obtenerResumenAnio,
+  promoverEstudiantes: mocks.promoverEstudiantes,
+}));
+vi.mock("../services/cursosApi", () => ({
+  listarCursos: mocks.listarCursos,
 }));
 
 import AniosLectivosAdmin from "./AniosLectivosAdmin";
 
 const ACTIVO = { id: 2, anio: 2026, estado: "activo" };
 const PREPARACION = { id: 3, anio: 2027, estado: "preparacion" };
+const CURSOS_2026 = [{ id: 10, nombre: "PRIMERO A", jornada: "Mañana" }];
+const CURSOS_2027 = [{ id: 20, nombre: "SEGUNDO A", jornada: "Mañana" }];
+const CANDIDATOS = {
+  candidatos: [
+    {
+      id: 1,
+      nombre: "Ana",
+      apellido: "Rojas",
+      documento_identidad: "1001",
+      estado: "activo",
+      matriculado_en_destino: false,
+      curso_destino_id: null,
+    },
+    {
+      id: 2,
+      nombre: "Luis",
+      apellido: "Pardo",
+      documento_identidad: "1002",
+      estado: "retirado",
+      matriculado_en_destino: false,
+      curso_destino_id: null,
+    },
+    {
+      id: 3,
+      nombre: "Sara",
+      apellido: "Díaz",
+      documento_identidad: "1003",
+      estado: "activo",
+      matriculado_en_destino: true,
+      curso_destino_id: 20,
+    },
+  ],
+};
+const RESUMEN = {
+  anio_lectivo: PREPARACION,
+  resumen: {
+    cursos: 12,
+    conceptos_pago: 2,
+    estudiantes_matriculados: 3,
+    valores_especiales: 1,
+    pagos_registrados: 1,
+    total_pagado: 250000,
+  },
+};
 
 function renderPagina() {
   return render(
@@ -48,6 +102,26 @@ beforeEach(() => {
       asignaciones: 40,
       directores_grupo: 12,
     },
+  });
+  mocks.listarCursos.mockImplementation((_estado, opciones = {}) =>
+    Promise.resolve(opciones.parametrosAnio ? CURSOS_2027 : CURSOS_2026),
+  );
+  mocks.listarCandidatosMatricula.mockResolvedValue(CANDIDATOS);
+  mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
+  mocks.promoverEstudiantes.mockResolvedValue({
+    cantidad_matriculados: 1,
+    matriculados: [1],
+    curso_destino_id: 20,
+    valores_especiales_copiados: [
+      {
+        id: 70,
+        estudiante_id: 1,
+        tipo_pago_nombre: "MENSUALIDAD",
+        valor: 180000,
+        motivo: "Beca parcial",
+        estado: "revisar",
+      },
+    ],
   });
 });
 
@@ -104,8 +178,8 @@ describe("preparación del año lectivo", () => {
       copiar_carga_academica: false,
       copiar_directores: true,
     });
-    expect(await screen.findByText("12 cursos")).toBeInTheDocument();
-    expect(screen.getByText("2 conceptos de pago")).toBeInTheDocument();
+    expect(await screen.findAllByText("12 cursos")).toHaveLength(2);
+    expect(screen.getAllByText("2 conceptos de pago")).toHaveLength(2);
     await waitFor(() => expect(mocks.recargarAnios).not.toHaveBeenCalled());
 
     await user.click(screen.getByRole("link", { name: "Administrar cursos" }));
@@ -124,5 +198,44 @@ describe("preparación del año lectivo", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Ya existe un año en preparación.",
     );
+  });
+
+  it("promueve solo los marcados y muestra los valores especiales para revisar", async () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+    const user = userEvent.setup();
+    renderPagina();
+
+    expect(await screen.findByText("3 estudiantes matriculados")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /activar/i })).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    expect(mocks.listarCandidatosMatricula).toHaveBeenCalledWith(3, 10, {
+      signal: expect.any(AbortSignal),
+    });
+
+    const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+    const luis = screen.getByRole("checkbox", { name: /Luis Pardo/ });
+    const sara = screen.getByRole("checkbox", { name: /Sara Díaz/ });
+    expect(ana).toBeChecked();
+    expect(luis).toBeChecked();
+    expect(sara).toBeDisabled();
+
+    await user.click(luis);
+    await user.selectOptions(screen.getByLabelText("Curso destino (2027)"), "20");
+    await user.click(screen.getByRole("button", { name: "Matricular 1 estudiante" }));
+
+    expect(mocks.promoverEstudiantes).toHaveBeenCalledWith(3, {
+      curso_origen_id: 10,
+      curso_destino_id: 20,
+      estudiante_ids: [1],
+    });
+    expect(await screen.findByText("1 estudiante matriculado correctamente.")).toBeInTheDocument();
+    expect(screen.getByText("Revisar")).toBeInTheDocument();
+    expect(screen.getByText(/MENSUALIDAD/)).toBeInTheDocument();
+    expect(screen.getByText("Beca parcial")).toBeInTheDocument();
+    await waitFor(() => expect(mocks.obtenerResumenAnio).toHaveBeenCalledTimes(2));
   });
 });

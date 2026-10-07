@@ -814,11 +814,16 @@ Estado actual de componentes y paginas del frontend.
 - `utils/estudiantesObservador/`: contratos y transformaciones puras.
 - Año lectivo, paso 4.4 (2026-10-05): la lista y la ficha cargan los datos del
   año que mira el admin (la página lee `useAnioLectivo()` y pasa
-  `parametrosAnio` a sus hooks). Mirando otro año, aunque esté en preparación,
-  es solo consulta: `EncabezadoEstudiantesAdmin` (prop `puedeCrear`) no
-  muestra "Nuevo Estudiante" y `ListaEstudiantesAdmin` (prop `puedeEditar`)
-  no muestra la columna de acciones; la ficha se sigue abriendo. Las dos
-  props valen `true` si no llegan, como antes.
+  `parametrosAnio` a sus hooks). Mirando otro año no se puede editar ni
+  cambiar estados: `ListaEstudiantesAdmin` (prop `puedeEditar`) no muestra la
+  columna de acciones; la ficha se sigue abriendo.
+- Año lectivo, paso 5.8 (2026-10-07): si ese otro año está en `preparacion`,
+  `EncabezadoEstudiantesAdmin` permite abrir el alta y
+  `useFormularioEstudianteAdmin` recibe el comando específico que publica en
+  `/anios-lectivos/{id}/estudiantes`. Solo ofrece los cursos de ese año. En
+  un año cerrado vuelve a ser únicamente consulta; mirando el activo conserva
+  el comando anterior. Las props siguen valiendo `true` si no llegan, como
+  antes.
 
 ### Observador del estudiante unificado
 
@@ -1146,16 +1151,21 @@ Notas:
 - `hooks/anioLectivo/`: `AnioLectivoProvider` (carga los años una vez y
   guarda en memoria el que mira el admin; desde 5.7 puede recargar y
   seleccionar el recién creado), `useAnioLectivo` (fuera del proveedor, el
-  comportamiento de antes) y `useAnioLectivoEnPantalla` (une el año con la
-  pantalla abierta para el selector y el aviso).
-- `pages/AniosLectivosAdmin.jsx`: pantalla admin del paso 5.7. Crea el
-  siguiente año, copia su configuración con tres opciones y enlaza a las
-  altas manuales; matriculación y resumen pertenecen al paso 5.8. Usa todo el
+  comportamiento de antes), `useAnioLectivoEnPantalla` (une el año con la
+  pantalla abierta para el selector y el aviso) y, desde 5.8,
+  `usePreparacionMatriculas` (candidatos, selección, promoción y resumen).
+- `pages/AniosLectivosAdmin.jsx`: pantalla admin de los pasos 5.7 y 5.8. Crea
+  el siguiente año, copia su configuración, enlaza a las altas manuales,
+  matricula por curso y presenta el resumen sin activar. Usa todo el
   ancho del `main` global, con tarjetas de menor padding y acciones apiladas a
   ancho completo en móvil; las opciones y conteos se reparten en columnas
   según aumenta la pantalla.
-- `services/aniosLectivosApi.js`: frontera HTTP de listar, crear y copiar
-  `/anios-lectivos`.
+- `components/anioLectivo/MatriculasPreparacionView.jsx`: cursos origen y
+  destino, candidatos seleccionables y resultado con valores especiales por
+  revisar. `ResumenPreparacionView.jsx` presenta solo los totales del backend.
+- `services/aniosLectivosApi.js`: frontera HTTP de listar, crear, copiar,
+  consultar/promover matrículas, crear un estudiante directo en preparación y
+  consultar el resumen de `/anios-lectivos`.
 - `utils/anioLectivo.js`: contrato puro del año lectivo, con
   `parametrosAnio` (`{}` mirando el año activo).
 
