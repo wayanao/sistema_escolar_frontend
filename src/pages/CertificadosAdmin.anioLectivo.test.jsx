@@ -22,6 +22,8 @@ import CertificadosAdmin from "./CertificadosAdmin";
 
 const { apiMock } = mocks;
 const CERRADO = {
+  anioActivo: { id: 1, anio: 2026, estado: "activo" },
+  anioSeleccionado: { id: 3, anio: 2025, estado: "cerrado" },
   parametros: { anio_lectivo_id: 3 },
   permisos: { esAnioActivo: false, puedeEditar: false },
 };
@@ -124,5 +126,20 @@ describe("Certificados mirando otro año", () => {
     expect(await screen.findByText("Evaluación oral")).toBeInTheDocument();
     expect(apiMock.get).toHaveBeenCalledWith("/boletines/admin/reporte-parcial/8/1", CON_ANIO);
     expect(apiMock.get).toHaveBeenCalledWith("/asistencia/historial/44/1", SIN_ANIO);
+  });
+
+  it("propone el año consultado en el certificado de matrícula y permite editarlo", async () => {
+    mocks.anioLectivo = CERRADO;
+    const user = userEvent.setup();
+
+    render(<CertificadosAdmin />);
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Certificado de matrícula" }));
+
+    const anio = screen.getByRole("spinbutton");
+    expect(anio).toHaveValue(2025);
+    await user.clear(anio);
+    await user.type(anio, "2024");
+    expect(anio).toHaveValue(2024);
   });
 });

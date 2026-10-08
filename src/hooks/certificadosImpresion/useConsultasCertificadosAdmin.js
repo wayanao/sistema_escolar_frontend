@@ -31,7 +31,13 @@ function esCancelacion(error, signal) {
 // `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
 // Cursos, estudiantes, boletines y reportes parciales son los de ese año; las
 // materias son un catálogo y el historial de asistencia parte de una clase.
-export default function useConsultasCertificadosAdmin({ parametrosAnio } = {}) {
+export default function useConsultasCertificadosAdmin({
+  parametrosAnio,
+  anioLectivoPropuesto,
+} = {}) {
+  const anioLectivoSugerido = String(
+    anioLectivoPropuesto ?? new Date().getFullYear(),
+  );
   const [cursos, setCursos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
   const [materias, setMaterias] = useState([]);
@@ -41,7 +47,7 @@ export default function useConsultasCertificadosAdmin({ parametrosAnio } = {}) {
   const [periodo, setPeriodo] = useState("1");
   const [periodoReporte, setPeriodoReporte] = useState("1");
   const [materiaReporte, setMateriaReporte] = useState(MATERIA_TODAS);
-  const [anioLectivo, setAnioLectivo] = useState(String(new Date().getFullYear()));
+  const [anioLectivo, setAnioLectivo] = useState(anioLectivoSugerido);
   const [loading, setLoading] = useState(true);
   const [generandoId, setGenerandoId] = useState(null);
   const [generandoCurso, setGenerandoCurso] = useState(false);
@@ -50,6 +56,10 @@ export default function useConsultasCertificadosAdmin({ parametrosAnio } = {}) {
   const [reporteParcial, setReporteParcial] = useState(null);
   const [error, setError] = useState("");
   const consultaRef = useRef(null);
+
+  useEffect(() => {
+    setAnioLectivo(anioLectivoSugerido);
+  }, [anioLectivoSugerido]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -178,13 +188,13 @@ export default function useConsultasCertificadosAdmin({ parametrosAnio } = {}) {
         curso: curso?.nombre || estudiante.curso_nombre || "Sin asignar",
         jornada: curso?.jornada || estudiante.jornada || "",
         estado: estudiante.estado || "activo",
-        anio_lectivo: anioLectivo || String(new Date().getFullYear()),
+        anio_lectivo: anioLectivo || anioLectivoSugerido,
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setGenerandoId(null);
     }
-  }, [anioLectivo, cursosPorId, estudiantes]);
+  }, [anioLectivo, anioLectivoSugerido, cursosPorId, estudiantes]);
 
   const construirReporteParcialRemoto = useCallback(async (
     estudiantesObjetivo,

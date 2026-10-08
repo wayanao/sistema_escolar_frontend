@@ -273,6 +273,20 @@ describe("useConsultasCertificadosAdmin con un año elegido", () => {
     });
   });
 
+  it("usa el año consultado como propuesta editable de la matrícula", async () => {
+    const { result } = renderHook(() =>
+      useConsultasCertificadosAdmin({
+        parametrosAnio,
+        anioLectivoPropuesto: 2027,
+      })
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.anioLectivo).toBe("2027");
+    act(() => result.current.setAnioLectivo("2028"));
+    expect(result.current.anioLectivo).toBe("2028");
+  });
+
   it("el certificado de notas y el reporte parcial son de ese año; la asistencia parte de la clase", async () => {
     const { result } = renderHook(() => useConsultasCertificadosAdmin({ parametrosAnio }));
     await waitFor(() => expect(result.current.loading).toBe(false));

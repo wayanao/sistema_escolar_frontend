@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **Fase 5 en curso; paso 5.9 terminado localmente el 2026-10-07,
-  pendiente de revisión y commit del usuario.** El paso 5.8 quedó confirmado
-  en `817c47e`; el paso 5.7 quedó en los
+- Estado: **Fase 5 completa en código; paso 5.10 terminado localmente el
+  2026-10-08, pendiente de revisión y commit del usuario.** El paso 5.9 quedó
+  confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
   terminados. La fase 4 quedó completa en el commit
   `8eac0ce`. Se inició el 2026-10-03 con
@@ -1064,9 +1064,9 @@ Contrato del backend ya listo para los puntos 3 y 4 (su fase 2, código del
   selector propio, activo por defecto e independiente del selector general;
   el historial quedó como estaba y las ventas siguen perteneciendo al activo.
 - Antes del paso 5.9, los hooks descartaban `deuda_anios_anteriores`; ya se
-  conserva y muestra separada. El impreso y el CSV todavía no reciben el año,
-  y el certificado de matrícula inicia su campo con el año del reloj: ambos
-  pendientes corresponden al paso 5.10.
+  conserva y muestra separada. El paso 5.10 completó los documentos: el
+  impreso y el nombre del CSV de Cartera identifican el año consultado, y el
+  certificado de matrícula lo propone sin dejar de ser editable.
 
 El plan completo, incluidos los pasos 5.1 a 5.6 del backend, está en el
 documento principal. Los pasos de este repo son:
@@ -1159,7 +1159,7 @@ detiene antes del siguiente.
 - Pruebas específicas: **37 pasan en 8 archivos**. Verificación global:
   **2227 pruebas pasan en 343 archivos**, lint limpio y build correcto.
 
-**Avance del 2026-10-07 — paso 5.9 terminado localmente, sin commit:**
+**Avance del 2026-10-07 — paso 5.9 terminado (`0689b7d`):**
 
 - Antes del cambio pasaron **114 pruebas de caracterización en 22 archivos**
   de Pagos, Cartera y la ficha de Estudiantes. Las pruebas nuevas se
@@ -1188,6 +1188,28 @@ detiene antes del siguiente.
   reales ni producción. Tampoco hubo commit, push ni despliegue.
 - Pruebas específicas: **76 pasan en 12 archivos**. Verificación global:
   **2245 pruebas pasan en 344 archivos**, lint limpio y build correcto.
+
+**Avance del 2026-10-08 — paso 5.10 terminado localmente, sin commit. Con él,
+la fase 5 queda completa en código:**
+
+- Antes de cambiar código pasaron **24 pruebas de caracterización en 6
+  archivos** de Cartera y Certificados. Fijan la impresión, la exportación
+  CSV y el campo editable del certificado de matrícula.
+- Las tres pruebas nuevas se escribieron primero y fallaron por lo que todavía
+  faltaba: el estado de cuenta no mostraba el año, el archivo no lo incluía en
+  su nombre y el certificado proponía el año del reloj.
+- El estado de cuenta por estudiante o curso muestra el año que mira el admin
+  y el CSV se descarga como `cartera_vencida_AAAA_FECHA.csv`. Ambos toman el
+  valor del proveedor de años lectivos; el frontend no calcula qué año es.
+- El certificado de matrícula propone ese mismo año consultado. El campo
+  continúa editable para que el admin pueda corregir el texto antes de
+  generar el documento.
+- No cambió ninguna petición ni respuesta HTTP, cálculo financiero, regla de
+  cobro o pantalla fuera de las indicadas. No se tocó el backend, migraciones,
+  bases reales ni producción; tampoco hubo commit, push ni despliegue.
+- Pruebas específicas finales: **27 pasan en 6 archivos**. Verificación
+  global: **2248 pruebas pasan en 344 archivos**, lint limpio y build
+  correcto.
 
 ### Fase 6 — Activar el año
 
@@ -1294,8 +1316,8 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   deuda. ¿Se agrega el año al impreso y al nombre del CSV? Sería algo nuevo,
   que no está en los documentos, así que no se hizo. No bloquea la fase 4:
   mientras haya un solo año, no se puede mirar otro.~~ **Respondida el
-  2026-10-05: sí.** El impreso y el nombre del CSV identificarán el año
-  consultado en el paso 5.10.
+  2026-10-05: sí.** El paso 5.10 quedó terminado el 2026-10-08: el impreso
+  y el nombre del CSV identifican el año consultado.
 - Encontrada en el paso 4.5, de antes de esta función (ver su hallazgo):
   Boletines y Certificados solo listan estudiantes **activos**, así que hoy
   no se le puede sacar un certificado ni un boletín a un retirado o a un
@@ -1314,16 +1336,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   calendario (`useConsultasCertificadosAdmin`, existe desde junio de 2026 y
   no es parte de esta función). Mirando 2027 en preparación propondría 2026
   junto al curso de 2027. ¿Debe proponer el año que se está mirando?~~
-  **Respondida el 2026-10-05: sí.** Se hará en el paso 5.10; el campo seguirá
-  siendo editable.
+  **Respondida el 2026-10-05: sí.** El paso 5.10 quedó terminado el
+  2026-10-08: propone el año consultado y el campo sigue siendo editable.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada con código: **paso 5.9 de la fase 5**, selector
-  propio de Pagos y deuda anterior separada en Pagos, Cartera y la ficha del
-  estudiante. Está terminado localmente, todavía sin commit. El paso 5.8
-  quedó en `817c47e`; el paso 5.7 quedó en `0848214` y su ajuste responsive
-  en `e3aced5`.
+- Última acción terminada con código: **paso 5.10 de la fase 5**, año
+  consultado en el estado de cuenta y nombre del CSV de Cartera, y como
+  propuesta editable del certificado de matrícula. Está terminado localmente,
+  todavía sin commit. Con él, la fase 5 queda completa en código. El paso 5.9
+  quedó confirmado en `0689b7d`; el paso 5.8 en `817c47e`; el paso 5.7 quedó
+  en `0848214` y su ajuste responsive en `e3aced5`.
   El paso anterior a la fase 5 fue 4.7, commit `8eac0ce` del 2026-10-05.
   Antes: inventario y
   plan por pasos (commit `dbb0e48`), paso 4.1 (`4b14347`), paso 4.2
@@ -1336,8 +1359,9 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   Cartera y el año seleccionado como propuesta del certificado de matrícula.
   Los pasos 5.1 a 5.6 del backend ya terminaron; el último es el commit local
   `102ec77`. Al iniciar 5.7, ambos repos estaban en `main` y limpios; el
-  backend registró después el paso 5.8 en `d3cdfd3`. Al cerrar 5.9 está
-  `ahead 6` y solo tiene pendiente esta actualización del documento principal.
+  backend registró después el paso 5.8 en `d3cdfd3` y el 5.9 en `53da8f0`.
+  Antes de iniciar 5.10, ambos repos estaban en `main` y limpios: frontend
+  `0689b7d` (`ahead 4`) y backend `53da8f0` (`ahead 7`).
 - Antes: **diseño y documentación**, 2026-09-29, ampliado el 2026-09-30
   con el diálogo de materias, la fase 7 y los conceptos de pago por año.
   Comprobado el 2026-10-01: lo único con "año lectivo" en `src/` es el
@@ -1361,12 +1385,13 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción exacta: el usuario revisa y hace el commit del **paso 5.9**.
-  Después, y solo con autorización explícita, se inicia el **paso 5.10 — año
-  en los documentos del frontend**. Sigue abierta, para antes de la fase 6,
-  la pregunta separada de Certificados y estudiantes retirados/egresados; no
-  bloqueó 5.9.
-- Verificación de 5.9: 76 pruebas específicas en 12 archivos;
-  `pnpm run check:deploy` limpio con 2245 pruebas en 344 archivos, lint y
-  build correctos. `git diff --check` quedó limpio.
+- Siguiente acción exacta: el usuario revisa y hace el commit del **paso
+  5.10** en el frontend y de la actualización documental correspondiente en
+  el backend. No iniciar la fase 6. Antes de autorizarla hay que responder la
+  pregunta abierta de Certificados con retirados/egresados y la del estado de
+  quien termina el último grado.
+- Verificación de 5.10: caracterización, 24 pruebas en 6 archivos; pruebas
+  específicas finales, 27 en 6 archivos; `pnpm run check:deploy` limpio con
+  2248 pruebas en 344 archivos, lint y build correctos. `git diff --check`
+  limpio en ambos repos.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

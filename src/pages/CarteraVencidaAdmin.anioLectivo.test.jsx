@@ -18,22 +18,34 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
     default: () => mocks.anioLectivo,
 }));
+vi.mock("../components/impresion/DocumentoImprimible", () => ({
+    default: ({ children, subtitulo }) => (
+        <div data-testid="documento-imprimible">
+            <p>{subtitulo}</p>
+            {children}
+        </div>
+    ),
+}));
 
 import CarteraVencidaAdmin from "./CarteraVencidaAdmin";
 
 const { apiMock } = mocks;
 // Lo mismo que recibe la página fuera del proveedor (`useAnioLectivo`).
 const ANIO_ACTIVO = {
+    anioActivo: { id: 1, anio: 2026, estado: "activo" },
+    anioSeleccionado: { id: 1, anio: 2026, estado: "activo" },
     parametros: SIN_PARAMETROS_DE_ANIO,
     permisos: permisosAnio(null, null),
 };
 const CERRADO = {
+    anioActivo: { id: 1, anio: 2026, estado: "activo" },
+    anioSeleccionado: { id: 3, anio: 2025, estado: "cerrado" },
     parametros: { anio_lectivo_id: 3 },
     permisos: { esAnioActivo: false, puedeEditar: false },
 };
 const CERRADO_CON_ANIO = { params: { anio_lectivo_id: 3 } };
 
-// Mirando 2026 ya cerrado: Luis se retiró debiendo. El backend lo trae igual
+// Mirando 2025 ya cerrado: Luis se retiró debiendo. El backend lo trae igual
 // y sin ventas (decisiones 18 y 19), y la pantalla lo muestra tal cual.
 const LUIS = {
     estudiante_id: 2,
@@ -63,6 +75,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
 });
 
@@ -100,6 +113,36 @@ describe("Cartera vencida mirando otro año", () => {
             ["/cartera/mora", CERRADO_CON_ANIO],
         ]);
         expect(reload).not.toHaveBeenCalled();
+    });
+
+    it("identifica el año consultado en el impreso y en el nombre del CSV", async () => {
+        mocks.anioLectivo = CERRADO;
+        let nombreDescarga = "";
+        Object.defineProperty(URL, "createObjectURL", {
+            configurable: true,
+            value: vi.fn(() => "blob:cartera"),
+        });
+        Object.defineProperty(URL, "revokeObjectURL", {
+            configurable: true,
+            value: vi.fn(),
+        });
+        vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () {
+            nombreDescarga = this.download;
+        });
+
+        render(<CarteraVencidaAdmin />);
+        await screen.findByText("Gómez, Luis");
+
+        fireEvent.click(screen.getByRole("button", { name: "Imprimir" }));
+        expect(
+            screen.getByText("Estudiante: Gómez Luis · Año lectivo 2025"),
+        ).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "← Atrás" }));
+
+        fireEvent.click(screen.getByRole("button", { name: "⬇ Exportar CSV" }));
+        expect(nombreDescarga).toMatch(
+            /^cartera_vencida_2025_\d{4}-\d{2}-\d{2}\.csv$/,
+        );
     });
 });
 

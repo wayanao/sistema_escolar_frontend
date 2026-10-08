@@ -786,9 +786,10 @@ Estado actual de componentes y paginas del frontend.
   contratos puros de los documentos.
 - Año lectivo, paso 4.5 (2026-10-05): `pages/CertificadosAdmin.jsx` lee
   `useAnioLectivo()`; cursos, estudiantes, certificado de notas y reporte
-  parcial son los del año que mira el admin. El certificado de matrícula no
-  cambió (su año sigue siendo un campo de texto; ver la pregunta abierta en
-  `docs/funcionalidades/ANIO_LECTIVO.md`).
+  parcial son los del año que mira el admin.
+- Año lectivo, paso 5.10 (2026-10-08): el certificado de matrícula propone el
+  año seleccionado por el admin. `useConsultasCertificadosAdmin` conserva ese
+  valor como estado controlado y editable antes de generar el documento.
 
 ### Estudiantes y observador
 
@@ -922,6 +923,9 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   `total_anios_anteriores` y el detalle por estudiante en columnas y bloques
   separados, sin sumarlos al total del año consultado. `Cobrar` está disponible
   también mirando otro año y navega a Pagos con ese año en `location.state`.
+- Año lectivo, paso 5.10 (2026-10-08): los estados de cuenta por estudiante o
+  curso muestran el año seleccionado, y el nombre del CSV lo incluye antes de
+  la fecha. Es información de presentación; consultas y totales no cambian.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
   formulario básico, configuración y asignación de cursos.
 - `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.

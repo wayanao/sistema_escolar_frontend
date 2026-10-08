@@ -1,5 +1,24 @@
 # Cambios Frontend
 
+## 2026-10-08 - Año lectivo: año en documentos (fase 5, paso 5.10)
+
+Los documentos que dependen del período ya identifican el año que está
+consultando el administrador.
+
+- El estado de cuenta impreso de Cartera muestra el año lectivo, tanto por
+  estudiante como por curso.
+- El nombre del CSV de Cartera incluye el año antes de la fecha.
+- El certificado de matrícula propone el año consultado y conserva el campo
+  editable.
+- El dato sale del proveedor de años lectivos; no se añadieron cálculos de
+  fechas, peticiones HTTP ni reglas de cobro.
+- Caracterización previa: 24 pruebas en 6 archivos. Las 3 pruebas nuevas se
+  escribieron primero y fallaron por el comportamiento todavía ausente.
+  Pruebas específicas finales: 27 en 6 archivos.
+
+Verificación: `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
+lint y build correctos; `git diff --check` limpio.
+
 ## 2026-10-07 - Año lectivo: Pagos y deuda anterior (fase 5, paso 5.9)
 
 Pagos ya permite elegir el año que se va a cobrar, con el activo como valor

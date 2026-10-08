@@ -9,7 +9,7 @@ import { fechaIsoColombia } from "../utils/fechaColombia";
 
 function CarteraVencidaAdmin() {
     const navigate = useNavigate();
-    const { parametros, permisos } = useAnioLectivo();
+    const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
     const cartera = useCarteraVencida({ parametrosAnio: parametros });
     const [expandido, setExpandido] = useState(null);
     const [reporteImpresion, setReporteImpresion] = useState(null);
@@ -29,6 +29,7 @@ function CarteraVencidaAdmin() {
             tipo: "estudiante",
             nombre: nombreCompleto(item),
             fechaCorte,
+            anioLectivo: anioSeleccionado?.anio ?? null,
             items: [item],
         });
     };
@@ -39,6 +40,7 @@ function CarteraVencidaAdmin() {
             tipo: "curso",
             nombre: cartera.cursoSeleccionado.nombre,
             fechaCorte,
+            anioLectivo: anioSeleccionado?.anio ?? null,
             items: cartera.itemsFiltrados,
         });
     };
@@ -50,7 +52,10 @@ function CarteraVencidaAdmin() {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `cartera_vencida_${fechaIsoColombia()}.csv`;
+        const anioArchivo = anioSeleccionado?.anio
+            ? `_${anioSeleccionado.anio}`
+            : "";
+        anchor.download = `cartera_vencida${anioArchivo}_${fechaIsoColombia()}.csv`;
         anchor.click();
         URL.revokeObjectURL(url);
     };

@@ -422,6 +422,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - `DocumentoImprimible` conserva branding, plantilla activa, firmas, pie,
   formato A4, desplazamiento horizontal móvil y ambos comandos basados en
   `window.print()`.
+- Año lectivo (paso 5.10): el certificado de matrícula recibe como propuesta
+  el año consultado desde `AnioLectivoProvider`; el campo sigue controlado y
+  editable. No se añade transporte ni se decide el año dentro del documento.
 - No quedan adaptadores administrativos ni implementaciones antiguas paralelas
   de identidad, plantillas o vistas de certificados.
 
@@ -464,6 +467,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   utilidades concentran formatos, filtros, totales, CSV y payloads.
 - `DocumentoImprimible` conserva identidad institucional, formato A4 y scroll
   horizontal móvil para los estados de cuenta.
+- Año lectivo (paso 5.10): la página agrega el año seleccionado al modelo de
+  impresión y al nombre del CSV. La vista solo lo presenta; los contratos HTTP
+  y los cálculos de Cartera no cambian.
 - No queda el controlador anterior `components/cartera/AdministrarTiposPago`
   ni existen implementaciones HTTP o visuales paralelas.
 

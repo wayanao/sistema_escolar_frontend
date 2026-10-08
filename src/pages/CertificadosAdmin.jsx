@@ -11,8 +11,11 @@ export default function CertificadosAdmin() {
   const [tabActiva, setTabActiva] = useState("notas");
   // Solo consulta e imprime: el año elegido cambia qué se ve, no hay botones
   // que esconder.
-  const { parametros } = useAnioLectivo();
-  const consultas = useConsultasCertificadosAdmin({ parametrosAnio: parametros });
+  const { anioSeleccionado, parametros } = useAnioLectivo();
+  const consultas = useConsultasCertificadosAdmin({
+    parametrosAnio: parametros,
+    anioLectivoPropuesto: anioSeleccionado?.anio,
+  });
 
   if (consultas.certificado) {
     return (
