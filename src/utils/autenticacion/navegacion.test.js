@@ -14,6 +14,7 @@ function resumirItems(items) {
     if (item.children) {
       resumen.children = item.children.map((child) => {
         const hijo = { id: child.id, label: child.label, to: child.to };
+        if (child.end !== undefined) hijo.end = child.end;
         if (child.translate !== undefined) hijo.translate = child.translate;
         return hijo;
       });
@@ -26,12 +27,6 @@ describe("contratos puros de navegacion", () => {
   it("conserva el arbol, orden, textos y rutas de admin", () => {
     expect(resumirItems(ADMIN_DESKTOP_ITEMS)).toStrictEqual([
       { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
-      {
-        id: "anios-lectivos",
-        type: "link",
-        label: "Años lectivos",
-        to: "/admin/anios-lectivos",
-      },
       {
         id: "academica",
         type: "group",
@@ -60,7 +55,24 @@ describe("contratos puros de navegacion", () => {
           { id: "nomina", label: "Nómina", to: "/admin/nomina", translate: "no" },
         ],
       },
-      { id: "administracion", type: "link", label: "Administración", to: "/admin", end: true },
+      {
+        id: "administracion",
+        type: "group",
+        label: "Administración",
+        children: [
+          {
+            id: "estructura-academica",
+            label: "Estructura académica",
+            to: "/admin",
+            end: true,
+          },
+          {
+            id: "anios-lectivos",
+            label: "Años lectivos",
+            to: "/admin/anios-lectivos",
+          },
+        ],
+      },
       { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes" },
       { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes" },
     ]);
@@ -95,7 +107,7 @@ describe("contratos puros de navegacion", () => {
   it.each([
     [ADMIN_DESKTOP_ITEMS, "/dashboard-admin", "dashboard"],
     [ADMIN_DESKTOP_ITEMS, "/dashboard-admin/detalle", "dashboard"],
-    [ADMIN_DESKTOP_ITEMS, "/admin/anios-lectivos", "anios-lectivos"],
+    [ADMIN_DESKTOP_ITEMS, "/admin/anios-lectivos", "administracion"],
     [ADMIN_DESKTOP_ITEMS, "/admin/planeadores-clases/18", "academica"],
     [ADMIN_DESKTOP_ITEMS, "/admin/pagos/18", "cartera"],
     [ADMIN_DESKTOP_ITEMS, "/admin", "administracion"],

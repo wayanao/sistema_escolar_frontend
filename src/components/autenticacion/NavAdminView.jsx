@@ -86,7 +86,6 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones, renderSelectorAnio
       {isMenuOpen && (
         <nav className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 px-4 pb-4 sm:px-6 xl:px-8 lg:hidden">
           <NavLink onClick={closeMobile} className={mobileLinkClass} to={RUTAS_SESION.INICIO_ADMIN}>Dashboard</NavLink>
-          <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/anios-lectivos">Años lectivos</NavLink>
 
           <button
             type="button"
@@ -142,7 +141,28 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones, renderSelectorAnio
             </div>
           )}
 
-          <NavLink end onClick={closeMobile} className={mobileLinkClass} to="/admin">Administración</NavLink>
+          <button
+            type="button"
+            onClick={() => toggleMobileGroup("administracion")}
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-base font-semibold transition ${
+              openMobileGroup === "administracion"
+                ? "bg-purple-900/35 text-white"
+                : "text-white hover:bg-purple-600 hover:text-white"
+            }`}
+            aria-expanded={openMobileGroup === "administracion"}
+          >
+            <span>Administración</span>
+            <svg className={`h-4 w-4 transition-transform ${openMobileGroup === "administracion" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {openMobileGroup === "administracion" && (
+            <div className="ml-3 flex flex-col gap-1 border-l border-purple-300/40 pl-3">
+              <NavLink end onClick={closeMobile} className={mobileSubLinkClass} to="/admin">Estructura académica</NavLink>
+              <NavLink onClick={closeMobile} className={mobileSubLinkClass} to="/admin/anios-lectivos">Años lectivos</NavLink>
+            </div>
+          )}
+
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/estudiantes">Estudiantes</NavLink>
           <NavLink onClick={closeMobile} className={mobileLinkClass} to="/admin/reportes">Reportes</NavLink>
           <button onClick={onCerrarSesion} className="text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left mt-2">Cerrar sesión</button>

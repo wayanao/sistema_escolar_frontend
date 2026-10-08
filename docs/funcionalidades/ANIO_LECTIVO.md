@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Fase 5 completa en código; paso 5.10 terminado localmente el
-  2026-10-08, pendiente de revisión y commit del usuario.** El paso 5.9 quedó
-  confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
+- Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación terminado
+  localmente el 2026-10-08, pendiente de revisión y commit del usuario.** El
+  paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
+  5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
   terminados. La fase 4 quedó completa en el commit
   `8eac0ce`. Se inició el 2026-10-03 con
@@ -1211,6 +1212,21 @@ la fase 5 queda completa en código:**
   global: **2248 pruebas pasan en 344 archivos**, lint limpio y build
   correcto.
 
+**Ajuste del 2026-10-08 — navegación de Años lectivos, terminado localmente
+sin commit:**
+
+- A pedido del usuario, `Años lectivos` deja de ser una entrada principal del
+  menú. `Administración` pasa a ser un grupo con `Estructura académica`, que
+  conserva `/admin`, y `Años lectivos`, que conserva
+  `/admin/anios-lectivos`.
+- La misma organización se aplicó al menú de escritorio y al móvil. No cambió
+  ninguna ruta, pantalla, petición, permiso ni comportamiento del backend.
+- Antes del cambio pasaron las **23 pruebas de caracterización** de navegación.
+  Las expectativas nuevas se escribieron primero y fallaron en 3 puntos contra
+  el menú anterior. Al terminar pasan las **23 pruebas específicas**.
+- Verificación global: **2248 pruebas pasan en 344 archivos**, lint limpio y
+  build correcto.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -1341,11 +1357,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 ## Entrega para el siguiente chat
 
-- Última acción terminada con código: **paso 5.10 de la fase 5**, año
-  consultado en el estado de cuenta y nombre del CSV de Cartera, y como
-  propuesta editable del certificado de matrícula. Está terminado localmente,
-  todavía sin commit. Con él, la fase 5 queda completa en código. El paso 5.9
-  quedó confirmado en `0689b7d`; el paso 5.8 en `817c47e`; el paso 5.7 quedó
+- Última acción terminada con código: **ajuste de navegación posterior a la
+  fase 5**. `Administración` agrupa ahora `Estructura académica` y `Años
+  lectivos` en escritorio y móvil, sin cambiar sus rutas. Está terminado
+  localmente, todavía sin commit. La fase 5 quedó completa y confirmada: paso
+  5.10 en `82675ba`, paso 5.9 en `0689b7d`, paso 5.8 en `817c47e`; paso 5.7
   en `0848214` y su ajuste responsive en `e3aced5`.
   El paso anterior a la fase 5 fue 4.7, commit `8eac0ce` del 2026-10-05.
   Antes: inventario y
@@ -1385,13 +1401,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción exacta: el usuario revisa y hace el commit del **paso
-  5.10** en el frontend y de la actualización documental correspondiente en
-  el backend. No iniciar la fase 6. Antes de autorizarla hay que responder la
-  pregunta abierta de Certificados con retirados/egresados y la del estado de
-  quien termina el último grado.
-- Verificación de 5.10: caracterización, 24 pruebas en 6 archivos; pruebas
-  específicas finales, 27 en 6 archivos; `pnpm run check:deploy` limpio con
-  2248 pruebas en 344 archivos, lint y build correctos. `git diff --check`
-  limpio en ambos repos.
+- Siguiente acción exacta: el usuario revisa y hace el commit de este **ajuste
+  de navegación** en el frontend. No iniciar la fase 6. Antes de autorizarla
+  hay que responder la pregunta abierta de Certificados con
+  retirados/egresados y la del estado de quien termina el último grado.
+- Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
+  archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
+  lint y build correctos. `git diff --check` limpio.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ANIO_LECTIVO.md`.

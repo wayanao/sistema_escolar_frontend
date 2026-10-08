@@ -70,6 +70,9 @@ Estado actual de componentes y paginas del frontend.
   usa indicador animado medido por elemento activo/hover, sin depender de
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
   escritorio usan `15px` para mejorar lectura.
+- En el menú admin, `Administración` agrupa `Estructura académica` (`/admin`) y
+  `Años lectivos` (`/admin/anios-lectivos`). `NavAdminView` replica el grupo en
+  móvil; las pruebas comparan sus destinos con el árbol de escritorio.
 - `components/autenticacion/NavSuperAdminView.jsx`: menu principal para super
   admin de plataforma.
 - Las tres vistas de navegación muestran el logotipo

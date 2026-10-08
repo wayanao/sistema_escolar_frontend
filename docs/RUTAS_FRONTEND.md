@@ -85,7 +85,8 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 `src/components/autenticacion/NavAdminView.jsx` muestra enlaces a:
 
 - Dashboard admin.
-- Administracion academica.
+- Estructura académica.
+- Años lectivos.
 - Horarios.
 - Planeadores de clases.
 - Certificados.
@@ -105,9 +106,11 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 
 En movil, `NavAdminView` separa enlaces principales de grupos colapsables. Al abrir
 el menu no se despliegan todas las subpestanas: el usuario selecciona el grupo
-correspondiente, por ejemplo Gestion Academica o Cartera, y entonces se muestran
-sus subenlaces. Los subenlaces usan estilo indentado/diferenciado para no
-confundirse con las pestañas principales.
+correspondiente, por ejemplo Gestión Académica, Cartera o Administración, y
+entonces se muestran sus subenlaces. Administración contiene Estructura
+académica (`/admin`) y Años lectivos (`/admin/anios-lectivos`). Los subenlaces
+usan estilo indentado/diferenciado para no confundirse con las pestañas
+principales. En escritorio se conserva la misma agrupación.
 
 La opcion `Nómina` esta marcada con `translate="no"` para evitar que navegadores
 moviles la traduzcan como `nombre`.

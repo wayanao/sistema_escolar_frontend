@@ -1,12 +1,6 @@
 export const ADMIN_DESKTOP_ITEMS = [
   { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
   {
-    id: "anios-lectivos",
-    type: "link",
-    label: "Años lectivos",
-    to: "/admin/anios-lectivos",
-  },
-  {
     id: "academica",
     type: "group",
     label: "Gestión Académica",
@@ -34,7 +28,24 @@ export const ADMIN_DESKTOP_ITEMS = [
       { id: "nomina", label: "Nómina", to: "/admin/nomina", translate: "no" },
     ],
   },
-  { id: "administracion", type: "link", label: "Administración", to: "/admin", end: true },
+  {
+    id: "administracion",
+    type: "group",
+    label: "Administración",
+    children: [
+      {
+        id: "estructura-academica",
+        label: "Estructura académica",
+        to: "/admin",
+        end: true,
+      },
+      {
+        id: "anios-lectivos",
+        label: "Años lectivos",
+        to: "/admin/anios-lectivos",
+      },
+    ],
+  },
   { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes" },
   { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes" },
 ];

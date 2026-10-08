@@ -1,5 +1,21 @@
 # Cambios Frontend
 
+## 2026-10-08 - Navegación: Año lectivo dentro de Administración
+
+El acceso a la preparación del año deja de ocupar una pestaña principal del
+menú del administrador.
+
+- `Administración` ahora es un grupo desplegable en escritorio y móvil.
+- `Estructura académica` abre la pantalla existente `/admin`.
+- `Años lectivos` conserva `/admin/anios-lectivos` dentro del mismo grupo.
+- No cambian rutas, permisos, pantallas, peticiones ni backend.
+- Las 23 pruebas de caracterización pasaron antes del cambio. Las expectativas
+  nuevas fallaron en 3 puntos contra el menú anterior y las 23 pruebas
+  específicas pasan con la nueva organización.
+
+Verificación: `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
+lint y build correctos; `git diff --check` limpio.
+
 ## 2026-10-08 - Año lectivo: año en documentos (fase 5, paso 5.10)
 
 Los documentos que dependen del período ya identifican el año que está

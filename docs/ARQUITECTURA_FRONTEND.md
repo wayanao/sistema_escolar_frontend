@@ -292,6 +292,9 @@ y decisiones de cada guard. El layout general lee `usuario` y después
 - `components/autenticacion/` recibe datos y acciones mediante props. Solo
   mantiene estado visual local para mostrar la contraseña y controlar los
   menús responsive.
+- El árbol del administrador agrupa `/admin` como `Estructura académica` y
+  `/admin/anios-lectivos` bajo `Administración`. La versión móvil conserva los
+  mismos destinos mediante su grupo colapsable; las rutas no cambian.
 - `pages/Login.jsx`, `pages/CambiarPassword.jsx` y los layouts privados de
   `App.jsx` son las raíces de composición. `App.jsx` conserva rutas, imports
   lazy, fallbacks y límites de `Suspense`.

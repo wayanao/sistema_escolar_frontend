@@ -67,6 +67,14 @@ describe("vistas de navegacion", () => {
       "translate",
       "no",
     );
+    expect(within(desktop).getByRole("link", { name: "Estructura académica" })).toHaveAttribute(
+      "href",
+      "/admin",
+    );
+    expect(within(desktop).getByRole("link", { name: "Años lectivos" })).toHaveAttribute(
+      "href",
+      "/admin/anios-lectivos",
+    );
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
     expect(onCerrarSesion).toHaveBeenCalledTimes(1);
@@ -79,6 +87,9 @@ describe("vistas de navegacion", () => {
     await user.click(screen.getByRole("button", { name: "Cartera" }));
     expect(screen.queryAllByRole("link", { name: "Horarios Asignados" })).toHaveLength(1);
     expect(screen.getByRole("link", { name: "Pagos" })).toHaveAttribute("href", "/admin/pagos");
+    await user.click(screen.getByRole("button", { name: "Administración" }));
+    expect(screen.getAllByRole("link", { name: "Estructura académica" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Años lectivos" })).toHaveLength(2);
 
     await user.click(screen.getByRole("button", { name: "Notificaciones" }));
     expect(screen.queryByRole("button", { name: "Cartera" })).not.toBeInTheDocument();
