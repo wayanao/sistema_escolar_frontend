@@ -1423,8 +1423,13 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 - Pendiente de preguntar antes del código del frontend de esta fase: en qué
   pantalla marca el admin a quien no sigue (por ejemplo, en la de promoción por
   curso o en la lista de pendientes de la vista previa).
-- Siguiente acción exacta: el paso 6.2b del backend, cuando el usuario lo
-  autorice. No iniciar todavía el código del frontend.
+- El 6.2b del backend quedó terminado localmente el mismo día:
+  `PUT /anios-lectivos/{id}/matriculas/salida` guarda o quita la marca, y la
+  promoción rechaza con `409` a quien la tenga. La respuesta de candidatos no
+  cambió: si la pantalla de promoción va a mostrar la marca, el backend tendrá
+  que exponerla cuando se decida esa pantalla.
+- Siguiente acción exacta: el paso 6.3 del backend (activar el año), cuando el
+  usuario lo autorice. No iniciar todavía el código del frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
