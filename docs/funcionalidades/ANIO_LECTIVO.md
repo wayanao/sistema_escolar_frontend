@@ -1253,7 +1253,9 @@ sin commit:**
    curso toma sus estudiantes de `estudiantes.curso_id`, así que la de un
    curso de 2026 saldrá vacía después de activar 2027. Si se quiere
    consultar las listas de 2026, el backend tiene que leerlas por matrícula,
-   como el boletín desde el paso 3.5a.
+   como el boletín desde el paso 3.5a. **Resuelto en el backend el
+   2026-10-09 (paso 6.4b):** la lista de un curso trae a sus matriculados; el
+   frontend no cambia.
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1455,8 +1457,13 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   y 6.4b (listas de seguimiento por matrícula). El 6.4c (comprobaciones de las
   pantallas del profesor) queda para después. Contrato en
   `sistema_escolar_api/docs/API_ENDPOINTS.md`.
-- Siguiente acción exacta: el paso 6.4b del backend, cuando el usuario lo
-  autorice. No iniciar todavía el código del frontend.
+- El 6.4b del backend quedó terminado localmente el mismo día: la lista de
+  seguimiento de un curso y la validación de sus marcas leen a los
+  matriculados en ese curso. **El backend de la fase 6 está completo**, salvo
+  el 6.4c, aplazado.
+- Siguiente acción exacta: la **fase 6 del frontend** (ver su plan arriba),
+  cuando el usuario la autorice. Antes de su código hay que preguntar en qué
+  pantalla marca el admin a quien no sigue.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
