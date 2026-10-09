@@ -1428,8 +1428,19 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   promoción rechaza con `409` a quien la tenga. La respuesta de candidatos no
   cambió: si la pantalla de promoción va a mostrar la marca, el backend tendrá
   que exponerla cuando se decida esa pantalla.
-- Siguiente acción exacta: el paso 6.3 del backend (activar el año), cuando el
-  usuario lo autorice. No iniciar todavía el código del frontend.
+- El 2026-10-08 el usuario autorizó el paso 6.3 del backend y lo dividió en
+  6.3a (activar) y 6.3b (boletín de un año cerrado con su foto de materias).
+  El 6.3a quedó terminado localmente en el backend:
+  `POST /anios-lectivos/{id}/activar` con `{"confirmar_anio": 2027}`. El
+  backend también exige el año escrito (decisión del usuario), así que la
+  confirmación de esta pantalla debe mandar el número que el admin escribió,
+  no el del año seleccionado. Si quedan pendientes, responde `409` con
+  `detail` como objeto `{codigo: "activacion_con_pendientes", mensaje,
+  sin_decidir}`, igual que el aviso de materias; los demás errores llegan como
+  texto. Quien sigue conserva su estado al activar, aunque sea `retirado` o
+  `inactivo`. Contrato en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
+- Siguiente acción exacta: el paso 6.3b del backend, cuando el usuario lo
+  autorice. No iniciar todavía el código del frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
