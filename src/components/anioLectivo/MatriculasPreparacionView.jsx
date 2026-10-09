@@ -1,8 +1,17 @@
+import {
+  SALIDA_EGRESADO,
+  SALIDA_RETIRADO,
+  etiquetaSalida,
+  puedeMatricularseEnDestino,
+} from "../../utils/anioLectivo";
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
 import { obtenerEtiquetaEstadoEstudiante } from "../../utils/estudiantesObservador/estudiantes";
 
 const claseControl =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200";
+
+const claseBotonSalida =
+  "rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function MatriculasPreparacionView({
   anioActivo,
@@ -16,10 +25,12 @@ export default function MatriculasPreparacionView({
   cargandoPreparacion,
   cargandoCandidatos,
   promoviendo,
+  guardandoSalidaId,
   resultado,
   onCambiarOrigen,
   onCambiarDestino,
   onAlternarEstudiante,
+  onMarcarSalida,
   onPromover,
 }) {
   const cantidad = seleccionados.length;
@@ -30,7 +41,8 @@ export default function MatriculasPreparacionView({
       <h2 className="text-xl font-bold text-gray-900">2. Matricular estudiantes</h2>
       <p className="mt-2 text-sm text-gray-600">
         Elige el curso de {anioActivo.anio}, su destino en {anioPreparacion.anio}{" "}
-        y desmarca a quien no pasa con ese grupo.
+        y desmarca a quien no pasa con ese grupo. A quien no sigue en{" "}
+        {anioPreparacion.anio}, márcalo como retirado o egresado.
       </p>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
@@ -93,38 +105,86 @@ export default function MatriculasPreparacionView({
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {candidatos.map((candidato) => {
               const yaMatriculado = candidato.matriculado_en_destino;
+              const marca = candidato.estado_salida;
+              const disponible = puedeMatricularseEnDestino(candidato);
+              const nombreCompleto = `${candidato.nombre} ${candidato.apellido}`;
+              const bloqueado = promoviendo || guardandoSalidaId === candidato.id;
               return (
-                <label
+                <div
                   key={candidato.id}
-                  className={`flex min-w-0 items-start gap-3 rounded-lg border p-3 ${
-                    yaMatriculado
-                      ? "border-gray-200 bg-gray-100 text-gray-500"
-                      : "border-gray-200 bg-white text-gray-900"
+                  className={`min-w-0 rounded-lg border p-3 ${
+                    disponible
+                      ? "border-gray-200 bg-white text-gray-900"
+                      : "border-gray-200 bg-gray-100 text-gray-500"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={seleccionados.includes(candidato.id)}
-                    disabled={yaMatriculado}
-                    onChange={() => onAlternarEstudiante(candidato.id)}
-                    aria-label={`${candidato.nombre} ${candidato.apellido}`}
-                    className="mt-1 h-4 w-4 shrink-0"
-                  />
-                  <span className="min-w-0 text-sm">
-                    <span className="block font-semibold">
-                      {candidato.nombre} {candidato.apellido}
-                    </span>
-                    <span className="block break-words text-xs">
-                      {candidato.documento_identidad || "Sin documento"} ·{" "}
-                      {obtenerEtiquetaEstadoEstudiante(candidato.estado)}
-                    </span>
-                    {yaMatriculado && (
-                      <span className="mt-1 block text-xs font-semibold text-emerald-700">
-                        Ya matriculado en {anioPreparacion.anio}
+                  <label className="flex min-w-0 items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.includes(candidato.id)}
+                      disabled={!disponible}
+                      onChange={() => onAlternarEstudiante(candidato.id)}
+                      aria-label={nombreCompleto}
+                      className="mt-1 h-4 w-4 shrink-0"
+                    />
+                    <span className="min-w-0 text-sm">
+                      <span className="block font-semibold">
+                        {candidato.nombre} {candidato.apellido}
                       </span>
-                    )}
-                  </span>
-                </label>
+                      <span className="block break-words text-xs">
+                        {candidato.documento_identidad || "Sin documento"} ·{" "}
+                        {obtenerEtiquetaEstadoEstudiante(candidato.estado)}
+                      </span>
+                      {yaMatriculado && (
+                        <span className="mt-1 block text-xs font-semibold text-emerald-700">
+                          Ya matriculado en {anioPreparacion.anio}
+                        </span>
+                      )}
+                      {marca && (
+                        <span className="mt-1 block text-xs font-semibold text-amber-800">
+                          No sigue en {anioPreparacion.anio} · {etiquetaSalida(marca)}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+
+                  {!yaMatriculado && (
+                    <div className="mt-2 flex flex-wrap gap-2 pl-7">
+                      {marca ? (
+                        <button
+                          type="button"
+                          onClick={() => onMarcarSalida(candidato.id, null)}
+                          disabled={bloqueado}
+                          aria-label={`Quitar la marca de ${nombreCompleto}`}
+                          className={claseBotonSalida}
+                        >
+                          Quitar marca
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onMarcarSalida(candidato.id, SALIDA_RETIRADO)}
+                            disabled={bloqueado}
+                            aria-label={`Marcar a ${nombreCompleto} como retirado`}
+                            className={claseBotonSalida}
+                          >
+                            Retirado
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onMarcarSalida(candidato.id, SALIDA_EGRESADO)}
+                            disabled={bloqueado}
+                            aria-label={`Marcar a ${nombreCompleto} como egresado`}
+                            className={claseBotonSalida}
+                          >
+                            Egresado
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

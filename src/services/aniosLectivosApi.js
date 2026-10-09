@@ -52,6 +52,18 @@ export async function promoverEstudiantes(anioLectivoId, seleccion) {
   return data;
 }
 
+// Paso 6.6: `{ estudiante_ids, estado_salida }`, con `estado_salida`
+// "retirado", "egresado" o `null` para quitarla. El backend la guarda en la
+// matrícula del año activo y rechaza a quien ya está matriculado en el
+// siguiente.
+export async function guardarDecisionSalida(anioLectivoId, decision) {
+  const { data } = await api.put(
+    `/anios-lectivos/${anioLectivoId}/matriculas/salida`,
+    decision,
+  );
+  return data;
+}
+
 export async function crearEstudianteEnPreparacion(anioLectivoId, estudiante) {
   const { data } = await api.post(
     `/anios-lectivos/${anioLectivoId}/estudiantes`,

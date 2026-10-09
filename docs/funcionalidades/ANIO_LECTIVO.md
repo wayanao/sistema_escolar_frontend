@@ -3,8 +3,9 @@
 ## Control
 
 - Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación
-  confirmado en `365d083`; fase 6 iniciada en el backend, sin código de esta
-  fase todavía en el frontend.** El
+  confirmado en `365d083`; backend de la fase 6 completo (salvo el 6.4c,
+  aplazado); fase 6 del frontend iniciada el 2026-10-09: paso 6.6 (marcar la
+  salida en la promoción) terminado localmente, sin commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1257,6 +1258,37 @@ sin commit:**
    2026-10-09 (paso 6.4b):** la lista de un curso trae a sus matriculados; el
    frontend no cambia.
 
+**Avance del 2026-10-09 — paso 6.6, marcar la salida en la promoción:**
+
+- Repos en `main` y limpios al iniciar (frontend `284e4eb`, backend
+  `a3f7086` con el 6.5), sin push. Antes del cambio pasaban 49 pruebas en los
+  cuatro archivos tocados.
+- Se escribieron primero 9 pruebas, que fallaron antes del cambio: 1 del
+  servicio, 2 de utilidades, 4 del hook y 2 de la página.
+- `services/aniosLectivosApi.js`: `guardarDecisionSalida(anioId, decision)`,
+  `PUT /anios-lectivos/{id}/matriculas/salida` con el cuerpo tal cual.
+- `utils/anioLectivo.js`: `SALIDA_RETIRADO`, `SALIDA_EGRESADO`,
+  `etiquetaSalida` y `puedeMatricularseEnDestino` (sin matrícula siguiente ni
+  marca). La selección inicial de la promoción usa esa regla; hoy nadie tiene
+  marca, así que sigue igual.
+- `usePreparacionMatriculas`: `marcarSalida(estudianteId, estadoSalida)` y
+  `guardandoSalidaId`. Al marcar, actualiza la tarjeta y saca al estudiante
+  de la selección; al quitar la marca, no lo vuelve a seleccionar solo. Un
+  rechazo del backend se muestra con su `detail`.
+- `MatriculasPreparacionView`: cada tarjeta deja de ser una `<label>` entera
+  (no se deben anidar botones en una `label`). La casilla y el nombre siguen
+  en su `label` con el mismo nombre accesible. Debajo, quien no está
+  matriculado en el año siguiente tiene Retirado y Egresado, o "Quitar marca"
+  si ya está marcado; la marca se ve como "No sigue en 2027 · Retirado" y su
+  casilla queda bloqueada.
+- Las dos pruebas nuevas de la página fallaron una vez porque elegían el
+  curso antes de que cargara la lista; ahora esperan la opción, igual que la
+  prueba que ya existía.
+- Verificación: 58 pruebas en los cuatro archivos; `pnpm run check:deploy`
+  → **2257 pruebas en 344 archivos**, lint y build correctos; `git diff
+  --check` limpio. Documentado en `docs/API_CLIENT.md`.
+- **Paso 6.6 terminado localmente, sin commit.**
+
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
 Pantallas del profesor. Depende de la fase 7 del backend.
@@ -1469,10 +1501,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   año cerrado en Tipos de pago) y 6.10 (Certificados con todos los estados).
   Detalle en el documento principal. El 6.5 quedó terminado localmente en el
   backend, sin commit.
-- Siguiente acción exacta: el **6.6**, en este repo, cuando el usuario lo
-  autorice: en `MatriculasPreparacionView`, a cada estudiante no matriculado
-  en el año siguiente, Retirado, Egresado o quitar la marca, y no dejar
-  seleccionar para matricular a quien esté marcado.
+- El 6.5 quedó en el backend en `a3f7086`. El **6.6, marcar la salida en la
+  promoción**, quedó terminado localmente en este repo, sin commit (ver su
+  avance en la fase 6): `pnpm run check:deploy` pasa 2257 pruebas.
+- Siguiente acción exacta: el usuario revisa y hace el commit del 6.6.
+  Después, con su visto bueno, el **6.7**: en la página de años lectivos, una
+  sección "Activar {año}" con la vista previa
+  (`GET /anios-lectivos/{id}/activacion/vista-previa`), la lista de pendientes
+  por curso, la confirmación escribiendo el año
+  (`POST /anios-lectivos/{id}/activar` con `confirmar_anio`), la lista que
+  llega en un `409` con `codigo: "activacion_con_pendientes"` y el resumen al
+  terminar. No iniciarlo sin autorización.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

@@ -232,10 +232,12 @@ function AniosLectivosAdmin() {
           cargandoPreparacion={preparacion.cargandoPreparacion}
           cargandoCandidatos={preparacion.cargandoCandidatos}
           promoviendo={preparacion.promoviendo}
+          guardandoSalidaId={preparacion.guardandoSalidaId}
           resultado={preparacion.resultadoPromocion}
           onCambiarOrigen={preparacion.cambiarCursoOrigen}
           onCambiarDestino={preparacion.setCursoDestinoId}
           onAlternarEstudiante={preparacion.alternarEstudiante}
+          onMarcarSalida={preparacion.marcarSalida}
           onPromover={preparacion.promover}
         />
       )}

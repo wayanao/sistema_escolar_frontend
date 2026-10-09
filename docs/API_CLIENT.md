@@ -92,6 +92,7 @@ GET /anios-lectivos/{anio_lectivo_id}/matriculas/candidatos?curso_origen_id={cur
 POST /anios-lectivos/{anio_lectivo_id}/matriculas/promocion
 POST /anios-lectivos/{anio_lectivo_id}/estudiantes
 GET /anios-lectivos/{anio_lectivo_id}/resumen
+PUT /anios-lectivos/{anio_lectivo_id}/matriculas/salida
 ```
 
 - Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
@@ -113,6 +114,13 @@ GET /anios-lectivos/{anio_lectivo_id}/resumen
   frontend los muestra con la marca `Revisar`; no calcula valores ni decide
   qué se cobra. Si después falla la recarga del resumen, conserva el éxito de
   la promoción para no sugerir que debe repetirse.
+- Desde el paso 6.6, cada candidato trae `estado_salida` y la pantalla de
+  promoción guarda o quita la marca con
+  `PUT /anios-lectivos/{id}/matriculas/salida` y
+  `{ estudiante_ids: [id], estado_salida }`, donde `estado_salida` es
+  `"retirado"`, `"egresado"` o `null`. Quien ya está matriculado en el año
+  siguiente o marcado no se ofrece para matricular; el backend rechaza los dos
+  casos de todos modos, y su mensaje se muestra tal cual.
 - El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
   año en preparación. El resumen presenta literalmente los conteos y el total
   que devuelve el backend y no activa el año.

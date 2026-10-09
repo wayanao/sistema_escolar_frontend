@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  guardarDecisionSalida,
   listarCandidatosMatricula,
   obtenerResumenAnio,
   promoverEstudiantes,
 } from "../../services/aniosLectivosApi";
 import { listarCursos } from "../../services/cursosApi";
+import { puedeMatricularseEnDestino } from "../../utils/anioLectivo";
 
 function detalleError(error, respaldo) {
   const detalle = error?.response?.data?.detail;
@@ -24,6 +26,7 @@ export default function usePreparacionMatriculas(anioPreparacion) {
   const [cargandoPreparacion, setCargandoPreparacion] = useState(false);
   const [cargandoCandidatos, setCargandoCandidatos] = useState(false);
   const [promoviendo, setPromoviendo] = useState(false);
+  const [guardandoSalidaId, setGuardandoSalidaId] = useState(null);
   const [error, setError] = useState("");
 
   const recargarPreparacion = useCallback(async ({ signal } = {}) => {
@@ -83,7 +86,7 @@ export default function usePreparacionMatriculas(anioPreparacion) {
         setCandidatos(lista);
         setSeleccionados(
           lista
-            .filter((candidato) => !candidato.matriculado_en_destino)
+            .filter(puedeMatricularseEnDestino)
             .map((candidato) => candidato.id),
         );
       })
@@ -111,6 +114,38 @@ export default function usePreparacionMatriculas(anioPreparacion) {
         : [...actuales, estudianteId],
     );
   }, []);
+
+  // Paso 6.6: marca (o quita, con `null`) la salida de un estudiante que no
+  // pasa al año siguiente. Al marcarlo sale de la selección; al quitar la
+  // marca no vuelve a entrar solo, para que el admin lo elija a propósito.
+  const marcarSalida = useCallback(async (estudianteId, estadoSalida) => {
+    if (!anioLectivoId) return { estado: "validacion" };
+
+    setGuardandoSalidaId(estudianteId);
+    setError("");
+    try {
+      const resultado = await guardarDecisionSalida(anioLectivoId, {
+        estudiante_ids: [estudianteId],
+        estado_salida: estadoSalida,
+      });
+      setCandidatos((actuales) =>
+        actuales.map((candidato) =>
+          candidato.id === estudianteId
+            ? { ...candidato, estado_salida: estadoSalida }
+            : candidato,
+        ),
+      );
+      if (estadoSalida) {
+        setSeleccionados((actuales) => actuales.filter((id) => id !== estudianteId));
+      }
+      return { estado: "exito", resultado };
+    } catch (err) {
+      setError(detalleError(err, "No se pudo guardar la decisión de salida."));
+      return { estado: "error", error: err };
+    } finally {
+      setGuardandoSalidaId(null);
+    }
+  }, [anioLectivoId]);
 
   const promover = useCallback(async () => {
     if (!anioLectivoId || !cursoOrigenId || !cursoDestinoId || !seleccionados.length) {
@@ -180,10 +215,12 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     cargandoPreparacion,
     cargandoCandidatos,
     promoviendo,
+    guardandoSalidaId,
     error,
     cambiarCursoOrigen,
     setCursoDestinoId,
     alternarEstudiante,
+    marcarSalida,
     promover,
     recargarPreparacion,
   };

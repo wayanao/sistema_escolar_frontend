@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   listarCandidatosMatricula: vi.fn(),
   listarCursos: vi.fn(),
   crearAnioLectivo: vi.fn(),
+  guardarDecisionSalida: vi.fn(),
   obtenerResumenAnio: vi.fn(),
   promoverEstudiantes: vi.fn(),
   recargarAnios: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
 vi.mock("../services/aniosLectivosApi", () => ({
   copiarConfiguracionAnio: mocks.copiarConfiguracionAnio,
   crearAnioLectivo: mocks.crearAnioLectivo,
+  guardarDecisionSalida: mocks.guardarDecisionSalida,
   listarCandidatosMatricula: mocks.listarCandidatosMatricula,
   obtenerResumenAnio: mocks.obtenerResumenAnio,
   promoverEstudiantes: mocks.promoverEstudiantes,
@@ -237,5 +239,82 @@ describe("preparación del año lectivo", () => {
     expect(screen.getByText(/MENSUALIDAD/)).toBeInTheDocument();
     expect(screen.getByText("Beca parcial")).toBeInTheDocument();
     await waitFor(() => expect(mocks.obtenerResumenAnio).toHaveBeenCalledTimes(2));
+  });
+
+  it("marca y quita la salida de quien no pasa, desde la promoción (paso 6.6)", async () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+    mocks.listarCandidatosMatricula.mockResolvedValue({
+      candidatos: [
+        { ...CANDIDATOS.candidatos[0], estado_salida: null },
+        { ...CANDIDATOS.candidatos[1], estado_salida: "retirado" },
+        { ...CANDIDATOS.candidatos[2], estado_salida: null },
+      ],
+    });
+    mocks.guardarDecisionSalida.mockResolvedValue({ cantidad: 1 });
+    const user = userEvent.setup();
+    renderPagina();
+
+    await screen.findByRole("option", { name: /PRIMERO A/ });
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+
+    const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+    const luis = screen.getByRole("checkbox", { name: /Luis Pardo/ });
+    expect(ana).toBeChecked();
+    expect(luis).toBeDisabled();
+    expect(luis).not.toBeChecked();
+    expect(screen.getByText("No sigue en 2027 · Retirado")).toBeInTheDocument();
+    // Ya matriculada en 2027: no se puede marcar.
+    expect(
+      screen.queryByRole("button", { name: "Marcar a Sara Díaz como retirado" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Marcar a Ana Rojas como egresado" }),
+    );
+
+    expect(mocks.guardarDecisionSalida).toHaveBeenCalledWith(3, {
+      estudiante_ids: [1],
+      estado_salida: "egresado",
+    });
+    expect(await screen.findByText("No sigue en 2027 · Egresado")).toBeInTheDocument();
+    expect(ana).toBeDisabled();
+    expect(ana).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Matricular 0 estudiantes" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Quitar la marca de Luis Pardo" }));
+
+    expect(mocks.guardarDecisionSalida).toHaveBeenLastCalledWith(3, {
+      estudiante_ids: [2],
+      estado_salida: null,
+    });
+    await waitFor(() => expect(luis).toBeEnabled());
+    expect(luis).not.toBeChecked();
+    expect(screen.queryByText("No sigue en 2027 · Retirado")).not.toBeInTheDocument();
+  });
+
+  it("muestra el rechazo del backend al marcar, sin cambiar la tarjeta", async () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+    mocks.guardarDecisionSalida.mockRejectedValue({
+      response: { data: { detail: "Solo se puede matricular en un año en preparación." } },
+    });
+    const user = userEvent.setup();
+    renderPagina();
+
+    await screen.findByRole("option", { name: /PRIMERO A/ });
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await user.click(
+      await screen.findByRole("button", { name: "Marcar a Ana Rojas como retirado" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Solo se puede matricular en un año en preparación.",
+    );
+    expect(screen.getByRole("checkbox", { name: /Ana Rojas/ })).toBeChecked();
   });
 });

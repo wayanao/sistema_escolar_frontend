@@ -58,6 +58,24 @@ export const RUTAS_POR_ANIO = Object.freeze([
 
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;
 
+// Marca de salida de quien no sigue el año siguiente (paso 6.6). Son los
+// valores de `matriculas.estado_salida` en el backend.
+export const SALIDA_RETIRADO = "retirado";
+export const SALIDA_EGRESADO = "egresado";
+
+const ETIQUETAS_SALIDA = {
+  [SALIDA_RETIRADO]: "Retirado",
+  [SALIDA_EGRESADO]: "Egresado",
+};
+
+export const etiquetaSalida = (estadoSalida) => ETIQUETAS_SALIDA[estadoSalida] ?? "";
+
+// Un candidato de la promoción se puede seleccionar si todavía no tiene
+// matrícula en el año siguiente ni marca de salida. El backend rechaza los
+// dos casos; esto solo evita ofrecer lo que de todos modos fallaría.
+export const puedeMatricularseEnDestino = (candidato) =>
+  !candidato.matriculado_en_destino && !candidato.estado_salida;
+
 // `[{ id, anio, estado }]`, en el orden en que llegan (el más reciente
 // primero). Descarta lo que no sea una fila válida, en vez de romper la barra.
 export function normalizarAniosLectivos(respuesta) {

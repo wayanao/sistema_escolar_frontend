@@ -6,11 +6,15 @@ import {
   ESTADO_PREPARACION,
   ESTADO_REABIERTO,
   RUTAS_POR_ANIO,
+  SALIDA_EGRESADO,
+  SALIDA_RETIRADO,
   SIN_PARAMETROS_DE_ANIO,
   construirAvisoAnio,
   encontrarAnioActivo,
   esRutaPorAnio,
   etiquetaAnioLectivo,
+  etiquetaSalida,
+  puedeMatricularseEnDestino,
   normalizarAniosLectivos,
   opcionesConAnio,
   parametrosAnio,
@@ -235,5 +239,28 @@ describe("construirAvisoAnio", () => {
     expect(
       construirAvisoAnio({ id: 1, anio: 2025, estado: ESTADO_REABIERTO }, anio2026).mensaje,
     ).toBe("Estás viendo el año 2025 (reabierto).");
+  });
+});
+
+describe("marca de salida (paso 6.6)", () => {
+  it("usa los mismos valores que el backend y los nombra para la pantalla", () => {
+    expect(SALIDA_RETIRADO).toBe("retirado");
+    expect(SALIDA_EGRESADO).toBe("egresado");
+    expect(etiquetaSalida(SALIDA_RETIRADO)).toBe("Retirado");
+    expect(etiquetaSalida(SALIDA_EGRESADO)).toBe("Egresado");
+    expect(etiquetaSalida(null)).toBe("");
+  });
+
+  it("solo se matricula quien no tiene matrícula siguiente ni marca de salida", () => {
+    const base = { id: 1, matriculado_en_destino: false, estado_salida: null };
+
+    expect(puedeMatricularseEnDestino(base)).toBe(true);
+    expect(puedeMatricularseEnDestino({ id: 1, matriculado_en_destino: false })).toBe(true);
+    expect(
+      puedeMatricularseEnDestino({ ...base, matriculado_en_destino: true }),
+    ).toBe(false);
+    expect(
+      puedeMatricularseEnDestino({ ...base, estado_salida: SALIDA_EGRESADO }),
+    ).toBe(false);
   });
 });

@@ -4,6 +4,7 @@ const { apiMock } = vi.hoisted(() => ({
   apiMock: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -15,6 +16,7 @@ import {
   copiarConfiguracionAnio,
   crearEstudianteEnPreparacion,
   crearAnioLectivo,
+  guardarDecisionSalida,
   listarCandidatosMatricula,
   listarAniosLectivos,
   obtenerResumenAnio,
@@ -128,6 +130,27 @@ describe("contrato HTTP de años lectivos", () => {
       2,
       "/anios-lectivos/3/estudiantes",
       estudiante,
+    );
+  });
+
+  it("guarda o quita la marca de salida con PUT y el cuerpo tal cual (paso 6.6)", async () => {
+    const respuesta = { estado_salida: "egresado", estudiante_ids: [9], cantidad: 1 };
+    apiMock.put.mockResolvedValue({ data: respuesta });
+
+    await expect(
+      guardarDecisionSalida(3, { estudiante_ids: [9], estado_salida: "egresado" }),
+    ).resolves.toBe(respuesta);
+    await guardarDecisionSalida(3, { estudiante_ids: [9], estado_salida: null });
+
+    expect(apiMock.put).toHaveBeenNthCalledWith(
+      1,
+      "/anios-lectivos/3/matriculas/salida",
+      { estudiante_ids: [9], estado_salida: "egresado" },
+    );
+    expect(apiMock.put).toHaveBeenNthCalledWith(
+      2,
+      "/anios-lectivos/3/matriculas/salida",
+      { estudiante_ids: [9], estado_salida: null },
     );
   });
 });
