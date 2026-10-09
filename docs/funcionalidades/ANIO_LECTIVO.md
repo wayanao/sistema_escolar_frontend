@@ -2,8 +2,9 @@
 
 ## Control
 
-- Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación terminado
-  localmente el 2026-10-08, pendiente de revisión y commit del usuario.** El
+- Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación
+  confirmado en `365d083`; fase 6 iniciada en el backend, sin código de esta
+  fase todavía en el frontend.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1334,7 +1335,7 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   mientras haya un solo año, no se puede mirar otro.~~ **Respondida el
   2026-10-05: sí.** El paso 5.10 quedó terminado el 2026-10-08: el impreso
   y el nombre del CSV identifican el año consultado.
-- Encontrada en el paso 4.5, de antes de esta función (ver su hallazgo):
+- ~~Encontrada en el paso 4.5, de antes de esta función (ver su hallazgo):
   Boletines y Certificados solo listan estudiantes **activos**, así que hoy
   no se le puede sacar un certificado ni un boletín a un retirado o a un
   egresado, y mirando un año pasado tampoco a quien ya no siga activo. ¿Se
@@ -1345,8 +1346,9 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   va. Boletines quedaría como está. Cambiaría una petición del año activo,
   por eso no entró en el paso 4.5. Hace falta como muy tarde antes de la
   fase 6, cuando el admin tenga que imprimir 2026. **Pregunta hecha al
-  usuario al cerrar el paso 4.5; respondió "continúa" sin decidirla, así que
-  sigue abierta y no se tocó.**
+  usuario al cerrar el paso 4.5; respondió "continúa" sin decidirla.~~
+  **Respondida el 2026-10-08:** Certificados pedirá todos los estados y
+  conservará "Activos" como filtro inicial; Boletines seguirá como está.
 - ~~Antes de la fase 5 (encontrada en el paso 4.5): el certificado de
   matrícula lleva el año en un campo de texto que propone el año del
   calendario (`useConsultasCertificadosAdmin`, existe desde junio de 2026 y
@@ -1359,8 +1361,8 @@ Pantallas del profesor. Depende de la fase 7 del backend.
 
 - Última acción terminada con código: **ajuste de navegación posterior a la
   fase 5**. `Administración` agrupa ahora `Estructura académica` y `Años
-  lectivos` en escritorio y móvil, sin cambiar sus rutas. Está terminado
-  localmente, todavía sin commit. La fase 5 quedó completa y confirmada: paso
+  lectivos` en escritorio y móvil, sin cambiar sus rutas. Quedó confirmado en
+  `365d083`. La fase 5 quedó completa y confirmada: paso
   5.10 en `82675ba`, paso 5.9 en `0689b7d`, paso 5.8 en `817c47e`; paso 5.7
   en `0848214` y su ajuste responsive en `e3aced5`.
   El paso anterior a la fase 5 fue 4.7, commit `8eac0ce` del 2026-10-05.
@@ -1401,10 +1403,18 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   4 (qué puede hacer el admin mirando un año en preparación). Más tarde ese
   día el usuario subió la fase 3 a producción (`origin/main` en `9edbe5d`,
   visto con `git fetch`) y autorizó empezar la fase 4.
-- Siguiente acción exacta: el usuario revisa y hace el commit de este **ajuste
-  de navegación** en el frontend. No iniciar la fase 6. Antes de autorizarla
-  hay que responder la pregunta abierta de Certificados con
-  retirados/egresados y la del estado de quien termina el último grado.
+- **Fase 6 autorizada el 2026-10-08.** El usuario confirmó que quien termina el
+  último grado queda como `egresado`, y que Certificados consultará todos los
+  estados manteniendo "Activos" como filtro inicial; Boletines no cambia. El
+  paso 6.1 del backend (migración de `matriculas.estado_salida` y de
+  `anios_lectivos_materias_ocultas`) quedó terminado localmente el mismo día:
+  probado en una rama de Neon y con el esquema base regenerado desde allí. No se
+  inició código de fase 6 en este repo. Esta actualización solo documental se
+  verificó con `pnpm run check:deploy`: 2248 pruebas en 344 archivos, lint y
+  build correctos.
+- Siguiente acción exacta: el usuario hace el commit del paso 6.1 en el backend
+  y aplica la migración en producción, según la entrega del documento
+  principal. No iniciar todavía la vista previa ni el código del frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
