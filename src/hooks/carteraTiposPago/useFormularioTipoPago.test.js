@@ -97,4 +97,23 @@ describe("useFormularioTipoPago", () => {
         );
         expect(cargarTiposPagos).not.toHaveBeenCalled();
     });
+
+    it("el 409 de año cerrado sale con su propio título (año lectivo, paso 6.9)", async () => {
+        const mensaje = "El año lectivo 2026 está cerrado. Solo se puede consultar.";
+        serviceMock.actualizarTipoPago.mockRejectedValue({
+            response: { status: 409, data: { detail: mensaje } },
+        });
+        const { result } = renderHook(() => useFormularioTipoPago({ cargarTiposPagos }));
+
+        act(() => result.current.handleEdit({ id: 7, nombre: "MATRICULA", valor: 300000 }));
+        await act(async () => result.current.handleSubmit({ preventDefault: vi.fn() }));
+
+        expect(swalFireMock).toHaveBeenCalledWith("Año cerrado", mensaje, "warning");
+        expect(swalFireMock).not.toHaveBeenCalledWith(
+            "Concepto duplicado",
+            expect.anything(),
+            expect.anything()
+        );
+        expect(cargarTiposPagos).not.toHaveBeenCalled();
+    });
 });

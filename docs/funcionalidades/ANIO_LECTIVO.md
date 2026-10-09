@@ -6,7 +6,8 @@
   confirmado en `365d083`; backend de la fase 6 completo (salvo el 6.4c,
   aplazado); fase 6 del frontend iniciada el 2026-10-09: paso 6.6 (marcar la
   salida en la promoción) en `5892602`, paso 6.7 (sección "Activar") en
-  `f6a035e` y paso 6.8 (reabrir y volver a cerrar) terminado localmente, sin
+  `f6a035e`, paso 6.8 (reabrir y volver a cerrar) en `5f69b77` y paso 6.9
+  (aviso de año cerrado en Tipos de pago) terminado localmente, sin
   commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
@@ -1247,7 +1248,8 @@ sin commit:**
    de consola, al guardar la configuración (`useConfiguracionTipoPago`). Hoy no
    puede pasar: mirando un año cerrado esos botones no aparecen. Desde esta
    fase sí, si el año se cierra mientras la pantalla está abierta. Arreglarlo
-   antes de activar el primer año.
+   antes de activar el primer año. **Resuelto el 2026-10-09 (paso 6.9):** los
+   dos avisos salen con el título "Año cerrado" y el texto del backend.
 5. Ojo, hallazgo del paso 4.5: para que el admin pueda imprimir boletines y
    certificados de 2026 después de activar 2027, esas dos listas tienen que
    traer también a quien ya no esté activo (los marcados "no continúa" pasan
@@ -1356,7 +1358,26 @@ sin commit:**
 - Verificación: 83 pruebas en los cinco archivos de año lectivo tocados;
   `pnpm run check:deploy` → **2288 pruebas en 346 archivos**, lint y build
   correctos; `git diff --check` limpio. Documentado en `docs/API_CLIENT.md`.
-- **Paso 6.8 terminado localmente, sin commit.**
+- **Paso 6.8 terminado; el usuario lo confirmó en el commit `5f69b77`.**
+
+**Avance del 2026-10-09 — paso 6.9, aviso de año cerrado en Tipos de pago:**
+
+- Repos en `main` y limpios al iniciar (frontend `5f69b77`), sin push.
+- El `409` de la guardia de año cerrado no trae código, solo el texto fijo
+  "El año lectivo 2026 está cerrado. Solo se puede consultar."
+  (`MENSAJE_ANIO_CERRADO` del backend). Ponerle un código en el backend
+  cambiaría la respuesta de todas las rutas que la guardia protege; por eso
+  se reconoce el texto en `utils/anioLectivo.js` con `esAvisoAnioCerrado`,
+  con un comentario que apunta a esa constante.
+- `useFormularioTipoPago` y `useConfiguracionTipoPago`: ante ese `409`
+  muestran "Año cerrado" con el texto del backend, sin el comando de consola.
+  Los demás `409` siguen con "Concepto duplicado" y "Migración pendiente"; sus
+  pruebas no cambiaron.
+- Se escribieron primero 4 pruebas (2 de utilidades y 1 por hook), que
+  fallaron antes del cambio. Verificación: 56 pruebas en los tres archivos;
+  `pnpm run check:deploy` → **2292 pruebas en 346 archivos**, lint y build
+  correctos; `git diff --check` limpio.
+- **Paso 6.9 terminado localmente, sin commit.**
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1571,16 +1592,16 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   Detalle en el documento principal. El 6.5 quedó terminado localmente en el
   backend, sin commit.
 - El 6.5 quedó en el backend en `a3f7086`, el **6.6, marcar la salida en la
-  promoción**, en `5892602` y el **6.7, la sección "Activar"**, en
-  `f6a035e`. El **6.8, reabrir y volver a cerrar**, quedó terminado
-  localmente en este repo, sin commit (ver su avance en la fase 6):
-  `pnpm run check:deploy` pasa 2288 pruebas.
-- Siguiente acción exacta: el usuario revisa y hace el commit del 6.8.
-  Después, con su visto bueno, el **6.9**: en Tipos de pago, que el aviso de
-  un `409` de año cerrado salga con un título propio y no como "Concepto
-  duplicado" (`useFormularioTipoPago`) ni "Migración pendiente" con un
-  comando de consola (`useConfiguracionTipoPago`). No iniciarlo sin
-  autorización.
+  promoción**, en `5892602`, el **6.7, la sección "Activar"**, en `f6a035e`
+  y el **6.8, reabrir y volver a cerrar**, en `5f69b77`. El **6.9, el aviso
+  de año cerrado en Tipos de pago**, quedó terminado localmente en este repo,
+  sin commit (ver su avance en la fase 6): `pnpm run check:deploy` pasa 2292
+  pruebas.
+- Siguiente acción exacta: el usuario revisa y hace el commit del 6.9.
+  Después, con su visto bueno, el **6.10**, el último de la fase: que
+  Certificados pida estudiantes de todos los estados, con "Activos" como
+  filtro inicial (decisión del 2026-10-08), para poder sacar certificados de
+  retirados y egresados. Boletines no cambia. No iniciarlo sin autorización.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

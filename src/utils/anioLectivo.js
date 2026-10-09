@@ -128,6 +128,16 @@ export function mensajeDeErrorAnio(error, respaldo) {
   return respaldo;
 }
 
+// El 409 de la guardia de escritura cuando el año está cerrado (paso 6.9). No
+// trae código, solo este texto fijo: `MENSAJE_ANIO_CERRADO` en
+// `sistema_escolar_api/app/services/anio_lectivo.py`. Si ese texto cambia,
+// este patrón tiene que cambiar con él.
+const PATRON_AVISO_ANIO_CERRADO =
+  /^El año lectivo \d{4} está cerrado\. Solo se puede consultar\.$/;
+
+export const esAvisoAnioCerrado = (detalle) =>
+  typeof detalle === "string" && PATRON_AVISO_ANIO_CERRADO.test(detalle);
+
 // Años pasados (paso 6.8): los cerrados y el reabierto, en el orden en que
 // llegan, y qué se puede hacer con cada uno.
 export const aniosPasados = (anios) =>

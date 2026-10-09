@@ -175,4 +175,29 @@ describe("useConfiguracionTipoPago", () => {
         );
         expect(result.current.guardandoConfig).toBe(false);
     });
+
+    it("el 409 de año cerrado sale con su título y sin comando de consola (año lectivo, paso 6.9)", async () => {
+        const mensaje = "El año lectivo 2026 está cerrado. Solo se puede consultar.";
+        actualizarConfiguracionMock.mockRejectedValue({
+            response: { status: 409, data: { detail: mensaje } },
+        });
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = renderHook(() =>
+            useConfiguracionTipoPago({
+                selectedTipoId: 1,
+                detalle,
+                cargarTiposPagos,
+                actualizarDetalle,
+            })
+        );
+        act(() => result.current.inicializarConfiguracion(detalle));
+
+        await act(async () => result.current.guardarConfiguracion());
+
+        expect(swalFireMock).toHaveBeenLastCalledWith("Año cerrado", mensaje, "warning");
+        expect(swalFireMock).not.toHaveBeenCalledWith(
+            expect.objectContaining({ title: "Migración pendiente" })
+        );
+        expect(result.current.guardandoConfig).toBe(false);
+    });
 });

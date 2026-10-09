@@ -16,6 +16,7 @@ import {
   confirmacionCoincide,
   construirAvisoAnio,
   encontrarAnioActivo,
+  esAvisoAnioCerrado,
   esRutaPorAnio,
   etiquetaAnioLectivo,
   etiquetaSalida,
@@ -358,5 +359,19 @@ describe("años pasados: reabrir y volver a cerrar (paso 6.8)", () => {
     });
     expect(accionDeAnioPasado(activo)).toBe(null);
     expect(accionDeAnioPasado(preparacion)).toBe(null);
+  });
+});
+
+describe("aviso de año cerrado (paso 6.9)", () => {
+  it("reconoce el texto exacto de la guardia del backend, para cualquier año", () => {
+    expect(esAvisoAnioCerrado("El año lectivo 2026 está cerrado. Solo se puede consultar.")).toBe(true);
+    expect(esAvisoAnioCerrado("El año lectivo 2031 está cerrado. Solo se puede consultar.")).toBe(true);
+  });
+
+  it("no confunde otros mensajes ni valores que no son texto", () => {
+    expect(esAvisoAnioCerrado("Ya existe un tipo de pago con ese nombre.")).toBe(false);
+    expect(esAvisoAnioCerrado("Falta una columna")).toBe(false);
+    expect(esAvisoAnioCerrado({ mensaje: "x" })).toBe(false);
+    expect(esAvisoAnioCerrado(undefined)).toBe(false);
   });
 });

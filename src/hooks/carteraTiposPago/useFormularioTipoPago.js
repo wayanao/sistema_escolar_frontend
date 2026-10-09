@@ -4,6 +4,7 @@ import {
     actualizarTipoPago,
     crearTipoPago,
 } from "../../services/carteraTiposPagoApi";
+import { esAvisoAnioCerrado } from "../../utils/anioLectivo";
 import { crearPayloadTipoPago } from "../../utils/carteraTiposPago/tiposPago";
 
 export default function useFormularioTipoPago({
@@ -44,7 +45,10 @@ export default function useFormularioTipoPago({
         } catch (error) {
             const detail = error?.response?.data?.detail;
             const status = error?.response?.status;
-            if (status === 409) {
+            if (status === 409 && esAvisoAnioCerrado(detail)) {
+                // Año lectivo, paso 6.9: el año se cerró con la pantalla abierta.
+                Swal.fire("Año cerrado", detail, "warning");
+            } else if (status === 409) {
                 Swal.fire(
                     "Concepto duplicado",
                     detail || "Ya existe un tipo de pago con ese nombre.",
