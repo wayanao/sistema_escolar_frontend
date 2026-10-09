@@ -10,7 +10,9 @@ import {
   SALIDA_EGRESADO,
   SALIDA_RETIRADO,
   SIN_PARAMETROS_DE_ANIO,
+  accionDeAnioPasado,
   agruparPendientesPorCurso,
+  aniosPasados,
   confirmacionCoincide,
   construirAvisoAnio,
   encontrarAnioActivo,
@@ -326,5 +328,35 @@ describe("activación del año (paso 6.7)", () => {
     ).toBe("Faltan 2.");
     expect(mensajeDeErrorAnio({ response: { data: { detail: [{ msg: "x" }] } } }, "Respaldo")).toBe("Respaldo");
     expect(mensajeDeErrorAnio(new Error("red"), "Respaldo")).toBe("Respaldo");
+  });
+});
+
+describe("años pasados: reabrir y volver a cerrar (paso 6.8)", () => {
+  const preparacion = { id: 4, anio: 2028, estado: ESTADO_PREPARACION };
+  const activo = { id: 3, anio: 2027, estado: ESTADO_ACTIVO };
+  const reabierto = { id: 2, anio: 2026, estado: ESTADO_REABIERTO };
+  const cerrado = { id: 1, anio: 2025, estado: ESTADO_CERRADO };
+
+  it("deja solo los cerrados y reabiertos, en el orden en que llegan", () => {
+    expect(aniosPasados([preparacion, activo, reabierto, cerrado])).toEqual([
+      reabierto,
+      cerrado,
+    ]);
+    expect(aniosPasados(undefined)).toEqual([]);
+  });
+
+  it("ofrece reabrir un año cerrado y volver a cerrar uno reabierto", () => {
+    expect(accionDeAnioPasado(cerrado)).toEqual({
+      accion: "reabrir",
+      etiqueta: "Reabrir 2025",
+      verbo: "reabrir",
+    });
+    expect(accionDeAnioPasado(reabierto)).toEqual({
+      accion: "cerrar",
+      etiqueta: "Volver a cerrar 2026",
+      verbo: "volver a cerrar",
+    });
+    expect(accionDeAnioPasado(activo)).toBe(null);
+    expect(accionDeAnioPasado(preparacion)).toBe(null);
   });
 });

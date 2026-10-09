@@ -5,8 +5,9 @@
 - Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación
   confirmado en `365d083`; backend de la fase 6 completo (salvo el 6.4c,
   aplazado); fase 6 del frontend iniciada el 2026-10-09: paso 6.6 (marcar la
-  salida en la promoción) en `5892602` y paso 6.7 (sección "Activar")
-  terminado localmente, sin commit.** El
+  salida en la promoción) en `5892602`, paso 6.7 (sección "Activar") en
+  `f6a035e` y paso 6.8 (reabrir y volver a cerrar) terminado localmente, sin
+  commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1327,7 +1328,35 @@ sin commit:**
 - Verificación: 76 pruebas en los cinco archivos; `pnpm run check:deploy` →
   **2275 pruebas en 345 archivos**, lint y build correctos; `git diff
   --check` limpio. Documentado en `docs/API_CLIENT.md`.
-- **Paso 6.7 terminado localmente, sin commit.**
+- **Paso 6.7 terminado; el usuario lo confirmó en el commit `f6a035e`.**
+
+**Avance del 2026-10-09 — paso 6.8, reabrir y volver a cerrar:**
+
+- Repos en `main` y limpios al iniciar (frontend `f6a035e`), sin push.
+- Se escribieron primero 13 pruebas: 1 del servicio, 2 de utilidades, 6 del
+  hook nuevo y 4 de la página. Fallaron antes del cambio, salvo la que
+  exige que la sección no aparezca sin años pasados, que protege lo de hoy.
+- `services/aniosLectivosApi.js`: `reabrirAnioLectivo(anioId, confirmarAnio)`
+  y `cerrarAnioLectivo(anioId, confirmarAnio)`.
+- `utils/anioLectivo.js`: `aniosPasados` (los `cerrado` y `reabierto`, en el
+  orden en que llegan) y `accionDeAnioPasado` ("Reabrir 2026" o "Volver a
+  cerrar 2026").
+- `hooks/anioLectivo/useCambioAnioPasado.js` (nuevo): un año a la vez,
+  `iniciar`, `cancelar` y `confirmar` con el año escrito, que se envía tal
+  cual. El rechazo del backend se muestra con su `detail` y deja la
+  confirmación abierta. Si el cambio sale bien pero falla `onCambiado` (la
+  recarga de años), no lo presenta como fallido.
+- `components/anioLectivo/AniosPasadosView.jsx` (nuevo): "Años pasados", con
+  una explicación en palabras simples, cada año con su estado y su botón, y la
+  confirmación "Escribe 2026 para confirmar" con Confirmar y Cancelar.
+- `pages/AniosLectivosAdmin.jsx`: muestra la sección solo si hay años
+  pasados; al terminar recarga los años conservando la selección y muestra
+  "2026 quedó reabierto. Para corregirlo, elígelo en el selector de año." o
+  "2026 quedó cerrado otra vez."
+- Verificación: 83 pruebas en los cinco archivos de año lectivo tocados;
+  `pnpm run check:deploy` → **2288 pruebas en 346 archivos**, lint y build
+  correctos; `git diff --check` limpio. Documentado en `docs/API_CLIENT.md`.
+- **Paso 6.8 terminado localmente, sin commit.**
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1541,15 +1570,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   año cerrado en Tipos de pago) y 6.10 (Certificados con todos los estados).
   Detalle en el documento principal. El 6.5 quedó terminado localmente en el
   backend, sin commit.
-- El 6.5 quedó en el backend en `a3f7086` y el **6.6, marcar la salida en la
-  promoción**, en `5892602`. El **6.7, la sección "Activar"**, quedó
-  terminado localmente en este repo, sin commit (ver su avance en la fase 6):
-  `pnpm run check:deploy` pasa 2275 pruebas.
-- Siguiente acción exacta: el usuario revisa y hace el commit del 6.7.
-  Después, con su visto bueno, el **6.8**: reabrir y volver a cerrar un año
-  pasado desde la página de años lectivos
-  (`POST /anios-lectivos/{id}/reabrir` y `/cerrar`, con `confirmar_anio`).
-  No iniciarlo sin autorización.
+- El 6.5 quedó en el backend en `a3f7086`, el **6.6, marcar la salida en la
+  promoción**, en `5892602` y el **6.7, la sección "Activar"**, en
+  `f6a035e`. El **6.8, reabrir y volver a cerrar**, quedó terminado
+  localmente en este repo, sin commit (ver su avance en la fase 6):
+  `pnpm run check:deploy` pasa 2288 pruebas.
+- Siguiente acción exacta: el usuario revisa y hace el commit del 6.8.
+  Después, con su visto bueno, el **6.9**: en Tipos de pago, que el aviso de
+  un `409` de año cerrado salga con un título propio y no como "Concepto
+  duplicado" (`useFormularioTipoPago`) ni "Migración pendiente" con un
+  comando de consola (`useConfiguracionTipoPago`). No iniciarlo sin
+  autorización.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

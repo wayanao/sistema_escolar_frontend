@@ -91,6 +91,23 @@ export async function activarAnioLectivo(anioLectivoId, confirmarAnio) {
   return data;
 }
 
+// Paso 6.8: reabrir un año cerrado para corregir algo y volver a cerrarlo.
+// Solo cambian el estado del año; el backend compara el año escrito y permite
+// un solo año reabierto a la vez.
+export async function reabrirAnioLectivo(anioLectivoId, confirmarAnio) {
+  const { data } = await api.post(`/anios-lectivos/${anioLectivoId}/reabrir`, {
+    confirmar_anio: confirmarAnio,
+  });
+  return data;
+}
+
+export async function cerrarAnioLectivo(anioLectivoId, confirmarAnio) {
+  const { data } = await api.post(`/anios-lectivos/${anioLectivoId}/cerrar`, {
+    confirmar_anio: confirmarAnio,
+  });
+  return data;
+}
+
 export async function obtenerResumenAnio(anioLectivoId, { signal } = {}) {
   const url = `/anios-lectivos/${anioLectivoId}/resumen`;
   const { data } = signal

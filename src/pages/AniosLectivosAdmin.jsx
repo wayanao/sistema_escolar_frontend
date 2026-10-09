@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
+import AniosPasadosView from "../components/anioLectivo/AniosPasadosView";
 import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
 import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
+import useCambioAnioPasado from "../hooks/anioLectivo/useCambioAnioPasado";
 import usePreparacionMatriculas from "../hooks/anioLectivo/usePreparacionMatriculas";
 import {
   copiarConfiguracionAnio,
@@ -12,6 +14,7 @@ import {
 } from "../services/aniosLectivosApi";
 import {
   ESTADO_PREPARACION,
+  aniosPasados,
   etiquetaEstadoAnio,
 } from "../utils/anioLectivo";
 
@@ -62,7 +65,15 @@ function AniosLectivosAdmin() {
     return respuesta;
   };
   const resultadoActivacion = activacion.resultado;
-  const errorVisible = error || preparacion.error || activacion.error;
+
+  // Reabrir o volver a cerrar recarga los años, para que el selector muestre
+  // el estado nuevo; la selección actual se conserva.
+  const alCambiarAnioPasado = useCallback(() => recargarAnios(), [recargarAnios]);
+  const cambioAnioPasado = useCambioAnioPasado({ onCambiado: alCambiarAnioPasado });
+  const pasados = useMemo(() => aniosPasados(anios), [anios]);
+
+  const errorVisible =
+    error || preparacion.error || activacion.error || cambioAnioPasado.error;
 
   const crearSiguiente = async () => {
     setCreando(true);
@@ -126,6 +137,11 @@ function AniosLectivosAdmin() {
       {mensaje && (
         <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 sm:p-4">
           {mensaje}
+        </div>
+      )}
+      {cambioAnioPasado.mensaje && (
+        <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 sm:p-4">
+          {cambioAnioPasado.mensaje}
         </div>
       )}
       {resultadoActivacion && (
@@ -296,6 +312,19 @@ function AniosLectivosAdmin() {
           onCambiarConfirmacion={activacion.setConfirmacion}
           onActivar={activacion.activar}
           onActualizar={activacion.recargarVistaPrevia}
+        />
+      )}
+
+      {pasados.length > 0 && (
+        <AniosPasadosView
+          anios={pasados}
+          anioEnCambio={cambioAnioPasado.anioEnCambio}
+          confirmacion={cambioAnioPasado.confirmacion}
+          guardando={cambioAnioPasado.guardando}
+          onIniciar={cambioAnioPasado.iniciar}
+          onCancelar={cambioAnioPasado.cancelar}
+          onCambiarConfirmacion={cambioAnioPasado.setConfirmacion}
+          onConfirmar={cambioAnioPasado.confirmar}
         />
       )}
     </div>

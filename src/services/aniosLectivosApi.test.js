@@ -14,6 +14,7 @@ vi.mock("../utils/api", () => ({
 
 import {
   activarAnioLectivo,
+  cerrarAnioLectivo,
   copiarConfiguracionAnio,
   crearEstudianteEnPreparacion,
   crearAnioLectivo,
@@ -23,6 +24,7 @@ import {
   obtenerResumenAnio,
   obtenerVistaPreviaActivacion,
   promoverEstudiantes,
+  reabrirAnioLectivo,
 } from "./aniosLectivosApi";
 
 beforeEach(() => {
@@ -180,6 +182,24 @@ describe("contrato HTTP de años lectivos", () => {
 
     expect(apiMock.post).toHaveBeenCalledWith("/anios-lectivos/3/activar", {
       confirmar_anio: 2027,
+    });
+  });
+
+  it("reabre y vuelve a cerrar un año pasado con el año escrito (paso 6.8)", async () => {
+    const reabierto = { anio_lectivo: { id: 2, anio: 2026, estado: "reabierto" } };
+    const cerrado = { anio_lectivo: { id: 2, anio: 2026, estado: "cerrado" } };
+    apiMock.post
+      .mockResolvedValueOnce({ data: reabierto })
+      .mockResolvedValueOnce({ data: cerrado });
+
+    await expect(reabrirAnioLectivo(2, 2026)).resolves.toBe(reabierto);
+    await expect(cerrarAnioLectivo(2, 2026)).resolves.toBe(cerrado);
+
+    expect(apiMock.post).toHaveBeenNthCalledWith(1, "/anios-lectivos/2/reabrir", {
+      confirmar_anio: 2026,
+    });
+    expect(apiMock.post).toHaveBeenNthCalledWith(2, "/anios-lectivos/2/cerrar", {
+      confirmar_anio: 2026,
     });
   });
 });

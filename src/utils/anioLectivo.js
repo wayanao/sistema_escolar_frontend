@@ -128,6 +128,29 @@ export function mensajeDeErrorAnio(error, respaldo) {
   return respaldo;
 }
 
+// Años pasados (paso 6.8): los cerrados y el reabierto, en el orden en que
+// llegan, y qué se puede hacer con cada uno.
+export const aniosPasados = (anios) =>
+  Array.isArray(anios)
+    ? anios.filter(
+        (anio) => anio.estado === ESTADO_CERRADO || anio.estado === ESTADO_REABIERTO,
+      )
+    : [];
+
+export function accionDeAnioPasado({ anio, estado }) {
+  if (estado === ESTADO_CERRADO) {
+    return { accion: "reabrir", etiqueta: `Reabrir ${anio}`, verbo: "reabrir" };
+  }
+  if (estado === ESTADO_REABIERTO) {
+    return {
+      accion: "cerrar",
+      etiqueta: `Volver a cerrar ${anio}`,
+      verbo: "volver a cerrar",
+    };
+  }
+  return null;
+}
+
 // `[{ id, anio, estado }]`, en el orden en que llegan (el más reciente
 // primero). Descarta lo que no sea una fila válida, en vez de romper la barra.
 export function normalizarAniosLectivos(respuesta) {

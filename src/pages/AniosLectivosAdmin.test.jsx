@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   activarAnioLectivo: vi.fn(),
   anioLectivo: null,
+  cerrarAnioLectivo: vi.fn(),
   copiarConfiguracionAnio: vi.fn(),
   listarCandidatosMatricula: vi.fn(),
   listarCursos: vi.fn(),
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   obtenerResumenAnio: vi.fn(),
   obtenerVistaPreviaActivacion: vi.fn(),
   promoverEstudiantes: vi.fn(),
+  reabrirAnioLectivo: vi.fn(),
   recargarAnios: vi.fn(),
   seleccionarAnio: vi.fn(),
 }));
@@ -27,6 +29,7 @@ vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
 }));
 vi.mock("../services/aniosLectivosApi", () => ({
   activarAnioLectivo: mocks.activarAnioLectivo,
+  cerrarAnioLectivo: mocks.cerrarAnioLectivo,
   copiarConfiguracionAnio: mocks.copiarConfiguracionAnio,
   crearAnioLectivo: mocks.crearAnioLectivo,
   guardarDecisionSalida: mocks.guardarDecisionSalida,
@@ -34,6 +37,7 @@ vi.mock("../services/aniosLectivosApi", () => ({
   obtenerResumenAnio: mocks.obtenerResumenAnio,
   obtenerVistaPreviaActivacion: mocks.obtenerVistaPreviaActivacion,
   promoverEstudiantes: mocks.promoverEstudiantes,
+  reabrirAnioLectivo: mocks.reabrirAnioLectivo,
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
@@ -460,5 +464,78 @@ describe("activar el año en preparación (paso 6.7)", () => {
     await waitFor(() =>
       expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledTimes(2),
     );
+  });
+});
+
+describe("años pasados: reabrir y volver a cerrar (paso 6.8)", () => {
+  const CERRADO_2025 = { id: 1, anio: 2025, estado: "cerrado" };
+  const REABIERTO_2025 = { id: 1, anio: 2025, estado: "reabierto" };
+
+  it("sin años pasados no muestra la sección", () => {
+    renderPagina();
+
+    expect(screen.queryByRole("heading", { name: "Años pasados" })).not.toBeInTheDocument();
+  });
+
+  it("reabre un año cerrado solo con el año escrito y recarga los años", async () => {
+    mocks.anioLectivo = { anios: [ACTIVO, CERRADO_2025], anioActivo: ACTIVO };
+    mocks.reabrirAnioLectivo.mockResolvedValue({ anio_lectivo: REABIERTO_2025 });
+    const user = userEvent.setup();
+    renderPagina();
+
+    expect(screen.getByRole("heading", { name: "Años pasados" })).toBeInTheDocument();
+    expect(screen.getByText("2025 · Cerrado")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reabrir 2025" }));
+    const campo = screen.getByRole("textbox", { name: "Escribe 2025 para confirmar" });
+    const confirmar = screen.getByRole("button", { name: "Confirmar" });
+    expect(confirmar).toBeDisabled();
+
+    await user.type(campo, "2025");
+    expect(confirmar).toBeEnabled();
+    await user.click(confirmar);
+
+    expect(mocks.reabrirAnioLectivo).toHaveBeenCalledWith(1, 2025);
+    expect(mocks.recargarAnios).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText("2025 quedó reabierto. Para corregirlo, elígelo en el selector de año."),
+    ).toBeInTheDocument();
+  });
+
+  it("cancelar cierra la confirmación sin llamar al backend", async () => {
+    mocks.anioLectivo = { anios: [ACTIVO, CERRADO_2025], anioActivo: ACTIVO };
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.click(screen.getByRole("button", { name: "Reabrir 2025" }));
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    expect(
+      screen.queryByRole("textbox", { name: "Escribe 2025 para confirmar" }),
+    ).not.toBeInTheDocument();
+    expect(mocks.reabrirAnioLectivo).not.toHaveBeenCalled();
+  });
+
+  it("un año reabierto se vuelve a cerrar y el rechazo del backend se muestra", async () => {
+    mocks.anioLectivo = { anios: [ACTIVO, REABIERTO_2025], anioActivo: ACTIVO };
+    mocks.cerrarAnioLectivo.mockRejectedValue({
+      response: { data: { detail: "Solo se puede volver a cerrar un año reabierto." } },
+    });
+    const user = userEvent.setup();
+    renderPagina();
+
+    expect(screen.getByText("2025 · Reabierto")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Volver a cerrar 2025" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Escribe 2025 para confirmar" }),
+      "2025",
+    );
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(mocks.cerrarAnioLectivo).toHaveBeenCalledWith(1, 2025);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Solo se puede volver a cerrar un año reabierto.",
+    );
+    expect(mocks.recargarAnios).not.toHaveBeenCalled();
   });
 });

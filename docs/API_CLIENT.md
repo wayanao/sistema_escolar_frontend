@@ -95,6 +95,8 @@ GET /anios-lectivos/{anio_lectivo_id}/resumen
 PUT /anios-lectivos/{anio_lectivo_id}/matriculas/salida
 GET /anios-lectivos/{anio_lectivo_id}/activacion/vista-previa
 POST /anios-lectivos/{anio_lectivo_id}/activar
+POST /anios-lectivos/{anio_lectivo_id}/reabrir
+POST /anios-lectivos/{anio_lectivo_id}/cerrar
 ```
 
 - Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
@@ -133,6 +135,11 @@ POST /anios-lectivos/{anio_lectivo_id}/activar
   y su `sin_decidir`; los demás errores llegan como texto. Después de activar,
   recarga los años dejando elegido el nuevo activo
   (`recargarAnios({ seleccionarId })`).
+- Desde el paso 6.8, la sección "Años pasados" lista los años `cerrado` y
+  `reabierto` de `GET /anios-lectivos`. Reabrir y volver a cerrar envían
+  `{ confirmar_anio: <año escrito> }`; el backend compara el año y permite un
+  solo año reabierto a la vez, y su mensaje se muestra tal cual. Después
+  recarga los años conservando la selección (`recargarAnios()`).
 - El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
   año en preparación. El resumen presenta literalmente los conteos y el total
   que devuelve el backend y no activa el año.
