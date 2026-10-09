@@ -5,7 +5,8 @@
 - Estado: **Fase 5 completa y confirmada en Git; ajuste de navegación
   confirmado en `365d083`; backend de la fase 6 completo (salvo el 6.4c,
   aplazado); fase 6 del frontend iniciada el 2026-10-09: paso 6.6 (marcar la
-  salida en la promoción) terminado localmente, sin commit.** El
+  salida en la promoción) en `5892602` y paso 6.7 (sección "Activar")
+  terminado localmente, sin commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1287,7 +1288,46 @@ sin commit:**
 - Verificación: 58 pruebas en los cuatro archivos; `pnpm run check:deploy`
   → **2257 pruebas en 344 archivos**, lint y build correctos; `git diff
   --check` limpio. Documentado en `docs/API_CLIENT.md`.
-- **Paso 6.6 terminado localmente, sin commit.**
+- **Paso 6.6 terminado; el usuario lo confirmó en el commit `5892602`.**
+
+**Avance del 2026-10-09 — paso 6.7, sección "Activar":**
+
+- Repos en `main` y limpios al iniciar (frontend `5892602`), sin push.
+- Se escribieron primero 18 pruebas: 2 del servicio, 4 de utilidades, 8 del
+  hook nuevo y 4 de la página. Fallaron antes del cambio, junto con la de la
+  fase 5 que exigía que **no** existiera un botón de activar; esa se cambió
+  para exigir el botón bloqueado mientras haya pendientes.
+- `services/aniosLectivosApi.js`: `obtenerVistaPreviaActivacion(anioId,
+  { signal })` y `activarAnioLectivo(anioId, confirmarAnio)`.
+- `utils/anioLectivo.js`: `CODIGO_ACTIVACION_CON_PENDIENTES`,
+  `agruparPendientesPorCurso`, `confirmacionCoincide`,
+  `leerPendientesDeActivacion` y `mensajeDeErrorAnio` (texto u objeto con
+  `mensaje`).
+- `hooks/anioLectivo/useActivacionAnio.js` (nuevo): carga la vista previa con
+  cancelación, guarda el año escrito, activa y conserva el resultado aunque el
+  año en preparación desaparezca de la lista. Con un `409` de pendientes,
+  muestra su mensaje y reemplaza la lista y el conteo con los que manda el
+  backend. Si la activación sale bien pero falla `onActivado` (la recarga de
+  años), no la presenta como fallida: "2027 quedó activo, pero no se pudo
+  actualizar la lista de años. Recarga la página."
+- `components/anioLectivo/ActivacionAnioView.jsx` (nuevo): "3. Activar 2027"
+  con una advertencia en palabras simples, cinco conteos, los pendientes por
+  curso ("Falta 1 estudiante por decidir." o "Faltan N..."), el campo
+  "Escribe 2027 para confirmar" solo si `puede_activar`, y el botón "Activar
+  2027", bloqueado sin `puede_activar` o sin el año exacto. La etiqueta va al
+  lado del campo, no envolviéndolo, para que su nombre no incluya lo escrito.
+  Botón "Actualizar vista previa".
+- `pages/AniosLectivosAdmin.jsx`: une el hook y la vista; después de marcar o
+  matricular con éxito vuelve a pedir la vista previa; al activar recarga los
+  años con `seleccionarId` del nuevo activo y muestra "2027 quedó activo y
+  2026 cerrado." con los conteos.
+- Una prueba nueva de la página falló una vez porque el texto del curso
+  también está en la lista de cursos para elegir; ahora busca el título del
+  grupo.
+- Verificación: 76 pruebas en los cinco archivos; `pnpm run check:deploy` →
+  **2275 pruebas en 345 archivos**, lint y build correctos; `git diff
+  --check` limpio. Documentado en `docs/API_CLIENT.md`.
+- **Paso 6.7 terminado localmente, sin commit.**
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1501,17 +1541,15 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   año cerrado en Tipos de pago) y 6.10 (Certificados con todos los estados).
   Detalle en el documento principal. El 6.5 quedó terminado localmente en el
   backend, sin commit.
-- El 6.5 quedó en el backend en `a3f7086`. El **6.6, marcar la salida en la
-  promoción**, quedó terminado localmente en este repo, sin commit (ver su
-  avance en la fase 6): `pnpm run check:deploy` pasa 2257 pruebas.
-- Siguiente acción exacta: el usuario revisa y hace el commit del 6.6.
-  Después, con su visto bueno, el **6.7**: en la página de años lectivos, una
-  sección "Activar {año}" con la vista previa
-  (`GET /anios-lectivos/{id}/activacion/vista-previa`), la lista de pendientes
-  por curso, la confirmación escribiendo el año
-  (`POST /anios-lectivos/{id}/activar` con `confirmar_anio`), la lista que
-  llega en un `409` con `codigo: "activacion_con_pendientes"` y el resumen al
-  terminar. No iniciarlo sin autorización.
+- El 6.5 quedó en el backend en `a3f7086` y el **6.6, marcar la salida en la
+  promoción**, en `5892602`. El **6.7, la sección "Activar"**, quedó
+  terminado localmente en este repo, sin commit (ver su avance en la fase 6):
+  `pnpm run check:deploy` pasa 2275 pruebas.
+- Siguiente acción exacta: el usuario revisa y hace el commit del 6.7.
+  Después, con su visto bueno, el **6.8**: reabrir y volver a cerrar un año
+  pasado desde la página de años lectivos
+  (`POST /anios-lectivos/{id}/reabrir` y `/cerrar`, con `confirmar_anio`).
+  No iniciarlo sin autorización.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

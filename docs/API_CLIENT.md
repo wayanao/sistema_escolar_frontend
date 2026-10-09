@@ -93,6 +93,8 @@ POST /anios-lectivos/{anio_lectivo_id}/matriculas/promocion
 POST /anios-lectivos/{anio_lectivo_id}/estudiantes
 GET /anios-lectivos/{anio_lectivo_id}/resumen
 PUT /anios-lectivos/{anio_lectivo_id}/matriculas/salida
+GET /anios-lectivos/{anio_lectivo_id}/activacion/vista-previa
+POST /anios-lectivos/{anio_lectivo_id}/activar
 ```
 
 - Responde `[{ id, anio, estado }]`, el más reciente primero. El admin recibe
@@ -121,6 +123,16 @@ PUT /anios-lectivos/{anio_lectivo_id}/matriculas/salida
   `"retirado"`, `"egresado"` o `null`. Quien ya está matriculado en el año
   siguiente o marcado no se ofrece para matricular; el backend rechaza los dos
   casos de todos modos, y su mensaje se muestra tal cual.
+- Desde el paso 6.7, la página de años lectivos pide la vista previa de
+  activación del año en preparación y la vuelve a pedir después de marcar o
+  matricular. Muestra los conteos y la lista `sin_decidir` agrupada por
+  curso. El botón de activar depende de `puede_activar`, que decide el
+  backend, y del año escrito; `POST .../activar` envía
+  `{ confirmar_anio: <año escrito> }`. Si responde `409` con
+  `detail.codigo === "activacion_con_pendientes"`, se muestran su `mensaje`
+  y su `sin_decidir`; los demás errores llegan como texto. Después de activar,
+  recarga los años dejando elegido el nuevo activo
+  (`recargarAnios({ seleccionarId })`).
 - El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
   año en preparación. El resumen presenta literalmente los conteos y el total
   que devuelve el backend y no activa el año.

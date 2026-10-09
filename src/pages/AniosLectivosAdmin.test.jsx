@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  activarAnioLectivo: vi.fn(),
   anioLectivo: null,
   copiarConfiguracionAnio: vi.fn(),
   listarCandidatosMatricula: vi.fn(),
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   crearAnioLectivo: vi.fn(),
   guardarDecisionSalida: vi.fn(),
   obtenerResumenAnio: vi.fn(),
+  obtenerVistaPreviaActivacion: vi.fn(),
   promoverEstudiantes: vi.fn(),
   recargarAnios: vi.fn(),
   seleccionarAnio: vi.fn(),
@@ -24,11 +26,13 @@ vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
   }),
 }));
 vi.mock("../services/aniosLectivosApi", () => ({
+  activarAnioLectivo: mocks.activarAnioLectivo,
   copiarConfiguracionAnio: mocks.copiarConfiguracionAnio,
   crearAnioLectivo: mocks.crearAnioLectivo,
   guardarDecisionSalida: mocks.guardarDecisionSalida,
   listarCandidatosMatricula: mocks.listarCandidatosMatricula,
   obtenerResumenAnio: mocks.obtenerResumenAnio,
+  obtenerVistaPreviaActivacion: mocks.obtenerVistaPreviaActivacion,
   promoverEstudiantes: mocks.promoverEstudiantes,
 }));
 vi.mock("../services/cursosApi", () => ({
@@ -84,6 +88,29 @@ const RESUMEN = {
   },
 };
 
+const PENDIENTE = {
+  id: 8,
+  nombre: "Esteban",
+  apellido: "Castro",
+  documento_identidad: "54545",
+  curso_id: 10,
+  curso_nombre: "PRIMERO A",
+  curso_jornada: "Mañana",
+};
+const VISTA_CON_PENDIENTES = {
+  anio_origen: { id: 2, anio: 2026 },
+  anio_destino: { id: 3, anio: 2027 },
+  resumen: { continuan: 6, nuevos: 0, retirados: 0, egresados: 0, sin_decidir: 1 },
+  puede_activar: false,
+  sin_decidir: [PENDIENTE],
+};
+const VISTA_LISTA = {
+  ...VISTA_CON_PENDIENTES,
+  resumen: { continuan: 6, nuevos: 0, retirados: 3, egresados: 1, sin_decidir: 0 },
+  puede_activar: true,
+  sin_decidir: [],
+};
+
 function renderPagina() {
   return render(
     <MemoryRouter>
@@ -110,6 +137,20 @@ beforeEach(() => {
   );
   mocks.listarCandidatosMatricula.mockResolvedValue(CANDIDATOS);
   mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
+  mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_CON_PENDIENTES);
+  mocks.activarAnioLectivo.mockResolvedValue({
+    anio_cerrado: { id: 2, anio: 2026, estado: "cerrado" },
+    anio_activo: { id: 3, anio: 2027, estado: "activo" },
+    resumen: {
+      continuan: 6,
+      nuevos: 0,
+      retirados: 3,
+      egresados: 1,
+      materias_ocultas: 0,
+      cursos_vigentes_actualizados: 10,
+    },
+  });
+  mocks.recargarAnios.mockResolvedValue([]);
   mocks.promoverEstudiantes.mockResolvedValue({
     cantidad_matriculados: 1,
     matriculados: [1],
@@ -211,7 +252,9 @@ describe("preparación del año lectivo", () => {
     renderPagina();
 
     expect(await screen.findByText("3 estudiantes matriculados")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /activar/i })).not.toBeInTheDocument();
+    // Desde el paso 6.7 existe el botón de activar, bloqueado mientras falte
+    // alguien por decidir (en la fase 5 no existía).
+    expect(await screen.findByRole("button", { name: "Activar 2027" })).toBeDisabled();
 
     await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
     expect(mocks.listarCandidatosMatricula).toHaveBeenCalledWith(3, 10, {
@@ -316,5 +359,106 @@ describe("preparación del año lectivo", () => {
       "Solo se puede matricular en un año en preparación.",
     );
     expect(screen.getByRole("checkbox", { name: /Ana Rojas/ })).toBeChecked();
+  });
+});
+
+describe("activar el año en preparación (paso 6.7)", () => {
+  beforeEach(() => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+  });
+
+  it("muestra la vista previa con los pendientes por curso y bloquea activar", async () => {
+    renderPagina();
+
+    expect(
+      await screen.findByRole("heading", { name: "3. Activar 2027" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Falta 1 estudiante por decidir.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "PRIMERO A · Mañana" })).toBeInTheDocument();
+    expect(screen.getByText("Esteban Castro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Activar 2027" })).toBeDisabled();
+    expect(
+      screen.queryByRole("textbox", { name: "Escribe 2027 para confirmar" }),
+    ).not.toBeInTheDocument();
+    expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledWith(3, {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("activa solo con el año escrito y recarga los años dejando elegido el nuevo activo", async () => {
+    mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_LISTA);
+    const user = userEvent.setup();
+    renderPagina();
+
+    const campo = await screen.findByRole("textbox", { name: "Escribe 2027 para confirmar" });
+    const boton = screen.getByRole("button", { name: "Activar 2027" });
+    expect(boton).toBeDisabled();
+
+    await user.type(campo, "2026");
+    expect(boton).toBeDisabled();
+    await user.clear(campo);
+    await user.type(campo, "2027");
+    expect(boton).toBeEnabled();
+    await user.click(boton);
+
+    expect(mocks.activarAnioLectivo).toHaveBeenCalledWith(3, 2027);
+    expect(mocks.recargarAnios).toHaveBeenCalledWith({ seleccionarId: 3 });
+    expect(await screen.findByText("2027 quedó activo y 2026 cerrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Continúan: 6 · Nuevos: 0 · Retirados: 3 · Egresados: 1"),
+    ).toBeInTheDocument();
+  });
+
+  it("si el backend rechaza por pendientes, muestra su mensaje y su lista", async () => {
+    mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_LISTA);
+    mocks.activarAnioLectivo.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          detail: {
+            codigo: "activacion_con_pendientes",
+            mensaje: "No se puede activar 2027: faltan 1 estudiantes por decidir.",
+            sin_decidir: [PENDIENTE],
+          },
+        },
+      },
+    });
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Escribe 2027 para confirmar" }),
+      "2027",
+    );
+    await user.click(screen.getByRole("button", { name: "Activar 2027" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se puede activar 2027: faltan 1 estudiantes por decidir.",
+    );
+    expect(screen.getByText("Esteban Castro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Activar 2027" })).toBeDisabled();
+    expect(mocks.recargarAnios).not.toHaveBeenCalled();
+  });
+
+  it("después de marcar una salida, vuelve a pedir la vista previa", async () => {
+    mocks.listarCandidatosMatricula.mockResolvedValue({
+      candidatos: [{ ...CANDIDATOS.candidatos[0], estado_salida: null }],
+    });
+    mocks.guardarDecisionSalida.mockResolvedValue({ cantidad: 1 });
+    const user = userEvent.setup();
+    renderPagina();
+
+    await screen.findByRole("option", { name: /PRIMERO A/ });
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await user.click(
+      await screen.findByRole("button", { name: "Marcar a Ana Rojas como retirado" }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledTimes(2),
+    );
   });
 });

@@ -76,6 +76,58 @@ export const etiquetaSalida = (estadoSalida) => ETIQUETAS_SALIDA[estadoSalida] ?
 export const puedeMatricularseEnDestino = (candidato) =>
   !candidato.matriculado_en_destino && !candidato.estado_salida;
 
+// Activación del año (paso 6.7). El código con el que el backend responde un
+// 409 cuando quedan estudiantes sin decidir; viene con su lista.
+export const CODIGO_ACTIVACION_CON_PENDIENTES = "activacion_con_pendientes";
+
+// Los pendientes de la vista previa agrupados por su curso del año activo, en
+// el orden en que llegan (el backend ya los ordena por curso y apellido).
+export function agruparPendientesPorCurso(sinDecidir) {
+  if (!Array.isArray(sinDecidir)) return [];
+
+  const grupos = new Map();
+  for (const estudiante of sinDecidir) {
+    const clave = estudiante.curso_id == null ? "sin-curso" : String(estudiante.curso_id);
+    if (!grupos.has(clave)) {
+      const curso =
+        estudiante.curso_id == null
+          ? "Sin curso"
+          : [estudiante.curso_nombre, estudiante.curso_jornada].filter(Boolean).join(" · ");
+      grupos.set(clave, { clave, curso, estudiantes: [] });
+    }
+    grupos.get(clave).estudiantes.push(estudiante);
+  }
+  return [...grupos.values()];
+}
+
+// El año escrito para confirmar coincide con el que cambia. Es comodidad para
+// habilitar el botón: el backend vuelve a compararlo.
+export const confirmacionCoincide = (texto, anio) =>
+  String(texto ?? "").trim() === String(anio);
+
+// La lista de pendientes de un 409 de activación, o `null` si el error es otro.
+export function leerPendientesDeActivacion(error) {
+  const detalle = error?.response?.data?.detail;
+  if (
+    detalle?.codigo === CODIGO_ACTIVACION_CON_PENDIENTES &&
+    Array.isArray(detalle.sin_decidir)
+  ) {
+    return detalle.sin_decidir;
+  }
+  return null;
+}
+
+// El mensaje del backend, que llega como texto o, en los avisos con código,
+// como `{ codigo, mensaje }`. Si no hay ninguno, el de respaldo.
+export function mensajeDeErrorAnio(error, respaldo) {
+  const detalle = error?.response?.data?.detail;
+  if (typeof detalle === "string" && detalle.trim()) return detalle;
+  if (typeof detalle?.mensaje === "string" && detalle.mensaje.trim()) {
+    return detalle.mensaje;
+  }
+  return respaldo;
+}
+
 // `[{ id, anio, estado }]`, en el orden en que llegan (el más reciente
 // primero). Descarta lo que no sea una fila válida, en vez de romper la barra.
 export function normalizarAniosLectivos(respuesta) {

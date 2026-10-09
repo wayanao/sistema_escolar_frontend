@@ -13,6 +13,7 @@ vi.mock("../utils/api", () => ({
 }));
 
 import {
+  activarAnioLectivo,
   copiarConfiguracionAnio,
   crearEstudianteEnPreparacion,
   crearAnioLectivo,
@@ -20,6 +21,7 @@ import {
   listarCandidatosMatricula,
   listarAniosLectivos,
   obtenerResumenAnio,
+  obtenerVistaPreviaActivacion,
   promoverEstudiantes,
 } from "./aniosLectivosApi";
 
@@ -152,5 +154,32 @@ describe("contrato HTTP de años lectivos", () => {
       "/anios-lectivos/3/matriculas/salida",
       { estudiante_ids: [9], estado_salida: null },
     );
+  });
+
+  it("pide la vista previa de activación, con señal opcional (paso 6.7)", async () => {
+    const vista = { puede_activar: false, sin_decidir: [] };
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: vista });
+
+    await expect(obtenerVistaPreviaActivacion(3)).resolves.toBe(vista);
+    await obtenerVistaPreviaActivacion(3, { signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/anios-lectivos/3/activacion/vista-previa");
+    expect(apiMock.get).toHaveBeenNthCalledWith(
+      2,
+      "/anios-lectivos/3/activacion/vista-previa",
+      { signal: controller.signal },
+    );
+  });
+
+  it("activa enviando solo el año que escribió el admin (paso 6.7)", async () => {
+    const respuesta = { anio_activo: { id: 3, anio: 2027, estado: "activo" } };
+    apiMock.post.mockResolvedValue({ data: respuesta });
+
+    await expect(activarAnioLectivo(3, 2027)).resolves.toBe(respuesta);
+
+    expect(apiMock.post).toHaveBeenCalledWith("/anios-lectivos/3/activar", {
+      confirmar_anio: 2027,
+    });
   });
 });

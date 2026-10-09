@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
 import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
 import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
+import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import usePreparacionMatriculas from "../hooks/anioLectivo/usePreparacionMatriculas";
 import {
@@ -39,6 +41,28 @@ function AniosLectivosAdmin() {
   );
   const siguienteAnio = anioActivo ? anioActivo.anio + 1 : null;
   const preparacion = usePreparacionMatriculas(anioPreparacion);
+  // Al activar, recarga los años dejando elegido el nuevo activo: así toda la
+  // aplicación pasa a trabajar en él.
+  const alActivar = useCallback(
+    (datos) => recargarAnios({ seleccionarId: datos.anio_activo.id }),
+    [recargarAnios],
+  );
+  const activacion = useActivacionAnio(anioPreparacion, { onActivado: alActivar });
+
+  // Marcar o matricular cambia quién falta por decidir: la vista previa se
+  // vuelve a pedir para que la lista de pendientes no quede vieja.
+  const marcarSalida = async (estudianteId, estadoSalida) => {
+    const respuesta = await preparacion.marcarSalida(estudianteId, estadoSalida);
+    if (respuesta.estado === "exito") void activacion.recargarVistaPrevia();
+    return respuesta;
+  };
+  const promover = async () => {
+    const respuesta = await preparacion.promover();
+    if (respuesta.estado === "exito") void activacion.recargarVistaPrevia();
+    return respuesta;
+  };
+  const resultadoActivacion = activacion.resultado;
+  const errorVisible = error || preparacion.error || activacion.error;
 
   const crearSiguiente = async () => {
     setCreando(true);
@@ -94,14 +118,25 @@ function AniosLectivosAdmin() {
         </p>
       </header>
 
-      {(error || preparacion.error) && (
+      {errorVisible && (
         <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-red-800 sm:p-4">
-          {error || preparacion.error}
+          {errorVisible}
         </div>
       )}
       {mensaje && (
         <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 sm:p-4">
           {mensaje}
+        </div>
+      )}
+      {resultadoActivacion && (
+        <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-900 sm:p-4">
+          <p className="font-semibold">
+            {resultadoActivacion.anio_activo.anio} quedó activo y{" "}
+            {resultadoActivacion.anio_cerrado.anio} cerrado.
+          </p>
+          <p className="mt-1 text-sm">
+            {`Continúan: ${resultadoActivacion.resumen.continuan} · Nuevos: ${resultadoActivacion.resumen.nuevos} · Retirados: ${resultadoActivacion.resumen.retirados} · Egresados: ${resultadoActivacion.resumen.egresados}`}
+          </p>
         </div>
       )}
 
@@ -237,8 +272,8 @@ function AniosLectivosAdmin() {
           onCambiarOrigen={preparacion.cambiarCursoOrigen}
           onCambiarDestino={preparacion.setCursoDestinoId}
           onAlternarEstudiante={preparacion.alternarEstudiante}
-          onMarcarSalida={preparacion.marcarSalida}
-          onPromover={preparacion.promover}
+          onMarcarSalida={marcarSalida}
+          onPromover={promover}
         />
       )}
 
@@ -247,6 +282,20 @@ function AniosLectivosAdmin() {
           anio={anioPreparacion.anio}
           resumen={preparacion.resumen}
           cargando={preparacion.cargandoPreparacion}
+        />
+      )}
+
+      {anioPreparacion && anioActivo && (
+        <ActivacionAnioView
+          anioActivo={anioActivo}
+          anioPreparacion={anioPreparacion}
+          vistaPrevia={activacion.vistaPrevia}
+          cargando={activacion.cargandoVistaPrevia}
+          confirmacion={activacion.confirmacion}
+          activando={activacion.activando}
+          onCambiarConfirmacion={activacion.setConfirmacion}
+          onActivar={activacion.activar}
+          onActualizar={activacion.recargarVistaPrevia}
         />
       )}
     </div>

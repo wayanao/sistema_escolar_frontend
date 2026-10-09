@@ -72,6 +72,25 @@ export async function crearEstudianteEnPreparacion(anioLectivoId, estudiante) {
   return data;
 }
 
+// Paso 6.7: cuántos siguen y salen, la lista de quienes faltan por decidir y
+// `puede_activar`, que decide el backend. Solo lee.
+export async function obtenerVistaPreviaActivacion(anioLectivoId, { signal } = {}) {
+  const url = `/anios-lectivos/${anioLectivoId}/activacion/vista-previa`;
+  const { data } = signal
+    ? await api.get(url, { signal })
+    : await api.get(url);
+  return data;
+}
+
+// Paso 6.7: el año que escribió el admin viaja tal cual; el backend lo compara
+// con el que se activa. Con pendientes responde 409 con su lista.
+export async function activarAnioLectivo(anioLectivoId, confirmarAnio) {
+  const { data } = await api.post(`/anios-lectivos/${anioLectivoId}/activar`, {
+    confirmar_anio: confirmarAnio,
+  });
+  return data;
+}
+
 export async function obtenerResumenAnio(anioLectivoId, { signal } = {}) {
   const url = `/anios-lectivos/${anioLectivoId}/resumen`;
   const { data } = signal

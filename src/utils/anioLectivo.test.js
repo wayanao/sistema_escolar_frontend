@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CODIGO_ACTIVACION_CON_PENDIENTES,
   ESTADO_ACTIVO,
   ESTADO_CERRADO,
   ESTADO_PREPARACION,
@@ -9,11 +10,15 @@ import {
   SALIDA_EGRESADO,
   SALIDA_RETIRADO,
   SIN_PARAMETROS_DE_ANIO,
+  agruparPendientesPorCurso,
+  confirmacionCoincide,
   construirAvisoAnio,
   encontrarAnioActivo,
   esRutaPorAnio,
   etiquetaAnioLectivo,
   etiquetaSalida,
+  leerPendientesDeActivacion,
+  mensajeDeErrorAnio,
   puedeMatricularseEnDestino,
   normalizarAniosLectivos,
   opcionesConAnio,
@@ -262,5 +267,64 @@ describe("marca de salida (paso 6.6)", () => {
     expect(
       puedeMatricularseEnDestino({ ...base, estado_salida: SALIDA_EGRESADO }),
     ).toBe(false);
+  });
+});
+
+describe("activación del año (paso 6.7)", () => {
+  const PENDIENTES = [
+    { id: 8, nombre: "Esteban", apellido: "Castro", curso_id: 3, curso_nombre: "1B", curso_jornada: "Mañana" },
+    { id: 7, nombre: "Camilo", apellido: "Rodríguez", curso_id: 3, curso_nombre: "1B", curso_jornada: "Mañana" },
+    { id: 9, nombre: "Carolina", apellido: "Pérez", curso_id: 4, curso_nombre: "PARVULO", curso_jornada: "Mañana" },
+    { id: 5, nombre: "Ana", apellido: "Gil", curso_id: null, curso_nombre: null, curso_jornada: null },
+  ];
+
+  it("agrupa los pendientes por curso, en el orden en que llegan", () => {
+    expect(agruparPendientesPorCurso(PENDIENTES)).toEqual([
+      { clave: "3", curso: "1B · Mañana", estudiantes: [PENDIENTES[0], PENDIENTES[1]] },
+      { clave: "4", curso: "PARVULO · Mañana", estudiantes: [PENDIENTES[2]] },
+      { clave: "sin-curso", curso: "Sin curso", estudiantes: [PENDIENTES[3]] },
+    ]);
+    expect(agruparPendientesPorCurso(undefined)).toEqual([]);
+  });
+
+  it("la confirmación coincide solo con el año exacto, sin espacios de más", () => {
+    expect(confirmacionCoincide("2027", 2027)).toBe(true);
+    expect(confirmacionCoincide(" 2027 ", 2027)).toBe(true);
+    expect(confirmacionCoincide("2026", 2027)).toBe(false);
+    expect(confirmacionCoincide("", 2027)).toBe(false);
+    expect(confirmacionCoincide(undefined, 2027)).toBe(false);
+  });
+
+  it("reconoce el 409 de pendientes por su código y devuelve su lista", () => {
+    const error = {
+      response: {
+        status: 409,
+        data: {
+          detail: {
+            codigo: CODIGO_ACTIVACION_CON_PENDIENTES,
+            mensaje: "No se puede activar 2027: faltan 1 estudiantes por decidir.",
+            sin_decidir: [PENDIENTES[0]],
+          },
+        },
+      },
+    };
+
+    expect(CODIGO_ACTIVACION_CON_PENDIENTES).toBe("activacion_con_pendientes");
+    expect(leerPendientesDeActivacion(error)).toEqual([PENDIENTES[0]]);
+    expect(leerPendientesDeActivacion({ response: { data: { detail: "Otro" } } })).toBe(null);
+    expect(
+      leerPendientesDeActivacion({ response: { data: { detail: { codigo: "otro", sin_decidir: [] } } } }),
+    ).toBe(null);
+  });
+
+  it("toma el mensaje del backend, sea texto u objeto, o usa el de respaldo", () => {
+    expect(
+      mensajeDeErrorAnio({ response: { data: { detail: "Para activar, escribe el año 2027." } } }, "x"),
+    ).toBe("Para activar, escribe el año 2027.");
+    expect(
+      mensajeDeErrorAnio({ response: { data: { detail: { mensaje: "Faltan 2." } } } }, "x"),
+    ).toBe("Faltan 2.");
+    expect(mensajeDeErrorAnio({ response: { data: { detail: [{ msg: "x" }] } } }, "Respaldo")).toBe("Respaldo");
+    expect(mensajeDeErrorAnio(new Error("red"), "Respaldo")).toBe("Respaldo");
   });
 });
