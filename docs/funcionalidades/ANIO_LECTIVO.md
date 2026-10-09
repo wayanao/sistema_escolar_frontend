@@ -1414,9 +1414,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   build correctos.
 - El paso 6.1 del backend quedó en el commit `6c6aabb`, y la migración se aplicó
   en los dos tenants de producción el 2026-10-08.
-- Siguiente acción exacta: el paso 6.2 del backend (vista previa de
-  activación), cuando el usuario lo autorice. No iniciar todavía el código del
-  frontend.
+- El 2026-10-08 el usuario autorizó el paso 6.2 del backend y lo dividió en
+  6.2a (vista previa de activación, ya terminado localmente en el backend:
+  `GET /anios-lectivos/{id}/activacion/vista-previa`) y 6.2b (guardar o quitar
+  la marca `retirado`/`egresado`). Decidió también que una marca de salida y
+  una matrícula en el año siguiente se excluyen: el backend rechaza el choque
+  con un mensaje. Contrato en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
+- Pendiente de preguntar antes del código del frontend de esta fase: en qué
+  pantalla marca el admin a quien no sigue (por ejemplo, en la de promoción por
+  curso o en la lista de pendientes de la vista previa).
+- Siguiente acción exacta: el paso 6.2b del backend, cuando el usuario lo
+  autorice. No iniciar todavía el código del frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
