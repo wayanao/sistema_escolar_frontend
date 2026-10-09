@@ -1443,9 +1443,15 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   reporte parcial de un año cerrado o reabierto ocultan las materias de su
   foto al cerrarse. El frontend no cambia: sigue pidiendo el año con
   `anio_lectivo_id` y mostrando lo que llega.
-- Siguiente acción exacta: el ensayo de activación en una rama de Neon con el
-  backend local, cuando el usuario lo autorice. No iniciar todavía el código
-  del frontend.
+- El 2026-10-08 el usuario hizo el ensayo de activación en una rama de Neon,
+  con el backend y el frontend locales, en el Colegio Demo: todo correcto.
+  Después de activar, el selector mostró 2027 activo y 2026 cerrado; en
+  Estudiantes de 2026, el filtro "Todos" mostró a los que salieron con su
+  estado nuevo; el admin abrió e imprimió un boletín de 2026; el profesor vio
+  solo 2027. Detalle en el documento principal.
+- Siguiente acción exacta: el paso 6.4 del backend (reabrir y volver a
+  cerrar), cuando el usuario lo autorice. No iniciar todavía el código del
+  frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
