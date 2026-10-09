@@ -1422,9 +1422,10 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   la marca `retirado`/`egresado`). Decidió también que una marca de salida y
   una matrícula en el año siguiente se excluyen: el backend rechaza el choque
   con un mensaje. Contrato en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
-- Pendiente de preguntar antes del código del frontend de esta fase: en qué
-  pantalla marca el admin a quien no sigue (por ejemplo, en la de promoción por
-  curso o en la lista de pendientes de la vista previa).
+- ~~Pendiente de preguntar antes del código del frontend de esta fase: en qué
+  pantalla marca el admin a quien no sigue.~~ **Respondida el 2026-10-09: en
+  la de promoción por curso** (`MatriculasPreparacionView`): a cada
+  estudiante que no pasa, Retirado, Egresado o quitar la marca.
 - El 6.2b del backend quedó terminado localmente el mismo día:
   `PUT /anios-lectivos/{id}/matriculas/salida` guarda o quita la marca, y la
   promoción rechaza con `409` a quien la tenga. La respuesta de candidatos no
@@ -1461,9 +1462,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   seguimiento de un curso y la validación de sus marcas leen a los
   matriculados en ese curso. **El backend de la fase 6 está completo**, salvo
   el 6.4c, aplazado.
-- Siguiente acción exacta: la **fase 6 del frontend** (ver su plan arriba),
-  cuando el usuario la autorice. Antes de su código hay que preguntar en qué
-  pantalla marca el admin a quien no sigue.
+- **Fase 6 del frontend autorizada el 2026-10-09.** Plan por pasos, uno a la
+  vez: 6.5 (backend: candidatos con `estado_salida`), 6.6 (marcar en la
+  promoción), 6.7 (sección Activar: vista previa, pendientes, activar con el
+  año escrito), 6.8 (reabrir y volver a cerrar), 6.9 (título del aviso de
+  año cerrado en Tipos de pago) y 6.10 (Certificados con todos los estados).
+  Detalle en el documento principal. El 6.5 quedó terminado localmente en el
+  backend, sin commit.
+- Siguiente acción exacta: el **6.6**, en este repo, cuando el usuario lo
+  autorice: en `MatriculasPreparacionView`, a cada estudiante no matriculado
+  en el año siguiente, Retirado, Egresado o quitar la marca, y no dejar
+  seleccionar para matricular a quien esté marcado.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
