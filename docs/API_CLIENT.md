@@ -773,7 +773,7 @@ Uso:
 
 ```text
 GET /cursos
-GET /estudiantes
+GET /estudiantes?estado=todos
 GET /materias
 GET /boletines/admin/generar/{estudiante_id}/{periodo}
 GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}
@@ -783,6 +783,13 @@ GET /asistencia/historial/{asignacion_id}/{periodo}
 Uso:
 
 - La pantalla permite filtrar estudiantes por curso, estado, busqueda y periodo.
+- Desde el paso 6.10 del año lectivo (decisión del 2026-10-08), pide los
+  estudiantes de todos los estados (`estado=todos`, más `anio_lectivo_id` si
+  se mira otro año) con su propia función,
+  `listarEstudiantesCertificados`. El filtro de la pantalla sigue empezando
+  en "Activos", así que al abrir se ve lo mismo de antes; cambiando el filtro
+  se puede certificar a retirados y egresados. Boletines conserva su propia
+  consulta, `GET /estudiantes`, solo de activos.
 - El usuario puede generar un certificado por periodo individual o por todos los
   periodos academicos.
 - Tambien permite generar un reporte academico parcial informativo por curso o

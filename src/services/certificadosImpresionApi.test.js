@@ -38,8 +38,25 @@ describe("contrato HTTP de certificados", () => {
     await expect(listarMateriasCertificados()).resolves.toBe(materias);
 
     expect(apiMock.get).toHaveBeenNthCalledWith(1, "/cursos");
-    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes");
+    // Año lectivo, paso 6.10 (decisión del 2026-10-08): Certificados pide
+    // todos los estados, para poder certificar a retirados y egresados. La
+    // pantalla sigue empezando en "Activos". Boletines no cambia.
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes", {
+      params: { estado: "todos" },
+    });
     expect(apiMock.get).toHaveBeenNthCalledWith(3, "/materias");
+  });
+
+  it("pide todos los estados también con señal (paso 6.10)", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantesCertificados({ signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes", {
+      params: { estado: "todos" },
+      signal: controller.signal,
+    });
   });
 
   it("conserva las rutas de boletines e historial y devuelve solo los datos", async () => {
@@ -120,7 +137,7 @@ describe("contrato HTTP de certificados y el año lectivo (paso 4.5)", () => {
       ["/boletines/admin/reporte-parcial/8/3", { ...conAnio, signal: controller.signal }],
       ["/boletines/admin/reporte-parcial/8/4", conAnio],
       ["/cursos", conAnio],
-      ["/estudiantes", conAnio],
+      ["/estudiantes", { params: { estado: "todos", anio_lectivo_id: 2 } }],
       ["/boletines/admin/generar/8/1", conAnio],
     ]);
   });

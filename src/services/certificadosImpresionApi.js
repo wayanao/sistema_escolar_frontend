@@ -3,8 +3,19 @@ import api from "../utils/api";
 export {
   generarBoletinAdministrativo as generarBoletinCertificado,
   listarCursosBoletines as listarCursosCertificados,
-  listarEstudiantesBoletines as listarEstudiantesCertificados,
 } from "./boletinesApi";
+
+// Año lectivo, paso 6.10 (decisión del 2026-10-08): Certificados pide los
+// estudiantes de todos los estados, para poder certificar a retirados y
+// egresados; la pantalla sigue empezando en "Activos". Boletines conserva su
+// propia consulta, solo de activos. `parametrosAnio` solo llega mirando un
+// año que no es el activo.
+export async function listarEstudiantesCertificados({ signal, parametrosAnio } = {}) {
+  const opciones = { params: { estado: "todos", ...parametrosAnio } };
+  if (signal) opciones.signal = signal;
+  const { data } = await api.get("/estudiantes", opciones);
+  return data;
+}
 
 export {
   listarHistorialAsistencia as listarHistorialAsistenciaCertificados,

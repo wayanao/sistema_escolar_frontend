@@ -6,9 +6,10 @@
   confirmado en `365d083`; backend de la fase 6 completo (salvo el 6.4c,
   aplazado); fase 6 del frontend iniciada el 2026-10-09: paso 6.6 (marcar la
   salida en la promoción) en `5892602`, paso 6.7 (sección "Activar") en
-  `f6a035e`, paso 6.8 (reabrir y volver a cerrar) en `5f69b77` y paso 6.9
-  (aviso de año cerrado en Tipos de pago) terminado localmente, sin
-  commit.** El
+  `f6a035e`, paso 6.8 (reabrir y volver a cerrar) en `5f69b77`, paso 6.9
+  (aviso de año cerrado en Tipos de pago) en `cf00e3d` y paso 6.10
+  (Certificados con todos los estados) terminado localmente, sin commit. Con
+  él, la fase 6 del frontend queda completa.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1254,6 +1255,9 @@ sin commit:**
    certificados de 2026 después de activar 2027, esas dos listas tienen que
    traer también a quien ya no esté activo (los marcados "no continúa" pasan
    a retirados al activar). Hoy solo traen activos: ver la pregunta abierta.
+   **Resuelto el 2026-10-09 (paso 6.10)**, según la decisión del usuario:
+   Certificados pide todos los estados y empieza en "Activos"; Boletines
+   sigue solo con activos.
 6. Ojo, hallazgo del paso 4.6 (del backend): la lista de seguimiento de un
    curso toma sus estudiantes de `estudiantes.curso_id`, así que la de un
    curso de 2026 saldrá vacía después de activar 2027. Si se quiere
@@ -1377,7 +1381,31 @@ sin commit:**
   fallaron antes del cambio. Verificación: 56 pruebas en los tres archivos;
   `pnpm run check:deploy` → **2292 pruebas en 346 archivos**, lint y build
   correctos; `git diff --check` limpio.
-- **Paso 6.9 terminado localmente, sin commit.**
+- **Paso 6.9 terminado; el usuario lo confirmó en el commit `cf00e3d`.**
+
+**Avance del 2026-10-09 — paso 6.10, Certificados con todos los estados:**
+
+- Repos en `main` y limpios al iniciar (frontend `cf00e3d`), sin push.
+- La pantalla ya tenía un filtro de estado que empezaba en "Activos", pero la
+  lista llegaba solo con activos (`GET /estudiantes` sin `estado`, el mismo de
+  Boletines), así que "Retirados" o "Egresados" nunca mostraban a nadie.
+- `services/certificadosImpresionApi.js`: `listarEstudiantesCertificados`
+  deja de ser el alias de `listarEstudiantesBoletines` y pasa a ser propia:
+  `GET /estudiantes` con `estado: "todos"` y, mirando otro año, el
+  `anio_lectivo_id`. Boletines no cambió (su prueba de `GET /estudiantes` sin
+  parámetros sigue intacta). El hook y el filtro inicial no cambiaron.
+- **Cambia una petición del año activo**, a propósito, por la decisión del
+  usuario del 2026-10-08: antes `GET /estudiantes`, ahora
+  `GET /estudiantes?estado=todos`. Al abrir, la pantalla se ve igual.
+- Pruebas: 1 nueva del servicio y 1 nueva de la página (al abrir se ve solo
+  el activo; con "Retirados", el retirado). Se actualizaron, con explicación,
+  2 expectativas del servicio y 1 de la página que fijaban la petición vieja.
+  Fallaron 5 antes del cambio.
+- Verificación: 34 pruebas de Certificados y Boletines; `pnpm run
+  check:deploy` → **2294 pruebas en 346 archivos**, lint y build correctos;
+  `git diff --check` limpio. Documentado en `docs/API_CLIENT.md`.
+- **Paso 6.10 terminado localmente, sin commit. Con él queda completa la fase
+  6 del frontend.**
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1592,16 +1620,17 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   Detalle en el documento principal. El 6.5 quedó terminado localmente en el
   backend, sin commit.
 - El 6.5 quedó en el backend en `a3f7086`, el **6.6, marcar la salida en la
-  promoción**, en `5892602`, el **6.7, la sección "Activar"**, en `f6a035e`
-  y el **6.8, reabrir y volver a cerrar**, en `5f69b77`. El **6.9, el aviso
-  de año cerrado en Tipos de pago**, quedó terminado localmente en este repo,
-  sin commit (ver su avance en la fase 6): `pnpm run check:deploy` pasa 2292
-  pruebas.
-- Siguiente acción exacta: el usuario revisa y hace el commit del 6.9.
-  Después, con su visto bueno, el **6.10**, el último de la fase: que
-  Certificados pida estudiantes de todos los estados, con "Activos" como
-  filtro inicial (decisión del 2026-10-08), para poder sacar certificados de
-  retirados y egresados. Boletines no cambia. No iniciarlo sin autorización.
+  promoción**, en `5892602`, el **6.7, la sección "Activar"**, en `f6a035e`,
+  el **6.8, reabrir y volver a cerrar**, en `5f69b77` y el **6.9, el aviso
+  de año cerrado en Tipos de pago**, en `cf00e3d`. El **6.10, Certificados
+  con todos los estados**, quedó terminado localmente en este repo, sin
+  commit (ver su avance en la fase 6): `pnpm run check:deploy` pasa 2294
+  pruebas. **Con él queda completa la fase 6 del frontend.**
+- Siguiente acción exacta: el usuario revisa y hace el commit del 6.10.
+  Después, lo que queda antes de la activación real (enero de 2027) está en
+  la entrega del documento principal: push de los dos repos, rotar la
+  contraseña de `neondb_owner`, un ensayo completo con las pantallas en una
+  rama de Neon y la fase 7. Nada de eso se inicia sin autorización.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

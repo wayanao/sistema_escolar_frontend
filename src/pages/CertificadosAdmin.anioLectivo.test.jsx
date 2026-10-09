@@ -104,7 +104,11 @@ describe("Certificados mirando otro año", () => {
     expect(await screen.findByText("TI-123")).toBeInTheDocument();
     expect(apiMock.get.mock.calls).toEqual([
       ["/cursos", CON_ANIO],
-      ["/estudiantes", CON_ANIO],
+      // Paso 6.10: Certificados pide todos los estados.
+      [
+        "/estudiantes",
+        { params: { estado: "todos", anio_lectivo_id: 3 }, signal: expect.any(AbortSignal) },
+      ],
       ["/materias", SIN_ANIO],
     ]);
 
@@ -141,5 +145,45 @@ describe("Certificados mirando otro año", () => {
     await user.clear(anio);
     await user.type(anio, "2024");
     expect(anio).toHaveValue(2024);
+  });
+});
+
+describe("Certificados con todos los estados (paso 6.10)", () => {
+  const ACTIVO = {
+    anioActivo: { id: 1, anio: 2026, estado: "activo" },
+    anioSeleccionado: { id: 1, anio: 2026, estado: "activo" },
+    parametros: {},
+    permisos: { esAnioActivo: true, puedeEditar: true },
+  };
+
+  it("pide todos los estados, empieza mostrando los activos y deja ver a un retirado", async () => {
+    mocks.anioLectivo = ACTIVO;
+    const responderBase = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) => {
+      if (url === "/estudiantes") {
+        return Promise.resolve({
+          data: [
+            { id: 8, nombre: "Sara", apellido: "López", documento_identidad: "TI-123", curso_id: 50, estado: "activo" },
+            { id: 9, nombre: "Luis", apellido: "Pardo", documento_identidad: "TI-999", curso_id: 50, estado: "retirado" },
+          ],
+        });
+      }
+      return responderBase(url, opciones);
+    });
+    const user = userEvent.setup();
+
+    render(<CertificadosAdmin />);
+
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    expect(screen.queryByText("TI-999")).not.toBeInTheDocument();
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes", {
+      params: { estado: "todos" },
+      signal: expect.any(AbortSignal),
+    });
+
+    await user.selectOptions(screen.getByDisplayValue("Activos"), "retirado");
+
+    expect(await screen.findByText("TI-999")).toBeInTheDocument();
+    expect(screen.queryByText("TI-123")).not.toBeInTheDocument();
   });
 });
