@@ -1412,9 +1412,11 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   inició código de fase 6 en este repo. Esta actualización solo documental se
   verificó con `pnpm run check:deploy`: 2248 pruebas en 344 archivos, lint y
   build correctos.
-- Siguiente acción exacta: el usuario hace el commit del paso 6.1 en el backend
-  y aplica la migración en producción, según la entrega del documento
-  principal. No iniciar todavía la vista previa ni el código del frontend.
+- El paso 6.1 del backend quedó en el commit `6c6aabb`, y la migración se aplicó
+  en los dos tenants de producción el 2026-10-08.
+- Siguiente acción exacta: el paso 6.2 del backend (vista previa de
+  activación), cuando el usuario lo autorice. No iniciar todavía el código del
+  frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
