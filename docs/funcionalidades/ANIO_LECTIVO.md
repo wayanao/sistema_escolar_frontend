@@ -1439,8 +1439,13 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   sin_decidir}`, igual que el aviso de materias; los demás errores llegan como
   texto. Quien sigue conserva su estado al activar, aunque sea `retirado` o
   `inactivo`. Contrato en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
-- Siguiente acción exacta: el paso 6.3b del backend, cuando el usuario lo
-  autorice. No iniciar todavía el código del frontend.
+- El 6.3b del backend quedó terminado localmente el mismo día: el boletín y el
+  reporte parcial de un año cerrado o reabierto ocultan las materias de su
+  foto al cerrarse. El frontend no cambia: sigue pidiendo el año con
+  `anio_lectivo_id` y mostrando lo que llega.
+- Siguiente acción exacta: el ensayo de activación en una rama de Neon con el
+  backend local, cuando el usuario lo autorice. No iniciar todavía el código
+  del frontend.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.
