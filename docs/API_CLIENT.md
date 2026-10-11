@@ -727,6 +727,26 @@ Uso:
   cambios locales hasta que el profesor confirma que desea cargar la versión
   reciente.
 
+Usar un plan del año pasado (año lectivo, fase 7, paso 7.4):
+
+```text
+GET /plan-de-clases/{asignacion_id}/anio-anterior
+GET /plan-de-clases/{asignacion_id}/anio-anterior/{plan_id}
+```
+
+- La lista se pide solo al crear un plan (la fecha elegida no tiene uno), una
+  vez por clase en cada visita. Si llega vacía, el navegador lo anota
+  (`plan_clases_sin_anio_anterior_{profesor}_{clase}`) y no vuelve a preguntar
+  por esa clase: una clase sin origen no lo gana después (decisión del
+  usuario del 2026-10-10). Con la lista vacía o editando un plan existente, no
+  aparece nada.
+- Al elegir un plan se pide su texto y se llenan solo los ocho campos de
+  texto; el periodo, la fecha y las evidencias quedan los del plan nuevo. Con
+  cambios sin guardar, se confirma antes de reemplazarlos. El plan se guarda
+  con el `POST /plan-de-clases` de siempre, con `version_esperada` `0`.
+- Si el backend rechaza el texto (`403` o `409`), se muestra su `detail` en el
+  mensaje del formulario y no se toca nada.
+
 ### Malla Curricular
 
 `PlaneadorAnual.jsx` consume:

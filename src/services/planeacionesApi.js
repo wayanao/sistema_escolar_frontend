@@ -57,6 +57,19 @@ export async function marcarObservacionVista(planId, observacionId) {
   return data;
 }
 
+// Año lectivo, fase 7 (paso 7.4): usar un plan del año pasado como base. Solo
+// se manda la clase de este año (y el id del plan elegido); el origen lo
+// encuentra el backend. El plan nuevo se guarda con `guardarPlanProfesor`.
+export async function listarPlanesAnioAnterior(asignacionId) {
+  const { data } = await api.get(`/plan-de-clases/${asignacionId}/anio-anterior`);
+  return data;
+}
+
+export async function obtenerPlanAnioAnterior(asignacionId, planId) {
+  const { data } = await api.get(`/plan-de-clases/${asignacionId}/anio-anterior/${planId}`);
+  return data;
+}
+
 export async function listarProfesoresPlaneaciones() {
   const { data } = await api.get("/profesores");
   return data;

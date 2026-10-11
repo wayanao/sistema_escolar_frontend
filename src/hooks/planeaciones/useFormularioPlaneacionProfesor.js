@@ -174,6 +174,13 @@ export default function useFormularioPlaneacionProfesor({
     setEstadoGuardado(crearEstadoGuardado());
   }, [asignacionId, limpiarInputsImagen, profesorId]);
 
+  // Año lectivo, paso 7.4: el texto de un plan del año pasado como base. No
+  // toca periodo, fecha ni evidencias, y queda como un cambio sin guardar.
+  const usarTextoDePlan = useCallback((texto) => {
+    setForm({ ...ESTADO_INICIAL_PLAN, ...texto });
+    setEstadoGuardado((actual) => ({ ...actual, modificado: true }));
+  }, []);
+
   const marcarCargaFallida = useCallback(() => {
     setEstadoGuardado(crearEstadoGuardado());
   }, []);
@@ -211,6 +218,7 @@ export default function useFormularioPlaneacionProfesor({
     iniciarCarga,
     cargarDesdePlan,
     prepararPlanNuevo,
+    usarTextoDePlan,
     marcarCargaFallida,
     marcarGuardado,
     actualizarImagenGuardada,

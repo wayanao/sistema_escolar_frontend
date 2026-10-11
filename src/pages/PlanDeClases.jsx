@@ -5,6 +5,7 @@ import EncabezadoPlanProfesor from "../components/planeaciones/profesor/Encabeza
 import GuiaDidacticaProfesor from "../components/planeaciones/profesor/GuiaDidacticaProfesor";
 import GuardadoPlanProfesor from "../components/planeaciones/profesor/GuardadoPlanProfesor";
 import HistorialPlanesProfesor from "../components/planeaciones/profesor/HistorialPlanesProfesor";
+import PlanesAnioAnteriorProfesor from "../components/planeaciones/profesor/PlanesAnioAnteriorProfesor";
 import PresentacionClaseProfesor from "../components/planeaciones/profesor/PresentacionClaseProfesor";
 import SeguimientoPlanProfesor from "../components/planeaciones/profesor/SeguimientoPlanProfesor";
 import useCargaPlanDiarioProfesor from "../hooks/planeaciones/useCargaPlanDiarioProfesor";
@@ -13,6 +14,7 @@ import useEliminacionImagenPlanProfesor from "../hooks/planeaciones/useEliminaci
 import useFormularioPlaneacionProfesor from "../hooks/planeaciones/useFormularioPlaneacionProfesor";
 import useGuardadoPlaneacionProfesor from "../hooks/planeaciones/useGuardadoPlaneacionProfesor";
 import useHistorialPlaneacionesProfesor from "../hooks/planeaciones/useHistorialPlaneacionesProfesor";
+import usePlanesAnioAnteriorProfesor from "../hooks/planeaciones/usePlanesAnioAnteriorProfesor";
 import useSeguimientoPlaneacionProfesor from "../hooks/planeaciones/useSeguimientoPlaneacionProfesor";
 import { fechaIsoColombia } from "../utils/fechaColombia";
 import { obtenerEstadoGuardadoVisual } from "../utils/planeaciones/profesor";
@@ -65,6 +67,7 @@ function PlanDeClases() {
     iniciarCarga,
     cargarDesdePlan,
     prepararPlanNuevo,
+    usarTextoDePlan,
     marcarCargaFallida,
     marcarGuardado,
     actualizarImagenGuardada,
@@ -180,6 +183,18 @@ function PlanDeClases() {
     onSubirInicio: subirAlInicio,
   });
 
+  // Año lectivo, paso 7.4: "Usar un plan del año pasado", solo al crear un
+  // plan (la fecha elegida no tiene uno) y si el backend trajo planes.
+  const creandoPlan = Boolean(asignacionId) && !cargando && !planActualId;
+  const planesAnioAnterior = usePlanesAnioAnteriorProfesor({
+    profesorId,
+    asignacionId,
+    creando: creandoPlan,
+    hayCambios: estadoGuardado.modificado,
+    onUsarTexto: usarTextoDePlan,
+    onMensaje: setMensaje,
+  });
+
   useEffect(() => {
     const asignacionSolicitada = searchParams.get("asignacion_id");
     const fechaSolicitada = searchParams.get("fecha");
@@ -227,6 +242,17 @@ function PlanDeClases() {
         )}
 
         <div className="space-y-6">
+          {creandoPlan && planesAnioAnterior.planes.length > 0 && (
+            <PlanesAnioAnteriorProfesor
+              planes={planesAnioAnterior.planes}
+              abierto={planesAnioAnterior.abierto}
+              usandoId={planesAnioAnterior.usandoId}
+              onAbrir={planesAnioAnterior.abrir}
+              onCerrar={planesAnioAnterior.cerrar}
+              onUsar={planesAnioAnterior.usar}
+            />
+          )}
+
           <GuiaDidacticaProfesor
             asignacion={selectedClase}
             cargando={cargandoClases || cargando}

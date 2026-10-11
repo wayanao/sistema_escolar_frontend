@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   crearClaveCamposRecordados,
+  crearClaveSinPlanesAnioAnterior,
   crearFormDataPlanProfesor,
   ESTADO_INICIAL_PLAN,
   formatearFechaPlan,
   formatearFechaSeguimiento,
+  mensajePlanBaseUsado,
+  normalizarPlanesAnioAnterior,
   normalizarSeguimientoPlanProfesor,
   obtenerEstadoGuardadoVisual,
   obtenerEstadoRevisionVisual,
+  textoDePlanBase,
 } from "./profesor";
 
 describe("utilidades de planeaciones del profesor", () => {
@@ -115,5 +119,63 @@ describe("utilidades de planeaciones del profesor", () => {
     expect(formatearFechaPlan("fecha-invalida")).toBe("fecha-invalida");
     expect(formatearFechaSeguimiento("")).toBe("");
     expect(formatearFechaSeguimiento("fecha-invalida")).toBe("");
+  });
+});
+
+describe("planes del año pasado (año lectivo, paso 7.4)", () => {
+  it("anota por profesor y clase que una clase no tiene planes del año pasado", () => {
+    expect(crearClaveSinPlanesAnioAnterior(7, 44)).toBe("plan_clases_sin_anio_anterior_7_44");
+    expect(crearClaveSinPlanesAnioAnterior(7, "")).toBe("");
+    expect(crearClaveSinPlanesAnioAnterior(null, 44)).toBe("");
+    expect(crearClaveSinPlanesAnioAnterior(7, 44)).not.toBe(crearClaveCamposRecordados(7, 44));
+  });
+
+  it("normaliza la lista del backend y descarta filas sin id", () => {
+    expect(normalizarPlanesAnioAnterior([
+      { id: 1, fecha: "2026-02-10", periodo: 1, unidad: "Números", tema: "Conteo" },
+      { id: 2, fecha: "2026-05-12", periodo: "2", unidad: null, tema: undefined },
+      { fecha: "2026-06-01", unidad: "Sin id" },
+      null,
+    ])).toEqual([
+      { id: 1, fecha: "2026-02-10", periodo: 1, unidad: "Números", tema: "Conteo" },
+      { id: 2, fecha: "2026-05-12", periodo: 2, unidad: "", tema: "" },
+    ]);
+    expect(normalizarPlanesAnioAnterior(null)).toEqual([]);
+    expect(normalizarPlanesAnioAnterior({ detail: "x" })).toEqual([]);
+  });
+
+  it("toma solo los ocho textos del formulario: ni fecha, ni periodo, ni evidencias", () => {
+    expect(textoDePlanBase({
+      id: 1,
+      unidad: "Números",
+      proposito: "Contar",
+      clase: "Conteo con fichas",
+      estandar: "E1",
+      dba: "D1",
+      competencias: "C1",
+      actividad_casa: "Contar en casa",
+      tema: "Conteo",
+      fecha: "2026-02-10",
+      periodo: 3,
+      imagen1: "planes/a.png",
+    })).toEqual({
+      unidad: "Números",
+      proposito: "Contar",
+      clase: "Conteo con fichas",
+      estandar: "E1",
+      dba: "D1",
+      competencias: "C1",
+      actividad_casa: "Contar en casa",
+      tema: "Conteo",
+    });
+    expect(Object.keys(textoDePlanBase({}))).toEqual(Object.keys(ESTADO_INICIAL_PLAN));
+    expect(textoDePlanBase({ unidad: null, tema: 5 })).toEqual(ESTADO_INICIAL_PLAN);
+  });
+
+  it("arma el mensaje con la fecha del plan usado", () => {
+    expect(mensajePlanBaseUsado("2026-02-10")).toBe(
+      `Se llenó el formulario con el plan del ${formatearFechaPlan("2026-02-10")}. `
+        + "Revisa el texto, ajústalo y guárdalo como un plan nuevo.",
+    );
   });
 });

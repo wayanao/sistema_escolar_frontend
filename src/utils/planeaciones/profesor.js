@@ -42,6 +42,7 @@ export const ESTADO_INICIAL_PLAN = {
 };
 
 const PREFIJO_CAMPOS_RECORDADOS = "plan_clases_defaults";
+const PREFIJO_SIN_PLANES_ANIO_ANTERIOR = "plan_clases_sin_anio_anterior";
 
 export function obtenerEstadoRevisionVisual(estado, totalObservaciones = 0) {
   if (!["revisado", "con_observaciones"].includes(estado)) {
@@ -113,6 +114,44 @@ export function obtenerEstadoGuardadoVisual(
 export function crearClaveCamposRecordados(profesorId, asignacionId) {
   if (!profesorId || !asignacionId) return "";
   return `${PREFIJO_CAMPOS_RECORDADOS}_${profesorId}_${asignacionId}`;
+}
+
+// Año lectivo, fase 7 (paso 7.4): usar un plan del año pasado como base.
+// Decisión del usuario del 2026-10-10: se pregunta una vez por clase y, si no
+// hay planes, se anota en el navegador con esta clave para no volver a
+// preguntar. Una clase sin origen no lo gana después: el origen de un curso
+// se fija al copiarlo (paso 5.4).
+export function crearClaveSinPlanesAnioAnterior(profesorId, asignacionId) {
+  if (!profesorId || !asignacionId) return "";
+  return `${PREFIJO_SIN_PLANES_ANIO_ANTERIOR}_${profesorId}_${asignacionId}`;
+}
+
+const textoSeguro = (valor) => (typeof valor === "string" ? valor : "");
+
+export function normalizarPlanesAnioAnterior(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista
+    .filter((plan) => plan?.id)
+    .map((plan) => ({
+      id: plan.id,
+      fecha: plan.fecha || "",
+      periodo: Number(plan.periodo) || 1,
+      unidad: textoSeguro(plan.unidad),
+      tema: textoSeguro(plan.tema),
+    }));
+}
+
+// Solo los ocho textos del formulario (decisión 16): la fecha, el periodo y
+// las evidencias son las del plan nuevo.
+export function textoDePlanBase(plan) {
+  return Object.fromEntries(
+    Object.keys(ESTADO_INICIAL_PLAN).map((campo) => [campo, textoSeguro(plan?.[campo])]),
+  );
+}
+
+export function mensajePlanBaseUsado(fecha) {
+  return `Se llenó el formulario con el plan del ${formatearFechaPlan(fecha)}. `
+    + "Revisa el texto, ajústalo y guárdalo como un plan nuevo.";
 }
 
 export function crearFormDataPlanProfesor({

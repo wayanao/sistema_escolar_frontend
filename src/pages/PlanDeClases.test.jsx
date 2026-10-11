@@ -79,6 +79,13 @@ function prepararApi(planActual = null) {
       return Promise.resolve({ data: [] });
     }
 
+    // Año lectivo, paso 7.4: al crear un plan, la página pregunta por los
+    // planes del año pasado. Aquí no hay, como en un curso de 2026; el botón
+    // lo prueba PlanDeClases.anioLectivo.test.jsx.
+    if (url === `/plan-de-clases/${ASIGNACION_ID}/anio-anterior`) {
+      return Promise.resolve({ data: [] });
+    }
+
     return Promise.reject(new Error(`Consulta no simulada: ${url}`));
   });
   apiMock.patch.mockResolvedValue({ data: {} });

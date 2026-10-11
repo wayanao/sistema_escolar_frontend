@@ -11,8 +11,9 @@
   (Certificados con todos los estados) en `b7184f8`. Con él, la fase 6 del
   frontend quedó completa. Fase 7 iniciada el 2026-10-10: el backend la
   terminó en los pasos 7.1 (`16c9052`) y 7.2 (`c5dd384`); en este repo, paso
-  7.3 (traer el planeador del año pasado) terminado localmente, sin
-  commit.** El
+  7.3 (traer el planeador del año pasado) en `df2afe3` y paso 7.4 (usar un
+  plan del año pasado) terminado localmente, sin commit. Con él, la fase 7
+  queda completa en código en los dos repos.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1512,7 +1513,77 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   349 archivos**, lint y build correctos; `git diff --check` limpio.
   Documentado en `docs/API_CLIENT.md`, `docs/COMPONENTES.md` y
   `docs/CAMBIOS_FRONTEND.md`. Sin cambios en el backend, sin bases reales.
-- **Paso 7.3 terminado localmente, sin commit.**
+- **Paso 7.3 terminado; el usuario lo confirmó en el commit `df2afe3`.**
+
+**Avance del 2026-10-10 — paso 7.4, usar un plan del año pasado:**
+
+- Autorizado por el usuario el 2026-10-10 ("continua"). Repos en `main` y
+  limpios al iniciar (frontend `df2afe3`, backend `e34faa6`). Antes del cambio
+  pasaban 48 pruebas en los 11 archivos tocados.
+- **Decisión del usuario del 2026-10-10, antes de escribir:** la pantalla
+  pregunta por los planes del año pasado **una vez por clase, y si no hay,
+  lo anota en el navegador y no vuelve a preguntar por esa clase**. Se
+  descartaron preguntar solo al tocar el botón (el botón aparecería todo
+  2026 sin servir) y preguntar en cada visita (una petición más por visita,
+  vacía todo 2026). Lo anotado no se vuelve falso: el origen de un curso se
+  fija al copiarlo (paso 5.4), así que una clase sin origen nunca lo gana.
+- Se escribieron primero 32 pruebas; fallaron 11 y dos archivos no cargaban
+  porque su código no existía.
+- `services/planeacionesApi.js`: `listarPlanesAnioAnterior` y
+  `obtenerPlanAnioAnterior`.
+- `utils/planeaciones/profesor.js`: `crearClaveSinPlanesAnioAnterior`
+  (`plan_clases_sin_anio_anterior_{profesor}_{clase}`, por profesor para que
+  dos profesores en el mismo equipo no se mezclen), `normalizarPlanesAnioAnterior`,
+  `textoDePlanBase` (solo los ocho textos del formulario) y
+  `mensajePlanBaseUsado`.
+- `useFormularioPlaneacionProfesor`: `usarTextoDePlan`, que llena solo los
+  textos y deja el formulario como cambio sin guardar; no toca periodo, fecha
+  ni evidencias.
+- `hooks/planeaciones/usePlanesAnioAnteriorProfesor.js` (nuevo): al crear un
+  plan (la fecha elegida no tiene uno), pide la lista una vez por clase en
+  cada visita, salvo que la clase ya esté anotada sin planes; cada clase
+  guarda su lista, así que una respuesta tardía no pisa otra clase. Si la
+  consulta falla, no anota nada y vuelve a preguntar más adelante. Al usar un
+  plan: con cambios sin guardar, confirma antes ("¿Reemplazar lo que
+  escribiste?"); pide el texto; lo descarta si mientras tanto se cambió de
+  clase o de fecha; cierra la lista y avisa "Se llenó el formulario con el
+  plan del …". Un rechazo del backend se muestra con su `detail`.
+- `components/planeaciones/profesor/PlanesAnioAnteriorProfesor.jsx` (nuevo):
+  "Planes del año pasado", una explicación de qué se copia, el botón "Usar un
+  plan del año pasado" y la lista (fecha, periodo, unidad y tema, la más
+  antigua primero) con "Usar este plan" en cada uno. En móvil los botones
+  ocupan todo el ancho y la lista se desplaza dentro de su caja.
+- `pages/PlanDeClases.jsx`: muestra la sección solo al crear un plan y si
+  hay planes. El plan se guarda por el botón de siempre, como uno nuevo
+  (`version_esperada` `0`, sin evidencias si no se eligen).
+- Diferencia con el 7.3, a propósito: aquí, con cambios sin guardar, se
+  confirma en vez de esconder el botón, para poder cambiar de plan si se
+  eligió uno equivocado (criterio del asistente).
+- Peticiones: las de hoy quedan idénticas. Se suma la lista solo al crear un
+  plan, una vez por clase y por equipo mientras no haya planes; todo 2026, en
+  cuanto cada profesor abre un plan nuevo de una clase, esa clase queda
+  anotada y no se vuelve a preguntar.
+- Ajustada a propósito: en `PlanDeClases.test.jsx`, la simulación del
+  servidor conoce la ruta nueva y responde una lista vacía (como un curso de
+  2026). Sus comprobaciones no cambiaron. El botón lo prueba el archivo nuevo
+  `PlanDeClases.anioLectivo.test.jsx`.
+- Pruebas nuevas: 2 del servicio, 4 de las reglas puras, 1 del formulario, 15
+  del hook nuevo, 4 de la vista y 6 de la página. Veintiuna versiones dañadas
+  del código hacen fallar alguna; la primera vuelta dejó pasar una ("usar un
+  plan no marca cambios sin guardar", porque la prueba del formulario ya
+  partía con cambios) y por eso esa prueba ahora empieza con un plan nuevo sin
+  cambios.
+- Verificación: 80 pruebas en los 14 archivos tocados; lint limpio en ellos.
+  La primera corrida de `pnpm run check:deploy` **no salió limpia**: falló 1
+  de 2352 pruebas por tiempo agotado (`CrearProfesor.test.jsx`, que este paso
+  no toca; pasa sola, 4 de 4), y por eso no llegó al lint ni al build. La
+  segunda corrida completa salió **limpia**: **2352 pruebas en 352
+  archivos**, lint y build correctos. `git diff --check` limpio. Documentado
+  en `docs/API_CLIENT.md`, `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md`.
+  Sin cambios en el backend, sin bases reales.
+- **Paso 7.4 terminado localmente, sin commit. Con él, la fase 7 queda
+  completa en código en los dos repos**; falta revisarla con un profesor de
+  prueba en el ensayo en una rama de Neon.
 
 ## Pruebas
 
@@ -1715,16 +1786,18 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
 - **Fase 7 iniciada el 2026-10-10.** El backend la terminó en `16c9052` (7.1,
   traer el planeador) y `c5dd384` (7.2, los planes del año pasado); su
   contrato está en "Contrato del backend para la fase 7". En este repo, el
-  **7.3, el botón "Traer el planeador del año pasado"**, quedó terminado
-  localmente, sin commit (ver su avance en la fase 7).
-- Siguiente acción exacta: el usuario revisa y hace el commit del 7.3. Después,
-  con su autorización, el **paso 7.4**: "Usar un plan del año pasado" en el
-  formulario del plan de clases (`pages/PlanDeClases.jsx`,
-  `hooks/planeaciones/`), con las dos rutas de planes del contrato. Lo demás
-  que queda antes de la activación real (enero de 2027) está en la entrega del
-  documento principal: subir la fase 7 (primero el backend, con Render en
-  **Live**), rotar la contraseña de `neondb_owner` y un ensayo completo con
-  las pantallas en una rama de Neon.
+  **7.3, el botón "Traer el planeador del año pasado"**, quedó en `df2afe3`,
+  y el **7.4, "Usar un plan del año pasado"**, quedó terminado localmente,
+  sin commit (ver su avance en la fase 7). El usuario decidió que la lista de
+  planes se pida una vez por clase y que el navegador anote la clase que no
+  tiene. **Con el 7.4, la fase 7 queda completa en código en los dos repos.**
+- Siguiente acción exacta: el usuario revisa y hace el commit del 7.4. Lo que
+  queda antes de la activación real (enero de 2027), cada cosa con su
+  autorización, está en la entrega del documento principal: subir la fase 7
+  (primero el backend, con Render en **Live**, y después el frontend), rotar
+  la contraseña de `neondb_owner` y un ensayo completo con las pantallas en
+  una rama de Neon, que es también la revisión con un profesor de prueba que
+  pide el "terminado cuando" de la fase 7.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

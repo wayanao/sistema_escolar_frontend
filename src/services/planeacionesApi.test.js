@@ -22,11 +22,13 @@ import {
   guardarPlanProfesor,
   listarClasesProfesor,
   listarHistorialPlanesProfesor,
+  listarPlanesAnioAnterior,
   listarNotificacionesPlaneadores,
   listarObservacionesPlan,
   listarPlaneacionesAdmin,
   listarProfesoresPlaneaciones,
   marcarObservacionVista,
+  obtenerPlanAnioAnterior,
   obtenerPlaneacionAdmin,
   obtenerPlanProfesor,
 } from "./planeacionesApi";
@@ -216,5 +218,23 @@ describe("bandeja del admin y el año lectivo (paso 4.6)", () => {
       signal: controller.signal,
     });
     expect(params).toEqual({ estado_revision: "pendiente", limit: 12, offset: 0 });
+  });
+});
+
+describe("planes del año pasado (año lectivo, paso 7.4)", () => {
+  it("lista los planes del año pasado de la clase", async () => {
+    const planes = [{ id: 1, fecha: "2026-02-10", periodo: 1, unidad: "Números", tema: "Conteo" }];
+    apiMock.get.mockResolvedValue({ data: planes });
+
+    await expect(listarPlanesAnioAnterior(200)).resolves.toBe(planes);
+    expect(apiMock.get).toHaveBeenCalledWith("/plan-de-clases/200/anio-anterior");
+  });
+
+  it("pide el texto de un plan con la clase de este año y el id del plan", async () => {
+    const texto = { id: 1, unidad: "Números", tema: "Conteo" };
+    apiMock.get.mockResolvedValue({ data: texto });
+
+    await expect(obtenerPlanAnioAnterior(200, 1)).resolves.toBe(texto);
+    expect(apiMock.get).toHaveBeenCalledWith("/plan-de-clases/200/anio-anterior/1");
   });
 });

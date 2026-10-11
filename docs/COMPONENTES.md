@@ -396,6 +396,14 @@ Estado actual de componentes y paginas del frontend.
   revisión/comentarios y el comando de eliminación de evidencias.
 - `pages/PlanDeClases.jsx` queda como raíz de composición: conecta hooks con
   componentes y no importa el servicio HTTP de planeaciones.
+- Año lectivo, paso 7.4: `hooks/planeaciones/usePlanesAnioAnteriorProfesor.js`
+  pide la lista de planes del año pasado al crear un plan (una vez por clase,
+  y anota en el navegador la clase que no tiene), trae el texto del elegido y
+  confirma antes de reemplazar cambios sin guardar;
+  `components/planeaciones/profesor/PlanesAnioAnteriorProfesor.jsx` muestra
+  "Usar un plan del año pasado" y la lista con fecha, periodo, unidad y tema.
+  `useFormularioPlaneacionProfesor` suma `usarTextoDePlan`, que llena solo los
+  textos.
 - El encabezado utiliza una composición compacta: título y contexto a la
   izquierda, con el estado de guardado en una cápsula horizontal adaptable.
 - Al guardar correctamente, la vista vuelve al encabezado y la cápsula

@@ -1,5 +1,33 @@
 # Cambios Frontend
 
+## 2026-10-10 - Año lectivo: usar un plan del año pasado (fase 7, paso 7.4)
+
+Al crear un plan de clases, el profesor puede partir de uno del año pasado de
+esa materia (decisiones 15 y 16 del backend). Con este paso, la fase 7 queda
+completa en código.
+
+- Al crear un plan, la pantalla pide una vez por clase
+  `GET /plan-de-clases/{asignacion_id}/anio-anterior`. Si llega vacía, el
+  navegador anota esa clase y no vuelve a preguntar por ella (decisión del
+  usuario, para no sumar peticiones todo 2026, cuando ninguna clase tiene
+  origen).
+- Con planes, aparece "Usar un plan del año pasado": la lista con fecha,
+  periodo, unidad y tema. Al elegir uno se pide su texto y se llenan solo los
+  ocho campos de texto; periodo, fecha y evidencias quedan los del plan nuevo.
+  Con cambios sin guardar, se confirma antes de reemplazarlos.
+- El plan se guarda por el `POST /plan-de-clases` de siempre, como uno nuevo.
+- Archivos: `services/planeacionesApi.js`, `utils/planeaciones/profesor.js`,
+  `hooks/planeaciones/useFormularioPlaneacionProfesor.js` (`usarTextoDePlan`),
+  `hooks/planeaciones/usePlanesAnioAnteriorProfesor.js` (nuevo),
+  `components/planeaciones/profesor/PlanesAnioAnteriorProfesor.jsx` (nuevo) y
+  `pages/PlanDeClases.jsx`.
+
+Verificación: 32 pruebas nuevas, escritas antes del código. La primera corrida
+de `pnpm run check:deploy` falló 1 de 2352 pruebas por tiempo agotado
+(`CrearProfesor.test.jsx`, que este paso no toca; pasa sola, 4 de 4); la
+segunda salió limpia con 2352 pruebas en 352 archivos, lint y build
+correctos. `git diff --check` limpio.
+
 ## 2026-10-10 - Año lectivo: traer el planeador del año pasado (fase 7, paso 7.3)
 
 En su planeador anual, el profesor puede empezar el año con el del año pasado
