@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Swal from "sweetalert2";
 import {
+  consultarPlaneadorAnioAnterior,
   guardarPlaneadoresAnuales,
   obtenerAsignacionesProfesor,
   obtenerPlaneadoresAnuales,
@@ -14,10 +15,15 @@ vi.mock("sweetalert2", () => ({
   },
 }));
 
+// Año lectivo, paso 7.3: la página también pregunta si se puede traer el
+// planeador del año pasado. Aquí el backend dice que no, como en un curso sin
+// origen; el botón lo prueba PlaneadorAnual.anioLectivo.test.jsx.
 vi.mock("../services/mallaCurricularApi", () => ({
+  consultarPlaneadorAnioAnterior: vi.fn(),
   guardarPlaneadoresAnuales: vi.fn(),
   obtenerAsignacionesProfesor: vi.fn(),
   obtenerPlaneadoresAnuales: vi.fn(),
+  traerPlaneadorAnioAnterior: vi.fn(),
 }));
 
 vi.mock("../components/impresion/DocumentoImprimible", () => ({
@@ -39,6 +45,11 @@ const configurarServicio = (planeadores = []) => {
     { id: 42, curso: "6A", materia: "Ciencias" },
   ]);
   obtenerPlaneadoresAnuales.mockResolvedValue({ planeadores });
+  consultarPlaneadorAnioAnterior.mockResolvedValue({
+    hay_origen: false,
+    planeador_vacio: planeadores.length === 0,
+    puede_traer: false,
+  });
 };
 
 describe("comportamiento de PlaneadorAnual", () => {

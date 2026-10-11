@@ -8,8 +8,11 @@
   salida en la promoción) en `5892602`, paso 6.7 (sección "Activar") en
   `f6a035e`, paso 6.8 (reabrir y volver a cerrar) en `5f69b77`, paso 6.9
   (aviso de año cerrado en Tipos de pago) en `cf00e3d` y paso 6.10
-  (Certificados con todos los estados) terminado localmente, sin commit. Con
-  él, la fase 6 del frontend queda completa.** El
+  (Certificados con todos los estados) en `b7184f8`. Con él, la fase 6 del
+  frontend quedó completa. Fase 7 iniciada el 2026-10-10: el backend la
+  terminó en los pasos 7.1 (`16c9052`) y 7.2 (`c5dd384`); en este repo, paso
+  7.3 (traer el planeador del año pasado) terminado localmente, sin
+  commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -40,7 +43,7 @@
   este repo. Cumplido el 2026-10-03: el usuario subió la fase 3 a
   producción (`origin/main` en `9edbe5d`); el despliegue en Render no se ve
   desde el repo.
-- Última actualización: 2026-10-07.
+- Última actualización: 2026-10-10.
 
 ## Objetivo
 
@@ -1404,8 +1407,8 @@ sin commit:**
 - Verificación: 34 pruebas de Certificados y Boletines; `pnpm run
   check:deploy` → **2294 pruebas en 346 archivos**, lint y build correctos;
   `git diff --check` limpio. Documentado en `docs/API_CLIENT.md`.
-- **Paso 6.10 terminado localmente, sin commit. Con él queda completa la fase
-  6 del frontend.**
+- **Paso 6.10 terminado; el usuario lo confirmó en el commit `b7184f8`. Con
+  él queda completa la fase 6 del frontend.**
 
 ### Fase 7 — Reutilizar el planeador anual y los planes de clase
 
@@ -1426,6 +1429,90 @@ Pantallas del profesor. Depende de la fase 7 del backend.
    planeador vacío; al elegir un plan base, el formulario se llena sin
    fecha ni evidencias; `pnpm run check:deploy` pasa; el usuario lo revisa en
    local con un profesor de prueba.
+
+Decisiones del 2026-10-10 (detalle en el documento principal, fase 7): si en
+2026 una materia tuvo dos profesores, cada periodo del planeador se trae del
+último que escribió algo en él; un profesor solo usa lo del año pasado desde
+una clase del año activo; la lista de planes trae los de cualquier profesor; y
+al usar un plan viejo se llena solo el texto, con el periodo que el profesor
+ya tiene elegido. Plan: 7.1 y 7.2 en el backend; **7.3** (el botón del
+planeador) y **7.4** ("Usar un plan del año pasado") en este repo.
+
+#### Contrato del backend para la fase 7 (sus pasos 7.1 y 7.2)
+
+Fuente: `sistema_escolar_api/docs/API_ENDPOINTS.md`, "Planeador anual" y "Plan
+de clases". El origen lo encuentra siempre el backend desde la clase de este
+año: la misma materia en el curso del que se copió el curso de la clase, de
+cualquier profesor. El frontend nunca manda ids del año pasado.
+
+- `GET /planeador-anual/{asignacion_id}/anio-anterior` →
+  `{ hay_origen, planeador_vacio, puede_traer }`. El botón depende solo de
+  `puede_traer` (incluye la guardia del año).
+- `POST /planeador-anual/{asignacion_id}/anio-anterior`, sin cuerpo →
+  `{ message, filas_copiadas }`. Las filas llegan con `fecha: null`. Errores
+  con `detail` de texto: `409` si el planeador ya tiene alguna fila, `404`
+  sin nada que traer, `403`/`409` de la guardia del año, `403` si el profesor
+  no dicta la clase.
+- `GET /plan-de-clases/{asignacion_id}/anio-anterior` → lista de
+  `{ id, fecha, periodo, unidad, tema }`, la más antigua primero; vacía sin
+  origen.
+- `GET /plan-de-clases/{asignacion_id}/anio-anterior/{plan_id}` →
+  `{ id, unidad, proposito, clase, estandar, dba, competencias,
+  actividad_casa, tema }`, cada vacío como `""`. `403` "Ese plan no es del año
+  pasado de esta clase." si el plan no es del origen. Las dos rutas de planes
+  pasan por la guardia del año (`403` al profesor fuera del año activo, `409`
+  año cerrado).
+
+**Avance del 2026-10-10 — paso 7.3, traer el planeador del año pasado:**
+
+- Autorizado por el usuario el 2026-10-10 ("continua"), con la fase 7 ya
+  iniciada y el 7.3 nombrado como siguiente paso. Repos en `main` y limpios al
+  iniciar (frontend `b7184f8`, backend `c5dd384`). Antes del cambio pasaban 34
+  pruebas en los 10 archivos del planeador.
+- Se escribieron primero 26 pruebas; fallaron 11 y dos archivos no cargaban
+  porque su código no existía.
+- `services/mallaCurricularApi.js`: `consultarPlaneadorAnioAnterior` y
+  `traerPlaneadorAnioAnterior`. Las llamadas de siempre no cambian.
+- `utils/mallaCurricular/planeadorAnual.js`: `puedeTraerPlaneadorAnterior`
+  (solo `puede_traer === true`: el frontend no combina `hay_origen` y
+  `planeador_vacio` por su cuenta).
+- `useConsultasMallaCurricular`: al cargar un periodo avisa además
+  `conFilas` (llegó alguna fila, con o sin fecha). Lo demás no cambia.
+- `hooks/mallaCurricular/usePlaneadorAnioAnterior.js` (nuevo): pregunta al
+  backend **solo cuando el periodo cargado llegó vacío, y una vez**; con
+  filas, el planeador no está vacío y no pregunta. Descarta una respuesta que
+  llegue después de un periodo con filas. Al traer: recarga el periodo y
+  muestra el `message` del backend. Si el backend rechaza, muestra su `detail`
+  y no recarga; sin respuesta del servidor, el botón sigue para reintentar.
+- `components/mallaCurricular/TraerPlaneadorAnioAnteriorView.jsx` (nuevo):
+  "Planeador del año pasado", una explicación en palabras simples y el botón
+  "Traer el planeador del año pasado" ("Trayendo..." y bloqueado mientras
+  trae). En móvil el botón ocupa todo el ancho.
+- `pages/PlaneadorAnual.jsx`: une el hook y la vista. El botón se muestra con
+  `puede_traer` y **sin cambios sin guardar**: traer recarga el periodo y
+  borraría lo que el profesor esté escribiendo (cuidado propuesto por el
+  asistente; no cambia ninguna regla del backend).
+- Lo traído llega sin fechas; al guardar un periodo, la validación de siempre
+  pide la fecha de cada fila con contenido ("Falta la fecha en la fila 1").
+- Peticiones: las de hoy quedan idénticas. Se suma `GET .../anio-anterior` solo
+  si el periodo que se abre está vacío, una vez por visita; con filas, ninguna
+  petición nueva. El profesor que ya escribió su planeador no paga nada.
+- Ajustada a propósito: en `PlaneadorAnual.test.jsx`, la simulación del
+  servicio conoce las dos funciones nuevas y responde que no se puede traer
+  (como un curso sin origen). Sus comprobaciones no cambiaron. El botón lo
+  prueba el archivo nuevo `PlaneadorAnual.anioLectivo.test.jsx`.
+- Pruebas nuevas: 2 del servicio, 1 de la regla pura, 1 de la consulta del
+  periodo, 12 del hook nuevo, 2 de la vista y 8 de la página. Veinte versiones
+  dañadas del código hacen fallar alguna: entre ellas, decidir en el frontend
+  con `hay_origen` y `planeador_vacio`, preguntar con filas o cada vez, usar
+  una respuesta vieja, no recargar al traer, ignorar el mensaje del backend,
+  mostrar el botón con cambios sin guardar y no bloquearlo mientras trae.
+- Verificación: 60 pruebas en los 13 archivos del planeador;
+  `pnpm run check:deploy` **limpio en una sola corrida** → **2320 pruebas en
+  349 archivos**, lint y build correctos; `git diff --check` limpio.
+  Documentado en `docs/API_CLIENT.md`, `docs/COMPONENTES.md` y
+  `docs/CAMBIOS_FRONTEND.md`. Sin cambios en el backend, sin bases reales.
+- **Paso 7.3 terminado localmente, sin commit.**
 
 ## Pruebas
 
@@ -1623,14 +1710,21 @@ Pantallas del profesor. Depende de la fase 7 del backend.
   promoción**, en `5892602`, el **6.7, la sección "Activar"**, en `f6a035e`,
   el **6.8, reabrir y volver a cerrar**, en `5f69b77` y el **6.9, el aviso
   de año cerrado en Tipos de pago**, en `cf00e3d`. El **6.10, Certificados
-  con todos los estados**, quedó terminado localmente en este repo, sin
-  commit (ver su avance en la fase 6): `pnpm run check:deploy` pasa 2294
-  pruebas. **Con él queda completa la fase 6 del frontend.**
-- Siguiente acción exacta: el usuario revisa y hace el commit del 6.10.
-  Después, lo que queda antes de la activación real (enero de 2027) está en
-  la entrega del documento principal: push de los dos repos, rotar la
-  contraseña de `neondb_owner`, un ensayo completo con las pantallas en una
-  rama de Neon y la fase 7. Nada de eso se inicia sin autorización.
+  con todos los estados**, quedó en `b7184f8`: `pnpm run check:deploy` pasa
+  2294 pruebas. **Con él quedó completa la fase 6 del frontend.**
+- **Fase 7 iniciada el 2026-10-10.** El backend la terminó en `16c9052` (7.1,
+  traer el planeador) y `c5dd384` (7.2, los planes del año pasado); su
+  contrato está en "Contrato del backend para la fase 7". En este repo, el
+  **7.3, el botón "Traer el planeador del año pasado"**, quedó terminado
+  localmente, sin commit (ver su avance en la fase 7).
+- Siguiente acción exacta: el usuario revisa y hace el commit del 7.3. Después,
+  con su autorización, el **paso 7.4**: "Usar un plan del año pasado" en el
+  formulario del plan de clases (`pages/PlanDeClases.jsx`,
+  `hooks/planeaciones/`), con las dos rutas de planes del contrato. Lo demás
+  que queda antes de la activación real (enero de 2027) está en la entrega del
+  documento principal: subir la fase 7 (primero el backend, con Render en
+  **Live**), rotar la contraseña de `neondb_owner` y un ensayo completo con
+  las pantallas en una rama de Neon.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-10-10 - Año lectivo: traer el planeador del año pasado (fase 7, paso 7.3)
+
+En su planeador anual, el profesor puede empezar el año con el del año pasado
+de esa materia como base (decisiones 14 y 15 del backend).
+
+- Si el periodo que abre está vacío, la pantalla pregunta una vez
+  `GET /planeador-anual/{asignacion_id}/anio-anterior`. Con `puede_traer`,
+  aparece "Traer el planeador del año pasado"; lo decide el backend.
+- Al usarlo (`POST` a la misma dirección), se recarga el periodo y se muestra
+  el mensaje del backend. Las filas llegan sin fechas, y el guardado de
+  siempre las pide.
+- Con algo escrito sin guardar, el botón se esconde para no borrarlo.
+- Archivos: `services/mallaCurricularApi.js`,
+  `utils/mallaCurricular/planeadorAnual.js`,
+  `hooks/mallaCurricular/useConsultasMallaCurricular.js` (avisa `conFilas`),
+  `hooks/mallaCurricular/usePlaneadorAnioAnterior.js` (nuevo),
+  `components/mallaCurricular/TraerPlaneadorAnioAnteriorView.jsx` (nuevo) y
+  `pages/PlaneadorAnual.jsx`.
+- Las peticiones de siempre no cambian; con filas en el periodo no se hace
+  ninguna nueva.
+
+Verificación: 26 pruebas nuevas, escritas antes del código; `pnpm run
+check:deploy` limpio con 2320 pruebas en 349 archivos, lint y build correctos;
+`git diff --check` limpio.
+
 ## 2026-10-08 - Navegación: Año lectivo dentro de Administración
 
 El acceso a la preparación del año deja de ocupar una pestaña principal del

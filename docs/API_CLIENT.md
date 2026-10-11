@@ -748,6 +748,27 @@ Uso:
 - Al guardar se recarga lo persistido, el boton muestra spinner y SweetAlert2
   informa validaciones, exito o error.
 
+Traer el planeador del año pasado (año lectivo, fase 7, paso 7.3):
+
+```text
+GET  /planeador-anual/{asignacion_id}/anio-anterior
+POST /planeador-anual/{asignacion_id}/anio-anterior
+```
+
+- El `GET` se pide solo cuando el periodo cargado llega sin filas, y una vez
+  por visita: con alguna fila el planeador ya no esta vacio. Responde
+  `hay_origen`, `planeador_vacio` y `puede_traer`; el boton depende solo de
+  `puede_traer`, que decide el backend (incluye la guardia del año). Con
+  filas en el periodo, la pantalla no hace ninguna peticion nueva.
+- El boton se esconde si hay cambios sin guardar: traer recarga el periodo y
+  borraria lo que se esta escribiendo.
+- El `POST` va sin cuerpo. Al responder, se recarga el periodo y se muestra el
+  `message` del backend; las filas traidas llegan con `fecha: null`, y el
+  guardado normal vuelve a pedir la fecha de cada fila con contenido.
+- Si el backend rechaza (`409` ya tiene contenido, `404` nada que traer, `403`
+  o `409` del año), se muestra su `detail` y no se recarga nada. Sin respuesta
+  del servidor, el boton sigue para reintentar.
+
 ### Ingreso de boletin final
 
 `IngresoBoletinProfesor.jsx` consume:

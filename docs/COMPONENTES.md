@@ -508,6 +508,12 @@ Estado actual de componentes y paginas del frontend.
   contextual con regreso al editor.
 - `components/mallaCurricular/estadoVisualMallaCurricular.js`: representación
   única de “Verificando”, “Cambios sin guardar”, “Guardado” y “Pendiente”.
+- Año lectivo, paso 7.3: `hooks/mallaCurricular/usePlaneadorAnioAnterior.js`
+  pregunta al backend si se puede traer el planeador del año pasado (solo
+  cuando el periodo cargado llegó vacío, una vez) y lo trae;
+  `components/mallaCurricular/TraerPlaneadorAnioAnteriorView.jsx` muestra el
+  aviso y el botón “Traer el planeador del año pasado”. La página lo muestra
+  solo con `puede_traer` del backend y sin cambios sin guardar.
 - Cada fila admite uno o varios campos academicos, pero requiere una fecha
   limite cuando contiene informacion.
 - Rechaza en la interfaz tanto contenido sin fecha como fecha sin contenido y

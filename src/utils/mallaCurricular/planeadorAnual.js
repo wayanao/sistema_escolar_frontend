@@ -65,3 +65,9 @@ export const validarFilasPlaneador = (planeadores) => ({
   ),
   filasDiligenciadas: planeadores.filter(filaTieneContenido).length,
 });
+
+// Año lectivo, fase 7 (paso 7.3): el botón "Traer el planeador del año pasado"
+// aparece solo si el backend lo dice. El frontend no combina `hay_origen` y
+// `planeador_vacio` por su cuenta: `puede_traer` ya incluye también la guardia
+// del año.
+export const puedeTraerPlaneadorAnterior = (respuesta) => respuesta?.puede_traer === true;

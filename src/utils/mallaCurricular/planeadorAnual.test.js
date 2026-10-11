@@ -6,6 +6,7 @@ import {
   crearFilasVacias,
   filaTieneContenido,
   mapearPlaneadoresPorSlot,
+  puedeTraerPlaneadorAnterior,
   validarFilasPlaneador,
 } from "./planeadorAnual";
 
@@ -20,6 +21,15 @@ const planeadorGuardado = (overrides = {}) => ({
 });
 
 describe("utilidades del planeador anual", () => {
+  it("solo ofrece traer el planeador del año pasado si el backend lo dice", () => {
+    expect(puedeTraerPlaneadorAnterior({ puede_traer: true })).toBe(true);
+    expect(puedeTraerPlaneadorAnterior({ puede_traer: false })).toBe(false);
+    // Que haya origen y el planeador esté vacío no basta: decide el backend.
+    expect(puedeTraerPlaneadorAnterior({ hay_origen: true, planeador_vacio: true })).toBe(false);
+    expect(puedeTraerPlaneadorAnterior({ puede_traer: "true" })).toBe(false);
+    expect(puedeTraerPlaneadorAnterior(null)).toBe(false);
+  });
+
   it("crea ocho filas independientes con el contrato inicial", () => {
     const filas = crearFilasVacias();
 

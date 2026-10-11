@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../utils/api";
 import {
+  consultarPlaneadorAnioAnterior,
   guardarPlaneadoresAnuales,
   obtenerAsignacionesProfesor,
   obtenerPlaneadoresAnuales,
+  traerPlaneadorAnioAnterior,
 } from "./mallaCurricularApi";
 
 vi.mock("../utils/api", () => ({
   default: {
     get: vi.fn(),
+    post: vi.fn(),
     put: vi.fn(),
   },
 }));
@@ -16,7 +19,24 @@ vi.mock("../utils/api", () => ({
 describe("mallaCurricularApi", () => {
   beforeEach(() => {
     api.get.mockReset();
+    api.post.mockReset();
     api.put.mockReset();
+  });
+
+  it("consulta si se puede traer el planeador del año pasado (año lectivo, paso 7.3)", async () => {
+    const respuesta = { hay_origen: true, planeador_vacio: true, puede_traer: true };
+    api.get.mockResolvedValue({ data: respuesta });
+
+    await expect(consultarPlaneadorAnioAnterior("42")).resolves.toBe(respuesta);
+    expect(api.get).toHaveBeenCalledWith("/planeador-anual/42/anio-anterior");
+  });
+
+  it("trae el planeador del año pasado con un POST sin cuerpo", async () => {
+    const respuesta = { message: "Se trajo el planeador del año pasado.", filas_copiadas: 5 };
+    api.post.mockResolvedValue({ data: respuesta });
+
+    await expect(traerPlaneadorAnioAnterior("42")).resolves.toBe(respuesta);
+    expect(api.post).toHaveBeenCalledWith("/planeador-anual/42/anio-anterior");
   });
 
   it("consulta y devuelve las asignaciones del profesor", async () => {

@@ -69,6 +69,27 @@ describe("useConsultasMallaCurricular", () => {
     expect(planeadores[2].fecha).toBe("2026-08-20");
   });
 
+  it("avisa si el periodo llegó con filas guardadas (año lectivo, paso 7.3)", async () => {
+    obtenerPlaneadoresAnuales.mockResolvedValueOnce({
+      planeadores: [{ slot: 1, contenido: "Traído del año pasado", fecha: null }],
+    });
+    const { callbacks, result } = renderConsultas();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Una fila traída sin fecha también es una fila: el planeador no está vacío.
+    expect(callbacks.onPlaneadoresCargados).toHaveBeenLastCalledWith(
+      expect.objectContaining({ guardado: false, conFilas: true })
+    );
+
+    await act(async () => {
+      await result.current.cargarPlaneadores();
+    });
+
+    expect(callbacks.onPlaneadoresCargados).toHaveBeenLastCalledWith(
+      expect.objectContaining({ guardado: false, conFilas: false })
+    );
+  });
+
   it("persiste un cambio de periodo y consulta sus filas", async () => {
     const { result } = renderConsultas();
     await waitFor(() => expect(result.current.loading).toBe(false));

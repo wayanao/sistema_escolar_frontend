@@ -53,6 +53,9 @@ export function useConsultasMallaCurricular({
         guardado: planeadoresData.some(
           (fila) => filaTieneContenido(fila) && Boolean(fila.fecha)
         ),
+        // Año lectivo, paso 7.3: con alguna fila guardada, el planeador no
+        // está vacío y no hace falta preguntar si se puede traer el anterior.
+        conFilas: planeadoresData.length > 0,
         planeadores: mapearPlaneadoresPorSlot(planeadoresData),
       });
     } catch (error) {

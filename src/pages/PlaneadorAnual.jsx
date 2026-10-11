@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import AccionesMallaCurricular from "../components/mallaCurricular/AccionesMallaCurricular";
 import EditorMallaCurricular from "../components/mallaCurricular/EditorMallaCurricular";
 import EncabezadoMallaCurricular from "../components/mallaCurricular/EncabezadoMallaCurricular";
@@ -6,10 +6,12 @@ import {
   CargandoMallaCurricular,
   SinAsignacionMallaCurricular,
 } from "../components/mallaCurricular/EstadosMallaCurricular";
+import TraerPlaneadorAnioAnteriorView from "../components/mallaCurricular/TraerPlaneadorAnioAnteriorView";
 import VistaImprimibleMallaCurricular from "../components/mallaCurricular/VistaImprimibleMallaCurricular";
 import { obtenerEstadoVisualMallaCurricular } from "../components/mallaCurricular/estadoVisualMallaCurricular";
 import { useComandosMallaCurricular } from "../hooks/mallaCurricular/useComandosMallaCurricular";
 import { useConsultasMallaCurricular } from "../hooks/mallaCurricular/useConsultasMallaCurricular";
+import { usePlaneadorAnioAnterior } from "../hooks/mallaCurricular/usePlaneadorAnioAnterior";
 
 function PlaneadorAnual() {
   const [vistaImpresion, setVistaImpresion] = useState(false);
@@ -30,6 +32,18 @@ function PlaneadorAnual() {
   } = useComandosMallaCurricular({ asignacionId });
 
   const {
+    alCargarPeriodo,
+    puedeTraer,
+    traer,
+    trayendo,
+  } = usePlaneadorAnioAnterior({ asignacionId });
+
+  const manejarPeriodoCargado = useCallback((resultado) => {
+    manejarPlaneadoresCargados(resultado);
+    alCargarPeriodo(resultado.conFilas);
+  }, [alCargarPeriodo, manejarPlaneadoresCargados]);
+
+  const {
     asignacion,
     cambiarPeriodo,
     cargarPlaneadores,
@@ -40,13 +54,17 @@ function PlaneadorAnual() {
     profesorId,
     onErrorPlaneadores: manejarErrorPlaneadores,
     onInicioPlaneadores: manejarInicioPlaneadores,
-    onPlaneadoresCargados: manejarPlaneadoresCargados,
+    onPlaneadoresCargados: manejarPeriodoCargado,
   });
 
   const handleGuardarPlaneadores = () => guardarPlaneadores({
     periodo,
     recargarPlaneadores: cargarPlaneadores,
   });
+
+  // Año lectivo, paso 7.3. Con algo escrito sin guardar, el botón se esconde:
+  // traer recarga el periodo y borraría lo que se está escribiendo.
+  const mostrarTraer = puedeTraer && !estadoGuardado.cargando && !estadoGuardado.modificado;
 
   if (loading) return <CargandoMallaCurricular />;
   if (!asignacionId) return <SinAsignacionMallaCurricular />;
@@ -75,6 +93,12 @@ function PlaneadorAnual() {
         onPeriodoChange={cambiarPeriodo}
         periodo={periodo}
       />
+      {mostrarTraer && (
+        <TraerPlaneadorAnioAnteriorView
+          onTraer={() => traer({ recargarPlaneadores: cargarPlaneadores })}
+          trayendo={trayendo}
+        />
+      )}
       <EditorMallaCurricular
         onCampoChange={cambiarCampoPlaneador}
         periodo={periodo}
