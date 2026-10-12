@@ -24,6 +24,28 @@ const OPCIONES_INICIALES = Object.freeze({
   copiar_directores: false,
 });
 
+// Lo que copia cada casilla, según la copia del backend (paso 5.4): la ayuda
+// debe cambiar si cambia lo que el backend copia.
+function opcionesCopia(anioOrigen, anioDestino) {
+  return [
+    {
+      campo: "copiar_precios",
+      etiqueta: "Copiar precios por curso",
+      ayuda: `Copia a qué cursos se cobra cada concepto y su valor (por ejemplo, la mensualidad de cada curso). Si no lo marcas, los conceptos de ${anioDestino} no se le cobran a ningún curso hasta que les pongas precio en Tipos de Pago.`,
+    },
+    {
+      campo: "copiar_carga_academica",
+      etiqueta: "Copiar carga académica",
+      ayuda: `Copia las clases de cada curso: materia, profesor, horario y orden en el boletín. No copia notas, asistencia, observaciones, planeador ni planes de clase: en ${anioDestino} empiezan vacíos. Los profesores verán sus clases cuando ${anioDestino} esté activo. Si no lo marcas, creas las clases en Asignaciones.`,
+    },
+    {
+      campo: "copiar_directores",
+      etiqueta: "Copiar directores de grupo",
+      ayuda: `Cada curso de ${anioDestino} queda con el mismo director de grupo que tiene en ${anioOrigen}. Si no lo marcas, los cursos quedan sin director y lo asignas en Cursos.`,
+    },
+  ];
+}
+
 function detalleError(error, respaldo) {
   const detalle = error?.response?.data?.detail;
   return typeof detalle === "string" && detalle.trim() ? detalle : respaldo;
@@ -195,25 +217,32 @@ function AniosLectivosAdmin() {
           <h2 className="text-xl font-bold text-gray-900">Copiar configuración</h2>
           <p className="mt-2 text-sm text-gray-600">
             Los cursos activos de {anioActivo.anio} se copian a {anioPreparacion.anio}.
-            Los conceptos de pago se copian siempre.
+            Los conceptos de pago se copian siempre. Revisa las opciones antes de
+            copiar: la copia se hace una sola vez, y lo que no marques lo completas
+            después a mano.
           </p>
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {[
-              ["copiar_precios", "Copiar precios por curso"],
-              ["copiar_carga_academica", "Copiar carga académica"],
-              ["copiar_directores", "Copiar directores de grupo"],
-            ].map(([campo, etiqueta]) => (
-              <label key={campo} className="flex min-w-0 items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-800">
-                <input
-                  type="checkbox"
-                  checked={opciones[campo]}
-                  onChange={() => cambiarOpcion(campo)}
-                  className="mt-0.5 h-4 w-4 shrink-0"
-                />
-                <span>{etiqueta}</span>
-              </label>
-            ))}
+            {opcionesCopia(anioActivo.anio, anioPreparacion.anio).map(
+              ({ campo, etiqueta, ayuda }) => (
+                <div key={campo} className="min-w-0 rounded-lg border border-gray-200 p-3 text-sm">
+                  <label className="flex items-start gap-3 font-semibold text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={opciones[campo]}
+                      onChange={() => cambiarOpcion(campo)}
+                      aria-describedby={`ayuda-${campo}`}
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                    />
+                    <span>{etiqueta}</span>
+                  </label>
+                  {/* Fuera de la etiqueta: así no cambia el nombre de la casilla. */}
+                  <p id={`ayuda-${campo}`} className="mt-2 pl-7 text-gray-600">
+                    {ayuda}
+                  </p>
+                </div>
+              ),
+            )}
           </div>
 
           <button

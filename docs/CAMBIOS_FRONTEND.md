@@ -1,5 +1,33 @@
 # Cambios Frontend
 
+## 2026-10-12 - Año lectivo: instrucciones bajo las casillas de la copia
+
+A pedido del usuario, en Años lectivos → "Copiar configuración", cada casilla
+explica debajo qué copia y qué pasa si no se marca. Los textos describen lo
+que copia el backend (paso 5.4 de su documento):
+
+- **Precios por curso:** a qué cursos se cobra cada concepto y su valor. Sin
+  marcarla, los conceptos del año nuevo no se le cobran a ningún curso hasta
+  ponerles precio en Tipos de Pago.
+- **Carga académica:** las clases de cada curso (materia, profesor, horario y
+  orden en el boletín). No copia notas, asistencia, observaciones, planeador
+  ni planes de clase. Los profesores las ven cuando el año nuevo esté activo.
+- **Directores de grupo:** el mismo director en cada curso copiado. Sin
+  marcarla, los cursos quedan sin director.
+- El texto de arriba avisa que la copia se hace una sola vez (una segunda
+  copia choca con los cursos ya copiados y el backend la rechaza).
+
+La explicación va fuera de la etiqueta y enlazada con `aria-describedby`: el
+nombre de cada casilla no cambia. No cambió ninguna petición ni cuerpo. Archivo:
+`pages/AniosLectivosAdmin.jsx`. Si cambia lo que el backend copia, hay que
+cambiar estos textos.
+
+Verificación: 1 prueba nueva, escrita antes del código (falló primero); 16
+pruebas de la página. `pnpm run check:deploy` no salió limpio en dos corridas
+por tiempos agotados en archivos que no usan esta página (2 y 3 de 2353);
+todos pasan solos. `pnpm run lint` limpio, `pnpm run build` correcto y
+`git diff --check` limpio. Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`.
+
 ## 2026-10-10 - Año lectivo: usar un plan del año pasado (fase 7, paso 7.4)
 
 Al crear un plan de clases, el profesor puede partir de uno del año pasado de

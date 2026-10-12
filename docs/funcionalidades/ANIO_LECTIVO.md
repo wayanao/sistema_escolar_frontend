@@ -12,8 +12,10 @@
   frontend quedó completa. Fase 7 iniciada el 2026-10-10: el backend la
   terminó en los pasos 7.1 (`16c9052`) y 7.2 (`c5dd384`); en este repo, paso
   7.3 (traer el planeador del año pasado) en `df2afe3` y paso 7.4 (usar un
-  plan del año pasado) terminado localmente, sin commit. Con él, la fase 7
-  queda completa en código en los dos repos.** El
+  plan del año pasado) en `4e71c2b`. Con él, la fase 7 queda completa en
+  código en los dos repos. El 2026-10-12, a pedido del usuario, la copia de
+  configuración explica cada casilla (ajuste en la fase 5), terminado
+  localmente, sin commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -44,7 +46,7 @@
   este repo. Cumplido el 2026-10-03: el usuario subió la fase 3 a
   producción (`origin/main` en `9edbe5d`); el despliegue en Render no se ve
   desde el repo.
-- Última actualización: 2026-10-10.
+- Última actualización: 2026-10-12.
 
 ## Objetivo
 
@@ -1237,6 +1239,45 @@ sin commit:**
 - Verificación global: **2248 pruebas pasan en 344 archivos**, lint limpio y
   build correcto.
 
+**Ajuste del 2026-10-12 — instrucciones bajo las casillas de la copia,
+terminado localmente sin commit:**
+
+- A pedido del usuario, que preguntó qué copia "Copiar carga académica": en
+  "Copiar configuración", cada casilla explica debajo qué copia y qué pasa si
+  no se marca. No es una función nueva: solo explica la copia del paso 5.4.
+- Lo que copia cada una, leído en el backend
+  (`anios_lectivos_repository.py`: `insertar_curso_copiado`,
+  `insertar_precio_copiado`, `insertar_asignacion_copiada`) antes de escribir
+  los textos:
+  - Precios por curso: las filas de `tipos_pagos_cursos` (a qué cursos se
+    cobra cada concepto y su valor). Sin ellas, `cobros.py` no le cobra ese
+    concepto a nadie de ese curso (`sin_asignacion`).
+  - Carga académica: las asignaciones de los cursos activos (materia,
+    profesor, día, horas, hora de inicio y fin, si está activa y orden en el
+    boletín), enlazadas a su cabecera nueva. Notas, asistencia,
+    observaciones, planeador y planes cuelgan de la asignación y no se copian.
+  - Directores: el `director_grupo_id` de cada curso.
+  - Una segunda copia choca con los cursos ya copiados y el backend la
+    rechaza; por eso el texto de arriba dice que la copia se hace una sola vez.
+- `pages/AniosLectivosAdmin.jsx`: `opcionesCopia(anioOrigen, anioDestino)`
+  con etiqueta y ayuda de cada casilla. La ayuda va fuera de la etiqueta y
+  enlazada con `aria-describedby`, para que el nombre de la casilla no cambie
+  (las pruebas existentes la buscan por ese nombre). En móvil, cada casilla y
+  su ayuda quedan en una sola columna, como antes.
+- Peticiones: ninguna cambió. La prueba que fija el cuerpo de la copia sigue
+  igual y pasa.
+- Prueba nueva en `AniosLectivosAdmin.test.jsx`, escrita antes del código:
+  falló porque los textos no existían. Al terminar pasan las 16 pruebas de la
+  página y las 11 del servicio; lint limpio en los dos archivos.
+- Verificación global: `pnpm run check:deploy` **no salió limpio en ninguna
+  de dos corridas** por tiempos agotados del equipo cargado: 2 de 2353 en la
+  primera (`IngresoBoletinProfesor`, `PlantillasAdminView`) y 3 en la segunda
+  (`IngresoBoletinProfesor`, `ListasSeguimientoAdmin.anioLectivo`,
+  `CrearProfesor`). Ninguno de esos archivos usa la página cambiada (solo la
+  usan `App.jsx` y `App.test.jsx`), y todos pasan corridos solos (3 de 3 y 8
+  de 8). Por separado: `pnpm run lint` limpio y `pnpm run build` correcto.
+  `git diff --check` limpio.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -1581,9 +1622,9 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   archivos**, lint y build correctos. `git diff --check` limpio. Documentado
   en `docs/API_CLIENT.md`, `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md`.
   Sin cambios en el backend, sin bases reales.
-- **Paso 7.4 terminado localmente, sin commit. Con él, la fase 7 queda
-  completa en código en los dos repos**; falta revisarla con un profesor de
-  prueba en el ensayo en una rama de Neon.
+- **Paso 7.4 terminado; el usuario lo confirmó en el commit `4e71c2b`. Con
+  él, la fase 7 queda completa en código en los dos repos**; falta revisarla
+  con un profesor de prueba en el ensayo en una rama de Neon.
 
 ## Pruebas
 
@@ -1787,17 +1828,23 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   traer el planeador) y `c5dd384` (7.2, los planes del año pasado); su
   contrato está en "Contrato del backend para la fase 7". En este repo, el
   **7.3, el botón "Traer el planeador del año pasado"**, quedó en `df2afe3`,
-  y el **7.4, "Usar un plan del año pasado"**, quedó terminado localmente,
-  sin commit (ver su avance en la fase 7). El usuario decidió que la lista de
-  planes se pida una vez por clase y que el navegador anote la clase que no
-  tiene. **Con el 7.4, la fase 7 queda completa en código en los dos repos.**
-- Siguiente acción exacta: el usuario revisa y hace el commit del 7.4. Lo que
-  queda antes de la activación real (enero de 2027), cada cosa con su
-  autorización, está en la entrega del documento principal: subir la fase 7
-  (primero el backend, con Render en **Live**, y después el frontend), rotar
-  la contraseña de `neondb_owner` y un ensayo completo con las pantallas en
-  una rama de Neon, que es también la revisión con un profesor de prueba que
-  pide el "terminado cuando" de la fase 7.
+  y el **7.4, "Usar un plan del año pasado"**, quedó en `4e71c2b` (ver su
+  avance en la fase 7). El usuario decidió que la lista de planes se pida una
+  vez por clase y que el navegador anote la clase que no tiene. **Con el 7.4,
+  la fase 7 queda completa en código en los dos repos.**
+- 2026-10-12: a pedido del usuario, la copia de configuración explica debajo
+  de cada casilla qué copia (ver "Ajuste del 2026-10-12" en la fase 5).
+  Terminado localmente, sin commit. Al empezar, los dos repos estaban en
+  `main` y limpios; sin subir a GitHub: 2 commits aquí (`df2afe3`, `4e71c2b`)
+  y 4 en el backend (`16c9052` a `144f93b`).
+- Siguiente acción exacta: el usuario revisa y hace el commit del ajuste de
+  las casillas. Lo que queda antes de la activación real (enero de 2027),
+  cada cosa con su autorización, está en la entrega del documento principal:
+  subir la fase 7 (primero el backend, con Render en **Live**, y después el
+  frontend), la consulta de faltas sin clase del paso 3.5b, rotar la
+  contraseña de `neondb_owner` y un ensayo completo con las pantallas en una
+  rama de Neon, que es también la revisión con un profesor de prueba que pide
+  el "terminado cuando" de la fase 7.
 - Verificación del ajuste: caracterización y resultado final, 23 pruebas en 2
   archivos; `pnpm run check:deploy` limpio con 2248 pruebas en 344 archivos,
   lint y build correctos. `git diff --check` limpio.

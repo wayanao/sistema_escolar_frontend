@@ -233,6 +233,32 @@ describe("preparación del año lectivo", () => {
     expect(mocks.seleccionarAnio).toHaveBeenCalledWith(3);
   });
 
+  it("explica debajo de cada casilla qué copia y qué pasa si no se marca", () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+    renderPagina();
+
+    expect(screen.getByText(/la copia se hace una sola vez/)).toBeInTheDocument();
+    // La explicación va como descripción: el nombre de cada casilla no cambia.
+    expect(
+      screen.getByRole("checkbox", { name: "Copiar precios por curso" }),
+    ).toHaveAccessibleDescription(
+      "Copia a qué cursos se cobra cada concepto y su valor (por ejemplo, la mensualidad de cada curso). Si no lo marcas, los conceptos de 2027 no se le cobran a ningún curso hasta que les pongas precio en Tipos de Pago.",
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Copiar carga académica" }),
+    ).toHaveAccessibleDescription(
+      "Copia las clases de cada curso: materia, profesor, horario y orden en el boletín. No copia notas, asistencia, observaciones, planeador ni planes de clase: en 2027 empiezan vacíos. Los profesores verán sus clases cuando 2027 esté activo. Si no lo marcas, creas las clases en Asignaciones.",
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Copiar directores de grupo" }),
+    ).toHaveAccessibleDescription(
+      "Cada curso de 2027 queda con el mismo director de grupo que tiene en 2026. Si no lo marcas, los cursos quedan sin director y lo asignas en Cursos.",
+    );
+  });
+
   it("muestra el detalle del backend sin inventar otra regla", async () => {
     mocks.crearAnioLectivo.mockRejectedValue({
       response: { data: { detail: "Ya existe un año en preparación." } },
