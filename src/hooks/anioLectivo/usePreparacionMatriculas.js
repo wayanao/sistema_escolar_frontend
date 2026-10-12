@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   guardarDecisionSalida,
   listarCandidatosMatricula,
@@ -99,6 +99,34 @@ export default function usePreparacionMatriculas(anioPreparacion) {
       });
 
     return () => controller.abort();
+  }, [anioLectivoId, cursoOrigenId]);
+
+  // El curso de origen que se está mirando: una recarga que termine después
+  // de cambiarlo se descarta.
+  const cursoOrigenActual = useRef(cursoOrigenId);
+  useEffect(() => {
+    cursoOrigenActual.current = cursoOrigenId;
+  }, [cursoOrigenId]);
+
+  // Vuelve a pedir la lista del curso de origen (por ejemplo, después de
+  // editar los datos de un estudiante). Conserva la selección del admin: solo
+  // saca a quien ya no está o ya no se puede matricular, y no agrega a nadie.
+  const recargarCandidatos = useCallback(async () => {
+    if (!anioLectivoId || !cursoOrigenId) return;
+    const cursoPedido = cursoOrigenId;
+    try {
+      const datos = await listarCandidatosMatricula(anioLectivoId, Number(cursoPedido));
+      if (cursoOrigenActual.current !== cursoPedido) return;
+      const lista = datos.candidatos ?? [];
+      const disponibles = new Set(
+        lista.filter(puedeMatricularseEnDestino).map((candidato) => candidato.id),
+      );
+      setCandidatos(lista);
+      setSeleccionados((actuales) => actuales.filter((id) => disponibles.has(id)));
+    } catch (err) {
+      if (cursoOrigenActual.current !== cursoPedido) return;
+      setError(detalleError(err, "No se pudieron actualizar los estudiantes del curso."));
+    }
   }, [anioLectivoId, cursoOrigenId]);
 
   const cambiarCursoOrigen = useCallback((valor) => {
@@ -223,5 +251,6 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     marcarSalida,
     promover,
     recargarPreparacion,
+    recargarCandidatos,
   };
 }

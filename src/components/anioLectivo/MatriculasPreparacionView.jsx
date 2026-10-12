@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   SALIDA_EGRESADO,
   SALIDA_RETIRADO,
@@ -27,14 +28,30 @@ export default function MatriculasPreparacionView({
   promoviendo,
   guardandoSalidaId,
   resultado,
+  editandoId = null,
+  formularioEdicion = null,
+  mensajeEdicion = "",
+  errorEdicion = "",
   onCambiarOrigen,
   onCambiarDestino,
   onAlternarEstudiante,
   onMarcarSalida,
   onPromover,
+  onEditarEstudiante,
 }) {
   const cantidad = seleccionados.length;
   const valoresEspeciales = resultado?.valores_especiales_copiados ?? [];
+  // El formulario de edición llega armado desde la página; mientras está
+  // abierto, no se abre otro para no perder lo que se esté escribiendo.
+  const edicionAbierta = Boolean(formularioEdicion);
+  const refEdicion = useRef(null);
+
+  // El formulario aparece encima de la lista: se lleva la pantalla hasta él.
+  useEffect(() => {
+    if (edicionAbierta) {
+      refEdicion.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    }
+  }, [edicionAbierta]);
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
@@ -97,6 +114,30 @@ export default function MatriculasPreparacionView({
         </p>
       )}
 
+      {(edicionAbierta || mensajeEdicion || errorEdicion) && (
+        <div ref={refEdicion} className="mt-5 scroll-mt-4 space-y-3">
+          {errorEdicion && (
+            <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+              {errorEdicion}
+            </div>
+          )}
+          {mensajeEdicion && (
+            <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">
+              {mensajeEdicion}
+            </div>
+          )}
+          {edicionAbierta && (
+            <>
+              <p className="text-sm text-gray-600">
+                El curso de este formulario es el de {anioActivo.anio}. El de{" "}
+                {anioPreparacion.anio} se elige con &quot;Curso destino&quot;.
+              </p>
+              {formularioEdicion}
+            </>
+          )}
+        </div>
+      )}
+
       {candidatos.length > 0 && (
         <div className="mt-5 space-y-3">
           <p className="text-sm font-semibold text-gray-800">
@@ -148,42 +189,50 @@ export default function MatriculasPreparacionView({
                     </span>
                   </label>
 
-                  {!yaMatriculado && (
-                    <div className="mt-2 flex flex-wrap gap-2 pl-7">
-                      {marca ? (
+                  <div className="mt-2 flex flex-wrap gap-2 pl-7">
+                    <button
+                      type="button"
+                      onClick={() => onEditarEstudiante(candidato.id)}
+                      disabled={promoviendo || edicionAbierta || editandoId !== null}
+                      aria-label={`Editar datos de ${nombreCompleto}`}
+                      className={claseBotonSalida}
+                    >
+                      Editar datos
+                    </button>
+                    {!yaMatriculado && marca && (
+                      <button
+                        type="button"
+                        onClick={() => onMarcarSalida(candidato.id, null)}
+                        disabled={bloqueado}
+                        aria-label={`Quitar la marca de ${nombreCompleto}`}
+                        className={claseBotonSalida}
+                      >
+                        Quitar marca
+                      </button>
+                    )}
+                    {!yaMatriculado && !marca && (
+                      <>
                         <button
                           type="button"
-                          onClick={() => onMarcarSalida(candidato.id, null)}
+                          onClick={() => onMarcarSalida(candidato.id, SALIDA_RETIRADO)}
                           disabled={bloqueado}
-                          aria-label={`Quitar la marca de ${nombreCompleto}`}
+                          aria-label={`Marcar a ${nombreCompleto} como retirado`}
                           className={claseBotonSalida}
                         >
-                          Quitar marca
+                          Retirado
                         </button>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => onMarcarSalida(candidato.id, SALIDA_RETIRADO)}
-                            disabled={bloqueado}
-                            aria-label={`Marcar a ${nombreCompleto} como retirado`}
-                            className={claseBotonSalida}
-                          >
-                            Retirado
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onMarcarSalida(candidato.id, SALIDA_EGRESADO)}
-                            disabled={bloqueado}
-                            aria-label={`Marcar a ${nombreCompleto} como egresado`}
-                            className={claseBotonSalida}
-                          >
-                            Egresado
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
+                        <button
+                          type="button"
+                          onClick={() => onMarcarSalida(candidato.id, SALIDA_EGRESADO)}
+                          disabled={bloqueado}
+                          aria-label={`Marcar a ${nombreCompleto} como egresado`}
+                          className={claseBotonSalida}
+                        >
+                          Egresado
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })}

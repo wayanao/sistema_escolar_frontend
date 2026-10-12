@@ -13,9 +13,10 @@
   terminó en los pasos 7.1 (`16c9052`) y 7.2 (`c5dd384`); en este repo, paso
   7.3 (traer el planeador del año pasado) en `df2afe3` y paso 7.4 (usar un
   plan del año pasado) en `4e71c2b`. Con él, la fase 7 queda completa en
-  código en los dos repos. El 2026-10-12, a pedido del usuario, la copia de
-  configuración explica cada casilla (ajuste en la fase 5), terminado
-  localmente, sin commit.** El
+  código en los dos repos. El 2026-10-12, a pedido del usuario, dos ajustes
+  en la fase 5, terminados localmente, sin commit: la copia de configuración
+  explica cada casilla, y en la sección de matricular se pueden editar los
+  datos de un estudiante.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1278,6 +1279,55 @@ terminado localmente sin commit:**
   de 8). Por separado: `pnpm run lint` limpio y `pnpm run build` correcto.
   `git diff --check` limpio.
 
+**Ajuste del 2026-10-12 — editar los datos de un estudiante desde matricular,
+terminado localmente sin commit:**
+
+- Pedido por el usuario: actualizar los datos de un estudiante que ya es del
+  colegio desde la sección de matricular. No estaba en los documentos; el
+  usuario lo pidió y lo autorizó. Antes se le explicó que ya se podía desde
+  Estudiantes (mirando el año activo), que los datos de un estudiante son
+  uno solo para todos los años (corregirlos también cambia lo que se imprima
+  de 2026, y el valor anterior no se guarda) y que el backend reemplaza la
+  ficha completa en cada guardado.
+- **Decisiones del usuario:** (1) el formulario se abre ahí mismo, sin salir
+  de la página, y no se pierden los cursos elegidos ni la selección; (2) el
+  campo Curso queda editable, como en Estudiantes, aunque pueda confundirse
+  con el del año siguiente. Se descartaron llevar a Estudiantes y bloquear el
+  campo Curso.
+- Comprobado en el backend antes de escribir: `PUT /estudiantes/{id}` exige
+  `curso_id` y lo guarda como matrícula del año activo
+  (`matricular_en_curso_del_anio_activo`, que solo cambia `curso_id` y
+  conserva `estado_salida`); un curso de otro año da `409` y no cambia nada.
+  El formulario no manda `estado` (`normalizarEstudianteParaEdicion` lo
+  quita), así que editar aquí no cambia si alguien está activo o retirado.
+- `usePreparacionMatriculas`: `recargarCandidatos` vuelve a pedir la lista
+  del curso de origen. Conserva la selección del admin: solo saca a quien ya
+  no está o ya no se puede matricular, y no agrega a nadie. Descarta la
+  respuesta si mientras tanto se cambió de curso.
+- `MatriculasPreparacionView`: "Editar datos" en cada estudiante (también en
+  los ya matriculados); encima de la lista, el formulario que llega armado
+  desde la página, con el aviso "El curso de este formulario es el de 2026.
+  El de 2027 se elige con 'Curso destino'." (texto propuesto por el
+  asistente para la confusión que el usuario aceptó), y los mensajes de
+  guardado o error. Al abrirse, la pantalla se lleva hasta el formulario.
+  Mientras está abierto, los demás botones de editar quedan bloqueados.
+- `AniosLectivosAdmin`: reutiliza `useFormularioEstudianteAdmin` y
+  `FormularioEstudianteAdmin`, con los cursos de origen del año activo. Al
+  guardar, recarga la lista y la vista previa de activación (muestra nombres
+  y cursos). Los mensajes van en la sección, no con `alert` como en
+  Estudiantes.
+- Peticiones: las de siempre no cambian. Solo al usar "Editar datos" se suman
+  `GET` y `PUT /estudiantes/{id}` (las de Estudiantes) y, tras guardar, la
+  lista del curso y la vista previa.
+- Caracterización previa: 40 pruebas en 6 archivos (página, hook, formulario
+  y Estudiantes). Se escribieron primero 8 pruebas (4 del hook, 4 de la
+  página) y fallaron las 8. Al terminar pasan 30 en la página y el hook, y
+  106 en 15 archivos relacionados (Estudiantes, su formulario, `App` y el
+  módulo de años). Lint limpio en los archivos tocados.
+- Verificación global: `pnpm run check:deploy` **limpio en una sola corrida**
+  → **2361 pruebas en 352 archivos**, lint y build correctos. `git diff
+  --check` limpio. Sin cambios en el backend, sin bases reales.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -1832,13 +1882,17 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   avance en la fase 7). El usuario decidió que la lista de planes se pida una
   vez por clase y que el navegador anote la clase que no tiene. **Con el 7.4,
   la fase 7 queda completa en código en los dos repos.**
-- 2026-10-12: a pedido del usuario, la copia de configuración explica debajo
-  de cada casilla qué copia (ver "Ajuste del 2026-10-12" en la fase 5).
-  Terminado localmente, sin commit. Al empezar, los dos repos estaban en
-  `main` y limpios; sin subir a GitHub: 2 commits aquí (`df2afe3`, `4e71c2b`)
-  y 4 en el backend (`16c9052` a `144f93b`).
-- Siguiente acción exacta: el usuario revisa y hace el commit del ajuste de
-  las casillas. Lo que queda antes de la activación real (enero de 2027),
+- 2026-10-12: a pedido del usuario, dos ajustes en la fase 5 (ver los dos
+  "Ajuste del 2026-10-12"): la copia de configuración explica debajo de cada
+  casilla qué copia, y en la sección de matricular cada estudiante tiene
+  "Editar datos". Terminados localmente, sin commit. Al empezar, los dos
+  repos estaban en `main` y limpios; sin subir a GitHub: 2 commits aquí
+  (`df2afe3`, `4e71c2b`) y 4 en el backend (`16c9052` a `144f93b`).
+- Siguiente acción exacta: el usuario revisa en local "Editar datos" (hace
+  falta un 2027 en preparación) y hace el commit de los dos ajustes. Ojo: el
+  backend local escribe en la base real; la revisión va en una rama de Neon o
+  en el Colegio Demo, nunca editando estudiantes de `tenant_2005`. Lo que queda
+  antes de la activación real (enero de 2027),
   cada cosa con su autorización, está en la entrega del documento principal:
   subir la fase 7 (primero el backend, con Render en **Live**, y después el
   frontend), la consulta de faltas sin clase del paso 3.5b, rotar la

@@ -1192,7 +1192,9 @@ Notas:
   seleccionar el recién creado), `useAnioLectivo` (fuera del proveedor, el
   comportamiento de antes), `useAnioLectivoEnPantalla` (une el año con la
   pantalla abierta para el selector y el aviso) y, desde 5.8,
-  `usePreparacionMatriculas` (candidatos, selección, promoción y resumen).
+  `usePreparacionMatriculas` (candidatos, selección, promoción y resumen;
+  desde el 2026-10-12, `recargarCandidatos` vuelve a pedir la lista sin
+  perder la selección del admin).
 - `pages/AniosLectivosAdmin.jsx`: pantalla admin de los pasos 5.7 y 5.8. Crea
   el siguiente año, copia su configuración, enlaza a las altas manuales,
   matricula por curso y presenta el resumen sin activar. Usa todo el
@@ -1201,7 +1203,11 @@ Notas:
   según aumenta la pantalla.
 - `components/anioLectivo/MatriculasPreparacionView.jsx`: cursos origen y
   destino, candidatos seleccionables y resultado con valores especiales por
-  revisar. `ResumenPreparacionView.jsx` presenta solo los totales del backend.
+  revisar. Desde el 2026-10-12, cada candidato tiene "Editar datos"; la vista
+  recibe ya armado el formulario de Estudiantes (`formularioEdicion`), lo
+  muestra encima de la lista y bloquea los demás botones de editar mientras
+  está abierto. `ResumenPreparacionView.jsx` presenta solo los totales del
+  backend.
 - `services/aniosLectivosApi.js`: frontera HTTP de listar, crear, copiar,
   consultar/promover matrículas, crear un estudiante directo en preparación y
   consultar el resumen de `/anios-lectivos`.

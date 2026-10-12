@@ -1,5 +1,32 @@
 # Cambios Frontend
 
+## 2026-10-12 - Año lectivo: editar los datos de un estudiante desde matricular
+
+A pedido del usuario, en Años lectivos → "2. Matricular estudiantes", cada
+estudiante tiene "Editar datos". Abre el mismo formulario de Estudiantes
+encima de la lista, sin salir de la página.
+
+- Mismas llamadas que Estudiantes: `GET /estudiantes/{id}` y
+  `PUT /estudiantes/{id}` con la ficha completa. No hay rutas nuevas ni
+  cambios en el backend.
+- El campo Curso queda editable, como en Estudiantes (decisión del usuario):
+  es el curso del año activo. Un aviso encima del formulario lo dice, y que
+  el del año siguiente se elige con "Curso destino". El backend rechaza un
+  curso de otro año.
+- Al guardar se vuelve a pedir la lista del curso sin perder la selección
+  del admin (quien ya no está en el curso sale de ella) y la vista previa de
+  activación. Mientras el formulario está abierto, los demás botones de
+  editar quedan bloqueados.
+- Archivos: `hooks/anioLectivo/usePreparacionMatriculas.js`
+  (`recargarCandidatos`), `components/anioLectivo/MatriculasPreparacionView.jsx`
+  y `pages/AniosLectivosAdmin.jsx`, que reutiliza `useFormularioEstudianteAdmin`
+  y `FormularioEstudianteAdmin`.
+
+Verificación: 8 pruebas nuevas (4 del hook y 4 de la página), escritas antes
+del código; fallaron las 8. `pnpm run check:deploy` limpio en una sola corrida:
+2361 pruebas en 352 archivos, lint y build correctos. `git diff --check`
+limpio. Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`.
+
 ## 2026-10-12 - Año lectivo: instrucciones bajo las casillas de la copia
 
 A pedido del usuario, en Años lectivos → "Copiar configuración", cada casilla

@@ -140,6 +140,13 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   `{ confirmar_anio: <año escrito> }`; el backend compara el año y permite un
   solo año reabierto a la vez, y su mensaje se muestra tal cual. Después
   recarga los años conservando la selección (`recargarAnios()`).
+- Desde el 2026-10-12, "Editar datos" en la sección de matricular usa las
+  mismas llamadas que Estudiantes, por `services/estudiantesObservadorApi.js`:
+  `GET /estudiantes/{id}` para cargar la ficha y `PUT /estudiantes/{id}` con
+  la ficha completa, incluido su `curso_id` del año activo (el backend
+  reemplaza todos los campos y rechaza con `409` un curso de otro año). Al
+  guardar, vuelve a pedir los candidatos del curso y la vista previa de
+  activación. No hay rutas nuevas.
 - El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
   año en preparación. El resumen presenta literalmente los conteos y el total
   que devuelve el backend y no activa el año.

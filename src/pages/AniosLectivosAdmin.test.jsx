@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   activarAnioLectivo: vi.fn(),
+  actualizarEstudiante: vi.fn(),
   anioLectivo: null,
   cerrarAnioLectivo: vi.fn(),
   copiarConfiguracionAnio: vi.fn(),
@@ -12,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   listarCursos: vi.fn(),
   crearAnioLectivo: vi.fn(),
   guardarDecisionSalida: vi.fn(),
+  obtenerEstudiante: vi.fn(),
   obtenerResumenAnio: vi.fn(),
   obtenerVistaPreviaActivacion: vi.fn(),
   promoverEstudiantes: vi.fn(),
@@ -41,6 +43,11 @@ vi.mock("../services/aniosLectivosApi", () => ({
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
+}));
+vi.mock("../services/estudiantesObservadorApi", () => ({
+  actualizarEstudiante: mocks.actualizarEstudiante,
+  crearEstudiante: vi.fn(),
+  obtenerEstudiante: mocks.obtenerEstudiante,
 }));
 
 import AniosLectivosAdmin from "./AniosLectivosAdmin";
@@ -389,6 +396,119 @@ describe("preparación del año lectivo", () => {
       "Solo se puede matricular en un año en preparación.",
     );
     expect(screen.getByRole("checkbox", { name: /Ana Rojas/ })).toBeChecked();
+  });
+});
+
+describe("editar los datos de un estudiante desde matricular", () => {
+  // Lo que devuelve GET /estudiantes/{id}: la ficha completa, con su curso
+  // de 2026. El formulario la guarda entera, como en Estudiantes.
+  const FICHA_LUIS = {
+    id: 2,
+    nombre: "Luis",
+    apellido: "Pardo",
+    tipo_documento: "Tarjeta de Identidad",
+    documento_identidad: "1002",
+    telefono: "3001112222",
+    direccion: null,
+    curso_id: 10,
+    estado: "retirado",
+  };
+
+  async function abrirCursoDeOrigen(user) {
+    mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+    mocks.obtenerEstudiante.mockResolvedValue(FICHA_LUIS);
+    mocks.actualizarEstudiante.mockResolvedValue({ mensaje: "Estudiante actualizado correctamente", id: 2 });
+    renderPagina();
+    await screen.findByText("3 estudiantes matriculados");
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+  }
+
+  it("guarda con la ficha completa, recarga la lista y no pierde la selección", async () => {
+    const user = userEvent.setup();
+    await abrirCursoDeOrigen(user);
+    await user.click(screen.getByRole("checkbox", { name: /Ana Rojas/ }));
+    mocks.listarCandidatosMatricula.mockResolvedValue({
+      candidatos: [
+        CANDIDATOS.candidatos[0],
+        { ...CANDIDATOS.candidatos[1], documento_identidad: "1002-B" },
+        CANDIDATOS.candidatos[2],
+      ],
+    });
+
+    await user.click(screen.getByRole("button", { name: "Editar datos de Luis Pardo" }));
+
+    expect(mocks.obtenerEstudiante).toHaveBeenCalledWith(2);
+    expect(await screen.findByRole("heading", { name: /Editar Estudiante/ })).toBeInTheDocument();
+    expect(screen.getByText(/El curso de este formulario es el de 2026/)).toBeInTheDocument();
+    // Con el formulario abierto no se puede abrir otro y perder lo escrito.
+    expect(screen.getByRole("button", { name: "Editar datos de Ana Rojas" })).toBeDisabled();
+
+    const telefono = screen.getByDisplayValue("3001112222");
+    await user.clear(telefono);
+    await user.type(telefono, "3009998888");
+    await user.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    expect(mocks.actualizarEstudiante).toHaveBeenCalledWith(2, {
+      nombre: "Luis",
+      apellido: "Pardo",
+      tipo_documento: "Tarjeta de Identidad",
+      documento_identidad: "1002",
+      telefono: "3009998888",
+      direccion: null,
+      curso_id: 10,
+    });
+    expect(await screen.findByText("Se guardaron los datos de Luis Pardo.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Editar Estudiante/ })).not.toBeInTheDocument();
+    expect(await screen.findByText(/1002-B/)).toBeInTheDocument();
+    expect(mocks.listarCandidatosMatricula).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("checkbox", { name: /Ana Rojas/ })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Luis Pardo/ })).toBeChecked();
+  });
+
+  it("si el backend rechaza, muestra su mensaje y deja el formulario abierto", async () => {
+    const user = userEvent.setup();
+    await abrirCursoDeOrigen(user);
+    mocks.actualizarEstudiante.mockRejectedValue({
+      response: { data: { detail: "El curso seleccionado debe pertenecer al año lectivo activo." } },
+    });
+
+    await user.click(screen.getByRole("button", { name: "Editar datos de Luis Pardo" }));
+    await screen.findByRole("heading", { name: /Editar Estudiante/ });
+    await user.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    expect(
+      await screen.findByText("El curso seleccionado debe pertenecer al año lectivo activo."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Editar Estudiante/ })).toBeInTheDocument();
+    expect(mocks.listarCandidatosMatricula).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancelar cierra el formulario sin guardar", async () => {
+    const user = userEvent.setup();
+    await abrirCursoDeOrigen(user);
+
+    await user.click(screen.getByRole("button", { name: "Editar datos de Luis Pardo" }));
+    await screen.findByRole("heading", { name: /Editar Estudiante/ });
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    expect(screen.queryByRole("heading", { name: /Editar Estudiante/ })).not.toBeInTheDocument();
+    expect(mocks.actualizarEstudiante).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Editar datos de Ana Rojas" })).toBeEnabled();
+  });
+
+  it("si no se puede leer la ficha, avisa y no abre el formulario", async () => {
+    const user = userEvent.setup();
+    await abrirCursoDeOrigen(user);
+    mocks.obtenerEstudiante.mockRejectedValue(new Error("Sin conexión"));
+
+    await user.click(screen.getByRole("button", { name: "Editar datos de Luis Pardo" }));
+
+    expect(
+      await screen.findByText("No se pudieron cargar los datos del estudiante."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Editar Estudiante/ })).not.toBeInTheDocument();
   });
 });
 

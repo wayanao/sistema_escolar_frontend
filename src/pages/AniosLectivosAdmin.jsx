@@ -4,10 +4,12 @@ import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
 import AniosPasadosView from "../components/anioLectivo/AniosPasadosView";
 import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
 import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
+import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioAnioPasado from "../hooks/anioLectivo/useCambioAnioPasado";
 import usePreparacionMatriculas from "../hooks/anioLectivo/usePreparacionMatriculas";
+import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import {
   copiarConfiguracionAnio,
   crearAnioLectivo,
@@ -87,6 +89,51 @@ function AniosLectivosAdmin() {
     return respuesta;
   };
   const resultadoActivacion = activacion.resultado;
+
+  // Editar los datos de un estudiante sin salir de matricular: el mismo
+  // formulario y el mismo guardado de Estudiantes (la ficha completa, con su
+  // curso del año activo). Al guardar se recarga la lista, sin perder la
+  // selección, y la vista previa, que muestra nombres y cursos.
+  const { recargarCandidatos } = preparacion;
+  const { recargarVistaPrevia } = activacion;
+  const alGuardarEstudiante = useCallback(() => {
+    void recargarCandidatos();
+    void recargarVistaPrevia();
+  }, [recargarCandidatos, recargarVistaPrevia]);
+  const formularioEstudiante = useFormularioEstudianteAdmin({ recargar: alGuardarEstudiante });
+  const [editandoEstudianteId, setEditandoEstudianteId] = useState(null);
+  const [avisoEdicion, setAvisoEdicion] = useState({ mensaje: "", error: "" });
+
+  const editarEstudiante = async (estudianteId) => {
+    setEditandoEstudianteId(estudianteId);
+    setAvisoEdicion({ mensaje: "", error: "" });
+    const respuesta = await formularioEstudiante.cargarEstudianteAEditar(estudianteId);
+    setEditandoEstudianteId(null);
+    if (respuesta.estado === "error") {
+      setAvisoEdicion({ mensaje: "", error: "No se pudieron cargar los datos del estudiante." });
+    }
+  };
+
+  const guardarDatosEstudiante = async (event) => {
+    event.preventDefault();
+    const { nombre, apellido } = formularioEstudiante.estudianteData;
+    const respuesta = await formularioEstudiante.guardarEstudiante();
+    if (respuesta.estado === "exito") {
+      setAvisoEdicion({ mensaje: `Se guardaron los datos de ${nombre} ${apellido}.`, error: "" });
+    } else if (respuesta.estado === "validacion") {
+      setAvisoEdicion({ mensaje: "", error: "Completa los campos obligatorios: nombre, apellidos y curso." });
+    } else {
+      setAvisoEdicion({
+        mensaje: "",
+        error: detalleError(respuesta.error, "No se pudieron guardar los datos del estudiante."),
+      });
+    }
+  };
+
+  const cancelarEdicion = () => {
+    formularioEstudiante.cancelarFormulario();
+    setAvisoEdicion({ mensaje: "", error: "" });
+  };
 
   // Reabrir o volver a cerrar recarga los años, para que el selector muestre
   // el estado nuevo; la selección actual se conserva.
@@ -314,11 +361,28 @@ function AniosLectivosAdmin() {
           promoviendo={preparacion.promoviendo}
           guardandoSalidaId={preparacion.guardandoSalidaId}
           resultado={preparacion.resultadoPromocion}
+          editandoId={editandoEstudianteId}
+          formularioEdicion={
+            formularioEstudiante.showForm ? (
+              <FormularioEstudianteAdmin
+                visible
+                editingId={formularioEstudiante.editingId}
+                estudianteData={formularioEstudiante.estudianteData}
+                setEstudianteData={formularioEstudiante.setEstudianteData}
+                cursos={preparacion.cursosOrigen}
+                onSubmit={guardarDatosEstudiante}
+                onCancelar={cancelarEdicion}
+              />
+            ) : null
+          }
+          mensajeEdicion={avisoEdicion.mensaje}
+          errorEdicion={avisoEdicion.error}
           onCambiarOrigen={preparacion.cambiarCursoOrigen}
           onCambiarDestino={preparacion.setCursoDestinoId}
           onAlternarEstudiante={preparacion.alternarEstudiante}
           onMarcarSalida={marcarSalida}
           onPromover={promover}
+          onEditarEstudiante={editarEstudiante}
         />
       )}
 

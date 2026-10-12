@@ -172,3 +172,84 @@ describe("usePreparacionMatriculas: marca de salida (paso 6.6)", () => {
     expect(result.current.guardandoSalidaId).toBe(null);
   });
 });
+
+describe("usePreparacionMatriculas: recargar la lista tras editar datos", () => {
+  const ANA = { id: 1, nombre: "Ana", apellido: "Rojas", matriculado_en_destino: false, estado_salida: null };
+  const LUIS = { id: 2, nombre: "Luis", apellido: "Pardo", matriculado_en_destino: false, estado_salida: null };
+
+  async function conDosCandidatos() {
+    mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
+    mocks.listarCandidatosMatricula.mockResolvedValue({ candidatos: [ANA, LUIS] });
+    const hook = renderHook(() => usePreparacionMatriculas(PREPARACION));
+    await waitFor(() => expect(hook.result.current.cursosOrigen).toHaveLength(1));
+    act(() => hook.result.current.cambiarCursoOrigen("10"));
+    await waitFor(() => expect(hook.result.current.seleccionados).toEqual([1, 2]));
+    return hook;
+  }
+
+  it("trae la lista otra vez y conserva lo que el admin desmarcó", async () => {
+    const { result } = await conDosCandidatos();
+    act(() => result.current.alternarEstudiante(2));
+    mocks.listarCandidatosMatricula.mockResolvedValue({
+      candidatos: [{ ...ANA, nombre: "Ana María" }, LUIS],
+    });
+
+    await act(async () => {
+      await result.current.recargarCandidatos();
+    });
+
+    expect(mocks.listarCandidatosMatricula).toHaveBeenLastCalledWith(3, 10);
+    expect(result.current.candidatos[0].nombre).toBe("Ana María");
+    expect(result.current.seleccionados).toEqual([1]);
+  });
+
+  it("quien ya no está en el curso sale de la lista y de la selección", async () => {
+    const { result } = await conDosCandidatos();
+    mocks.listarCandidatosMatricula.mockResolvedValue({ candidatos: [LUIS] });
+
+    await act(async () => {
+      await result.current.recargarCandidatos();
+    });
+
+    expect(result.current.candidatos).toEqual([LUIS]);
+    expect(result.current.seleccionados).toEqual([2]);
+  });
+
+  it("descarta una respuesta que llega después de cambiar de curso", async () => {
+    const { result } = await conDosCandidatos();
+    let resolverVieja;
+    mocks.listarCandidatosMatricula.mockImplementationOnce(
+      () => new Promise((resolve) => {
+        resolverVieja = resolve;
+      }),
+    );
+    let recarga;
+    act(() => {
+      recarga = result.current.recargarCandidatos();
+    });
+    mocks.listarCandidatosMatricula.mockResolvedValue({ candidatos: [LUIS] });
+    act(() => result.current.cambiarCursoOrigen("11"));
+    await waitFor(() => expect(result.current.candidatos).toEqual([LUIS]));
+
+    await act(async () => {
+      resolverVieja({ candidatos: [ANA] });
+      await recarga;
+    });
+
+    expect(result.current.candidatos).toEqual([LUIS]);
+    expect(result.current.seleccionados).toEqual([2]);
+  });
+
+  it("si falla, avisa y deja la lista como estaba", async () => {
+    const { result } = await conDosCandidatos();
+    mocks.listarCandidatosMatricula.mockRejectedValue(new Error("Sin conexión"));
+
+    await act(async () => {
+      await result.current.recargarCandidatos();
+    });
+
+    expect(result.current.error).toBe("No se pudieron actualizar los estudiantes del curso.");
+    expect(result.current.candidatos).toEqual([ANA, LUIS]);
+    expect(result.current.seleccionados).toEqual([1, 2]);
+  });
+});
