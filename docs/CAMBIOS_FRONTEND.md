@@ -1,5 +1,35 @@
 # Cambios Frontend
 
+## 2026-10-12 - Año lectivo: valores de pago al matricular
+
+A pedido del usuario, en Años lectivos → "2. Matricular estudiantes", cada
+estudiante ya matriculado en el año en preparación tiene "Valores de pago".
+Abre un recuadro en la misma sección con todo lo que se le cobrará ese año.
+
+- Una fila por concepto (mensualidad, matrícula y cualquier otro que se le
+  cobre): precio del curso, lo que paga y, si tiene, su valor personalizado
+  con el motivo. Se escribe un valor y un motivo y se pulsa Guardar; con valor
+  personalizado aparece "Volver al precio del curso", que pide confirmación.
+- Lee `GET /estudiantes/{id}/valores-pago` (ruta nueva del backend, commit
+  `1a732cc`, solo lectura). Guarda y quita con las mismas llamadas y el mismo
+  cuerpo de Pagos. El frontend no calcula precios.
+- Después de cada cambio vuelve a pedir la lista y el resumen del año (cuenta
+  los valores especiales). Con el recuadro abierto, los botones de editar de
+  las demás tarjetas quedan bloqueados.
+- Archivos: `services/pagosApi.js` (`obtenerValoresPagoEstudiante`),
+  `utils/anioLectivo.js` (`normalizarValoresPago`, `etiquetaTipoCobro`,
+  `leerValorPersonalizado`), `hooks/anioLectivo/useValoresPagoMatricula.js`
+  (nuevo), `usePreparacionMatriculas` (`recargarResumen`),
+  `components/anioLectivo/ValoresPagoMatriculaView.jsx` (nuevo),
+  `MatriculasPreparacionView.jsx` y `pages/AniosLectivosAdmin.jsx`.
+
+Requiere el backend `1a732cc` en producción antes de usarse allá.
+
+Verificación: 27 pruebas nuevas, escritas antes del código (fallaron todas;
+los dos archivos nuevos no cargaban). `pnpm run check:deploy` limpio en una
+sola corrida: 2388 pruebas en 354 archivos, lint y build correctos.
+`git diff --check` limpio. Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`.
+
 ## 2026-10-12 - Año lectivo: editar los datos de un estudiante desde matricular
 
 A pedido del usuario, en Años lectivos → "2. Matricular estudiantes", cada

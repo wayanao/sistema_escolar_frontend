@@ -33,6 +33,7 @@ describe("pagosApi", () => {
       [7],
       "/estudiantes/7/valores-pago-personalizados",
     ],
+    ["obtenerValoresPagoEstudiante", [7], "/estudiantes/7/valores-pago"],
   ])("%s consulta su ruta y devuelve los datos", async (metodo, argumentos, ruta) => {
     const datos = { contrato: metodo };
     api.get.mockResolvedValue({ data: datos });
@@ -51,6 +52,7 @@ describe("pagosApi", () => {
       [7],
       "/estudiantes/7/valores-pago-personalizados",
     ],
+    ["obtenerValoresPagoEstudiante", [7], "/estudiantes/7/valores-pago"],
   ])("%s consulta el año del pago solo cuando se envía", async (metodo, argumentos, ruta) => {
     const datos = { contrato: metodo, anio: 2027 };
     api.get.mockResolvedValue({ data: datos });

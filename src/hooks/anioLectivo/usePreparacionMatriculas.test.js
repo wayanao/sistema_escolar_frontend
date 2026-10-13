@@ -253,3 +253,39 @@ describe("usePreparacionMatriculas: recargar la lista tras editar datos", () => 
     expect(result.current.seleccionados).toEqual([1, 2]);
   });
 });
+
+describe("usePreparacionMatriculas: recargar el resumen tras cambiar valores de pago", () => {
+  it("vuelve a pedir solo el resumen", async () => {
+    mocks.obtenerResumenAnio.mockResolvedValueOnce(RESUMEN).mockResolvedValueOnce({
+      ...RESUMEN,
+      resumen: { estudiantes_matriculados: 0, valores_especiales: 1 },
+    });
+    const { result } = renderHook(() => usePreparacionMatriculas(PREPARACION));
+    await waitFor(() => expect(result.current.resumen).toEqual(RESUMEN));
+    const cursosPedidos = mocks.listarCursos.mock.calls.length;
+
+    await act(async () => {
+      await result.current.recargarResumen();
+    });
+
+    expect(mocks.obtenerResumenAnio).toHaveBeenCalledTimes(2);
+    expect(mocks.obtenerResumenAnio).toHaveBeenLastCalledWith(3);
+    expect(mocks.listarCursos).toHaveBeenCalledTimes(cursosPedidos);
+    expect(result.current.resumen.resumen.valores_especiales).toBe(1);
+  });
+
+  it("si falla, avisa y conserva el resumen anterior", async () => {
+    mocks.obtenerResumenAnio
+      .mockResolvedValueOnce(RESUMEN)
+      .mockRejectedValueOnce(new Error("Sin conexión"));
+    const { result } = renderHook(() => usePreparacionMatriculas(PREPARACION));
+    await waitFor(() => expect(result.current.resumen).toEqual(RESUMEN));
+
+    await act(async () => {
+      await result.current.recargarResumen();
+    });
+
+    expect(result.current.error).toBe("No se pudo actualizar el resumen del año.");
+    expect(result.current.resumen).toEqual(RESUMEN);
+  });
+});

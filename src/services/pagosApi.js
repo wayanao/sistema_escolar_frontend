@@ -49,6 +49,13 @@ const pagosApi = {
       )
     ),
 
+  // Lo que se le cobra al estudiante en un año, con el precio de su curso y
+  // su valor personalizado ("Valores de pago" al matricular). Solo lee.
+  obtenerValoresPagoEstudiante: (estudianteId, { parametrosAnio } = {}) =>
+    obtenerDatos(
+      getConAnio(`/estudiantes/${estudianteId}/valores-pago`, parametrosAnio)
+    ),
+
   guardarValorPersonalizado: (estudianteId, tipoPagoId, payload) =>
     obtenerDatos(
       api.put(

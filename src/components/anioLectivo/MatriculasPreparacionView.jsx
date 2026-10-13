@@ -32,26 +32,30 @@ export default function MatriculasPreparacionView({
   formularioEdicion = null,
   mensajeEdicion = "",
   errorEdicion = "",
+  panelValoresPago = null,
   onCambiarOrigen,
   onCambiarDestino,
   onAlternarEstudiante,
   onMarcarSalida,
   onPromover,
   onEditarEstudiante,
+  onValoresPago,
 }) {
   const cantidad = seleccionados.length;
   const valoresEspeciales = resultado?.valores_especiales_copiados ?? [];
-  // El formulario de edición llega armado desde la página; mientras está
-  // abierto, no se abre otro para no perder lo que se esté escribiendo.
+  // El formulario de edición y el recuadro de valores de pago llegan armados
+  // desde la página; mientras uno está abierto, no se abre otro para no
+  // perder lo que se esté escribiendo.
   const edicionAbierta = Boolean(formularioEdicion);
+  const panelAbierto = edicionAbierta || Boolean(panelValoresPago);
   const refEdicion = useRef(null);
 
-  // El formulario aparece encima de la lista: se lleva la pantalla hasta él.
+  // El panel aparece encima de la lista: se lleva la pantalla hasta él.
   useEffect(() => {
-    if (edicionAbierta) {
+    if (panelAbierto) {
       refEdicion.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
     }
-  }, [edicionAbierta]);
+  }, [panelAbierto]);
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
@@ -114,7 +118,7 @@ export default function MatriculasPreparacionView({
         </p>
       )}
 
-      {(edicionAbierta || mensajeEdicion || errorEdicion) && (
+      {(panelAbierto || mensajeEdicion || errorEdicion) && (
         <div ref={refEdicion} className="mt-5 scroll-mt-4 space-y-3">
           {errorEdicion && (
             <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
@@ -135,6 +139,7 @@ export default function MatriculasPreparacionView({
               {formularioEdicion}
             </>
           )}
+          {panelValoresPago}
         </div>
       )}
 
@@ -193,12 +198,25 @@ export default function MatriculasPreparacionView({
                     <button
                       type="button"
                       onClick={() => onEditarEstudiante(candidato.id)}
-                      disabled={promoviendo || edicionAbierta || editandoId !== null}
+                      disabled={promoviendo || panelAbierto || editandoId !== null}
                       aria-label={`Editar datos de ${nombreCompleto}`}
                       className={claseBotonSalida}
                     >
                       Editar datos
                     </button>
+                    {/* El precio depende del curso del año siguiente: solo
+                        con matrícula en ese año hay qué mostrar. */}
+                    {yaMatriculado && (
+                      <button
+                        type="button"
+                        onClick={() => onValoresPago(candidato)}
+                        disabled={promoviendo || panelAbierto || editandoId !== null}
+                        aria-label={`Valores de pago de ${nombreCompleto}`}
+                        className={claseBotonSalida}
+                      >
+                        Valores de pago
+                      </button>
+                    )}
                     {!yaMatriculado && marca && (
                       <button
                         type="button"

@@ -147,6 +147,16 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   reemplaza todos los campos y rechaza con `409` un curso de otro año). Al
   guardar, vuelve a pedir los candidatos del curso y la vista previa de
   activación. No hay rutas nuevas.
+- Desde el 2026-10-12, "Valores de pago" en la sección de matricular (solo
+  para estudiantes ya matriculados en el año en preparación) lee
+  `GET /estudiantes/{id}/valores-pago?anio_lectivo_id=` con
+  `pagosApi.obtenerValoresPagoEstudiante`: cada concepto que se le cobra con
+  `precio_curso`, `valor_personalizado`, `motivo` y `valor_a_pagar`, calculados
+  por el backend. Guardar y quitar usan las mismas llamadas y el mismo cuerpo
+  de Pagos (`PUT` con `{ valor, motivo, activo: true }` y `DELETE` de
+  `/estudiantes/{id}/valores-pago-personalizados/{tipo_pago_id}`). Después de
+  cada cambio vuelve a pedir esa lista y el resumen del año. El frontend no
+  calcula precios.
 - El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
   año en preparación. El resumen presenta literalmente los conteos y el total
   que devuelve el backend y no activa el año.

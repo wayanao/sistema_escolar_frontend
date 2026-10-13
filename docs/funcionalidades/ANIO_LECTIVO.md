@@ -13,10 +13,11 @@
   terminó en los pasos 7.1 (`16c9052`) y 7.2 (`c5dd384`); en este repo, paso
   7.3 (traer el planeador del año pasado) en `df2afe3` y paso 7.4 (usar un
   plan del año pasado) en `4e71c2b`. Con él, la fase 7 queda completa en
-  código en los dos repos. El 2026-10-12, a pedido del usuario, dos ajustes
-  en la fase 5, terminados localmente, sin commit: la copia de configuración
-  explica cada casilla, y en la sección de matricular se pueden editar los
-  datos de un estudiante.** El
+  código en los dos repos. El 2026-10-12, a pedido del usuario, ajustes en la
+  fase 5: la copia de configuración explica cada casilla (`bf8289e`), en la
+  sección de matricular se pueden editar los datos de un estudiante
+  (`6853db0`) y ver y personalizar sus valores de pago (backend `1a732cc`;
+  este repo, terminado localmente, sin commit).** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1327,6 +1328,70 @@ terminado localmente sin commit:**
 - Verificación global: `pnpm run check:deploy` **limpio en una sola corrida**
   → **2361 pruebas en 352 archivos**, lint y build correctos. `git diff
   --check` limpio. Sin cambios en el backend, sin bases reales.
+- **Confirmado por el usuario en el commit `6853db0`** (junto con el ajuste
+  de las casillas, que quedó en `bf8289e`).
+
+**Ajuste del 2026-10-12 — valores de pago al matricular, terminado localmente
+sin commit:**
+
+- Pedido por el usuario: al pasar a un estudiante de curso, ver el precio de
+  cada concepto de su curso nuevo y personalizar lo que pagará. Decisiones del
+  usuario: en la misma sección de matricular (se descartó un botón que llevara
+  a Pagos) y con **todos los conceptos que se cobran**, no solo la
+  mensualidad. Necesitó un paso de backend antes, explicado y autorizado: la
+  ruta de deudas no trae la mensualidad de 2027 en noviembre de 2026 (su
+  deuda es 0). El backend quedó en `1a732cc`
+  (`GET /estudiantes/{id}/valores-pago`, solo lectura); detalle en el
+  documento principal, al final de su fase 5.
+- `services/pagosApi.js`: `obtenerValoresPagoEstudiante`, con el año como las
+  demás lecturas de Pagos.
+- `utils/anioLectivo.js`: `normalizarValoresPago` (una beca completa, `0`,
+  también cuenta como valor personalizado), `etiquetaTipoCobro` y
+  `leerValorPersonalizado` (número de cero en adelante, como en Pagos).
+- `hooks/anioLectivo/useValoresPagoMatricula.js` (nuevo): abre el recuadro de
+  un estudiante pidiendo sus valores en el año en preparación; guarda con el
+  mismo `PUT` y cuerpo de Pagos (`{ valor, motivo, activo: true }`) y quita
+  con el mismo `DELETE`, después de confirmar. Tras cada cambio vuelve a pedir
+  la lista y avisa a la página. Descarta la respuesta de otro estudiante o de
+  un recuadro ya cerrado; si se guardó pero falla la recarga, no lo presenta
+  como fallido; se cierra si el año deja de estar en preparación.
+- `usePreparacionMatriculas`: `recargarResumen` (solo el resumen), porque
+  guardar un valor cambia el conteo de valores especiales.
+- `components/anioLectivo/ValoresPagoMatriculaView.jsx` (nuevo): una fila por
+  concepto con su tipo de cobro, el precio del curso, lo que paga (o
+  "Paga el precio del curso"), el motivo, el campo del valor (vacío si no hay
+  personalizado, con el precio del curso como ejemplo), el motivo, Guardar
+  (bloqueado sin valor escrito) y "Volver al precio del curso" si hay
+  personalizado. Mientras guarda uno, bloquea todos. En móvil, campos y
+  botones a ancho completo. El dinero usa `formatMoney` de
+  `utils/carteraTiposPago/formatos`, el mismo que ya importaba
+  `MatriculasPreparacionView` (importar de otro módulo ya existía en esa
+  vista; moverlo a la raíz de `utils/` sería un cambio aparte).
+- `MatriculasPreparacionView`: "Valores de pago" solo en los ya matriculados
+  en el año en preparación (el precio depende de su curso de ese año, y el
+  backend no deja personalizar sin esa matrícula). El recuadro se abre en el
+  mismo lugar que "Editar datos"; con cualquiera de los dos abierto, los
+  botones de las demás tarjetas quedan bloqueados.
+- Peticiones: las de siempre no cambian. Solo al usar "Valores de pago" se
+  suman la lectura de valores, el `PUT` o `DELETE` de Pagos y, tras cada
+  cambio, la lista y el resumen.
+- **Hallazgo de antes (backend), sin cambiar:** el resumen del año en
+  preparación cuenta los valores especiales sin mirar si están activos
+  (`leer_resumen_anio` en `anios_lectivos_repository.py`), y "Quitar" solo los
+  desactiva. Por eso, al volver al precio del curso, el número de valores
+  especiales del resumen no baja. Corregirlo sería un cambio aparte del
+  backend.
+- Caracterización previa: 95 pruebas en 4 archivos (servicio de Pagos,
+  contrato del año, hook de matricular y página). Se escribieron primero 27
+  pruebas: 2 del servicio, 4 del contrato, 2 de `recargarResumen`, 11 del hook
+  nuevo, 6 de la vista nueva y 2 de la página; fallaron las 10 de archivos
+  existentes y los dos archivos nuevos no cargaban. Al terminar pasan 156
+  pruebas en 13 archivos (servicio, contrato, los hooks y las vistas del
+  módulo y la página). Lint limpio en los archivos tocados.
+- Verificación global: `pnpm run check:deploy` **limpio en una sola corrida**
+  → **2388 pruebas en 354 archivos**, lint y build correctos. `git diff
+  --check` limpio en los dos repos. En el backend solo cambió su documento
+  principal en este paso. Sin bases reales.
 
 ### Fase 6 — Activar el año
 
@@ -1882,16 +1947,19 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   avance en la fase 7). El usuario decidió que la lista de planes se pida una
   vez por clase y que el navegador anote la clase que no tiene. **Con el 7.4,
   la fase 7 queda completa en código en los dos repos.**
-- 2026-10-12: a pedido del usuario, dos ajustes en la fase 5 (ver los dos
-  "Ajuste del 2026-10-12"): la copia de configuración explica debajo de cada
-  casilla qué copia, y en la sección de matricular cada estudiante tiene
-  "Editar datos". Terminados localmente, sin commit. Al empezar, los dos
-  repos estaban en `main` y limpios; sin subir a GitHub: 2 commits aquí
-  (`df2afe3`, `4e71c2b`) y 4 en el backend (`16c9052` a `144f93b`).
-- Siguiente acción exacta: el usuario revisa en local "Editar datos" (hace
-  falta un 2027 en preparación) y hace el commit de los dos ajustes. Ojo: el
-  backend local escribe en la base real; la revisión va en una rama de Neon o
-  en el Colegio Demo, nunca editando estudiantes de `tenant_2005`. Lo que queda
+- 2026-10-12: a pedido del usuario, tres ajustes en la fase 5 (ver los
+  "Ajuste del 2026-10-12"): la copia de configuración explica cada casilla
+  (`bf8289e`), cada estudiante tiene "Editar datos" en la sección de
+  matricular (`6853db0`) y los ya matriculados tienen "Valores de pago"
+  (backend `1a732cc`; aquí, terminado localmente, sin commit). Ninguno está
+  en GitHub todavía.
+- Siguiente acción exacta: el usuario revisa en local "Editar datos" y
+  "Valores de pago" (hace falta un 2027 en preparación con estudiantes ya
+  matriculados, y el backend local con `1a732cc`) y hace el commit de
+  "Valores de pago". Ojo: el backend local escribe en la base real; la
+  revisión va en una rama de Neon o en el Colegio Demo, nunca con estudiantes
+  de `tenant_2005`. Al subir, primero el backend (`1a732cc`, con Render en
+  **Live**) y después el frontend. Lo que queda
   antes de la activación real (enero de 2027),
   cada cosa con su autorización, está en la entrega del documento principal:
   subir la fase 7 (primero el backend, con Render en **Live**, y después el

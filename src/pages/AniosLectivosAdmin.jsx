@@ -4,11 +4,13 @@ import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
 import AniosPasadosView from "../components/anioLectivo/AniosPasadosView";
 import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
 import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
+import ValoresPagoMatriculaView from "../components/anioLectivo/ValoresPagoMatriculaView";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioAnioPasado from "../hooks/anioLectivo/useCambioAnioPasado";
 import usePreparacionMatriculas from "../hooks/anioLectivo/usePreparacionMatriculas";
+import useValoresPagoMatricula from "../hooks/anioLectivo/useValoresPagoMatricula";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import {
   copiarConfiguracionAnio,
@@ -133,6 +135,21 @@ function AniosLectivosAdmin() {
   const cancelarEdicion = () => {
     formularioEstudiante.cancelarFormulario();
     setAvisoEdicion({ mensaje: "", error: "" });
+  };
+
+  // Valores de pago de un estudiante ya matriculado en el año en preparación.
+  // Guardar o quitar un valor cambia el conteo de valores especiales del
+  // resumen, así que se vuelve a pedir.
+  const { recargarResumen } = preparacion;
+  const valoresPago = useValoresPagoMatricula(anioPreparacion, {
+    onCambio: recargarResumen,
+  });
+  const abrirValoresPago = (candidato) => {
+    setAvisoEdicion({ mensaje: "", error: "" });
+    void valoresPago.abrir({
+      id: candidato.id,
+      nombre: `${candidato.nombre} ${candidato.apellido}`,
+    });
   };
 
   // Reabrir o volver a cerrar recarga los años, para que el selector muestre
@@ -377,12 +394,31 @@ function AniosLectivosAdmin() {
           }
           mensajeEdicion={avisoEdicion.mensaje}
           errorEdicion={avisoEdicion.error}
+          panelValoresPago={
+            valoresPago.estudiante ? (
+              <ValoresPagoMatriculaView
+                anio={anioPreparacion.anio}
+                estudianteNombre={valoresPago.estudiante.nombre}
+                filas={valoresPago.filas}
+                borradores={valoresPago.borradores}
+                cargando={valoresPago.cargando}
+                guardandoTipoId={valoresPago.guardandoTipoId}
+                mensaje={valoresPago.mensaje}
+                error={valoresPago.error}
+                onCambiarBorrador={valoresPago.cambiarBorrador}
+                onGuardar={valoresPago.guardar}
+                onVolverAlPrecio={valoresPago.volverAlPrecio}
+                onCerrar={valoresPago.cerrar}
+              />
+            ) : null
+          }
           onCambiarOrigen={preparacion.cambiarCursoOrigen}
           onCambiarDestino={preparacion.setCursoDestinoId}
           onAlternarEstudiante={preparacion.alternarEstudiante}
           onMarcarSalida={marcarSalida}
           onPromover={promover}
           onEditarEstudiante={editarEstudiante}
+          onValoresPago={abrirValoresPago}
         />
       )}
 

@@ -1194,7 +1194,10 @@ Notas:
   pantalla abierta para el selector y el aviso) y, desde 5.8,
   `usePreparacionMatriculas` (candidatos, selección, promoción y resumen;
   desde el 2026-10-12, `recargarCandidatos` vuelve a pedir la lista sin
-  perder la selección del admin).
+  perder la selección del admin, y `recargarResumen` solo el resumen) y
+  `useValoresPagoMatricula` (2026-10-12: carga, guarda y quita los valores de
+  pago de un estudiante en el año en preparación; descarta respuestas de otro
+  estudiante y se cierra si el año deja de estar en preparación).
 - `pages/AniosLectivosAdmin.jsx`: pantalla admin de los pasos 5.7 y 5.8. Crea
   el siguiente año, copia su configuración, enlaza a las altas manuales,
   matricula por curso y presenta el resumen sin activar. Usa todo el
@@ -1206,7 +1209,11 @@ Notas:
   revisar. Desde el 2026-10-12, cada candidato tiene "Editar datos"; la vista
   recibe ya armado el formulario de Estudiantes (`formularioEdicion`), lo
   muestra encima de la lista y bloquea los demás botones de editar mientras
-  está abierto. `ResumenPreparacionView.jsx` presenta solo los totales del
+  está abierto. Los ya matriculados tienen además "Valores de pago", que abre
+  en el mismo lugar `ValoresPagoMatriculaView.jsx` (`panelValoresPago`): una
+  fila por concepto con precio del curso, lo que paga, motivo, campo de valor,
+  Guardar y "Volver al precio del curso"; en móvil, campos y botones a ancho
+  completo. `ResumenPreparacionView.jsx` presenta solo los totales del
   backend.
 - `services/aniosLectivosApi.js`: frontera HTTP de listar, crear, copiar,
   consultar/promover matrículas, crear un estudiante directo en preparación y

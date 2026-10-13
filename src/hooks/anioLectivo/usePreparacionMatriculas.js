@@ -129,6 +129,17 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     }
   }, [anioLectivoId, cursoOrigenId]);
 
+  // Solo el resumen (por ejemplo, después de guardar un valor de pago, que
+  // cambia el conteo de valores especiales). Si falla, queda el anterior.
+  const recargarResumen = useCallback(async () => {
+    if (!anioLectivoId) return;
+    try {
+      setResumen(await obtenerResumenAnio(anioLectivoId));
+    } catch {
+      setError("No se pudo actualizar el resumen del año.");
+    }
+  }, [anioLectivoId]);
+
   const cambiarCursoOrigen = useCallback((valor) => {
     setCursoOrigenId(valor);
     setCursoDestinoId("");
@@ -252,5 +263,6 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     promover,
     recargarPreparacion,
     recargarCandidatos,
+    recargarResumen,
   };
 }

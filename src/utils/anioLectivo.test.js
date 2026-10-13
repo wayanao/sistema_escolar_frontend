@@ -20,10 +20,13 @@ import {
   esRutaPorAnio,
   etiquetaAnioLectivo,
   etiquetaSalida,
+  etiquetaTipoCobro,
   leerPendientesDeActivacion,
+  leerValorPersonalizado,
   mensajeDeErrorAnio,
   puedeMatricularseEnDestino,
   normalizarAniosLectivos,
+  normalizarValoresPago,
   opcionesConAnio,
   parametrosAnio,
   permisosAnio,
@@ -373,5 +376,101 @@ describe("aviso de año cerrado (paso 6.9)", () => {
     expect(esAvisoAnioCerrado("Falta una columna")).toBe(false);
     expect(esAvisoAnioCerrado({ mensaje: "x" })).toBe(false);
     expect(esAvisoAnioCerrado(undefined)).toBe(false);
+  });
+});
+
+describe("valores de pago al matricular", () => {
+  it("normaliza lo que se le cobra al estudiante, concepto por concepto", () => {
+    const filas = normalizarValoresPago({
+      estudiante_id: 7,
+      anio_lectivo_id: 3,
+      curso_id: 20,
+      conceptos: [
+        {
+          tipo_pago_id: 12,
+          nombre: "MENSUALIDAD",
+          tipo_cobro: "mensual",
+          precio_curso: 200000,
+          valor_personalizado: 180000,
+          motivo: "Beca parcial",
+          valor_a_pagar: 180000,
+        },
+        {
+          tipo_pago_id: 13,
+          nombre: "MATRICULA",
+          tipo_cobro: "anual",
+          precio_curso: 300000,
+          valor_personalizado: null,
+          motivo: null,
+          valor_a_pagar: 300000,
+        },
+        {
+          tipo_pago_id: 17,
+          nombre: "BIBLIOTECA",
+          tipo_cobro: "unico",
+          precio_curso: 40000,
+          valor_personalizado: 0,
+          motivo: null,
+          valor_a_pagar: 0,
+        },
+      ],
+    });
+
+    expect(filas).toEqual([
+      {
+        tipoPagoId: 12,
+        nombre: "MENSUALIDAD",
+        tipoCobro: "mensual",
+        precioCurso: 200000,
+        valorPersonalizado: 180000,
+        personalizado: true,
+        motivo: "Beca parcial",
+        valorAPagar: 180000,
+      },
+      {
+        tipoPagoId: 13,
+        nombre: "MATRICULA",
+        tipoCobro: "anual",
+        precioCurso: 300000,
+        valorPersonalizado: null,
+        personalizado: false,
+        motivo: "",
+        valorAPagar: 300000,
+      },
+      // Una beca completa (0) también es un valor personalizado.
+      {
+        tipoPagoId: 17,
+        nombre: "BIBLIOTECA",
+        tipoCobro: "unico",
+        precioCurso: 40000,
+        valorPersonalizado: 0,
+        personalizado: true,
+        motivo: "",
+        valorAPagar: 0,
+      },
+    ]);
+  });
+
+  it("sin conceptos o con una respuesta rara, no inventa filas", () => {
+    expect(normalizarValoresPago({ conceptos: [] })).toEqual([]);
+    expect(normalizarValoresPago(null)).toEqual([]);
+    expect(normalizarValoresPago({ conceptos: "x" })).toEqual([]);
+  });
+
+  it("nombra cada tipo de cobro en palabras", () => {
+    expect(etiquetaTipoCobro("mensual")).toBe("Mensual");
+    expect(etiquetaTipoCobro("anual")).toBe("Anual");
+    expect(etiquetaTipoCobro("unico")).toBe("Único");
+    expect(etiquetaTipoCobro("otro")).toBe("otro");
+  });
+
+  it("acepta como valor personalizado solo un número de cero en adelante", () => {
+    expect(leerValorPersonalizado("180000")).toEqual({ valido: true, valor: 180000 });
+    expect(leerValorPersonalizado("0")).toEqual({ valido: true, valor: 0 });
+    expect(leerValorPersonalizado(" 95000.5 ")).toEqual({ valido: true, valor: 95000.5 });
+    expect(leerValorPersonalizado("")).toEqual({ valido: false, valor: null });
+    expect(leerValorPersonalizado("   ")).toEqual({ valido: false, valor: null });
+    expect(leerValorPersonalizado("-1")).toEqual({ valido: false, valor: null });
+    expect(leerValorPersonalizado("abc")).toEqual({ valido: false, valor: null });
   });
 });

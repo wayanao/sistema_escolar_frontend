@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,8 +13,11 @@ const mocks = vi.hoisted(() => ({
   listarCursos: vi.fn(),
   crearAnioLectivo: vi.fn(),
   guardarDecisionSalida: vi.fn(),
+  guardarValorPersonalizado: vi.fn(),
   obtenerEstudiante: vi.fn(),
   obtenerResumenAnio: vi.fn(),
+  obtenerValoresPagoEstudiante: vi.fn(),
+  quitarValorPersonalizado: vi.fn(),
   obtenerVistaPreviaActivacion: vi.fn(),
   promoverEstudiantes: vi.fn(),
   reabrirAnioLectivo: vi.fn(),
@@ -48,6 +51,13 @@ vi.mock("../services/estudiantesObservadorApi", () => ({
   actualizarEstudiante: mocks.actualizarEstudiante,
   crearEstudiante: vi.fn(),
   obtenerEstudiante: mocks.obtenerEstudiante,
+}));
+vi.mock("../services/pagosApi", () => ({
+  default: {
+    guardarValorPersonalizado: mocks.guardarValorPersonalizado,
+    obtenerValoresPagoEstudiante: mocks.obtenerValoresPagoEstudiante,
+    quitarValorPersonalizado: mocks.quitarValorPersonalizado,
+  },
 }));
 
 import AniosLectivosAdmin from "./AniosLectivosAdmin";
@@ -509,6 +519,80 @@ describe("editar los datos de un estudiante desde matricular", () => {
       await screen.findByText("No se pudieron cargar los datos del estudiante."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /Editar Estudiante/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("valores de pago de un estudiante ya matriculado", () => {
+  const VALORES_SARA = {
+    estudiante_id: 3,
+    anio_lectivo_id: 3,
+    curso_id: 20,
+    conceptos: [
+      {
+        tipo_pago_id: 12,
+        nombre: "MENSUALIDAD",
+        tipo_cobro: "mensual",
+        precio_curso: 200000,
+        valor_personalizado: null,
+        motivo: null,
+        valor_a_pagar: 200000,
+      },
+    ],
+  };
+
+  async function abrirCursoConSara(user) {
+    mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+    mocks.obtenerValoresPagoEstudiante.mockResolvedValue(VALORES_SARA);
+    mocks.guardarValorPersonalizado.mockResolvedValue({ message: "Valor personalizado guardado" });
+    renderPagina();
+    await screen.findByText("3 estudiantes matriculados");
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await screen.findByRole("checkbox", { name: /Sara Díaz/ });
+  }
+
+  it("solo quien ya está matriculado en 2027 tiene el botón", async () => {
+    const user = userEvent.setup();
+    await abrirCursoConSara(user);
+
+    expect(screen.getByRole("button", { name: "Valores de pago de Sara Díaz" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Valores de pago de Ana Rojas" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Valores de pago de Luis Pardo" })).not.toBeInTheDocument();
+  });
+
+  it("abre el recuadro, guarda un valor con el cuerpo de Pagos y actualiza el resumen", async () => {
+    const user = userEvent.setup();
+    await abrirCursoConSara(user);
+
+    await user.click(screen.getByRole("button", { name: "Valores de pago de Sara Díaz" }));
+
+    expect(mocks.obtenerValoresPagoEstudiante).toHaveBeenCalledWith(3, {
+      parametrosAnio: { anio_lectivo_id: 3 },
+    });
+    const recuadro = await screen.findByRole("region", { name: "Valores de pago de Sara Díaz" });
+    expect(await within(recuadro).findByRole("listitem", { name: "MENSUALIDAD" })).toBeInTheDocument();
+    // Con un recuadro abierto no se abre otro.
+    expect(screen.getByRole("button", { name: "Editar datos de Ana Rojas" })).toBeDisabled();
+
+    await user.type(
+      within(recuadro).getByRole("spinbutton", { name: "Valor personalizado de MENSUALIDAD" }),
+      "170000",
+    );
+    await user.type(within(recuadro).getByRole("textbox", { name: "Motivo de MENSUALIDAD" }), "Hermanos");
+    await user.click(within(recuadro).getByRole("button", { name: "Guardar el valor de MENSUALIDAD" }));
+
+    expect(mocks.guardarValorPersonalizado).toHaveBeenCalledWith(3, 12, {
+      valor: 170000,
+      motivo: "Hermanos",
+      activo: true,
+    });
+    expect(
+      await within(recuadro).findByText("Se guardó el valor de MENSUALIDAD para Sara Díaz."),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(mocks.obtenerResumenAnio).toHaveBeenCalledTimes(2));
+
+    await user.click(within(recuadro).getByRole("button", { name: "Cerrar valores de pago" }));
+    expect(screen.queryByRole("region", { name: "Valores de pago de Sara Díaz" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar datos de Ana Rojas" })).toBeEnabled();
   });
 });
 

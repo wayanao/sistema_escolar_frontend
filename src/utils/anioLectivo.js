@@ -76,6 +76,47 @@ export const etiquetaSalida = (estadoSalida) => ETIQUETAS_SALIDA[estadoSalida] ?
 export const puedeMatricularseEnDestino = (candidato) =>
   !candidato.matriculado_en_destino && !candidato.estado_salida;
 
+// "Valores de pago" al matricular (2026-10-12): lo que el backend dice que se
+// le cobra al estudiante en un año (`GET /estudiantes/{id}/valores-pago`). El
+// frontend no calcula precios: solo los nombra y los muestra.
+const ETIQUETAS_TIPO_COBRO = {
+  mensual: "Mensual",
+  anual: "Anual",
+  unico: "Único",
+};
+
+export const etiquetaTipoCobro = (tipoCobro) =>
+  ETIQUETAS_TIPO_COBRO[tipoCobro] ?? tipoCobro;
+
+export function normalizarValoresPago(respuesta) {
+  const conceptos = Array.isArray(respuesta?.conceptos) ? respuesta.conceptos : [];
+  return conceptos.map((concepto) => {
+    // Una beca completa (0) también es un valor personalizado.
+    const personalizado =
+      concepto.valor_personalizado !== null && concepto.valor_personalizado !== undefined;
+    return {
+      tipoPagoId: concepto.tipo_pago_id,
+      nombre: concepto.nombre,
+      tipoCobro: concepto.tipo_cobro,
+      precioCurso: Number(concepto.precio_curso ?? 0),
+      valorPersonalizado: personalizado ? Number(concepto.valor_personalizado) : null,
+      personalizado,
+      motivo: concepto.motivo ?? "",
+      valorAPagar: Number(concepto.valor_a_pagar ?? 0),
+    };
+  });
+}
+
+// Un valor personalizado es un número de cero en adelante, como en Pagos.
+export function leerValorPersonalizado(texto) {
+  const limpio = String(texto ?? "").trim();
+  const valor = Number(limpio);
+  if (!limpio || Number.isNaN(valor) || valor < 0) {
+    return { valido: false, valor: null };
+  }
+  return { valido: true, valor };
+}
+
 // Activación del año (paso 6.7). El código con el que el backend responde un
 // 409 cuando quedan estudiantes sin decidir; viene con su lista.
 export const CODIGO_ACTIVACION_CON_PENDIENTES = "activacion_con_pendientes";
