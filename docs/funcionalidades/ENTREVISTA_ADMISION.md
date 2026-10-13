@@ -2,8 +2,8 @@
 
 ## Control
 
-- Estado: **Diseño y documentación (paso E0), 2026-10-12. No hay código de
-  esta funcionalidad todavía.**
+- Estado: **Sin código en este repo.** El backend está en el paso E1 (la
+  migración, 2026-10-13); este repo empieza en E4.
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -15,7 +15,7 @@
   `docs/funcionalidades/ANIO_LECTIVO.md`.
 - Depende de: los pasos E1 a E3 del backend (migración y rutas) en
   producción antes de usar las pantallas allá.
-- Última actualización: 2026-10-12.
+- Última actualización: 2026-10-13.
 
 ## Objetivo
 
@@ -39,10 +39,13 @@ Detalle en el documento principal. Las que cambian pantallas:
   autorización, el motivo y quién se puede matricular; la pantalla oculta
   botones por comodidad y muestra el mensaje del backend tal cual.
 
-Propuestas del asistente, a confirmar por el usuario: el reparto de campos
-(tabla del documento principal), una página propia para admisiones a la que se
-llega desde la preparación del año, y poder borrar una admisión no
-matriculada.
+Propuestas del asistente, **confirmadas por el usuario el 2026-10-13**: el
+reparto de campos (tabla del documento principal), copiar a la ficha del
+estudiante al matricular, una página propia para admisiones a la que se llega
+desde la preparación del año, y poder borrar una admisión no matriculada.
+
+Decidido el mismo día: **quien entrevista se escribe a mano** (campo de
+texto), no se elige de los usuarios del sistema.
 
 ## Arquitectura (según las capas del proyecto)
 
@@ -141,16 +144,20 @@ documento y se detiene antes del siguiente.
 
 ## Preguntas abiertas
 
-Las mismas del documento principal. La que bloquea: **antes de E1**, que el
-usuario confirme el reparto de campos y las propuestas del asistente.
+Las mismas del documento principal. Las de antes de E1 (reparto de campos y
+propuestas) y la de quién entrevista quedaron respondidas el 2026-10-13. Para
+este repo no queda ninguna abierta antes de E4.
 
 ## Entrega para el siguiente chat
 
-- Estado al 2026-10-12: **diseño y documentación (E0)**. No hay código de
-  esta funcionalidad en este repo. Verificación del paso documental:
-  `pnpm run check:deploy` 2409 pruebas, lint y build; `git diff --check`
-  limpio.
-- Siguiente acción exacta: la del documento principal (confirmar el reparto
-  de campos y autorizar E1 en el backend). Este repo empieza en E4, cuando
-  E1 a E3 estén hechos.
+- Estado al 2026-10-13: **sin código de esta funcionalidad en este repo.**
+  El usuario confirmó el reparto de campos y las propuestas, y autorizó el
+  E1 en el backend: la migración quedó escrita y probada en una rama de Neon
+  allá, con el esquema base regenerado; falta aplicarla en producción. Aquí
+  solo cambió este documento;
+  `pnpm run check:deploy` → 2409 pruebas en 355 archivos, lint y build
+  limpios; `git diff --check` limpio.
+- Siguiente acción exacta: la del documento principal (commit, push y
+  aplicar la migración en producción). Este repo empieza en E4, cuando E1 a E3 estén hechos y en
+  producción, y con su propia autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.
