@@ -2,8 +2,9 @@
 
 ## Control
 
-- Estado: **Sin código en este repo.** El backend está en el paso E1 (la
-  migración, 2026-10-13); este repo empieza en E4.
+- Estado: **Sin código en este repo.** En el backend, el E1 (la tabla) está
+  en producción y el E2 (las rutas de aspirantes) quedó escrito el
+  2026-10-13; este repo empieza en E4.
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -148,16 +149,21 @@ Las mismas del documento principal. Las de antes de E1 (reparto de campos y
 propuestas) y la de quién entrevista quedaron respondidas el 2026-10-13. Para
 este repo no queda ninguna abierta antes de E4.
 
+Para el E4: el contrato de las rutas de aspirantes (cuerpos, respuestas,
+errores, `editable` y `aviso_documento`) está en
+`sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Admisiones". La
+pantalla oculta botones con `editable`, no con su propia regla.
+
 ## Entrega para el siguiente chat
 
 - Estado al 2026-10-13: **sin código de esta funcionalidad en este repo.**
-  El usuario confirmó el reparto de campos y las propuestas. El E1 del
-  backend quedó terminado: la tabla `admisiones` está en producción (commit
-  `4db1f15` allá), sin ninguna ruta que la use todavía. Aquí solo cambió este
-  documento;
-  `pnpm run check:deploy` → 2409 pruebas en 355 archivos, lint y build
-  limpios; `git diff --check` limpio.
-- Siguiente acción exacta: la del documento principal (E2 en el backend, con
-  su autorización). Este repo empieza en E4, cuando E1 a E3 estén hechos y en
+  El usuario confirmó el reparto de campos y las propuestas. En el backend,
+  el E1 está terminado (la tabla `admisiones` en producción, commit
+  `4db1f15`) y el E2 quedó escrito, sin commit: las cinco rutas de
+  aspirantes. Aquí solo cambió este documento; `pnpm run check:deploy` →
+  2409 pruebas en 355 archivos, lint y build limpios; `git diff --check`
+  limpio.
+- Siguiente acción exacta: la del documento principal (revisar y subir el E2;
+  después el E3, con su autorización). Este repo empieza en E4, cuando E1 a E3 estén hechos y en
   producción, y con su propia autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.
