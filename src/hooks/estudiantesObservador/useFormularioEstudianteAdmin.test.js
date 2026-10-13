@@ -148,3 +148,61 @@ describe("useFormularioEstudianteAdmin", () => {
     });
   });
 });
+
+describe("useFormularioEstudianteAdmin: guardando", () => {
+  function conDatosCompletos(result) {
+    act(() => {
+      result.current.alternarFormulario();
+      result.current.setEstudianteData((actual) => ({
+        ...actual,
+        nombre: "Ana",
+        apellido: "Rojas",
+        curso_id: "4",
+      }));
+    });
+  }
+
+  it("avisa que está guardando mientras espera al servidor", async () => {
+    let resolver;
+    crearMock.mockReturnValue(new Promise((resolve) => {
+      resolver = resolve;
+    }));
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+    conDatosCompletos(result);
+    expect(result.current.guardando).toBe(false);
+
+    let guardado;
+    act(() => {
+      guardado = result.current.guardarEstudiante();
+    });
+    expect(result.current.guardando).toBe(true);
+
+    await act(async () => {
+      resolver({ id: 11 });
+      await guardado;
+    });
+    expect(result.current.guardando).toBe(false);
+  });
+
+  it("deja de guardar también si el servidor rechaza", async () => {
+    crearMock.mockRejectedValue(new Error("sin red"));
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+    conDatosCompletos(result);
+
+    await act(async () => {
+      await result.current.guardarEstudiante();
+    });
+
+    expect(result.current.guardando).toBe(false);
+  });
+
+  it("la validación no marca que está guardando", async () => {
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+
+    await act(async () => {
+      await result.current.guardarEstudiante();
+    });
+
+    expect(result.current.guardando).toBe(false);
+  });
+});

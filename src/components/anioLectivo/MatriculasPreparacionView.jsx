@@ -7,6 +7,7 @@ import {
 } from "../../utils/anioLectivo";
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
 import { obtenerEtiquetaEstadoEstudiante } from "../../utils/estudiantesObservador/estudiantes";
+import SpinnerView from "./SpinnerView";
 
 const claseControl =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200";
@@ -109,7 +110,10 @@ export default function MatriculasPreparacionView({
       )}
 
       {cargandoCandidatos && (
-        <p className="mt-5 text-sm text-gray-600">Cargando estudiantes...</p>
+        <p className="mt-5 flex items-center gap-2 text-sm text-gray-600">
+          <SpinnerView />
+          Cargando estudiantes...
+        </p>
       )}
 
       {cursoOrigenId && !cargandoCandidatos && candidatos.length === 0 && (
@@ -200,9 +204,10 @@ export default function MatriculasPreparacionView({
                       onClick={() => onEditarEstudiante(candidato.id)}
                       disabled={promoviendo || panelAbierto || editandoId !== null}
                       aria-label={`Editar datos de ${nombreCompleto}`}
-                      className={claseBotonSalida}
+                      className={`${claseBotonSalida} inline-flex items-center gap-1.5`}
                     >
-                      Editar datos
+                      {editandoId === candidato.id && <SpinnerView className="h-3 w-3" />}
+                      {editandoId === candidato.id ? "Cargando..." : "Editar datos"}
                     </button>
                     {/* El precio depende del curso del año siguiente: solo
                         con matrícula en ese año hay qué mostrar. */}
@@ -250,6 +255,12 @@ export default function MatriculasPreparacionView({
                         </button>
                       </>
                     )}
+                    {guardandoSalidaId === candidato.id && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600">
+                        <SpinnerView className="h-3 w-3" />
+                        Guardando...
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -260,8 +271,9 @@ export default function MatriculasPreparacionView({
             type="button"
             onClick={onPromover}
             disabled={!cursoDestinoId || !cantidad || promoviendo}
-            className="w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
+            {promoviendo && <SpinnerView />}
             {promoviendo
               ? "Matriculando..."
               : `Matricular ${cantidad} ${cantidad === 1 ? "estudiante" : "estudiantes"}`}

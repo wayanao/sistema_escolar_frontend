@@ -170,3 +170,50 @@ describe("ValoresPagoMatriculaView", () => {
     );
   });
 });
+
+describe("ValoresPagoMatriculaView: spinner", () => {
+  it("lo muestra al cargar y en el botón que guarda", () => {
+    const { rerender } = render(
+      <ValoresPagoMatriculaView
+        anio={2027}
+        estudianteNombre="Ana Rojas"
+        filas={[]}
+        borradores={{}}
+        cargando
+        guardandoTipoId={null}
+        mensaje=""
+        error=""
+        onCambiarBorrador={vi.fn()}
+        onGuardar={vi.fn()}
+        onVolverAlPrecio={vi.fn()}
+        onCerrar={vi.fn()}
+      />,
+    );
+    expect(
+      within(screen.getByText("Cargando valores de pago...").closest("p")).getByTestId("spinner"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <ValoresPagoMatriculaView
+        anio={2027}
+        estudianteNombre="Ana Rojas"
+        filas={FILAS}
+        borradores={BORRADORES}
+        cargando={false}
+        guardandoTipoId={12}
+        mensaje=""
+        error=""
+        onCambiarBorrador={vi.fn()}
+        onGuardar={vi.fn()}
+        onVolverAlPrecio={vi.fn()}
+        onCerrar={vi.fn()}
+      />,
+    );
+    expect(
+      within(screen.getByRole("button", { name: "Guardar el valor de MENSUALIDAD" })).getByTestId("spinner"),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("button", { name: "Guardar el valor de MATRICULA" })).queryByTestId("spinner"),
+    ).not.toBeInTheDocument();
+  });
+});

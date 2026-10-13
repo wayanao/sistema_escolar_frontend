@@ -54,6 +54,7 @@ function EstudiantesAdmin() {
     editingId,
     estudianteData,
     setEstudianteData,
+    guardando,
     alternarFormulario,
     cancelarFormulario,
     cargarEstudianteAEditar: cargarEdicion,
@@ -144,6 +145,7 @@ function EstudiantesAdmin() {
         cursos={cursos}
         onSubmit={handleSubmit}
         onCancelar={cancelarFormulario}
+        guardando={guardando}
       />
       <ListaEstudiantesAdmin
         estudiantes={estudiantesFiltrados}

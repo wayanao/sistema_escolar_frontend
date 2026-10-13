@@ -813,7 +813,11 @@ Estado actual de componentes y paginas del frontend.
 - `components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin.jsx`:
   búsqueda, filtro operativo y apertura del formulario.
 - `components/estudiantesObservador/admin/FormularioEstudianteAdmin.jsx`:
-  formulario controlado de creación y edición.
+  formulario controlado de creación y edición. Desde el 2026-10-12 recibe
+  `guardando` (opcional, `false` por defecto): el botón dice "Guardando..." y
+  se bloquea, para que no se envíe dos veces. Lo da
+  `useFormularioEstudianteAdmin` (`guardando`) y lo pasan Estudiantes y la
+  sección de matricular de Años lectivos.
 - `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
   estado vacío y acciones por estudiante.
 - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal
@@ -1215,6 +1219,16 @@ Notas:
   Guardar y "Volver al precio del curso"; en móvil, campos y botones a ancho
   completo. `ResumenPreparacionView.jsx` presenta solo los totales del
   backend.
+- `components/anioLectivo/SpinnerView.jsx` y `AvisoTrabajandoView.jsx`
+  (2026-10-12): el círculo que gira junto a "Creando...", "Copiando...",
+  "Cargando..." y demás (decorativo, `aria-hidden`; las pruebas lo encuentran
+  por `data-testid="spinner"`), y el aviso con spinner para lo que puede
+  tardar: copiar la configuración y activar el año dicen qué hacen, que puede
+  tardar unos segundos, que no se cierre la página y que si algo falla no
+  cambia nada (las dos son una sola transacción en el backend). Toda la
+  página de años lectivos los usa; "Cargando vista previa...",
+  "Cargando años lectivos..." y el "Guardando..." de la marca de salida son de
+  la misma fecha.
 - `services/aniosLectivosApi.js`: frontera HTTP de listar, crear, copiar,
   consultar/promover matrículas, crear un estudiante directo en preparación y
   consultar el resumen de `/anios-lectivos`.

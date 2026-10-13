@@ -1,5 +1,6 @@
 import { etiquetaTipoCobro } from "../../utils/anioLectivo";
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
+import SpinnerView from "./SpinnerView";
 
 const claseCampo =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200";
@@ -62,7 +63,12 @@ export default function ValoresPagoMatriculaView({
         </div>
       )}
 
-      {cargando && <p className="mt-3 text-sm text-gray-600">Cargando valores de pago...</p>}
+      {cargando && (
+        <p className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+          <SpinnerView />
+          Cargando valores de pago...
+        </p>
+      )}
 
       {!cargando && filas.length === 0 && (
         <p className="mt-3 rounded-lg bg-white p-3 text-sm text-gray-600">
@@ -139,8 +145,9 @@ export default function ValoresPagoMatriculaView({
                     onClick={() => onGuardar(fila.tipoPagoId)}
                     disabled={ocupado || !String(borrador.valor).trim()}
                     aria-label={`Guardar el valor de ${fila.nombre}`}
-                    className={`${claseBoton} bg-purple-700 text-white hover:bg-purple-800`}
+                    className={`${claseBoton} inline-flex items-center justify-center gap-2 bg-purple-700 text-white hover:bg-purple-800`}
                   >
+                    {guardandoEste && <SpinnerView />}
                     {guardandoEste ? "Guardando..." : "Guardar"}
                   </button>
                   {fila.personalizado && (

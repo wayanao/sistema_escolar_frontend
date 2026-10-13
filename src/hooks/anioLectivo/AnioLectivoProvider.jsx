@@ -18,6 +18,9 @@ export default function AnioLectivoProvider({ children }) {
   const [anios, setAnios] = useState([]);
   // `null` = el año activo. Solo cambia cuando el admin elige otro año.
   const [anioSeleccionadoId, setAnioSeleccionadoId] = useState(null);
+  // Hasta que llega (o falla) la primera lista. Así una pantalla puede decir
+  // "Cargando" en vez de "no hay año activo" mientras tanto.
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,6 +33,9 @@ export default function AnioLectivoProvider({ children }) {
         if (!controller.signal.aborted) {
           console.error("No se pudo cargar la lista de años lectivos", error);
         }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargando(false);
       });
 
     return () => controller.abort();
@@ -78,6 +84,7 @@ export default function AnioLectivoProvider({ children }) {
       anioSeleccionado,
       anioSeleccionadoId,
       hayVariosAnios: anios.length > 1,
+      cargando,
       parametros: parametrosAnio(anioSeleccionadoId, anioActivo?.id ?? null),
       permisos: permisosAnio(anioSeleccionado, anioActivo),
       seleccionarAnio,
@@ -89,6 +96,7 @@ export default function AnioLectivoProvider({ children }) {
       anioSeleccionado,
       anioSeleccionadoId,
       anios,
+      cargando,
       recargarAnios,
       seleccionarAnio,
       volverAlActivo,

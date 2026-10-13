@@ -17,6 +17,7 @@ const SIN_PROVEEDOR = Object.freeze({
   anioSeleccionado: null,
   anioSeleccionadoId: null,
   hayVariosAnios: false,
+  cargando: false,
   parametros: SIN_PARAMETROS_DE_ANIO,
   permisos: permisosAnio(null, null),
   seleccionarAnio: () => {},

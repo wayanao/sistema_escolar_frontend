@@ -19,6 +19,9 @@ export default function useFormularioEstudianteAdmin({
   const [estudianteData, setEstudianteData] = useState(
     crearEstudianteInicial,
   );
+  // Mientras espera al servidor, para que el botón lo diga y no se envíe dos
+  // veces.
+  const [guardando, setGuardando] = useState(false);
 
   const alternarFormulario = useCallback(() => {
     if (showForm && editingId) {
@@ -58,6 +61,7 @@ export default function useFormularioEstudianteAdmin({
     const modo = editingId !== null ? "edicion" : "creacion";
     const payload = limpiarPayloadEstudiante(estudianteData);
 
+    setGuardando(true);
     try {
       if (modo === "edicion") {
         await actualizarEstudiante(editingId, payload);
@@ -72,6 +76,8 @@ export default function useFormularioEstudianteAdmin({
       return { estado: "exito", modo };
     } catch (error) {
       return { estado: "error", error, modo };
+    } finally {
+      setGuardando(false);
     }
   }, [crearEstudianteFn, editingId, estudianteData, recargar]);
 
@@ -80,6 +86,7 @@ export default function useFormularioEstudianteAdmin({
     editingId,
     estudianteData,
     setEstudianteData,
+    guardando,
     alternarFormulario,
     cancelarFormulario,
     cargarEstudianteAEditar,

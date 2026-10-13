@@ -321,6 +321,10 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - `useAnioLectivo()` fuera del proveedor (el profesor, las pruebas de página
   que no lo montan) devuelve el comportamiento de antes: año activo, sin
   parámetros y sin selector.
+- Desde el 2026-10-12 el proveedor expone `cargando` (verdadero hasta que
+  llega o falla la primera lista), para que una pantalla diga "Cargando años
+  lectivos..." en vez de "no hay año activo" mientras tanto. Fuera del
+  proveedor vale `false`.
 - `parametrosAnio` devuelve `{}` mirando el año activo, así que cada petición
   queda idéntica a la de antes; solo mirando otro año viaja
   `anio_lectivo_id`.

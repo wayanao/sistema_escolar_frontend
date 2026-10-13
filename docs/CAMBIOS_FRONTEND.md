@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-10-12 - Año lectivo: la página dice qué está pasando mientras trabaja
+
+A pedido del usuario. Antes cada botón cambiaba su texto, pero no había
+spinner ni se explicaba lo que puede tardar.
+
+- Spinner junto al texto en todo lo que trabaja: crear, copiar, cargar
+  estudiantes, matricular, actualizar la vista previa, activar, reabrir o
+  cerrar, el resumen y los valores de pago.
+- **Copiar la configuración** y **activar el año** muestran además un aviso:
+  qué hacen, que puede tardar unos segundos, que no se cierre ni recargue la
+  página y que si algo falla no cambia nada (cierto: cada una es una sola
+  transacción en el backend).
+- Nuevos avisos: "Cargando vista previa..." la primera vez, "Guardando..." en
+  la tarjeta que se marca como retirado o egresado, "Cargando..." en
+  "Editar datos" mientras llega la ficha, y "Cargando años lectivos..." en vez
+  de "No hay un año activo disponible" mientras llega la lista.
+- El formulario de estudiantes dice "Guardando..." y se bloquea al guardar.
+  Es el mismo formulario de Estudiantes, que también lo muestra ahora.
+- `AnioLectivoProvider` expone `cargando` (fuera del proveedor, `false`).
+- Archivos nuevos: `components/anioLectivo/SpinnerView.jsx` y
+  `AvisoTrabajandoView.jsx`. Tocados: `ActivacionAnioView`, `AniosPasadosView`,
+  `MatriculasPreparacionView`, `ResumenPreparacionView`,
+  `ValoresPagoMatriculaView`, `pages/AniosLectivosAdmin.jsx`,
+  `AnioLectivoProvider`, `useAnioLectivo`, `useFormularioEstudianteAdmin`,
+  `FormularioEstudianteAdmin` y `pages/EstudiantesAdmin.jsx`.
+- Ninguna petición ni cuerpo cambió.
+
+Verificación: 20 pruebas nuevas, escritas antes del código. `pnpm run
+check:deploy` limpio en una sola corrida: 2406 pruebas en 355 archivos, lint y
+build correctos. `git diff --check` limpio. Detalle en
+`docs/funcionalidades/ANIO_LECTIVO.md`.
+
 ## 2026-10-12 - Año lectivo: valores de pago al matricular
 
 A pedido del usuario, en Años lectivos → "2. Matricular estudiantes", cada

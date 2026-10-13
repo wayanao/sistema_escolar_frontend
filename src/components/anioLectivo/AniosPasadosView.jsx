@@ -3,6 +3,7 @@ import {
   confirmacionCoincide,
   etiquetaAnioLectivo,
 } from "../../utils/anioLectivo";
+import SpinnerView from "./SpinnerView";
 
 // Paso 6.8: los años cerrados y el reabierto, con su botón para reabrir o
 // volver a cerrar escribiendo el año. Presentacional.
@@ -66,8 +67,9 @@ export default function AniosPasadosView({
                     type="button"
                     onClick={onConfirmar}
                     disabled={guardando || !confirmacionCoincide(confirmacion, anio.anio)}
-                    className="w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
+                    {guardando && <SpinnerView />}
                     {guardando ? "Guardando..." : "Confirmar"}
                   </button>
                   <button

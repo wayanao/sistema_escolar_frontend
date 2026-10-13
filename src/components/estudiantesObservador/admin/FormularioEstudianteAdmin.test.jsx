@@ -62,4 +62,19 @@ describe("FormularioEstudianteAdmin", () => {
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue("Luis")).toBeInTheDocument();
   });
+
+  it("mientras guarda, el botón lo dice y no se puede pulsar otra vez", () => {
+    const { rerender } = render(
+      <FormularioEstudianteAdmin {...crearPropiedades({ editingId: 12 })} />,
+    );
+    expect(screen.getByRole("button", { name: "Actualizar Estudiante" })).toBeEnabled();
+
+    rerender(
+      <FormularioEstudianteAdmin {...crearPropiedades({ editingId: 12, guardando: true })} />,
+    );
+
+    const boton = screen.getByRole("button", { name: "Guardando..." });
+    expect(boton).toBeDisabled();
+    expect(boton).toHaveAttribute("type", "submit");
+  });
 });

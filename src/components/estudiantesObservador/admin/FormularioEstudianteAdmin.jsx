@@ -6,6 +6,7 @@ export default function FormularioEstudianteAdmin({
   cursos,
   onSubmit,
   onCancelar,
+  guardando = false,
 }) {
   if (!visible) return null;
 
@@ -340,11 +341,14 @@ export default function FormularioEstudianteAdmin({
         <div className="md:col-span-2 flex gap-2">
           <button
             type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            disabled={guardando}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {editingId !== null
-              ? "Actualizar Estudiante"
-              : "Crear Estudiante"}
+            {guardando
+              ? "Guardando..."
+              : editingId !== null
+                ? "Actualizar Estudiante"
+                : "Crear Estudiante"}
           </button>
           <button
             type="button"

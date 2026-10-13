@@ -596,6 +596,194 @@ describe("valores de pago de un estudiante ya matriculado", () => {
   });
 });
 
+describe("lo que se ve mientras la página trabaja", () => {
+  // Una respuesta del servidor que llega cuando la prueba quiere.
+  function pendiente() {
+    let resolver;
+    const promesa = new Promise((resolve) => {
+      resolver = resolve;
+    });
+    return { promesa, resolver };
+  }
+
+  const CON_PREPARACION = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+
+  it("mientras llegan los años dice que está cargando, sin asustar", () => {
+    mocks.anioLectivo = { anios: [], anioActivo: null, cargando: true };
+    renderPagina();
+
+    expect(screen.getByText("Cargando años lectivos...")).toBeInTheDocument();
+    expect(screen.queryByText(/No hay un año activo disponible/)).not.toBeInTheDocument();
+  });
+
+  it("si ya cargaron y no hay año activo, lo dice", () => {
+    mocks.anioLectivo = { anios: [], anioActivo: null, cargando: false };
+    renderPagina();
+
+    expect(screen.getByText(/No hay un año activo disponible/)).toBeInTheDocument();
+    expect(screen.queryByText("Cargando años lectivos...")).not.toBeInTheDocument();
+  });
+
+  it("crear el año muestra el spinner en el botón", async () => {
+    const creacion = pendiente();
+    mocks.crearAnioLectivo.mockReturnValue(creacion.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.click(screen.getByRole("button", { name: "Crear 2027" }));
+
+    const boton = screen.getByRole("button", { name: "Creando..." });
+    expect(boton).toBeDisabled();
+    expect(within(boton).getByTestId("spinner")).toBeInTheDocument();
+    creacion.resolver(PREPARACION);
+    expect(await screen.findByText("El año 2027 quedó en preparación.")).toBeInTheDocument();
+  });
+
+  it("copiar avisa qué hace, que puede tardar y que no se cierre la página", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    const copia = pendiente();
+    mocks.copiarConfiguracionAnio.mockReturnValue(copia.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.click(screen.getByRole("button", { name: "Copiar configuración de 2026" }));
+
+    const boton = screen.getByRole("button", { name: "Copiando..." });
+    expect(boton).toBeDisabled();
+    expect(within(boton).getByTestId("spinner")).toBeInTheDocument();
+    const aviso = screen.getByText("Copiando la configuración de 2026 a 2027...").closest("[role='status']");
+    expect(aviso).toHaveTextContent(
+      "Se copian los cursos, los conceptos de pago y lo que marcaste. Puede tardar unos segundos; no cierres ni recargues la página. Si algo falla, no se copia nada.",
+    );
+    expect(within(aviso).getByTestId("spinner")).toBeInTheDocument();
+
+    copia.resolver({
+      copiados: { cursos: 12, conceptos_pago: 2, precios_curso: 24, asignaciones: 40, directores_grupo: 12 },
+    });
+    expect(await screen.findByText("La configuración de 2026 se copió a 2027.")).toBeInTheDocument();
+    expect(screen.queryByText("Copiando la configuración de 2026 a 2027...")).not.toBeInTheDocument();
+  });
+
+  it("la primera vez dice que está cargando la vista previa", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    const vista = pendiente();
+    mocks.obtenerVistaPreviaActivacion.mockReturnValue(vista.promesa);
+    renderPagina();
+
+    const cargando = await screen.findByText("Cargando vista previa...");
+    expect(within(cargando.closest("p")).getByTestId("spinner")).toBeInTheDocument();
+
+    vista.resolver(VISTA_CON_PENDIENTES);
+    expect(await screen.findByText("Falta 1 estudiante por decidir.")).toBeInTheDocument();
+    expect(screen.queryByText("Cargando vista previa...")).not.toBeInTheDocument();
+  });
+
+  it("activar avisa qué hace, que puede tardar y que no se cierre la página", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_LISTA);
+    const activacion = pendiente();
+    mocks.activarAnioLectivo.mockReturnValue(activacion.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Escribe 2027 para confirmar" }),
+      "2027",
+    );
+    await user.click(screen.getByRole("button", { name: "Activar 2027" }));
+
+    const boton = screen.getByRole("button", { name: "Activando..." });
+    expect(boton).toBeDisabled();
+    expect(within(boton).getByTestId("spinner")).toBeInTheDocument();
+    const aviso = screen.getByText("Activando 2027...").closest("[role='status']");
+    expect(aviso).toHaveTextContent(
+      "Se cierra 2026, cada estudiante queda en su curso de 2027 y quienes no siguen pasan a retirado o egresado. Puede tardar unos segundos; no cierres ni recargues la página. Si algo falla, no cambia nada.",
+    );
+
+    activacion.resolver({
+      anio_cerrado: { id: 2, anio: 2026, estado: "cerrado" },
+      anio_activo: { id: 3, anio: 2027, estado: "activo" },
+      resumen: { continuan: 6, nuevos: 0, retirados: 3, egresados: 1 },
+    });
+    expect(await screen.findByText("2027 quedó activo y 2026 cerrado.")).toBeInTheDocument();
+    expect(screen.queryByText("Activando 2027...")).not.toBeInTheDocument();
+  });
+
+  it("al marcar a alguien, solo su tarjeta dice que está guardando", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    const marca = pendiente();
+    mocks.guardarDecisionSalida.mockReturnValue(marca.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+    await screen.findByText("3 estudiantes matriculados");
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+
+    await user.click(screen.getByRole("button", { name: "Marcar a Ana Rojas como retirado" }));
+
+    const tarjetaAna = ana.closest("label").parentElement;
+    const tarjetaLuis = screen.getByRole("checkbox", { name: /Luis Pardo/ }).closest("label").parentElement;
+    expect(within(tarjetaAna).getByText("Guardando...")).toBeInTheDocument();
+    expect(within(tarjetaAna).getByTestId("spinner")).toBeInTheDocument();
+    expect(within(tarjetaLuis).queryByText("Guardando...")).not.toBeInTheDocument();
+
+    marca.resolver({ cantidad: 1 });
+    await waitFor(() => expect(within(tarjetaAna).queryByText("Guardando...")).not.toBeInTheDocument());
+  });
+
+  it("matricular muestra el spinner en el botón", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    const promocion = pendiente();
+    mocks.promoverEstudiantes.mockReturnValue(promocion.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+    await screen.findByText("3 estudiantes matriculados");
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+    await user.selectOptions(screen.getByLabelText("Curso destino (2027)"), "20");
+
+    await user.click(screen.getByRole("button", { name: "Matricular 2 estudiantes" }));
+
+    const boton = screen.getByRole("button", { name: "Matriculando..." });
+    expect(within(boton).getByTestId("spinner")).toBeInTheDocument();
+    promocion.resolver({ cantidad_matriculados: 2, matriculados: [1, 2], valores_especiales_copiados: [] });
+    expect(await screen.findByText("2 estudiantes matriculados correctamente.")).toBeInTheDocument();
+  });
+
+  it("Editar datos dice que está cargando la ficha y, al guardar, que está guardando", async () => {
+    mocks.anioLectivo = CON_PREPARACION;
+    const ficha = pendiente();
+    const guardado = pendiente();
+    mocks.obtenerEstudiante.mockReturnValue(ficha.promesa);
+    mocks.actualizarEstudiante.mockReturnValue(guardado.promesa);
+    const user = userEvent.setup();
+    renderPagina();
+    await screen.findByText("3 estudiantes matriculados");
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    await screen.findByRole("checkbox", { name: /Luis Pardo/ });
+
+    await user.click(screen.getByRole("button", { name: "Editar datos de Luis Pardo" }));
+
+    const editar = screen.getByRole("button", { name: "Editar datos de Luis Pardo" });
+    expect(editar).toHaveTextContent("Cargando...");
+    expect(within(editar).getByTestId("spinner")).toBeInTheDocument();
+
+    ficha.resolver({
+      id: 2,
+      nombre: "Luis",
+      apellido: "Pardo",
+      tipo_documento: "Tarjeta de Identidad",
+      documento_identidad: "1002",
+      curso_id: 10,
+    });
+    await user.click(await screen.findByRole("button", { name: "Actualizar Estudiante" }));
+
+    expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
+    guardado.resolver({ mensaje: "Estudiante actualizado correctamente", id: 2 });
+    expect(await screen.findByText("Se guardaron los datos de Luis Pardo.")).toBeInTheDocument();
+  });
+});
+
 describe("activar el año en preparación (paso 6.7)", () => {
   beforeEach(() => {
     mocks.anioLectivo = {

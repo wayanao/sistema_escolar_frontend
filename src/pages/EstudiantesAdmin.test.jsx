@@ -174,6 +174,26 @@ describe("EstudiantesAdmin", () => {
     ).toHaveLength(2));
   });
 
+  it("mientras guarda, el botón dice Guardando... y no se puede pulsar otra vez", async () => {
+    let resolver;
+    apiMock.put.mockReturnValue(new Promise((resolve) => {
+      resolver = resolve;
+    }));
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+    fireEvent.click(within(filaDe("Rojas Ana")).getByRole("button", { name: "Editar" }));
+    await screen.findByText("✏️ Editar Estudiante");
+
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    expect(await screen.findByRole("button", { name: "Guardando..." })).toBeDisabled();
+    resolver({ data: { id: 11 } });
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith("Estudiante actualizado correctamente"),
+    );
+    expect(apiMock.put).toHaveBeenCalledTimes(1);
+  });
+
   it("Nuevo Estudiante ofrece los cursos de la lista y crea con POST", async () => {
     render(<EstudiantesAdmin />);
     await screen.findByText("Rojas Ana");

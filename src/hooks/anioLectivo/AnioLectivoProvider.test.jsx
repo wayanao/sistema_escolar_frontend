@@ -139,6 +139,16 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.parametros).toBe(parametros);
   });
 
+  it("avisa que está cargando hasta que llega la lista", async () => {
+    mocks.listarAniosLectivos.mockResolvedValue([ANIO_2027, ANIO_2026]);
+
+    const { result } = renderConProveedor();
+
+    expect(result.current.cargando).toBe(true);
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+    expect(result.current.anios).toHaveLength(2);
+  });
+
   it("si la lista no llega, todo sigue como hoy", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.listarAniosLectivos.mockRejectedValue(new Error("sin red"));
@@ -146,6 +156,7 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     const { result } = renderConProveedor();
 
     await waitFor(() => expect(console.error).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(result.current.cargando).toBe(false));
     expect(result.current.anios).toEqual([]);
     expect(result.current.anioActivo).toBeNull();
     expect(result.current.hayVariosAnios).toBe(false);
@@ -176,6 +187,7 @@ describe("AnioLectivoProvider y useAnioLectivo", () => {
     expect(result.current.anioActivo).toBeNull();
     expect(result.current.anioSeleccionadoId).toBeNull();
     expect(result.current.hayVariosAnios).toBe(false);
+    expect(result.current.cargando).toBe(false);
     expect(result.current.parametros).toBe(SIN_PARAMETROS_DE_ANIO);
     expect(result.current.permisos).toEqual({ esAnioActivo: true, puedeEditar: true });
     expect(() => result.current.seleccionarAnio(1)).not.toThrow();

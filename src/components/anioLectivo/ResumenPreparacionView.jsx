@@ -1,4 +1,5 @@
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
+import SpinnerView from "./SpinnerView";
 
 export default function ResumenPreparacionView({ anio, resumen, cargando }) {
   const datos = resumen?.resumen;
@@ -11,7 +12,10 @@ export default function ResumenPreparacionView({ anio, resumen, cargando }) {
       </p>
 
       {cargando && !datos ? (
-        <p className="mt-5 text-sm text-gray-600">Cargando resumen...</p>
+        <p className="mt-5 flex items-center gap-2 text-sm text-gray-600">
+          <SpinnerView />
+          Cargando resumen...
+        </p>
       ) : datos ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <ResumenDato texto={contar(datos.cursos, "curso", "cursos")} />

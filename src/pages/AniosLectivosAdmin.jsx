@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
 import AniosPasadosView from "../components/anioLectivo/AniosPasadosView";
+import AvisoTrabajandoView from "../components/anioLectivo/AvisoTrabajandoView";
 import MatriculasPreparacionView from "../components/anioLectivo/MatriculasPreparacionView";
 import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacionView";
+import SpinnerView from "../components/anioLectivo/SpinnerView";
 import ValoresPagoMatriculaView from "../components/anioLectivo/ValoresPagoMatriculaView";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
@@ -56,7 +58,13 @@ function detalleError(error, respaldo) {
 }
 
 function AniosLectivosAdmin() {
-  const { anios, anioActivo, recargarAnios, seleccionarAnio } = useAnioLectivo();
+  const {
+    anios,
+    anioActivo,
+    cargando: cargandoAnios,
+    recargarAnios,
+    seleccionarAnio,
+  } = useAnioLectivo();
   const [opciones, setOpciones] = useState(OPCIONES_INICIALES);
   const [creando, setCreando] = useState(false);
   const [copiando, setCopiando] = useState(false);
@@ -249,6 +257,13 @@ function AniosLectivosAdmin() {
             Año vigente: <strong>{anioActivo.anio}</strong>. El servidor creará únicamente
             el año siguiente.
           </p>
+        ) : cargandoAnios ? (
+          // Mientras llega la lista no se sabe si hay año activo: decir que
+          // no hay asustaría.
+          <p className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+            <SpinnerView />
+            Cargando años lectivos...
+          </p>
         ) : (
           <p className="mt-2 text-sm text-amber-700">
             No hay un año activo disponible para calcular el siguiente.
@@ -269,8 +284,9 @@ function AniosLectivosAdmin() {
             type="button"
             onClick={crearSiguiente}
             disabled={creando || !siguienteAnio}
-            className="mt-4 w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
+            {creando && <SpinnerView />}
             {creando ? "Creando..." : `Crear ${siguienteAnio ?? "siguiente año"}`}
           </button>
         )}
@@ -313,10 +329,22 @@ function AniosLectivosAdmin() {
             type="button"
             onClick={copiarConfiguracion}
             disabled={copiando}
-            className="mt-5 w-full rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-5 py-2.5 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
+            {copiando && <SpinnerView />}
             {copiando ? "Copiando..." : `Copiar configuración de ${anioActivo.anio}`}
           </button>
+
+          {/* La copia es una sola transacción en el backend: o se copia todo
+              o nada. */}
+          {copiando && (
+            <div className="mt-4">
+              <AvisoTrabajandoView
+                titulo={`Copiando la configuración de ${anioActivo.anio} a ${anioPreparacion.anio}...`}
+                detalle="Se copian los cursos, los conceptos de pago y lo que marcaste. Puede tardar unos segundos; no cierres ni recargues la página. Si algo falla, no se copia nada."
+              />
+            </div>
+          )}
 
           {resultadoCopia && (
             <div className="mt-5 grid gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:grid-cols-2 lg:grid-cols-5">
@@ -389,6 +417,7 @@ function AniosLectivosAdmin() {
                 cursos={preparacion.cursosOrigen}
                 onSubmit={guardarDatosEstudiante}
                 onCancelar={cancelarEdicion}
+                guardando={formularioEstudiante.guardando}
               />
             ) : null
           }

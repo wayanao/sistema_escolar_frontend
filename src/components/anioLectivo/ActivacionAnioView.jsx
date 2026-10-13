@@ -2,6 +2,8 @@ import {
   agruparPendientesPorCurso,
   confirmacionCoincide,
 } from "../../utils/anioLectivo";
+import AvisoTrabajandoView from "./AvisoTrabajandoView";
+import SpinnerView from "./SpinnerView";
 
 const CONTEOS = [
   ["continuan", "Continúan"],
@@ -45,8 +47,9 @@ export default function ActivacionAnioView({
           type="button"
           onClick={() => onActualizar()}
           disabled={cargando || activando}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
+          {cargando && <SpinnerView />}
           {cargando ? "Actualizando..." : "Actualizar vista previa"}
         </button>
       </div>
@@ -57,6 +60,13 @@ export default function ActivacionAnioView({
         Quien quedó marcado pasa a retirado o egresado. Hazlo cuando empiecen las
         clases de {anioPreparacion.anio}.
       </p>
+
+      {cargando && !vistaPrevia && (
+        <p className="mt-5 flex items-center gap-2 text-sm text-gray-600">
+          <SpinnerView />
+          Cargando vista previa...
+        </p>
+      )}
 
       {resumen && (
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -115,11 +125,23 @@ export default function ActivacionAnioView({
           type="button"
           onClick={onActivar}
           disabled={!puedeActivar || !coincide || activando}
-          className="w-full rounded-lg bg-red-700 px-5 py-2.5 font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-2.5 font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
+          {activando && <SpinnerView />}
           {activando ? "Activando..." : `Activar ${anioPreparacion.anio}`}
         </button>
       </div>
+
+      {/* La activación es una sola transacción en el backend: o cambia todo
+          o nada. */}
+      {activando && (
+        <div className="mt-4">
+          <AvisoTrabajandoView
+            titulo={`Activando ${anioPreparacion.anio}...`}
+            detalle={`Se cierra ${anioActivo.anio}, cada estudiante queda en su curso de ${anioPreparacion.anio} y quienes no siguen pasan a retirado o egresado. Puede tardar unos segundos; no cierres ni recargues la página. Si algo falla, no cambia nada.`}
+          />
+        </div>
+      )}
     </section>
   );
 }

@@ -17,7 +17,8 @@
   fase 5: la copia de configuración explica cada casilla (`bf8289e`), en la
   sección de matricular se pueden editar los datos de un estudiante
   (`6853db0`) y ver y personalizar sus valores de pago (backend `1a732cc`;
-  este repo, terminado localmente, sin commit).** El
+  este repo `93c0c22`). Después, la página dice qué está pasando mientras
+  trabaja (spinner y avisos), terminado localmente, sin commit.** El
   paso 5.10 quedó en `82675ba` y su registro principal en `cc0f45e`; el paso
   5.9 quedó confirmado en `0689b7d`, el paso 5.8 en `817c47e`; el paso 5.7 quedó en los
   commits `0848214` y `e3aced5`; los pasos 5.1 a 5.6 del backend ya están
@@ -1392,6 +1393,60 @@ sin commit:**
   → **2388 pruebas en 354 archivos**, lint y build correctos. `git diff
   --check` limpio en los dos repos. En el backend solo cambió su documento
   principal en este paso. Sin bases reales.
+- **Confirmado por el usuario en el commit `93c0c22`.**
+
+**Ajuste del 2026-10-12 — la página dice qué está pasando mientras trabaja,
+terminado localmente sin commit:**
+
+- Pedido por el usuario: que la página de años lectivos muestre que está
+  trabajando y explique por qué tarda lo pesado. Antes de cambiar nada se le
+  mostró el inventario: cada botón cambiaba su texto ("Creando...",
+  "Copiando...", "Matriculando...", "Activando..."), pero no había spinner,
+  nada explicaba lo que tarda, marcar una salida y "Editar datos" no
+  mostraban nada, la vista previa no decía que cargaba la primera vez y, al
+  abrir la página, mientras llegaba la lista se leía "No hay un año activo
+  disponible". El usuario aprobó las cuatro mejoras propuestas ("si").
+- `components/anioLectivo/SpinnerView.jsx` (nuevo): el círculo que gira,
+  decorativo (`aria-hidden`). Sin texto ni rol, las pruebas lo encuentran por
+  `data-testid="spinner"`; es el primer `data-testid` del proyecto, a
+  propósito solo aquí.
+- `components/anioLectivo/AvisoTrabajandoView.jsx` (nuevo): aviso con
+  spinner (`role="status"`). Lo usan **copiar la configuración** ("Se copian
+  los cursos, los conceptos de pago y lo que marcaste. Puede tardar unos
+  segundos; no cierres ni recargues la página. Si algo falla, no se copia
+  nada.") y **activar** ("Se cierra 2026, cada estudiante queda en su curso
+  de 2027 y quienes no siguen pasan a retirado o egresado..."; "Si algo falla,
+  no cambia nada."). Comprobado en el backend antes de escribirlo: las dos
+  corren en un solo `get_cursor(commit=True)`, que deshace todo si algo falla.
+- Spinner en los botones y textos que trabajan: crear, copiar, matricular,
+  actualizar la vista previa, activar, confirmar en años pasados, guardar un
+  valor de pago, y en "Cargando estudiantes...", "Cargando resumen..." y
+  "Cargando valores de pago...".
+- Nuevos avisos: "Cargando vista previa..." la primera vez; "Guardando..." en
+  la tarjeta que se está marcando (solo en esa); "Cargando..." en
+  "Editar datos" mientras llega la ficha; y "Cargando años lectivos..." en vez
+  del mensaje de "no hay año activo" mientras llega la lista.
+- `AnioLectivoProvider` expone `cargando` (hasta que llega o falla la primera
+  lista); fuera del proveedor vale `false`, así que el profesor y las demás
+  pantallas no cambian.
+- `useFormularioEstudianteAdmin` expone `guardando` y
+  `FormularioEstudianteAdmin` lo recibe (opcional): el botón dice
+  "Guardando..." y se bloquea. Es el formulario compartido con Estudiantes,
+  que también lo pasa ahora (el usuario sabía que allá cambiaría).
+- Peticiones: ninguna cambió.
+- Caracterización previa: 103 pruebas en los archivos tocados. Se escribieron
+  primero 20 pruebas (11 de la página, 2 del proveedor, 3 del hook del
+  formulario, 1 del formulario, 1 de Estudiantes, 1 de valores de pago y 2 de
+  los componentes nuevos); fallaron todas menos una que fija lo que se
+  conserva (sin lista y sin año activo, sigue el aviso de siempre). Tres
+  pruebas de la página fallaron después por elegir el curso antes de que
+  llegara la lista de cursos; se corrigieron esperando el resumen, como las
+  demás pruebas de esa página. Al terminar pasan 121 pruebas en 16 archivos;
+  lint limpio en los archivos tocados.
+- Verificación global: `pnpm run check:deploy` **limpio en una sola corrida**
+  → **2406 pruebas en 355 archivos**, lint y build correctos. `git diff
+  --check` limpio en los dos repos (en el backend solo cambió su documento
+  principal). Sin bases reales.
 
 ### Fase 6 — Activar el año
 
@@ -1947,19 +2002,20 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   avance en la fase 7). El usuario decidió que la lista de planes se pida una
   vez por clase y que el navegador anote la clase que no tiene. **Con el 7.4,
   la fase 7 queda completa en código en los dos repos.**
-- 2026-10-12: a pedido del usuario, tres ajustes en la fase 5 (ver los
+- 2026-10-12: a pedido del usuario, cuatro ajustes en la fase 5 (ver los
   "Ajuste del 2026-10-12"): la copia de configuración explica cada casilla
   (`bf8289e`), cada estudiante tiene "Editar datos" en la sección de
-  matricular (`6853db0`) y los ya matriculados tienen "Valores de pago"
-  (backend `1a732cc`; aquí, terminado localmente, sin commit). Ninguno está
-  en GitHub todavía.
-- Siguiente acción exacta: el usuario revisa en local "Editar datos" y
-  "Valores de pago" (hace falta un 2027 en preparación con estudiantes ya
-  matriculados, y el backend local con `1a732cc`) y hace el commit de
-  "Valores de pago". Ojo: el backend local escribe en la base real; la
-  revisión va en una rama de Neon o en el Colegio Demo, nunca con estudiantes
-  de `tenant_2005`. Al subir, primero el backend (`1a732cc`, con Render en
-  **Live**) y después el frontend. Lo que queda
+  matricular (`6853db0`), los ya matriculados tienen "Valores de pago"
+  (backend `1a732cc`, aquí `93c0c22`) y la página dice qué está pasando
+  mientras trabaja (spinner y avisos; terminado localmente, sin commit).
+  Ninguno está en GitHub todavía.
+- Siguiente acción exacta: el usuario revisa en local la página de años
+  lectivos (rama de Neon o Colegio Demo, nunca con estudiantes de
+  `tenant_2005`, porque el backend local escribe en la base real) y hace el
+  commit de los avisos. Al subir, primero el backend (con Render en **Live**)
+  y después el frontend. Pendiente de decidir, sin empezar: "Quitar o cambiar
+  la matrícula de 2027" mientras el año está en preparación (hoy no se puede
+  desde la app; se le explicó al usuario el 2026-10-12). Lo que queda
   antes de la activación real (enero de 2027),
   cada cosa con su autorización, está en la entrega del documento principal:
   subir la fase 7 (primero el backend, con Render en **Live**, y después el
