@@ -151,13 +151,13 @@ este repo no queda ninguna abierta antes de E4.
 ## Entrega para el siguiente chat
 
 - Estado al 2026-10-13: **sin código de esta funcionalidad en este repo.**
-  El usuario confirmó el reparto de campos y las propuestas, y autorizó el
-  E1 en el backend: la migración quedó escrita y probada en una rama de Neon
-  allá, con el esquema base regenerado; falta aplicarla en producción. Aquí
-  solo cambió este documento;
+  El usuario confirmó el reparto de campos y las propuestas. El E1 del
+  backend quedó terminado: la tabla `admisiones` está en producción (commit
+  `4db1f15` allá), sin ninguna ruta que la use todavía. Aquí solo cambió este
+  documento;
   `pnpm run check:deploy` → 2409 pruebas en 355 archivos, lint y build
   limpios; `git diff --check` limpio.
-- Siguiente acción exacta: la del documento principal (commit, push y
-  aplicar la migración en producción). Este repo empieza en E4, cuando E1 a E3 estén hechos y en
+- Siguiente acción exacta: la del documento principal (E2 en el backend, con
+  su autorización). Este repo empieza en E4, cuando E1 a E3 estén hechos y en
   producción, y con su propia autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.
