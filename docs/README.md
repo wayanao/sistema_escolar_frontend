@@ -36,6 +36,11 @@ continuacion para retomarla en otro chat u otro LLM.
   año siguiente. El documento principal esta en el backend.
   **Fase 4 con código completo** (pasos 4.1 a 4.7, 2026-10-03 a
   2026-10-05); la fase 5 no ha comenzado.
+- `funcionalidades/ENTREVISTA_ADMISION.md`: página de admisiones del año en
+  preparación (aspirantes nuevos, entrevista, resultado y matricular a los
+  aprobados) y el formulario del estudiante sin lo que pasa a la entrevista.
+  El documento principal está en el backend. **Diseñado (E0, 2026-10-12),
+  nada implementado.**
 
 ## Control SaaS
 

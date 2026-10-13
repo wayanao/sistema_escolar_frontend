@@ -2007,13 +2007,17 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   (`bf8289e`), cada estudiante tiene "Editar datos" en la sección de
   matricular (`6853db0`), los ya matriculados tienen "Valores de pago"
   (backend `1a732cc`, aquí `93c0c22`) y la página dice qué está pasando
-  mientras trabaja (spinner y avisos; terminado localmente, sin commit).
-  Ninguno está en GitHub todavía.
-- Siguiente acción exacta: el usuario revisa en local la página de años
-  lectivos (rama de Neon o Colegio Demo, nunca con estudiantes de
-  `tenant_2005`, porque el backend local escribe en la base real) y hace el
-  commit de los avisos. Al subir, primero el backend (con Render en **Live**)
-  y después el frontend. Pendiente de decidir, sin empezar: "Quitar o cambiar
+  mientras trabaja (spinner y avisos; `885691e` y `a252f6e`). Ninguno está en
+  GitHub todavía.
+- 2026-10-12, función aparte que vive en la preparación del año: **Entrevista
+  de admisión** (aspirantes nuevos, entrevista, resultado aprobado o no, y
+  solo los aprobados se matriculan). Diseñada (paso E0), nada implementado.
+  Ver `docs/funcionalidades/ENTREVISTA_ADMISION.md`. Cuando se implemente,
+  reemplaza al enlace "Crear estudiante en {año}" de esta página.
+- Siguiente acción exacta: al subir, primero el backend (con Render en
+  **Live**) y después el frontend; revisar en local antes (rama de Neon o
+  Colegio Demo, nunca con estudiantes de `tenant_2005`, porque el backend
+  local escribe en la base real). Pendiente de decidir, sin empezar: "Quitar o cambiar
   la matrícula de 2027" mientras el año está en preparación (hoy no se puede
   desde la app; se le explicó al usuario el 2026-10-12). Lo que queda
   antes de la activación real (enero de 2027),
