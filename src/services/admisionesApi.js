@@ -1,15 +1,12 @@
 import api from "../utils/api";
 
-// Único punto HTTP de admisiones (entrevista de admisión, paso E4). Ver
+// Único punto HTTP de admisiones (entrevista de admisión, pasos E4 y E5). Ver
 // docs/funcionalidades/ENTREVISTA_ADMISION.md y, para el contrato,
 // sistema_escolar_api/docs/API_ENDPOINTS.md ("Admisiones").
 //
 // Devuelve los datos tal cual o lanza el error original: quien decide
 // mensajes son los hooks. Todas las rutas son solo del admin; el tenant no
 // viaja aquí, lo resuelve el backend desde la cookie o el JWT.
-//
-// "Matricular" (`POST /admisiones/{id}/matricular`) llega en el paso E5, con
-// su pantalla.
 
 const getConSignal = (url, signal) => (signal ? api.get(url, { signal }) : api.get(url));
 
@@ -46,5 +43,13 @@ export async function cambiarResultadoAdmision(admisionId, resultado) {
 
 export async function borrarAdmision(admisionId) {
   const { data } = await api.delete(`/admisiones/${admisionId}`);
+  return data;
+}
+
+// Paso E5: la ficha del estudiante, el mismo cuerpo de `POST /estudiantes`.
+// Solo un aprobado, una vez. Responde `{ mensaje, estudiante_id,
+// matricula_id, anio_lectivo_id, curso_id, estudiante_existente, admision }`.
+export async function matricularAdmision(admisionId, ficha) {
+  const { data } = await api.post(`/admisiones/${admisionId}/matricular`, ficha);
   return data;
 }

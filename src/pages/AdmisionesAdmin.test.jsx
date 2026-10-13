@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   cambiarResultadoAdmision: vi.fn(),
   listarAdmisiones: vi.fn(),
   listarCursos: vi.fn(),
+  matricularAdmision: vi.fn(),
+  obtenerEstudiante: vi.fn(),
   obtenerAdmision: vi.fn(),
   registrarAdmision: vi.fn(),
   swalFire: vi.fn(),
@@ -23,11 +25,17 @@ vi.mock("../services/admisionesApi", () => ({
   borrarAdmision: mocks.borrarAdmision,
   cambiarResultadoAdmision: mocks.cambiarResultadoAdmision,
   listarAdmisiones: mocks.listarAdmisiones,
+  matricularAdmision: mocks.matricularAdmision,
   obtenerAdmision: mocks.obtenerAdmision,
   registrarAdmision: mocks.registrarAdmision,
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
+}));
+vi.mock("../services/estudiantesObservadorApi", () => ({
+  actualizarEstudiante: vi.fn(),
+  crearEstudiante: vi.fn(),
+  obtenerEstudiante: mocks.obtenerEstudiante,
 }));
 vi.mock("sweetalert2", () => ({
   default: { fire: mocks.swalFire },
@@ -247,5 +255,123 @@ describe("AdmisionesAdmin", () => {
     const lista = await screen.findByRole("list", { name: "Aspirantes de 2027" });
     expect(within(lista).getByRole("listitem", { name: "Lina Díaz" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Nuevo aspirante" })).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Matricular desde la admisión (paso E5)
+// ---------------------------------------------------------------------------
+
+const APROBADO = {
+  ...DETALLE,
+  anio: 2027,
+  resultado: "aprobado",
+  fecha_nacimiento: "2019-03-04",
+  colegio_anterior: "Colegio Uno",
+};
+
+const controlDe = (contenedor, etiqueta) =>
+  within(contenedor)
+    .getByText(etiqueta, { selector: "label" })
+    .parentElement.querySelector("input, select, textarea");
+
+async function abrirMatricula(user) {
+  await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+  await user.click(await screen.findByRole("button", { name: "Matricular" }));
+  return screen.findByRole("region", { name: "Matricular a Lina Díaz en 2027" });
+}
+
+describe("matricular desde la admisión (paso E5)", () => {
+  beforeEach(() => {
+    mocks.obtenerAdmision.mockResolvedValue(APROBADO);
+  });
+
+  it("abre la ficha del estudiante con los datos del aspirante y matricula", async () => {
+    const user = userEvent.setup();
+    mocks.matricularAdmision.mockResolvedValue({
+      mensaje: "Matrícula creada en 2027 para Lina Díaz.",
+      estudiante_id: 55,
+      admision: { ...APROBADO, estudiante_id: 55, matriculada: true, editable: false },
+    });
+    pintar();
+
+    const seccion = await abrirMatricula(user);
+
+    expect(controlDe(seccion, "Nombre *")).toHaveValue("Lina");
+    expect(controlDe(seccion, "Documento de Identidad *")).toHaveValue("2001");
+    expect(controlDe(seccion, "Curso *")).toHaveValue("20");
+    expect(controlDe(seccion, "Nombre Colegio Anterior")).toHaveValue("Colegio Uno");
+    expect(mocks.obtenerEstudiante).not.toHaveBeenCalled();
+
+    await user.type(controlDe(seccion, "Dirección"), "Calle 9");
+    await user.click(within(seccion).getByRole("button", { name: "Matricular en 2027" }));
+
+    expect(mocks.matricularAdmision).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        nombre: "Lina",
+        documento_identidad: "2001",
+        curso_id: "20",
+        direccion: "Calle 9",
+        colegio_anterior: "Colegio Uno",
+      }),
+    );
+    expect(await screen.findByText("Matrícula creada en 2027 para Lina Díaz.")).toBeInTheDocument();
+    expect(screen.getByText("Matriculado. Esta admisión es de solo consulta.")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Matricular a Lina Díaz en 2027" })).not.toBeInTheDocument();
+    expect(mocks.listarAdmisiones).toHaveBeenCalledTimes(2);
+  });
+
+  it("para un exalumno la ficha parte de lo que ya tenía", async () => {
+    const user = userEvent.setup();
+    mocks.obtenerAdmision.mockResolvedValue({
+      ...APROBADO,
+      aviso_documento: { estudiante_id: 40, mensaje: "El documento 2001 ya es de un estudiante." },
+    });
+    mocks.obtenerEstudiante.mockResolvedValue({
+      id: 40,
+      estado: "retirado",
+      nombre: "Lina",
+      apellido: "Diaz",
+      direccion: "Calle 1",
+      curso_id: 4,
+    });
+    pintar();
+
+    const seccion = await abrirMatricula(user);
+
+    expect(mocks.obtenerEstudiante).toHaveBeenCalledWith(40);
+    expect(controlDe(seccion, "Dirección")).toHaveValue("Calle 1");
+    // Lo del aspirante va encima: su nombre y el curso de 2027.
+    expect(controlDe(seccion, "Apellidos *")).toHaveValue("Díaz");
+    expect(controlDe(seccion, "Curso *")).toHaveValue("20");
+    expect(within(seccion).getByText(/se usa su mismo registro/)).toBeInTheDocument();
+  });
+
+  it("si el backend rechaza, muestra su mensaje y la ficha sigue abierta", async () => {
+    const user = userEvent.setup();
+    mocks.matricularAdmision.mockRejectedValue({
+      response: { data: { detail: "Lina Díaz estudia en 2026: pásalo a 2027 desde la promoción (Matricular estudiantes)." } },
+    });
+    pintar();
+    const seccion = await abrirMatricula(user);
+
+    await user.click(within(seccion).getByRole("button", { name: "Matricular en 2027" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Lina Díaz estudia en 2026: pásalo a 2027 desde la promoción (Matricular estudiantes).",
+    );
+    expect(screen.getByRole("region", { name: "Matricular a Lina Díaz en 2027" })).toBeInTheDocument();
+  });
+
+  it("cancelar vuelve a la ficha del aspirante sin matricular", async () => {
+    const user = userEvent.setup();
+    pintar();
+    const seccion = await abrirMatricula(user);
+
+    await user.click(within(seccion).getByRole("button", { name: "Cancelar" }));
+
+    expect(mocks.matricularAdmision).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Matricular" })).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import {
   actualizarAdmision,
   borrarAdmision,
   cambiarResultadoAdmision,
+  matricularAdmision,
   obtenerAdmision,
   registrarAdmision,
 } from "../../services/admisionesApi";
@@ -216,6 +217,34 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     }
   };
 
+  // Paso E5. La ficha del estudiante la maneja `useFormularioEstudianteAdmin`
+  // (el mismo formulario de Estudiantes); esto es lo que hace al guardar, en
+  // lugar de crear un estudiante. Si el backend lo rechaza, deja su mensaje y
+  // vuelve a lanzar el error, para que el formulario siga abierto.
+  const matricularConFicha = useCallback(
+    async (ficha) => {
+      setMensaje("");
+      setError("");
+      try {
+        const respuesta = await matricularAdmision(admision?.id, ficha);
+        mostrarAdmision(respuesta.admision);
+        setMensaje(respuesta.mensaje);
+        void recargar();
+        return respuesta;
+      } catch (fallo) {
+        setError(mensajeDeErrorAdmision(fallo, "No se pudo matricular al aspirante."));
+        throw fallo;
+      }
+    },
+    [admision?.id, mostrarAdmision, recargar],
+  );
+
+  // Un aviso que decide la pantalla (por ejemplo, la validación de la ficha).
+  const avisarError = useCallback((texto) => {
+    setMensaje("");
+    setError(texto);
+  }, []);
+
   return {
     modo,
     admision,
@@ -238,5 +267,7 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     guardarFicha,
     guardarResultado,
     borrar,
+    matricularConFicha,
+    avisarError,
   };
 }

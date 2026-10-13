@@ -1182,6 +1182,12 @@ Entrevista de admisión, paso E4 (2026-10-13). Ver
 - En móvil todo va en una columna, con lo abierto primero y botones a ancho
   completo; en pantalla ancha, la lista a la izquierda y lo abierto a la
   derecha.
+- Paso E5 (2026-10-13): la ficha de un aprobado sin matricular muestra
+  "Matricular en {año}"; `MatricularAdmisionView.jsx` pone el título y la
+  explicación (y, para un exalumno, que se usa su mismo registro) alrededor
+  del `FormularioEstudianteAdmin` de Estudiantes, que la página le pasa ya
+  armado con `titulo="Ficha del estudiante"` y `textoBoton="Matricular en
+  {año}"`.
 
 ## Paginas existentes
 
@@ -1222,7 +1228,13 @@ Entrevista de admisión, paso E4 (2026-10-13). Ver
 - `hooks/admisiones/` (2026-10-13): `useConsultasAdmisiones` (lista del año,
   conteos, filtro en el navegador, cursos solo si se piden, descarta
   respuestas viejas) y `useComandosAdmision` (nuevo aspirante, ficha,
-  entrevista, resultado y borrar; cada comando devuelve `{ estado }`).
+  entrevista, resultado y borrar; cada comando devuelve `{ estado }`; desde
+  el E5, `matricularConFicha` y `avisarError`). Para matricular, la página
+  usa además `useFormularioEstudianteAdmin`, que desde el E5 tiene
+  `abrirConDatos(datos, { desdeEstudianteId })`: abre la ficha en modo alta
+  con datos ya puestos, partiendo si se pide de la de un estudiante.
+  `FormularioEstudianteAdmin` acepta desde entonces `titulo` y `textoBoton`
+  opcionales.
   `services/admisionesApi.js` es su único punto HTTP y `utils/admisiones/`
   su contrato puro (`admisiones.js` y `formularios.js`).
 - `hooks/autenticacion/`: lecturas y guards de sesión, consulta tenant y

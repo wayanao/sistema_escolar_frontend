@@ -385,14 +385,10 @@ function AniosLectivosAdmin() {
             >
               Administrar conceptos de pago
             </Link>
-            <Link
-              to="/admin/estudiantes"
-              onClick={() => seleccionarAnio(anioPreparacion.id)}
-              className="w-full rounded-lg bg-white px-4 py-2 text-center font-semibold text-blue-800 shadow-sm hover:bg-blue-100 sm:w-auto"
-            >
-              Crear estudiante en {anioPreparacion.anio}
-            </Link>
           </div>
+          {/* Hasta el paso E5 de la entrevista de admisión había aquí "Crear
+              estudiante en {año}". Un estudiante nuevo entra ahora desde su
+              admisión aprobada: ver la tarjeta de Admisiones, debajo. */}
         </section>
       )}
 

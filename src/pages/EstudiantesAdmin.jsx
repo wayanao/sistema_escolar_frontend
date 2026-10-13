@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DetalleEstudianteAdmin from "../components/estudiantesObservador/admin/DetalleEstudianteAdmin";
 import EncabezadoEstudiantesAdmin from "../components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin";
@@ -9,7 +9,6 @@ import useCambioEstadoEstudianteAdmin from "../hooks/estudiantesObservador/useCa
 import useDetalleEstudianteAdmin from "../hooks/estudiantesObservador/useDetalleEstudianteAdmin";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import useListadoEstudiantesAdmin from "../hooks/estudiantesObservador/useListadoEstudiantesAdmin";
-import { crearEstudianteEnPreparacion } from "../services/aniosLectivosApi";
 import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
 function EstudiantesAdmin() {
@@ -17,10 +16,11 @@ function EstudiantesAdmin() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
   const esPreparacion = anioSeleccionado?.estado === ESTADO_PREPARACION;
-  // En preparación solo se habilita el alta: crea los datos globales y una
-  // matrícula de ese año. Editar o cambiar el estado global sigue reservado
-  // al activo para no alterar 2026 desde la vista de 2027.
-  const puedeCrear = permisos.esAnioActivo || esPreparacion;
+  // Crear, editar o cambiar el estado global es solo del año activo. Desde el
+  // paso E5 de la entrevista de admisión, un estudiante nuevo del año en
+  // preparación entra solo desde una admisión aprobada (antes había aquí un
+  // alta directa); quien sigue, por la promoción de Años lectivos.
+  const puedeCrear = permisos.esAnioActivo;
   const puedeEditar = permisos.esAnioActivo;
   const {
     setEstudiantes,
@@ -45,10 +45,6 @@ function EstudiantesAdmin() {
     verDetalles,
     cerrarModal,
   } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
-  const crearEnPreparacion = useCallback(
-    (payload) => crearEstudianteEnPreparacion(anioSeleccionado?.id, payload),
-    [anioSeleccionado?.id],
-  );
   const {
     showForm,
     editingId,
@@ -59,10 +55,7 @@ function EstudiantesAdmin() {
     cancelarFormulario,
     cargarEstudianteAEditar: cargarEdicion,
     guardarEstudiante,
-  } = useFormularioEstudianteAdmin({
-    recargar: cargarDatos,
-    crearEstudianteFn: esPreparacion ? crearEnPreparacion : undefined,
-  });
+  } = useFormularioEstudianteAdmin({ recargar: cargarDatos });
   const { cambiarEstado: ejecutarCambioEstado } =
     useCambioEstadoEstudianteAdmin({
       estadoFiltro,
@@ -137,6 +130,22 @@ function EstudiantesAdmin() {
         onAlternarFormulario={alternarFormulario}
         puedeCrear={puedeCrear}
       />
+      {esPreparacion && (
+        <div className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">
+          <p>
+            Un estudiante nuevo de {anioSeleccionado.anio} se matricula desde Admisiones,
+            después de su entrevista aprobada. Quien ya estudia pasa con Matricular
+            estudiantes, en Años lectivos.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/admin/anios-lectivos/admisiones")}
+            className="mt-3 w-full rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 sm:w-auto"
+          >
+            Ir a admisiones
+          </button>
+        </div>
+      )}
       <FormularioEstudianteAdmin
         visible={showForm}
         editingId={editingId}

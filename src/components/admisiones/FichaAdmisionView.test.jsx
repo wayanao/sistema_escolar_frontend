@@ -36,6 +36,8 @@ function pintar(cambios = {}, props = {}) {
     onGuardarResultado: vi.fn(),
     onBorrar: vi.fn(),
     onCerrar: vi.fn(),
+    onMatricular: vi.fn(),
+    abriendoMatricula: false,
     ...props,
   };
   render(<FichaAdmisionView {...propiedades} />);
@@ -115,5 +117,58 @@ describe("FichaAdmisionView", () => {
     expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Guardando resultado..." })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Borrando..." })).toBeDisabled();
+  });
+});
+
+describe("matricular desde la ficha (paso E5)", () => {
+  it("un aprobado sin matricular ofrece matricular en el año de la admisión", async () => {
+    const user = userEvent.setup();
+    const props = pintar({ resultado: "aprobado", anio: 2027 });
+
+    expect(screen.getByRole("heading", { name: "Matricular en 2027" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Matricular" }));
+
+    expect(props.onMatricular).toHaveBeenCalledTimes(1);
+  });
+
+  it("si es un exalumno, dice que se usa su mismo registro", () => {
+    pintar({
+      resultado: "aprobado",
+      anio: 2027,
+      aviso_documento: { estudiante_id: 55, mensaje: "Ya es de un estudiante." },
+    });
+
+    expect(
+      screen.getByText(/ya fue estudiante del colegio: se usa su mismo registro/),
+    ).toBeInTheDocument();
+  });
+
+  it("un pendiente no ofrece matricular", () => {
+    pintar({ resultado: "pendiente", anio: 2027 });
+    expect(screen.queryByRole("button", { name: "Matricular" })).not.toBeInTheDocument();
+  });
+
+  it("un no aprobado tampoco", () => {
+    pintar({ resultado: "no_aprobado", motivo_resultado: "Cupo", anio: 2027 });
+    expect(screen.queryByRole("button", { name: "Matricular" })).not.toBeInTheDocument();
+  });
+
+  it("uno ya matriculado tampoco", () => {
+    pintar({ resultado: "aprobado", matriculada: true, editable: false, anio: 2027 });
+    expect(screen.queryByRole("button", { name: "Matricular" })).not.toBeInTheDocument();
+  });
+
+  it("matricular mira el resultado guardado, no el que se está eligiendo", () => {
+    pintar(
+      { resultado: "pendiente", anio: 2027 },
+      { resultado: { resultado: "aprobado", motivo_resultado: "" } },
+    );
+    expect(screen.queryByRole("button", { name: "Matricular" })).not.toBeInTheDocument();
+  });
+
+  it("mientras abre la ficha, el botón lo dice", () => {
+    pintar({ resultado: "aprobado", anio: 2027 }, { abriendoMatricula: true });
+
+    expect(screen.getByRole("button", { name: "Abriendo la ficha..." })).toBeDisabled();
   });
 });

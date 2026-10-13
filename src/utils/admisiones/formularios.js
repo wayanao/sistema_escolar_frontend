@@ -135,3 +135,36 @@ export function validarResultado({ resultado, motivo_resultado }) {
   }
   return {};
 }
+
+// Paso E5: lo que la admisión pone en la ficha del estudiante al matricular.
+// Los datos del aspirante y lo que pasó a la entrevista (decisión 6), solo si
+// tienen algo: un vacío no borra lo que ya traiga la ficha (la de un
+// exalumno). El curso viaja siempre, porque el de la ficha de un exalumno es
+// de otro año.
+const CAMPOS_PARA_LA_FICHA = Object.freeze([
+  "nombre",
+  "apellido",
+  "tipo_documento",
+  "documento_identidad",
+  "fecha_nacimiento",
+  "colegio_anterior",
+  "anio_cursado_anterior",
+  "pre_escolar_anterior",
+  "ebp_anterior",
+  "motivo_retiro_anterior",
+  "paz_salvo_anterior",
+  "ocupacion_padre",
+  "ocupacion_madre",
+]);
+
+export function datosParaMatricular(admision) {
+  const datos = {};
+  for (const campo of CAMPOS_PARA_LA_FICHA) {
+    const valor = admision?.[campo];
+    if (valor !== null && valor !== undefined && String(valor).trim() !== "") {
+      datos[campo] = String(valor);
+    }
+  }
+  datos.curso_id = admision?.curso_id ? String(admision.curso_id) : "";
+  return datos;
+}

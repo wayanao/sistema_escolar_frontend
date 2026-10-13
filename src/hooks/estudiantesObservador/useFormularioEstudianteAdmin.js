@@ -49,6 +49,25 @@ export default function useFormularioEstudianteAdmin({
     }
   }, []);
 
+  // Abre la ficha en modo alta con `datos` ya puestos (entrevista de
+  // admisión, paso E5: matricular desde una admisión). Con
+  // `desdeEstudianteId` parte de la ficha de ese estudiante (un exalumno que
+  // vuelve), pero sigue siendo un alta: guardar llama a `crearEstudianteFn`,
+  // nunca a editar.
+  const abrirConDatos = useCallback(async (datos, { desdeEstudianteId = null } = {}) => {
+    try {
+      const base = desdeEstudianteId
+        ? normalizarEstudianteParaEdicion(await obtenerEstudiante(desdeEstudianteId))
+        : crearEstudianteInicial();
+      setEstudianteData({ ...base, ...datos });
+      setEditingId(null);
+      setShowForm(true);
+      return { estado: "exito" };
+    } catch (error) {
+      return { estado: "error", error };
+    }
+  }, []);
+
   const guardarEstudiante = useCallback(async () => {
     if (
       !estudianteData.nombre ||
@@ -90,6 +109,7 @@ export default function useFormularioEstudianteAdmin({
     alternarFormulario,
     cancelarFormulario,
     cargarEstudianteAEditar,
+    abrirConDatos,
     guardarEstudiante,
   };
 }

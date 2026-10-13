@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   actualizarAdmision: vi.fn(),
   borrarAdmision: vi.fn(),
   cambiarResultadoAdmision: vi.fn(),
+  matricularAdmision: vi.fn(),
   obtenerAdmision: vi.fn(),
   registrarAdmision: vi.fn(),
 }));
@@ -263,5 +264,64 @@ describe("ficha del aspirante", () => {
 
     await waitFor(() => expect(result.current.modo).toBeNull());
     expect(result.current.admision).toBeNull();
+  });
+});
+
+describe("matricular desde la ficha (paso E5)", () => {
+  it("matricula con la ficha del estudiante y deja la admisión de solo consulta", async () => {
+    const matriculada = {
+      ...DETALLE,
+      resultado: "aprobado",
+      estudiante_id: 55,
+      matriculada: true,
+      editable: false,
+    };
+    mocks.obtenerAdmision.mockResolvedValue({ ...DETALLE, resultado: "aprobado" });
+    mocks.matricularAdmision.mockResolvedValue({
+      mensaje: "Matrícula creada en 2027 para Lina Díaz.",
+      estudiante_id: 55,
+      admision: matriculada,
+    });
+    const { result } = montar();
+    await abrirFicha(result);
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.matricularConFicha({ nombre: "Lina", curso_id: "20" });
+    });
+
+    expect(mocks.matricularAdmision).toHaveBeenCalledWith(7, { nombre: "Lina", curso_id: "20" });
+    expect(respuesta.estudiante_id).toBe(55);
+    expect(result.current.admision).toBe(matriculada);
+    expect(result.current.mensaje).toBe("Matrícula creada en 2027 para Lina Díaz.");
+    expect(recargar).toHaveBeenCalledTimes(1);
+  });
+
+  it("si el backend lo rechaza, muestra su mensaje y vuelve a lanzar el error", async () => {
+    const error = {
+      response: { data: { detail: "Lina Díaz estudia en 2026: pásalo a 2027 desde la promoción." } },
+    };
+    mocks.matricularAdmision.mockRejectedValue(error);
+    const { result } = montar();
+    await abrirFicha(result);
+
+    await act(async () => {
+      await expect(result.current.matricularConFicha({})).rejects.toBe(error);
+    });
+
+    expect(result.current.error).toBe(
+      "Lina Díaz estudia en 2026: pásalo a 2027 desde la promoción.",
+    );
+    expect(result.current.modo).toBe("ficha");
+    expect(recargar).not.toHaveBeenCalled();
+  });
+
+  it("la pantalla puede mostrar su propio aviso", () => {
+    const { result } = montar();
+
+    act(() => result.current.avisarError("Completa los campos obligatorios."));
+
+    expect(result.current.error).toBe("Completa los campos obligatorios.");
+    expect(result.current.mensaje).toBe("");
   });
 });

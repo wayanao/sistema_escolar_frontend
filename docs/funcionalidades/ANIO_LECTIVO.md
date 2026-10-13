@@ -1166,7 +1166,10 @@ detiene antes del siguiente.
   el alta directa con los cursos de ese año mediante
   `POST /anios-lectivos/{id}/estudiantes`. Editar datos globales y cambiar el
   estado permanecen ocultos. Mirando el año activo se conserva exactamente
-  el `POST /estudiantes` anterior.
+  el `POST /estudiantes` anterior. **Cambió el 2026-10-13** (entrevista de
+  admisión, paso E5): en preparación ya no hay alta directa; Estudiantes
+  muestra un aviso con "Ir a admisiones", y un estudiante nuevo entra desde
+  su admisión aprobada. Ver `docs/funcionalidades/ENTREVISTA_ADMISION.md`.
 - Las nuevas secciones mantienen el ancho amplio aprobado en 5.7 y se apilan
   en móvil; las tarjetas de candidatos y del resumen agregan columnas de
   forma progresiva en pantallas mayores.
@@ -2011,9 +2014,10 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   GitHub todavía.
 - 2026-10-12, función aparte que vive en la preparación del año: **Entrevista
   de admisión** (aspirantes nuevos, entrevista, resultado aprobado o no, y
-  solo los aprobados se matriculan). Diseñada (paso E0), nada implementado.
-  Ver `docs/funcionalidades/ENTREVISTA_ADMISION.md`. Cuando se implemente,
-  reemplaza al enlace "Crear estudiante en {año}" de esta página.
+  solo los aprobados se matriculan). Pasos E4 y E5 escritos el 2026-10-13:
+  la tarjeta "Admisiones {año}" de esta página y matricular desde la
+  admisión reemplazaron al enlace "Crear estudiante en {año}". Ver
+  `docs/funcionalidades/ENTREVISTA_ADMISION.md`.
 - Siguiente acción exacta: al subir, primero el backend (con Render en
   **Live**) y después el frontend; revisar en local antes (rama de Neon o
   Colegio Demo, nunca con estudiantes de `tenant_2005`, porque el backend

@@ -12,6 +12,10 @@ export default function FormularioEstudianteAdmin({
   onSubmit,
   onCancelar,
   guardando = false,
+  // Matricular desde una admisión (paso E5) usa esta misma ficha con otro
+  // título y otro botón. Sin ellos, todo queda como siempre.
+  titulo = null,
+  textoBoton = null,
 }) {
   if (!visible) return null;
 
@@ -22,9 +26,10 @@ export default function FormularioEstudianteAdmin({
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold mb-4 text-left">
-        {editingId !== null
-          ? "✏️ Editar Estudiante"
-          : "🎓 Crear Nuevo Estudiante"}
+        {titulo ??
+          (editingId !== null
+            ? "✏️ Editar Estudiante"
+            : "🎓 Crear Nuevo Estudiante")}
       </h2>
       <form
         onSubmit={onSubmit}
@@ -331,9 +336,10 @@ export default function FormularioEstudianteAdmin({
           >
             {guardando
               ? "Guardando..."
-              : editingId !== null
-                ? "Actualizar Estudiante"
-                : "Crear Estudiante"}
+              : textoBoton ??
+                (editingId !== null
+                  ? "Actualizar Estudiante"
+                  : "Crear Estudiante")}
           </button>
           <button
             type="button"

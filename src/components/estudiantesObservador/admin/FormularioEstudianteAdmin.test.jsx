@@ -43,6 +43,18 @@ describe("FormularioEstudianteAdmin", () => {
     ]);
   });
 
+  it("acepta otro título y otro texto de botón, como en Matricular (paso E5)", () => {
+    render(
+      <FormularioEstudianteAdmin
+        {...crearPropiedades({ titulo: "Ficha del estudiante", textoBoton: "Matricular en 2027" })}
+      />,
+    );
+
+    expect(screen.getByText("Ficha del estudiante")).toBeInTheDocument();
+    expect(screen.queryByText("🎓 Crear Nuevo Estudiante")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Matricular en 2027" })).toBeInTheDocument();
+  });
+
   it("conserva secciones, cursos y contrato controlado de creación", async () => {
     const user = userEvent.setup();
     const props = crearPropiedades();

@@ -985,6 +985,15 @@ describe("acceso a admisiones (entrevista de admisión, paso E4)", () => {
     expect(mocks.listarAdmisiones).toHaveBeenCalledWith(3, { signal: expect.any(AbortSignal) });
   });
 
+  it("Continuar la preparación ya no ofrece crear estudiantes: entran por admisiones (E5)", () => {
+    mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+
+    renderPagina();
+
+    expect(screen.getByRole("link", { name: "Administrar cursos" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Crear estudiante en 2027" })).not.toBeInTheDocument();
+  });
+
   it("sin año en preparación no muestra la tarjeta ni pide admisiones", () => {
     renderPagina();
 

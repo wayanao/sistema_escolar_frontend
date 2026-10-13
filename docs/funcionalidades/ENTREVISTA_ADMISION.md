@@ -2,12 +2,13 @@
 
 ## Control
 
-- Estado: **Paso E4 escrito el 2026-10-13, sin commit** (la página de
-  admisiones y la tarjeta en Años lectivos; ver "Avance del paso E4"). En el
-  backend, el E1 está en producción y el E2 y el E3 en commits sin subir
-  (`ee8aba2` y `d099c29`). **Esta página no se puede publicar antes de que E2
-  y E3 estén en producción**: sin esas rutas, la tarjeta y la página darían
-  error.
+- Estado: **Paso E5 escrito el 2026-10-13, sin commit** (matricular desde la
+  admisión y fuera "Crear estudiante en {año}"; ver "Avance del paso E5").
+  El E4 está en `22b3dcf`, sin subir. En el backend, el E1 está en
+  producción y el E2 y el E3 en commits sin subir (`ee8aba2` y `d099c29`).
+  **Nada de esto se puede publicar antes de que E2 y E3 estén en
+  producción**: sin esas rutas, la tarjeta y la página darían error, y ya no
+  quedaría otra forma de crear un estudiante nuevo en 2027.
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -126,8 +127,8 @@ principal).
 
 | Paso | Qué |
 |---|---|
-| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Escrito el 2026-10-13, sin commit** |
-| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación" |
+| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Hecho el 2026-10-13** (`22b3dcf`) |
+| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Escrito el 2026-10-13, sin commit** |
 | E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
@@ -226,17 +227,88 @@ pantalla oculta botones con `editable`, no con su propia regla.
   completo pasaron sin errores. **No se ha visto en un navegador ni contra un
   backend real.**
 
+## Avance del paso E5 (2026-10-13)
+
+- Autorizado explícitamente por el usuario ("Empezar el E5", elegido frente a
+  probar primero en local). Al iniciar, los dos repos estaban en `main` y
+  limpios, sin subir: backend `2c4a796`, frontend `22b3dcf` (el E4).
+- Lo que se encontró: `useFormularioEstudianteAdmin` ya aceptaba
+  `crearEstudianteFn` (así creaba Estudiantes en preparación), de modo que
+  matricular reutiliza el mismo formulario, su validación y su cuerpo, sin
+  copiarlos ni importar `utils/` de otro módulo. "Crear estudiante en {año}"
+  estaba en "Continuar la preparación" (enlace a Estudiantes) y en
+  Estudiantes ("Nuevo Estudiante" con el alta directa).
+- Pruebas primero: 23 nuevas y una reescrita; antes del código fallaban 19.
+  - `useFormularioEstudianteAdmin.test.js`: `abrirConDatos` (ficha vacía con
+    datos encima; para un exalumno parte de su ficha y guarda por el alta
+    indicada, nunca editando; si no se puede leer, no abre).
+  - `FormularioEstudianteAdmin.test.jsx`: título y botón opcionales.
+  - `formularios.test.js`: `datosParaMatricular` (datos del aspirante y de la
+    entrevista sin vacíos; el curso siempre, vacío si no hay).
+  - `admisionesApi.test.js`: la ruta de matricular.
+  - `useComandosAdmision.test.js`: `matricularConFicha` (deja la admisión de
+    solo consulta, mensaje del backend y recarga; si falla, su mensaje y
+    vuelve a lanzar el error) y `avisarError`.
+  - `FichaAdmisionView.test.jsx`: "Matricular" solo para un aprobado sin
+    matricular, según el resultado guardado; aviso de exalumno; botón
+    ocupado.
+  - `AdmisionesAdmin.test.jsx`: matricular de punta a punta (ficha llena,
+    cuerpo enviado, admisión de solo consulta), exalumno, rechazo del
+    backend y cancelar.
+  - `AniosLectivosAdmin.test.jsx`: ya no hay "Crear estudiante en 2027".
+  - `EstudiantesAdmin.anioLectivo.test.jsx`: **reescrita a propósito** la que
+    fijaba el alta directa en preparación; ahora fija que no hay alta, que
+    hay un aviso con "Ir a admisiones" y que no se envía nada. Una nueva:
+    en un año cerrado no hay aviso.
+- Código:
+  - `services/admisionesApi.js`: `matricularAdmision`.
+  - `utils/admisiones/formularios.js`: `datosParaMatricular`.
+  - `hooks/admisiones/useComandosAdmision.js`: `matricularConFicha` y
+    `avisarError`.
+  - `hooks/estudiantesObservador/useFormularioEstudianteAdmin.js`:
+    `abrirConDatos`. `FormularioEstudianteAdmin.jsx`: `titulo` y
+    `textoBoton` opcionales. Lo de siempre no cambia.
+  - `components/admisiones/FichaAdmisionView.jsx` (la sección "Matricular en
+    {año}") y `MatricularAdmisionView.jsx` (nuevo).
+  - `pages/AdmisionesAdmin.jsx`: compone la ficha del estudiante dentro de
+    `MatricularAdmisionView`; cambiar de aspirante, empezar uno nuevo o
+    cerrar cierra la ficha del estudiante.
+  - `pages/AniosLectivosAdmin.jsx`: fuera el enlace. `pages/EstudiantesAdmin.jsx`:
+    en preparación ya no hay alta (solo consulta) y sí un aviso con "Ir a
+    admisiones".
+- Decisiones de detalle:
+  - La ficha se llena con los datos del aspirante y lo de la entrevista
+    (estudios anteriores y ocupación de los padres; el backend los copia
+    igual). Para un exalumno, primero lo que ya tiene (`GET
+    /estudiantes/{id}`), porque el backend reemplaza su ficha como un
+    `PUT`, y encima lo del aspirante. El curso siempre es el de la
+    admisión (o vacío), nunca el de otro año.
+  - "Matricular" mira el resultado guardado, no el que se está eligiendo.
+  - `crearEstudianteEnPreparacion` (en `aniosLectivosApi.js`, con su prueba)
+    quedó sin uso. **No se borró**: se pregunta al usuario.
+- Verificación: 174 pruebas de los archivos del paso; `pnpm run
+  check:deploy` → **2508 pruebas en 364 archivos**, lint y build limpios;
+  `git diff --check` limpio. Una corrida anterior falló con 9 pruebas por
+  tiempo agotado (5000 ms) en 8 archivos que no tienen que ver; solos
+  pasaron (41 pruebas) y la corrida completa siguiente pasó entera. **No se
+  ha visto en un navegador ni contra un backend real.**
+
 ## Entrega para el siguiente chat
 
-- Estado al 2026-10-13: **paso E4 escrito, sin commit** (ver "Avance del
-  paso E4"). En el backend, el E1 está en producción y el E2 y el E3 en
-  commits sin subir (`ee8aba2` y `d099c29`).
-- Siguiente acción exacta: probar en local juntos el backend (E2 y E3) y esta
-  página contra una rama de Neon: backend local con `$env:DATABASE_URL` en la
-  rama, frontend local, y como admin recorrer Años lectivos (tarjeta) →
-  Admisiones → nuevo aspirante → entrevista → resultado → borrar, en
-  escritorio y en móvil. Después, subir primero el backend y esperar a que
-  Render quede **Live**, y solo entonces el frontend (si no, la tarjeta y la
-  página darían error). El E5 (matricular desde la admisión y quitar "Crear
-  estudiante en {año}") necesita su propia autorización.
+- Estado al 2026-10-13: **paso E5 escrito, sin commit** (ver "Avance del
+  paso E5"). El E4 está en `22b3dcf`. En el backend, el E1 está en
+  producción y el E2 y el E3 en commits sin subir (`ee8aba2` y `d099c29`).
+  Con el E5, las pantallas ya cubren todo el flujo: registrar, entrevista,
+  resultado y matricular.
+- Siguiente acción exacta: probar en local juntos el backend (E2 y E3) y el
+  frontend (E4 y E5) contra una rama de Neon: backend local con
+  `$env:DATABASE_URL` en la rama, frontend local, y como admin recorrer Años
+  lectivos (tarjeta) → Admisiones → nuevo aspirante → entrevista → aprobar →
+  matricular (uno nuevo y, si hay, un exalumno) → ver que la admisión queda
+  de solo consulta y que el estudiante aparece en Estudiantes mirando 2027,
+  en escritorio y en móvil. Después, subir primero el backend y esperar a
+  que Render quede **Live**, y solo entonces el frontend. Preguntar al
+  usuario si se borra `crearEstudianteEnPreparacion`. El E6 (formulario del
+  estudiante sin lo que pasó a la entrevista y "Datos de admisión" en la
+  ficha) necesita su propia autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.

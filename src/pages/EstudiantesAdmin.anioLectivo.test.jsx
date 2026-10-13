@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Estudiantes mirando un año que no es el activo (paso 4.4 del año lectivo).
@@ -44,11 +44,6 @@ const CURSOS_DEL_ANIO = [{ id: 50, nombre: "PRIMERO A" }];
 const ANA = { id: 11, nombre: "Ana", apellido: "Rojas", estado: "activo", curso_id: 50 };
 const LUIS = { id: 12, nombre: "Luis", apellido: "Pardo", estado: "retirado", curso_id: 50 };
 
-const controlDe = (contenedor, etiqueta) =>
-  within(contenedor)
-    .getByText(etiqueta, { selector: "label" })
-    .parentElement.querySelector("input, select, textarea");
-
 beforeEach(() => {
   Object.values(apiMock).forEach((mock) => mock.mockReset());
   apiMock.get.mockImplementation((url, opciones) => {
@@ -88,7 +83,11 @@ afterEach(() => {
 });
 
 describe("Estudiantes mirando otro año", () => {
-  it("en preparación permite solo el alta directa con los cursos de ese año", async () => {
+  // Hasta el paso E5 de la entrevista de admisión, aquí había un alta directa
+  // en preparación ("Nuevo Estudiante" creaba por POST /anios-lectivos/{id}/
+  // estudiantes). Desde el E5, un estudiante nuevo del año en preparación solo
+  // entra desde una admisión aprobada (decisión 3 de ENTREVISTA_ADMISION.md).
+  it("en preparación solo consulta: un estudiante nuevo entra por Admisiones", async () => {
     mocks.anioLectivo = EN_PREPARACION;
 
     render(<EstudiantesAdmin />);
@@ -101,32 +100,27 @@ describe("Estudiantes mirando otro año", () => {
     // El curso que se ve es el de ese año.
     expect(within(screen.getByText("Rojas Ana").closest("tr")).getByText("PRIMERO A"))
       .toBeInTheDocument();
-    // El alta crea los datos globales y solo la matrícula de 2027. Editar o
-    // cambiar el estado global sigue prohibido fuera del año activo.
-    fireEvent.click(screen.getByRole("button", { name: "Nuevo Estudiante" }));
-    const formulario = screen.getByText("🎓 Crear Nuevo Estudiante").parentElement;
-    fireEvent.change(controlDe(formulario, "Nombre *"), { target: { value: "Carla" } });
-    fireEvent.change(controlDe(formulario, "Apellidos *"), { target: { value: "Gómez" } });
-    fireEvent.change(controlDe(formulario, "Tipo de Documento *"), {
-      target: { value: "Registro Civil" },
-    });
-    fireEvent.change(controlDe(formulario, "Documento de Identidad *"), {
-      target: { value: "2002" },
-    });
-    fireEvent.change(controlDe(formulario, "Curso *"), { target: { value: "50" } });
-    fireEvent.click(screen.getByRole("button", { name: "Crear Estudiante" }));
+    expect(screen.queryByRole("button", { name: "Nuevo Estudiante" })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Un estudiante nuevo de 2027 se matricula desde Admisiones/),
+    ).toBeInTheDocument();
 
-    await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith(
-      "/anios-lectivos/2/estudiantes",
-      expect.objectContaining({
-        nombre: "Carla",
-        apellido: "Gómez",
-        documento_identidad: "2002",
-        curso_id: "50",
-      }),
-    ));
+    fireEvent.click(screen.getByRole("button", { name: "Ir a admisiones" }));
+
+    expect(mocks.navigateMock).toHaveBeenCalledWith("/admin/anios-lectivos/admisiones");
+    expect(apiMock.post).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
+  });
+
+  it("en un año cerrado no hay aviso de admisiones ni alta", async () => {
+    mocks.anioLectivo = CERRADO;
+
+    render(<EstudiantesAdmin />);
+
+    expect(await screen.findByText("Rojas Ana")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ir a admisiones" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Nuevo Estudiante" })).not.toBeInTheDocument();
   });
 
   it("en un año cerrado, el filtro de estado sigue pidiendo ese año", async () => {

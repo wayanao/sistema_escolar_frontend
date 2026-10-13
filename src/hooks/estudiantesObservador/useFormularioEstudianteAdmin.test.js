@@ -206,3 +206,80 @@ describe("useFormularioEstudianteAdmin: guardando", () => {
     expect(result.current.guardando).toBe(false);
   });
 });
+
+// Entrevista de admisión, paso E5: matricular desde una admisión abre esta
+// misma ficha con los datos del aspirante, y para un exalumno parte de lo que
+// ya tiene. Guardar pasa siempre por `crearEstudianteFn` (matricular), nunca
+// por editar.
+describe("abrir la ficha con datos ya puestos (paso E5)", () => {
+  it("abre en modo alta con los datos encima de la ficha vacía", async () => {
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.abrirConDatos({ nombre: "Lina", curso_id: "20" });
+    });
+
+    expect(respuesta).toEqual({ estado: "exito" });
+    expect(result.current.showForm).toBe(true);
+    expect(result.current.editingId).toBeNull();
+    expect(result.current.estudianteData.nombre).toBe("Lina");
+    expect(result.current.estudianteData.curso_id).toBe("20");
+    expect(result.current.estudianteData.direccion).toBe("");
+    expect(obtenerMock).not.toHaveBeenCalled();
+  });
+
+  it("para un exalumno parte de su ficha y guarda por el alta indicada, no editando", async () => {
+    obtenerMock.mockResolvedValue({
+      id: 40,
+      estado: "retirado",
+      nombre: "Lina",
+      apellido: "Díaz",
+      direccion: "Calle 1",
+      condicion_diagnostico: "TDAH",
+      curso_id: 4,
+      email: null,
+    });
+    const matricular = vi.fn().mockResolvedValue({ estudiante_id: 40 });
+    const { result } = renderHook(() =>
+      useFormularioEstudianteAdmin({ crearEstudianteFn: matricular }),
+    );
+
+    await act(async () => {
+      await result.current.abrirConDatos({ curso_id: "20" }, { desdeEstudianteId: 40 });
+    });
+
+    expect(obtenerMock).toHaveBeenCalledWith(40);
+    expect(result.current.editingId).toBeNull();
+    expect(result.current.estudianteData.direccion).toBe("Calle 1");
+    expect(result.current.estudianteData.condicion_diagnostico).toBe("TDAH");
+    expect(result.current.estudianteData.curso_id).toBe("20");
+    expect(result.current.estudianteData.id).toBeUndefined();
+    expect(result.current.estudianteData.estado).toBeUndefined();
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.guardarEstudiante();
+    });
+
+    expect(respuesta).toEqual({ estado: "exito", modo: "creacion" });
+    expect(matricular).toHaveBeenCalledWith(
+      expect.objectContaining({ direccion: "Calle 1", curso_id: "20", email: null }),
+    );
+    expect(actualizarMock).not.toHaveBeenCalled();
+  });
+
+  it("si no se puede leer la ficha del exalumno, no abre nada", async () => {
+    const error = new Error("red");
+    obtenerMock.mockRejectedValue(error);
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.abrirConDatos({}, { desdeEstudianteId: 40 });
+    });
+
+    expect(respuesta).toEqual({ estado: "error", error });
+    expect(result.current.showForm).toBe(false);
+  });
+});

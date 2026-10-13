@@ -157,9 +157,15 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   `/estudiantes/{id}/valores-pago-personalizados/{tipo_pago_id}`). Después de
   cada cambio vuelve a pedir esa lista y el resumen del año. El frontend no
   calcula precios.
-- El alta directa usa `POST /anios-lectivos/{id}/estudiantes` solo mirando un
-  año en preparación. El resumen presenta literalmente los conteos y el total
-  que devuelve el backend y no activa el año.
+- Hasta el 2026-10-13, Estudiantes usaba el alta directa
+  (`POST /anios-lectivos/{id}/estudiantes`) mirando un año en preparación.
+  Desde el paso E5 de la entrevista de admisión **ninguna pantalla la usa**:
+  un estudiante nuevo del año en preparación entra por
+  `POST /admisiones/{id}/matricular` (ver "Admisiones"). La función
+  `crearEstudianteEnPreparacion` sigue en `aniosLectivosApi.js`, sin uso; la
+  ruta del backend se bloquea en el paso E7. El resumen presenta
+  literalmente los conteos y el total que devuelve el backend y no activa el
+  año.
 - En el paso 5.7, `POST /cursos` y `POST /tipos-pagos` suman
   `anio_lectivo_id` solo al crear mirando un año en `preparacion`. En el año
   activo conservan exactamente su cuerpo anterior, y las actualizaciones por
@@ -213,6 +219,7 @@ GET /admisiones/{admision_id}
 PUT /admisiones/{admision_id}
 PUT /admisiones/{admision_id}/resultado
 DELETE /admisiones/{admision_id}
+POST /admisiones/{admision_id}/matricular
 ```
 
 - Todas son solo del admin. Contrato completo (cuerpos, respuestas, errores,
@@ -231,7 +238,15 @@ DELETE /admisiones/{admision_id}
   entrevista; el resultado va por su propia ruta.
 - Los mensajes son los del backend tal cual (`mensajeDeErrorAdmision`); un 422
   de FastAPI se muestra uniendo sus mensajes.
-- `POST /admisiones/{admision_id}/matricular` llega en el paso E5.
+- `POST /admisiones/{admision_id}/matricular` (paso E5) recibe la ficha del
+  estudiante con el mismo cuerpo de `POST /estudiantes`: la arma el mismo
+  formulario y hook de Estudiantes (`useFormularioEstudianteAdmin`, con
+  `crearEstudianteFn` apuntando a matricular). La ficha se abre con los datos
+  del aspirante (`datosParaMatricular`); si la admisión trae
+  `aviso_documento` (un exalumno), primero se pide
+  `GET /estudiantes/{aviso_documento.estudiante_id}` y la ficha parte de lo
+  que ya tiene, porque el backend la reemplaza como un `PUT`. La respuesta
+  trae la admisión ya matriculada, que la pantalla muestra de solo consulta.
 
 ## Super admin
 

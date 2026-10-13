@@ -1,4 +1,4 @@
-import { etiquetaResultado } from "../../utils/admisiones/admisiones";
+import { RESULTADO_APROBADO, etiquetaResultado } from "../../utils/admisiones/admisiones";
 import SpinnerView from "../anioLectivo/SpinnerView";
 import FormularioAspiranteView from "./FormularioAspiranteView";
 import FormularioEntrevistaView from "./FormularioEntrevistaView";
@@ -30,8 +30,13 @@ export default function FichaAdmisionView({
   onGuardarResultado,
   onBorrar,
   onCerrar,
+  onMatricular,
+  abriendoMatricula = false,
 }) {
   const editable = admision.editable === true;
+  // El resultado guardado, no el que se está eligiendo: el backend solo
+  // matricula lo que ya está aprobado.
+  const puedeMatricular = editable && admision.resultado === RESULTADO_APROBADO;
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
@@ -60,6 +65,31 @@ export default function FichaAdmisionView({
         <p className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
           {avisoSoloConsulta(admision)}
         </p>
+      )}
+
+      {puedeMatricular && (
+        <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+          <h3 className="text-lg font-semibold text-emerald-950">Matricular en {admision.anio}</h3>
+          <p className="mt-1 text-sm text-emerald-900">
+            Abre la ficha del estudiante con los datos del aspirante ya puestos. Completa
+            dirección, salud y padres, y guarda.
+          </p>
+          {admision.aviso_documento && (
+            <p className="mt-1 text-sm text-emerald-900">
+              Como ya fue estudiante del colegio: se usa su mismo registro y la ficha trae lo
+              que ya tenía.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onMatricular}
+            disabled={abriendoMatricula}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          >
+            {abriendoMatricula && <SpinnerView />}
+            {abriendoMatricula ? "Abriendo la ficha..." : "Matricular"}
+          </button>
+        </div>
       )}
 
       <form onSubmit={onGuardar} noValidate className="mt-4 space-y-6">

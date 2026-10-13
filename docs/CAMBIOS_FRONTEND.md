@@ -1,5 +1,39 @@
 # Cambios Frontend
 
+## 2026-10-13 - Entrevista de admisión E5: matricular desde la admisión
+
+Segundo paso con código en este repo de
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`.
+
+- En la ficha de un aspirante aprobado y sin matricular, "Matricular en
+  {año}" abre la ficha del estudiante (el mismo formulario de Estudiantes)
+  con los datos del aspirante y lo de la entrevista ya puestos. Para un
+  exalumno (la admisión trae `aviso_documento`), la ficha parte de lo que el
+  estudiante ya tenía, con los datos del aspirante encima. Guardar llama a
+  `POST /admisiones/{id}/matricular`; después, la admisión queda de solo
+  consulta. Si el backend lo rechaza, su mensaje se muestra y la ficha sigue
+  abierta.
+- **Quitado** "Crear estudiante en {año}": de "Continuar la preparación" en
+  Años lectivos, y de Estudiantes mirando el año en preparación, donde ahora
+  hay un aviso con "Ir a admisiones" (Estudiantes en preparación queda de
+  solo consulta). Lo pidió el diseño confirmado (decisión 3) y el usuario
+  autorizó el E5. `crearEstudianteEnPreparacion` sigue en
+  `aniosLectivosApi.js`, ya sin uso: no se borró sin preguntar.
+- `useFormularioEstudianteAdmin.abrirConDatos` y los `titulo` y `textoBoton`
+  opcionales de `FormularioEstudianteAdmin`: lo de siempre no cambia.
+- Ajustada a propósito: la prueba de `EstudiantesAdmin.anioLectivo.test.jsx`
+  que fijaba el alta directa en preparación ahora fija lo contrario (sin
+  alta, con aviso y sin enviar nada).
+
+Verificación: 23 pruebas nuevas y una reescrita, escritas antes del código.
+Antes del código fallaban 19 (la reescrita entre ellas); las demás comprueban
+que algo no aparece (por ejemplo, "un no aprobado no ofrece matricular") y
+pasaban desde antes. `pnpm run check:deploy`: 2508 pruebas en 364
+archivos, lint y build correctos. Una corrida anterior falló con 9 pruebas
+por tiempo agotado (5000 ms) en archivos que no tienen que ver; solas
+pasaron las 41 de esos 8 archivos y la corrida completa siguiente pasó
+entera. Sin probar todavía contra un backend real.
+
 ## 2026-10-13 - Entrevista de admisión E4: la página de admisiones
 
 Primer paso con código en este repo de

@@ -6,6 +6,7 @@ import {
   construirCuerpoAdmision,
   construirCuerpoAspirante,
   construirCuerpoResultado,
+  datosParaMatricular,
   crearFormularioAdmision,
   formularioDesdeAdmision,
   resultadoDesdeAdmision,
@@ -144,5 +145,43 @@ describe("validación antes de enviar (el backend vuelve a validar)", () => {
       vive_con: 250,
     });
     expect(LIMITES_TEXTO).not.toHaveProperty("observaciones");
+  });
+});
+
+describe("la ficha del estudiante al matricular (paso E5)", () => {
+  it("lleva los datos del aspirante y lo de la entrevista, sin vacíos", () => {
+    const datos = datosParaMatricular({
+      id: 7,
+      nombre: "Lina",
+      apellido: "Díaz",
+      tipo_documento: "Registro Civil",
+      documento_identidad: "2001",
+      fecha_nacimiento: "2019-03-04",
+      curso_id: 20,
+      acudiente_nombre: "Marta Díaz",
+      colegio_anterior: "Colegio Uno",
+      paz_salvo_anterior: "SI",
+      ocupacion_madre: null,
+      observaciones: "No va a la ficha",
+      resultado: "aprobado",
+    });
+
+    expect(datos).toEqual({
+      nombre: "Lina",
+      apellido: "Díaz",
+      tipo_documento: "Registro Civil",
+      documento_identidad: "2001",
+      fecha_nacimiento: "2019-03-04",
+      curso_id: "20",
+      colegio_anterior: "Colegio Uno",
+      paz_salvo_anterior: "SI",
+    });
+  });
+
+  it("el curso siempre viaja: sin curso elegido, vacío (y no el de otro año)", () => {
+    expect(datosParaMatricular({ nombre: "Lina", curso_id: null })).toEqual({
+      nombre: "Lina",
+      curso_id: "",
+    });
   });
 });

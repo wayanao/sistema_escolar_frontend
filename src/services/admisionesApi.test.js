@@ -18,6 +18,7 @@ import {
   borrarAdmision,
   cambiarResultadoAdmision,
   listarAdmisiones,
+  matricularAdmision,
   obtenerAdmision,
   registrarAdmision,
 } from "./admisionesApi";
@@ -93,6 +94,16 @@ describe("contrato HTTP de admisiones", () => {
     await expect(borrarAdmision(7)).resolves.toEqual({ mensaje: "Admisión borrada", id: 7 });
 
     expect(apiMock.delete).toHaveBeenCalledWith("/admisiones/7");
+  });
+
+  it("matricula con la ficha del estudiante (paso E5)", async () => {
+    const ficha = { nombre: "Lina", curso_id: "20" };
+    const respuesta = { estudiante_id: 55, admision: { id: 7 } };
+    apiMock.post.mockResolvedValue({ data: respuesta });
+
+    await expect(matricularAdmision(7, ficha)).resolves.toBe(respuesta);
+
+    expect(apiMock.post).toHaveBeenCalledWith("/admisiones/7/matricular", ficha);
   });
 
   it("propaga el error original sin reinterpretarlo", async () => {
