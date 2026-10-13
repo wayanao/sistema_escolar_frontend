@@ -1,5 +1,33 @@
 # Cambios Frontend
 
+## 2026-10-12 - Estudiantes: fuera los campos de descuento que no hacían nada
+
+A pedido del usuario, el formulario de estudiante (crear y editar, en
+Estudiantes y en la sección de matricular de Años lectivos) ya no muestra
+"Descuento Matrícula" ni "Descuento Mensualidad".
+
+- Verificado antes de quitarlos: en el backend, `descuento_matricula` y
+  `descuento_mensualidad` solo se escriben al crear o editar y se leen en la
+  ficha. Ningún cálculo de cobros, cartera, pagos ni reportes los usa: el
+  precio sale del curso, del valor personalizado o del valor base del
+  concepto (`_valor_unitario_concepto` en `app/services/cobros.py`). En el
+  frontend solo existían en este formulario.
+- El cuerpo de las peticiones no cambia: al crear siguen yendo en `0` (estado
+  inicial de siempre) y, al editar, se devuelve el valor que ya tenía el
+  estudiante. Las columnas siguen en la base; no se borra nada.
+- El descuento de un estudiante se pone como valor personalizado: en Pagos o,
+  al preparar el año, con "Valores de pago" en la sección de matricular.
+- Archivo: `components/estudiantesObservador/admin/FormularioEstudianteAdmin.jsx`.
+
+Verificación: 1 prueba nueva que falló primero (los campos no se ven, al crear
+ni al editar) y 2 que fijan lo que no cambia y pasaban antes y después (el alta
+envía los descuentos en `0`; editar conserva un descuento guardado). 67 pruebas
+relacionadas pasan. `pnpm run check:deploy` **no salió limpio**: 3 de 2408
+pruebas fallaron por tiempo agotado con el equipo cargado
+(`IngresoBoletinProfesor`, `NavegacionesView`, `CrearProfesor`; ninguna usa este
+formulario) y pasan corridas solas (12 de 12). Por separado, `pnpm run lint`
+limpio y `pnpm run build` correcto. `git diff --check` limpio.
+
 ## 2026-10-12 - Año lectivo: la página dice qué está pasando mientras trabaja
 
 A pedido del usuario. Antes cada botón cambiaba su texto, pero no había

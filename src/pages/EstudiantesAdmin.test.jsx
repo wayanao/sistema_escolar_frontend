@@ -225,8 +225,30 @@ describe("EstudiantesAdmin", () => {
       apellido: "Gómez",
       documento_identidad: "2002",
       curso_id: "4",
+      // Sin los campos en pantalla, el alta sigue enviando los descuentos en
+      // 0, como siempre: el cuerpo no cambia.
+      descuento_matricula: 0,
+      descuento_mensualidad: 0,
     });
     expect(window.alert).toHaveBeenCalledWith("Estudiante creado correctamente");
+  });
+
+  it("editar conserva un descuento ya guardado aunque no se vea en el formulario", async () => {
+    const getOriginal = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) =>
+      url === "/estudiantes/11"
+        ? Promise.resolve({ data: { ...ANA_COMPLETA, descuento_mensualidad: 50000 } })
+        : getOriginal(url, opciones),
+    );
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+
+    fireEvent.click(within(filaDe("Rojas Ana")).getByRole("button", { name: "Editar" }));
+    await screen.findByText("✏️ Editar Estudiante");
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    await waitFor(() => expect(apiMock.put).toHaveBeenCalledTimes(1));
+    expect(apiMock.put.mock.calls[0][1]).toMatchObject({ descuento_mensualidad: 50000 });
   });
 
   it("cambiar el estado desde la fila pide confirmación y guarda con PATCH", async () => {

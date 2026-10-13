@@ -63,6 +63,16 @@ describe("FormularioEstudianteAdmin", () => {
     expect(screen.getByDisplayValue("Luis")).toBeInTheDocument();
   });
 
+  it("no muestra los descuentos de matrícula y mensualidad, que ningún cobro usa", () => {
+    const { rerender } = render(<FormularioEstudianteAdmin {...crearPropiedades()} />);
+    expect(screen.queryByText("Descuento Matrícula")).not.toBeInTheDocument();
+    expect(screen.queryByText("Descuento Mensualidad")).not.toBeInTheDocument();
+
+    rerender(<FormularioEstudianteAdmin {...crearPropiedades({ editingId: 12 })} />);
+    expect(screen.queryByText("Descuento Matrícula")).not.toBeInTheDocument();
+    expect(screen.queryByText("Descuento Mensualidad")).not.toBeInTheDocument();
+  });
+
   it("mientras guarda, el botón lo dice y no se puede pulsar otra vez", () => {
     const { rerender } = render(
       <FormularioEstudianteAdmin {...crearPropiedades({ editingId: 12 })} />,

@@ -817,7 +817,10 @@ Estado actual de componentes y paginas del frontend.
   `guardando` (opcional, `false` por defecto): el botón dice "Guardando..." y
   se bloquea, para que no se envíe dos veces. Lo da
   `useFormularioEstudianteAdmin` (`guardando`) y lo pasan Estudiantes y la
-  sección de matricular de Años lectivos.
+  sección de matricular de Años lectivos. También desde el 2026-10-12 ya no
+  muestra "Descuento Matrícula" ni "Descuento Mensualidad": ningún cobro los
+  usa (verificado en el backend). El cuerpo no cambia: al crear van en `0` y
+  al editar se devuelve el valor guardado.
 - `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
   estado vacío y acciones por estudiante.
 - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal

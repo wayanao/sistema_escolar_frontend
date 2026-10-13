@@ -114,34 +114,11 @@ export default function FormularioEstudianteAdmin({
             ))}
           </select>
         </Campo>
-        <Campo label="Descuento Matrícula">
-          <input
-            type="number"
-            step="0.01"
-            value={estudianteData.descuento_matricula}
-            onChange={(e) =>
-              actualizar(
-                "descuento_matricula",
-                parseFloat(e.target.value) || 0,
-              )
-            }
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Descuento Mensualidad">
-          <input
-            type="number"
-            step="0.01"
-            value={estudianteData.descuento_mensualidad}
-            onChange={(e) =>
-              actualizar(
-                "descuento_mensualidad",
-                parseFloat(e.target.value) || 0,
-              )
-            }
-            className={inputClass}
-          />
-        </Campo>
+        {/* Sin "Descuento Matrícula" ni "Descuento Mensualidad" (2026-10-12):
+            se guardaban en la ficha, pero ningún cobro los usa. El descuento
+            de un estudiante se pone como valor personalizado (Pagos, o
+            "Valores de pago" al matricular). Los campos siguen en el cuerpo:
+            0 al crear y, al editar, el valor que ya tenía. */}
         <Campo label="Dirección" className="md:col-span-2">
           <textarea
             value={estudianteData.direccion}
