@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import TarjetaAdmisionesView from "../components/admisiones/TarjetaAdmisionesView";
 import ActivacionAnioView from "../components/anioLectivo/ActivacionAnioView";
 import AniosPasadosView from "../components/anioLectivo/AniosPasadosView";
 import AvisoTrabajandoView from "../components/anioLectivo/AvisoTrabajandoView";
@@ -8,6 +9,7 @@ import ResumenPreparacionView from "../components/anioLectivo/ResumenPreparacion
 import SpinnerView from "../components/anioLectivo/SpinnerView";
 import ValoresPagoMatriculaView from "../components/anioLectivo/ValoresPagoMatriculaView";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
+import useConsultasAdmisiones from "../hooks/admisiones/useConsultasAdmisiones";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioAnioPasado from "../hooks/anioLectivo/useCambioAnioPasado";
@@ -78,6 +80,9 @@ function AniosLectivosAdmin() {
   );
   const siguienteAnio = anioActivo ? anioActivo.anio + 1 : null;
   const preparacion = usePreparacionMatriculas(anioPreparacion);
+  // Solo los conteos para la tarjeta de admisiones (una petición, y solo con
+  // un año en preparación); la lista completa vive en su propia página.
+  const admisiones = useConsultasAdmisiones(anioPreparacion?.id ?? null);
   // Al activar, recarga los años dejando elegido el nuevo activo: así toda la
   // aplicación pasa a trabajar en él.
   const alActivar = useCallback(
@@ -389,6 +394,15 @@ function AniosLectivosAdmin() {
             </Link>
           </div>
         </section>
+      )}
+
+      {anioPreparacion && (
+        <TarjetaAdmisionesView
+          anio={anioPreparacion.anio}
+          conteos={admisiones.conteos}
+          cargando={admisiones.cargando}
+          error={admisiones.error}
+        />
       )}
 
       {anioPreparacion && anioActivo && (

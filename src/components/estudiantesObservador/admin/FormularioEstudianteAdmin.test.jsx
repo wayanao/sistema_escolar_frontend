@@ -17,7 +17,32 @@ function crearPropiedades(overrides = {}) {
   };
 }
 
+const opcionesDe = (select) =>
+  [...select.options].map((opcion) => [opcion.value, opcion.textContent]);
+
 describe("FormularioEstudianteAdmin", () => {
+  // Caracterización antes de llevar estas listas a src/constants (entrevista
+  // de admisión, paso E4): la ficha del aspirante usa las mismas.
+  it("ofrece los mismos tipos de documento y opciones de paz y salvo de siempre", () => {
+    render(<FormularioEstudianteAdmin {...crearPropiedades()} />);
+
+    const tipos = screen.getByRole("option", { name: "Registro Civil" }).closest("select");
+    expect(opcionesDe(tipos)).toEqual([
+      ["", "Seleccione..."],
+      ["Registro Civil", "Registro Civil"],
+      ["Tarjeta de Identidad", "Tarjeta de Identidad"],
+      ["Cédula de Ciudadanía", "Cédula de Ciudadanía"],
+      ["Cédula de Extranjería", "Cédula de Extranjería"],
+      ["Otro", "Otro"],
+    ]);
+    const pazYSalvo = screen.getByRole("option", { name: "SI" }).closest("select");
+    expect(opcionesDe(pazYSalvo)).toEqual([
+      ["", "Seleccione..."],
+      ["SI", "SI"],
+      ["NO", "NO"],
+    ]);
+  });
+
   it("conserva secciones, cursos y contrato controlado de creación", async () => {
     const user = userEvent.setup();
     const props = crearPropiedades();

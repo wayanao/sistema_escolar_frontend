@@ -40,6 +40,7 @@ Estas rutas usan `AdminRoute`, que revisa `localStorage.usuario.rol === "admin"`
 | --- | --- |
 | `/dashboard-admin` | `AdminDashboard` |
 | `/admin/anios-lectivos` | `AniosLectivosAdmin` |
+| `/admin/anios-lectivos/admisiones` | `AdmisionesAdmin` |
 | `/admin` | `Admin` |
 | `/admin/pagos` | `PagosAdmin` |
 | `/admin/tipos-pagos` | `TiposPagosAdmin` |
@@ -71,6 +72,14 @@ año (ver `docs/funcionalidades/ANIO_LECTIVO.md`).
 (fase 5, paso 5.7). Solo el admin puede abrirla. Crear y copiar no dependen del
 selector general: el backend valida el destino. Sus enlaces a Cursos y Tipos
 de pago seleccionan primero el año en preparación.
+
+`/admin/anios-lectivos/admisiones` (2026-10-13, entrevista de admisión, paso
+E4) es la página de admisiones: aspirantes nuevos del año en preparación, su
+entrevista y su resultado. Se llega desde la tarjeta "Admisiones {año}" de
+Años lectivos y no tiene entrada propia en el menú. Trabaja siempre con el año
+en preparación, no con el del selector (que aquí no aparece: no está en
+`RUTAS_POR_ANIO`). Sin año en preparación, dice cómo crearlo. Ver
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`.
 
 ## Rutas de super admin
 

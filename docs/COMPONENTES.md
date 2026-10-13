@@ -921,6 +921,10 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `constants/valoracionesDesarrollo.js`: opciones compartidas de desarrollo
   infantil (`Destacado`, `Logrado`, `En proceso`, `Requiere apoyo`) usadas por
   planilla y vistas relacionadas.
+- `constants/documentosEstudiante.js` (2026-10-13): tipos de documento del
+  estudiante y opciones de paz y salvo. Los usan el formulario del estudiante
+  y los de admisiones, para que lo del aspirante quepa en la ficha al
+  matricular.
 
 ### Cartera
 
@@ -1155,10 +1159,35 @@ Notas:
   suele mostrar `Guardar como PDF`; iOS/Safari puede mostrar opciones de
   compartir o imprimir.
 
+### Admisiones
+
+Entrevista de admisión, paso E4 (2026-10-13). Ver
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`. Todos solo presentan.
+
+- `components/admisiones/TarjetaAdmisionesView.jsx`: la tarjeta "Admisiones
+  {año}" de Años lectivos, con los conteos y "Ir a admisiones".
+- `EncabezadoAdmisionesView.jsx`: título, avisos y regreso a Años lectivos;
+  exporta también `SinAnioEnPreparacionView`.
+- `ListaAdmisionesView.jsx`: aspirantes del año con documento, curso y
+  resultado (o "Matriculado"), filtros con su conteo y "Nuevo aspirante" si el
+  backend dice `editable`.
+- `NuevoAspiranteView.jsx` y `FichaAdmisionView.jsx`: registrar, y la ficha
+  con aspirante, entrevista, resultado y borrar. La ficha queda de solo
+  consulta si la admisión no es `editable` (matriculada, o año que ya no está
+  en preparación) y muestra el `aviso_documento` del backend.
+- `FormularioAspiranteView.jsx` (con la autorización de datos y su texto),
+  `FormularioEntrevistaView.jsx`, `ResultadoAdmisionView.jsx` (pide motivo
+  para "No aprobado" y recuerda la regla de no discriminación) y
+  `CamposAdmision.jsx` (etiqueta, campo y error enlazados).
+- En móvil todo va en una columna, con lo abierto primero y botones a ancho
+  completo; en pantalla ancha, la lista a la izquierda y lo abierto a la
+  derecha.
+
 ## Paginas existentes
 
 - `Admin.jsx`
 - `AdminDashboard.jsx`
+- `AdmisionesAdmin.jsx`
 - `Asistencia.jsx`
 - `Boletin.jsx`
 - `BrandingAdmin.jsx`
@@ -1190,6 +1219,12 @@ Notas:
 
 ## Hooks y servicios
 
+- `hooks/admisiones/` (2026-10-13): `useConsultasAdmisiones` (lista del año,
+  conteos, filtro en el navegador, cursos solo si se piden, descarta
+  respuestas viejas) y `useComandosAdmision` (nuevo aspirante, ficha,
+  entrevista, resultado y borrar; cada comando devuelve `{ estado }`).
+  `services/admisionesApi.js` es su único punto HTTP y `utils/admisiones/`
+  su contrato puro (`admisiones.js` y `formularios.js`).
 - `hooks/autenticacion/`: lecturas y guards de sesión, consulta tenant y
   comandos de login, cambio de password y logout.
 - `services/autenticacionApi.js`: frontera HTTP de `/login`, `/logout`,
@@ -1212,7 +1247,9 @@ Notas:
   matricula por curso y presenta el resumen sin activar. Usa todo el
   ancho del `main` global, con tarjetas de menor padding y acciones apiladas a
   ancho completo en móvil; las opciones y conteos se reparten en columnas
-  según aumenta la pantalla.
+  según aumenta la pantalla. Desde el 2026-10-13, con un año en preparación,
+  muestra después de "Continuar la preparación" la tarjeta "Admisiones {año}"
+  (`TarjetaAdmisionesView`), que pide solo los conteos.
 - `components/anioLectivo/MatriculasPreparacionView.jsx`: cursos origen y
   destino, candidatos seleccionables y resultado con valores especiales por
   revisar. Desde el 2026-10-12, cada candidato tiene "Editar datos"; la vista

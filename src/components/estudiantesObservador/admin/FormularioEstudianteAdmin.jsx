@@ -1,3 +1,8 @@
+import {
+  OPCIONES_PAZ_Y_SALVO,
+  TIPOS_DOCUMENTO_ESTUDIANTE,
+} from "../../../constants/documentosEstudiante";
+
 export default function FormularioEstudianteAdmin({
   visible,
   editingId,
@@ -51,11 +56,11 @@ export default function FormularioEstudianteAdmin({
             required
           >
             <option value="">Seleccione...</option>
-            <option value="Registro Civil">Registro Civil</option>
-            <option value="Tarjeta de Identidad">Tarjeta de Identidad</option>
-            <option value="Cédula de Ciudadanía">Cédula de Ciudadanía</option>
-            <option value="Cédula de Extranjería">Cédula de Extranjería</option>
-            <option value="Otro">Otro</option>
+            {TIPOS_DOCUMENTO_ESTUDIANTE.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
           </select>
         </Campo>
         <Campo label="Documento de Identidad *">
@@ -202,8 +207,11 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           >
             <option value="">Seleccione...</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
+            {OPCIONES_PAZ_Y_SALVO.map((opcion) => (
+              <option key={opcion} value={opcion}>
+                {opcion}
+              </option>
+            ))}
           </select>
         </Campo>
         <Campo label="Motivo del Retiro" className="md:col-span-2">

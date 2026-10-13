@@ -99,6 +99,14 @@ dos menús. Abre `/admin/anios-lectivos` bajo `AdminRoute`; profesor y
 `super_admin` no reciben esa opción. La autorización real de crear o copiar
 un año vuelve a validarla el backend.
 
+Desde el 2026-10-13, `/admin/anios-lectivos/admisiones` (entrevista de
+admisión, paso E4) también va bajo `AdminRoute`: son datos personales de
+menores (Ley 1581 de 2012). Un profesor que escriba la dirección termina en
+`/login`, y el backend responde `403` a cualquier usuario que no sea admin en
+todas sus rutas. No tiene entrada en el menú: se llega desde Años lectivos.
+Los botones de registrar, editar, poner resultado y borrar se ocultan con el
+`editable` que manda el backend, no con una regla propia.
+
 ## Validaciones adicionales en paginas
 
 Algunas paginas administrativas leen `usuario` desde `localStorage` y validan el rol antes de mostrar contenido o continuar.

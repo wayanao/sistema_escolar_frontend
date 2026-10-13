@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   crearAnioLectivo: vi.fn(),
   guardarDecisionSalida: vi.fn(),
   guardarValorPersonalizado: vi.fn(),
+  listarAdmisiones: vi.fn(),
   obtenerEstudiante: vi.fn(),
   obtenerResumenAnio: vi.fn(),
   obtenerValoresPagoEstudiante: vi.fn(),
@@ -46,6 +47,9 @@ vi.mock("../services/aniosLectivosApi", () => ({
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
+}));
+vi.mock("../services/admisionesApi", () => ({
+  listarAdmisiones: mocks.listarAdmisiones,
 }));
 vi.mock("../services/estudiantesObservadorApi", () => ({
   actualizarEstudiante: mocks.actualizarEstudiante,
@@ -157,6 +161,12 @@ beforeEach(() => {
     Promise.resolve(opciones.parametrosAnio ? CURSOS_2027 : CURSOS_2026),
   );
   mocks.listarCandidatosMatricula.mockResolvedValue(CANDIDATOS);
+  mocks.listarAdmisiones.mockResolvedValue({
+    anio_lectivo: PREPARACION,
+    editable: true,
+    conteos: { pendiente: 4, aprobado: 2, no_aprobado: 1, matriculado: 1, total: 7 },
+    admisiones: [],
+  });
   mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
   mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_CON_PENDIENTES);
   mocks.activarAnioLectivo.mockResolvedValue({
@@ -955,5 +965,30 @@ describe("años pasados: reabrir y volver a cerrar (paso 6.8)", () => {
       "Solo se puede volver a cerrar un año reabierto.",
     );
     expect(mocks.recargarAnios).not.toHaveBeenCalled();
+  });
+});
+
+describe("acceso a admisiones (entrevista de admisión, paso E4)", () => {
+  it("con un año en preparación muestra la tarjeta con sus conteos y el enlace", async () => {
+    mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+
+    renderPagina();
+
+    expect(screen.getByRole("heading", { name: "Admisiones 2027" })).toBeInTheDocument();
+    expect(await screen.findByText("Pendientes: 4")).toBeInTheDocument();
+    expect(screen.getByText("Matriculados: 1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir a admisiones" })).toHaveAttribute(
+      "href",
+      "/admin/anios-lectivos/admisiones",
+    );
+    expect(mocks.listarAdmisiones).toHaveBeenCalledTimes(1);
+    expect(mocks.listarAdmisiones).toHaveBeenCalledWith(3, { signal: expect.any(AbortSignal) });
+  });
+
+  it("sin año en preparación no muestra la tarjeta ni pide admisiones", () => {
+    renderPagina();
+
+    expect(screen.queryByRole("heading", { name: /^Admisiones/ })).not.toBeInTheDocument();
+    expect(mocks.listarAdmisiones).not.toHaveBeenCalled();
   });
 });

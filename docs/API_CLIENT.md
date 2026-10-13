@@ -201,6 +201,38 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   dos contadores). La lista de un curso, sus columnas y marcas, y el detalle,
   la revisión y las evidencias de un plan parten de un id y no lo llevan.
 
+## Admisiones
+
+`services/admisionesApi.js` (2026-10-13, entrevista de admisión, paso E4)
+encapsula:
+
+```text
+GET /anios-lectivos/{anio_lectivo_id}/admisiones
+POST /anios-lectivos/{anio_lectivo_id}/admisiones
+GET /admisiones/{admision_id}
+PUT /admisiones/{admision_id}
+PUT /admisiones/{admision_id}/resultado
+DELETE /admisiones/{admision_id}
+```
+
+- Todas son solo del admin. Contrato completo (cuerpos, respuestas, errores,
+  `editable` y `aviso_documento`) en
+  `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Admisiones".
+- La lista se pide **sin** `?resultado=`: el filtro por resultado se aplica en
+  el navegador sobre la lista que ya llegó, así que cambiar de filtro no hace
+  otra petición. Los conteos que trae son de todo el año.
+- La tarjeta de Años lectivos usa la misma lista solo por sus conteos: una
+  petición, y solo si hay un año en preparación. La página de admisiones pide
+  además los cursos activos del año (`GET /cursos?estado=activo&anio_lectivo_id=`,
+  con `cursosApi.listarCursos`).
+- Los cuerpos los arma `utils/admisiones/formularios.js`: textos recortados y
+  los vacíos como `null` (un documento vacío contaría como repetido en el
+  backend). Registrar manda solo el aspirante; editar, el aspirante y la
+  entrevista; el resultado va por su propia ruta.
+- Los mensajes son los del backend tal cual (`mensajeDeErrorAdmision`); un 422
+  de FastAPI se muestra uniendo sus mensajes.
+- `POST /admisiones/{admision_id}/matricular` llega en el paso E5.
+
 ## Super admin
 
 `SuperAdminDashboard.jsx` consume:

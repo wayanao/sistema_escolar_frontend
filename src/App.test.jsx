@@ -20,6 +20,9 @@ vi.mock("./pages/AdminDashboard", () => ({
 vi.mock("./pages/AniosLectivosAdmin", () => ({
   default: () => <div data-testid="anios-lectivos-admin">Años lectivos</div>,
 }));
+vi.mock("./pages/AdmisionesAdmin", () => ({
+  default: () => <div data-testid="admisiones-admin">Admisiones</div>,
+}));
 vi.mock("./pages/SuperAdminDashboard", () => ({
   default: () => <div data-testid="dashboard-super-admin">Dashboard super admin</div>,
 }));
@@ -135,6 +138,23 @@ describe("rutas de autenticacion y sesion", () => {
     renderApp("/admin/anios-lectivos");
 
     expect(await screen.findByTestId("anios-lectivos-admin")).toBeInTheDocument();
+  });
+
+  it("protege la pantalla de admisiones como ruta de administrador", async () => {
+    guardarSesion("usuario", { id: 3, rol: "admin", debe_cambiar_password: false });
+
+    renderApp("/admin/anios-lectivos/admisiones");
+
+    expect(await screen.findByTestId("admisiones-admin")).toBeInTheDocument();
+  });
+
+  it("un profesor no entra a admisiones: datos de menores, solo del admin", async () => {
+    guardarSesion("profesor", { id: 7, rol: "profesor" });
+
+    renderApp("/admin/anios-lectivos/admisiones");
+
+    expect(await screen.findByTestId("pagina-login")).toBeInTheDocument();
+    expect(screen.queryByTestId("admisiones-admin")).not.toBeInTheDocument();
   });
 
   it("redirige una ruta admin a /login para una sesion profesor", async () => {

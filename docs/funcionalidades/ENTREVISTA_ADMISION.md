@@ -2,9 +2,12 @@
 
 ## Control
 
-- Estado: **Sin código en este repo.** En el backend, el E1 (la tabla) está
-  en producción y el E2 y el E3 (todas las rutas que usan las pantallas)
-  quedaron escritos el 2026-10-13; este repo empieza en E4.
+- Estado: **Paso E4 escrito el 2026-10-13, sin commit** (la página de
+  admisiones y la tarjeta en Años lectivos; ver "Avance del paso E4"). En el
+  backend, el E1 está en producción y el E2 y el E3 en commits sin subir
+  (`ee8aba2` y `d099c29`). **Esta página no se puede publicar antes de que E2
+  y E3 estén en producción**: sin esas rutas, la tarjeta y la página darían
+  error.
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -123,7 +126,7 @@ principal).
 
 | Paso | Qué |
 |---|---|
-| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado |
+| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Escrito el 2026-10-13, sin commit** |
 | E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación" |
 | E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha |
 
@@ -156,21 +159,84 @@ propuestas), la de quién entrevista y la del exalumno que vuelve quedaron
 respondidas el 2026-10-13. Para este repo no queda ninguna abierta antes de
 E4.
 
-Para el E4 y el E5: el contrato de todas las rutas (cuerpos, respuestas,
+Para el E5: el contrato de todas las rutas (cuerpos, respuestas,
 errores, `editable`, `aviso_documento`, resultado y matricular) está en
 `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Admisiones". La
 pantalla oculta botones con `editable`, no con su propia regla.
 
+## Avance del paso E4 (2026-10-13)
+
+- Autorizado explícitamente por el usuario ("Empezar el E4", elegido frente a
+  probar primero E2 y E3 en local). Al iniciar, los dos repos estaban en
+  `main` y limpios, sin subir: backend `d099c29` (E3), frontend `0e13fb1`.
+- Caracterización antes de tocar: una prueba nueva en
+  `FormularioEstudianteAdmin.test.jsx` fija las opciones de tipo de documento
+  y paz y salvo (pasó antes y después del cambio). Línea base de los tres
+  archivos que se iban a tocar (formulario, Años lectivos y `App`): 55
+  pruebas pasando.
+- Pruebas primero, 76 nuevas en total; antes del código fallaban los 9
+  archivos nuevos y las pruebas de la tarjeta y de la ruta.
+  - `utils/admisiones/admisiones.test.js` y `formularios.test.js`: leer la
+    lista, etiquetas, filtro en el navegador, conteos, mensajes (también un
+    422 en lista), estado inicial, llenar desde el backend, cuerpos
+    (recortados, vacíos como `null`, registrar solo el aspirante, editar con
+    la entrevista, resultado aparte) y validación.
+  - `services/admisionesApi.test.js`: rutas y cuerpos de las seis llamadas.
+  - `hooks/admisiones/`: la lista (sin año no pide; filtrar no pide; cursos
+    solo si se piden; respuesta vieja descartada; mensaje del backend) y los
+    comandos (validación sin llamar al backend, registrar y pasar a la ficha,
+    errores del backend, guardar entrevista, resultado con motivo, borrar,
+    cambiar de año cierra todo).
+  - Vistas: tarjeta, lista (filtros, insignias, vacío) y ficha (guardar,
+    resultado, solo consulta si no es `editable`, aviso del documento).
+  - `pages/AdmisionesAdmin.test.jsx`: el flujo completo con el backend
+    doblado. `AniosLectivosAdmin.test.jsx`: la tarjeta (una petición, solo con
+    año en preparación). `App.test.jsx`: la ruta es de admin y un profesor
+    termina en `/login`.
+- Código:
+  - `services/admisionesApi.js`; `utils/admisiones/admisiones.js` y
+    `formularios.js`; `hooks/admisiones/useConsultasAdmisiones.js` y
+    `useComandosAdmision.js`; `components/admisiones/` (tarjeta, encabezado,
+    lista, nuevo aspirante, ficha, formularios del aspirante y la entrevista,
+    resultado y campos); `pages/AdmisionesAdmin.jsx`; la ruta en `App.jsx`;
+    la tarjeta en `AniosLectivosAdmin.jsx`.
+  - `constants/documentosEstudiante.js`: tipos de documento y paz y salvo,
+    sacados del formulario del estudiante, que ahora los importa.
+- Decisiones de detalle (dentro del diseño):
+  - El filtro se aplica en el navegador: cambiarlo no pide nada (meta del
+    usuario de bajar peticiones). La lista trae todo el año y es corta.
+  - Al registrar, la página abre la ficha del aspirante para seguir con la
+    entrevista, sin otra petición (el backend responde la admisión completa).
+  - La página usa siempre el año en preparación, no el del selector, y el
+    selector no aparece en ella.
+  - "Borrar" (decisión 9) quedó en la ficha, con confirmación; no estaba en la
+    fila del E4 de la tabla pero sí en el servicio y los comandos del diseño.
+  - El motivo de "No aprobado" lleva una ayuda: un motivo objetivo, y que la
+    admisión no puede negarse por religión, origen o composición de la
+    familia.
+  - "Crear estudiante en {año}" sigue en "Continuar la preparación": se quita
+    en el E5, junto con "Matricular".
+  - Sin entrada nueva en el menú: se llega desde Años lectivos.
+- Verificación: 130 pruebas de los archivos del paso; `pnpm run
+  check:deploy` → **2485 pruebas en 364 archivos**, lint y build limpios;
+  `git diff --check` limpio. Una corrida intermedia de `check:deploy`, ya
+  solo con cambios de documentos, falló con "9 unhandled errors" (355
+  archivos, 2405 pruebas): es la falla al azar por carga de la máquina ya
+  conocida. La siguiente corrida de todas las pruebas y la de `check:deploy`
+  completo pasaron sin errores. **No se ha visto en un navegador ni contra un
+  backend real.**
+
 ## Entrega para el siguiente chat
 
-- Estado al 2026-10-13: **sin código de esta funcionalidad en este repo.**
-  El usuario confirmó el reparto de campos y las propuestas, y decidió que
-  el exalumno que vuelve usa su mismo registro. En el backend, el E1 está
-  terminado (la tabla `admisiones` en producción), el E2 está en
-  `ee8aba2` y el E3 quedó escrito, sin commit. Aquí solo cambió este
-  documento; `pnpm run check:deploy` → 2409 pruebas en 355 archivos, lint y
-  build limpios; `git diff --check` limpio.
-- Siguiente acción exacta: la del documento principal (probar E2 y E3 en
-  local contra una rama de Neon y subirlos). Este repo empieza en E4, cuando
-  E1 a E3 estén en producción, y con su propia autorización.
+- Estado al 2026-10-13: **paso E4 escrito, sin commit** (ver "Avance del
+  paso E4"). En el backend, el E1 está en producción y el E2 y el E3 en
+  commits sin subir (`ee8aba2` y `d099c29`).
+- Siguiente acción exacta: probar en local juntos el backend (E2 y E3) y esta
+  página contra una rama de Neon: backend local con `$env:DATABASE_URL` en la
+  rama, frontend local, y como admin recorrer Años lectivos (tarjeta) →
+  Admisiones → nuevo aspirante → entrevista → resultado → borrar, en
+  escritorio y en móvil. Después, subir primero el backend y esperar a que
+  Render quede **Live**, y solo entonces el frontend (si no, la tarjeta y la
+  página darían error). El E5 (matricular desde la admisión y quitar "Crear
+  estudiante en {año}") necesita su propia autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.

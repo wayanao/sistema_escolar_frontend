@@ -1,5 +1,35 @@
 # Cambios Frontend
 
+## 2026-10-13 - Entrevista de admisión E4: la página de admisiones
+
+Primer paso con código en este repo de
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`. Usa las rutas del backend de
+los pasos E2 y E3.
+
+- Página nueva `/admin/anios-lectivos/admisiones` (`AdmisionesAdmin`, bajo
+  `AdminRoute`): lista de aspirantes del año en preparación con filtro por
+  resultado, nuevo aspirante (con la autorización de datos y su texto), ficha
+  con los datos del aspirante y la entrevista, resultado (Pendiente,
+  Aprobado o No aprobado con motivo) y borrar con confirmación. Lo que no es
+  `editable` según el backend queda de solo consulta.
+- Años lectivos muestra la tarjeta "Admisiones {año}" con los conteos y el
+  enlace. "Crear estudiante en {año}" sigue ahí hasta el paso E5.
+- Módulo nuevo con las capas del proyecto: `services/admisionesApi.js`,
+  `utils/admisiones/`, `hooks/admisiones/` y `components/admisiones/`.
+- Los tipos de documento y las opciones de paz y salvo pasaron del
+  formulario del estudiante a `constants/documentosEstudiante.js`, para que
+  admisiones use las mismas sin copiarlas. El formulario se ve igual (una
+  prueba de caracterización lo fija desde antes del cambio).
+- Peticiones: la tarjeta suma una a Años lectivos, solo con un año en
+  preparación. El filtro de la lista no pide nada: se aplica en el navegador.
+
+Verificación: 76 pruebas nuevas, escritas antes del código. Antes del código
+fallaban los 9 archivos nuevos y las pruebas de la tarjeta y de la ruta; la
+de caracterización del formulario pasó antes y después, y la de "sin año en
+preparación no hay tarjeta" también pasaba antes, porque la tarjeta no
+existía. `pnpm run check:deploy`: 2485 pruebas en 364 archivos, lint y build
+correctos. Sin probar todavía contra un backend real.
+
 ## 2026-10-12 - Barra del admin: pestañas separadas de la campana y el año
 
 A pedido del usuario. En escritorio, las pestañas quedaban pegadas a la campana
