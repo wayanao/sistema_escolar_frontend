@@ -1,5 +1,26 @@
 # Cambios Frontend
 
+## 2026-10-12 - Barra del admin: pestañas separadas de la campana y el año
+
+A pedido del usuario. En escritorio, las pestañas quedaban pegadas a la campana
+y al selector de año (todo en una fila con el mismo espacio pequeño).
+
+- La campana, el selector de año y "Cerrar sesión" van ahora en un bloque
+  (`role="group"`, "Notificaciones, año lectivo y sesión"). En escritorio lo
+  separa de las pestañas una línea vertical y más espacio: algo menos en
+  pantallas medianas (`lg`), donde las seis pestañas van justas, y más en las
+  grandes (`xl`).
+- En móvil no cambia nada: la campana y el año siguen a la derecha del logo,
+  antes del botón del menú.
+- Archivo: `components/autenticacion/NavAdminView.jsx`. La barra del profesor
+  no cambió.
+
+Verificación: 1 prueba nueva en `NavegacionesView.test.jsx`, que falló primero
+(el bloque existe, contiene campana, año y "Cerrar sesión", no contiene las
+pestañas, lleva la línea solo en escritorio y en móvil sigue antes del botón
+del menú). `pnpm run check:deploy` limpio en una sola corrida: 2409 pruebas en
+355 archivos, lint y build correctos. La revisión visual queda para el usuario.
+
 ## 2026-10-12 - Estudiantes: fuera los campos de descuento que no hacían nada
 
 A pedido del usuario, el formulario de estudiante (crear y editar, en

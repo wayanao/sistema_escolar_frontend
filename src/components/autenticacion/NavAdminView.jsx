@@ -58,13 +58,22 @@ function NavAdminView({ onCerrarSesion, renderNotificaciones, renderSelectorAnio
             ariaLabel="Navegación principal de administrador"
           />
         </div>
-        <div className="ml-auto lg:ml-0">
-          {renderNotificaciones(closeMobile)}
+        {/* Campana, año y cerrar sesión, aparte de las pestañas: en escritorio
+            los separa una línea y más espacio (menos en pantallas medianas,
+            donde las pestañas van justas). En celular se ve como antes. */}
+        <div
+          role="group"
+          aria-label="Notificaciones, año lectivo y sesión"
+          className="ml-auto flex shrink-0 items-center gap-3 lg:ml-3 lg:border-l lg:border-white/35 lg:pl-4 xl:ml-5 xl:pl-6"
+        >
+          <div>
+            {renderNotificaciones(closeMobile)}
+          </div>
+          {/* Selector de año: no dibuja nada mientras el colegio tenga un solo año. */}
+          {renderSelectorAnio ? renderSelectorAnio() : null}
+          <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
+          <button onClick={onCerrarSesion} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesión</button>
         </div>
-        {/* Selector de año: no dibuja nada mientras el colegio tenga un solo año. */}
-        {renderSelectorAnio ? renderSelectorAnio() : null}
-        <span className="hidden h-6 w-px shrink-0 bg-white/35 lg:block" aria-hidden="true" />
-        <button onClick={onCerrarSesion} className="hidden whitespace-nowrap rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500 lg:block">Cerrar sesión</button>
 
         {/* Mobile menu button */}
         <button

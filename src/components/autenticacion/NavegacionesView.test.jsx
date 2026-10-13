@@ -118,6 +118,36 @@ describe("vistas de navegacion", () => {
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
+  it("en escritorio separa las pestañas de la campana y el año", () => {
+    render(
+      <MemoryRouter>
+        <NavAdminView
+          onCerrarSesion={vi.fn()}
+          renderNotificaciones={renderNotificaciones}
+          renderSelectorAnio={() => <select aria-label="Año lectivo" />}
+        />
+      </MemoryRouter>,
+    );
+    const pestanas = screen.getByRole("navigation", {
+      name: "Navegación principal de administrador",
+    });
+    const herramientas = screen.getByRole("group", {
+      name: "Notificaciones, año lectivo y sesión",
+    });
+
+    expect(within(herramientas).getByRole("button", { name: "Notificaciones" })).toBeInTheDocument();
+    expect(within(herramientas).getByRole("combobox", { name: "Año lectivo" })).toBeInTheDocument();
+    expect(within(herramientas).getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
+    expect(herramientas.contains(pestanas)).toBe(false);
+    // Solo en escritorio: una línea y más espacio entre las pestañas y el grupo.
+    expect(herramientas).toHaveClass("lg:border-l", "lg:pl-4", "xl:pl-6");
+    // En celular, como antes: el grupo a la derecha del logo, antes del menú.
+    expect(herramientas).toHaveClass("ml-auto");
+    expect(herramientas.nextElementSibling).toBe(
+      screen.getByRole("button", { name: "Abrir menu de administrador" }),
+    );
+  });
+
   it("conserva contratos y callbacks de profesor", async () => {
     const user = userEvent.setup();
     const onCerrarSesion = vi.fn();

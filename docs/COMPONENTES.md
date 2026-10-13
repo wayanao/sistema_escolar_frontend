@@ -21,6 +21,8 @@ Estado actual de componentes y paginas del frontend.
   admin; en movil agrupa secciones, usa etiquetas principales mas legibles,
   muestra solo la marca mas visible en un encabezado compacto, protege etiquetas
   como `Nómina` con `translate="no"` y mantiene visible la campana de planeaciones.
+  En escritorio, la campana, el selector de año y "Cerrar sesión" van en un
+  bloque aparte de las pestañas, separado por una línea (2026-10-12).
 - `components/autenticacion/NavProfesorView.jsx`: menu principal para profesor;
   en movil separa control academico y planeacion, con etiquetas principales mas
   legibles, encabezado compacto con solo la marca visible y campana para

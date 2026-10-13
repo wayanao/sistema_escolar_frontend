@@ -668,6 +668,11 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   diferenciar subpestanas de enlaces principales.
 - `NavAdminView` marca etiquetas sensibles como `Nómina` con `translate="no"` para
   evitar traducciones automaticas en Android/Chrome.
+- `NavAdminView` agrupa campana, selector de año y "Cerrar sesión" en un bloque
+  (`role="group"`, "Notificaciones, año lectivo y sesión"). Desde el
+  2026-10-12, en escritorio ese bloque queda separado de las pestañas por una
+  línea y más espacio (`lg:ml-3 lg:pl-4`, `xl:ml-5 xl:pl-6`); en móvil se ve
+  como antes.
 - `NavProfesorView` mantiene grupos moviles para control academico y planeacion.
 - `Planilla` usa vista de tarjetas en movil y tabla en escritorio; las etiquetas
   tecnicas se formatean y se protegen con `translate="no"`.
