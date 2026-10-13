@@ -2,9 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   obtenerDetalleEstudiante,
   obtenerDeudasEstudiante,
+  obtenerEstudiante,
 } from "../../services/estudiantesObservadorApi";
 import { opcionesConAnio } from "../../utils/anioLectivo";
-import { normalizarDetalleEstudiante } from "../../utils/estudiantesObservador/estudiantes";
+import {
+  datosDeAdmisionEstudiante,
+  normalizarDetalleEstudiante,
+} from "../../utils/estudiantesObservador/estudiantes";
 
 // `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
 // El resumen y las deudas de la ficha son los de ese año.
@@ -13,6 +17,11 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
   const [detallesEstudiante, setDetallesEstudiante] = useState(null);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
   const [errorDetalle, setErrorDetalle] = useState(null);
+  // "Datos de admisión" (paso E6 de la entrevista de admisión): se piden solo
+  // si el admin los abre, para no sumar una petición a cada ficha.
+  const [datosAdmision, setDatosAdmision] = useState(null);
+  const [cargandoDatosAdmision, setCargandoDatosAdmision] = useState(false);
+  const [errorDatosAdmision, setErrorDatosAdmision] = useState(null);
   const solicitudRef = useRef(0);
 
   useEffect(
@@ -28,6 +37,9 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     setDetallesEstudiante(null);
     setLoadingDetalles(true);
     setErrorDetalle(null);
+    setDatosAdmision(null);
+    setCargandoDatosAdmision(false);
+    setErrorDatosAdmision(null);
 
     try {
       const opciones = opcionesConAnio({}, parametrosAnio);
@@ -73,7 +85,30 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     setDetallesEstudiante(null);
     setLoadingDetalles(false);
     setErrorDetalle(null);
+    setDatosAdmision(null);
+    setCargandoDatosAdmision(false);
+    setErrorDatosAdmision(null);
   }, []);
+
+  // Una petición (`GET /estudiantes/{id}`), solo al pedirlos. Si mientras
+  // tanto se cierra la ficha o se abre otra, la respuesta se descarta.
+  const verDatosAdmision = useCallback(async () => {
+    if (!selectedEstudiante) return;
+    const solicitudId = solicitudRef.current;
+    setCargandoDatosAdmision(true);
+    setErrorDatosAdmision(null);
+    try {
+      const estudiante = await obtenerEstudiante(selectedEstudiante.id);
+      if (solicitudRef.current !== solicitudId) return;
+      setDatosAdmision(datosDeAdmisionEstudiante(estudiante));
+    } catch (requestError) {
+      if (solicitudRef.current !== solicitudId) return;
+      console.error("Error al cargar los datos de admisión", requestError);
+      setErrorDatosAdmision(requestError);
+    } finally {
+      if (solicitudRef.current === solicitudId) setCargandoDatosAdmision(false);
+    }
+  }, [selectedEstudiante]);
 
   return {
     selectedEstudiante,
@@ -83,5 +118,9 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     errorDetalle,
     verDetalles,
     cerrarModal,
+    datosAdmision,
+    cargandoDatosAdmision,
+    errorDatosAdmision,
+    verDatosAdmision,
   };
 }

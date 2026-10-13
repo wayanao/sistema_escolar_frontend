@@ -13,6 +13,12 @@ export default function DetalleEstudianteAdmin({
   detalles,
   cargando,
   onCerrar,
+  // Paso E6 de la entrevista de admisión. Sin `onVerDatosAdmision`, la
+  // sección no aparece.
+  datosAdmision = null,
+  cargandoDatosAdmision = false,
+  errorDatosAdmision = null,
+  onVerDatosAdmision,
 }) {
   if (!estudiante) return null;
 
@@ -204,6 +210,15 @@ export default function DetalleEstudianteAdmin({
               </div>
 
               <ObservadorEnFichaAdmin estudiante={estudiante} />
+
+              {onVerDatosAdmision && (
+                <DatosAdmision
+                  datos={datosAdmision}
+                  cargando={cargandoDatosAdmision}
+                  error={errorDatosAdmision}
+                  onVer={onVerDatosAdmision}
+                />
+              )}
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
@@ -221,5 +236,55 @@ export default function DetalleEstudianteAdmin({
         </div>
       </div>
     </div>
+  );
+}
+
+// Estudios anteriores y ocupación de los padres, de solo lectura: salieron del
+// formulario y pasaron a la entrevista de admisión (paso E6). En quien entró
+// por una admisión vienen de su entrevista; en los de antes, lo que ya tenían.
+function DatosAdmision({ datos, cargando, error, onVer }) {
+  const hayAlguno = datos?.some((dato) => dato.valor !== null);
+
+  return (
+    <section className="md:col-span-2 bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+      <h3 className="text-lg font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+        🗂️ Datos de admisión
+      </h3>
+      <p className="text-sm text-gray-700 mb-3">
+        Estudios anteriores y ocupación de los padres. En quien entró por una admisión,
+        vienen de su entrevista.
+      </p>
+      {datos ? (
+        hayAlguno ? (
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            {datos.map(({ campo, etiqueta, valor }) => (
+              <div key={campo} className="flex justify-between gap-3 bg-white px-2 py-1 rounded shadow-sm">
+                <dt className="font-medium text-gray-700">{etiqueta}</dt>
+                <dd className="text-right text-gray-900 break-words">{valor ?? "—"}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-sm text-gray-600 italic">Sin datos de admisión guardados.</p>
+        )
+      ) : cargando ? (
+        <p className="text-sm text-gray-600">Cargando datos de admisión...</p>
+      ) : (
+        <>
+          {error && (
+            <p className="text-sm text-red-700 mb-2">
+              No se pudieron cargar los datos de admisión.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onVer}
+            className="w-full sm:w-auto rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+          >
+            Ver datos de admisión
+          </button>
+        </>
+      )}
+    </section>
   );
 }

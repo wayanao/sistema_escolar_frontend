@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-10-13 - Entrevista de admisión E6: el formulario del estudiante sin lo de la entrevista
+
+Tercer paso con código en este repo de
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`.
+
+- El formulario del estudiante (Estudiantes, "Editar datos" de Años lectivos
+  y la ficha de Matricular) ya no muestra "Estudios Anteriores" ni la
+  ocupación del padre y de la madre: solo sirven para admitir y pasaron a la
+  entrevista (decisiones 5 y 6). **El cuerpo no cambia**: al crear viajan
+  vacíos y, al editar, lo que el estudiante ya tenía. No se pierde nada.
+- La ficha del estudiante en Estudiantes tiene la sección "Datos de
+  admisión", de solo lectura: los ocho datos, con un botón "Ver datos de
+  admisión" que los pide (`GET /estudiantes/{id}`) solo si se usa. Abrir una
+  ficha cuesta las mismas peticiones que antes.
+- La lista de esos ocho datos vive en `constants/documentosEstudiante.js`
+  (`DATOS_DE_ADMISION_EN_LA_FICHA`), compartida por admisiones (llenar la
+  ficha al matricular) y Estudiantes (mostrarlos).
+- Consecuencia aceptada en el diseño: un estudiante nuevo creado a mitad del
+  año activo (sin admisión) ya no tiene dónde registrar estudios anteriores
+  ni la ocupación de los padres.
+- Ajustadas a propósito: la prueba de las secciones del formulario y la de
+  caracterización del E4 (ya no fija "Paz y salvo", que salió del
+  formulario), y una de admisiones que buscaba "Nombre Colegio Anterior" en
+  la ficha de Matricular.
+
+Verificación: 14 pruebas nuevas, escritas antes del código (fallaban las que
+dependían de él). Dos pruebas del hook se corrigieron después: llamaban a
+"ver datos de admisión" antes de que la ficha estuviera abierta y una de
+ellas pasaba sin comprobar nada. `pnpm run check:deploy`: 2522 pruebas en
+364 archivos, lint y build correctos, en una sola corrida. Sin probar
+todavía contra un backend real.
+
 ## 2026-10-13 - Entrevista de admisión E5: matricular desde la admisión
 
 Segundo paso con código en este repo de

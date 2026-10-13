@@ -822,12 +822,19 @@ Estado actual de componentes y paginas del frontend.
   sección de matricular de Años lectivos. También desde el 2026-10-12 ya no
   muestra "Descuento Matrícula" ni "Descuento Mensualidad": ningún cobro los
   usa (verificado en el backend). El cuerpo no cambia: al crear van en `0` y
-  al editar se devuelve el valor guardado.
+  al editar se devuelve el valor guardado. Desde el 2026-10-13 (entrevista de
+  admisión, paso E6) tampoco muestra "Estudios Anteriores" ni la ocupación
+  del padre y de la madre, que pasaron a la entrevista; igual que los
+  descuentos, siguen en el cuerpo (vacíos al crear, lo guardado al editar).
 - `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
   estado vacío y acciones por estudiante.
 - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal
   responsive con resumen, rendimiento, deudas e inventario. Desde el 2026-09-10
   la sección «Observador» monta `ObservadorEnFichaAdmin`, no la tabla vieja.
+  Desde el 2026-10-13 (paso E6) tiene "Datos de admisión", de solo lectura:
+  los ocho datos que pasaron a la entrevista, pedidos con un botón solo si
+  se usan (`useDetalleEstudianteAdmin.verDatosAdmision`). Sin
+  `onVerDatosAdmision`, la sección no aparece.
 - `components/estudiantesObservador/FormularioObservacionEstudiante.jsx` y
   `VistaPlanillaObservador.jsx`: formulario individual y planilla visual del
   observador del profesor.
@@ -924,7 +931,10 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `constants/documentosEstudiante.js` (2026-10-13): tipos de documento del
   estudiante y opciones de paz y salvo. Los usan el formulario del estudiante
   y los de admisiones, para que lo del aspirante quepa en la ficha al
-  matricular.
+  matricular. Desde el E6, también `DATOS_DE_ADMISION_EN_LA_FICHA`: los ocho
+  datos que pasaron a la entrevista, con su etiqueta, que usan admisiones
+  (llenar la ficha) y la ficha del estudiante ("Datos de admisión"). Paz y
+  salvo ya solo se usa en la entrevista.
 
 ### Cartera
 

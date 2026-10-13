@@ -132,3 +132,72 @@ describe("DetalleEstudianteAdmin", () => {
     expect(screen.getAllByText("$75.000")).toHaveLength(2);
   });
 });
+
+// Paso E6 de la entrevista de admisión.
+describe("Datos de admisión en la ficha (paso E6)", () => {
+  const DETALLES = { notas: [], deudas: [], productos_inventario: [], promedio_general: 0 };
+  const DATOS = [
+    { campo: "colegio_anterior", etiqueta: "Colegio anterior", valor: "Colegio Uno" },
+    { campo: "ocupacion_padre", etiqueta: "Ocupación del padre", valor: null },
+  ];
+
+  function pintar(props = {}) {
+    const propiedades = {
+      estudiante,
+      cursos: [],
+      detalles: DETALLES,
+      cargando: false,
+      onCerrar: vi.fn(),
+      datosAdmision: null,
+      cargandoDatosAdmision: false,
+      errorDatosAdmision: null,
+      onVerDatosAdmision: vi.fn(),
+      ...props,
+    };
+    render(<DetalleEstudianteAdmin {...propiedades} />);
+    return propiedades;
+  }
+
+  it("se piden con un botón, no al abrir la ficha", async () => {
+    const user = userEvent.setup();
+    const props = pintar();
+
+    expect(screen.getByRole("heading", { name: /Datos de admisión/ })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ver datos de admisión" }));
+
+    expect(props.onVerDatosAdmision).toHaveBeenCalledTimes(1);
+  });
+
+  it("muestra cada dato, con una raya si está vacío", () => {
+    pintar({ datosAdmision: DATOS });
+
+    expect(screen.getByText("Colegio anterior")).toBeInTheDocument();
+    expect(screen.getByText("Colegio Uno")).toBeInTheDocument();
+    expect(screen.getByText("Ocupación del padre").nextSibling).toHaveTextContent("—");
+    expect(screen.queryByRole("button", { name: "Ver datos de admisión" })).not.toBeInTheDocument();
+  });
+
+  it("si no hay ninguno guardado, lo dice", () => {
+    pintar({ datosAdmision: DATOS.map((dato) => ({ ...dato, valor: null })) });
+
+    expect(screen.getByText("Sin datos de admisión guardados.")).toBeInTheDocument();
+  });
+
+  it("mientras cargan, lo dice", () => {
+    pintar({ cargandoDatosAdmision: true });
+    expect(screen.getByText("Cargando datos de admisión...")).toBeInTheDocument();
+  });
+
+  it("si fallan, deja volver a intentar", () => {
+    pintar({ errorDatosAdmision: new Error("red") });
+
+    expect(screen.getByText("No se pudieron cargar los datos de admisión.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ver datos de admisión" })).toBeInTheDocument();
+  });
+
+  it("sin quien los pida, la sección no aparece", () => {
+    pintar({ onVerDatosAdmision: undefined });
+
+    expect(screen.queryByRole("heading", { name: /Datos de admisión/ })).not.toBeInTheDocument();
+  });
+});

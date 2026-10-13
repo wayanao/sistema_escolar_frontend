@@ -2,9 +2,12 @@
 
 ## Control
 
-- Estado: **Paso E5 escrito el 2026-10-13, sin commit** (matricular desde la
-  admisión y fuera "Crear estudiante en {año}"; ver "Avance del paso E5").
-  El E4 está en `22b3dcf`, sin subir. En el backend, el E1 está en
+- Estado: **Paso E6 escrito el 2026-10-13, sin commit** (el formulario del
+  estudiante sin lo que pasó a la entrevista y "Datos de admisión" en la
+  ficha; ver "Avance del paso E6"). El E4 (`22b3dcf`) y el E5 (`ae5240a`)
+  están en commits sin subir. Con el E6 terminan los pasos de este repo; queda
+  por decidir si se borra `crearEstudianteEnPreparacion` (propuesto para el
+  E7). En el backend, el E1 está en
   producción y el E2 y el E3 en commits sin subir (`ee8aba2` y `d099c29`).
   **Nada de esto se puede publicar antes de que E2 y E3 estén en
   producción**: sin esas rutas, la tarjeta y la página darían error, y ya no
@@ -118,7 +121,8 @@ estudiante en {año}" de "Continuar la preparación".
   estudiante. No se pierde ningún dato.
 - La ficha del estudiante muestra, de solo lectura, "Datos de admisión": lo
   que se copió de su entrevista o, en estudiantes de antes, lo que ya tenían
-  guardado.
+  guardado. (Hecho en el E6 con un botón "Ver datos de admisión" que los pide
+  solo si se usa.)
 
 ## Plan de pasos de este repo
 
@@ -128,8 +132,8 @@ principal).
 | Paso | Qué |
 |---|---|
 | E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Hecho el 2026-10-13** (`22b3dcf`) |
-| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Escrito el 2026-10-13, sin commit** |
-| E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha |
+| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Hecho el 2026-10-13** (`ae5240a`) |
+| E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Escrito el 2026-10-13, sin commit** |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
 termina con `pnpm run check:deploy` y `git diff --check`, actualiza este
@@ -293,22 +297,73 @@ pantalla oculta botones con `editable`, no con su propia regla.
   pasaron (41 pruebas) y la corrida completa siguiente pasó entera. **No se
   ha visto en un navegador ni contra un backend real.**
 
+## Avance del paso E6 (2026-10-13)
+
+- Autorizado explícitamente por el usuario ("Empezar el E6", elegido frente a
+  probar primero en local). Al iniciar, los dos repos estaban en `main` y
+  limpios, sin subir: backend `4aac410`, frontend `ae5240a` (el E5). El
+  usuario pidió que se le explicara mejor la pregunta de borrar
+  `crearEstudianteEnPreparacion`; se le explicó y se propuso decidirla en el
+  E7.
+- Lo que se encontró: la ficha del estudiante (`DetalleEstudianteAdmin`)
+  recibe la fila de la lista (`GET /estudiantes`), que no trae esos ocho
+  datos, y `/detalles` y `/deudas` tampoco. Solo `GET /estudiantes/{id}`
+  los tiene. Se eligió pedirlos **con un botón**, solo si se usan, en vez de
+  sumar una petición a cada ficha (meta del usuario de bajar peticiones);
+  cambiarlo a "siempre" es pequeño si el usuario lo prefiere. Cambiar el
+  backend para incluirlos en `/detalles` no estaba en este paso.
+- Pruebas primero: 14 nuevas; antes del código fallaban las que dependían de
+  él.
+  - `FormularioEstudianteAdmin.test.jsx`: ya no pide estudios anteriores ni
+    la ocupación de los padres; lo demás de la familia sigue. **Ajustadas a
+    propósito**: la de secciones (ya no espera "Estudios Anteriores") y la de
+    caracterización del E4 (ya no fija "Paz y salvo").
+  - `estudiantes.test.js`: `datosDeAdmisionEstudiante` (los ocho, en el
+    orden del backend, vacío como `null`).
+  - `useDetalleEstudianteAdmin.test.js`: abrir la ficha no los pide; verlos
+    sí, una vez; se olvidan al cerrar o abrir otra; respuesta vieja
+    descartada; error. Dos de estas se corrigieron después de escribir el
+    código: llamaban a "ver" en el mismo `act` que "abrir", antes de que la
+    ficha estuviera abierta, y una pasaba sin comprobar nada.
+  - `DetalleEstudianteAdmin.test.jsx`: botón, datos con raya si están
+    vacíos, "sin datos", cargando, error con reintento, y sin la sección si
+    no se pasa quien los pida.
+  - `EstudiantesAdmin.test.jsx`: editar conserva esos datos aunque no se
+    vean (como el precedente de los descuentos) y la ficha los pide solo al
+    pulsar. `AdmisionesAdmin.test.jsx`: ya no busca "Nombre Colegio
+    Anterior" en la ficha de Matricular (el cuerpo sigue llevándolo).
+- Código:
+  - `constants/documentosEstudiante.js`: `DATOS_DE_ADMISION_EN_LA_FICHA`, que
+    usan `utils/admisiones/formularios.js` (en lugar de su propia lista) y
+    `utils/estudiantesObservador/estudiantes.js`
+    (`datosDeAdmisionEstudiante`).
+  - `FormularioEstudianteAdmin.jsx`: fuera la sección y las dos ocupaciones;
+    los teléfonos de los padres pasaron a media columna para que cada padre
+    quede en dos filas parejas.
+  - `useDetalleEstudianteAdmin.js` (`verDatosAdmision` y su estado),
+    `DetalleEstudianteAdmin.jsx` (la sección) y `EstudiantesAdmin.jsx` (la
+    conexión).
+- Consecuencia aceptada en el diseño: un estudiante creado a mitad del año
+  activo, sin admisión, ya no tiene dónde registrar esos datos.
+- Verificación: `pnpm run check:deploy` → **2522 pruebas en 364 archivos**,
+  lint y build limpios, en una sola corrida; `git diff --check` limpio.
+  **No se ha visto en un navegador ni contra un backend real.**
+
 ## Entrega para el siguiente chat
 
-- Estado al 2026-10-13: **paso E5 escrito, sin commit** (ver "Avance del
-  paso E5"). El E4 está en `22b3dcf`. En el backend, el E1 está en
-  producción y el E2 y el E3 en commits sin subir (`ee8aba2` y `d099c29`).
-  Con el E5, las pantallas ya cubren todo el flujo: registrar, entrevista,
-  resultado y matricular.
+- Estado al 2026-10-13: **paso E6 escrito, sin commit** (ver "Avance del
+  paso E6"). E4 en `22b3dcf` y E5 en `ae5240a`. En el backend, el E1 está
+  en producción y el E2 y el E3 en commits sin subir (`ee8aba2` y
+  `d099c29`). Con el E6 terminan los pasos de este repo.
 - Siguiente acción exacta: probar en local juntos el backend (E2 y E3) y el
-  frontend (E4 y E5) contra una rama de Neon: backend local con
+  frontend (E4 a E6) contra una rama de Neon: backend local con
   `$env:DATABASE_URL` en la rama, frontend local, y como admin recorrer Años
   lectivos (tarjeta) → Admisiones → nuevo aspirante → entrevista → aprobar →
-  matricular (uno nuevo y, si hay, un exalumno) → ver que la admisión queda
-  de solo consulta y que el estudiante aparece en Estudiantes mirando 2027,
-  en escritorio y en móvil. Después, subir primero el backend y esperar a
-  que Render quede **Live**, y solo entonces el frontend. Preguntar al
-  usuario si se borra `crearEstudianteEnPreparacion`. El E6 (formulario del
-  estudiante sin lo que pasó a la entrevista y "Datos de admisión" en la
-  ficha) necesita su propia autorización.
+  matricular (uno nuevo y, si hay, un exalumno) → ver la admisión de solo
+  consulta, el estudiante en Estudiantes mirando 2027 y sus "Datos de
+  admisión", en escritorio y en móvil. Después, subir primero el backend y
+  esperar a que Render quede **Live**, y solo entonces el frontend. El E7
+  (backend: bloquear el alta directa) va **después** de que el frontend
+  nuevo esté en producción y necesita su propia autorización; ahí se decide
+  si se borra `crearEstudianteEnPreparacion`.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.

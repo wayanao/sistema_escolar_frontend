@@ -21,9 +21,10 @@ const opcionesDe = (select) =>
   [...select.options].map((opcion) => [opcion.value, opcion.textContent]);
 
 describe("FormularioEstudianteAdmin", () => {
-  // Caracterización antes de llevar estas listas a src/constants (entrevista
-  // de admisión, paso E4): la ficha del aspirante usa las mismas.
-  it("ofrece los mismos tipos de documento y opciones de paz y salvo de siempre", () => {
+  // Caracterización antes de llevar esta lista a src/constants (entrevista
+  // de admisión, paso E4): la ficha del aspirante usa la misma. La de paz y
+  // salvo también se fijaba aquí hasta el E6, que la sacó del formulario.
+  it("ofrece los mismos tipos de documento de siempre", () => {
     render(<FormularioEstudianteAdmin {...crearPropiedades()} />);
 
     const tipos = screen.getByRole("option", { name: "Registro Civil" }).closest("select");
@@ -35,12 +36,32 @@ describe("FormularioEstudianteAdmin", () => {
       ["Cédula de Extranjería", "Cédula de Extranjería"],
       ["Otro", "Otro"],
     ]);
-    const pazYSalvo = screen.getByRole("option", { name: "SI" }).closest("select");
-    expect(opcionesDe(pazYSalvo)).toEqual([
-      ["", "Seleccione..."],
-      ["SI", "SI"],
-      ["NO", "NO"],
-    ]);
+  });
+
+  // Paso E6 de la entrevista de admisión (decisiones 5 y 6): lo que solo
+  // sirve para admitir pasó a la entrevista. El cuerpo no cambia (ver las
+  // pruebas del hook y de la página).
+  it("ya no pide estudios anteriores ni la ocupación de los padres", () => {
+    render(<FormularioEstudianteAdmin {...crearPropiedades()} />);
+
+    expect(screen.queryByText("Estudios Anteriores")).not.toBeInTheDocument();
+    for (const etiqueta of [
+      "Nombre Colegio Anterior",
+      "Año Cursado",
+      "Pre-escolar",
+      "EBP",
+      "Paz y Salvo",
+      "Motivo del Retiro",
+      "Ocupación (Padre)",
+      "Ocupación (Madre)",
+    ]) {
+      expect(screen.queryByText(etiqueta)).not.toBeInTheDocument();
+    }
+    expect(screen.queryByRole("option", { name: "SI" })).not.toBeInTheDocument();
+    // Lo demás de la familia sigue.
+    expect(screen.getByText("Información Familiar")).toBeInTheDocument();
+    expect(screen.getByText("Nombre del Padre")).toBeInTheDocument();
+    expect(screen.getByText("Documento (Madre)")).toBeInTheDocument();
   });
 
   it("acepta otro título y otro texto de botón, como en Matricular (paso E5)", () => {
@@ -62,7 +83,6 @@ describe("FormularioEstudianteAdmin", () => {
 
     expect(screen.getByText("🎓 Crear Nuevo Estudiante")).toBeInTheDocument();
     expect(screen.getByText("Datos Adicionales y Médicos")).toBeInTheDocument();
-    expect(screen.getByText("Estudios Anteriores")).toBeInTheDocument();
     expect(screen.getByText("Información Familiar")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "5A" })).toBeInTheDocument();
 

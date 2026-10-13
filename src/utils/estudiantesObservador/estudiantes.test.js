@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  datosDeAdmisionEstudiante,
   crearEstudianteInicial,
   filtrarEstudiantesAdmin,
   filtrarEstudiantesObservador,
@@ -132,5 +133,37 @@ describe("contratos puros de estudiantes", () => {
   it("conserva las etiquetas y el respaldo de estado vigentes", () => {
     expect(obtenerEtiquetaEstadoEstudiante("retirado")).toBe("Retirado");
     expect(obtenerEtiquetaEstadoEstudiante("desconocido")).toBe("Activo");
+  });
+});
+
+describe("datos de admisión en la ficha (entrevista de admisión, paso E6)", () => {
+  it("lista los ocho datos que pasaron a la entrevista, con vacío como null", () => {
+    const datos = datosDeAdmisionEstudiante({
+      id: 11,
+      colegio_anterior: "Colegio Uno",
+      paz_salvo_anterior: "SI",
+      ocupacion_madre: "  ",
+      ocupacion_padre: null,
+      direccion: "No es de admisión",
+    });
+
+    expect(datos.map((dato) => dato.campo)).toEqual([
+      "colegio_anterior",
+      "anio_cursado_anterior",
+      "pre_escolar_anterior",
+      "ebp_anterior",
+      "motivo_retiro_anterior",
+      "paz_salvo_anterior",
+      "ocupacion_padre",
+      "ocupacion_madre",
+    ]);
+    expect(datos[0]).toEqual({
+      campo: "colegio_anterior",
+      etiqueta: "Colegio anterior",
+      valor: "Colegio Uno",
+    });
+    expect(datos[5].valor).toBe("SI");
+    expect(datos[6].valor).toBeNull();
+    expect(datos[7].valor).toBeNull();
   });
 });

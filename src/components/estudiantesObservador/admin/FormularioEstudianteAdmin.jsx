@@ -1,7 +1,4 @@
-import {
-  OPCIONES_PAZ_Y_SALVO,
-  TIPOS_DOCUMENTO_ESTUDIANTE,
-} from "../../../constants/documentosEstudiante";
+import { TIPOS_DOCUMENTO_ESTUDIANTE } from "../../../constants/documentosEstudiante";
 
 export default function FormularioEstudianteAdmin({
   visible,
@@ -172,62 +169,11 @@ export default function FormularioEstudianteAdmin({
           />
         </Campo>
 
-        <Seccion titulo="Estudios Anteriores" />
-        <Campo label="Nombre Colegio Anterior" className="md:col-span-2">
-          <input
-            type="text"
-            value={estudianteData.colegio_anterior}
-            onChange={(e) => actualizar("colegio_anterior", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Año Cursado">
-          <input
-            type="text"
-            value={estudianteData.anio_cursado_anterior}
-            onChange={(e) => actualizar("anio_cursado_anterior", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Pre-escolar">
-          <input
-            type="text"
-            value={estudianteData.pre_escolar_anterior}
-            onChange={(e) => actualizar("pre_escolar_anterior", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="EBP">
-          <input
-            type="text"
-            value={estudianteData.ebp_anterior}
-            onChange={(e) => actualizar("ebp_anterior", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Paz y Salvo">
-          <select
-            value={estudianteData.paz_salvo_anterior}
-            onChange={(e) => actualizar("paz_salvo_anterior", e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Seleccione...</option>
-            {OPCIONES_PAZ_Y_SALVO.map((opcion) => (
-              <option key={opcion} value={opcion}>
-                {opcion}
-              </option>
-            ))}
-          </select>
-        </Campo>
-        <Campo label="Motivo del Retiro" className="md:col-span-2">
-          <input
-            type="text"
-            value={estudianteData.motivo_retiro_anterior}
-            onChange={(e) => actualizar("motivo_retiro_anterior", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-
+        {/* Sin "Estudios Anteriores" ni la ocupación del padre y de la madre
+            (2026-10-13, entrevista de admisión, paso E6): solo sirven para
+            admitir y pasaron a la entrevista; al matricular se copian aquí.
+            Los campos siguen en el cuerpo: vacíos al crear y, al editar, lo
+            que ya tenía. Se ven en la ficha, en "Datos de admisión". */}
         <Seccion titulo="Información Familiar" />
         <Campo label="Nombre del Padre">
           <input
@@ -256,15 +202,7 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           />
         </Campo>
-        <Campo label="Ocupación (Padre)">
-          <input
-            type="text"
-            value={estudianteData.ocupacion_padre}
-            onChange={(e) => actualizar("ocupacion_padre", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Teléfono del Padre" className="md:col-span-2">
+        <Campo label="Teléfono del Padre">
           <input
             type="tel"
             value={estudianteData.telefono_padre}
@@ -300,15 +238,7 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           />
         </Campo>
-        <Campo label="Ocupación (Madre)">
-          <input
-            type="text"
-            value={estudianteData.ocupacion_madre}
-            onChange={(e) => actualizar("ocupacion_madre", e.target.value)}
-            className={inputClass}
-          />
-        </Campo>
-        <Campo label="Teléfono de la Madre" className="md:col-span-2">
+        <Campo label="Teléfono de la Madre">
           <input
             type="tel"
             value={estudianteData.telefono_madre}

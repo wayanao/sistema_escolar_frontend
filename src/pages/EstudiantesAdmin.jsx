@@ -44,6 +44,10 @@ function EstudiantesAdmin() {
     loadingDetalles,
     verDetalles,
     cerrarModal,
+    datosAdmision,
+    cargandoDatosAdmision,
+    errorDatosAdmision,
+    verDatosAdmision,
   } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
   const {
     showForm,
@@ -170,6 +174,10 @@ function EstudiantesAdmin() {
         detalles={detallesEstudiante}
         cargando={loadingDetalles}
         onCerrar={cerrarModal}
+        datosAdmision={datosAdmision}
+        cargandoDatosAdmision={cargandoDatosAdmision}
+        errorDatosAdmision={errorDatosAdmision}
+        onVerDatosAdmision={verDatosAdmision}
       />
     </div>
   );

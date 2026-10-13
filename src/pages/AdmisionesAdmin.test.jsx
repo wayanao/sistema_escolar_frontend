@@ -300,7 +300,8 @@ describe("matricular desde la admisión (paso E5)", () => {
     expect(controlDe(seccion, "Nombre *")).toHaveValue("Lina");
     expect(controlDe(seccion, "Documento de Identidad *")).toHaveValue("2001");
     expect(controlDe(seccion, "Curso *")).toHaveValue("20");
-    expect(controlDe(seccion, "Nombre Colegio Anterior")).toHaveValue("Colegio Uno");
+    // Lo de la entrevista ya no se ve en la ficha (paso E6), pero viaja: ver abajo.
+    expect(within(seccion).queryByText("Nombre Colegio Anterior")).not.toBeInTheDocument();
     expect(mocks.obtenerEstudiante).not.toHaveBeenCalled();
 
     await user.type(controlDe(seccion, "Dirección"), "Calle 9");

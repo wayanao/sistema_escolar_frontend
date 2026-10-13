@@ -238,6 +238,10 @@ POST /admisiones/{admision_id}/matricular
   entrevista; el resultado va por su propia ruta.
 - Los mensajes son los del backend tal cual (`mensajeDeErrorAdmision`); un 422
   de FastAPI se muestra uniendo sus mensajes.
+- Paso E6: la ficha del estudiante en Estudiantes pide
+  `GET /estudiantes/{id}` solo si el admin pulsa "Ver datos de admisión"
+  (estudios anteriores y ocupación de los padres). Abrir la ficha no suma
+  peticiones.
 - `POST /admisiones/{admision_id}/matricular` (paso E5) recibe la ficha del
   estudiante con el mismo cuerpo de `POST /estudiantes`: la arma el mismo
   formulario y hook de Estudiantes (`useFormularioEstudianteAdmin`, con

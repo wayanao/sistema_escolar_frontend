@@ -5,6 +5,7 @@
 // La validación de aquí es comodidad: el backend vuelve a validar todo (y
 // manda). Los límites de texto son los `VARCHAR` de la tabla `admisiones`.
 
+import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
 import { RESULTADO_NO_APROBADO, RESULTADO_PENDIENTE } from "./admisiones";
 
 // Lo que se pide al registrar (mismo orden que el backend).
@@ -147,14 +148,7 @@ const CAMPOS_PARA_LA_FICHA = Object.freeze([
   "tipo_documento",
   "documento_identidad",
   "fecha_nacimiento",
-  "colegio_anterior",
-  "anio_cursado_anterior",
-  "pre_escolar_anterior",
-  "ebp_anterior",
-  "motivo_retiro_anterior",
-  "paz_salvo_anterior",
-  "ocupacion_padre",
-  "ocupacion_madre",
+  ...DATOS_DE_ADMISION_EN_LA_FICHA.map(({ campo }) => campo),
 ]);
 
 export function datosParaMatricular(admision) {

@@ -251,6 +251,50 @@ describe("EstudiantesAdmin", () => {
     expect(apiMock.put.mock.calls[0][1]).toMatchObject({ descuento_mensualidad: 50000 });
   });
 
+  // Paso E6 de la entrevista de admisión: estudios anteriores y ocupación de
+  // los padres salieron del formulario, pero editar devuelve lo que ya tenía.
+  it("editar conserva los datos de admisión aunque el formulario no los muestre", async () => {
+    const getOriginal = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) =>
+      url === "/estudiantes/11"
+        ? Promise.resolve({
+            data: { ...ANA_COMPLETA, colegio_anterior: "Colegio Uno", ocupacion_padre: "Médico" },
+          })
+        : getOriginal(url, opciones),
+    );
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+
+    fireEvent.click(within(filaDe("Rojas Ana")).getByRole("button", { name: "Editar" }));
+    await screen.findByText("✏️ Editar Estudiante");
+    expect(screen.queryByText("Nombre Colegio Anterior")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    await waitFor(() => expect(apiMock.put).toHaveBeenCalledTimes(1));
+    expect(apiMock.put.mock.calls[0][1]).toMatchObject({
+      colegio_anterior: "Colegio Uno",
+      ocupacion_padre: "Médico",
+    });
+  });
+
+  it("la ficha muestra los datos de admisión solo si se piden (una petición más)", async () => {
+    const getOriginal = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) =>
+      url === "/estudiantes/11"
+        ? Promise.resolve({ data: { ...ANA_COMPLETA, colegio_anterior: "Colegio Uno" } })
+        : getOriginal(url, opciones),
+    );
+    render(<EstudiantesAdmin />);
+    fireEvent.click(await screen.findByText("Rojas Ana"));
+    await screen.findByText("Resumen de Rojas Ana");
+    expect(apiMock.get).not.toHaveBeenCalledWith("/estudiantes/11");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Ver datos de admisión" }));
+
+    expect(await screen.findByText("Colegio Uno")).toBeInTheDocument();
+    expect(apiMock.get.mock.calls.filter(([url]) => url === "/estudiantes/11")).toHaveLength(1);
+  });
+
   it("cambiar el estado desde la fila pide confirmación y guarda con PATCH", async () => {
     render(<EstudiantesAdmin />);
     await screen.findByText("Rojas Ana");

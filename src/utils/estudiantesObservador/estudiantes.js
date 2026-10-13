@@ -1,3 +1,5 @@
+import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
+
 export const ESTADOS_ESTUDIANTE = [
   { value: "activo", label: "Activo" },
   { value: "retirado", label: "Retirado" },
@@ -126,4 +128,14 @@ export function normalizarDetalleEstudiante(detallesBase, deudasData) {
         0,
       ),
   };
+}
+
+// Paso E6 de la entrevista de admisión: lo que pasó a la entrevista, para
+// verlo de solo lectura en la ficha ("Datos de admisión"). Un vacío es null.
+export function datosDeAdmisionEstudiante(estudiante) {
+  return DATOS_DE_ADMISION_EN_LA_FICHA.map(({ campo, etiqueta }) => {
+    const valor = estudiante?.[campo];
+    const texto = valor === null || valor === undefined ? "" : String(valor).trim();
+    return { campo, etiqueta, valor: texto === "" ? null : texto };
+  });
 }
