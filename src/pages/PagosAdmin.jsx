@@ -21,6 +21,17 @@ import { ESTADO_PREPARACION, parametrosAnio } from "../utils/anioLectivo";
 const notificarErrorCargaEstudiantes = () =>
   Swal.fire("Error", "Error al cargar estudiantes", "error");
 
+// Por debajo de `lg` (1024px) la lista y el panel de pagos quedan apilados,
+// así que al elegir un estudiante se baja hasta el panel.
+function bajarAlPanelDePago(panel) {
+  if (!panel || !window.matchMedia?.("(max-width: 1023.98px)").matches) return;
+  const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  panel.scrollIntoView?.({
+    behavior: reducirMovimiento ? "auto" : "smooth",
+    block: "start",
+  });
+}
+
 function PagosAdmin() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,6 +172,7 @@ function PagosAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pagoAImprimir, setPagoAImprimir] = useState(null);
   const anioCargadoRef = useRef(null);
+  const panelPagoRef = useRef(null);
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
@@ -230,6 +242,11 @@ function PagosAdmin() {
     reiniciarValorPersonalizado();
   };
 
+  const seleccionarDesdeLista = (estudiante) => {
+    handleEstudianteSelect(estudiante);
+    bajarAlPanelDePago(panelPagoRef.current);
+  };
+
   const imprimirFactura = (pago) => {
     if (!selectedEstudiante) return;
     setPagoAImprimir(pago);
@@ -281,10 +298,13 @@ function PagosAdmin() {
           selectedEstudianteId={selectedEstudiante?.id}
           obtenerNombreCurso={obtenerNombreCurso}
           onSearchTermChange={setSearchTerm}
-          onSelectEstudiante={handleEstudianteSelect}
+          onSelectEstudiante={seleccionarDesdeLista}
         />
 
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6 h-[calc(100vh-140px)] overflow-y-auto">
+        <div
+          ref={panelPagoRef}
+          className="lg:col-span-2 bg-white rounded-lg shadow-md p-6 h-[calc(100vh-140px)] overflow-y-auto scroll-mt-4"
+        >
           {selectedEstudiante ? (
             <>
               <div className="flex justify-between items-center mb-4">

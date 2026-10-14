@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import pagosApi from "../services/pagosApi";
 import Swal from "sweetalert2";
 import { ContextoAnioLectivo } from "../hooks/anioLectivo/useAnioLectivo";
@@ -129,6 +129,16 @@ async function seleccionarEstudiante(user) {
   });
 }
 
+// JSDOM no trae matchMedia ni scrollIntoView; se simulan solo en estas pruebas.
+function simularPantalla({ angosta }) {
+  window.matchMedia = vi.fn((consulta) => ({
+    matches: consulta.includes("max-width") ? angosta : false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+  Element.prototype.scrollIntoView = vi.fn();
+}
+
 describe("PagosAdmin - caracterización", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -192,6 +202,39 @@ describe("PagosAdmin - caracterización", () => {
     expect(pagosApi.obtenerOpcionesVencidas).toHaveBeenCalledWith(7);
     expect(pagosApi.obtenerValoresPersonalizados).toHaveBeenCalledWith(7);
     expect(screen.getByText("Pagos de Pérez Ana")).toBeInTheDocument();
+  });
+
+  describe("bajada al panel de pago al elegir un estudiante", () => {
+    afterEach(() => {
+      delete window.matchMedia;
+      delete Element.prototype.scrollIntoView;
+    });
+
+    it("en tablet o celular baja hasta el panel de pagos", async () => {
+      simularPantalla({ angosta: true });
+      const user = userEvent.setup();
+      renderPagos();
+
+      await seleccionarEstudiante(user);
+
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "start",
+      });
+      const [panel] = Element.prototype.scrollIntoView.mock.contexts;
+      expect(panel).toContainElement(screen.getByText("Pagos de Pérez Ana"));
+    });
+
+    it("en computador no mueve la pantalla", async () => {
+      simularPantalla({ angosta: false });
+      const user = userEvent.setup();
+      renderPagos();
+
+      await seleccionarEstudiante(user);
+
+      expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+    });
   });
 
   it("conserva la búsqueda local y el estado vacío del listado", async () => {

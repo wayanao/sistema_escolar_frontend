@@ -1,5 +1,19 @@
 # Cambios Frontend
 
+## 2026-10-14 - Pagos: en tablet y celular, elegir un estudiante baja al panel de pago
+
+- Por debajo de 1024 px (`lg`), la lista de estudiantes y el panel de pagos
+  quedan uno debajo del otro. Al tocar un estudiante de la lista, la página
+  baja sola hasta el panel (`scrollIntoView`, suave salvo que el sistema pida
+  menos movimiento). En computador no se mueve nada.
+- Solo al elegir desde la lista: la llegada desde Cartera Vencida con un
+  estudiante ya elegido sigue como estaba.
+- Sin cambios de peticiones ni de backend.
+
+Verificación: 2 pruebas nuevas en `PagosAdmin.test.jsx` (baja en pantalla
+angosta, no baja en computador). `pnpm run check:deploy`: 2524 pruebas en
+364 archivos, lint y build correctos.
+
 ## 2026-10-13 - Entrevista de admisión E6: el formulario del estudiante sin lo de la entrevista
 
 Tercer paso con código en este repo de
