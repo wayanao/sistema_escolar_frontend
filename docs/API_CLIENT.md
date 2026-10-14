@@ -163,7 +163,7 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   un estudiante nuevo del año en preparación entra por
   `POST /admisiones/{id}/matricular` (ver "Admisiones"). La función
   `crearEstudianteEnPreparacion` sigue en `aniosLectivosApi.js`, sin uso; la
-  ruta del backend se bloquea en el paso E7. El resumen presenta
+  ruta del backend responde `409` desde el paso E7 (2026-10-14). El resumen presenta
   literalmente los conteos y el total que devuelve el backend y no activa el
   año.
 - En el paso 5.7, `POST /cursos` y `POST /tipos-pagos` suman

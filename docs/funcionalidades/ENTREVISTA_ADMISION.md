@@ -351,8 +351,12 @@ pantalla oculta botones con `editable`, no con su propia regla.
   (`f50ef7b`). Con el E6 terminaron los pasos de este repo. Ninguna pantalla
   se había visto antes en un navegador ni contra un backend real (no consta
   una prueba en local).
-- Siguiente acción exacta: la del documento principal (prueba de humo en
-  producción con el Colegio Demo y, después, el E7 en el backend). Si en el
-  E7 el usuario decide borrar `crearEstudianteEnPreparacion`, ese cambio es
-  de este repo.
+- 2026-10-14: el **E7** quedó escrito en el backend (sin commit): el alta
+  directa en preparación responde `409`. Aquí no cambió código; solo
+  `docs/API_CLIENT.md` y este documento.
+- Siguiente acción exacta: la del documento principal (commit, push y Render
+  **Live** del E7; prueba de humo en producción con el Colegio Demo). Si el
+  usuario dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde
+  el E5, recomendado), ese cambio es de este repo: la función en
+  `services/aniosLectivosApi.js` y su prueba.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.
