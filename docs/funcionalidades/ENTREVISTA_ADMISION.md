@@ -2,16 +2,11 @@
 
 ## Control
 
-- Estado: **Paso E6 escrito el 2026-10-13, sin commit** (el formulario del
-  estudiante sin lo que pasó a la entrevista y "Datos de admisión" en la
-  ficha; ver "Avance del paso E6"). El E4 (`22b3dcf`) y el E5 (`ae5240a`)
-  están en commits sin subir. Con el E6 terminan los pasos de este repo; queda
-  por decidir si se borra `crearEstudianteEnPreparacion` (propuesto para el
-  E7). En el backend, el E1 está en
-  producción y el E2 y el E3 en commits sin subir (`ee8aba2` y `d099c29`).
-  **Nada de esto se puede publicar antes de que E2 y E3 estén en
-  producción**: sin esas rutas, la tarjeta y la página darían error, y ya no
-  quedaría otra forma de crear un estudiante nuevo en 2027.
+- Estado: **E4 a E6 en producción (2026-10-14, informado por el usuario)**:
+  E4 `22b3dcf`, E5 `ae5240a`, E6 `f50ef7b`; el repo estaba igual a GitHub
+  ese día. El backend (E1 a E3) también, según el usuario. Con el E6
+  terminan los pasos de este repo; queda por decidir si se borra
+  `crearEstudianteEnPreparacion` (propuesto para el E7).
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -131,9 +126,9 @@ principal).
 
 | Paso | Qué |
 |---|---|
-| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Hecho el 2026-10-13** (`22b3dcf`) |
-| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Hecho el 2026-10-13** (`ae5240a`) |
-| E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Escrito el 2026-10-13, sin commit** |
+| E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Hecho el 2026-10-13** (`22b3dcf`); en producción el 2026-10-14 |
+| E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Hecho el 2026-10-13** (`ae5240a`); en producción el 2026-10-14 |
+| E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Hecho el 2026-10-13** (`f50ef7b`); en producción el 2026-10-14 |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
 termina con `pnpm run check:deploy` y `git diff --check`, actualiza este
@@ -351,19 +346,13 @@ pantalla oculta botones con `editable`, no con su propia regla.
 
 ## Entrega para el siguiente chat
 
-- Estado al 2026-10-13: **paso E6 escrito, sin commit** (ver "Avance del
-  paso E6"). E4 en `22b3dcf` y E5 en `ae5240a`. En el backend, el E1 está
-  en producción y el E2 y el E3 en commits sin subir (`ee8aba2` y
-  `d099c29`). Con el E6 terminan los pasos de este repo.
-- Siguiente acción exacta: probar en local juntos el backend (E2 y E3) y el
-  frontend (E4 a E6) contra una rama de Neon: backend local con
-  `$env:DATABASE_URL` en la rama, frontend local, y como admin recorrer Años
-  lectivos (tarjeta) → Admisiones → nuevo aspirante → entrevista → aprobar →
-  matricular (uno nuevo y, si hay, un exalumno) → ver la admisión de solo
-  consulta, el estudiante en Estudiantes mirando 2027 y sus "Datos de
-  admisión", en escritorio y en móvil. Después, subir primero el backend y
-  esperar a que Render quede **Live**, y solo entonces el frontend. El E7
-  (backend: bloquear el alta directa) va **después** de que el frontend
-  nuevo esté en producción y necesita su propia autorización; ahí se decide
-  si se borra `crearEstudianteEnPreparacion`.
+- Estado al 2026-10-14: **E4 a E6 en producción**, según el usuario, igual
+  que el backend (E1 a E3). Este repo en `main`, limpio e igual a GitHub
+  (`f50ef7b`). Con el E6 terminaron los pasos de este repo. Ninguna pantalla
+  se había visto antes en un navegador ni contra un backend real (no consta
+  una prueba en local).
+- Siguiente acción exacta: la del documento principal (prueba de humo en
+  producción con el Colegio Demo y, después, el E7 en el backend). Si en el
+  E7 el usuario decide borrar `crearEstudianteEnPreparacion`, ese cambio es
+  de este repo.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.
