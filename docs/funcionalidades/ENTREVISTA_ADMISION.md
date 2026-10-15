@@ -4,9 +4,12 @@
 
 - Estado: **E4 a E6 en producción (2026-10-14, informado por el usuario)**:
   E4 `22b3dcf`, E5 `ae5240a`, E6 `f50ef7b`; el repo estaba igual a GitHub
-  ese día. El backend (E1 a E3) también, según el usuario. Con el E6
-  terminan los pasos de este repo; queda por decidir si se borra
-  `crearEstudianteEnPreparacion` (propuesto para el E7).
+  ese día. El backend (E1 a E3) también, según el usuario, y el E7 del
+  backend está en GitHub (`24a9a3c`). Queda por decidir si se borra
+  `crearEstudianteEnPreparacion` (propuesto para el E7). **Ampliación del
+  2026-10-14: las preguntas del anexo del colegio con casillas para
+  chulear.** Diseño (E8) terminado; a este repo le toca el **E11** (ver
+  "Preguntas del anexo (paso E11)").
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -18,7 +21,7 @@
   `docs/funcionalidades/ANIO_LECTIVO.md`.
 - Depende de: los pasos E1 a E3 del backend (migración y rutas) en
   producción antes de usar las pantallas allá.
-- Última actualización: 2026-10-13.
+- Última actualización: 2026-10-14.
 
 ## Objetivo
 
@@ -119,6 +122,54 @@ estudiante en {año}" de "Continuar la preparación".
   guardado. (Hecho en el E6 con un botón "Ver datos de admisión" que los pide
   solo si se usa.)
 
+### Preguntas del anexo (paso E11)
+
+La lista completa (55 preguntas, cómo se responde cada una y lo que no se
+agrega), las decisiones 12 a 16 y las rutas están en el documento
+principal, "Preguntas del anexo (pasos E8 a E12)". Aquí, solo cómo se ven.
+
+- **La lista la manda el backend** (`GET /admisiones/cuestionario`). La
+  página la pide una vez al abrir Admisiones y arma el formulario con ella:
+  este repo no tiene una copia de las preguntas que se pueda desactualizar,
+  y no decide qué respuesta es válida (lo revisa el backend).
+- **Secciones que se abren y se cierran**, una por sección del anexo
+  (Familia, Vivienda, Salud…), debajo de la entrevista de hoy. Así 55
+  preguntas no quedan en una página interminable.
+- **Casillas para chulear**, según el tipo:
+
+  | Tipo | Cómo se ve | Cómo está hecho |
+  |---|---|---|
+  | Sí / No | `[ ] No  [✓] Sí`; si la respuesta lo pide, aparece el cuadro del detalle | Botones de opción agrupados con su pregunta (`fieldset` y `legend`), dibujados como cuadritos; tocar otra vez la chuleada la desmarca |
+  | Una opción | Igual, con sus opciones; "Otro" abre un cuadro | Igual que Sí / No |
+  | Varias | `[✓] Desayuno  [ ] Almuerzo  [✓] Cena`; "Ninguno" borra las demás | Casillas de verificación (`checkbox`) |
+  | Número | Cuadro solo para números, con mínimo y máximo | `input` de número |
+  | Texto | Cuadro corto o grande | Los `CampoTexto` y `CampoArea` de hoy |
+
+  Por qué botones de opción y no casillas en Sí / No: un lector de pantalla
+  anuncia "elige una" en vez de "marca varias", y el teclado funciona como
+  en cualquier formulario. Para quien lo usa, se ven igual: cuadritos.
+- Al cambiar una respuesta, el cuadro de detalle u "Otro" que ya no aplica se
+  esconde y se vacía, para que no se envíe algo que el backend rechazaría.
+  La 26 (qué profesional) solo aparece si la 25 es "Sí".
+- Celular y tablet: las casillas bajan una debajo de otra, con espacio
+  suficiente para tocarlas con el dedo; las secciones, a ancho completo.
+- Una admisión matriculada (`editable` falso) muestra todo de solo consulta,
+  como hoy.
+- **Ayuda de "No aprobado" (decisión 14):** a la que ya existe ("la admisión
+  no puede negarse por religión, origen o composición de la familia") se le
+  agrega que un diagnóstico, una discapacidad, la salud o la situación
+  familiar tampoco pueden ser el motivo.
+- **Ficha del estudiante:** "Ver datos de admisión" muestra además las
+  respuestas, por sección y solo las respondidas (por ejemplo "Dificultad
+  motora: Sí — Usa plantillas ortopédicas"). Sin admisión, "Sin entrevista
+  de admisión". Las pide la ruta de lectura que agrega el E10.
+- Capas: el formato de las respuestas para leerlas lo usan dos módulos
+  (`admisiones` y `estudiantesObservador`), así que va en la raíz de
+  `src/utils/` (regla del `CLAUDE.md`), por ejemplo
+  `src/utils/cuestionarioAdmision.js`. Lo que solo usa el formulario
+  (estado inicial, vaciar el detalle, armar el bloque) va en
+  `src/utils/admisiones/`.
+
 ## Plan de pasos de este repo
 
 Numeración compartida con el backend (plan completo en el documento
@@ -129,6 +180,9 @@ principal).
 | E4 | Página de admisiones: servicio, contrato, hooks, vistas, ruta y tarjeta de acceso. Lista, nuevo aspirante, entrevista y resultado. **Hecho el 2026-10-13** (`22b3dcf`); en producción el 2026-10-14 |
 | E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Hecho el 2026-10-13** (`ae5240a`); en producción el 2026-10-14 |
 | E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Hecho el 2026-10-13** (`f50ef7b`); en producción el 2026-10-14 |
+| E8 | Diseño de las preguntas del anexo (solo documentos, en los dos repos). **Hecho el 2026-10-14** |
+| E11 | Preguntas del anexo: secciones, casillas, ayuda ampliada de "No aprobado" y respuestas en la ficha. Después de que el E10 del backend esté **Live** |
+| E12 | **Opcional, solo si el usuario lo pide:** imprimir la entrevista con las firmas (`DocumentoImprimible`) |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
 termina con `pnpm run check:deploy` y `git diff --check`, actualiza este
@@ -145,12 +199,20 @@ documento y se detiene antes del siguiente.
   "no aprobado" con motivo.
 - Formulario del estudiante: lo que sale ya no se ve; el cuerpo al crear y al
   editar no cambia.
+- Preguntas del anexo (E11): cada tipo de pregunta (chulear, desmarcar,
+  detalle que aparece y se vacía, "Ninguno" que borra las demás, la 26 que
+  depende de la 25), el bloque que se envía, el cuerpo de hoy sin cambios
+  mientras no se toquen las preguntas, la lista pedida una sola vez, solo
+  consulta en una matriculada, la ayuda de "No aprobado" y las respuestas en
+  la ficha.
 
 ## Fuera de alcance
 
 - Cualquier regla de admisión decidida en el frontend: la decide el backend.
 - Estudiantes que llegan a mitad del año activo, prueba diagnóstica, lista de
-  espera y formato impreso (ver el documento principal).
+  espera y formato impreso (ver el documento principal; el impreso quedó como
+  E12, opcional).
+- Una copia de la lista de preguntas en este repo: la manda el backend.
 
 ## Preguntas abiertas
 
@@ -344,18 +406,32 @@ pantalla oculta botones con `editable`, no con su propia regla.
   lint y build limpios, en una sola corrida; `git diff --check` limpio.
   **No se ha visto en un navegador ni contra un backend real.**
 
+## Avance del paso E8 (2026-10-14)
+
+- Solo documentos, en los dos repos; detalle en el "Avance del paso E8" del
+  documento principal. Aquí: el estado en "Control", la sección "Preguntas
+  del anexo (paso E11)", los pasos E8, E11 y E12 en el plan, pruebas, fuera
+  de alcance y esta entrega.
+- Visto al diseñar: la ayuda de "No aprobado" ya existe desde el E4
+  (`ResultadoAdmisionView.jsx`); el E11 la amplía. "Datos de admisión" de la
+  ficha (E6) lee hoy `GET /estudiantes/{id}`; las respuestas del anexo
+  llegarán por la ruta nueva del E10.
+- Sin código. Verificación: `pnpm run check:deploy` → **2524 pruebas en 364
+  archivos**, lint y build limpios; en el backend, `scripts/verify.py` →
+  2429 pasan; `git diff --check` limpio en los dos repos.
+
 ## Entrega para el siguiente chat
 
 - Estado al 2026-10-14: **E4 a E6 en producción**, según el usuario, igual
-  que el backend (E1 a E3). Este repo en `main`, limpio e igual a GitHub
-  (`f50ef7b`). Con el E6 terminaron los pasos de este repo. Ninguna pantalla
-  se había visto antes en un navegador ni contra un backend real (no consta
-  una prueba en local).
-- 2026-10-14: el **E7** quedó escrito en el backend (sin commit): el alta
-  directa en preparación responde `409`. Aquí no cambió código; solo
-  `docs/API_CLIENT.md` y este documento.
-- Siguiente acción exacta: la del documento principal (commit, push y Render
-  **Live** del E7; prueba de humo en producción con el Colegio Demo). Si el
+  que el backend (E1 a E3); el **E7** del backend está en GitHub
+  (`24a9a3c`). Ninguna pantalla se había visto antes en un navegador ni
+  contra un backend real (no consta una prueba en local).
+- 2026-10-14: **E8 terminado** (diseño de las preguntas del anexo, solo
+  documentos). A este repo le toca el **E11**, que espera al E9 (migración) y
+  al E10 (rutas) del backend, con el E10 en **Live**.
+- Siguiente acción exacta: la del documento principal (el usuario revisa la
+  lista de las 55 preguntas y autoriza el E9 del backend). Sigue recomendada
+  la prueba de humo del E7 en producción con el Colegio Demo. Si el
   usuario dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde
   el E5, recomendado), ese cambio es de este repo: la función en
   `services/aniosLectivosApi.js` y su prueba.
