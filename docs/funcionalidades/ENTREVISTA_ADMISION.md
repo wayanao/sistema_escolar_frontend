@@ -162,13 +162,36 @@ principal, "Preguntas del anexo (pasos E8 a E12)". Aquí, solo cómo se ven.
 - **Ficha del estudiante:** "Ver datos de admisión" muestra además las
   respuestas, por sección y solo las respondidas (por ejemplo "Dificultad
   motora: Sí — Usa plantillas ortopédicas"). Sin admisión, "Sin entrevista
-  de admisión". Las pide la ruta de lectura que agrega el E10.
+  de admisión". Las pide `GET /estudiantes/{estudiante_id}/admision` (E10).
 - Capas: el formato de las respuestas para leerlas lo usan dos módulos
   (`admisiones` y `estudiantesObservador`), así que va en la raíz de
   `src/utils/` (regla del `CLAUDE.md`), por ejemplo
   `src/utils/cuestionarioAdmision.js`. Lo que solo usa el formulario
   (estado inicial, vaciar el detalle, armar el bloque) va en
   `src/utils/admisiones/`.
+
+#### Contrato del backend para el E11 (su paso E10, 2026-10-14)
+
+Completo en `sistema_escolar_api/docs/API_ENDPOINTS.md`, "Admisiones" →
+"Preguntas del anexo (paso E10)". Lo que más importa aquí:
+
+- `GET /admisiones/cuestionario`: `{secciones: [{clave, titulo, preguntas:
+  [{numero, clave, texto, tipo, ...}]}]}`. Tipos: `si_no` (trae `opciones`
+  Sí y No, y a veces `detalle: {con, texto, maximo}`), `una` y `varias`
+  (`opciones`, a veces `otro: {texto, maximo}`; `varias` a veces
+  `exclusiva`), `numero` (`minimo`, `maximo`), `texto` y `texto_largo`
+  (`maximo`, a veces `ayuda`). La 26 trae `depende_de`.
+- Respuestas en `cuestionario`: `si_no` → `{respuesta, detalle?}`; `una` →
+  `{opcion, otro?}`; `varias` → `{marcadas, otro?}`; `numero` → entero;
+  texto → texto. Sin responder = la clave no está.
+- `GET /admisiones/{id}` y las respuestas de `POST`/`PUT` traen
+  `cuestionario` (`{}` si no hay). En `PUT`, **no mandar `cuestionario`
+  deja las respuestas como estaban**; mandarlo reemplaza el bloque entero.
+  Un error de revisión llega como `422` con un texto en español que nombra
+  la pregunta.
+- `GET /estudiantes/{estudiante_id}/admision` → `{admision_id, anio,
+  fecha_entrevista, cuestionario}`, todo `null` y `{}` si el estudiante no
+  tiene admisión.
 
 ## Plan de pasos de este repo
 
@@ -429,6 +452,10 @@ pantalla oculta botones con `editable`, no con su propia regla.
 - 2026-10-14: **E8 terminado** (diseño de las preguntas del anexo, solo
   documentos). A este repo le toca el **E11**, que espera al E9 (migración) y
   al E10 (rutas) del backend, con el E10 en **Live**.
+- 2026-10-14: el **E9** del backend quedó en producción (la columna
+  `cuestionario`) y el **E10** quedó escrito en el backend, sin commit. Su
+  contrato está arriba, en "Contrato del backend para el E11". Aquí solo
+  cambió este documento.
 - Siguiente acción exacta: la del documento principal (el usuario revisa la
   lista de las 55 preguntas y autoriza el E9 del backend). Sigue recomendada
   la prueba de humo del E7 en producción con el Colegio Demo. Si el
