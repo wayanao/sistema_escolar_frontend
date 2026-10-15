@@ -42,6 +42,8 @@ export default function FichaAdmisionView({
   erroresCuestionario = SIN_RESPUESTAS,
   errorCuestionario = "",
   onCambiarRespuesta,
+  // Paso E12. Sin `onImprimir`, no hay botón.
+  onImprimir,
 }) {
   const editable = admision.editable === true;
   // El resultado guardado, no el que se está eligiendo: el backend solo
@@ -57,13 +59,24 @@ export default function FichaAdmisionView({
             Resultado: {admision.matriculada ? "Matriculado" : etiquetaResultado(admision.resultado)}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onCerrar}
-          className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:w-auto"
-        >
-          Cerrar
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {onImprimir && (
+            <button
+              type="button"
+              onClick={onImprimir}
+              className="w-full rounded-lg border border-purple-300 px-3 py-1.5 text-sm font-semibold text-purple-800 hover:bg-purple-50 sm:w-auto"
+            >
+              Imprimir entrevista
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:w-auto"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
 
       {admision.aviso_documento && (

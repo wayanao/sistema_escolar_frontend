@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { respuestasLegibles } from "./cuestionarioAdmision";
+import { entrevistaParaImprimir, respuestasLegibles } from "./cuestionarioAdmision";
 
 const SI_NO = [
   { valor: "si", etiqueta: "Sí" },
@@ -121,5 +121,138 @@ describe("respuestasLegibles", () => {
         usa_panal: {},
       }),
     ).toEqual([]);
+  });
+});
+
+describe("entrevistaParaImprimir (paso E12)", () => {
+  const CATALOGO_IMPRESO = {
+    secciones: [
+      {
+        clave: "familia",
+        titulo: "Familia",
+        preguntas: [
+          { numero: 1, clave: "como_lo_llaman", texto: "¿Cómo lo llaman en casa?", tipo: "texto" },
+          { numero: 6, clave: "solucion_conflictos", texto: "¿Cómo solucionan sus conflictos?", tipo: "texto_largo" },
+          {
+            numero: 9,
+            clave: "con_quien_queda",
+            texto: "¿Con quién queda?",
+            tipo: "varias",
+            opciones: [
+              { valor: "hermanos", etiqueta: "Hermanos" },
+              { valor: "otro", etiqueta: "Otro" },
+            ],
+            otro: { texto: "¿Quién?", maximo: 250 },
+          },
+        ],
+      },
+      {
+        clave: "salud",
+        titulo: "Salud",
+        preguntas: [
+          {
+            numero: 19,
+            clave: "dificultad_motora",
+            texto: "¿Tiene alguna dificultad motora?",
+            tipo: "si_no",
+            opciones: SI_NO,
+            detalle: { con: "si", texto: "¿Cuál?", maximo: 250 },
+          },
+          { numero: 25, clave: "seguimiento_profesional", texto: "¿Seguimiento profesional?", tipo: "si_no", opciones: SI_NO },
+          {
+            numero: 26,
+            clave: "profesionales",
+            texto: "En caso afirmativo, indique cuál",
+            tipo: "varias",
+            opciones: [{ valor: "psicologia", etiqueta: "Psicología" }],
+            depende_de: { pregunta: "seguimiento_profesional", respuesta: "si" },
+          },
+        ],
+      },
+    ],
+  };
+
+  const pregunta = (impreso, clave) =>
+    impreso.flatMap((s) => s.preguntas).find((p) => p.clave === clave);
+
+  it("salen todas las secciones y todas las preguntas, aunque no haya respuestas", () => {
+    const impreso = entrevistaParaImprimir(CATALOGO_IMPRESO, {});
+
+    expect(impreso.map((s) => s.titulo)).toEqual(["Familia", "Salud"]);
+    expect(impreso.flatMap((s) => s.preguntas).map((p) => p.texto)).toEqual([
+      "1. ¿Cómo lo llaman en casa?",
+      "6. ¿Cómo solucionan sus conflictos?",
+      "9. ¿Con quién queda?",
+      "19. ¿Tiene alguna dificultad motora?",
+      "25. ¿Seguimiento profesional?",
+      "26. En caso afirmativo, indique cuál",
+    ]);
+  });
+
+  it("sin respuesta: casillas sin marcar y renglón para escribir", () => {
+    const impreso = entrevistaParaImprimir(CATALOGO_IMPRESO, {});
+
+    expect(pregunta(impreso, "dificultad_motora")).toMatchObject({
+      opciones: [
+        { etiqueta: "Sí", marcada: false },
+        { etiqueta: "No", marcada: false },
+      ],
+      aparte: { texto: "¿Cuál?", valor: "" },
+    });
+    expect(pregunta(impreso, "con_quien_queda").aparte).toEqual({ texto: "¿Quién?", valor: "" });
+    expect(pregunta(impreso, "como_lo_llaman")).toMatchObject({ valor: "", largo: false });
+    expect(pregunta(impreso, "solucion_conflictos")).toMatchObject({ valor: "", largo: true });
+  });
+
+  it("con respuesta: la casilla marcada y lo escrito", () => {
+    const impreso = entrevistaParaImprimir(CATALOGO_IMPRESO, {
+      como_lo_llaman: "Juancho",
+      dificultad_motora: { respuesta: "si", detalle: "Usa plantillas" },
+      con_quien_queda: { marcadas: ["hermanos", "otro"], otro: "La vecina" },
+    });
+
+    expect(pregunta(impreso, "como_lo_llaman").valor).toBe("Juancho");
+    expect(pregunta(impreso, "dificultad_motora")).toMatchObject({
+      opciones: [
+        { etiqueta: "Sí", marcada: true },
+        { etiqueta: "No", marcada: false },
+      ],
+      aparte: { texto: "¿Cuál?", valor: "Usa plantillas" },
+    });
+    expect(pregunta(impreso, "con_quien_queda")).toMatchObject({
+      opciones: [
+        { etiqueta: "Hermanos", marcada: true },
+        { etiqueta: "Otro", marcada: true },
+      ],
+      aparte: { texto: "¿Quién?", valor: "La vecina" },
+    });
+  });
+
+  it("si la respuesta no pide el detalle o el Otro, ese renglón no sale", () => {
+    const impreso = entrevistaParaImprimir(CATALOGO_IMPRESO, {
+      dificultad_motora: { respuesta: "no" },
+      con_quien_queda: { marcadas: ["hermanos"] },
+    });
+
+    expect(pregunta(impreso, "dificultad_motora").aparte).toBeNull();
+    expect(pregunta(impreso, "con_quien_queda").aparte).toBeNull();
+  });
+
+  it("la 26 lleva su nota y no marca nada si la 25 no es Sí", () => {
+    const impreso = entrevistaParaImprimir(CATALOGO_IMPRESO, {
+      seguimiento_profesional: { respuesta: "no" },
+      profesionales: { marcadas: ["psicologia"] },
+    });
+
+    expect(pregunta(impreso, "profesionales")).toMatchObject({
+      nota: "Solo si la pregunta 25 es «Sí».",
+      opciones: [{ etiqueta: "Psicología", marcada: false }],
+    });
+    expect(pregunta(impreso, "como_lo_llaman").nota).toBeUndefined();
+  });
+
+  it("sin lista no hay preguntas que imprimir", () => {
+    expect(entrevistaParaImprimir(null, {})).toEqual([]);
+    expect(entrevistaParaImprimir({ secciones: [] }, null)).toEqual([]);
   });
 });

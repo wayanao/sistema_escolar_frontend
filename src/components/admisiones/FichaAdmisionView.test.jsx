@@ -235,3 +235,27 @@ describe("preguntas del anexo (paso E11)", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("imprimir la entrevista (paso E12)", () => {
+  it("el botón avisa a quien imprime", async () => {
+    const user = userEvent.setup();
+    const onImprimir = vi.fn();
+    pintar({}, { onImprimir });
+
+    await user.click(screen.getByRole("button", { name: "Imprimir entrevista" }));
+
+    expect(onImprimir).toHaveBeenCalledTimes(1);
+  });
+
+  it("también se imprime una de solo consulta", () => {
+    pintar({ resultado: "aprobado", matriculada: true, editable: false }, { onImprimir: vi.fn() });
+
+    expect(screen.getByRole("button", { name: "Imprimir entrevista" })).toBeEnabled();
+  });
+
+  it("sin quien imprima, no hay botón", () => {
+    pintar();
+
+    expect(screen.queryByRole("button", { name: "Imprimir entrevista" })).not.toBeInTheDocument();
+  });
+});

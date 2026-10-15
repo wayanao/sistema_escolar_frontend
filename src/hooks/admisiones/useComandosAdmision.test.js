@@ -464,3 +464,51 @@ describe("preguntas del anexo (paso E11)", () => {
     expect(result.current.respuestas).toEqual({});
   });
 });
+
+describe("cambios sin guardar, para imprimir (paso E12)", () => {
+  const USA_PANAL = {
+    numero: 18,
+    clave: "usa_panal",
+    texto: "¿Usa pañal desechable?",
+    tipo: "si_no",
+    opciones: [
+      { valor: "si", etiqueta: "Sí" },
+      { valor: "no", etiqueta: "No" },
+    ],
+  };
+
+  it("recién abierta no hay cambios; escribir o chulear los hay", async () => {
+    const { result } = montar();
+    await abrirFicha(result);
+    expect(result.current.hayCambiosSinGuardar).toBe(false);
+
+    act(() => result.current.cambiarCampo("entrevistador", "Psicóloga Ruiz"));
+    expect(result.current.hayCambiosSinGuardar).toBe(true);
+  });
+
+  it("chulear una respuesta también es un cambio", async () => {
+    const { result } = montar();
+    await abrirFicha(result);
+
+    act(() => result.current.cambiarRespuesta(USA_PANAL, "elegir", "no"));
+
+    expect(result.current.hayCambiosSinGuardar).toBe(true);
+  });
+
+  it("después de guardar ya no hay cambios", async () => {
+    mocks.actualizarAdmision.mockResolvedValue({ ...DETALLE, entrevistador: "Psicóloga Ruiz" });
+    const { result } = montar();
+    await abrirFicha(result);
+    act(() => result.current.cambiarCampo("entrevistador", "Psicóloga Ruiz"));
+
+    await act(() => result.current.guardarFicha());
+
+    expect(result.current.hayCambiosSinGuardar).toBe(false);
+  });
+
+  it("sin ficha abierta no hay cambios", () => {
+    const { result } = montar();
+
+    expect(result.current.hayCambiosSinGuardar).toBe(false);
+  });
+});

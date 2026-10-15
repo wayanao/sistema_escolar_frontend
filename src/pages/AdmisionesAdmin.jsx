@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import EncabezadoAdmisionesView, {
   SinAnioEnPreparacionView,
 } from "../components/admisiones/EncabezadoAdmisionesView";
+import EntrevistaImprimible from "../components/admisiones/EntrevistaImprimible";
 import FichaAdmisionView from "../components/admisiones/FichaAdmisionView";
 import ListaAdmisionesView from "../components/admisiones/ListaAdmisionesView";
 import MatricularAdmisionView from "../components/admisiones/MatricularAdmisionView";
@@ -16,8 +17,9 @@ import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useForm
 import { datosParaMatricular } from "../utils/admisiones/formularios";
 import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
-// Raíz de composición de Admisiones (entrevista de admisión, pasos E4, E5 y
-// E11: las preguntas del anexo, cuya lista se pide una vez al abrir).
+// Raíz de composición de Admisiones (entrevista de admisión, pasos E4, E5,
+// E11 —las preguntas del anexo, cuya lista se pide una vez al abrir— y E12
+// —imprimir la entrevista, solo si no hay cambios sin guardar—).
 // Ver docs/funcionalidades/ENTREVISTA_ADMISION.md.
 //
 // Trabaja siempre con el año en preparación, no con el que esté elegido en el
@@ -46,21 +48,36 @@ function AdmisionesAdmin() {
     crearEstudianteFn: comandos.matricularConFicha,
   });
   const [abriendoMatricula, setAbriendoMatricula] = useState(false);
+  const [imprimiendo, setImprimiendo] = useState(false);
 
   if (!anioPreparacion) return <SinAnioEnPreparacionView cargando={cargandoAnios} />;
 
   // Cambiar de aspirante cierra la ficha del estudiante que estuviera abierta.
   const abrirFicha = (admisionId) => {
     fichaEstudiante.cancelarFormulario();
+    setImprimiendo(false);
     void comandos.abrirFicha(admisionId);
   };
   const abrirNuevo = () => {
     fichaEstudiante.cancelarFormulario();
+    setImprimiendo(false);
     comandos.abrirNuevo();
   };
   const cerrar = () => {
     fichaEstudiante.cancelarFormulario();
+    setImprimiendo(false);
     comandos.cerrar();
+  };
+
+  // Lo que firma la familia debe ser igual a lo guardado.
+  const imprimir = () => {
+    if (comandos.hayCambiosSinGuardar) {
+      comandos.avisarError(
+        "Guarda los cambios antes de imprimir: lo que se firma debe ser igual a lo guardado.",
+      );
+      return;
+    }
+    setImprimiendo(true);
   };
 
   const abrirMatricula = async () => {
@@ -173,6 +190,7 @@ function AdmisionesAdmin() {
         erroresCuestionario={comandos.erroresCuestionario}
         errorCuestionario={consultas.errorCuestionario}
         onCambiarRespuesta={comandos.cambiarRespuesta}
+        onImprimir={imprimir}
       />
     ) : (
       <p className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
@@ -205,6 +223,13 @@ function AdmisionesAdmin() {
           onAbrir={abrirFicha}
         />
       </div>
+      {imprimiendo && comandos.admision && (
+        <EntrevistaImprimible
+          admision={comandos.admision}
+          secciones={consultas.cuestionario}
+          onVolver={() => setImprimiendo(false)}
+        />
+      )}
     </div>
   );
 }

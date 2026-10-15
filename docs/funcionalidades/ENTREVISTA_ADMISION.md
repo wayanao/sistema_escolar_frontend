@@ -12,7 +12,8 @@
   "Preguntas del anexo (paso E11)"), dividido en **E11a** (la página de
   admisiones: commit `ca810ea`, sin subir) y **E11b** (las respuestas en la
   ficha del estudiante: escrito el 2026-10-15, sin commit). Con el E11b
-  termina el código de la ampliación; el E12 (imprimir) es opcional.
+  termina el código de la ampliación. **E12 (imprimir la entrevista para
+  firmar), pedido por el usuario: escrito el 2026-10-15, sin commit.**
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -209,7 +210,7 @@ principal).
 | E8 | Diseño de las preguntas del anexo (solo documentos, en los dos repos). **Hecho el 2026-10-14** |
 | E11a | Preguntas del anexo en la página de admisiones: secciones, casillas, guardar con la entrevista y ayuda ampliada de "No aprobado". **Escrito el 2026-10-14, sin commit**; se publica después de que el E10 del backend esté **Live** |
 | E11b | Las respuestas en "Datos de admisión" de la ficha del estudiante (`GET /estudiantes/{estudiante_id}/admision`). **Escrito el 2026-10-15, sin commit** |
-| E12 | **Opcional, solo si el usuario lo pide:** imprimir la entrevista con las firmas (`DocumentoImprimible`) |
+| E12 | Imprimir la entrevista con las firmas (`DocumentoImprimible`, plantilla "Reporte de estudiante"), con las 55 preguntas: las vacías en blanco para llenar a mano. Pedido por el usuario el 2026-10-15. **Escrito el 2026-10-15, sin commit** |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
 termina con `pnpm run check:deploy` y `git diff --check`, actualiza este
@@ -236,9 +237,9 @@ documento y se detiene antes del siguiente.
 ## Fuera de alcance
 
 - Cualquier regla de admisión decidida en el frontend: la decide el backend.
-- Estudiantes que llegan a mitad del año activo, prueba diagnóstica, lista de
-  espera y formato impreso (ver el documento principal; el impreso quedó como
-  E12, opcional).
+- Estudiantes que llegan a mitad del año activo, prueba diagnóstica y lista
+  de espera (ver el documento principal). El impreso, que estaba aquí, se
+  hizo en el E12.
 - Una copia de la lista de preguntas en este repo: la manda el backend.
 
 ## Preguntas abiertas
@@ -563,6 +564,66 @@ pantalla oculta botones con `editable`, no con su propia regla.
     ficha del admin y solo al pedirlas, como el resto de "Datos de admisión".
 - Verificación en "Entrega para el siguiente chat". **No se ha visto en un
   navegador ni contra un backend real.**
+- El usuario hizo el commit: `064895e` (sin subir al iniciar el E12).
+
+## Avance del paso E12 (2026-10-15)
+
+- Pedido y autorizado por el usuario ("sigue la e12"). Al iniciar, los dos
+  repos en `main` y limpios, sin subir: backend `63d9f8e`, este repo
+  `064895e` (el E11b).
+- Decidido por el usuario antes del código: salen **las 55 preguntas**, las
+  vacías en blanco para llenar a mano, así el impreso reemplaza al anexo en
+  papel. Tomado por defecto y explicado al usuario: botón "Imprimir
+  entrevista" en la ficha del aspirante (también en las de solo consulta);
+  plantilla "Reporte de estudiante" (`tipo="reporte_estudiante"`, la de
+  certificados y estado de cuenta), porque un tipo nuevo exigiría cambiar
+  `TIPOS_PLANTILLA` en el backend y sembrar plantillas con una migración;
+  firmas "Padre, madre o acudiente" (con quien autorizó los datos, o el
+  acudiente) y "Quien entrevistó" (con su nombre); **el resultado no sale**
+  (el anexo no lo tiene y es un papel que firma la familia).
+- Propuesto por el asistente y explicado: **con cambios sin guardar no se
+  imprime**; un aviso pide guardar primero, para que lo que se firma sea
+  igual a lo guardado.
+- Pruebas primero, 31 nuevas; antes del código fallaban 14 y no cargaban los
+  dos archivos nuevos:
+  - `utils/cuestionarioAdmision.test.js`: `entrevistaParaImprimir` saca todas
+    las preguntas; sin respuesta, casillas sin marcar y renglón en blanco;
+    con respuesta, la casilla marcada y lo escrito; sin el renglón del
+    detalle o de "Otro" si la respuesta no lo pide; la 26 con su nota y sin
+    marca si la 25 no es "Sí".
+  - `utils/admisiones/impresion.test.js` (nuevo): título, subtítulo, fechas
+    (`20/10/2026`), datos en el orden del anexo, lo vacío en blanco, textos
+    largos, observaciones al final, sin resultado, y las firmas.
+  - `EntrevistaImprimible.test.jsx` (nuevo): la plantilla del colegio, los
+    datos, las casillas (marcada y sin marcar), el renglón del detalle, las
+    observaciones y las firmas, sin resultado, el aviso si la lista no llegó
+    y volver.
+  - `FichaAdmisionView.test.jsx`: el botón, también en solo consulta.
+  - `useComandosAdmision.test.js`: `hayCambiosSinGuardar` (al abrir no; al
+    escribir o chulear sí; después de guardar no).
+  - `pages/AdmisionesAdmin.test.jsx`: imprime lo guardado con las preguntas y
+    vuelve; con cambios sin guardar avisa y no imprime. **Ajustado a
+    propósito:** la página doblaba ya los servicios; ahora también dobla
+    `usePrintConfig`, como `ObservadorImprimible.test.jsx`.
+- Código:
+  - `utils/cuestionarioAdmision.js`: `entrevistaParaImprimir`.
+  - `utils/admisiones/impresion.js` (nuevo): `TITULO_ENTREVISTA`,
+    `subtituloEntrevista`, `fechaLegible`, `datosEntrevistaParaImprimir` y
+    `firmasEntrevista`.
+  - `components/admisiones/EntrevistaImprimible.jsx` (nuevo, con el mismo
+    patrón que `ObservadorImprimible`: pantalla completa, "← Volver",
+    `DocumentoImprimible`). Casillas como cuadritos con ✓, renglones en
+    blanco como raya (dos en textos largos), y cada pregunta sin partirse
+    entre hojas (`break-inside-avoid`).
+  - `FichaAdmisionView.jsx` (`onImprimir`), `useComandosAdmision.js`
+    (`hayCambiosSinGuardar`) y `pages/AdmisionesAdmin.jsx` (el cableado).
+- Peticiones: ninguna nueva de admisiones. `DocumentoImprimible` pide la
+  identidad del colegio y la plantilla, que quedan en caché como en los
+  demás impresos.
+- Comprobado en `styles/print.css`: al imprimir solo sale la hoja
+  (`di-printing-mode`) y el aviso de pantalla lleva `no-print`.
+- Verificación en "Entrega para el siguiente chat". **No se ha visto en un
+  navegador ni impreso.**
 
 ## Entrega para el siguiente chat
 
@@ -587,16 +648,27 @@ pantalla oculta botones con `editable`, no con su propia regla.
   estudiantes pasan; `pnpm run check:deploy` → **2595 pruebas en 367
   archivos** (antes 2577 en 366), lint y build limpios, en una sola corrida;
   `git diff --check` limpio. Con él termina el código de la ampliación.
-- Siguiente acción exacta: el usuario prueba **en local** el E11a y el E11b
-  juntos (backend con el E10 y este frontend, con el Colegio Demo o una rama
-  de Neon, nunca con `tenant_2005`: el backend local escribe en la base
-  real): en Admisiones, abrir un aspirante, abrir una sección, chulear,
-  desmarcar, escribir un detalle, guardar y volver a abrir; aprobarlo y
-  matricularlo; en Estudiantes, abrir su ficha y "Ver datos de admisión".
-  Es la primera vez que el bloque pasa por PostgreSQL. Después: commit del
-  E11b; para publicar, primero el backend (E10) con Render en **Live** y
-  después este frontend (E11a y E11b). El E12 (imprimir) solo si el usuario
-  lo pide. Sigue recomendada
+- 2026-10-15: **E12 escrito, sin commit** (ver su avance): imprimir la
+  entrevista para firmar. Verificación: las 176 pruebas de admisiones pasan.
+  `pnpm run check:deploy` falló dos veces solo por tiempo agotado (5 s) en
+  pruebas que solas tardan menos de 2 s, también en archivos que este paso
+  no toca (profesores, boletín, listas): es la falla por carga ya conocida.
+  Se verificó por tandas, con 2 procesos a la vez: componentes 130 archivos
+  y 589 pruebas, páginas 44 y 342, el resto 195 y 1695 (contado con el
+  informe JSON de Vitest); en total **2626 pruebas en 369 archivos** (antes
+  2595 en 367), todas pasando. `pnpm run lint` y `pnpm run build` limpios;
+  `git diff --check` limpio.
+- Siguiente acción exacta: el usuario prueba **en local** el E11a, el E11b y
+  el E12 juntos (backend con el E10 y este frontend, con el Colegio Demo o
+  una rama de Neon, nunca con `tenant_2005`: el backend local escribe en la
+  base real): en Admisiones, abrir un aspirante, abrir una sección, chulear,
+  desmarcar, escribir un detalle, guardar y volver a abrir; "Imprimir
+  entrevista" y revisar la hoja (y el PDF); escribir algo sin guardar y
+  comprobar que pide guardar; aprobarlo y matricularlo; en Estudiantes,
+  abrir su ficha y "Ver datos de admisión". Es la primera vez que el bloque
+  pasa por PostgreSQL. Después: commit del E12; para publicar, primero el
+  backend (E10) con Render en **Live** y después este frontend (E11a, E11b y
+  E12). Sigue recomendada
   la prueba de humo del E7 en producción con el Colegio Demo. Si el usuario
   dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde el E5,
   recomendado), ese cambio es de este repo: la función en

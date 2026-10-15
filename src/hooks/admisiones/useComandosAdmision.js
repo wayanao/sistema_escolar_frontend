@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   actualizarAdmision,
   borrarAdmision,
@@ -151,6 +151,16 @@ export default function useComandosAdmision({
     setErroresResultado((actuales) => sinError(actuales, campo));
   }, []);
 
+  // Paso E12: lo impreso debe ser igual a lo guardado. Hay cambios si se tocó
+  // una respuesta del anexo o un dato del aspirante o de la entrevista (el
+  // resultado se guarda aparte y no se imprime).
+  const hayCambiosSinGuardar = useMemo(() => {
+    if (!admision) return false;
+    if (respuestasCambiadas) return true;
+    const guardado = formularioDesdeAdmision(admision);
+    return Object.keys(guardado).some((campo) => guardado[campo] !== formulario[campo]);
+  }, [admision, formulario, respuestasCambiadas]);
+
   // `accion`: "elegir", "marcar", "aparte" o "escribir" (ver `aplicarCambio`).
   const cambiarRespuesta = useCallback((pregunta, accion, valor) => {
     setRespuestas((actuales) => aplicarCambio(actuales, pregunta, accion, valor));
@@ -300,6 +310,7 @@ export default function useComandosAdmision({
     errores,
     respuestas,
     erroresCuestionario,
+    hayCambiosSinGuardar,
     resultado,
     erroresResultado,
     cargandoFicha,

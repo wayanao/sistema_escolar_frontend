@@ -42,6 +42,15 @@ vi.mock("../services/estudiantesObservadorApi", () => ({
 vi.mock("sweetalert2", () => ({
   default: { fire: mocks.swalFire },
 }));
+// Paso E12: el impreso pide la identidad del colegio y la plantilla.
+vi.mock("../hooks/certificadosImpresion/usePrintConfig", () => ({
+  default: () => ({
+    branding: { nombre_institucion: "Colegio de Prueba" },
+    plantilla: { config_json: {} },
+    loading: false,
+    error: null,
+  }),
+}));
 
 import AdmisionesAdmin from "./AdmisionesAdmin";
 
@@ -466,5 +475,44 @@ describe("preguntas del anexo (paso E11)", () => {
 
     const [, cuerpo] = mocks.actualizarAdmision.mock.calls[0];
     expect("cuestionario" in cuerpo).toBe(false);
+  });
+});
+
+describe("imprimir la entrevista (paso E12)", () => {
+  it("imprime lo guardado, con todas las preguntas, y vuelve", async () => {
+    const user = userEvent.setup();
+    mocks.obtenerAdmision.mockResolvedValue({
+      ...DETALLE,
+      anio: 2027,
+      cuestionario: { usa_panal: { respuesta: "no" } },
+    });
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    await screen.findByRole("heading", { name: "Preguntas del anexo" });
+    await user.click(screen.getByRole("button", { name: "Imprimir entrevista" }));
+
+    expect(screen.getByRole("heading", { name: "Entrevista de admisión" })).toBeInTheDocument();
+    const panal = screen.getByRole("group", { name: "18. ¿Usa pañal desechable?" });
+    expect(within(panal).getByRole("img", { name: "No, marcada" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "← Volver" }));
+    expect(screen.queryByRole("heading", { name: "Entrevista de admisión" })).not.toBeInTheDocument();
+  });
+
+  it("con cambios sin guardar no imprime: pide guardar primero", async () => {
+    const user = userEvent.setup();
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    await user.type(await screen.findByLabelText("Quién entrevistó"), "R");
+    await user.click(screen.getByRole("button", { name: "Imprimir entrevista" }));
+
+    expect(
+      await screen.findByText(
+        "Guarda los cambios antes de imprimir: lo que se firma debe ser igual a lo guardado.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Entrevista de admisión" })).not.toBeInTheDocument();
   });
 });

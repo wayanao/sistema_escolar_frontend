@@ -1,5 +1,6 @@
-// Leer las respuestas del anexo de la entrevista de admisión (paso E11b): de
-// lo guardado a frases cortas, por sección, para mostrarlas de solo lectura.
+// Leer las respuestas del anexo de la entrevista de admisión: de lo guardado a
+// frases cortas, por sección, para mostrarlas de solo lectura (paso E11b), y
+// todas las preguntas con sus casillas para el papel (paso E12).
 // Sin HTTP, sin React, sin DOM.
 //
 // Vive en la raíz de `utils/` y no en un módulo porque la lectura de una
@@ -37,6 +38,80 @@ function aTexto(pregunta, valor) {
       return texto === "" ? null : texto;
     }
   }
+}
+
+// --- Impreso de la entrevista (paso E12) -----------------------------------
+
+const valoresMarcados = (pregunta, valor) => {
+  if (!valor) return [];
+  if (pregunta.tipo === "varias") return Array.isArray(valor.marcadas) ? valor.marcadas : [];
+  if (pregunta.tipo === "si_no") return valor.respuesta ? [valor.respuesta] : [];
+  return valor.opcion ? [valor.opcion] : [];
+};
+
+// El renglón para escribir que abre una respuesta (el detalle o lo de
+// "Otro"). Sin respuesta sale en blanco, para llenarlo a mano; con una
+// respuesta que no lo pide, no sale.
+function renglonAparte(pregunta, valor, marcadas) {
+  const configuracion = pregunta.tipo === "si_no" ? pregunta.detalle : pregunta.otro;
+  if (!configuracion) return null;
+  const textoAparte = pregunta.tipo === "si_no" ? valor?.detalle : valor?.otro;
+  if (marcadas.length === 0) return { texto: configuracion.texto, valor: "" };
+  const loPide =
+    pregunta.tipo === "si_no" ? marcadas.includes(configuracion.con) : marcadas.includes("otro");
+  if (!loPide) return null;
+  return {
+    texto: configuracion.texto,
+    valor: typeof textoAparte === "string" ? textoAparte.trim() : "",
+  };
+}
+
+// `numeros`: clave → número de pregunta, para la nota de la que depende de
+// otra ("Solo si la pregunta 25 es «Sí»").
+function preguntaParaImprimir(pregunta, cuestionario, numeros) {
+  const item = {
+    clave: pregunta.clave,
+    texto: `${pregunta.numero}. ${pregunta.texto}`,
+    tipo: pregunta.tipo,
+  };
+  let valor = cuestionario[pregunta.clave];
+  const condicion = pregunta.depende_de;
+  if (condicion) {
+    item.nota = `Solo si la pregunta ${numeros[condicion.pregunta]} es «Sí».`;
+    // Una respuesta guardada que ya no corresponde no se marca.
+    if (cuestionario[condicion.pregunta]?.respuesta !== condicion.respuesta) valor = undefined;
+  }
+  if (Array.isArray(pregunta.opciones)) {
+    const marcadas = valoresMarcados(pregunta, valor);
+    item.opciones = pregunta.opciones.map((opcion) => ({
+      etiqueta: opcion.etiqueta,
+      marcada: marcadas.includes(opcion.valor),
+    }));
+    item.aparte = renglonAparte(pregunta, valor, marcadas);
+  } else {
+    item.valor = valor === undefined || valor === null ? "" : String(valor).trim();
+    item.largo = pregunta.tipo === "texto_largo";
+  }
+  return item;
+}
+
+// `[{ clave, titulo, preguntas: [...] }]` con **todas** las preguntas, para el
+// papel: las casillas con su marca y los renglones con lo escrito o en blanco.
+// Así el impreso sirve también para llenarlo a mano.
+export function entrevistaParaImprimir(catalogo, cuestionario) {
+  if (!Array.isArray(catalogo?.secciones)) return [];
+  const respuestas = cuestionario && typeof cuestionario === "object" ? cuestionario : {};
+  const preguntasDe = (seccion) => (Array.isArray(seccion.preguntas) ? seccion.preguntas : []);
+  const numeros = Object.fromEntries(
+    catalogo.secciones.flatMap(preguntasDe).map((pregunta) => [pregunta.clave, pregunta.numero]),
+  );
+  return catalogo.secciones.map((seccion) => ({
+    clave: seccion.clave,
+    titulo: seccion.titulo,
+    preguntas: preguntasDe(seccion).map((pregunta) =>
+      preguntaParaImprimir(pregunta, respuestas, numeros),
+    ),
+  }));
 }
 
 // `[{ clave, titulo, respuestas: [{ clave, pregunta, respuesta }] }]`: solo
