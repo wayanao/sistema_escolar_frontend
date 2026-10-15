@@ -1,5 +1,6 @@
 import { RESULTADO_APROBADO, etiquetaResultado } from "../../utils/admisiones/admisiones";
 import SpinnerView from "../anioLectivo/SpinnerView";
+import CuestionarioAdmisionView from "./CuestionarioAdmisionView";
 import FormularioAspiranteView from "./FormularioAspiranteView";
 import FormularioEntrevistaView from "./FormularioEntrevistaView";
 import ResultadoAdmisionView from "./ResultadoAdmisionView";
@@ -11,9 +12,12 @@ function avisoSoloConsulta(admision) {
   return "El año ya no está en preparación. Esta admisión es de solo consulta.";
 }
 
-// La ficha de un aspirante (paso E4): sus datos, la entrevista y el
-// resultado. Qué se puede cambiar lo dice el backend (`editable`); sin eso,
-// todo queda de solo consulta. Solo presenta.
+const SIN_PREGUNTAS = [];
+const SIN_RESPUESTAS = {};
+
+// La ficha de un aspirante (paso E4): sus datos, la entrevista, las preguntas
+// del anexo (paso E11) y el resultado. Qué se puede cambiar lo dice el
+// backend (`editable`); sin eso, todo queda de solo consulta. Solo presenta.
 export default function FichaAdmisionView({
   admision,
   formulario,
@@ -32,6 +36,12 @@ export default function FichaAdmisionView({
   onCerrar,
   onMatricular,
   abriendoMatricula = false,
+  // Paso E11. Sin `cuestionario`, la ficha queda como antes.
+  cuestionario = SIN_PREGUNTAS,
+  respuestas = SIN_RESPUESTAS,
+  erroresCuestionario = SIN_RESPUESTAS,
+  errorCuestionario = "",
+  onCambiarRespuesta,
 }) {
   const editable = admision.editable === true;
   // El resultado guardado, no el que se está eligiendo: el backend solo
@@ -101,6 +111,14 @@ export default function FichaAdmisionView({
           onCambiar={onCambiar}
         />
         <FormularioEntrevistaView formulario={formulario} deshabilitado={!editable} onCambiar={onCambiar} />
+        <CuestionarioAdmisionView
+          secciones={cuestionario}
+          respuestas={respuestas}
+          errores={erroresCuestionario}
+          error={errorCuestionario}
+          deshabilitado={!editable}
+          onCambiarRespuesta={onCambiarRespuesta}
+        />
         {editable && (
           <button
             type="submit"

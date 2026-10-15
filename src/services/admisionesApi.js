@@ -46,6 +46,13 @@ export async function borrarAdmision(admisionId) {
   return data;
 }
 
+// Paso E11: las preguntas del anexo, `{ secciones: [...] }`. La lista vive en
+// el backend: el formulario se arma con ella.
+export async function obtenerCuestionarioAdmision({ signal } = {}) {
+  const { data } = await getConSignal("/admisiones/cuestionario", signal);
+  return data;
+}
+
 // Paso E5: la ficha del estudiante, el mismo cuerpo de `POST /estudiantes`.
 // Solo un aprobado, una vez. Responde `{ mensaje, estudiante_id,
 // matricula_id, anio_lectivo_id, curso_id, estudiante_existente, admision }`.

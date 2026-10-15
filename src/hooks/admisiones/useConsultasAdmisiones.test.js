@@ -4,10 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   listarAdmisiones: vi.fn(),
   listarCursos: vi.fn(),
+  obtenerCuestionarioAdmision: vi.fn(),
 }));
 
 vi.mock("../../services/admisionesApi", () => ({
   listarAdmisiones: mocks.listarAdmisiones,
+  obtenerCuestionarioAdmision: mocks.obtenerCuestionarioAdmision,
 }));
 vi.mock("../../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
@@ -112,5 +114,51 @@ describe("useConsultasAdmisiones", () => {
     await act(() => result.current.recargar());
 
     expect(mocks.listarAdmisiones).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("las preguntas del anexo (paso E11)", () => {
+  const SECCIONES = [{ clave: "salud", titulo: "Salud", preguntas: [] }];
+
+  it("solo se piden si se piden: la tarjeta de Años lectivos no las necesita", async () => {
+    const { result } = renderHook(() => useConsultasAdmisiones(3));
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    expect(mocks.obtenerCuestionarioAdmision).not.toHaveBeenCalled();
+    expect(result.current.cuestionario).toEqual([]);
+  });
+
+  it("se piden una sola vez, aunque cambie el año", async () => {
+    mocks.obtenerCuestionarioAdmision.mockResolvedValue({ secciones: SECCIONES });
+
+    const { result, rerender } = renderHook(
+      ({ anio }) => useConsultasAdmisiones(anio, { cargarCuestionario: true }),
+      { initialProps: { anio: 3 } },
+    );
+    await waitFor(() => expect(result.current.cuestionario).toEqual(SECCIONES));
+    rerender({ anio: 4 });
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+
+    expect(mocks.obtenerCuestionarioAdmision).toHaveBeenCalledTimes(1);
+    expect(mocks.obtenerCuestionarioAdmision).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+    });
+    expect(result.current.errorCuestionario).toBe("");
+  });
+
+  it("si no llegan, lo dice sin tapar la lista", async () => {
+    mocks.obtenerCuestionarioAdmision.mockRejectedValue(new Error("red"));
+
+    const { result } = renderHook(() =>
+      useConsultasAdmisiones(3, { cargarCuestionario: true }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.errorCuestionario).toBe(
+        "No se pudieron cargar las preguntas del anexo. Lo demás de la entrevista sí se puede guardar.",
+      ),
+    );
+    expect(result.current.cuestionario).toEqual([]);
+    expect(result.current.error).toBe("");
   });
 });

@@ -325,3 +325,142 @@ describe("matricular desde la ficha (paso E5)", () => {
     expect(result.current.mensaje).toBe("");
   });
 });
+
+describe("preguntas del anexo (paso E11)", () => {
+  const NUMERO_HERMANOS = {
+    numero: 2,
+    clave: "numero_hermanos",
+    texto: "Número de hermanos",
+    tipo: "numero",
+    minimo: 0,
+    maximo: 20,
+  };
+  const USA_PANAL = {
+    numero: 18,
+    clave: "usa_panal",
+    texto: "¿Usa pañal desechable?",
+    tipo: "si_no",
+    opciones: [
+      { valor: "si", etiqueta: "Sí" },
+      { valor: "no", etiqueta: "No" },
+    ],
+  };
+  const SECCIONES = [
+    { clave: "familia", titulo: "Familia", preguntas: [NUMERO_HERMANOS] },
+    { clave: "salud", titulo: "Salud", preguntas: [USA_PANAL] },
+  ];
+
+  function montarConPreguntas() {
+    return renderHook(() =>
+      useComandosAdmision({ anioLectivoId: 3, recargar, cuestionario: SECCIONES }),
+    );
+  }
+
+  it("al abrir, trae las respuestas guardadas de la admisión", async () => {
+    mocks.obtenerAdmision.mockResolvedValue({
+      ...DETALLE,
+      cuestionario: { numero_hermanos: 2 },
+    });
+    const { result } = montarConPreguntas();
+
+    await abrirFicha(result);
+
+    expect(result.current.respuestas).toEqual({ numero_hermanos: "2" });
+    expect(result.current.erroresCuestionario).toEqual({});
+  });
+
+  it("si no se tocan las preguntas, el cuerpo es el de siempre: sin cuestionario", async () => {
+    mocks.obtenerAdmision.mockResolvedValue({ ...DETALLE, cuestionario: { numero_hermanos: 2 } });
+    mocks.actualizarAdmision.mockResolvedValue(DETALLE);
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+    act(() => result.current.cambiarCampo("entrevistador", "Psicóloga Ruiz"));
+
+    await act(() => result.current.guardarFicha());
+
+    const [, cuerpo] = mocks.actualizarAdmision.mock.calls[0];
+    expect("cuestionario" in cuerpo).toBe(false);
+  });
+
+  it("si se tocan, envía el bloque entero y limpio", async () => {
+    mocks.obtenerAdmision.mockResolvedValue({ ...DETALLE, cuestionario: { numero_hermanos: 2 } });
+    const guardado = {
+      ...DETALLE,
+      cuestionario: { numero_hermanos: 2, usa_panal: { respuesta: "no" } },
+    };
+    mocks.actualizarAdmision.mockResolvedValue(guardado);
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+
+    act(() => result.current.cambiarRespuesta(USA_PANAL, "elegir", "no"));
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.guardarFicha();
+    });
+
+    expect(respuesta).toEqual({ estado: "exito" });
+    expect(mocks.actualizarAdmision).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        nombre: "Lina",
+        cuestionario: { numero_hermanos: 2, usa_panal: { respuesta: "no" } },
+      }),
+    );
+    expect(result.current.respuestas).toEqual({
+      numero_hermanos: "2",
+      usa_panal: { respuesta: "no" },
+    });
+  });
+
+  it("después de guardar, volver a guardar sin tocar no lo manda otra vez", async () => {
+    mocks.actualizarAdmision.mockResolvedValue({ ...DETALLE, cuestionario: { usa_panal: { respuesta: "si" } } });
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+    act(() => result.current.cambiarRespuesta(USA_PANAL, "elegir", "si"));
+    await act(() => result.current.guardarFicha());
+
+    await act(() => result.current.guardarFicha());
+
+    const [, segundo] = mocks.actualizarAdmision.mock.calls[1];
+    expect("cuestionario" in segundo).toBe(false);
+  });
+
+  it("un número fuera de rango no llama al backend y dice cuál pregunta", async () => {
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+    act(() => result.current.cambiarRespuesta(NUMERO_HERMANOS, "escribir", "25"));
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.guardarFicha();
+    });
+
+    expect(respuesta).toEqual({ estado: "validacion" });
+    expect(mocks.actualizarAdmision).not.toHaveBeenCalled();
+    expect(result.current.erroresCuestionario).toEqual({
+      numero_hermanos: "Pregunta 2: escribe un número entero entre 0 y 20.",
+    });
+    expect(result.current.error).toBe("Pregunta 2: escribe un número entero entre 0 y 20.");
+  });
+
+  it("corregir la respuesta quita su error", async () => {
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+    act(() => result.current.cambiarRespuesta(NUMERO_HERMANOS, "escribir", "25"));
+    await act(() => result.current.guardarFicha());
+
+    act(() => result.current.cambiarRespuesta(NUMERO_HERMANOS, "escribir", "2"));
+
+    expect(result.current.erroresCuestionario).toEqual({});
+  });
+
+  it("cerrar olvida las respuestas", async () => {
+    mocks.obtenerAdmision.mockResolvedValue({ ...DETALLE, cuestionario: { numero_hermanos: 2 } });
+    const { result } = montarConPreguntas();
+    await abrirFicha(result);
+
+    act(() => result.current.cerrar());
+
+    expect(result.current.respuestas).toEqual({});
+  });
+});

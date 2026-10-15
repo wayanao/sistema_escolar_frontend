@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   matricularAdmision: vi.fn(),
   obtenerEstudiante: vi.fn(),
   obtenerAdmision: vi.fn(),
+  obtenerCuestionarioAdmision: vi.fn(),
   registrarAdmision: vi.fn(),
   swalFire: vi.fn(),
 }));
@@ -27,6 +28,7 @@ vi.mock("../services/admisionesApi", () => ({
   listarAdmisiones: mocks.listarAdmisiones,
   matricularAdmision: mocks.matricularAdmision,
   obtenerAdmision: mocks.obtenerAdmision,
+  obtenerCuestionarioAdmision: mocks.obtenerCuestionarioAdmision,
   registrarAdmision: mocks.registrarAdmision,
 }));
 vi.mock("../services/cursosApi", () => ({
@@ -73,6 +75,26 @@ const DETALLE = {
   aviso_documento: null,
 };
 
+// Paso E11: una lista corta, con la forma de `GET /admisiones/cuestionario`.
+const CUESTIONARIO = [
+  {
+    clave: "salud",
+    titulo: "Salud",
+    preguntas: [
+      {
+        numero: 18,
+        clave: "usa_panal",
+        texto: "¿Usa pañal desechable?",
+        tipo: "si_no",
+        opciones: [
+          { valor: "si", etiqueta: "Sí" },
+          { valor: "no", etiqueta: "No" },
+        ],
+      },
+    ],
+  },
+];
+
 function pintar() {
   return render(
     <MemoryRouter>
@@ -87,6 +109,7 @@ beforeEach(() => {
   mocks.listarAdmisiones.mockResolvedValue(LISTA);
   mocks.listarCursos.mockResolvedValue([{ id: 20, nombre: "PRIMERO A", jornada: "Mañana" }]);
   mocks.obtenerAdmision.mockResolvedValue(DETALLE);
+  mocks.obtenerCuestionarioAdmision.mockResolvedValue({ secciones: CUESTIONARIO });
   mocks.swalFire.mockResolvedValue({ isConfirmed: true });
 });
 
@@ -374,5 +397,74 @@ describe("matricular desde la admisión (paso E5)", () => {
 
     expect(mocks.matricularAdmision).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Matricular" })).toBeInTheDocument();
+  });
+
+});
+
+describe("preguntas del anexo (paso E11)", () => {
+  it("pide la lista de preguntas una sola vez al abrir la página", async () => {
+    const user = userEvent.setup();
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    expect(await screen.findByRole("heading", { name: "Preguntas del anexo" })).toBeInTheDocument();
+
+    expect(mocks.obtenerCuestionarioAdmision).toHaveBeenCalledTimes(1);
+  });
+
+  it("guardar sin tocar las preguntas manda el cuerpo de siempre", async () => {
+    const user = userEvent.setup();
+    mocks.actualizarAdmision.mockResolvedValue(DETALLE);
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    await screen.findByRole("heading", { name: "Preguntas del anexo" });
+    await user.click(screen.getByRole("button", { name: "Guardar datos y entrevista" }));
+
+    const [, cuerpo] = mocks.actualizarAdmision.mock.calls[0];
+    expect("cuestionario" in cuerpo).toBe(false);
+  });
+
+  it("chulea una respuesta del anexo y la guarda con la entrevista", async () => {
+    const user = userEvent.setup();
+    mocks.actualizarAdmision.mockResolvedValue({
+      ...DETALLE,
+      cuestionario: { usa_panal: { respuesta: "no" } },
+    });
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    await user.click(await screen.findByRole("button", { name: /^Salud/ }));
+    const pregunta = screen.getByRole("group", { name: "18. ¿Usa pañal desechable?" });
+    await user.click(within(pregunta).getByRole("radio", { name: "No" }));
+    expect(within(pregunta).getByRole("radio", { name: "No" })).toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Guardar datos y entrevista" }));
+
+    expect(mocks.actualizarAdmision).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        nombre: "Lina",
+        cuestionario: { usa_panal: { respuesta: "no" } },
+      }),
+    );
+    expect(
+      await screen.findByText("Se guardaron los datos y la entrevista de Lina Díaz."),
+    ).toBeInTheDocument();
+  });
+
+  it("si la lista de preguntas no llega, lo demás de la entrevista se puede guardar", async () => {
+    const user = userEvent.setup();
+    mocks.obtenerCuestionarioAdmision.mockRejectedValue(new Error("red"));
+    mocks.actualizarAdmision.mockResolvedValue(DETALLE);
+    pintar();
+
+    await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
+    expect(
+      await screen.findByText(/No se pudieron cargar las preguntas del anexo/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Guardar datos y entrevista" }));
+
+    const [, cuerpo] = mocks.actualizarAdmision.mock.calls[0];
+    expect("cuestionario" in cuerpo).toBe(false);
   });
 });

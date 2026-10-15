@@ -9,6 +9,12 @@ import {
 } from "../../services/admisionesApi";
 import { etiquetaResultado, mensajeDeErrorAdmision } from "../../utils/admisiones/admisiones";
 import {
+  aplicarCambio,
+  construirCuestionario,
+  respuestasDesdeAdmision,
+  validarCuestionario,
+} from "../../utils/admisiones/cuestionario";
+import {
   construirCuerpoAdmision,
   construirCuerpoAspirante,
   construirCuerpoResultado,
@@ -40,11 +46,24 @@ const sinError = (errores, campo) => {
 // backend) o "error" (el backend lo rechazó; su mensaje queda en `error`).
 // Las reglas las decide el backend; aquí solo se evita mandar lo que él
 // rechazaría seguro.
-export default function useComandosAdmision({ anioLectivoId, recargar }) {
+//
+// Preguntas del anexo (paso E11): `cuestionario` es la lista que manda el
+// backend. Las respuestas solo viajan en el `PUT` si se tocaron: si no, el
+// cuerpo es el de siempre y el backend las deja como estaban.
+const SIN_PREGUNTAS = Object.freeze([]);
+
+export default function useComandosAdmision({
+  anioLectivoId,
+  recargar,
+  cuestionario = SIN_PREGUNTAS,
+}) {
   const [modo, setModo] = useState(null);
   const [admision, setAdmision] = useState(null);
   const [formulario, setFormulario] = useState(crearFormularioAdmision);
   const [errores, setErrores] = useState({});
+  const [respuestas, setRespuestas] = useState({});
+  const [respuestasCambiadas, setRespuestasCambiadas] = useState(false);
+  const [erroresCuestionario, setErroresCuestionario] = useState({});
   const [resultado, setResultado] = useState(() => resultadoDesdeAdmision(null));
   const [erroresResultado, setErroresResultado] = useState({});
   const [cargandoFicha, setCargandoFicha] = useState(false);
@@ -59,8 +78,11 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     setAdmision(detalle);
     setFormulario(formularioDesdeAdmision(detalle));
     setResultado(resultadoDesdeAdmision(detalle));
+    setRespuestas(respuestasDesdeAdmision(detalle));
+    setRespuestasCambiadas(false);
     setErrores({});
     setErroresResultado({});
+    setErroresCuestionario({});
   }, []);
 
   const limpiarAvisos = () => {
@@ -74,8 +96,11 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     setModo(null);
     setAdmision(null);
     setFormulario(crearFormularioAdmision());
+    setRespuestas({});
+    setRespuestasCambiadas(false);
     setErrores({});
     setErroresResultado({});
+    setErroresCuestionario({});
     setCargandoFicha(false);
   }, []);
 
@@ -126,6 +151,13 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     setErroresResultado((actuales) => sinError(actuales, campo));
   }, []);
 
+  // `accion`: "elegir", "marcar", "aparte" o "escribir" (ver `aplicarCambio`).
+  const cambiarRespuesta = useCallback((pregunta, accion, valor) => {
+    setRespuestas((actuales) => aplicarCambio(actuales, pregunta, accion, valor));
+    setRespuestasCambiadas(true);
+    setErroresCuestionario((actuales) => sinError(actuales, pregunta.clave));
+  }, []);
+
   const registrar = async () => {
     limpiarAvisos();
     const encontrados = validarAspirante(formulario);
@@ -157,9 +189,25 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     setErrores(encontrados);
     if (Object.keys(encontrados).length > 0) return { estado: "validacion" };
 
+    // Sin la lista no hay cómo armar el bloque: no se manda, para no borrar
+    // las respuestas guardadas con uno vacío.
+    const mandarRespuestas = respuestasCambiadas && cuestionario.length > 0;
+    const enCuestionario = mandarRespuestas ? validarCuestionario(respuestas, cuestionario) : {};
+    setErroresCuestionario(enCuestionario);
+    const primerError = Object.values(enCuestionario)[0];
+    // La pregunta puede estar en una sección cerrada: el aviso de arriba
+    // dice cuál es.
+    if (primerError) {
+      setError(primerError);
+      return { estado: "validacion" };
+    }
+
+    const cuerpo = construirCuerpoAdmision(formulario);
+    if (mandarRespuestas) cuerpo.cuestionario = construirCuestionario(respuestas, cuestionario);
+
     setGuardando(true);
     try {
-      const detalle = await actualizarAdmision(admision.id, construirCuerpoAdmision(formulario));
+      const detalle = await actualizarAdmision(admision.id, cuerpo);
       mostrarAdmision(detalle);
       setMensaje(`Se guardaron los datos y la entrevista de ${nombreDe(detalle)}.`);
       void recargar();
@@ -250,6 +298,8 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     admision,
     formulario,
     errores,
+    respuestas,
+    erroresCuestionario,
     resultado,
     erroresResultado,
     cargandoFicha,
@@ -263,6 +313,7 @@ export default function useComandosAdmision({ anioLectivoId, recargar }) {
     cerrar,
     cambiarCampo,
     cambiarResultado,
+    cambiarRespuesta,
     registrar,
     guardarFicha,
     guardarResultado,

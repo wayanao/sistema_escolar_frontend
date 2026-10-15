@@ -9,7 +9,9 @@
   `crearEstudianteEnPreparacion` (propuesto para el E7). **Ampliación del
   2026-10-14: las preguntas del anexo del colegio con casillas para
   chulear.** Diseño (E8) terminado; a este repo le toca el **E11** (ver
-  "Preguntas del anexo (paso E11)").
+  "Preguntas del anexo (paso E11)"), dividido en **E11a** (la página de
+  admisiones: escrito el 2026-10-14, sin commit) y **E11b** (las respuestas
+  en la ficha del estudiante, pendiente).
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -204,7 +206,8 @@ principal).
 | E5 | Matricular desde una admisión aprobada; quitar "Crear estudiante en {año}" de Estudiantes y de "Continuar la preparación". **Hecho el 2026-10-13** (`ae5240a`); en producción el 2026-10-14 |
 | E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Hecho el 2026-10-13** (`f50ef7b`); en producción el 2026-10-14 |
 | E8 | Diseño de las preguntas del anexo (solo documentos, en los dos repos). **Hecho el 2026-10-14** |
-| E11 | Preguntas del anexo: secciones, casillas, ayuda ampliada de "No aprobado" y respuestas en la ficha. Después de que el E10 del backend esté **Live** |
+| E11a | Preguntas del anexo en la página de admisiones: secciones, casillas, guardar con la entrevista y ayuda ampliada de "No aprobado". **Escrito el 2026-10-14, sin commit**; se publica después de que el E10 del backend esté **Live** |
+| E11b | Las respuestas en "Datos de admisión" de la ficha del estudiante (`GET /estudiantes/{estudiante_id}/admision`). Pendiente |
 | E12 | **Opcional, solo si el usuario lo pide:** imprimir la entrevista con las firmas (`DocumentoImprimible`) |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
@@ -443,6 +446,75 @@ pantalla oculta botones con `editable`, no con su propia regla.
   archivos**, lint y build limpios; en el backend, `scripts/verify.py` →
   2429 pasan; `git diff --check` limpio en los dos repos.
 
+## Avance del paso E11a (2026-10-14)
+
+- Autorizado por el usuario con "continúa", respondiendo a la propuesta del
+  E11 como único paso siguiente. Al iniciar, los dos repos en `main` y
+  limpios: backend con el E10 en el commit `eb53e2e`, sin subir; este repo
+  con `f8856c2` (documentos), sin subir. El asistente dividió el E11 en E11a
+  (esta página) y E11b (la ficha del estudiante, otro módulo), para revisar
+  cada parte por separado.
+- Línea base antes de tocar: 122 pruebas en los 10 archivos de admisiones y
+  Años lectivos, todas pasando.
+- Pruebas primero, 53 nuevas; antes del código fallaban 17 y no cargaban
+  los dos archivos nuevos:
+  - `utils/admisiones/cuestionario.test.js` (nuevo): leer la lista y las
+    respuestas guardadas; chulear, cambiar y desmarcar al tocar otra vez; el
+    detalle y "Otro" que se pierden al cambiar; "Ninguno" que borra las
+    demás y otra que quita "Ninguno"; la 26 solo con la 25 en "Sí"; cuántas
+    van respondidas; el bloque que se envía (recortado, en orden, sin lo
+    vacío ni lo que ya no corresponde); la revisión de los números.
+  - `services/admisionesApi.test.js`: la ruta de la lista, con y sin señal.
+  - `useConsultasAdmisiones.test.js`: la lista solo si se pide (la tarjeta
+    de Años lectivos no la pide), una sola vez aunque cambie el año, y su
+    error sin tapar la lista de aspirantes.
+  - `useComandosAdmision.test.js`: las respuestas al abrir; **sin tocarlas,
+    el cuerpo del `PUT` es el de siempre**; tocadas, el bloque entero y
+    limpio; guardar otra vez sin tocar no lo repite; un número fuera de rango
+    no llama al backend y dice cuál pregunta; corregirlo quita el error;
+    cerrar las olvida.
+  - `CuestionarioAdmisionView.test.jsx` (nuevo): secciones cerradas con
+    "x de y"; abrir; chulear; tocar otra vez la marcada; el detalle y "Otro"
+    solo cuando corresponden; números y textos con sus límites; la 26; solo
+    consulta; una sección con error se abre sola; la lista que no llegó.
+  - `FichaAdmisionView.test.jsx` y `pages/AdmisionesAdmin.test.jsx`: las
+    preguntas dentro del formulario; la ayuda ampliada; la lista pedida una
+    vez; guardar sin tocar no manda el bloque; chulear y guardar lo manda; sin
+    lista, lo demás se guarda igual. **Ajustado a propósito:** el doble del
+    servicio de la página (y el del hook de consultas) ahora incluye
+    `obtenerCuestionarioAdmision`.
+- Código:
+  - `services/admisionesApi.js`: `obtenerCuestionarioAdmision`.
+  - `utils/admisiones/cuestionario.js` (nuevo): `normalizarCuestionario`,
+    `respuestasDesdeAdmision`, `aplicarCambio`, `preguntaVisible`,
+    `contarRespondidas`, `construirCuestionario` y `validarCuestionario`.
+  - `hooks/admisiones/useConsultasAdmisiones.js`: `cargarCuestionario`,
+    `cuestionario` y `errorCuestionario`.
+  - `hooks/admisiones/useComandosAdmision.js`: recibe `cuestionario`;
+    `respuestas`, `erroresCuestionario` y `cambiarRespuesta`; `guardarFicha`
+    agrega el bloque solo si se tocó y la lista llegó.
+  - `components/admisiones/CuestionarioAdmisionView.jsx` y
+    `PreguntaCuestionarioView.jsx` (nuevos); `FichaAdmisionView.jsx` (las
+    monta dentro del formulario, con valores por defecto: sin lista queda
+    como antes); `ResultadoAdmisionView.jsx` (la ayuda, decisión 14);
+    `pages/AdmisionesAdmin.jsx` (el cableado).
+- Decisiones de detalle (dentro del diseño):
+  - Las secciones son botones con `aria-expanded`, no `<details>`: se
+    comportan igual en todos los navegadores y en las pruebas. Empiezan
+    cerradas; el título dice "x de y" respondidas, y una sección con un error
+    se abre sola. El aviso de arriba nombra la pregunta del error, por si
+    está lejos.
+  - Los cuadritos: el `input` real queda oculto a la vista (`sr-only`) y se
+    dibuja un cuadro con ✓ (Tailwind `peer-checked`), con foco visible y
+    al menos 44 px de alto para el dedo.
+  - El texto "Ninguna es obligatoria. Para quitar una respuesta, toca otra
+    vez la casilla marcada." va arriba de las secciones.
+  - Los números se escriben en un cuadro numérico y se revisan antes de
+    enviar (entero y en su rango); lo demás lo limitan los propios cuadros
+    (`maxLength`).
+- Verificación en "Entrega para el siguiente chat". **No se ha visto en un
+  navegador ni contra un backend real.**
+
 ## Entrega para el siguiente chat
 
 - Estado al 2026-10-14: **E4 a E6 en producción**, según el usuario, igual
@@ -456,10 +528,21 @@ pantalla oculta botones con `editable`, no con su propia regla.
   `cuestionario`) y el **E10** quedó escrito en el backend, sin commit. Su
   contrato está arriba, en "Contrato del backend para el E11". Aquí solo
   cambió este documento.
-- Siguiente acción exacta: la del documento principal (el usuario revisa la
-  lista de las 55 preguntas y autoriza el E9 del backend). Sigue recomendada
-  la prueba de humo del E7 en producción con el Colegio Demo. Si el
-  usuario dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde
-  el E5, recomendado), ese cambio es de este repo: la función en
+- 2026-10-14: **E11a escrito, sin commit** (ver su avance): las preguntas del
+  anexo en la página de admisiones. Verificación: las 175 pruebas de
+  admisiones y Años lectivos pasan (122 antes); `pnpm run check:deploy` →
+  **2577 pruebas en 366 archivos** (antes 2524 en 364), lint y build
+  limpios, en una sola corrida; `git diff --check` limpio.
+- Siguiente acción exacta: el usuario revisa el E11a **en local** (backend
+  con el E10 y este frontend, con el Colegio Demo o una rama de Neon, nunca
+  con `tenant_2005`: el backend local escribe en la base real): abrir un
+  aspirante, abrir una sección, chulear, desmarcar, escribir un detalle,
+  guardar y volver a abrir. Es la primera vez que el bloque pasa por
+  PostgreSQL. Después hace el commit. Para publicar: primero el backend (E10)
+  con Render en **Live**, después este frontend. Luego, con su autorización,
+  el **E11b** (las respuestas en la ficha del estudiante). Sigue recomendada
+  la prueba de humo del E7 en producción con el Colegio Demo. Si el usuario
+  dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde el E5,
+  recomendado), ese cambio es de este repo: la función en
   `services/aniosLectivosApi.js` y su prueba.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_ENTREVISTA_ADMISION.md`.

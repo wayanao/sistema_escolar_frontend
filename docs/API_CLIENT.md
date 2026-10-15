@@ -215,12 +215,22 @@ encapsula:
 ```text
 GET /anios-lectivos/{anio_lectivo_id}/admisiones
 POST /anios-lectivos/{anio_lectivo_id}/admisiones
+GET /admisiones/cuestionario
 GET /admisiones/{admision_id}
 PUT /admisiones/{admision_id}
 PUT /admisiones/{admision_id}/resultado
 DELETE /admisiones/{admision_id}
 POST /admisiones/{admision_id}/matricular
 ```
+
+- Paso E11a (2026-10-14): `GET /admisiones/cuestionario` trae la lista de las
+  preguntas del anexo. La página de admisiones la pide **una vez** al abrirse
+  (`cargarCuestionario`); la tarjeta de Años lectivos no la pide. En
+  `PUT /admisiones/{admision_id}`, `cuestionario` viaja **solo si se tocó
+  alguna respuesta**: si no, el cuerpo es el de siempre y el backend deja las
+  respuestas como estaban. Tampoco viaja si la lista no llegó, para no
+  mandar un bloque vacío que las borraría. El bloque lo arma
+  `utils/admisiones/cuestionario.js`.
 
 - Todas son solo del admin. Contrato completo (cuerpos, respuestas, errores,
   `editable` y `aviso_documento`) en

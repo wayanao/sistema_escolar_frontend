@@ -4,7 +4,9 @@ import { claseCampo } from "./CamposAdmision";
 
 // El resultado de la entrevista (paso E4). "No aprobado" exige el motivo; el
 // backend lo vuelve a exigir. La ayuda recuerda la regla de no discriminación
-// (Corte Constitucional, T-510 de 1994). Solo presenta.
+// (Corte Constitucional, T-510 de 1994) y, desde el paso E11 (decisión 14),
+// que tampoco valen un diagnóstico, una discapacidad, la salud ni la
+// situación familiar (Decreto 1421 de 2017). Solo presenta.
 export default function ResultadoAdmisionView({
   resultado,
   errores,
@@ -50,7 +52,8 @@ export default function ResultadoAdmisionView({
         <p id="admision-motivo_resultado-ayuda" className="mt-1 text-sm text-gray-600">
           Obligatorio si no se aprueba. Escribe un motivo objetivo (por ejemplo, cupo o
           requisitos académicos): la admisión no puede negarse por religión, origen o
-          composición de la familia.
+          composición de la familia, ni por un diagnóstico, una discapacidad, la salud o la
+          situación familiar.
         </p>
         {errorMotivo && <p className="mt-1 text-sm text-red-700">{errorMotivo}</p>}
       </fieldset>

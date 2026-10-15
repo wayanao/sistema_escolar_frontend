@@ -20,6 +20,7 @@ import {
   listarAdmisiones,
   matricularAdmision,
   obtenerAdmision,
+  obtenerCuestionarioAdmision,
   registrarAdmision,
 } from "./admisionesApi";
 
@@ -111,5 +112,19 @@ describe("contrato HTTP de admisiones", () => {
     apiMock.post.mockRejectedValue(error);
 
     await expect(registrarAdmision(3, {})).rejects.toBe(error);
+  });
+
+  it("pide la lista de preguntas del anexo (paso E11)", async () => {
+    const lista = { secciones: [] };
+    apiMock.get.mockResolvedValue({ data: lista });
+    const controller = new AbortController();
+
+    await expect(obtenerCuestionarioAdmision()).resolves.toBe(lista);
+    await obtenerCuestionarioAdmision({ signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/admisiones/cuestionario");
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/admisiones/cuestionario", {
+      signal: controller.signal,
+    });
   });
 });

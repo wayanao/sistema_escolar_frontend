@@ -171,4 +171,67 @@ describe("matricular desde la ficha (paso E5)", () => {
 
     expect(screen.getByRole("button", { name: "Abriendo la ficha..." })).toBeDisabled();
   });
+
+});
+
+describe("preguntas del anexo (paso E11)", () => {
+  const CUESTIONARIO = [
+    {
+      clave: "salud",
+      titulo: "Salud",
+      preguntas: [
+        {
+          numero: 18,
+          clave: "usa_panal",
+          texto: "¿Usa pañal desechable?",
+          tipo: "si_no",
+          opciones: [
+            { valor: "si", etiqueta: "Sí" },
+            { valor: "no", etiqueta: "No" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  it("las preguntas del anexo van dentro del formulario, antes de guardar", async () => {
+    const user = userEvent.setup();
+    const onCambiarRespuesta = vi.fn();
+    pintar({}, { cuestionario: CUESTIONARIO, respuestas: {}, onCambiarRespuesta });
+
+    expect(screen.getByRole("heading", { name: "Preguntas del anexo" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^Salud/ }));
+    await user.click(screen.getByRole("radio", { name: "No" }));
+
+    expect(onCambiarRespuesta).toHaveBeenCalledWith(CUESTIONARIO[0].preguntas[0], "elegir", "no");
+  });
+
+  it("sin la lista de preguntas, la ficha queda como antes", () => {
+    pintar();
+
+    expect(screen.queryByRole("heading", { name: "Preguntas del anexo" })).not.toBeInTheDocument();
+  });
+
+  it("de solo consulta, las respuestas del anexo tampoco se tocan", async () => {
+    const user = userEvent.setup();
+    pintar(
+      { resultado: "aprobado", matriculada: true, editable: false },
+      { cuestionario: CUESTIONARIO, respuestas: { usa_panal: { respuesta: "no" } } },
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Salud/ }));
+
+    expect(screen.getByRole("radio", { name: "No" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "No" })).toBeDisabled();
+  });
+
+  it("la ayuda de No aprobado también nombra diagnóstico, discapacidad, salud y familia", () => {
+    pintar();
+
+    expect(
+      screen.getByText(
+        /ni por un diagnóstico, una discapacidad, la salud o la situación familiar/,
+      ),
+    ).toBeInTheDocument();
+  });
 });

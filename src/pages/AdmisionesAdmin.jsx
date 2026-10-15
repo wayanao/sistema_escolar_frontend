@@ -16,7 +16,8 @@ import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useForm
 import { datosParaMatricular } from "../utils/admisiones/formularios";
 import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
-// Raíz de composición de Admisiones (entrevista de admisión, pasos E4 y E5).
+// Raíz de composición de Admisiones (entrevista de admisión, pasos E4, E5 y
+// E11: las preguntas del anexo, cuya lista se pide una vez al abrir).
 // Ver docs/funcionalidades/ENTREVISTA_ADMISION.md.
 //
 // Trabaja siempre con el año en preparación, no con el que esté elegido en el
@@ -32,8 +33,15 @@ function AdmisionesAdmin() {
     [anios],
   );
   const anioLectivoId = anioPreparacion?.id ?? null;
-  const consultas = useConsultasAdmisiones(anioLectivoId, { cargarCursos: true });
-  const comandos = useComandosAdmision({ anioLectivoId, recargar: consultas.recargar });
+  const consultas = useConsultasAdmisiones(anioLectivoId, {
+    cargarCursos: true,
+    cargarCuestionario: true,
+  });
+  const comandos = useComandosAdmision({
+    anioLectivoId,
+    recargar: consultas.recargar,
+    cuestionario: consultas.cuestionario,
+  });
   const fichaEstudiante = useFormularioEstudianteAdmin({
     crearEstudianteFn: comandos.matricularConFicha,
   });
@@ -160,6 +168,11 @@ function AdmisionesAdmin() {
         onCerrar={cerrar}
         onMatricular={() => void abrirMatricula()}
         abriendoMatricula={abriendoMatricula}
+        cuestionario={consultas.cuestionario}
+        respuestas={comandos.respuestas}
+        erroresCuestionario={comandos.erroresCuestionario}
+        errorCuestionario={consultas.errorCuestionario}
+        onCambiarRespuesta={comandos.cambiarRespuesta}
       />
     ) : (
       <p className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
