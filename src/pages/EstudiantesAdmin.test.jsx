@@ -61,6 +61,12 @@ function prepararApi() {
       });
     }
     if (url === "/estudiantes/11/deudas") return Promise.resolve({ data: DEUDAS_ANA });
+    // Paso E11b: Ana no entró por una admisión.
+    if (url === "/estudiantes/11/admision") {
+      return Promise.resolve({
+        data: { admision_id: null, anio: null, fecha_entrevista: null, cuestionario: {} },
+      });
+    }
     if (url === "/observador/11") {
       return Promise.resolve({ data: { nivel: "primaria", anotaciones: [] } });
     }
@@ -277,7 +283,9 @@ describe("EstudiantesAdmin", () => {
     });
   });
 
-  it("la ficha muestra los datos de admisión solo si se piden (una petición más)", async () => {
+  // Ajustada a propósito en el paso E11b: ahora son dos peticiones (la ficha
+  // y su admisión), y la lista de preguntas solo si hay respuestas.
+  it("la ficha muestra los datos de admisión solo si se piden (dos peticiones más)", async () => {
     const getOriginal = apiMock.get.getMockImplementation();
     apiMock.get.mockImplementation((url, opciones) =>
       url === "/estudiantes/11"
@@ -292,7 +300,12 @@ describe("EstudiantesAdmin", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Ver datos de admisión" }));
 
     expect(await screen.findByText("Colegio Uno")).toBeInTheDocument();
+    expect(await screen.findByText("Sin entrevista de admisión.")).toBeInTheDocument();
     expect(apiMock.get.mock.calls.filter(([url]) => url === "/estudiantes/11")).toHaveLength(1);
+    expect(
+      apiMock.get.mock.calls.filter(([url]) => url === "/estudiantes/11/admision"),
+    ).toHaveLength(1);
+    expect(apiMock.get).not.toHaveBeenCalledWith("/admisiones/cuestionario");
   });
 
   it("cambiar el estado desde la fila pide confirmación y guarda con PATCH", async () => {

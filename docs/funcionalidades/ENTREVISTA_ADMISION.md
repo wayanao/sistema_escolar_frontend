@@ -10,8 +10,9 @@
   2026-10-14: las preguntas del anexo del colegio con casillas para
   chulear.** Diseño (E8) terminado; a este repo le toca el **E11** (ver
   "Preguntas del anexo (paso E11)"), dividido en **E11a** (la página de
-  admisiones: escrito el 2026-10-14, sin commit) y **E11b** (las respuestas
-  en la ficha del estudiante, pendiente).
+  admisiones: commit `ca810ea`, sin subir) y **E11b** (las respuestas en la
+  ficha del estudiante: escrito el 2026-10-15, sin commit). Con el E11b
+  termina el código de la ampliación; el E12 (imprimir) es opcional.
 - Tipo: función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md`.
 - **El documento principal es
@@ -23,7 +24,7 @@
   `docs/funcionalidades/ANIO_LECTIVO.md`.
 - Depende de: los pasos E1 a E3 del backend (migración y rutas) en
   producción antes de usar las pantallas allá.
-- Última actualización: 2026-10-14.
+- Última actualización: 2026-10-15.
 
 ## Objetivo
 
@@ -207,7 +208,7 @@ principal).
 | E6 | Formulario del estudiante sin lo que pasó a la entrevista; "Datos de admisión" en la ficha. **Hecho el 2026-10-13** (`f50ef7b`); en producción el 2026-10-14 |
 | E8 | Diseño de las preguntas del anexo (solo documentos, en los dos repos). **Hecho el 2026-10-14** |
 | E11a | Preguntas del anexo en la página de admisiones: secciones, casillas, guardar con la entrevista y ayuda ampliada de "No aprobado". **Escrito el 2026-10-14, sin commit**; se publica después de que el E10 del backend esté **Live** |
-| E11b | Las respuestas en "Datos de admisión" de la ficha del estudiante (`GET /estudiantes/{estudiante_id}/admision`). Pendiente |
+| E11b | Las respuestas en "Datos de admisión" de la ficha del estudiante (`GET /estudiantes/{estudiante_id}/admision`). **Escrito el 2026-10-15, sin commit** |
 | E12 | **Opcional, solo si el usuario lo pide:** imprimir la entrevista con las firmas (`DocumentoImprimible`) |
 
 Cada paso empieza con caracterización, escribe las pruebas antes del código,
@@ -514,6 +515,54 @@ pantalla oculta botones con `editable`, no con su propia regla.
     (`maxLength`).
 - Verificación en "Entrega para el siguiente chat". **No se ha visto en un
   navegador ni contra un backend real.**
+- El usuario hizo el commit: `ca810ea` (sin subir al iniciar el E11b).
+
+## Avance del paso E11b (2026-10-15)
+
+- Autorizado por el usuario con "continua", respondiendo a la propuesta del
+  E11b como único paso siguiente. Al iniciar, los dos repos en `main` y
+  limpios, sin subir: backend `bcf2fa8` (encima del E10, `eb53e2e`), este
+  repo `ca810ea` (el E11a). No consta si el usuario probó el E11a en local.
+- Pruebas primero, 18 nuevas; antes del código fallaban 12 y no cargaba el
+  archivo nuevo:
+  - `utils/cuestionarioAdmision.test.js` (nuevo): solo las respondidas, por
+    sección y en orden, con su número; el detalle y "Otro" después de una
+    raya ("Sí — Usa plantillas", "Empleada, Hermanos, Otro — La vecina"); una
+    opción que la lista ya no tiene, tal cual; sin respuestas o sin lista,
+    nada; lo vacío no cuenta.
+  - `services/estudiantesObservadorApi.test.js`: la ruta nueva.
+  - `useDetalleEstudianteAdmin.test.js`: los datos y la admisión a la vez;
+    sin respuestas no se pide la lista; con respuestas, en texto; la lista
+    una sola vez para varias fichas; si la admisión o la lista fallan, los
+    datos de siempre se ven igual y el error queda aparte; cerrar o abrir
+    otra ficha las olvida. **Ajustado a propósito:** los dobles del hook
+    incluyen la ruta nueva y la lista de preguntas.
+  - `DetalleEstudianteAdmin.test.jsx`: respuestas por sección con su
+    pregunta; admisión sin respuestas; estudiante sin admisión; error sin
+    esconder los datos de siempre; nada antes de pedirlos.
+  - `pages/EstudiantesAdmin.test.jsx`: **ajustada a propósito** la que
+    decía "una petición más": ahora son dos (la ficha y su admisión), y sin
+    respuestas no se pide la lista de preguntas.
+- Código:
+  - `services/estudiantesObservadorApi.js`: `obtenerAdmisionDeEstudiante`.
+  - `utils/cuestionarioAdmision.js` (nuevo, en la raíz de `utils/`, como
+    decía el diseño): `respuestasLegibles(catalogo, cuestionario)`.
+  - `hooks/estudiantesObservador/useDetalleEstudianteAdmin.js`: pide las dos
+    cosas con `Promise.allSettled`; `respuestasAdmision` y
+    `errorRespuestasAdmision`; la lista de preguntas en un `ref`, pedida con
+    `admisionesApi.obtenerCuestionarioAdmision` (otro módulo usa el servicio
+    de cursos de la misma forma).
+  - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: el
+    bloque "Respuestas de la entrevista (admisión {año})" debajo de los
+    datos de siempre. `pages/EstudiantesAdmin.jsx`: el cableado.
+- Decisiones de detalle (dentro del diseño):
+  - Peticiones al pulsar "Ver datos de admisión": antes 1, ahora 2; 3 la
+    primera vez que un estudiante tiene respuestas. Abrir la ficha sigue sin
+    pedir nada de esto.
+  - Las respuestas son datos sensibles (salud, familia): se ven solo en la
+    ficha del admin y solo al pedirlas, como el resto de "Datos de admisión".
+- Verificación en "Entrega para el siguiente chat". **No se ha visto en un
+  navegador ni contra un backend real.**
 
 ## Entrega para el siguiente chat
 
@@ -533,14 +582,21 @@ pantalla oculta botones con `editable`, no con su propia regla.
   admisiones y Años lectivos pasan (122 antes); `pnpm run check:deploy` →
   **2577 pruebas en 366 archivos** (antes 2524 en 364), lint y build
   limpios, en una sola corrida; `git diff --check` limpio.
-- Siguiente acción exacta: el usuario revisa el E11a **en local** (backend
-  con el E10 y este frontend, con el Colegio Demo o una rama de Neon, nunca
-  con `tenant_2005`: el backend local escribe en la base real): abrir un
-  aspirante, abrir una sección, chulear, desmarcar, escribir un detalle,
-  guardar y volver a abrir. Es la primera vez que el bloque pasa por
-  PostgreSQL. Después hace el commit. Para publicar: primero el backend (E10)
-  con Render en **Live**, después este frontend. Luego, con su autorización,
-  el **E11b** (las respuestas en la ficha del estudiante). Sigue recomendada
+- 2026-10-15: **E11b escrito, sin commit** (ver su avance): las respuestas
+  en la ficha del estudiante. Verificación: las 110 pruebas del módulo de
+  estudiantes pasan; `pnpm run check:deploy` → **2595 pruebas en 367
+  archivos** (antes 2577 en 366), lint y build limpios, en una sola corrida;
+  `git diff --check` limpio. Con él termina el código de la ampliación.
+- Siguiente acción exacta: el usuario prueba **en local** el E11a y el E11b
+  juntos (backend con el E10 y este frontend, con el Colegio Demo o una rama
+  de Neon, nunca con `tenant_2005`: el backend local escribe en la base
+  real): en Admisiones, abrir un aspirante, abrir una sección, chulear,
+  desmarcar, escribir un detalle, guardar y volver a abrir; aprobarlo y
+  matricularlo; en Estudiantes, abrir su ficha y "Ver datos de admisión".
+  Es la primera vez que el bloque pasa por PostgreSQL. Después: commit del
+  E11b; para publicar, primero el backend (E10) con Render en **Live** y
+  después este frontend (E11a y E11b). El E12 (imprimir) solo si el usuario
+  lo pide. Sigue recomendada
   la prueba de humo del E7 en producción con el Colegio Demo. Si el usuario
   dice que sí a borrar `crearEstudianteEnPreparacion` (sin uso desde el E5,
   recomendado), ese cambio es de este repo: la función en

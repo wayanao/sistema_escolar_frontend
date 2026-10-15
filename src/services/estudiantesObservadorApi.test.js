@@ -21,6 +21,7 @@ import {
   listarCursosEstudiantes,
   listarEstudiantes,
   listarPlanillaObservador,
+  obtenerAdmisionDeEstudiante,
   obtenerDetalleEstudiante,
   obtenerDeudasEstudiante,
   obtenerEstudiante,
@@ -159,5 +160,14 @@ describe("contrato HTTP de estudiantes y observador", () => {
       1,
       "/observaciones/11/44/2",
     );
+  });
+
+  it("pide las respuestas de la entrevista de admisión del estudiante (paso E11b)", async () => {
+    const admision = { admision_id: 7, anio: 2027, cuestionario: {} };
+    apiMock.get.mockResolvedValue({ data: admision });
+
+    await expect(obtenerAdmisionDeEstudiante(11)).resolves.toBe(admision);
+
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes/11/admision");
   });
 });

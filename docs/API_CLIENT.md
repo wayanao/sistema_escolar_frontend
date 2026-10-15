@@ -252,6 +252,12 @@ POST /admisiones/{admision_id}/matricular
   `GET /estudiantes/{id}` solo si el admin pulsa "Ver datos de admisión"
   (estudios anteriores y ocupación de los padres). Abrir la ficha no suma
   peticiones.
+- Paso E11b (2026-10-15): al pulsar "Ver datos de admisión" se pide además,
+  a la vez, `GET /estudiantes/{id}/admision` (las respuestas del anexo, con
+  `estudiantesObservadorApi.obtenerAdmisionDeEstudiante`). Solo si tiene
+  respuestas se pide `GET /admisiones/cuestionario` para ponerlas en texto, y
+  una sola vez mientras la página esté abierta. Si las respuestas fallan, los
+  datos de arriba se ven igual. El texto lo arma `utils/cuestionarioAdmision.js`.
 - `POST /admisiones/{admision_id}/matricular` (paso E5) recibe la ficha del
   estudiante con el mismo cuerpo de `POST /estudiantes`: la arma el mismo
   formulario y hook de Estudiantes (`useFormularioEstudianteAdmin`, con
@@ -294,8 +300,13 @@ GET /estudiantes/{estudiante_id}
 PUT /estudiantes/{estudiante_id}
 GET /estudiantes/{estudiante_id}/detalles
 GET /estudiantes/{estudiante_id}/deudas
+GET /estudiantes/{estudiante_id}/admision
+GET /admisiones/cuestionario
 PATCH /estudiantes/{estudiante_id}/estado
 ```
+
+Las dos de la entrevista de admisión (paso E11b) solo se piden al pulsar "Ver
+datos de admisión"; ver la sección "Admisiones".
 
 Uso:
 

@@ -1,16 +1,28 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { obtenerDetalleMock, obtenerDeudasMock, obtenerEstudianteMock } = vi.hoisted(() => ({
+const {
+  obtenerAdmisionMock,
+  obtenerCuestionarioMock,
+  obtenerDetalleMock,
+  obtenerDeudasMock,
+  obtenerEstudianteMock,
+} = vi.hoisted(() => ({
+  obtenerAdmisionMock: vi.fn(),
+  obtenerCuestionarioMock: vi.fn(),
   obtenerDetalleMock: vi.fn(),
   obtenerDeudasMock: vi.fn(),
   obtenerEstudianteMock: vi.fn(),
 }));
 
 vi.mock("../../services/estudiantesObservadorApi", () => ({
+  obtenerAdmisionDeEstudiante: obtenerAdmisionMock,
   obtenerDetalleEstudiante: obtenerDetalleMock,
   obtenerDeudasEstudiante: obtenerDeudasMock,
   obtenerEstudiante: obtenerEstudianteMock,
+}));
+vi.mock("../../services/admisionesApi", () => ({
+  obtenerCuestionarioAdmision: obtenerCuestionarioMock,
 }));
 
 import useDetalleEstudianteAdmin from "./useDetalleEstudianteAdmin";
@@ -255,5 +267,145 @@ describe("datos de admisión, a pedido (paso E6)", () => {
 
     await waitFor(() => expect(result.current.errorDatosAdmision).toBeTruthy());
     expect(result.current.datosAdmision).toBeNull();
+  });
+});
+
+describe("respuestas de la entrevista de admisión (paso E11b)", () => {
+  const CATALOGO = {
+    secciones: [
+      {
+        clave: "salud",
+        titulo: "Salud",
+        preguntas: [
+          {
+            numero: 18,
+            clave: "usa_panal",
+            texto: "¿Usa pañal desechable?",
+            tipo: "si_no",
+            opciones: [
+              { valor: "si", etiqueta: "Sí" },
+              { valor: "no", etiqueta: "No" },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const SIN_ADMISION = { admision_id: null, anio: null, fecha_entrevista: null, cuestionario: {} };
+  const CON_RESPUESTAS = {
+    admision_id: 7,
+    anio: 2027,
+    fecha_entrevista: "2026-10-20",
+    cuestionario: { usa_panal: { respuesta: "no" } },
+  };
+
+  beforeEach(() => {
+    obtenerDetalleMock.mockResolvedValue({});
+    obtenerDeudasMock.mockResolvedValue({});
+    obtenerEstudianteMock.mockResolvedValue({ id: 11, colegio_anterior: "Colegio Uno" });
+    obtenerAdmisionMock.mockResolvedValue(SIN_ADMISION);
+    obtenerCuestionarioMock.mockResolvedValue(CATALOGO);
+  });
+
+  async function verDatos(result, estudiante = { id: 11 }) {
+    await act(async () => {
+      await result.current.verDetalles(estudiante);
+    });
+    await act(async () => {
+      await result.current.verDatosAdmision();
+    });
+  }
+
+  it("pide los datos y la admisión a la vez; sin respuestas no pide la lista de preguntas", async () => {
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await verDatos(result);
+
+    expect(obtenerEstudianteMock).toHaveBeenCalledWith(11);
+    expect(obtenerAdmisionMock).toHaveBeenCalledWith(11);
+    expect(obtenerCuestionarioMock).not.toHaveBeenCalled();
+    expect(result.current.respuestasAdmision).toEqual({
+      admisionId: null,
+      anio: null,
+      secciones: [],
+    });
+    expect(result.current.errorRespuestasAdmision).toBeNull();
+  });
+
+  it("con respuestas, las deja en texto con la lista de preguntas", async () => {
+    obtenerAdmisionMock.mockResolvedValue(CON_RESPUESTAS);
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await verDatos(result);
+
+    expect(obtenerCuestionarioMock).toHaveBeenCalledTimes(1);
+    expect(result.current.respuestasAdmision).toEqual({
+      admisionId: 7,
+      anio: 2027,
+      secciones: [
+        {
+          clave: "salud",
+          titulo: "Salud",
+          respuestas: [
+            { clave: "usa_panal", pregunta: "18. ¿Usa pañal desechable?", respuesta: "No" },
+          ],
+        },
+      ],
+    });
+    expect(result.current.datosAdmision).not.toBeNull();
+  });
+
+  it("la lista de preguntas se pide una sola vez mientras la página está abierta", async () => {
+    obtenerAdmisionMock.mockResolvedValue(CON_RESPUESTAS);
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await verDatos(result, { id: 11 });
+    await verDatos(result, { id: 12 });
+
+    expect(obtenerAdmisionMock).toHaveBeenCalledTimes(2);
+    expect(obtenerCuestionarioMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("si las respuestas no llegan, los datos de siempre se ven igual", async () => {
+    obtenerAdmisionMock.mockRejectedValue(new Error("404"));
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await verDatos(result);
+
+    expect(result.current.datosAdmision[0]).toMatchObject({ valor: "Colegio Uno" });
+    expect(result.current.respuestasAdmision).toBeNull();
+    expect(result.current.errorRespuestasAdmision).toBeTruthy();
+    expect(result.current.errorDatosAdmision).toBeNull();
+  });
+
+  it("si la lista de preguntas no llega, también es un error de las respuestas", async () => {
+    obtenerAdmisionMock.mockResolvedValue(CON_RESPUESTAS);
+    obtenerCuestionarioMock.mockRejectedValue(new Error("red"));
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await verDatos(result);
+
+    expect(result.current.respuestasAdmision).toBeNull();
+    expect(result.current.errorRespuestasAdmision).toBeTruthy();
+    expect(result.current.datosAdmision).not.toBeNull();
+  });
+
+  it("al cerrar o abrir otra ficha se olvidan", async () => {
+    obtenerAdmisionMock.mockResolvedValue(CON_RESPUESTAS);
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+    await verDatos(result);
+    expect(result.current.respuestasAdmision).not.toBeNull();
+
+    await act(async () => {
+      await result.current.verDetalles({ id: 12 });
+    });
+    expect(result.current.respuestasAdmision).toBeNull();
+
+    await act(async () => {
+      await result.current.verDatosAdmision();
+    });
+    act(() => result.current.cerrarModal());
+    expect(result.current.respuestasAdmision).toBeNull();
+    expect(result.current.errorRespuestasAdmision).toBeNull();
   });
 });

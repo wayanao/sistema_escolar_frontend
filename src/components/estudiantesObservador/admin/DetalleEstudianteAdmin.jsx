@@ -19,6 +19,9 @@ export default function DetalleEstudianteAdmin({
   cargandoDatosAdmision = false,
   errorDatosAdmision = null,
   onVerDatosAdmision,
+  // Paso E11b: las respuestas del anexo de su entrevista, ya en texto.
+  respuestasAdmision = null,
+  errorRespuestasAdmision = null,
 }) {
   if (!estudiante) return null;
 
@@ -217,6 +220,8 @@ export default function DetalleEstudianteAdmin({
                   cargando={cargandoDatosAdmision}
                   error={errorDatosAdmision}
                   onVer={onVerDatosAdmision}
+                  respuestas={respuestasAdmision}
+                  errorRespuestas={errorRespuestasAdmision}
                 />
               )}
             </div>
@@ -239,10 +244,59 @@ export default function DetalleEstudianteAdmin({
   );
 }
 
+// Las respuestas del anexo de su entrevista (paso E11b), de solo lectura y por
+// sección. Llegan aparte: si fallan, los datos de arriba se ven igual.
+function RespuestasEntrevista({ respuestas, error, cargando }) {
+  let contenido;
+  if (error) {
+    contenido = (
+      <p className="text-sm text-red-700">No se pudieron cargar las respuestas de la entrevista.</p>
+    );
+  } else if (!respuestas) {
+    if (!cargando) return null;
+    contenido = <p className="text-sm text-gray-600">Cargando respuestas de la entrevista...</p>;
+  } else if (respuestas.admisionId === null) {
+    contenido = <p className="text-sm text-gray-600 italic">Sin entrevista de admisión.</p>;
+  } else if (respuestas.secciones.length === 0) {
+    contenido = (
+      <p className="text-sm text-gray-600 italic">La entrevista no tiene respuestas del anexo.</p>
+    );
+  } else {
+    contenido = (
+      <div className="space-y-4">
+        {respuestas.secciones.map((seccion) => (
+          <div key={seccion.clave}>
+            <h5 className="mb-2 text-sm font-semibold text-emerald-900">{seccion.titulo}</h5>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              {seccion.respuestas.map(({ clave, pregunta, respuesta }) => (
+                <div key={clave} className="bg-white px-2 py-1 rounded shadow-sm">
+                  <dt className="text-gray-600">{pregunta}</dt>
+                  <dd className="font-medium text-gray-900 break-words">{respuesta}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const titulo = respuestas?.anio
+    ? `Respuestas de la entrevista (admisión ${respuestas.anio})`
+    : "Respuestas de la entrevista";
+  return (
+    <div className="mt-4 border-t border-emerald-200 pt-3">
+      <h4 className="mb-2 font-semibold text-emerald-900">{titulo}</h4>
+      {contenido}
+    </div>
+  );
+}
+
 // Estudios anteriores y ocupación de los padres, de solo lectura: salieron del
 // formulario y pasaron a la entrevista de admisión (paso E6). En quien entró
 // por una admisión vienen de su entrevista; en los de antes, lo que ya tenían.
-function DatosAdmision({ datos, cargando, error, onVer }) {
+// Debajo, las respuestas del anexo de la entrevista (paso E11b).
+function DatosAdmision({ datos, cargando, error, onVer, respuestas, errorRespuestas }) {
   const hayAlguno = datos?.some((dato) => dato.valor !== null);
 
   return (
@@ -252,21 +306,24 @@ function DatosAdmision({ datos, cargando, error, onVer }) {
       </h3>
       <p className="text-sm text-gray-700 mb-3">
         Estudios anteriores y ocupación de los padres. En quien entró por una admisión,
-        vienen de su entrevista.
+        vienen de su entrevista, junto con sus respuestas del anexo.
       </p>
       {datos ? (
-        hayAlguno ? (
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            {datos.map(({ campo, etiqueta, valor }) => (
-              <div key={campo} className="flex justify-between gap-3 bg-white px-2 py-1 rounded shadow-sm">
-                <dt className="font-medium text-gray-700">{etiqueta}</dt>
-                <dd className="text-right text-gray-900 break-words">{valor ?? "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <p className="text-sm text-gray-600 italic">Sin datos de admisión guardados.</p>
-        )
+        <>
+          {hayAlguno ? (
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              {datos.map(({ campo, etiqueta, valor }) => (
+                <div key={campo} className="flex justify-between gap-3 bg-white px-2 py-1 rounded shadow-sm">
+                  <dt className="font-medium text-gray-700">{etiqueta}</dt>
+                  <dd className="text-right text-gray-900 break-words">{valor ?? "—"}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-sm text-gray-600 italic">Sin datos de admisión guardados.</p>
+          )}
+          <RespuestasEntrevista respuestas={respuestas} error={errorRespuestas} cargando={cargando} />
+        </>
       ) : cargando ? (
         <p className="text-sm text-gray-600">Cargando datos de admisión...</p>
       ) : (

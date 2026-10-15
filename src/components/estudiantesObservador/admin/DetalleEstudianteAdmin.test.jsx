@@ -201,3 +201,87 @@ describe("Datos de admisión en la ficha (paso E6)", () => {
     expect(screen.queryByRole("heading", { name: /Datos de admisión/ })).not.toBeInTheDocument();
   });
 });
+
+// Paso E11b de la entrevista de admisión.
+describe("Respuestas de la entrevista en la ficha (paso E11b)", () => {
+  const DETALLES = { notas: [], deudas: [], productos_inventario: [], promedio_general: 0 };
+  const DATOS = [{ campo: "colegio_anterior", etiqueta: "Colegio anterior", valor: "Colegio Uno" }];
+  const CON_RESPUESTAS = {
+    admisionId: 7,
+    anio: 2027,
+    secciones: [
+      {
+        clave: "salud",
+        titulo: "Salud",
+        respuestas: [
+          { clave: "usa_panal", pregunta: "18. ¿Usa pañal desechable?", respuesta: "No" },
+          {
+            clave: "dificultad_motora",
+            pregunta: "19. ¿Tiene alguna dificultad motora?",
+            respuesta: "Sí — Usa plantillas",
+          },
+        ],
+      },
+    ],
+  };
+
+  function pintar(props = {}) {
+    render(
+      <DetalleEstudianteAdmin
+        estudiante={estudiante}
+        cursos={[]}
+        detalles={DETALLES}
+        cargando={false}
+        onCerrar={vi.fn()}
+        datosAdmision={DATOS}
+        cargandoDatosAdmision={false}
+        errorDatosAdmision={null}
+        onVerDatosAdmision={vi.fn()}
+        respuestasAdmision={null}
+        errorRespuestasAdmision={null}
+        {...props}
+      />,
+    );
+  }
+
+  it("muestra las respuestas por sección, con la pregunta y lo que se respondió", () => {
+    pintar({ respuestasAdmision: CON_RESPUESTAS });
+
+    expect(
+      screen.getByRole("heading", { name: "Respuestas de la entrevista (admisión 2027)" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Salud" })).toBeInTheDocument();
+    expect(screen.getByText("18. ¿Usa pañal desechable?").nextSibling).toHaveTextContent("No");
+    expect(screen.getByText("Sí — Usa plantillas")).toBeInTheDocument();
+    // Los datos de siempre siguen ahí.
+    expect(screen.getByText("Colegio Uno")).toBeInTheDocument();
+  });
+
+  it("una admisión sin respuestas del anexo lo dice", () => {
+    pintar({ respuestasAdmision: { admisionId: 7, anio: 2027, secciones: [] } });
+
+    expect(screen.getByText("La entrevista no tiene respuestas del anexo.")).toBeInTheDocument();
+  });
+
+  it("un estudiante sin admisión lo dice", () => {
+    pintar({ respuestasAdmision: { admisionId: null, anio: null, secciones: [] } });
+
+    expect(screen.getByText("Sin entrevista de admisión.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Respuestas de la entrevista/ })).toBeInTheDocument();
+  });
+
+  it("si las respuestas no llegaron, lo dice sin esconder los datos de siempre", () => {
+    pintar({ errorRespuestasAdmision: new Error("404") });
+
+    expect(
+      screen.getByText("No se pudieron cargar las respuestas de la entrevista."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Colegio Uno")).toBeInTheDocument();
+  });
+
+  it("antes de pedir los datos no hay respuestas", () => {
+    pintar({ datosAdmision: null });
+
+    expect(screen.queryByRole("heading", { name: /Respuestas de la entrevista/ })).not.toBeInTheDocument();
+  });
+});

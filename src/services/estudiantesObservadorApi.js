@@ -34,6 +34,14 @@ export async function obtenerEstudiante(estudianteId) {
   return data;
 }
 
+// Entrevista de admisión, paso E11b: `{ admision_id, anio, fecha_entrevista,
+// cuestionario }`, todo `null` y `{}` si el estudiante no entró por una
+// admisión. Solo admin.
+export async function obtenerAdmisionDeEstudiante(estudianteId) {
+  const { data } = await api.get(`/estudiantes/${estudianteId}/admision`);
+  return data;
+}
+
 export async function cambiarEstadoEstudiante(estudianteId, estado) {
   const { data } = await api.patch(`/estudiantes/${estudianteId}/estado`, {
     estado,

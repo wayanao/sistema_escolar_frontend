@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { obtenerCuestionarioAdmision } from "../../services/admisionesApi";
 import {
+  obtenerAdmisionDeEstudiante,
   obtenerDetalleEstudiante,
   obtenerDeudasEstudiante,
   obtenerEstudiante,
 } from "../../services/estudiantesObservadorApi";
 import { opcionesConAnio } from "../../utils/anioLectivo";
+import { respuestasLegibles } from "../../utils/cuestionarioAdmision";
 import {
   datosDeAdmisionEstudiante,
   normalizarDetalleEstudiante,
@@ -22,6 +25,13 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
   const [datosAdmision, setDatosAdmision] = useState(null);
   const [cargandoDatosAdmision, setCargandoDatosAdmision] = useState(false);
   const [errorDatosAdmision, setErrorDatosAdmision] = useState(null);
+  // Paso E11b: las respuestas del anexo de su entrevista, ya en texto. Fallan
+  // aparte: si no llegan, los datos de arriba se ven igual.
+  const [respuestasAdmision, setRespuestasAdmision] = useState(null);
+  const [errorRespuestasAdmision, setErrorRespuestasAdmision] = useState(null);
+  // La lista de preguntas es la misma para todos los estudiantes: se pide la
+  // primera vez que hace falta y se reusa mientras la página esté abierta.
+  const catalogoRef = useRef(null);
   const solicitudRef = useRef(0);
 
   useEffect(
@@ -40,6 +50,8 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     setDatosAdmision(null);
     setCargandoDatosAdmision(false);
     setErrorDatosAdmision(null);
+    setRespuestasAdmision(null);
+    setErrorRespuestasAdmision(null);
 
     try {
       const opciones = opcionesConAnio({}, parametrosAnio);
@@ -88,27 +100,62 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     setDatosAdmision(null);
     setCargandoDatosAdmision(false);
     setErrorDatosAdmision(null);
+    setRespuestasAdmision(null);
+    setErrorRespuestasAdmision(null);
   }, []);
 
-  // Una petición (`GET /estudiantes/{id}`), solo al pedirlos. Si mientras
-  // tanto se cierra la ficha o se abre otra, la respuesta se descarta.
+  // Las respuestas de la entrevista, en texto. La lista de preguntas solo se
+  // pide si hay respuestas (los estudiantes de antes no tienen) y una vez.
+  const leerRespuestas = useCallback(async (admision) => {
+    const cuestionario = admision?.cuestionario ?? {};
+    let secciones = [];
+    if (Object.keys(cuestionario).length > 0) {
+      if (!catalogoRef.current) catalogoRef.current = await obtenerCuestionarioAdmision();
+      secciones = respuestasLegibles(catalogoRef.current, cuestionario);
+    }
+    return {
+      admisionId: admision?.admision_id ?? null,
+      anio: admision?.anio ?? null,
+      secciones,
+    };
+  }, []);
+
+  // Solo al pedirlos: `GET /estudiantes/{id}` y su admisión
+  // (`GET /estudiantes/{id}/admision`, paso E11b), a la vez. Si mientras
+  // tanto se cierra la ficha o se abre otra, las respuestas se descartan.
   const verDatosAdmision = useCallback(async () => {
     if (!selectedEstudiante) return;
     const solicitudId = solicitudRef.current;
+    const vigente = () => solicitudRef.current === solicitudId;
     setCargandoDatosAdmision(true);
     setErrorDatosAdmision(null);
+    setErrorRespuestasAdmision(null);
     try {
-      const estudiante = await obtenerEstudiante(selectedEstudiante.id);
-      if (solicitudRef.current !== solicitudId) return;
-      setDatosAdmision(datosDeAdmisionEstudiante(estudiante));
+      const [estudianteRes, admisionRes] = await Promise.allSettled([
+        obtenerEstudiante(selectedEstudiante.id),
+        obtenerAdmisionDeEstudiante(selectedEstudiante.id),
+      ]);
+      if (!vigente()) return;
+      if (estudianteRes.status === "rejected") throw estudianteRes.reason;
+      setDatosAdmision(datosDeAdmisionEstudiante(estudianteRes.value));
+
+      try {
+        if (admisionRes.status === "rejected") throw admisionRes.reason;
+        const respuestas = await leerRespuestas(admisionRes.value);
+        if (vigente()) setRespuestasAdmision(respuestas);
+      } catch (errorRespuestas) {
+        if (!vigente()) return;
+        console.error("Error al cargar las respuestas de la entrevista", errorRespuestas);
+        setErrorRespuestasAdmision(errorRespuestas);
+      }
     } catch (requestError) {
-      if (solicitudRef.current !== solicitudId) return;
+      if (!vigente()) return;
       console.error("Error al cargar los datos de admisión", requestError);
       setErrorDatosAdmision(requestError);
     } finally {
-      if (solicitudRef.current === solicitudId) setCargandoDatosAdmision(false);
+      if (vigente()) setCargandoDatosAdmision(false);
     }
-  }, [selectedEstudiante]);
+  }, [selectedEstudiante, leerRespuestas]);
 
   return {
     selectedEstudiante,
@@ -121,6 +168,8 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     datosAdmision,
     cargandoDatosAdmision,
     errorDatosAdmision,
+    respuestasAdmision,
+    errorRespuestasAdmision,
     verDatosAdmision,
   };
 }

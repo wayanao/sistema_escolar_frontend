@@ -47,6 +47,8 @@ function EstudiantesAdmin() {
     datosAdmision,
     cargandoDatosAdmision,
     errorDatosAdmision,
+    respuestasAdmision,
+    errorRespuestasAdmision,
     verDatosAdmision,
   } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
   const {
@@ -178,6 +180,8 @@ function EstudiantesAdmin() {
         cargandoDatosAdmision={cargandoDatosAdmision}
         errorDatosAdmision={errorDatosAdmision}
         onVerDatosAdmision={verDatosAdmision}
+        respuestasAdmision={respuestasAdmision}
+        errorRespuestasAdmision={errorRespuestasAdmision}
       />
     </div>
   );
