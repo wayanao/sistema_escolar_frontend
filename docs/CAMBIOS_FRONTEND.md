@@ -1,5 +1,17 @@
 # Cambios Frontend
 
+## 2026-10-16 - Certificado de matrícula: solo la firma de dirección
+
+- El impreso del certificado de matrícula
+  (`CertificadoMatriculaPreview.jsx`) ya no trae la firma de "Secretaria
+  academica"; queda solo "Director(a)", centrada. El certificado de notas
+  conserva sus dos firmas.
+- Sin cambios de peticiones ni de backend.
+
+Verificación: prueba nueva en `VistasImprimibles.test.jsx` (la matrícula
+lleva solo la firma de dirección). Pruebas completas con `--maxWorkers=2`:
+2627 pruebas en 369 archivos; lint y build correctos.
+
 ## 2026-10-14 - Pagos: en tablet y celular, elegir un estudiante baja al panel de pago
 
 - Por debajo de 1024 px (`lg`), la lista de estudiantes y el panel de pagos

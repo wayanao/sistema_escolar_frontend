@@ -3,9 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../impresion/DocumentoImprimible", () => ({
-  default: ({ children, titulo, subtitulo }) => (
+  default: ({ children, titulo, subtitulo, firmas = [] }) => (
     <div data-testid="documento" data-titulo={titulo} data-subtitulo={subtitulo}>
       {children}
+      {firmas.map((f) => (
+        <div key={f.cargo} data-testid="firma">{f.cargo}</div>
+      ))}
     </div>
   ),
 }));
@@ -55,6 +58,18 @@ describe("vistas imprimibles de certificados", () => {
     expect(screen.getByTestId("documento")).toHaveAttribute("data-titulo", "Certificado de Matrícula");
     expect(screen.getByTestId("documento")).toHaveAttribute("data-subtitulo", "Año Lectivo 2027");
     expect(screen.getByText("Sara López")).toBeInTheDocument();
+  });
+
+  it("firma la matrícula solo dirección, sin secretaría académica", () => {
+    render(
+      <CertificadoMatriculaPreview
+        certificado={{ estudiante_nombre_completo: "Sara López", curso: "Quinto" }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    const firmas = screen.getAllByTestId("firma").map((f) => f.textContent);
+    expect(firmas).toEqual(["Director(a)"]);
   });
 
   it("presenta el estado vacío del reporte parcial individual", () => {

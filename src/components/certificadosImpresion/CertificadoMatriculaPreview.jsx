@@ -36,10 +36,7 @@ export default function CertificadoMatriculaPreview({ certificado, onBack }) {
         className="di-documento--certificado"
         titulo="Certificado de Matrícula"
         subtitulo={`Año Lectivo ${anioLectivo}`}
-        firmas={[
-          { nombre: "", cargo: "Director(a)" },
-          { nombre: "", cargo: "Secretaria academica" },
-        ]}
+        firmas={[{ nombre: "", cargo: "Director(a)" }]}
       >
         <section className="space-y-6 text-slate-800">
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
