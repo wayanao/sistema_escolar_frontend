@@ -2021,9 +2021,11 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
 - Siguiente acción exacta: al subir, primero el backend (con Render en
   **Live**) y después el frontend; revisar en local antes (rama de Neon o
   Colegio Demo, nunca con estudiantes de `tenant_2005`, porque el backend
-  local escribe en la base real). Pendiente de decidir, sin empezar: "Quitar o cambiar
-  la matrícula de 2027" mientras el año está en preparación (hoy no se puede
-  desde la app; se le explicó al usuario el 2026-10-12). Lo que queda
+  local escribe en la base real). "Quitar o cambiar la matrícula de 2027"
+  mientras el año está en preparación: **decidido el 2026-10-19, nada por
+  ahora** (detalle al final de la fase 5 del documento principal). Al
+  2026-10-19 este repo está limpio y al día con `origin/main` (`9e4ea40`):
+  la fase 7 y los ajustes del 2026-10-12 ya están en GitHub. Lo que queda
   antes de la activación real (enero de 2027),
   cada cosa con su autorización, está en la entrega del documento principal:
   subir la fase 7 (primero el backend, con Render en **Live**, y después el
