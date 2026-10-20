@@ -336,7 +336,7 @@ describe("matricular desde la admisión (paso E5)", () => {
     expect(within(seccion).queryByText("Nombre Colegio Anterior")).not.toBeInTheDocument();
     expect(mocks.obtenerEstudiante).not.toHaveBeenCalled();
 
-    await user.type(controlDe(seccion, "Dirección"), "Calle 9");
+    await user.type(controlDe(seccion, "Dirección (calle o carrera y número)"), "Calle 9");
     await user.click(within(seccion).getByRole("button", { name: "Matricular en 2027" }));
 
     expect(mocks.matricularAdmision).toHaveBeenCalledWith(
@@ -374,7 +374,7 @@ describe("matricular desde la admisión (paso E5)", () => {
     const seccion = await abrirMatricula(user);
 
     expect(mocks.obtenerEstudiante).toHaveBeenCalledWith(40);
-    expect(controlDe(seccion, "Dirección")).toHaveValue("Calle 1");
+    expect(controlDe(seccion, "Dirección (calle o carrera y número)")).toHaveValue("Calle 1");
     // Lo del aspirante va encima: su nombre y el curso de 2027.
     expect(controlDe(seccion, "Apellidos *")).toHaveValue("Díaz");
     expect(controlDe(seccion, "Curso *")).toHaveValue("20");

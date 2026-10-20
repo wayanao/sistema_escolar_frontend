@@ -1,4 +1,12 @@
 import { TIPOS_DOCUMENTO_ESTUDIANTE } from "../../../constants/documentosEstudiante";
+import {
+  GRUPOS_SISBEN,
+  NIVELES_SISBEN,
+  OPCIONES_TIENE_SISBEN,
+  SUBGRUPOS_SISBEN,
+  ZONAS_RESIDENCIA,
+} from "../../../constants/sisben";
+import { actualizarCampoEstudiante } from "../../../utils/estudiantesObservador/estudiantes";
 
 export default function FormularioEstudianteAdmin({
   visible,
@@ -17,8 +25,10 @@ export default function FormularioEstudianteAdmin({
   if (!visible) return null;
 
   const actualizar = (campo, valor) => {
-    setEstudianteData({ ...estudianteData, [campo]: valor });
+    setEstudianteData(actualizarCampoEstudiante(estudianteData, campo, valor));
   };
+  const conSisben = estudianteData.sisben === "si";
+  const subgrupos = SUBGRUPOS_SISBEN[estudianteData.sisben_grupo] ?? [];
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -126,12 +136,69 @@ export default function FormularioEstudianteAdmin({
             de un estudiante se pone como valor personalizado (Pagos, o
             "Valores de pago" al matricular). Los campos siguen en el cuerpo:
             0 al crear y, al editar, el valor que ya tenía. */}
-        <Campo label="Dirección" className="md:col-span-2">
+        {/* Lugar de residencia por partes (SISBEN_RESIDENCIA.md, paso S3).
+            La dirección sigue en un área de texto: lo ya escrito en varias
+            líneas no pierde sus saltos al guardar. */}
+        <Seccion titulo="Lugar de residencia" />
+        <Campo
+          label="Dirección (calle o carrera y número)"
+          htmlFor="estudiante-direccion"
+          className="md:col-span-2"
+        >
           <textarea
-            value={estudianteData.direccion}
+            id="estudiante-direccion"
+            value={estudianteData.direccion ?? ""}
             onChange={(e) => actualizar("direccion", e.target.value)}
             className={inputClass}
-            rows="3"
+            rows="2"
+            maxLength={255}
+            placeholder="Ej.: Calle 12 # 8-45"
+          />
+        </Campo>
+        <Campo label="Barrio o vereda" htmlFor="estudiante-barrio">
+          <input
+            id="estudiante-barrio"
+            type="text"
+            value={estudianteData.barrio ?? ""}
+            onChange={(e) => actualizar("barrio", e.target.value)}
+            className={inputClass}
+            maxLength={150}
+          />
+        </Campo>
+        <Campo label="Municipio" htmlFor="estudiante-municipio">
+          <input
+            id="estudiante-municipio"
+            type="text"
+            value={estudianteData.municipio ?? ""}
+            onChange={(e) => actualizar("municipio", e.target.value)}
+            className={inputClass}
+            maxLength={100}
+          />
+        </Campo>
+        <Campo label="Zona" htmlFor="estudiante-zona_residencia">
+          <select
+            id="estudiante-zona_residencia"
+            value={estudianteData.zona_residencia ?? ""}
+            onChange={(e) => actualizar("zona_residencia", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Seleccione...</option>
+            {ZONAS_RESIDENCIA.map(({ valor, etiqueta }) => (
+              <option key={valor} value={valor}>
+                {etiqueta}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Punto de referencia" htmlFor="estudiante-punto_referencia">
+          <input
+            id="estudiante-punto_referencia"
+            type="text"
+            value={estudianteData.punto_referencia ?? ""}
+            onChange={(e) => actualizar("punto_referencia", e.target.value)}
+            className={inputClass}
+            maxLength={255}
+            placeholder="Ej.: frente a la tienda La Esquina"
           />
         </Campo>
 
@@ -152,6 +219,77 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           />
         </Campo>
+        {/* SISBÉN (SISBEN_RESIDENCIA.md, paso S3). La clasificación solo se
+            pide si tiene SISBÉN; el backend vuelve a revisar todo. */}
+        <Campo label="¿Tiene SISBÉN?" htmlFor="estudiante-sisben">
+          <select
+            id="estudiante-sisben"
+            value={estudianteData.sisben ?? ""}
+            onChange={(e) => actualizar("sisben", e.target.value)}
+            className={inputClass}
+          >
+            {OPCIONES_TIENE_SISBEN.map(({ valor, etiqueta }) => (
+              <option key={valor} value={valor}>
+                {etiqueta}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        {conSisben && (
+          <>
+            <Campo label="Grupo del SISBÉN IV" htmlFor="estudiante-sisben_grupo">
+              <select
+                id="estudiante-sisben_grupo"
+                value={estudianteData.sisben_grupo ?? ""}
+                onChange={(e) => actualizar("sisben_grupo", e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Seleccione...</option>
+                {GRUPOS_SISBEN.map(({ valor, etiqueta }) => (
+                  <option key={valor} value={valor}>
+                    {etiqueta}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo label="Subgrupo del SISBÉN IV" htmlFor="estudiante-sisben_subgrupo">
+              <select
+                id="estudiante-sisben_subgrupo"
+                value={estudianteData.sisben_subgrupo ?? ""}
+                onChange={(e) => actualizar("sisben_subgrupo", e.target.value)}
+                className={inputClass}
+                disabled={subgrupos.length === 0}
+              >
+                <option value="">
+                  {subgrupos.length === 0 ? "Primero elige el grupo" : "Seleccione..."}
+                </option>
+                {subgrupos.map((subgrupo) => (
+                  <option key={subgrupo} value={subgrupo}>
+                    {subgrupo}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo
+              label="Nivel del SISBÉN III (si aplica)"
+              htmlFor="estudiante-sisben_nivel"
+            >
+              <select
+                id="estudiante-sisben_nivel"
+                value={estudianteData.sisben_nivel ?? ""}
+                onChange={(e) => actualizar("sisben_nivel", e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Seleccione...</option>
+                {NIVELES_SISBEN.map((nivel) => (
+                  <option key={nivel} value={nivel}>
+                    {nivel}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+          </>
+        )}
         <Campo label="Jornada">
           <input
             type="text"
@@ -287,10 +425,10 @@ export default function FormularioEstudianteAdmin({
 const inputClass =
   "w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent";
 
-function Campo({ label, className = "", children }) {
+function Campo({ label, htmlFor, className = "", children }) {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
         {label}
       </label>
       {children}

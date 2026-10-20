@@ -2,10 +2,9 @@
 
 ## Control
 
-- Estado: **Diseño (S0) en el commit `6c90e51`. En este repo, nada
-  implementado.** El backend escribió su paso S1 el 2026-10-19 (sin commit,
-  migración sin aplicar). Confirmado con el usuario: nivel del SISBÉN 1, 2 o
-  3, y sin departamento.
+- Estado: **S3 escrito y verificado el 2026-10-20, sin commit.** El backend
+  (S1 y S2) y la migración ya están en producción desde el mismo día.
+  Confirmado con el usuario: nivel del SISBÉN 1, 2 o 3, y sin departamento.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -67,6 +66,48 @@ cambiarla ahí, los tres quedan cubiertos.
   `normalizarEstudianteParaEdicion` los recibe sin cambios en el servicio.
 - Detalle en `sistema_escolar_api/docs/API_ENDPOINTS.md`, "Estudiantes".
 
+## Avance del paso S3, 2026-10-20
+
+Autorizado por el usuario ("continúa", en respuesta a si se empezaba el S3).
+Al empezar, los dos repos estaban en `main` y limpios; el backend, `ahead 1`
+con un registro de documentos.
+
+**Pruebas primero** (fallaron antes del código):
+
+- `utils/estudiantesObservador/estudiantes.test.js` (16): el estado inicial
+  con los ocho vacíos y el cuerpo con los ocho en `null`; los subgrupos (A1 a
+  A5, B1 a B7, C1 a C18, D1 a D21); "si"/"no"/"" ↔ `true`/`false`/`null`; el
+  nivel como número; un cuerpo sin esos campos no los inventa; lo que trae el
+  backend vuelve al formulario y regresa igual; y qué se vacía al cambiar el
+  SISBÉN o el grupo.
+- `FormularioEstudianteAdmin.test.jsx` (7): la sección "Lugar de residencia"
+  con sus cinco campos, largos y opciones; lo ya guardado se muestra; sin
+  SISBÉN no se pide la clasificación; el subgrupo ofrece solo los de su grupo
+  y espera al grupo; y al marcar "no" o cambiar de grupo se vacía lo que
+  corresponde.
+- `useFormularioEstudianteAdmin.test.js` (2): al editar, lo guardado va y
+  vuelve igual; al crear, el cuerpo lleva los ocho.
+
+**Código:**
+
+- `src/constants/sisben.js` (nuevo): sin dato/sí/no, grupos con lo que
+  significan (A: pobreza extrema, B: pobreza moderada, C: vulnerable, D: no
+  pobre ni vulnerable), subgrupos por grupo, niveles 1 a 3 y zonas.
+- `utils/estudiantesObservador/estudiantes.js`: los ocho en el estado
+  inicial; la conversión al enviar (`limpiarPayloadEstudiante`) y al cargar
+  (`normalizarEstudianteParaEdicion`); `actualizarCampoEstudiante`.
+- `FormularioEstudianteAdmin.jsx`: la sección "Lugar de residencia" en lugar
+  de la caja "Dirección" (que sigue siendo un área de texto, para no quitarle
+  los saltos de línea a lo ya escrito) y el bloque del SISBÉN después de
+  Estrato. Cada campo nuevo tiene su etiqueta enlazada (`htmlFor`), y
+  `Campo` acepta ese dato opcional.
+- Ajustada a propósito: `AdmisionesAdmin.test.jsx` buscaba la caja por la
+  etiqueta vieja "Dirección"; ahora usa la nueva. Lo que comprueba no cambió.
+
+**Verificación:** `pnpm run check:deploy` → **2652 pruebas en 369 archivos**,
+lint y build correctos; `git diff --check` limpio. Sin probar todavía en la
+app con el navegador.
+
 ## Fuera de alcance
 
 - Factura, certificados y otros impresos: sin cambios.
@@ -75,8 +116,11 @@ cambiarla ahí, los tres quedan cubiertos.
 
 ## Entrega para el siguiente chat
 
-- Hecho: S0, el diseño, el 2026-10-19. No hay código de esta funcionalidad
-  en este repo. El backend tiene su S1 escrito, sin commit.
-- Siguiente acción exacta: ver la entrega del documento principal (S2, que
-  hace el usuario). El S3 de este repo va después, con su autorización.
+- Hecho: S0 (diseño) y S3 (el formulario), este último sin commit. Ver
+  "Avance del paso S3". El backend está completo y en producción.
+- Siguiente acción exacta: que el usuario lo pruebe en local con el Colegio
+  Demo (nunca con estudiantes de `tenant_2005`, porque el backend local
+  escribe en la base real): crear un estudiante con SISBÉN y residencia,
+  editarlo, marcar "no" y ver que se vacía la clasificación, y matricular a
+  un aspirante desde Admisiones. Después, commit y push de este repo.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_SISBEN_RESIDENCIA.md`.

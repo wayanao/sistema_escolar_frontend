@@ -1,4 +1,5 @@
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
+import { SUBGRUPOS_SISBEN } from "../../constants/sisben";
 
 export const ESTADOS_ESTUDIANTE = [
   { value: "activo", label: "Activo" },
@@ -46,10 +47,42 @@ const ESTUDIANTE_INICIAL = {
   telefono_madre: "",
   ocupacion_madre: "",
   contacto_emergencia: "",
+  // SISBÉN y lugar de residencia (docs/funcionalidades/SISBEN_RESIDENCIA.md).
+  sisben: "",
+  sisben_grupo: "",
+  sisben_subgrupo: "",
+  sisben_nivel: "",
+  barrio: "",
+  municipio: "",
+  zona_residencia: "",
+  punto_referencia: "",
 };
 
 export function crearEstudianteInicial() {
   return { ...ESTUDIANTE_INICIAL };
+}
+
+// El formulario guarda el SISBÉN como "si", "no" o "" (sin dato); el backend,
+// como true, false o null.
+const SISBEN_PARA_EL_BACKEND = { si: true, no: false };
+
+// Lo que depende del SISBÉN se vacía cuando deja de tener sentido: sin SISBÉN
+// no hay grupo, subgrupo ni nivel, y el subgrupo es de un solo grupo. El
+// backend rechaza lo contrario.
+export function actualizarCampoEstudiante(estudiante, campo, valor) {
+  const siguiente = { ...estudiante, [campo]: valor };
+  if (campo === "sisben" && valor !== "si") {
+    siguiente.sisben_grupo = "";
+    siguiente.sisben_subgrupo = "";
+    siguiente.sisben_nivel = "";
+  }
+  if (
+    campo === "sisben_grupo" &&
+    !SUBGRUPOS_SISBEN[valor]?.includes(siguiente.sisben_subgrupo)
+  ) {
+    siguiente.sisben_subgrupo = "";
+  }
+  return siguiente;
 }
 
 export function obtenerEtiquetaEstadoEstudiante(estado) {
@@ -59,12 +92,21 @@ export function obtenerEtiquetaEstadoEstudiante(estado) {
 }
 
 export function limpiarPayloadEstudiante(estudiante) {
-  return Object.fromEntries(
+  const payload = Object.fromEntries(
     Object.entries(estudiante).map(([campo, valor]) => [
       campo,
       valor === "" ? null : valor,
     ]),
   );
+
+  if ("sisben" in payload && typeof payload.sisben !== "boolean") {
+    payload.sisben = SISBEN_PARA_EL_BACKEND[payload.sisben] ?? null;
+  }
+  if (payload.sisben_nivel !== null && payload.sisben_nivel !== undefined) {
+    payload.sisben_nivel = Number(payload.sisben_nivel);
+  }
+
+  return payload;
 }
 
 export function normalizarEstudianteParaEdicion(estudiante) {
@@ -74,6 +116,13 @@ export function normalizarEstudianteParaEdicion(estudiante) {
       valor === null ? "" : valor,
     ]),
   );
+
+  if (typeof estudianteLimpio.sisben === "boolean") {
+    estudianteLimpio.sisben = estudianteLimpio.sisben ? "si" : "no";
+  }
+  if (typeof estudianteLimpio.sisben_nivel === "number") {
+    estudianteLimpio.sisben_nivel = String(estudianteLimpio.sisben_nivel);
+  }
 
   delete estudianteLimpio.id;
   delete estudianteLimpio.estado;

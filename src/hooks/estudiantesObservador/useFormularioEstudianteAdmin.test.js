@@ -121,6 +121,82 @@ describe("useFormularioEstudianteAdmin", () => {
     );
   });
 
+  // SISBÉN y lugar de residencia, paso S3: lo guardado va y vuelve igual, y
+  // el cuerpo lleva siempre los ocho para que el backend los reemplace juntos.
+  it("al editar, el SISBÉN y la residencia guardados vuelven iguales", async () => {
+    obtenerMock.mockResolvedValue({
+      id: 12,
+      nombre: "Luis",
+      apellido: "Pardo",
+      curso_id: 4,
+      sisben: true,
+      sisben_grupo: "C",
+      sisben_subgrupo: "C12",
+      sisben_nivel: 1,
+      barrio: "El Carmen",
+      municipio: "Galapa",
+      zona_residencia: "urbana",
+      punto_referencia: null,
+    });
+    actualizarMock.mockResolvedValue({ id: 12 });
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+
+    await act(async () => {
+      await result.current.cargarEstudianteAEditar(12);
+    });
+    expect(result.current.estudianteData.sisben).toBe("si");
+
+    await act(async () => {
+      await result.current.guardarEstudiante();
+    });
+
+    expect(actualizarMock).toHaveBeenCalledWith(
+      12,
+      expect.objectContaining({
+        sisben: true,
+        sisben_grupo: "C",
+        sisben_subgrupo: "C12",
+        sisben_nivel: 1,
+        barrio: "El Carmen",
+        municipio: "Galapa",
+        zona_residencia: "urbana",
+        punto_referencia: null,
+      }),
+    );
+  });
+
+  it("al crear, el cuerpo lleva los ocho datos nuevos aunque estén vacíos", async () => {
+    crearMock.mockResolvedValue({ id: 11 });
+    const { result } = renderHook(() => useFormularioEstudianteAdmin());
+
+    act(() => {
+      result.current.setEstudianteData((actual) => ({
+        ...actual,
+        nombre: "Ana",
+        apellido: "Rojas",
+        curso_id: "4",
+        sisben: "no",
+        municipio: "Galapa",
+      }));
+    });
+    await act(async () => {
+      await result.current.guardarEstudiante();
+    });
+
+    expect(crearMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sisben: false,
+        sisben_grupo: null,
+        sisben_subgrupo: null,
+        sisben_nivel: null,
+        barrio: null,
+        municipio: "Galapa",
+        zona_residencia: null,
+        punto_referencia: null,
+      }),
+    );
+  });
+
   it("conserva el borrador nuevo al ocultar con el botón superior", () => {
     const { result } = renderHook(() => useFormularioEstudianteAdmin());
 

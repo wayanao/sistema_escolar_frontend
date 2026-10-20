@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-10-20 - Ficha del estudiante: SISBÉN y lugar de residencia por partes
+
+Paso S3 de `docs/funcionalidades/SISBEN_RESIDENCIA.md` (el backend y la
+migración ya están en producción).
+
+- `FormularioEstudianteAdmin` (crear, editar, "Editar datos" de Años
+  lectivos y matricular desde Admisiones): la caja "Dirección" pasa a la
+  sección **Lugar de residencia**, con dirección (calle o carrera y número),
+  barrio o vereda, municipio, zona (urbana o rural) y punto de referencia. En
+  "Datos adicionales", **¿Tiene SISBÉN?** (sin dato, sí o no) y, si es sí,
+  grupo y subgrupo del SISBÉN IV y nivel del SISBÉN III.
+- `src/constants/sisben.js` (nuevo): las listas del formulario.
+- `utils/estudiantesObservador/estudiantes.js`: los ocho campos en el estado
+  inicial; "si"/"no"/"" ↔ `true`/`false`/`null` y el nivel como número al
+  enviar y al cargar; `actualizarCampoEstudiante` vacía grupo, subgrupo y
+  nivel sin SISBÉN, y el subgrupo que deja de ser del grupo.
+- Peticiones: `POST /estudiantes`, `PUT /estudiantes/{id}` y `POST
+  /admisiones/{id}/matricular` llevan siempre los ocho campos. Nada más
+  cambia en el cuerpo ni en las rutas.
+
+Verificación: pruebas nuevas en `estudiantes.test.js`,
+`FormularioEstudianteAdmin.test.jsx` y `useFormularioEstudianteAdmin.test.js`
+(fallaron antes del código); `AdmisionesAdmin.test.jsx` busca la dirección por
+su etiqueta nueva. `pnpm run check:deploy`: 2652 pruebas en 369 archivos,
+lint y build correctos.
+
 ## 2026-10-16 - Certificado de matrícula: solo la firma de dirección
 
 - El impreso del certificado de matrícula

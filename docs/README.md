@@ -43,8 +43,8 @@ continuacion para retomarla en otro chat u otro LLM.
   nada implementado.**
 - `funcionalidades/SISBEN_RESIDENCIA.md`: SISBÉN y lugar de residencia por
   partes en el formulario del estudiante (crear, editar y matricular desde
-  una admisión). El documento principal está en el backend. **Diseñado (S0,
-  2026-10-19), nada implementado.**
+  una admisión). El documento principal está en el backend. **Backend en
+  producción; pantalla (S3) escrita el 2026-10-20, sin publicar.**
 
 ## Control SaaS
 
