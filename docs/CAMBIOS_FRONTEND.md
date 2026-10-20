@@ -1,5 +1,20 @@
 # Cambios Frontend
 
+## 2026-10-20 - Años lectivos: al matricular, nadie viene marcado
+
+- En "2. Matricular estudiantes", al elegir el curso de origen ya no vienen
+  marcados todos: se marca a cada estudiante a medida que llega. Un botón
+  "Marcar todos" / "Desmarcar todos" queda para cuando pasa el grupo completo
+  (no incluye a quien ya está matriculado ni a quien tiene marca de salida).
+- Motivo: con todos marcados, un clic en "Matricular" los matriculaba a todos,
+  y una matrícula de 2027 no se puede quitar ni cambiar desde la app.
+- Sin cambios de peticiones ni de backend.
+
+Verificación: pruebas nuevas en `usePreparacionMatriculas.test.js` y
+`AniosLectivosAdmin.test.jsx`. Detalle en
+`docs/funcionalidades/ANIO_LECTIVO.md`, "Ajuste del 2026-10-20".
+`pnpm run check:deploy`: 2668 pruebas en 369 archivos, lint y build correctos.
+
 ## 2026-10-20 - Entrevista de admisión: Estudios anteriores y Familia en las secciones
 
 - En la ficha de un aspirante, "Estudios anteriores" pasa a ser una sección

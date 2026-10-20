@@ -37,12 +37,17 @@ export default function MatriculasPreparacionView({
   onCambiarOrigen,
   onCambiarDestino,
   onAlternarEstudiante,
+  onAlternarTodos,
   onMarcarSalida,
   onPromover,
   onEditarEstudiante,
   onValoresPago,
 }) {
   const cantidad = seleccionados.length;
+  const disponibles = candidatos.filter(puedeMatricularseEnDestino);
+  const todosMarcados =
+    disponibles.length > 0 &&
+    disponibles.every((candidato) => seleccionados.includes(candidato.id));
   const valoresEspeciales = resultado?.valores_especiales_copiados ?? [];
   // El formulario de edición y el recuadro de valores de pago llegan armados
   // desde la página; mientras uno está abierto, no se abre otro para no
@@ -62,9 +67,10 @@ export default function MatriculasPreparacionView({
     <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
       <h2 className="text-xl font-bold text-gray-900">2. Matricular estudiantes</h2>
       <p className="mt-2 text-sm text-gray-600">
-        Elige el curso de {anioActivo.anio}, su destino en {anioPreparacion.anio}{" "}
-        y desmarca a quien no pasa con ese grupo. A quien no sigue en{" "}
-        {anioPreparacion.anio}, márcalo como retirado o egresado.
+        Elige el curso de {anioActivo.anio} y su destino en {anioPreparacion.anio}, y
+        marca a cada estudiante a medida que llega a matricularse. Si pasa el grupo
+        completo, usa &quot;Marcar todos&quot;. A quien no sigue en {anioPreparacion.anio},
+        márcalo como retirado o egresado.
       </p>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
@@ -149,9 +155,21 @@ export default function MatriculasPreparacionView({
 
       {candidatos.length > 0 && (
         <div className="mt-5 space-y-3">
-          <p className="text-sm font-semibold text-gray-800">
-            {cantidad} de {candidatos.length} seleccionados
-          </p>
+          {/* Nadie viene marcado: se marca de uno en uno o, si pasa el grupo
+              completo, con este botón (2026-10-20, a pedido del usuario). */}
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-semibold text-gray-800">
+              {cantidad} de {candidatos.length} seleccionados
+            </p>
+            <button
+              type="button"
+              onClick={onAlternarTodos}
+              disabled={promoviendo || disponibles.length === 0}
+              className={claseBotonSalida}
+            >
+              {todosMarcados ? "Desmarcar todos" : "Marcar todos"}
+            </button>
+          </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {candidatos.map((candidato) => {
               const yaMatriculado = candidato.matriculado_en_destino;

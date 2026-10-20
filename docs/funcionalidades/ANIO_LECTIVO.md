@@ -1451,6 +1451,33 @@ terminado localmente sin commit:**
   --check` limpio en los dos repos (en el backend solo cambió su documento
   principal). Sin bases reales.
 
+**Ajuste del 2026-10-20 — nadie viene marcado al matricular, pedido por el
+usuario.** Hasta ahora, al elegir un curso de origen venían marcados todos
+los que se podían matricular, como decía el diseño ("ve la lista y desmarca a
+quien no pasa"). El usuario pidió que la matrícula sea de uno en uno, como
+llegan las familias al colegio, y que quede un botón para marcar a todos. Se
+le confirmó que tiene razón: con todos marcados, un clic en "Matricular" los
+matricula a todos, y desde el 2026-10-19 no hay forma de quitar o cambiar una
+matrícula de 2027 desde la app.
+
+- `usePreparacionMatriculas`: al cargar un curso la selección empieza vacía
+  (también al cambiar de curso). `alternarTodos` marca a quien se puede
+  matricular (`puedeMatricularseEnDestino`: ni ya matriculado ni con marca de
+  salida); si ya están todos marcados, los desmarca. Recargar la lista sigue
+  conservando la selección del admin.
+- `MatriculasPreparacionView`: botón "Marcar todos" / "Desmarcar todos" junto a
+  "N de M seleccionados" (bloqueado mientras matricula o si no hay a quién
+  marcar), y la ayuda de arriba dice que se marca a cada estudiante a medida
+  que llega.
+- Sin cambios de peticiones ni de backend: `POST
+  /anios-lectivos/{id}/matriculas/promocion` recibe los mismos identificadores.
+- Pruebas: 6 nuevas del hook y 1 de la página (fallaron antes del código).
+  Ajustadas a propósito, porque daban por hecho que todos venían marcados: 8
+  del hook (ahora marcan con "Marcar todos" o de uno en uno antes de probar lo
+  suyo; la de la respuesta vieja tras cambiar de curso espera la selección
+  vacía) y 4 de la página. `pnpm run check:deploy` → **2668 pruebas en 369
+  archivos**, lint y build correctos. Sin probar todavía en el navegador.
+
 ### Fase 6 — Activar el año
 
 1. En la página de años lectivos: vista previa con cuántos pasan, cuántos
@@ -2018,6 +2045,9 @@ cualquier profesor. El frontend nunca manda ids del año pasado.
   la tarjeta "Admisiones {año}" de esta página y matricular desde la
   admisión reemplazaron al enlace "Crear estudiante en {año}". Ver
   `docs/funcionalidades/ENTREVISTA_ADMISION.md`.
+- 2026-10-20, a pedido del usuario y **sin commit**: al matricular, nadie
+  viene marcado y hay un botón "Marcar todos" (ver "Ajuste del 2026-10-20" al
+  final de la fase 5). Solo frontend.
 - Siguiente acción exacta: al subir, primero el backend (con Render en
   **Live**) y después el frontend; revisar en local antes (rama de Neon o
   Colegio Demo, nunca con estudiantes de `tenant_2005`, porque el backend

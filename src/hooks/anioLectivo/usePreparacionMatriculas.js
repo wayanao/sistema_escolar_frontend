@@ -82,13 +82,11 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     })
       .then((datos) => {
         if (controller.signal.aborted) return;
-        const lista = datos.candidatos ?? [];
-        setCandidatos(lista);
-        setSeleccionados(
-          lista
-            .filter(puedeMatricularseEnDestino)
-            .map((candidato) => candidato.id),
-        );
+        setCandidatos(datos.candidatos ?? []);
+        // Nadie viene marcado (2026-10-20, a pedido del usuario): la matrícula
+        // es de uno en uno, como llegan las familias. Un clic en "Matricular"
+        // con todos marcados no se puede deshacer desde la app.
+        setSeleccionados([]);
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
@@ -153,6 +151,19 @@ export default function usePreparacionMatriculas(anioPreparacion) {
         : [...actuales, estudianteId],
     );
   }, []);
+
+  // "Marcar todos", para cuando pasa el grupo completo: marca a quien se puede
+  // matricular. Si ya están todos marcados, los desmarca.
+  const alternarTodos = useCallback(() => {
+    const disponibles = candidatos
+      .filter(puedeMatricularseEnDestino)
+      .map((candidato) => candidato.id);
+    setSeleccionados((actuales) =>
+      disponibles.length > 0 && disponibles.every((id) => actuales.includes(id))
+        ? []
+        : disponibles,
+    );
+  }, [candidatos]);
 
   // Paso 6.6: marca (o quita, con `null`) la salida de un estudiante que no
   // pasa al año siguiente. Al marcarlo sale de la selección; al quitar la
@@ -259,6 +270,7 @@ export default function usePreparacionMatriculas(anioPreparacion) {
     cambiarCursoOrigen,
     setCursoDestinoId,
     alternarEstudiante,
+    alternarTodos,
     marcarSalida,
     promover,
     recargarPreparacion,

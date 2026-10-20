@@ -318,14 +318,16 @@ describe("preparación del año lectivo", () => {
       signal: expect.any(AbortSignal),
     });
 
+    // Desde el 2026-10-20 nadie viene marcado: la matrícula es de uno en uno.
     const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
     const luis = screen.getByRole("checkbox", { name: /Luis Pardo/ });
     const sara = screen.getByRole("checkbox", { name: /Sara Díaz/ });
-    expect(ana).toBeChecked();
-    expect(luis).toBeChecked();
+    expect(ana).not.toBeChecked();
+    expect(luis).not.toBeChecked();
     expect(sara).toBeDisabled();
+    expect(screen.getByText("0 de 3 seleccionados")).toBeInTheDocument();
 
-    await user.click(luis);
+    await user.click(ana);
     await user.selectOptions(screen.getByLabelText("Curso destino (2027)"), "20");
     await user.click(screen.getByRole("button", { name: "Matricular 1 estudiante" }));
 
@@ -339,6 +341,36 @@ describe("preparación del año lectivo", () => {
     expect(screen.getByText(/MENSUALIDAD/)).toBeInTheDocument();
     expect(screen.getByText("Beca parcial")).toBeInTheDocument();
     await waitFor(() => expect(mocks.obtenerResumenAnio).toHaveBeenCalledTimes(2));
+  });
+
+  // 2026-10-20, a pedido del usuario: nadie viene marcado y "Marcar todos"
+  // queda para cuando pasa el grupo completo.
+  it("marcar todos marca a quien se puede matricular, y el mismo botón los desmarca", async () => {
+    mocks.anioLectivo = {
+      anios: [PREPARACION, ACTIVO],
+      anioActivo: ACTIVO,
+    };
+    const user = userEvent.setup();
+    renderPagina();
+    await screen.findByRole("option", { name: /PRIMERO A/ });
+    await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
+    const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+    const luis = screen.getByRole("checkbox", { name: /Luis Pardo/ });
+    const sara = screen.getByRole("checkbox", { name: /Sara Díaz/ });
+
+    await user.click(screen.getByRole("button", { name: "Marcar todos" }));
+
+    expect(ana).toBeChecked();
+    expect(luis).toBeChecked();
+    // Ya matriculada en 2027: no entra.
+    expect(sara).not.toBeChecked();
+    expect(screen.getByText("2 de 3 seleccionados")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Desmarcar todos" }));
+
+    expect(ana).not.toBeChecked();
+    expect(luis).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Matricular 0 estudiantes" })).toBeDisabled();
   });
 
   it("marca y quita la salida de quien no pasa, desde la promoción (paso 6.6)", async () => {
@@ -362,6 +394,7 @@ describe("preparación del año lectivo", () => {
 
     const ana = await screen.findByRole("checkbox", { name: /Ana Rojas/ });
     const luis = screen.getByRole("checkbox", { name: /Luis Pardo/ });
+    await user.click(ana);
     expect(ana).toBeChecked();
     expect(luis).toBeDisabled();
     expect(luis).not.toBeChecked();
@@ -408,9 +441,8 @@ describe("preparación del año lectivo", () => {
 
     await screen.findByRole("option", { name: /PRIMERO A/ });
     await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
-    await user.click(
-      await screen.findByRole("button", { name: "Marcar a Ana Rojas como retirado" }),
-    );
+    await user.click(await screen.findByRole("checkbox", { name: /Ana Rojas/ }));
+    await user.click(screen.getByRole("button", { name: "Marcar a Ana Rojas como retirado" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Solo se puede matricular en un año en preparación.",
@@ -447,7 +479,8 @@ describe("editar los datos de un estudiante desde matricular", () => {
   it("guarda con la ficha completa, recarga la lista y no pierde la selección", async () => {
     const user = userEvent.setup();
     await abrirCursoDeOrigen(user);
-    await user.click(screen.getByRole("checkbox", { name: /Ana Rojas/ }));
+    // Nadie viene marcado (2026-10-20): se marca solo a Luis.
+    await user.click(screen.getByRole("checkbox", { name: /Luis Pardo/ }));
     mocks.listarCandidatosMatricula.mockResolvedValue({
       candidatos: [
         CANDIDATOS.candidatos[0],
@@ -750,6 +783,7 @@ describe("lo que se ve mientras la página trabaja", () => {
     await screen.findByText("3 estudiantes matriculados");
     await user.selectOptions(screen.getByLabelText("Curso de origen (2026)"), "10");
     await screen.findByRole("checkbox", { name: /Ana Rojas/ });
+    await user.click(screen.getByRole("button", { name: "Marcar todos" }));
     await user.selectOptions(screen.getByLabelText("Curso destino (2027)"), "20");
 
     await user.click(screen.getByRole("button", { name: "Matricular 2 estudiantes" }));

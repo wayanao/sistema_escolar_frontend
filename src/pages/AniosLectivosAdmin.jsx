@@ -454,6 +454,7 @@ function AniosLectivosAdmin() {
           onCambiarOrigen={preparacion.cambiarCursoOrigen}
           onCambiarDestino={preparacion.setCursoDestinoId}
           onAlternarEstudiante={preparacion.alternarEstudiante}
+          onAlternarTodos={preparacion.alternarTodos}
           onMarcarSalida={marcarSalida}
           onPromover={promover}
           onEditarEstudiante={editarEstudiante}

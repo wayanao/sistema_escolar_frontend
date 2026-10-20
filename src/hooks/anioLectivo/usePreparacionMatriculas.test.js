@@ -76,7 +76,8 @@ describe("usePreparacionMatriculas", () => {
 
     await waitFor(() => expect(result.current.cursosOrigen).toHaveLength(1));
     act(() => result.current.cambiarCursoOrigen("10"));
-    await waitFor(() => expect(result.current.seleccionados).toEqual([1]));
+    await waitFor(() => expect(result.current.candidatos).toHaveLength(1));
+    act(() => result.current.alternarEstudiante(1));
     act(() => result.current.setCursoDestinoId("20"));
 
     let respuesta;
@@ -106,10 +107,11 @@ describe("usePreparacionMatriculas: marca de salida (paso 6.6)", () => {
     await waitFor(() => expect(hook.result.current.cursosOrigen).toHaveLength(1));
     act(() => hook.result.current.cambiarCursoOrigen("10"));
     await waitFor(() => expect(hook.result.current.candidatos).toHaveLength(3));
+    act(() => hook.result.current.alternarTodos());
     return hook;
   }
 
-  it("no preselecciona a quien ya está marcado ni a quien ya está matriculado", async () => {
+  it("marcar todos no incluye a quien ya está marcado ni a quien ya está matriculado", async () => {
     const { result } = await conCandidatos();
 
     expect(result.current.seleccionados).toEqual([1]);
@@ -183,7 +185,9 @@ describe("usePreparacionMatriculas: recargar la lista tras editar datos", () => 
     const hook = renderHook(() => usePreparacionMatriculas(PREPARACION));
     await waitFor(() => expect(hook.result.current.cursosOrigen).toHaveLength(1));
     act(() => hook.result.current.cambiarCursoOrigen("10"));
-    await waitFor(() => expect(hook.result.current.seleccionados).toEqual([1, 2]));
+    await waitFor(() => expect(hook.result.current.candidatos).toHaveLength(2));
+    act(() => hook.result.current.alternarTodos());
+    expect(hook.result.current.seleccionados).toEqual([1, 2]);
     return hook;
   }
 
@@ -237,7 +241,9 @@ describe("usePreparacionMatriculas: recargar la lista tras editar datos", () => 
     });
 
     expect(result.current.candidatos).toEqual([LUIS]);
-    expect(result.current.seleccionados).toEqual([2]);
+    // El curso nuevo empieza sin nadie marcado, y la respuesta vieja no
+    // agrega a nadie.
+    expect(result.current.seleccionados).toEqual([]);
   });
 
   it("si falla, avisa y deja la lista como estaba", async () => {
@@ -287,5 +293,77 @@ describe("usePreparacionMatriculas: recargar el resumen tras cambiar valores de 
 
     expect(result.current.error).toBe("No se pudo actualizar el resumen del año.");
     expect(result.current.resumen).toEqual(RESUMEN);
+  });
+});
+
+// 2026-10-20, a pedido del usuario: la matrícula es de uno en uno, como llegan
+// las familias al colegio. Al elegir un curso nadie viene marcado; "Marcar
+// todos" queda para cuando pasa el grupo completo. Antes venían todos
+// marcados y un solo clic los matriculaba a todos, sin forma de deshacerlo
+// desde la app.
+describe("usePreparacionMatriculas: nadie viene marcado", () => {
+  const ANA = { id: 1, nombre: "Ana", apellido: "Rojas", matriculado_en_destino: false, estado_salida: null };
+  const LUIS = { id: 2, nombre: "Luis", apellido: "Pardo", matriculado_en_destino: false, estado_salida: null };
+  const SARA = { id: 3, nombre: "Sara", apellido: "Díaz", matriculado_en_destino: true, estado_salida: null };
+
+  async function conCandidatos(candidatos) {
+    mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
+    mocks.listarCandidatosMatricula.mockResolvedValue({ candidatos });
+    const hook = renderHook(() => usePreparacionMatriculas(PREPARACION));
+    await waitFor(() => expect(hook.result.current.cursosOrigen).toHaveLength(1));
+    act(() => hook.result.current.cambiarCursoOrigen("10"));
+    await waitFor(() => expect(hook.result.current.candidatos).toHaveLength(candidatos.length));
+    return hook;
+  }
+
+  it("al elegir un curso, la selección empieza vacía", async () => {
+    const { result } = await conCandidatos([ANA, LUIS, SARA]);
+
+    expect(result.current.seleccionados).toEqual([]);
+  });
+
+  it("se marca de uno en uno", async () => {
+    const { result } = await conCandidatos([ANA, LUIS, SARA]);
+
+    act(() => result.current.alternarEstudiante(2));
+
+    expect(result.current.seleccionados).toEqual([2]);
+  });
+
+  it("marcar todos marca solo a quien se puede matricular", async () => {
+    const { result } = await conCandidatos([ANA, LUIS, SARA]);
+
+    act(() => result.current.alternarTodos());
+
+    expect(result.current.seleccionados).toEqual([1, 2]);
+  });
+
+  it("con unos marcados, marcar todos completa la selección", async () => {
+    const { result } = await conCandidatos([ANA, LUIS, SARA]);
+    act(() => result.current.alternarEstudiante(2));
+
+    act(() => result.current.alternarTodos());
+
+    expect([...result.current.seleccionados].sort()).toEqual([1, 2]);
+  });
+
+  it("con todos marcados, el mismo botón los desmarca", async () => {
+    const { result } = await conCandidatos([ANA, LUIS, SARA]);
+    act(() => result.current.alternarTodos());
+
+    act(() => result.current.alternarTodos());
+
+    expect(result.current.seleccionados).toEqual([]);
+  });
+
+  it("al cambiar de curso, la selección vuelve a empezar vacía", async () => {
+    const { result } = await conCandidatos([ANA, LUIS]);
+    act(() => result.current.alternarTodos());
+    mocks.listarCandidatosMatricula.mockResolvedValue({ candidatos: [LUIS] });
+
+    act(() => result.current.cambiarCursoOrigen("11"));
+    await waitFor(() => expect(result.current.candidatos).toEqual([LUIS]));
+
+    expect(result.current.seleccionados).toEqual([]);
   });
 });
