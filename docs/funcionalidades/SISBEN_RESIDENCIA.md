@@ -2,7 +2,10 @@
 
 ## Control
 
-- Estado: **Diseñado (paso S0, 2026-10-19), nada implementado.**
+- Estado: **Diseño (S0) en el commit `6c90e51`. En este repo, nada
+  implementado.** El backend escribió su paso S1 el 2026-10-19 (sin commit,
+  migración sin aplicar). Confirmado con el usuario: nivel del SISBÉN 1, 2 o
+  3, y sin departamento.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -50,6 +53,20 @@ cambiarla ahí, los tres quedan cubiertos.
 - El cuerpo nuevo **siempre lleva los ocho campos**, para que el backend los
   reemplace juntos (decisión 4 del documento principal).
 
+## Contrato del backend (su paso S1)
+
+- Campos en `POST /estudiantes`, `PUT /estudiantes/{id}` y `POST
+  /admisiones/{id}/matricular`: `sisben` (`true`, `false` o `null`),
+  `sisben_grupo` (`A` a `D`), `sisben_subgrupo` (del grupo: `A1`–`A5`,
+  `B1`–`B7`, `C1`–`C18`, `D1`–`D21`), `sisben_nivel` (número `1`, `2` o `3`),
+  `barrio` (150), `municipio` (100), `zona_residencia` (`urbana` o `rural`) y
+  `punto_referencia` (255).
+- `422` con el motivo en español si llega grupo, subgrupo o nivel sin `sisben:
+  true`, o un subgrupo que no es de su grupo.
+- `GET /estudiantes/{id}` los devuelve (con `null` si no hay dato), así que
+  `normalizarEstudianteParaEdicion` los recibe sin cambios en el servicio.
+- Detalle en `sistema_escolar_api/docs/API_ENDPOINTS.md`, "Estudiantes".
+
 ## Fuera de alcance
 
 - Factura, certificados y otros impresos: sin cambios.
@@ -58,6 +75,8 @@ cambiarla ahí, los tres quedan cubiertos.
 
 ## Entrega para el siguiente chat
 
-- Hecho: S0, el diseño, el 2026-10-19. No hay código de esta funcionalidad.
-- Siguiente acción exacta: ver la entrega del documento principal.
+- Hecho: S0, el diseño, el 2026-10-19. No hay código de esta funcionalidad
+  en este repo. El backend tiene su S1 escrito, sin commit.
+- Siguiente acción exacta: ver la entrega del documento principal (S2, que
+  hace el usuario). El S3 de este repo va después, con su autorización.
 - Prompt para retomar: `docs/funcionalidades/PROMPT_CONTINUACION_SISBEN_RESIDENCIA.md`.
