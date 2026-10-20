@@ -416,7 +416,7 @@ describe("preguntas del anexo (paso E11)", () => {
     pintar();
 
     await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
-    expect(await screen.findByRole("heading", { name: "Preguntas del anexo" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /^Salud/ })).toBeInTheDocument();
 
     expect(mocks.obtenerCuestionarioAdmision).toHaveBeenCalledTimes(1);
   });
@@ -427,7 +427,7 @@ describe("preguntas del anexo (paso E11)", () => {
     pintar();
 
     await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
-    await screen.findByRole("heading", { name: "Preguntas del anexo" });
+    await screen.findByRole("button", { name: /^Salud/ });
     await user.click(screen.getByRole("button", { name: "Guardar datos y entrevista" }));
 
     const [, cuerpo] = mocks.actualizarAdmision.mock.calls[0];
@@ -489,7 +489,7 @@ describe("imprimir la entrevista (paso E12)", () => {
     pintar();
 
     await user.click(await screen.findByRole("button", { name: "Abrir Lina Díaz" }));
-    await screen.findByRole("heading", { name: "Preguntas del anexo" });
+    await screen.findByRole("button", { name: /^Salud/ });
     await user.click(screen.getByRole("button", { name: "Imprimir entrevista" }));
 
     expect(screen.getByRole("heading", { name: "Entrevista de admisión" })).toBeInTheDocument();

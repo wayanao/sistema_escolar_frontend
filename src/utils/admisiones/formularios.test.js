@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   CAMPOS_ASPIRANTE,
   CAMPOS_ENTREVISTA,
+  CAMPOS_ESTUDIOS_ANTERIORES,
+  CAMPOS_FAMILIA_ENTREVISTA,
   LIMITES_TEXTO,
   construirCuerpoAdmision,
   construirCuerpoAspirante,
   construirCuerpoResultado,
+  contarLlenos,
   datosParaMatricular,
   crearFormularioAdmision,
   formularioDesdeAdmision,
@@ -182,6 +185,52 @@ describe("la ficha del estudiante al matricular (paso E5)", () => {
     expect(datosParaMatricular({ nombre: "Lina", curso_id: null })).toEqual({
       nombre: "Lina",
       curso_id: "",
+    });
+  });
+});
+
+// 2026-10-20, a pedido del usuario: "Estudios anteriores" y la familia de la
+// entrevista van en las secciones que se abren y se cierran, con su conteo.
+describe("las secciones de la entrevista que se abren y se cierran", () => {
+  it("Estudios anteriores y Familia reparten lo de la entrevista, menos quién y cuándo", () => {
+    expect(CAMPOS_ESTUDIOS_ANTERIORES).toEqual([
+      "colegio_anterior",
+      "anio_cursado_anterior",
+      "pre_escolar_anterior",
+      "ebp_anterior",
+      "paz_salvo_anterior",
+      "motivo_retiro_anterior",
+    ]);
+    expect(CAMPOS_FAMILIA_ENTREVISTA).toEqual([
+      "ocupacion_padre",
+      "ocupacion_madre",
+      "vive_con",
+      "expectativas",
+      "observaciones",
+    ]);
+    const repartidos = [...CAMPOS_ESTUDIOS_ANTERIORES, ...CAMPOS_FAMILIA_ENTREVISTA];
+    expect(CAMPOS_ENTREVISTA.filter((campo) => !repartidos.includes(campo))).toEqual([
+      "fecha_entrevista",
+      "entrevistador",
+      "asistentes",
+    ]);
+  });
+
+  it("cuenta los campos llenos; los espacios solos no cuentan", () => {
+    const formulario = {
+      ...crearFormularioAdmision(),
+      colegio_anterior: "Colegio Uno",
+      anio_cursado_anterior: "   ",
+      paz_salvo_anterior: "SI",
+    };
+
+    expect(contarLlenos(formulario, CAMPOS_ESTUDIOS_ANTERIORES)).toEqual({
+      respondidas: 2,
+      total: 6,
+    });
+    expect(contarLlenos(formulario, CAMPOS_FAMILIA_ENTREVISTA)).toEqual({
+      respondidas: 0,
+      total: 5,
     });
   });
 });

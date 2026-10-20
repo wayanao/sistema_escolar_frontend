@@ -101,7 +101,9 @@ describe("CuestionarioAdmisionView", () => {
   it("muestra las secciones cerradas, cada una con cuántas van respondidas", () => {
     pintar({ respuestas: { como_lo_llaman: "Juancho" } });
 
-    expect(screen.getByRole("heading", { name: "Preguntas del anexo" })).toBeInTheDocument();
+    // El título "Preguntas del anexo" se quitó el 2026-10-20, a pedido del usuario.
+    expect(screen.queryByRole("heading", { name: "Preguntas del anexo" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Ninguna es obligatoria/)).toBeInTheDocument();
     expect(seccion("Familia")).toHaveAttribute("aria-expanded", "false");
     expect(seccion("Familia")).toHaveTextContent("1 de 4");
     // La 26 no cuenta mientras no se vea.
@@ -258,5 +260,88 @@ describe("CuestionarioAdmisionView", () => {
     );
 
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+// 2026-10-20, a pedido del usuario: lo de la entrevista que no son preguntas
+// del anexo ("Estudios anteriores" y lo de la familia) va en las mismas
+// secciones que se abren y se cierran. Un apartado sin `dentroDe` es una
+// sección propia, antes de las del anexo; con `dentroDe`, va al inicio de esa
+// sección y suma a su conteo.
+describe("CuestionarioAdmisionView: lo de la entrevista en las secciones", () => {
+  const campo = (id, etiqueta) => (
+    <div>
+      <label htmlFor={id}>{etiqueta}</label>
+      <input id={id} />
+    </div>
+  );
+  const APARTADOS = [
+    {
+      clave: "estudios_anteriores",
+      titulo: "Estudios anteriores",
+      respondidas: 2,
+      total: 6,
+      contenido: campo("colegio", "Colegio anterior"),
+    },
+    {
+      clave: "familia_entrevista",
+      dentroDe: "familia",
+      titulo: "Familia",
+      respondidas: 1,
+      total: 5,
+      contenido: campo("ocupacion", "Ocupación del padre"),
+    },
+  ];
+  const titulos = () =>
+    screen.getAllByRole("button").map((boton) => boton.textContent.replace(/\d+ de \d+.*/, ""));
+
+  it("un apartado propio va primero, cerrado y con su conteo", async () => {
+    const { user } = pintar({ apartados: APARTADOS });
+
+    expect(titulos()).toEqual(["Estudios anteriores", "Familia", "Salud"]);
+    expect(seccion("Estudios anteriores")).toHaveAttribute("aria-expanded", "false");
+    expect(seccion("Estudios anteriores")).toHaveTextContent("2 de 6");
+    expect(screen.queryByLabelText("Colegio anterior")).not.toBeInTheDocument();
+
+    await user.click(seccion("Estudios anteriores"));
+
+    expect(seccion("Estudios anteriores")).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText("Colegio anterior")).toBeInTheDocument();
+  });
+
+  it("un apartado dentro de una sección va al inicio de ella y suma a su conteo", async () => {
+    const { user } = pintar({ apartados: APARTADOS, respuestas: { como_lo_llaman: "Juancho" } });
+
+    // Una sola "Familia": 1 de la entrevista y 1 del anexo, de 5 + 4.
+    expect(screen.getAllByRole("button", { name: /^Familia/ })).toHaveLength(1);
+    expect(seccion("Familia")).toHaveTextContent("2 de 9");
+
+    await user.click(seccion("Familia"));
+
+    const ocupacion = screen.getByLabelText("Ocupación del padre");
+    const apodo = screen.getByRole("textbox", { name: "1. ¿Cómo lo llaman en casa?" });
+    // Primero lo de la entrevista, después las preguntas del anexo.
+    expect(ocupacion.compareDocumentPosition(apodo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("si la sección de destino no llegó, el apartado queda como sección propia", async () => {
+    const { user } = pintar({
+      apartados: APARTADOS,
+      secciones: [],
+      error: "No se pudieron cargar las preguntas del anexo.",
+    });
+
+    expect(screen.getByText("No se pudieron cargar las preguntas del anexo.")).toBeInTheDocument();
+    expect(titulos()).toEqual(["Estudios anteriores", "Familia"]);
+    expect(seccion("Familia")).toHaveTextContent("1 de 5");
+
+    await user.click(seccion("Familia"));
+    expect(screen.getByLabelText("Ocupación del padre")).toBeInTheDocument();
+  });
+
+  it("sin la lista y sin error, los apartados igual se muestran", () => {
+    pintar({ apartados: APARTADOS, secciones: [] });
+
+    expect(titulos()).toEqual(["Estudios anteriores", "Familia"]);
   });
 });

@@ -1,8 +1,16 @@
 import { RESULTADO_APROBADO, etiquetaResultado } from "../../utils/admisiones/admisiones";
+import {
+  CAMPOS_ESTUDIOS_ANTERIORES,
+  CAMPOS_FAMILIA_ENTREVISTA,
+  contarLlenos,
+} from "../../utils/admisiones/formularios";
 import SpinnerView from "../anioLectivo/SpinnerView";
 import CuestionarioAdmisionView from "./CuestionarioAdmisionView";
 import FormularioAspiranteView from "./FormularioAspiranteView";
-import FormularioEntrevistaView from "./FormularioEntrevistaView";
+import FormularioEntrevistaView, {
+  CamposEstudiosAnteriores,
+  CamposFamiliaEntrevista,
+} from "./FormularioEntrevistaView";
 import ResultadoAdmisionView from "./ResultadoAdmisionView";
 
 const nombreCompleto = ({ nombre, apellido }) => [nombre, apellido].filter(Boolean).join(" ");
@@ -36,7 +44,8 @@ export default function FichaAdmisionView({
   onCerrar,
   onMatricular,
   abriendoMatricula = false,
-  // Paso E11. Sin `cuestionario`, la ficha queda como antes.
+  // Paso E11. Sin `cuestionario`, solo se ven las secciones de Estudios
+  // anteriores y Familia de la entrevista.
   cuestionario = SIN_PREGUNTAS,
   respuestas = SIN_RESPUESTAS,
   erroresCuestionario = SIN_RESPUESTAS,
@@ -46,6 +55,24 @@ export default function FichaAdmisionView({
   onImprimir,
 }) {
   const editable = admision.editable === true;
+  // Estudios anteriores y lo de la familia de la entrevista, en las
+  // secciones que se abren y se cierran (2026-10-20, a pedido del usuario).
+  const entrevista = { formulario, deshabilitado: !editable, onCambiar };
+  const apartados = [
+    {
+      clave: "estudios_anteriores",
+      titulo: "Estudios anteriores",
+      ...contarLlenos(formulario, CAMPOS_ESTUDIOS_ANTERIORES),
+      contenido: <CamposEstudiosAnteriores {...entrevista} />,
+    },
+    {
+      clave: "familia_entrevista",
+      dentroDe: "familia",
+      titulo: "Familia",
+      ...contarLlenos(formulario, CAMPOS_FAMILIA_ENTREVISTA),
+      contenido: <CamposFamiliaEntrevista {...entrevista} />,
+    },
+  ];
   // El resultado guardado, no el que se está eligiendo: el backend solo
   // matricula lo que ya está aprobado.
   const puedeMatricular = editable && admision.resultado === RESULTADO_APROBADO;
@@ -123,8 +150,9 @@ export default function FichaAdmisionView({
           deshabilitado={!editable}
           onCambiar={onCambiar}
         />
-        <FormularioEntrevistaView formulario={formulario} deshabilitado={!editable} onCambiar={onCambiar} />
+        <FormularioEntrevistaView {...entrevista} />
         <CuestionarioAdmisionView
+          apartados={apartados}
           secciones={cuestionario}
           respuestas={respuestas}
           errores={erroresCuestionario}

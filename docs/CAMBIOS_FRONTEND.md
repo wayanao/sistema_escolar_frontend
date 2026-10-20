@@ -1,5 +1,19 @@
 # Cambios Frontend
 
+## 2026-10-20 - Entrevista de admisión: Estudios anteriores y Familia en las secciones
+
+- En la ficha de un aspirante, "Estudios anteriores" pasa a ser una sección
+  que se abre y se cierra (la primera), y lo de la familia de la entrevista va
+  al inicio de la sección "Familia" del anexo. Se quitó el título "Preguntas
+  del anexo". "Entrevista" (fecha, quién entrevistó y quiénes asistieron)
+  sigue a la vista.
+- Sin cambios de peticiones ni de backend; el impreso no cambia.
+
+Verificación: pruebas nuevas en `formularios.test.js`,
+`CuestionarioAdmisionView.test.jsx` y `FichaAdmisionView.test.jsx`. Detalle en
+`docs/funcionalidades/ENTREVISTA_ADMISION.md`, "Ajuste del 2026-10-20".
+`pnpm run check:deploy`: 2661 pruebas en 369 archivos, lint y build correctos.
+
 ## 2026-10-20 - Ficha del estudiante: SISBÉN y lugar de residencia por partes
 
 Paso S3 de `docs/funcionalidades/SISBEN_RESIDENCIA.md` (el backend y la

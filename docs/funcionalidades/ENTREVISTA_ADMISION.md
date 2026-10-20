@@ -25,7 +25,7 @@
   `docs/funcionalidades/ANIO_LECTIVO.md`.
 - Depende de: los pasos E1 a E3 del backend (migración y rutas) en
   producción antes de usar las pantallas allá.
-- Última actualización: 2026-10-15.
+- Última actualización: 2026-10-20.
 
 ## Objetivo
 
@@ -625,8 +625,51 @@ pantalla oculta botones con `editable`, no con su propia regla.
 - Verificación en "Entrega para el siguiente chat". **No se ha visto en un
   navegador ni impreso.**
 
+## Ajuste del 2026-10-20: Estudios anteriores y Familia en las secciones
+
+Pedido por el usuario: "Estudios anteriores" y "Familia" de la entrevista
+dentro de las preguntas del anexo, en las secciones que se abren y se cierran,
+y sin el título "Preguntas del anexo". Antes de cambiar se le preguntaron dos
+cosas: "select" quería decir que se abran y se cierran (no listas
+desplegables), y como el anexo ya tiene su sección "Familia", eligió juntarlas
+en una sola.
+
+Qué cambió (solo pantalla; el cuerpo de `PUT /admisiones/{id}` es el mismo y
+el impreso del E12 no cambia):
+
+- `FormularioEntrevistaView` deja a la vista solo "Entrevista" (fecha, quién
+  entrevistó y quiénes asistieron). Exporta además `CamposEstudiosAnteriores`
+  y `CamposFamiliaEntrevista`, con los mismos campos de antes.
+- `CuestionarioAdmisionView`: sin el título (la sección se llama "Preguntas
+  de la entrevista" solo para lectores de pantalla; la ayuda "Ninguna es
+  obligatoria..." sigue) y con `apartados`. "Estudios anteriores" es una
+  sección propia, la primera; lo de la familia de la entrevista va al inicio
+  de la sección "Familia" del anexo y suma a su conteo ("1 de 10"). Si la
+  lista del anexo no llega, los dos se ven como secciones propias, así que
+  nunca se pierden. La barra de cada sección pasó a `SeccionPlegable`, dentro
+  del mismo archivo.
+- `utils/admisiones/formularios.js`: `CAMPOS_ESTUDIOS_ANTERIORES`,
+  `CAMPOS_FAMILIA_ENTREVISTA` y `contarLlenos` (los espacios solos no
+  cuentan).
+- `FichaAdmisionView` arma los dos apartados y se los pasa a las secciones.
+
+Pruebas: nuevas en `formularios.test.js` (2), `CuestionarioAdmisionView.test.jsx`
+(4) y `FichaAdmisionView.test.jsx` (4: una de ellas reemplaza "sin la lista
+de preguntas, la ficha queda como antes"); fallaron antes del código, salvo la
+que comprueba que "Entrevista" sigue a la vista, que fija lo que no cambia.
+Ajustadas a propósito: la primera de `CuestionarioAdmisionView.test.jsx` (el
+título ya no está) y tres de `AdmisionesAdmin.test.jsx`, que esperaban el
+título para saber que la lista había cargado y ahora esperan la sección
+"Salud". `pnpm run check:deploy` → **2661 pruebas en 369 archivos**, lint y
+build correctos. Sin probar todavía en el navegador.
+
 ## Entrega para el siguiente chat
 
+- 2026-10-20: **ajuste pedido por el usuario, sin commit**: Estudios
+  anteriores y Familia de la entrevista en las secciones que se abren y se
+  cierran, y sin el título "Preguntas del anexo" (ver "Ajuste del
+  2026-10-20"). Siguiente: que el usuario lo vea en local con el Colegio Demo
+  y haga commit y push; no necesita backend.
 - Estado al 2026-10-14: **E4 a E6 en producción**, según el usuario, igual
   que el backend (E1 a E3); el **E7** del backend está en GitHub
   (`24a9a3c`). Ninguna pantalla se había visto antes en un navegador ni

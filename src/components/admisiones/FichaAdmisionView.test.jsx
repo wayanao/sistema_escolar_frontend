@@ -199,17 +199,83 @@ describe("preguntas del anexo (paso E11)", () => {
     const onCambiarRespuesta = vi.fn();
     pintar({}, { cuestionario: CUESTIONARIO, respuestas: {}, onCambiarRespuesta });
 
-    expect(screen.getByRole("heading", { name: "Preguntas del anexo" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^Salud/ }));
     await user.click(screen.getByRole("radio", { name: "No" }));
 
     expect(onCambiarRespuesta).toHaveBeenCalledWith(CUESTIONARIO[0].preguntas[0], "elegir", "no");
   });
 
-  it("sin la lista de preguntas, la ficha queda como antes", () => {
+  // Desde el 2026-10-20, Estudios anteriores y Familia van en secciones que se
+  // abren y se cierran: sin la lista del anexo siguen ahí, solas.
+  it("sin la lista de preguntas, Estudios anteriores y Familia siguen ahí", async () => {
+    const user = userEvent.setup();
     pintar();
 
     expect(screen.queryByRole("heading", { name: "Preguntas del anexo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Estudios anteriores/ })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^Familia/ }));
+    expect(screen.getByLabelText("Ocupación del padre")).toBeInTheDocument();
+  });
+
+  it("Estudios anteriores va en su sección, cerrada, con lo que lleva escrito", async () => {
+    const user = userEvent.setup();
+    const props = pintar(
+      { colegio_anterior: "Colegio Uno", paz_salvo_anterior: "SI" },
+      { cuestionario: CUESTIONARIO, respuestas: {} },
+    );
+
+    const estudios = screen.getByRole("button", { name: /^Estudios anteriores/ });
+    expect(estudios).toHaveAttribute("aria-expanded", "false");
+    expect(estudios).toHaveTextContent("2 de 6");
+    expect(screen.queryByLabelText("Colegio anterior")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Estudios anteriores" })).not.toBeInTheDocument();
+
+    await user.click(estudios);
+    expect(screen.getByLabelText("Colegio anterior")).toHaveValue("Colegio Uno");
+    expect(screen.getByLabelText("Paz y salvo")).toHaveValue("SI");
+    await user.type(screen.getByLabelText("Año cursado"), "3");
+    expect(props.onCambiar).toHaveBeenCalledWith("anio_cursado_anterior", "3");
+  });
+
+  it("lo de la familia de la entrevista va al inicio de la sección Familia del anexo", async () => {
+    const user = userEvent.setup();
+    const cuestionario = [
+      {
+        clave: "familia",
+        titulo: "Familia",
+        preguntas: [
+          {
+            numero: 2,
+            clave: "numero_hermanos",
+            texto: "Número de hermanos",
+            tipo: "numero",
+            minimo: 0,
+            maximo: 20,
+          },
+        ],
+      },
+      ...CUESTIONARIO,
+    ];
+    const props = pintar({ vive_con: "Con la mamá" }, { cuestionario, respuestas: {} });
+
+    expect(screen.getAllByRole("button", { name: /^Familia/ })).toHaveLength(1);
+    expect(screen.queryByRole("heading", { name: "Familia" })).not.toBeInTheDocument();
+    const familia = screen.getByRole("button", { name: /^Familia/ });
+    expect(familia).toHaveTextContent("1 de 6");
+
+    await user.click(familia);
+    expect(screen.getByLabelText("Con quién vive el aspirante")).toHaveValue("Con la mamá");
+    expect(screen.getByRole("spinbutton", { name: "2. Número de hermanos" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Ocupación del padre"), "C");
+    expect(props.onCambiar).toHaveBeenCalledWith("ocupacion_padre", "C");
+  });
+
+  it("la entrevista (quién, cuándo y quiénes) sigue a la vista", () => {
+    pintar({}, { cuestionario: CUESTIONARIO, respuestas: {} });
+
+    expect(screen.getByRole("heading", { name: "Entrevista" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Fecha de la entrevista")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quiénes asistieron")).toBeInTheDocument();
   });
 
   it("de solo consulta, las respuestas del anexo tampoco se tocan", async () => {

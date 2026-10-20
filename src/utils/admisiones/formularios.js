@@ -41,6 +41,36 @@ export const CAMPOS_ENTREVISTA = Object.freeze([
   "observaciones",
 ]);
 
+// Lo de la entrevista que va en las secciones que se abren y se cierran,
+// junto a las preguntas del anexo (2026-10-20, a pedido del usuario):
+// "Estudios anteriores" es una sección propia y lo de la familia va al inicio
+// de la sección "Familia" del anexo. Quién, cuándo y quiénes asistieron siguen
+// a la vista. Solo cambia dónde se ven: el cuerpo es el mismo.
+export const CAMPOS_ESTUDIOS_ANTERIORES = Object.freeze([
+  "colegio_anterior",
+  "anio_cursado_anterior",
+  "pre_escolar_anterior",
+  "ebp_anterior",
+  "paz_salvo_anterior",
+  "motivo_retiro_anterior",
+]);
+
+export const CAMPOS_FAMILIA_ENTREVISTA = Object.freeze([
+  "ocupacion_padre",
+  "ocupacion_madre",
+  "vive_con",
+  "expectativas",
+  "observaciones",
+]);
+
+// Cuántos de `campos` tienen algo escrito, para el "2 de 6" de su sección.
+export function contarLlenos(formulario, campos) {
+  const respondidas = campos.filter(
+    (campo) => String(formulario?.[campo] ?? "").trim() !== "",
+  ).length;
+  return { respondidas, total: campos.length };
+}
+
 export const LIMITES_TEXTO = Object.freeze({
   nombre: 100,
   apellido: 100,
