@@ -178,10 +178,12 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
   2805 pruebas. La que falló (`IngresoBoletinProfesor.test.jsx`) pasa sola (2
   de 2): fue el fallo al azar por carga de la máquina. Lint y build pasan por
   separado y `git diff --check` está limpio.
-- 2026-10-21: el usuario aprobó las propuestas P1 a P12 y el backend escribió
-  A1 (sin commit). Su contrato quedó en "Contrato del backend".
-- Siguiente acción exacta: el A2 del backend (lo hace el usuario). **A3 en
-  este repo** solo con autorización explícita; se puede escribir con A1
-  terminado, aunque el backend no esté publicado.
+- 2026-10-21: el usuario aprobó las propuestas P1 a P12, y el backend
+  terminó A1 y A2: código, migración probada en una rama de Neon y esquema
+  base regenerado. Todo sin commit y sin publicar. Su contrato quedó en
+  "Contrato del backend".
+- Siguiente acción exacta: en el backend, commit y publicación (migración en
+  producción y, en seguida, push). **A3 en este repo** solo con autorización
+  explícita; se puede escribir aunque el backend no esté publicado.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
