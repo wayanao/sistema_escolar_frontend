@@ -52,7 +52,9 @@ describe("useFormularioEstudianteAdmin", () => {
       respuesta = await result.current.guardarEstudiante();
     });
 
-    expect(respuesta).toEqual({ estado: "exito", modo: "creacion" });
+    // Desde el 2026-10-21 devuelve también el número del estudiante, para
+    // que la página baje hasta él.
+    expect(respuesta).toEqual({ estado: "exito", modo: "creacion", id: 11 });
     expect(crearMock).toHaveBeenCalledWith(
       expect.objectContaining({
         nombre: "Ana",
@@ -114,7 +116,7 @@ describe("useFormularioEstudianteAdmin", () => {
       respuesta = await result.current.guardarEstudiante();
     });
 
-    expect(respuesta).toEqual({ estado: "exito", modo: "edicion" });
+    expect(respuesta).toEqual({ estado: "exito", modo: "edicion", id: 12 });
     expect(actualizarMock).toHaveBeenCalledWith(
       12,
       expect.objectContaining({ email: null }),

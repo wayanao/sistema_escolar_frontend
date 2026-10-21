@@ -7,6 +7,7 @@ import {
   ZONAS_RESIDENCIA,
 } from "../../../constants/sisben";
 import { actualizarCampoEstudiante } from "../../../utils/estudiantesObservador/estudiantes";
+import SpinnerView from "../../anioLectivo/SpinnerView";
 
 export default function FormularioEstudianteAdmin({
   visible,
@@ -21,6 +22,11 @@ export default function FormularioEstudianteAdmin({
   // título y otro botón. Sin ellos, todo queda como siempre.
   titulo = null,
   textoBoton = null,
+  // Lo que dice el botón mientras guarda (Estudiantes pasa "Creando
+  // estudiante..." al crear). Sin él, "Guardando...", como siempre.
+  textoGuardando = "Guardando...",
+  // El título recibe el foco cuando la página lleva la pantalla a la ficha.
+  tituloRef,
 }) {
   if (!visible) return null;
 
@@ -32,7 +38,11 @@ export default function FormularioEstudianteAdmin({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4 text-left">
+      <h2
+        ref={tituloRef}
+        tabIndex={-1}
+        className="text-xl font-semibold mb-4 text-left focus:outline-none"
+      >
         {titulo ??
           (editingId !== null
             ? "✏️ Editar Estudiante"
@@ -400,19 +410,23 @@ export default function FormularioEstudianteAdmin({
           <button
             type="submit"
             disabled={guardando}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:cursor-wait disabled:opacity-75"
           >
-            {guardando
-              ? "Guardando..."
-              : textoBoton ??
-                (editingId !== null
-                  ? "Actualizar Estudiante"
-                  : "Crear Estudiante")}
+            {guardando ? (
+              <>
+                <SpinnerView />
+                {textoGuardando}
+              </>
+            ) : (
+              textoBoton ??
+              (editingId !== null ? "Actualizar Estudiante" : "Crear Estudiante")
+            )}
           </button>
           <button
             type="button"
             onClick={onCancelar}
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+            disabled={guardando}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancelar
           </button>

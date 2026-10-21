@@ -2,6 +2,7 @@ import {
   ESTADOS_ESTUDIANTE,
   obtenerEtiquetaEstadoEstudiante,
 } from "../../../utils/estudiantesObservador/estudiantes";
+import SpinnerView from "../../anioLectivo/SpinnerView";
 
 const estadoClasses = {
   activo: "bg-green-100 text-green-800 border-green-200",
@@ -19,13 +20,24 @@ export default function ListaEstudiantesAdmin({
   // Falso mirando un año que no es el activo: sin cambiar el estado ni
   // editar (la ficha se sigue abriendo).
   puedeEditar = true,
+  // Cada fila lleva `data-estudiante-id` para que la página pueda llevarla a
+  // la vista; `resaltadoId` pinta en verde la del estudiante recién guardado.
+  resaltadoId = null,
+  // Mientras se vuelve a pedir la lista sin esconderla.
+  actualizando = false,
 }) {
   return (
     <div className="bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-semibold">
           Lista de Estudiantes ({estudiantes.length})
         </h2>
+        {actualizando && (
+          <span role="status" className="inline-flex items-center gap-2 text-sm text-purple-700">
+            <SpinnerView />
+            Actualizando...
+          </span>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -48,7 +60,10 @@ export default function ListaEstudiantesAdmin({
             {estudiantes.map((estudiante) => (
               <tr
                 key={estudiante.id}
-                className="hover:bg-gray-100 cursor-pointer transition-colors"
+                data-estudiante-id={estudiante.id}
+                className={`scroll-my-8 hover:bg-gray-100 cursor-pointer transition-colors ${
+                  estudiante.id === resaltadoId ? "bg-green-50" : ""
+                }`}
                 onClick={() => onVerDetalles(estudiante)}
               >
                 <td className="px-6 py-4 whitespace-nowrap">

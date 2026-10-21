@@ -36,6 +36,41 @@ describe("ListaEstudiantesAdmin", () => {
     expect(props.onVerDetalles).toHaveBeenCalledTimes(1);
   });
 
+  it("marca cada fila con su número y resalta la del estudiante recién guardado", () => {
+    const { container } = render(
+      <ListaEstudiantesAdmin
+        estudiantes={[
+          { id: 11, nombre: "Ana", apellido: "Rojas", curso_id: 4, estado: "activo" },
+          { id: 12, nombre: "Luis", apellido: "Pardo", curso_id: 4, estado: "activo" },
+        ]}
+        cursos={[{ id: 4, nombre: "5A" }]}
+        onVerDetalles={vi.fn()}
+        onCambiarEstado={vi.fn()}
+        onEditar={vi.fn()}
+        resaltadoId={12}
+      />,
+    );
+
+    expect(container.querySelector('[data-estudiante-id="12"]')).toHaveClass("bg-green-50");
+    expect(container.querySelector('[data-estudiante-id="11"]')).not.toHaveClass("bg-green-50");
+  });
+
+  it("al actualizar la lista la conserva y lo avisa", () => {
+    render(
+      <ListaEstudiantesAdmin
+        estudiantes={[{ id: 11, nombre: "Ana", apellido: "Rojas", curso_id: 4, estado: "activo" }]}
+        cursos={[{ id: 4, nombre: "5A" }]}
+        onVerDetalles={vi.fn()}
+        onCambiarEstado={vi.fn()}
+        onEditar={vi.fn()}
+        actualizando
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Actualizando...");
+    expect(screen.getByText(/Rojas Ana/)).toBeInTheDocument();
+  });
+
   it("conserva el estado vacío", () => {
     render(
       <ListaEstudiantesAdmin

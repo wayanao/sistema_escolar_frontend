@@ -1,5 +1,32 @@
 # Cambios Frontend
 
+## 2026-10-21 - Estudiantes: «Creando estudiante...» y la pantalla que va a la ficha y al estudiante nuevo
+
+Pedido del usuario: «agrega auto scroll al crear un nuevo estudiante y que
+muestre la espera de creando». Solo frontend.
+
+- Al crear, el botón dice «Creando estudiante...» con el círculo, no se envía
+  dos veces y `Cancelar` espera. Al editar sigue diciendo «Guardando...»,
+  ahora con el círculo.
+- «Nuevo Estudiante» y «Editar» llevan la pantalla a la ficha y le pasan el
+  foco a su título (sin abrir el teclado del celular).
+- Después de crear o editar, la lista se vuelve a pedir sin esconder la página
+  (antes toda la página se cambiaba por el círculo y la pantalla saltaba
+  arriba); la lista dice «Actualizando...» y, cuando llega, la pantalla baja
+  al estudiante creado o editado, resaltado en verde. Si un filtro o la
+  búsqueda lo dejan fuera de la lista, no se mueve.
+- El formulario es compartido: Admisiones y Años lectivos también ven el
+  círculo en «Guardando...» y `Cancelar` esperando mientras se guarda; sus
+  textos no cambian.
+- Sin cambios de peticiones ni de backend: `POST /estudiantes` ya devolvía el
+  `id` del estudiante creado.
+
+Verificación: pruebas escritas primero (fallaron 11 antes del código); se
+ajustaron a propósito dos del hook del formulario, que ahora devuelve el `id`.
+Estudiantes, Admisiones y Años lectivos: 28 archivos, 239 pruebas correctas,
+sin advertencias. `pnpm run check:deploy` **limpio en una sola corrida**: 2805
+pruebas en 373 archivos, lint y build correctos.
+
 ## 2026-10-21 - Nómina, Préstamos y Egresos: pesos sin centavos y avisos mientras se escribe
 
 Paso 4, el último, de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`

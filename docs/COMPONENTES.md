@@ -826,8 +826,22 @@ Estado actual de componentes y paginas del frontend.
   admisión, paso E6) tampoco muestra "Estudios Anteriores" ni la ocupación
   del padre y de la madre, que pasaron a la entrevista; igual que los
   descuentos, siguen en el cuerpo (vacíos al crear, lo guardado al editar).
+  Desde el 2026-10-21 el botón muestra el círculo mientras guarda, con el texto
+  de `textoGuardando` (por defecto "Guardando..."; Estudiantes pasa "Creando
+  estudiante..." al crear), `Cancelar` espera mientras guarda (también en
+  Admisiones y Años lectivos), y `tituloRef` deja que la página le pase el foco
+  al título.
 - `components/estudiantesObservador/admin/ListaEstudiantesAdmin.jsx`: tabla,
-  estado vacío y acciones por estudiante.
+  estado vacío y acciones por estudiante. Desde el 2026-10-21 cada fila lleva
+  `data-estudiante-id`, `resaltadoId` pinta en verde la del estudiante recién
+  creado o editado, y con `actualizando` la lista se queda y dice
+  «Actualizando...».
+- `pages/EstudiantesAdmin.jsx` (2026-10-21): «Nuevo Estudiante» y «Editar»
+  llevan la pantalla a la ficha y le pasan el foco a su título; después de
+  guardar, la lista se vuelve a pedir sin esconder la página
+  (`useListadoEstudiantesAdmin`, `recargar({ silencioso: true })`, antes todo
+  se cambiaba por el círculo) y la pantalla baja al estudiante creado o editado,
+  resaltado. `useFormularioEstudianteAdmin` devuelve su `id` al guardar.
 - `components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`: modal
   responsive con resumen, rendimiento, deudas e inventario. Desde el 2026-09-10
   la sección «Observador» monta `ObservadorEnFichaAdmin`, no la tabla vieja.

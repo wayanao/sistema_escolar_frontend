@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { crearEstudianteInicial } from "../utils/estudiantesObservador/estudiantes";
 
@@ -333,5 +333,154 @@ describe("EstudiantesAdmin", () => {
 
     expect(navigateMock).toHaveBeenCalledWith("/login");
     expect(apiMock.get).not.toHaveBeenCalled();
+  });
+});
+
+// Crear y editar dicen qué pasa y llevan la pantalla a lo que cambió (pedido
+// del usuario el 2026-10-21: "auto scroll al crear un nuevo estudiante y que
+// muestre la espera de creando").
+describe("EstudiantesAdmin: espera al crear y pantalla que se mueve sola", () => {
+  const CARLA = { id: 30, nombre: "Carla", apellido: "Gómez", estado: "activo", curso_id: 4 };
+
+  beforeEach(() => {
+    // JSDOM no trae matchMedia ni scrollIntoView; se simulan solo aquí.
+    window.matchMedia = vi.fn(() => ({ matches: false }));
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  afterEach(() => {
+    delete window.matchMedia;
+    delete Element.prototype.scrollIntoView;
+  });
+
+  const fichaNueva = () => screen.getByText("🎓 Crear Nuevo Estudiante").parentElement;
+
+  const llenarAlta = () => {
+    const formulario = fichaNueva();
+    fireEvent.change(controlDe(formulario, "Nombre *"), { target: { value: "Carla" } });
+    fireEvent.change(controlDe(formulario, "Apellidos *"), { target: { value: "Gómez" } });
+    fireEvent.change(controlDe(formulario, "Tipo de Documento *"), {
+      target: { value: "Registro Civil" },
+    });
+    fireEvent.change(controlDe(formulario, "Documento de Identidad *"), {
+      target: { value: "2002" },
+    });
+    fireEvent.change(controlDe(formulario, "Curso *"), { target: { value: "4" } });
+  };
+
+  it("Nuevo Estudiante lleva la ficha a la vista y le pasa el foco a su título", async () => {
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+
+    fireEvent.click(screen.getByRole("button", { name: "Nuevo Estudiante" }));
+
+    const titulo = screen.getByRole("heading", { name: "🎓 Crear Nuevo Estudiante" });
+    expect(titulo).toHaveFocus();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+    const [ficha] = Element.prototype.scrollIntoView.mock.contexts;
+    expect(ficha).toContainElement(titulo);
+  });
+
+  it("mientras crea, el botón dice Creando estudiante... con el círculo y no deja cancelar", async () => {
+    let responder;
+    apiMock.post.mockReturnValue(
+      new Promise((resolve) => {
+        responder = () => resolve({ data: { id: 30 } });
+      }),
+    );
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+    fireEvent.click(screen.getByRole("button", { name: "Nuevo Estudiante" }));
+    llenarAlta();
+
+    fireEvent.click(screen.getByRole("button", { name: "Crear Estudiante" }));
+
+    const boton = await screen.findByRole("button", { name: "Creando estudiante..." });
+    expect(boton).toBeDisabled();
+    expect(within(fichaNueva()).getByTestId("spinner")).toBeInTheDocument();
+    expect(within(fichaNueva()).getByRole("button", { name: "Cancelar" })).toBeDisabled();
+    fireEvent.click(boton);
+    expect(apiMock.post).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      responder();
+    });
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith("Estudiante creado correctamente"),
+    );
+  });
+
+  it("después de crear no esconde la página y baja al estudiante nuevo, resaltado", async () => {
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+    fireEvent.click(screen.getByRole("button", { name: "Nuevo Estudiante" }));
+    llenarAlta();
+
+    let terminarRecarga;
+    const getOriginal = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) => {
+      if (url === "/estudiantes") {
+        return new Promise((resolve) => {
+          terminarRecarga = () => resolve({ data: [ANA, LUIS, CARLA] });
+        });
+      }
+      return getOriginal(url, opciones);
+    });
+    Element.prototype.scrollIntoView.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "Crear Estudiante" }));
+
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith("Estudiante creado correctamente"),
+    );
+    // Mientras vuelve a pedir la lista, la página sigue a la vista.
+    expect(await screen.findByText("Actualizando...")).toBeInTheDocument();
+    expect(screen.getByText("Gestión de Estudiantes")).toBeInTheDocument();
+    expect(screen.getByText("Rojas Ana")).toBeInTheDocument();
+
+    await act(async () => {
+      terminarRecarga();
+    });
+
+    const filaCarla = (await screen.findByText("Gómez Carla")).closest("tr");
+    expect(filaCarla).toHaveClass("bg-green-50");
+    await waitFor(() =>
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "center",
+      }),
+    );
+    expect(Element.prototype.scrollIntoView.mock.contexts.at(-1)).toBe(filaCarla);
+  });
+
+  it("Editar sube a la ficha con su título enfocado y, al guardar, vuelve a la fila", async () => {
+    render(<EstudiantesAdmin />);
+    await screen.findByText("Rojas Ana");
+
+    fireEvent.click(within(filaDe("Rojas Ana")).getByRole("button", { name: "Editar" }));
+
+    const titulo = await screen.findByRole("heading", { name: "✏️ Editar Estudiante" });
+    await waitFor(() => expect(titulo).toHaveFocus());
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    Element.prototype.scrollIntoView.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Actualizar Estudiante" }));
+
+    await waitFor(() =>
+      expect(window.alert).toHaveBeenCalledWith("Estudiante actualizado correctamente"),
+    );
+    await waitFor(() =>
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "center",
+      }),
+    );
+    expect(filaDe("Rojas Ana")).toHaveClass("bg-green-50");
   });
 });

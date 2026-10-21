@@ -15,16 +15,23 @@ export default function useListadoEstudiantesAdmin({
   const [estudiantes, setEstudiantes] = useState([]);
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Recarga `silenciosa` (después de crear o editar): la página no se
+  // esconde detrás del círculo; la lista se queda y dice que actualiza.
+  const [actualizando, setActualizando] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("activo");
   const [error, setError] = useState(null);
   const solicitudRef = useRef(0);
 
-  const recargar = useCallback(async () => {
+  const recargar = useCallback(async ({ silencioso = false } = {}) => {
     if (!habilitado) return;
 
     const solicitudId = ++solicitudRef.current;
-    setLoading(true);
+    if (silencioso) {
+      setActualizando(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -41,7 +48,10 @@ export default function useListadoEstudiantesAdmin({
       if (solicitudRef.current !== solicitudId) return;
       setError(requestError);
     } finally {
-      if (solicitudRef.current === solicitudId) setLoading(false);
+      if (solicitudRef.current === solicitudId) {
+        setLoading(false);
+        setActualizando(false);
+      }
     }
   }, [estadoFiltro, habilitado, parametrosAnio]);
 
@@ -63,6 +73,7 @@ export default function useListadoEstudiantesAdmin({
     estudiantesFiltrados,
     cursos,
     loading,
+    actualizando,
     searchTerm,
     setSearchTerm,
     estadoFiltro,

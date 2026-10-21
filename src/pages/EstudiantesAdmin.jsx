@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DetalleEstudianteAdmin from "../components/estudiantesObservador/admin/DetalleEstudianteAdmin";
 import EncabezadoEstudiantesAdmin from "../components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin";
@@ -11,8 +11,28 @@ import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useForm
 import useListadoEstudiantesAdmin from "../hooks/estudiantesObservador/useListadoEstudiantesAdmin";
 import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
+// Lleva la pantalla hasta un elemento: suave, salvo que el sistema pida menos
+// movimiento (igual que Pagos, Nómina, Préstamos y Egresos).
+function llevarALaVista(elemento, bloque) {
+  if (!elemento) return;
+  const reducirMovimiento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  elemento.scrollIntoView?.({
+    behavior: reducirMovimiento ? "auto" : "smooth",
+    block: bloque,
+  });
+}
+
 function EstudiantesAdmin() {
   const navigate = useNavigate();
+  const formularioRef = useRef(null);
+  const tituloFormularioRef = useRef(null);
+  const listaRef = useRef(null);
+  // Después de crear o editar: la fila que se pinta en verde y el pedido de
+  // llevarla a la vista ({ id, vez }), que se cumple cuando ya está en la
+  // lista recargada.
+  const [estudianteResaltadoId, setEstudianteResaltadoId] = useState(null);
+  const [estudiantePorMostrar, setEstudiantePorMostrar] = useState(null);
+  const vezMostrada = useRef(0);
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
   const esPreparacion = anioSeleccionado?.estado === ESTADO_PREPARACION;
@@ -27,6 +47,7 @@ function EstudiantesAdmin() {
     estudiantesFiltrados,
     cursos,
     loading,
+    actualizando,
     searchTerm,
     setSearchTerm,
     estadoFiltro,
@@ -61,7 +82,9 @@ function EstudiantesAdmin() {
     cancelarFormulario,
     cargarEstudianteAEditar: cargarEdicion,
     guardarEstudiante,
-  } = useFormularioEstudianteAdmin({ recargar: cargarDatos });
+    // Después de guardar, la lista se vuelve a pedir sin esconder la página
+    // (antes todo se cambiaba por el círculo y la pantalla saltaba arriba).
+  } = useFormularioEstudianteAdmin({ recargar: () => cargarDatos({ silencioso: true }) });
   const { cambiarEstado: ejecutarCambioEstado } =
     useCambioEstadoEstudianteAdmin({
       estadoFiltro,
@@ -75,6 +98,26 @@ function EstudiantesAdmin() {
     console.error("Error cargando datos:", errorListado);
     alert("Error al cargar datos");
   }, [errorListado]);
+
+  // Al abrir la ficha (Nuevo Estudiante o Editar), la pantalla va hasta ella
+  // y el foco pasa a su título, sin abrir el teclado del celular.
+  useEffect(() => {
+    if (!showForm) return;
+    llevarALaVista(formularioRef.current, "start");
+    tituloFormularioRef.current?.focus({ preventScroll: true });
+  }, [showForm, editingId]);
+
+  // Después de crear o editar, baja hasta el estudiante cuando ya está en la
+  // lista (al crear, llega con la recarga). Una sola vez por guardado.
+  useEffect(() => {
+    if (!estudiantePorMostrar || estudiantePorMostrar.vez === vezMostrada.current) return;
+    const fila = listaRef.current?.querySelector(
+      `[data-estudiante-id="${estudiantePorMostrar.id}"]`,
+    );
+    if (!fila) return;
+    vezMostrada.current = estudiantePorMostrar.vez;
+    llevarALaVista(fila, "center");
+  }, [estudiantePorMostrar, estudiantesFiltrados]);
 
   if (!usuario || usuario.rol !== "admin") {
     navigate("/login");
@@ -95,6 +138,13 @@ function EstudiantesAdmin() {
           ? "Estudiante actualizado correctamente"
           : "Estudiante creado correctamente",
       );
+      if (resultado.id) {
+        setEstudianteResaltadoId(resultado.id);
+        setEstudiantePorMostrar((anterior) => ({
+          id: resultado.id,
+          vez: (anterior?.vez ?? 0) + 1,
+        }));
+      }
       return;
     }
     console.error("Error:", resultado.error);
@@ -152,24 +202,32 @@ function EstudiantesAdmin() {
           </button>
         </div>
       )}
-      <FormularioEstudianteAdmin
-        visible={showForm}
-        editingId={editingId}
-        estudianteData={estudianteData}
-        setEstudianteData={setEstudianteData}
-        cursos={cursos}
-        onSubmit={handleSubmit}
-        onCancelar={cancelarFormulario}
-        guardando={guardando}
-      />
-      <ListaEstudiantesAdmin
-        estudiantes={estudiantesFiltrados}
-        cursos={cursos}
-        onVerDetalles={verDetalles}
-        onCambiarEstado={cambiarEstadoEstudiante}
-        onEditar={cargarEstudianteAEditar}
-        puedeEditar={puedeEditar}
-      />
+      <div ref={formularioRef} className="scroll-mt-4">
+        <FormularioEstudianteAdmin
+          visible={showForm}
+          editingId={editingId}
+          estudianteData={estudianteData}
+          setEstudianteData={setEstudianteData}
+          cursos={cursos}
+          onSubmit={handleSubmit}
+          onCancelar={cancelarFormulario}
+          guardando={guardando}
+          textoGuardando={editingId !== null ? "Guardando..." : "Creando estudiante..."}
+          tituloRef={tituloFormularioRef}
+        />
+      </div>
+      <div ref={listaRef}>
+        <ListaEstudiantesAdmin
+          estudiantes={estudiantesFiltrados}
+          cursos={cursos}
+          onVerDetalles={verDetalles}
+          onCambiarEstado={cambiarEstadoEstudiante}
+          onEditar={cargarEstudianteAEditar}
+          puedeEditar={puedeEditar}
+          resaltadoId={estudianteResaltadoId}
+          actualizando={actualizando}
+        />
+      </div>
       <DetalleEstudianteAdmin
         estudiante={selectedEstudiante}
         cursos={cursos}

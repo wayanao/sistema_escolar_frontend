@@ -82,17 +82,23 @@ export default function useFormularioEstudianteAdmin({
 
     setGuardando(true);
     try {
+      // `id`: el estudiante creado o editado, para que la página baje hasta
+      // él. El alta normal lo devuelve como `id`; otra (`crearEstudianteFn`)
+      // puede no traerlo, y entonces no se baja.
+      let id;
       if (modo === "edicion") {
         await actualizarEstudiante(editingId, payload);
+        id = editingId;
       } else {
-        await crearEstudianteFn(payload);
+        const respuesta = await crearEstudianteFn(payload);
+        id = respuesta?.id;
       }
 
       setEstudianteData(crearEstudianteInicial());
       setEditingId(null);
       setShowForm(false);
       if (recargar) void recargar();
-      return { estado: "exito", modo };
+      return { estado: "exito", modo, id };
     } catch (error) {
       return { estado: "error", error, modo };
     } finally {

@@ -49,6 +49,35 @@ describe("useListadoEstudiantesAdmin", () => {
     ]);
   });
 
+  it("una recarga silenciosa (después de guardar) no esconde la lista: avisa que actualiza", async () => {
+    listarEstudiantesMock.mockResolvedValue([{ id: 11, nombre: "Ana", apellido: "Rojas" }]);
+    const { result } = renderHook(() => useListadoEstudiantesAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.actualizando).toBe(false);
+
+    const pendiente = crearPendiente();
+    listarEstudiantesMock.mockReturnValueOnce(pendiente.promise);
+    let recarga;
+    act(() => {
+      recarga = result.current.recargar({ silencioso: true });
+    });
+
+    expect(result.current.actualizando).toBe(true);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.estudiantes).toEqual([{ id: 11, nombre: "Ana", apellido: "Rojas" }]);
+
+    await act(async () => {
+      pendiente.resolve([
+        { id: 11, nombre: "Ana", apellido: "Rojas" },
+        { id: 30, nombre: "Carla", apellido: "Gómez" },
+      ]);
+      await recarga;
+    });
+
+    expect(result.current.actualizando).toBe(false);
+    expect(result.current.estudiantes).toHaveLength(2);
+  });
+
   it("recarga al cambiar el estado y descarta la respuesta anterior tardía", async () => {
     const activos = crearPendiente();
     const retirados = crearPendiente();

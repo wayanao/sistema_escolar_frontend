@@ -144,6 +144,26 @@ describe("FormularioEstudianteAdmin", () => {
     expect(boton).toBeDisabled();
     expect(boton).toHaveAttribute("type", "submit");
   });
+
+  it("mientras crea dice lo que se le indique, con el círculo, y no deja cancelar", () => {
+    render(
+      <FormularioEstudianteAdmin
+        {...crearPropiedades({ guardando: true, textoGuardando: "Creando estudiante..." })}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Creando estudiante..." })).toBeDisabled();
+    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+  });
+
+  it("entrega el título para poder llevar el foco a la ficha", () => {
+    const tituloRef = { current: null };
+    render(<FormularioEstudianteAdmin {...crearPropiedades({ tituloRef })} />);
+
+    expect(tituloRef.current).toHaveTextContent("🎓 Crear Nuevo Estudiante");
+    expect(tituloRef.current).toHaveAttribute("tabindex", "-1");
+  });
 });
 
 // SISBÉN y lugar de residencia, paso S3 (docs/funcionalidades/SISBEN_RESIDENCIA.md).
