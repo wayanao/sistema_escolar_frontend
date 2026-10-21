@@ -173,6 +173,10 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                                             title={sinGuardar ? TITULO_SIN_GUARDAR : undefined}
                                             translate="no"
                                             onBlur={(event) => guardarNotaNumerica(event, col)}
+                                            // La rueda del mouse no cambia la nota: al girarla, el campo suelta el
+                                            // foco y el navegador ya no la sube ni la baja (la página sigue bajando).
+                                            // Las flechas del teclado siguen funcionando.
+                                            onWheel={(event) => event.currentTarget.blur()}
                                         />
                                     )}
                                 </div>

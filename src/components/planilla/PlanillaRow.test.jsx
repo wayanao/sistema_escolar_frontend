@@ -29,6 +29,20 @@ function renderFila({
 }
 
 describe("PlanillaRow", () => {
+  it("la rueda del mouse no cambia la nota: el campo suelta el foco", () => {
+      const guardarNota = vi.fn().mockResolvedValue(true);
+      renderFila({ est: { estudiante_id: 301, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4 }, promedio: "4.00" }, guardarNota });
+      const input = screen.getByRole("spinbutton");
+      input.focus();
+      expect(input).toHaveFocus();
+
+      fireEvent.wheel(input, { deltaY: -100 });
+
+      expect(input).not.toHaveFocus();
+      expect(input).toHaveValue(4);
+      // Al soltar el foco se guarda lo escrito, como al hacer clic afuera.
+      expect(guardarNota).toHaveBeenCalledWith(301, "quiz", "4");
+  });
   it("muestra la nota numérica actual, sus límites y guarda un valor nuevo al perder el foco", () => {
     const guardarNota = vi.fn().mockResolvedValue(true);
     const est = {

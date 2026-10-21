@@ -22,9 +22,14 @@ subnotas que **ve el profesor**.
   - agregar una subnota (para todo el curso, hasta 20), renombrarla en el
     mismo lugar y borrarla (dice cuántas calificaciones se pierden);
   - en celular ocupa toda la pantalla.
-- Pedido del usuario al revisarla: el campo de la nota de la planilla, en
-  escritorio y en celular, ya no muestra las flechitas de subir y bajar del
-  navegador. Sigue siendo numérico, con las mismas validaciones.
+- Pedidos del usuario al revisarla, para el campo de la nota de la planilla
+  en escritorio y en celular:
+  - ya no muestra las flechitas de subir y bajar del navegador;
+  - la rueda del mouse ya no cambia la nota: al girarla, el campo suelta el
+    foco;
+  - las flechas del teclado siguen funcionando.
+
+  Sigue siendo numérico, con las mismas validaciones.
 - Componentes nuevos: `BotonSubnotasPlanilla.jsx`, `CeldaCalculadaPlanilla.jsx`
   y `ModalSubnotasPlanilla.jsx`. `PlanillaRow.jsx` y `PlanillaMobileCard.jsx`
   solo cambian si reciben las subnotas: sin ellas se ven como antes, y sus
@@ -32,8 +37,8 @@ subnotas que **ve el profesor**.
 
 Verificación: 29 pruebas nuevas (20 del modal, 6 de la fila y la tarjeta, 1
 del formato de la celda y 2 recorridos completos en `Planilla.test.jsx`).
-`pnpm run check:deploy` limpio: 2900 pruebas en 376 archivos, lint y build
-correctos.
+Más 2 pruebas de esos dos pedidos. `pnpm run check:deploy` limpio: 2902
+pruebas en 376 archivos, lint y build correctos.
 
 ## 2026-10-21 - Planilla: contratos de las subnotas (paso A3)
 

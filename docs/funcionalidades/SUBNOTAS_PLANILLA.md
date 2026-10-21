@@ -238,8 +238,11 @@ A3 en `12c2067` (sin push).
   pero sin las flechitas de subir y bajar del navegador: lo pidió el usuario
   al revisar A4. Se quitan con clases de Tailwind (`[appearance:textfield]` y
   `appearance-none` en los botones de subir y bajar), y el build confirma que
-  las reglas quedan en el CSS. Las flechas del teclado y la rueda del mouse
-  sobre el campo enfocado todavía pueden cambiar la nota.
+  las reglas quedan en el CSS. Después pidió que **la rueda del mouse no
+  cambie la nota** y que las flechas del teclado sí: al girar la rueda sobre el
+  campo, este suelta el foco y el navegador ya no la sube ni la baja (la página
+  sigue bajando). Soltar el foco guarda lo escrito, como un clic afuera, y sin
+  cambios no hay petición.
 - En preescolar, pulsar otra vez la carita marcada la deja vacía.
 - Renombrar se hace en el mismo lugar del nombre: Enter guarda y Esc cancela
   sin cerrar el modal.
@@ -262,8 +265,10 @@ A3 en `12c2067` (sin push).
   pasa a calculada **sin recargar la planilla**; luego Anterior y cerrar. En el
   segundo, Enter en la última subnota guarda y pasa al estudiante siguiente.
 
-`pnpm run check:deploy` limpio: **2900 pruebas en 376 archivos**, lint y build
-correctos. En una corrida intermedia, solo de la planilla, las pruebas de la
+Más los dos ajustes pedidos al revisar, en la fila y la tarjeta: 2 pruebas
+nuevas de la rueda, y la comprobación de las flechitas dentro de 2 pruebas
+que ya existían. `pnpm run check:deploy` limpio: **2902 pruebas en 376
+archivos**, lint y build correctos. En una corrida intermedia, solo de la planilla, las pruebas de la
 página fallaron por tiempo agotado (la máquina estaba cargada); solas y en la
 corrida completa pasaron todas. `git diff --check` limpio.
 
@@ -327,7 +332,7 @@ publicada.
   `check:deploy`: 2871 pruebas, lint y build limpios.
 - A3 en `12c2067`.
 - 2026-10-21: **A4 hecho, sin commit** (ver "Avance del paso A4").
-  `check:deploy`: 2900 pruebas, lint y build limpios.
+  `check:deploy`: 2902 pruebas, lint y build limpios.
 - Siguiente acción exacta: **A5, lo hace el usuario** con la lista de "Paso
   A5" (Colegio Demo). Si sale bien, commit y push del frontend: con eso la
   parte A queda publicada. La parte B (porcentajes) empieza con su B0 y solo
