@@ -2,8 +2,9 @@
 
 ## Control
 
-- Estado: **Diseño (paso A0), 2026-10-21. No hay código de esta
-  funcionalidad.**
+- Estado: **A0 (diseño) en `1553574`. En este repo todavía no hay código de
+  esta funcionalidad.** El backend de la parte A (A1) quedó escrito el
+  2026-10-21, sin commit; su contrato está resumido abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -125,20 +126,33 @@ guarda donde siempre.
   modal, calificar, Siguiente, ver la celda calculada) y la prueba de que, sin
   subnotas, la planilla se ve y guarda como hoy.
 
-## Contrato del backend (propuesta de su paso A1)
+## Contrato del backend (fijado en su paso A1, 2026-10-21)
 
-Resumen. El detalle está en "Contrato de la API" del documento principal y,
-cuando exista, en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
+Resumen. El detalle está en "Contrato de la API" del documento principal y en
+`sistema_escolar_api/docs/API_ENDPOINTS.md`, sección "Planilla". Los errores
+llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 
 - `GET /planilla-excel/{asignacion_id}/{periodo}?con_subnotas=true`: claves
-  nuevas `subnotas` (por tipo: `[{ id, nombre }]`) y, en cada estudiante,
-  `subnotas` (`{ "<subnota_id>": valor }`). Sin el parámetro, respuesta
-  idéntica a la de hoy (Asistencia no cambia).
-- `POST /planilla/subnotas`, `PUT /planilla/subnotas/{id}`, `DELETE
-  /planilla/subnotas/{id}` (devuelve las celdas recalculadas) y `POST
-  /planilla/subnotas/valores` (devuelve la celda nueva).
+  nuevas `subnotas` (por tipo, con el nombre exacto de la columna: `[{ id,
+  nombre }]` en orden de creación) y, en cada estudiante, `subnotas` (`{
+  "<subnota_id>": 4.0 }` o el código de la carita). Sin el parámetro,
+  respuesta idéntica a la de hoy (Asistencia no cambia).
+- `POST /planilla/subnotas` con `{ asignacion_id, periodo, tipo_nota, nombre
+  }` → `201` `{ id, tipo_nota, nombre }`. `404` tipo inexistente, `409`
+  nombre repetido, `422` límite de 20 o columna interna.
+- `PUT /planilla/subnotas/{id}` con `{ asignacion_id, nombre }` → `{ id,
+  nombre }`. `404` / `409`.
+- `DELETE /planilla/subnotas/{id}?asignacion_id=` → `{ mensaje,
+  calificaciones_borradas, celdas: { "<estudiante_id>": { nota, valoracion } }
+  }`.
+- `POST /planilla/subnotas/valores` con `{ asignacion_id, periodo, tipo_nota,
+  estudiante_id, tipo_evaluacion, valores: { "<subnota_id>": valor | null } }`
+  → `{ estudiante_id, tipo_nota, tipo_evaluacion, nota, valoracion, subnotas
+  }`. **Solo toca las subnotas que llegan.** `422` si una calificación no
+  sirve o una subnota no es del tipo; `403` si el estudiante no es del curso.
 - `POST /planilla/nota` responde `409` si la celda es calculada.
 - `DELETE /planilla/tipo` borra también las subnotas del tipo.
+- Permiso y año lectivo como en el resto de la planilla (`403`, `409`).
 
 ## Plan por pasos de este repo
 
@@ -164,8 +178,10 @@ cuando exista, en `sistema_escolar_api/docs/API_ENDPOINTS.md`.
   2805 pruebas. La que falló (`IngresoBoletinProfesor.test.jsx`) pasa sola (2
   de 2): fue el fallo al azar por carga de la máquina. Lint y build pasan por
   separado y `git diff --check` está limpio.
-- Siguiente acción exacta: que el usuario revise este diseño y las propuestas
-  P1 a P12 del documento principal. El primer paso de código es **A1, en el
-  backend**. Este repo no tiene trabajo hasta que A1 esté terminado.
+- 2026-10-21: el usuario aprobó las propuestas P1 a P12 y el backend escribió
+  A1 (sin commit). Su contrato quedó en "Contrato del backend".
+- Siguiente acción exacta: el A2 del backend (lo hace el usuario). **A3 en
+  este repo** solo con autorización explícita; se puede escribir con A1
+  terminado, aunque el backend no esté publicado.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
