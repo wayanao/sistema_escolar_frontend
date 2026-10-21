@@ -633,7 +633,20 @@ function VistaCarteraVencida({
                                             >
                                                 <td className="px-3 py-2 font-medium text-gray-800">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-purple-600 text-xs">{abierto ? "▼" : "▶"}</span>
+                                                        {/* La fila entera abre con el mouse; este botón
+                                                            también con el teclado. */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onToggleExpandido(i.estudiante_id);
+                                                            }}
+                                                            aria-expanded={abierto}
+                                                            aria-label={`${abierto ? "Ocultar" : "Ver"} detalle de ${i.apellido}, ${i.nombre}`}
+                                                            className="rounded px-1 text-xs text-purple-600 hover:bg-purple-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                                        >
+                                                            {abierto ? "▼" : "▶"}
+                                                        </button>
                                                         <div>
                                                             <p>{i.apellido}, {i.nombre}</p>
                                                             <div className="flex gap-1 mt-0.5">

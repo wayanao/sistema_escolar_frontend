@@ -45,7 +45,7 @@ const FormularioEgreso = ({
                             className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
                             value={formulario.monto}
                             onChange={(e) => onCambiarCampo("monto", e.target.value)}
-                            placeholder="Ej. 150.50"
+                            placeholder="Ej. 150000"
                         />
                     </div>
                     <div>

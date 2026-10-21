@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-10-21 - Nómina, Préstamos y Egresos: pesos sin centavos y avisos mientras se escribe
+
+Paso 4, el último, de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`
+(solo frontend). Decisión del usuario: montos **sin centavos**.
+
+- Montos de nómina, préstamos y egresos con `formatearPesos` (nuevo
+  `src/utils/formatoPesos.js`): «$ 1.500.000» en tablas, totales, el modal de
+  pago y las ventanas. Los ejemplos de los campos pasaron a pesos enteros.
+- Nómina: el abono mayor que la deuda y el total negativo se avisan mientras se
+  escribe y `Confirmar Pago` espera; sin deuda, «Sin préstamos pendientes». El
+  modal es un diálogo con nombre, recibe el foco y se cierra con `Esc` (salvo
+  mientras registra).
+- Egresos: se explica qué es un egreso `Automático`.
+- Cartera vencida: el detalle de un estudiante se abre también con el teclado.
+- Sin cambios de peticiones ni de backend; los datos guardados no cambian.
+
+Verificación: pruebas escritas primero (fallaron 42 antes del código); se
+ajustaron a propósito los montos con centavos, los ejemplos de los campos y
+las dos pruebas de nómina que esperaban la ventana al pulsar con datos
+imposibles. 24 archivos y 246 pruebas de los módulos tocados correctas, sin
+advertencias. `pnpm run check:deploy` **limpio en una sola corrida**: 2796
+pruebas en 373 archivos, lint y build correctos.
+
 ## 2026-10-21 - Cartera vencida y Tipos de pago: un error ya no parece «no hay nada» y no se pierden cambios sin aviso
 
 Paso 3 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (solo

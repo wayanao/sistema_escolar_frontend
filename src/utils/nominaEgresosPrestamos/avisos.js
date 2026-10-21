@@ -1,14 +1,12 @@
+import { formatearPesos } from "../formatoPesos";
+
 // Contratos de los avisos que comparten nómina, egresos y préstamos: los tres
 // guardan con la misma regla y escriben los pesos igual en sus mensajes.
 
 const aNumero = (valor) => parseFloat(valor) || 0;
 
-// Los pesos de los mensajes: formato colombiano con dos decimales.
-export const pesosEnMensaje = (valor) =>
-    `$${aNumero(valor).toLocaleString("es-CO", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })}`;
+// Los pesos de los mensajes, como en las tablas: sin centavos.
+export const pesosEnMensaje = (valor) => formatearPesos(aNumero(valor));
 
 // Cada guardado de este módulo es una sola transacción en el backend: si
 // respondió con un error, no se guardó nada. Si no respondió, o contestó un

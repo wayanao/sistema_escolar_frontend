@@ -193,6 +193,11 @@ Estado documentado del frontend `frontend-react`.
 - `src/utils/anioLectivo.js`: contrato puro del año lectivo (lista de años,
   año activo, etiquetas, aviso, pantallas que siguen el año y
   `parametrosAnio`). En la raíz porque lo usarán varios módulos.
+- `src/utils/formatoPesos.js`: `formatearPesos`, los pesos colombianos sin
+  centavos ("$ 1.500.000"), decidido con el usuario el 2026-10-21. Lo usan
+  nómina, préstamos y egresos; es el mismo formato de `formatMoney` en
+  `utils/carteraTiposPago/formatos.js`. Pagos (`formatearMoneda`) y Cartera
+  conservan sus copias por ahora: pasarlos a esta es una tarea aparte.
 - `src/utils/autenticacion/`: contratos puros de sesión, login, password y
   navegación, sin HTTP, React, DOM ni almacenamiento.
 - `src/utils/planeaciones/`: contratos puros del dominio, separados por perfil

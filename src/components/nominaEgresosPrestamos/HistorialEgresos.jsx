@@ -1,5 +1,6 @@
 import React from "react";
 import SpinnerView from "../anioLectivo/SpinnerView";
+import { formatearPesos } from "../../utils/formatoPesos";
 import { puedeEditarEgreso } from "../../utils/nominaEgresosPrestamos/egresos";
 
 // Cada fila lleva `data-egreso-id` para que la página pueda llevarla a la
@@ -28,6 +29,8 @@ const HistorialEgresos = ({
         if (egreso.id === resaltadoId) return "bg-green-50";
         return "";
     };
+    // En el celular no hay "title" al pasar el mouse: la explicación va abajo.
+    const hayAutomaticos = egresos.some((egreso) => !puedeEditarEgreso(egreso));
 
     return (
         <div className="bg-white shadow rounded-lg p-6">
@@ -79,7 +82,7 @@ const HistorialEgresos = ({
                     </button>
                 </div>
                 <span className="text-lg font-bold text-red-600 bg-red-100 px-3 py-2 rounded">
-                    Total: ${total.toFixed(2)}
+                    Total: {formatearPesos(total)}
                 </span>
             </div>
 
@@ -115,10 +118,10 @@ const HistorialEgresos = ({
                                         <td className="px-4 py-2">{egreso.fecha}</td>
                                         <td className="px-4 py-2 font-medium">{egreso.concepto}</td>
                                         <td className="px-4 py-2 text-sm text-gray-600">{egreso.categoria}</td>
-                                        <td className="px-4 py-2 text-right font-bold text-red-600">${Number(egreso.monto || 0).toFixed(2)}</td>
+                                        <td className="px-4 py-2 text-right font-bold text-red-600">{formatearPesos(egreso.monto)}</td>
                                         <td className="px-4 py-2 text-right">
                                             {!puedeEditarEgreso(egreso) ? (
-                                                <span className="text-xs text-gray-400">Automático</span>
+                                                <span className="text-xs text-gray-400" title="Lo registró un pago de nómina; no se edita aquí.">Automático</span>
                                             ) : egreso.id === editandoId ? (
                                                 <span className="text-xs font-semibold text-amber-700">Editando</span>
                                             ) : (
@@ -138,6 +141,11 @@ const HistorialEgresos = ({
                         </tbody>
                     </table>
                 </div>
+            )}
+            {!cargando && hayAutomaticos && (
+                <p className="mt-3 text-xs text-gray-500">
+                    Automático: lo registra un pago de nómina y no se edita en esta pantalla.
+                </p>
             )}
         </div>
     );

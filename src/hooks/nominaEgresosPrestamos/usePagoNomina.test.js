@@ -70,7 +70,7 @@ describe("usePagoNomina", () => {
         act(() => result.current.cambiarCampo("abonoPrestamo", "500"));
 
         expect(result.current.problemas.abono).toBe(
-            "No puede ser mayor que la deuda ($ 400)."
+            "No puede ser mayor que la deuda ($\u00a0400)."
         );
         expect(result.current.problemas.total).toBeNull();
     });
@@ -114,7 +114,7 @@ describe("usePagoNomina", () => {
         expect(Swal.fire).toHaveBeenCalledWith({
             icon: "warning",
             title: "Revisa el pago",
-            text: "El abono al préstamo ($ 500) no puede ser mayor que su deuda pendiente ($ 400).",
+            text: "El abono al préstamo ($\u00a0500) no puede ser mayor que su deuda pendiente ($\u00a0400).",
         });
         expect(serviceMock.registrarPagoNomina).not.toHaveBeenCalled();
     });

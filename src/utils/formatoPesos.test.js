@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatearPesos } from "./formatoPesos";
 
 // El formato colombiano separa el signo con un espacio que no se parte.
-const conEspacioNormal = (texto) => texto.replace(/ /g, " ");
+const conEspacioNormal = (texto) => texto.replace(/\u00a0/g, " ");
 
 describe("formatearPesos", () => {
     it("escribe los pesos colombianos sin centavos, con puntos de miles", () => {
@@ -27,6 +27,6 @@ describe("formatearPesos", () => {
     });
 
     it("usa el mismo espacio que ya muestra Cartera", () => {
-        expect(formatearPesos(400)).toBe("$ 400");
+        expect(formatearPesos(400)).toBe("$\u00a0400");
     });
 });

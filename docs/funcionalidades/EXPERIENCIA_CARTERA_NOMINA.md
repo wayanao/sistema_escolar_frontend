@@ -2,10 +2,9 @@
 
 ## Control
 
-- Estado: **Pasos 0 y 1 en `9a61a8a`, paso 2 en `9306cb5` (2026-10-20). Paso
-  3 (Cartera vencida y Tipos de pago) hecho el 2026-10-21, sin commit.
-  Siguiente: paso 4 (montos y detalles), con el visto bueno del usuario y su
-  pregunta abierta.**
+- Estado: **Completo en código.** Pasos 0 y 1 en `9a61a8a`, paso 2 en
+  `9306cb5` (2026-10-20), paso 3 en `9b88cd3` y paso 4 (montos y detalles)
+  hecho el 2026-10-21, sin commit. Queda solo lo anotado para el backend.
 - Tipo: mejora de pantallas que ya existen. No es un módulo de
   `modularizacion/` y no cambia ninguna petición al backend.
 - Repos: **solo este**. El usuario lo precisó el 2026-10-20: «lo que quiero
@@ -437,11 +436,51 @@ estudiante de abajo y luego `← Atrás`. En Tipos de pago, `⚙️ Configurar`,
 cambiar «Días de gracia» y pulsar `✕ Cerrar`: debe preguntar; elegir «Seguir
 editando» y luego «Descartar cambios» para no guardar nada.
 
-## Preguntas abiertas (se hacen justo antes del paso que las necesita)
+## Paso 4 — Montos y detalles (hecho el 2026-10-21, sin commit)
 
-- Antes del paso 4: ¿los montos con o sin centavos? Recomendación: sin
-  centavos, como ya los muestran Cartera vencida y Tipos de pago
-  («$ 1.500.000»).
+Decisión del usuario (2026-10-21, a la pregunta abierta del paso): **«sin
+centavos»**, como ya muestran Cartera vencida y Tipos de pago.
+
+Qué ve el usuario:
+
+- Nómina, Préstamos y Egresos escriben los pesos como Colombia y sin centavos:
+  «$ 1.500.000» en tablas, totales, el modal de pago y las ventanas de
+  confirmación y de éxito (N9, P5, E7). Lo que tenga centavos se redondea al
+  peso más cercano al mostrarlo; los datos guardados no cambian. Los ejemplos
+  de los campos pasaron a pesos enteros («Ej. 1500000», «Ej. 500000», «Ej.
+  150000»).
+- Nómina avisa mientras se escribe, junto al campo, que el abono no puede
+  pasar la deuda o que el total quedó negativo, y `Confirmar Pago` espera
+  hasta que se corrija (N8; antes salía una ventana al pulsar). Sin deuda, el
+  abono bloqueado explica «Sin préstamos pendientes» (N11). El modal es un
+  diálogo con nombre que recibe el foco al abrir y se cierra con `Esc` (salvo
+  mientras registra; N12).
+- Egresos explica la etiqueta `Automático`: debajo de la tabla, cuando hay
+  alguno, «lo registra un pago de nómina y no se edita en esta pantalla», y
+  al pasar el mouse sobre la etiqueta (E6).
+- Cartera vencida: el ▶ de cada estudiante es un botón, así que el detalle
+  también se abre con el teclado (C4); la fila sigue abriéndose con el mouse.
+
+Decisiones técnicas: el formato vive en `src/utils/formatoPesos.js`
+(`formatearPesos`), en la raíz porque es de más de un módulo; Pagos y Cartera
+conservan sus copias (tarea aparte). `Esc` se escucha dentro del diálogo y no
+en toda la página: si hay una ventana de aviso encima, su `Esc` no cierra
+también el pago. `validarPagoNomina` se conserva al enviar, como respaldo.
+
+Pruebas: escritas primero; fallaron 42 antes del código. Se ajustaron a
+propósito los montos esperados con centavos, los ejemplos de los campos que
+las pruebas usan para encontrarlos y las dos pruebas de la página de nómina
+que esperaban la ventana al pulsar `Confirmar Pago` con datos imposibles.
+`pnpm run check:deploy` limpio en una sola corrida: 2796 pruebas en 373
+archivos, lint y build correctos.
+
+Cómo probarlo en local sin guardar nada: en Nómina, `Realizar Pago` a alguien
+con préstamos, escribir un abono mayor que su deuda (sale el aviso rojo y
+`Confirmar Pago` espera) y cerrar con `Esc`.
+
+## Preguntas abiertas
+
+- Ninguna. La del paso 4 (con o sin centavos) se respondió: sin centavos.
 
 ## Fuera de alcance
 

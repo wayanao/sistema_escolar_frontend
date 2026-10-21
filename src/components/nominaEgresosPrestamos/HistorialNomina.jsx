@@ -1,5 +1,6 @@
 import React from "react";
 import SpinnerView from "../anioLectivo/SpinnerView";
+import { formatearPesos } from "../../utils/formatoPesos";
 
 const HistorialNomina = ({ pagos, cargando, hayBusqueda, busqueda, onCambiarBusqueda }) => (
     <div className="bg-white shadow rounded-lg p-6">
@@ -52,10 +53,10 @@ const HistorialNomina = ({ pagos, cargando, hayBusqueda, busqueda, onCambiarBusq
                                     <td className="border px-4 py-2 text-gray-500">#N-{pago.id}</td>
                                     <td className="border px-4 py-2">{pago.fecha}</td>
                                     <td className="border px-4 py-2 capitalize font-medium">{pago.profesor}</td>
-                                    <td className="border px-4 py-2 text-right">${pago.salario_base.toFixed(2)}</td>
-                                    <td className="border px-4 py-2 text-right text-red-600">${pago.deduccion_prestamos.toFixed(2)}</td>
-                                    <td className="border px-4 py-2 text-right text-green-600">${pago.bonificaciones.toFixed(2)}</td>
-                                    <td className="border px-4 py-2 text-right font-bold text-lg">${pago.total_pagado.toFixed(2)}</td>
+                                    <td className="border px-4 py-2 text-right">{formatearPesos(pago.salario_base)}</td>
+                                    <td className="border px-4 py-2 text-right text-red-600">{formatearPesos(pago.deduccion_prestamos)}</td>
+                                    <td className="border px-4 py-2 text-right text-green-600">{formatearPesos(pago.bonificaciones)}</td>
+                                    <td className="border px-4 py-2 text-right font-bold text-lg">{formatearPesos(pago.total_pagado)}</td>
                                 </tr>
                             ))
                         )}

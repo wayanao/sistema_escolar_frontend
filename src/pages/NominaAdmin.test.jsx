@@ -162,7 +162,7 @@ describe("NominaAdmin", () => {
         render(<NominaAdmin />);
         await abrirPagoDelPrimero();
 
-        fireEvent.keyDown(document, { key: "Escape" });
+        fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
         expect(screen.queryByText("Procesar Pago Nómina")).not.toBeInTheDocument();
         expect(apiMock.post).not.toHaveBeenCalled();

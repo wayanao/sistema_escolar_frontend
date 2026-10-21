@@ -1,5 +1,6 @@
 import React from "react";
 import SpinnerView from "../anioLectivo/SpinnerView";
+import { formatearPesos } from "../../utils/formatoPesos";
 import { claseSaldoEmpleado } from "../../utils/nominaEgresosPrestamos/nomina";
 
 // `pagosRegistrados` ({ [empleadoId]: nominaId }) marca a quien se le pagó
@@ -66,7 +67,7 @@ const EstadoCuentaPersonal = ({
                                         )}
                                     </td>
                                     <td className={`border px-4 py-2 text-right font-bold ${claseSaldoEmpleado(emp.saldo_prestamos)}`}>
-                                        ${emp.saldo_prestamos.toFixed(2)}
+                                        {formatearPesos(emp.saldo_prestamos)}
                                     </td>
                                     <td className="border px-4 py-2 text-center">
                                         <button

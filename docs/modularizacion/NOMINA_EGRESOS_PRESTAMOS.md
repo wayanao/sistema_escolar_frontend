@@ -1015,6 +1015,10 @@ están protegidos por pruebas antes de extraer utilidades.
   Unificarla exige una tarea que toque el módulo de pagos.
 - Diferencia conocida que no es defecto: nómina y préstamos formatean con
   `valor.toFixed(2)` y egresos con `Number(valor || 0).toFixed(2)`.
+  **Resuelta el 2026-10-21** (paso 4 de
+  `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`): los tres usan
+  `formatearPesos` de `src/utils/formatoPesos.js`, sin centavos, que además
+  tolera un valor vacío.
 - Siguiente capa pendiente: Ninguna.
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual como seguimiento operativo si todavía no fue

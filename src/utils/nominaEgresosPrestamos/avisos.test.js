@@ -3,14 +3,14 @@ import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje } from "./av
 
 describe("avisos compartidos de nómina, egresos y préstamos", () => {
     it("escribe los pesos como Colombia, sin centavos (decisión del 2026-10-21)", () => {
-        expect(pesosEnMensaje(1525)).toBe("$ 1.525");
-        expect(pesosEnMensaje("1525")).toBe("$ 1.525");
-        expect(pesosEnMensaje(1500000)).toBe("$ 1.500.000");
+        expect(pesosEnMensaje(1525)).toBe("$\u00a01.525");
+        expect(pesosEnMensaje("1525")).toBe("$\u00a01.525");
+        expect(pesosEnMensaje(1500000)).toBe("$\u00a01.500.000");
     });
 
     it("trata como cero un monto vacío o que no es número", () => {
-        expect(pesosEnMensaje("")).toBe("$ 0");
-        expect(pesosEnMensaje(undefined)).toBe("$ 0");
+        expect(pesosEnMensaje("")).toBe("$\u00a00");
+        expect(pesosEnMensaje(undefined)).toBe("$\u00a00");
     });
 
     it("no se sabe si se guardó cuando el servidor no respondió", () => {

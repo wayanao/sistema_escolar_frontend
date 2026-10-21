@@ -8,6 +8,7 @@ import {
     estadoInicialPagoNomina,
     mensajeConfirmacionPagoNomina,
     mensajeExitoPagoNomina,
+    problemasPagoNomina,
     validarPagoNomina,
 } from "../../utils/nominaEgresosPrestamos/nomina";
 import { TEXTO_CON_SALTOS } from "./ventanasAviso";
@@ -21,6 +22,8 @@ const FORMULARIO_VACIO = {
     otrosDescuentos: "0",
     notas: "",
 };
+
+const SIN_PROBLEMAS = Object.freeze({ abono: null, total: null });
 
 // `revisarHistorialDe(empleado)`: lo que hace la página cuando no se sabe si
 // el pago quedó y el usuario pide revisarlo (buscarlo y bajar al historial).
@@ -37,6 +40,10 @@ const usePagoNomina = ({ cargarDatos, revisarHistorialDe }) => {
     const enCurso = useRef(false);
 
     const totalNeto = calcularTotalNomina(formulario);
+    // Lo que impide pagar, para avisarlo mientras se escribe.
+    const problemas = empleadoSeleccionado
+        ? problemasPagoNomina({ empleado: empleadoSeleccionado, ...formulario })
+        : SIN_PROBLEMAS;
 
     const abrirPago = (empleado) => {
         setEmpleadoSeleccionado(empleado);
@@ -147,6 +154,7 @@ const usePagoNomina = ({ cargarDatos, revisarHistorialDe }) => {
         empleadoSeleccionado,
         formulario,
         totalNeto,
+        problemas,
         registrando,
         pagosRegistrados,
         ultimoPagadoId,

@@ -44,6 +44,7 @@ const NominaAdmin = () => {
         empleadoSeleccionado,
         formulario,
         totalNeto,
+        problemas,
         registrando,
         pagosRegistrados,
         ultimoPagadoId,
@@ -97,6 +98,7 @@ const NominaAdmin = () => {
                     empleado={empleadoSeleccionado}
                     formulario={formulario}
                     totalNeto={totalNeto}
+                    problemas={problemas}
                     registrando={registrando}
                     onCambiarCampo={cambiarCampo}
                     onCerrar={cerrarPago}

@@ -1,5 +1,6 @@
 import React from "react";
 import SpinnerView from "../anioLectivo/SpinnerView";
+import { formatearPesos } from "../../utils/formatoPesos";
 import {
     claseEstadoPrestamo,
     puedeSaldarPrestamo,
@@ -75,7 +76,7 @@ const HistorialPrestamos = ({
                 </button>
             </div>
             <span className="text-lg font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded">
-                Total por Cobrar: ${total.toFixed(2)}
+                Total por Cobrar: {formatearPesos(total)}
             </span>
         </div>
 
@@ -115,7 +116,7 @@ const HistorialPrestamos = ({
                                 >
                                     <td className="px-4 py-2">{prestamo.fecha}</td>
                                     <td className="px-4 py-2 font-medium capitalize">{prestamo.profesor_nombre}</td>
-                                    <td className="px-4 py-2 text-right font-bold">${prestamo.monto.toFixed(2)}</td>
+                                    <td className="px-4 py-2 text-right font-bold">{formatearPesos(prestamo.monto)}</td>
                                     <td className="px-4 py-2 text-center">
                                         <span className={`px-2 py-1 rounded text-xs font-semibold ${claseEstadoPrestamo(prestamo.estado)}`}>
                                             {prestamo.estado}

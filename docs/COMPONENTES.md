@@ -981,6 +981,10 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   `hooks/carteraTiposPago/usePanelConfiguracion.js` abre y cierra el panel
   preguntando antes de perder cambios sin guardar, y lo cierra si no se pudo
   cargar el detalle.
+- Paso 4 (2026-10-21): en `VistaCarteraVencida`, el ▶ de cada estudiante es un
+  botón («Ver detalle de…» / «Ocultar detalle de…», con `aria-expanded`), así
+  que el detalle también se abre con el teclado; la fila sigue abriéndose con
+  el mouse.
 - `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.
 - `utils/carteraTiposPago/`: formatos, filtros, totales, CSV, contratos y
   payloads puros.
@@ -1069,6 +1073,15 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`.
 - Los egresos automáticos que crea la nómina no se pueden editar desde esta
   pantalla; los préstamos no se eliminan y solo se pueden saldar.
+- Desde el 2026-10-21 (paso 4), los montos de nómina, préstamos y egresos —
+  tablas, totales, modal y ventanas— se escriben con `formatearPesos`
+  (`src/utils/formatoPesos.js`), sin centavos: «$ 1.500.000».
+  `ModalPagoNomina` recibe `problemas` ({ abono, total }) y los muestra
+  mientras se escribe, con `Confirmar Pago` esperando; es un diálogo con
+  nombre (`role="dialog"`), recibe el foco al abrir y se cierra con `Esc`
+  salvo mientras registra. Sin deuda, el abono dice «Sin préstamos
+  pendientes». `HistorialEgresos` explica `Automático` debajo de la tabla y en
+  el `title` de la etiqueta.
 - Desde el 2026-10-20 (paso 2), préstamos y egresos avisan igual que el pago
   de nómina: confirmación con los datos, botón que dice qué hace y no se
   envía dos veces, aviso al terminar, fila resaltada y la página que baja a

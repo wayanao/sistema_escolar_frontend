@@ -69,7 +69,7 @@ describe("ModalPagoNomina", () => {
         const onCerrar = vi.fn();
         const { rerender } = render_({ onCerrar });
 
-        fireEvent.keyDown(document, { key: "Escape" });
+        fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
         expect(onCerrar).toHaveBeenCalledTimes(1);
 
         rerender(
@@ -83,7 +83,7 @@ describe("ModalPagoNomina", () => {
                 onEnviar={vi.fn()}
             />
         );
-        fireEvent.keyDown(document, { key: "Escape" });
+        fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
         expect(onCerrar).toHaveBeenCalledTimes(1);
     });
 

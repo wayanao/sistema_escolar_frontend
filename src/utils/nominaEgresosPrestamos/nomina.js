@@ -39,11 +39,30 @@ export const validarPagoNomina = ({
 
     const abono = aNumero(abonoPrestamo);
     if (abono > empleado.saldo_prestamos) {
-        return `El abono al préstamo ($${abono}) no puede ser mayor que su deuda pendiente ($${empleado.saldo_prestamos}).`;
+        return `El abono al préstamo (${pesos(abono)}) no puede ser mayor que su deuda pendiente (${pesos(empleado.saldo_prestamos)}).`;
     }
 
     return null;
 };
+
+// Lo mismo que `validarPagoNomina`, pero campo por campo y sin cortar en el
+// primero: el modal lo muestra mientras se escribe y espera para confirmar.
+export const problemasPagoNomina = ({
+    empleado,
+    salarioBase,
+    bonificaciones,
+    abonoPrestamo,
+    otrosDescuentos,
+}) => ({
+    abono:
+        aNumero(abonoPrestamo) > empleado.saldo_prestamos
+            ? `No puede ser mayor que la deuda (${pesos(empleado.saldo_prestamos)}).`
+            : null,
+    total:
+        calcularTotalNomina({ salarioBase, bonificaciones, abonoPrestamo, otrosDescuentos }) < 0
+            ? "El total a pagar no puede ser negativo."
+            : null,
+});
 
 export const construirPayloadNomina = ({
     empleado,

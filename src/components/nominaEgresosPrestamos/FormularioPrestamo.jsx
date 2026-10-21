@@ -43,7 +43,7 @@ const FormularioPrestamo = ({
                             className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
                             value={formulario.monto}
                             onChange={(e) => onCambiarCampo("monto", e.target.value)}
-                            placeholder="Ej. 1000.00"
+                            placeholder="Ej. 500000"
                         />
                     </div>
                     <div>
