@@ -63,12 +63,42 @@ describe("useConsultasPlanillaProfesor", () => {
 
         expect(result.current.columnas).toEqual(["quiz"]);
         expect(result.current.clases).toEqual([{ id: 88, materia: "Ciencias Naturales" }]);
+        // Subnotas, paso A3: la planilla se pide con sus subnotas.
         expect(obtenerPlanillaMock).toHaveBeenCalledWith("88", "3", {
             signal: expect.any(AbortSignal),
+            conSubnotas: true,
         });
         expect(listarClasesMock).toHaveBeenCalledWith(12, {
             signal: expect.any(AbortSignal),
         });
+        expect(result.current.subnotasPorTipo).toEqual({});
+    });
+
+    it("guarda las subnotas por tipo de las columnas visibles y las de cada estudiante", async () => {
+        obtenerPlanillaMock.mockResolvedValue({
+            columnas: ["Cognitivo", "mas_alto"],
+            subnotas: {
+                Cognitivo: [{ id: 7, nombre: "Taller 1" }, { id: 8, nombre: "Quiz" }],
+                mas_alto: [{ id: 30, nombre: "Interna" }],
+            },
+            data: [{
+                estudiante_id: 501,
+                nombre: "Ana",
+                apellido: "Ruiz",
+                notas: { Cognitivo: 4 },
+                subnotas: { 7: 4 },
+            }],
+        });
+
+        const { result } = renderHook(() => useConsultasPlanillaProfesor({
+            ...parametrosBase,
+            onClaseNoDisponible: vi.fn(),
+        }));
+
+        await waitFor(() => expect(result.current.subnotasPorTipo).toEqual({
+            Cognitivo: [{ id: 7, nombre: "Taller 1" }, { id: 8, nombre: "Quiz" }],
+        }));
+        expect(result.current.estudiantes[0].subnotas).toEqual({ 7: 4 });
     });
 
     it("no consulta clases sin profesorId, pero sí consulta la planilla", async () => {

@@ -7,6 +7,7 @@ import {
     normalizarEstudiantesPlanilla,
     obtenerColumnasVisibles,
 } from "../../utils/planilla/notas";
+import { normalizarSubnotasPorTipo } from "../../utils/planilla/subnotas";
 
 function iniciarSolicitud(ref) {
     ref.current?.abort();
@@ -27,6 +28,9 @@ export default function useConsultasPlanillaProfesor({
 }) {
     const [estudiantes, setEstudiantes] = useState([]);
     const [columnas, setColumnas] = useState([]);
+    // Subnotas por tipo de nota (docs/funcionalidades/SUBNOTAS_PLANILLA.md).
+    // Las calificaciones de cada estudiante viajan dentro de él, en `subnotas`.
+    const [subnotasPorTipo, setSubnotasPorTipo] = useState({});
     const [clases, setClases] = useState([]);
     const clasesControllerRef = useRef(null);
     const planillaControllerRef = useRef(null);
@@ -55,11 +59,13 @@ export default function useConsultasPlanillaProfesor({
         try {
             const data = await obtenerPlanillaNotas(asignacionId, periodo, {
                 signal: controller.signal,
+                conSubnotas: true,
             });
             if (!solicitudVigente(planillaControllerRef, controller)) return;
 
             const columnasVisibles = obtenerColumnasVisibles(data.columnas);
             setColumnas(columnasVisibles);
+            setSubnotasPorTipo(normalizarSubnotasPorTipo(data.subnotas, columnasVisibles));
             setEstudiantes(normalizarEstudiantesPlanilla(data.data || [], columnasVisibles));
         } catch (error) {
             if (!solicitudVigente(planillaControllerRef, controller)) return;
@@ -96,9 +102,11 @@ export default function useConsultasPlanillaProfesor({
     return {
         estudiantes,
         columnas,
+        subnotasPorTipo,
         clases,
         cargarPlanilla,
         setEstudiantes,
         setColumnas,
+        setSubnotasPorTipo,
     };
 }

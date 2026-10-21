@@ -10,6 +10,10 @@ import {
 } from "./valoracionesDesarrollo";
 
 describe("escala de desarrollo", () => {
+    // Prueba gemela de test_la_escala_es_la_misma_del_frontend en el backend
+    // (tests/test_subnotas_planilla_calculo.py): el servidor calcula la carita
+    // de una celda con subnotas usando esta misma escala. Si cambia aqui,
+    // cambia alla.
     it("expone las cuatro caritas con su equivalencia numerica", () => {
         expect(VALORACIONES_DESARROLLO.map((opcion) => [opcion.value, opcion.valor])).toEqual([
             ["destacado", 5],

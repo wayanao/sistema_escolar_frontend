@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-10-21 - Planilla: contratos de las subnotas (paso A3)
+
+Paso A3 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`. El backend de la
+parte A ya está en producción. **Todavía no cambia nada de lo que ve el
+profesor**: el modal y la celda calculada llegan en A4.
+
+- `services/planillaApi.js`: la planilla se pide con `con_subnotas=true`
+  (sin esa opción, la misma petición de siempre) y cuatro funciones nuevas:
+  crear, renombrar y borrar una subnota, y guardar las calificaciones de un
+  estudiante.
+- `utils/planilla/subnotas.js` (nuevo, puro): cuándo una celda es calculada,
+  la vista previa del promedio con la misma fórmula del backend (dos
+  decimales, mitad hacia arriba, en centésimas enteras; en preescolar, la
+  carita más cercana), los cuerpos que se envían y cómo se actualiza la
+  planilla con lo que responde el servidor sin pedirla entera.
+- `hooks/planilla/useConsultasPlanillaProfesor.js`: guarda las subnotas por
+  tipo. `hooks/planilla/useComandosSubnotasPlanilla.js` (nuevo): todo lo del
+  modal (lo escrito, guardar, Anterior/Siguiente, cerrar con cambios sin
+  guardar, crear, renombrar y borrar subnotas).
+- `hooks/planilla/useComandosPlanillaProfesor.js`: el `409` de una celda
+  calculada avisa y recarga en vez de dejar la nota pendiente (otro `409`,
+  como el del año cerrado, sigue igual), y el aviso de eliminar un tipo dice
+  "y sus subnotas" cuando las tiene.
+- `pages/Planilla.jsx`: solo le pasa las subnotas al gancho de comandos.
+
+Verificación: 66 pruebas nuevas, incluidos los mismos casos de redondeo y de
+caritas que fija el backend (3.80, 4.13, 1.01 y el empate de 4.5). La prueba de
+la página se ajustó a propósito: la planilla ahora se pide con subnotas.
+`pnpm run check:deploy` **limpio en una sola corrida**: 2871 pruebas en 375
+archivos, lint y build correctos.
+
 ## 2026-10-21 - Estudiantes: «Creando estudiante...» y la pantalla que va a la ficha y al estudiante nuevo
 
 Pedido del usuario: «agrega auto scroll al crear un nuevo estudiante y que

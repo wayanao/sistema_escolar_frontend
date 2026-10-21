@@ -12,6 +12,11 @@ import {
     normalizarNumeroNota,
     redondearNota,
 } from "../../utils/planilla/notas";
+import {
+    MENSAJE_NOTA_CALCULADA,
+    esErrorDeNotaCalculada,
+    subnotasDelTipo,
+} from "../../utils/planilla/subnotas";
 
 export default function useComandosPlanillaProfesor({
     asignacionId,
@@ -19,6 +24,7 @@ export default function useComandosPlanillaProfesor({
     tipoEvaluacion,
     estudiantes,
     columnas,
+    subnotasPorTipo = {},
     setEstudiantes,
     setColumnas,
     cargarPlanilla,
@@ -139,6 +145,20 @@ export default function useComandosPlanillaProfesor({
             marcarSinGuardar(clave, false);
         } catch (error) {
             console.error("Error guardando la nota", error);
+            if (esErrorDeNotaCalculada(error)) {
+                // Subnotas, paso A3 (P1): la celda ya es el promedio de sus
+                // subnotas; pasa con una pestaña abierta antes de que las
+                // tuviera. Reintentar daria lo mismo, asi que no queda
+                // pendiente: se avisa y se recarga para mostrar el promedio.
+                marcarSinGuardar(clave, false);
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Nota calculada',
+                    text: MENSAJE_NOTA_CALCULADA,
+                });
+                await cargarPlanilla();
+                return false;
+            }
             marcarSinGuardar(clave, true);
             Swal.fire({
                 icon: 'error',
@@ -159,7 +179,7 @@ export default function useComandosPlanillaProfesor({
         // o haya quedado pendiente. Solo una nota invalida devuelve `false`, que
         // es lo que restaura el valor anterior en la celda.
         return true;
-    }, [asignacionId, columnas, estudiantes, marcarSinGuardar, notasSinGuardar, periodo, setEstudiantes, tipoEvaluacion]);
+    }, [asignacionId, cargarPlanilla, columnas, estudiantes, marcarSinGuardar, notasSinGuardar, periodo, setEstudiantes, tipoEvaluacion]);
 
     const agregarTipoEvaluacion = useCallback(async () => {
         if (accionTipoEnCurso) return;
@@ -214,9 +234,13 @@ export default function useComandosPlanillaProfesor({
             return;
         }
 
+        // Subnotas, paso A3 (P6): el tipo se lleva sus subnotas; el aviso lo dice.
+        const tieneSubnotas = subnotasDelTipo(subnotasPorTipo, tipoEliminar).length > 0;
         const result = await Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
+            text: tieneSubnotas
+                ? "Esta acción eliminará el tipo de evaluación y sus subnotas para todos los estudiantes"
+                : "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -264,7 +288,7 @@ export default function useComandosPlanillaProfesor({
         } finally {
             setAccionTipoEnCurso(null);
         }
-    }, [accionTipoEnCurso, tipoEliminar, asignacionId, periodo, columnas, setColumnas, setEstudiantes, cargarPlanilla]);
+    }, [accionTipoEnCurso, tipoEliminar, subnotasPorTipo, asignacionId, periodo, columnas, setColumnas, setEstudiantes, cargarPlanilla]);
 
     return {
         nuevoTipo,

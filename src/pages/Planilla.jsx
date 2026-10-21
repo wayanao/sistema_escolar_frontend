@@ -41,7 +41,7 @@ function Planilla() {
         window.location.href = "/";
     }, []);
 
-    const { estudiantes, columnas, clases, cargarPlanilla, setEstudiantes, setColumnas } =
+    const { estudiantes, columnas, subnotasPorTipo, clases, cargarPlanilla, setEstudiantes, setColumnas } =
         useConsultasPlanillaProfesor({
             profesorId,
             asignacionId,
@@ -65,6 +65,7 @@ function Planilla() {
         tipoEvaluacion,
         estudiantes,
         columnas,
+        subnotasPorTipo,
         setEstudiantes,
         setColumnas,
         cargarPlanilla,

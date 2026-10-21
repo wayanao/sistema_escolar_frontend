@@ -141,9 +141,10 @@ describe("flujo de planilla del profesor", () => {
       `/mis-clases/${PROFESOR_ID}`,
       { signal: expect.any(AbortSignal) },
     );
+    // Subnotas, paso A3: la planilla se pide con sus subnotas, en la misma ruta.
     expect(apiMock.get).toHaveBeenCalledWith(
       PLANILLA_URL,
-      { signal: expect.any(AbortSignal) },
+      { signal: expect.any(AbortSignal), params: { con_subnotas: true } },
     );
 
     expect(screen.getByText(CLASE.materia)).toBeInTheDocument();

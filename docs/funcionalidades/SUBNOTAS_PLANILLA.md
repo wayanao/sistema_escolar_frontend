@@ -2,9 +2,11 @@
 
 ## Control
 
-- Estado: **A0 (diseño) en `1553574`. En este repo todavía no hay código de
-  esta funcionalidad.** El backend de la parte A (A1) quedó escrito el
-  2026-10-21, sin commit; su contrato está resumido abajo.
+- Estado: **A0 (diseño) en `1553574`. A3 (contratos) escrito y verificado el
+  2026-10-21, sin commit.** La pantalla (A4) no ha empezado, así que el
+  profesor todavía no ve nada nuevo. El backend de la parte A está en
+  producción desde el 2026-10-21 (`e36f976`); su contrato está resumido
+  abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -13,7 +15,8 @@
   la parte B (porcentajes) y el orden de publicación. Este documento cubre
   solo la pantalla de la parte A.
 - Depende de: el backend de la parte A (pasos A1 y A2) y su migración
-  aplicada en producción antes de publicar esta pantalla.
+  aplicada en producción antes de publicar esta pantalla. **Cumplido el
+  2026-10-21.**
 - Última actualización: 2026-10-21.
 
 ## Dónde se ve
@@ -98,8 +101,9 @@ guarda donde siempre.
 ## Arquitectura (según las capas del proyecto)
 
 - `services/planillaApi.js`: `obtenerPlanillaNotas` acepta
-  `{ conSubnotas: true }` y agrega `?con_subnotas=true`; sin esa opción manda
-  exactamente la misma petición de hoy. Funciones nuevas para crear,
+  `{ conSubnotas: true }` y agrega `con_subnotas=true` en los `params` de
+  axios (la ruta no cambia); sin esa opción manda exactamente la misma
+  petición de hoy. Funciones nuevas para crear,
   renombrar, borrar subnotas y guardar las calificaciones de un estudiante.
   Pruebas de rutas y cuerpos en `planillaApi.test.js`.
 - `utils/planilla/subnotas.js` (nuevo, puro): normalizar `subnotas` de la
@@ -107,8 +111,9 @@ guarda donde siempre.
   centésimas enteras (P7: `(1.0 + 1.01) / 2` da 1.01, no 1.00) y armar los
   cuerpos. Usa `utils/valoracionesDesarrollo.js` para las caritas: es la raíz
   compartida de `utils/`, no otro módulo. Pruebas en `subnotas.test.js`.
-- `constants/valoracionesDesarrollo.js`: no cambia. Se agrega una prueba que
-  fija los cuatro códigos y valores, gemela de la del backend (**si la escala
+- `constants/valoracionesDesarrollo.js`: no cambia. La prueba que fija los
+  cuatro códigos y valores **ya existía** en `utils/valoracionesDesarrollo.test.js`;
+  en A3 solo se le anotó que es la gemela de la del backend (**si la escala
   cambia, cambia en los dos repos**).
 - `hooks/planilla/useConsultasPlanillaProfesor.js`: pide la planilla con
   subnotas y guarda en su estado las subnotas por tipo y las calificaciones de
@@ -156,12 +161,58 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 
 ## Plan por pasos de este repo
 
-- **A3 — Contratos:** servicio, utilidades y ganchos, con pruebas. Se puede
-  escribir con A1 terminado, aunque A2 no esté aplicado.
+- **A3 — Contratos:** servicio, utilidades y ganchos, con pruebas.
+  **Hecho el 2026-10-21, sin commit** (ver "Avance del paso A3").
 - **A4 — Pantalla:** modal, botón, celda calculada y celular. Al terminar,
-  documentar en `docs/API_CLIENT.md`, `docs/COMPONENTES.md` y
-  `docs/CAMBIOS_FRONTEND.md`.
+  documentar en `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md`
+  (`docs/API_CLIENT.md` ya quedó al día en A3).
 - **A5 — Prueba en local** con el Colegio Demo: ver el documento principal.
+
+## Avance del paso A3, 2026-10-21
+
+Autorizado por el usuario el 2026-10-21, con el backend de la parte A ya en
+producción. Al empezar, `main` estaba al día con `origin/main` y solo tenía
+sin commit los documentos de la publicación. **Lo que ve el profesor no
+cambia en este paso.**
+
+**Qué se hizo:**
+
+- `services/planillaApi.js`: `obtenerPlanillaNotas(..., { conSubnotas })` y
+  `crearSubnotaPlanilla`, `renombrarSubnotaPlanilla`,
+  `eliminarSubnotaPlanilla` y `guardarCalificacionesSubnotas`. 5 pruebas
+  nuevas, entre ellas que sin `conSubnotas` la petición es exactamente la de
+  siempre.
+- `utils/planilla/subnotas.js` (nuevo, puro), con 40 pruebas. La nota
+  escrita se lee cifra por cifra para redondear mitad hacia arriba igual que
+  el `Decimal` del backend ("4.155" da 4.16; `Math.round` daría 4.15). El
+  rango se mira sobre lo escrito, como en el backend (0.995 no vale). Fija los
+  mismos casos que `tests/test_subnotas_planilla_calculo.py`: 3.80, 4.13, 1.01
+  y el empate de caritas en 4.5.
+- `hooks/planilla/useConsultasPlanillaProfesor.js`: pide la planilla con
+  subnotas y expone `subnotasPorTipo` y `setSubnotasPorTipo`.
+- `hooks/planilla/useComandosSubnotasPlanilla.js` (nuevo), con 17 pruebas
+  sobre un estado real de planilla. Solo envía las subnotas que cambiaron
+  ("4", "4.0" y "4,00" son la misma nota). Aplica en la planilla la celda que
+  devuelve el servidor. Siguiente y Anterior guardan antes de moverse y se
+  quedan si falla. Al cerrar con cambios pregunta. Crear, renombrar y borrar
+  validan antes (nombre repetido, límite de 20) y el borrado dice cuántas
+  calificaciones se pierden.
+- `hooks/planilla/useComandosPlanillaProfesor.js`, 3 pruebas nuevas:
+  - El `409` de una celda calculada avisa con el mensaje del servidor,
+    recarga y no deja la nota pendiente. Se reconoce por el texto exacto de
+    `NOTA_CALCULADA` del backend, porque el año cerrado también responde
+    `409` y ese caso no se quiso cambiar. Si el texto cambiara en el backend,
+    vuelve al aviso de siempre sin romper nada.
+  - El aviso de eliminar un tipo dice "y sus subnotas" cuando las tiene
+    (P6).
+- `pages/Planilla.jsx`: solo pasa `subnotasPorTipo` al gancho de comandos.
+  `Planilla.test.jsx` se ajustó a propósito: la planilla ahora se pide con
+  `params: { con_subnotas: true }`.
+- `docs/API_CLIENT.md` y `docs/CAMBIOS_FRONTEND.md` al día.
+
+**Verificación:** `pnpm run check:deploy` limpio en una sola corrida: **2871
+pruebas en 375 archivos** (eran 2805 en 373: 66 nuevas), lint y build
+correctos. `git diff --check` limpio.
 
 ## Fuera de alcance
 
@@ -182,8 +233,16 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
   terminó A1 y A2: código, migración probada en una rama de Neon y esquema
   base regenerado. Todo sin commit y sin publicar. Su contrato quedó en
   "Contrato del backend".
-- Siguiente acción exacta: en el backend, commit y publicación (migración en
-  producción y, en seguida, push). **A3 en este repo** solo con autorización
-  explícita; se puede escribir aunque el backend no esté publicado.
+- 2026-10-21: **el backend de la parte A quedó en producción** (`e36f976`,
+  migración aplicada en los dos colegios y Render Live). Las rutas nuevas ya
+  responden; la planilla de hoy no las usa.
+- 2026-10-21: **A3 hecho, sin commit** (ver "Avance del paso A3").
+  `check:deploy`: 2871 pruebas, lint y build limpios.
+- Siguiente acción exacta: **A4 (pantalla)**, solo con autorización
+  explícita. Conectar `useComandosSubnotasPlanilla` en `Planilla.jsx`,
+  `ModalSubnotasPlanilla.jsx` nuevo, y en `PlanillaRow.jsx` y
+  `PlanillaMobileCard.jsx` el botón `▤` y la celda calculada (con
+  `esCeldaCalculada` y `contarCalificadas`). Más el flujo de caracterización
+  en `Planilla.test.jsx`.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

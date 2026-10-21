@@ -353,4 +353,74 @@ describe("useComandosPlanillaProfesor", () => {
         });
         expect(result.current.accionTipoEnCurso).toBe(null);
     });
+
+    describe("subnotas (paso A3)", () => {
+        const errorConDetalle = (status, detail) =>
+            Object.assign(new Error(String(status)), { response: { status, data: { detail } } });
+
+        it("una celda que ya es calculada avisa con el mensaje del servidor y recarga, sin quedar pendiente", async () => {
+            guardarNotaPlanillaMock.mockRejectedValueOnce(
+                errorConDetalle(409, "Esta nota se calcula con sus subnotas. Cámbiala desde las subnotas."),
+            );
+            const params = crearParametros();
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            let exito;
+            await act(async () => {
+                exito = await result.current.guardarNota(501, "quiz", "5");
+            });
+
+            // false restaura en la celda lo que habia; la recarga trae el promedio.
+            expect(exito).toBe(false);
+            expect(swalFireMock).toHaveBeenCalledWith({
+                icon: "info",
+                title: "Nota calculada",
+                text: "Esta nota se calcula con sus subnotas. Cámbiala desde las subnotas.",
+            });
+            expect(params.cargarPlanilla).toHaveBeenCalledTimes(1);
+            expect(result.current.notasSinGuardar).toEqual({});
+        });
+
+        it("otro 409, como el del año cerrado, sigue como siempre: queda pendiente", async () => {
+            guardarNotaPlanillaMock.mockRejectedValueOnce(
+                errorConDetalle(409, "El año 2026 está cerrado."),
+            );
+            const params = crearParametros();
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            let exito;
+            await act(async () => {
+                exito = await result.current.guardarNota(501, "quiz", "5");
+            });
+
+            expect(exito).toBe(true);
+            expect(result.current.notasSinGuardar).toEqual({ "501|quiz": true });
+            expect(params.cargarPlanilla).not.toHaveBeenCalled();
+        });
+
+        it("el aviso de eliminar un tipo dice que se van sus subnotas cuando las tiene", async () => {
+            const params = crearParametros({
+                subnotasPorTipo: { quiz: [{ id: 7, nombre: "Taller 1" }] },
+            });
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            act(() => result.current.setTipoEliminar("quiz"));
+            swalFireMock.mockResolvedValueOnce({ isConfirmed: false });
+            await act(async () => {
+                await result.current.eliminarTipoEvaluacion();
+            });
+            act(() => result.current.setTipoEliminar("trabajo grupal"));
+            swalFireMock.mockResolvedValueOnce({ isConfirmed: false });
+            await act(async () => {
+                await result.current.eliminarTipoEvaluacion();
+            });
+
+            expect(swalFireMock.mock.calls[0][0].text).toBe(
+                "Esta acción eliminará el tipo de evaluación y sus subnotas para todos los estudiantes",
+            );
+            expect(swalFireMock.mock.calls[1][0].text).toBe(
+                "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
+            );
+        });
+    });
 });

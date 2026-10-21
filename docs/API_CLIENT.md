@@ -2,7 +2,7 @@
 
 Estado actual del consumo de API desde el frontend.
 
-Ultima revision documental: 2026-10-07.
+Ultima revision documental: 2026-10-21.
 
 ## Cliente Axios principal
 
@@ -722,9 +722,13 @@ Uso:
 
 ```text
 GET /mis-clases/{profesor_id}
-GET /planilla-excel/{asignacion_id}/{periodo}
+GET /planilla-excel/{asignacion_id}/{periodo}?con_subnotas=true
 POST /planilla/nota
 DELETE /planilla/tipo?asignacion_id={id}&descripcion={tipo}&periodo={periodo}
+POST /planilla/subnotas
+PUT /planilla/subnotas/{subnota_id}
+DELETE /planilla/subnotas/{subnota_id}?asignacion_id={id}
+POST /planilla/subnotas/valores
 ```
 
 Uso:
@@ -739,6 +743,23 @@ Uso:
 - Las notas numericas se validan entre `1` y `5`; la captura movil normaliza
   coma decimal a punto antes de enviar.
 - El promedio se pinta verde desde `3.0` y rojo por debajo de `3.0`.
+- **Subnotas** (desde el 2026-10-21, paso A3 de
+  `docs/funcionalidades/SUBNOTAS_PLANILLA.md`). La planilla se pide con
+  `con_subnotas=true` (en `params` de axios; la ruta no cambia): llegan las
+  subnotas por tipo y, en cada estudiante, sus calificaciones.
+  `services/planillaApi.js` tiene `crearSubnotaPlanilla`,
+  `renombrarSubnotaPlanilla`, `eliminarSubnotaPlanilla` y
+  `guardarCalificacionesSubnotas`; los cuerpos los arma
+  `utils/planilla/subnotas.js` y viajan sin cambios.
+- Al guardar calificaciones solo viajan las subnotas que cambiaron (el
+  servidor conserva las demás), con dos decimales ya redondeados mitad hacia
+  arriba. La celda que queda es la que devuelve el servidor: el frontend solo
+  muestra una vista previa con la misma fórmula.
+- Un `409` de `POST /planilla/nota` con el mensaje "Esta nota se calcula con
+  sus subnotas..." (una pestaña vieja escribiendo a mano en una celda
+  calculada) se avisa con ese mensaje y recarga la planilla, sin dejar la nota
+  pendiente. Cualquier otro `409`, como el de un año cerrado, sigue como
+  antes.
 
 ### Asistencia
 
