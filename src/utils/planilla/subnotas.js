@@ -96,6 +96,15 @@ export const tieneNotaAMano = (estudiante, tipo, subnotas) =>
     !esCeldaCalculada(estudiante, subnotas)
     && (tieneValor(estudiante?.notas?.[tipo]) || tieneValor(estudiante?.valoraciones?.[tipo]));
 
+/**
+ * Lo que muestra una celda calculada: el promedio con dos decimales, o "—" si
+ * no hay nada que mostrar. En preescolar la celda muestra la carita, no esto.
+ */
+export const formatearNotaCalculada = (valor) => {
+    const numero = Number(valor);
+    return tieneValor(valor) && Number.isFinite(numero) ? numero.toFixed(2) : "—";
+};
+
 /** Cuántos estudiantes perderían su calificación si se borra la subnota (P5). */
 export const contarCalificacionesDeSubnota = (estudiantes, subnotaId) => {
     const clave = String(subnotaId);

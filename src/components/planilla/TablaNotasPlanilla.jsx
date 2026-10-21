@@ -1,7 +1,7 @@
 import PlanillaMobileCard from "./PlanillaMobileCard";
 import PlanillaRow from "./PlanillaRow";
 
-function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar }) {
+function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar, subnotasPorTipo, onAbrirSubnotas }) {
     return (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
             <div className="border-b border-gray-200 bg-white p-4 sm:p-6">
@@ -20,6 +20,8 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                             tipoEvaluacion={tipoEvaluacion}
                             formatearEtiquetaColumna={formatearEtiquetaColumna}
                             notasSinGuardar={notasSinGuardar}
+                            subnotasPorTipo={subnotasPorTipo}
+                            onAbrirSubnotas={onAbrirSubnotas}
                         />
                     ))
                 ) : (
@@ -132,6 +134,8 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                 tipoEvaluacion={tipoEvaluacion}
                                 formatearEtiquetaColumna={formatearEtiquetaColumna}
                                 notasSinGuardar={notasSinGuardar}
+                                subnotasPorTipo={subnotasPorTipo}
+                                onAbrirSubnotas={onAbrirSubnotas}
                             />
                         ))}
                     </tbody>

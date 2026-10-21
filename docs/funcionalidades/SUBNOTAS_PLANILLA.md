@@ -2,11 +2,10 @@
 
 ## Control
 
-- Estado: **A0 (diseño) en `1553574`. A3 (contratos) escrito y verificado el
-  2026-10-21, sin commit.** La pantalla (A4) no ha empezado, así que el
-  profesor todavía no ve nada nuevo. El backend de la parte A está en
-  producción desde el 2026-10-21 (`e36f976`); su contrato está resumido
-  abajo.
+- Estado: **A0 en `1553574`, A3 en `12c2067`. A4 (la pantalla) escrito y
+  verificado el 2026-10-21, sin commit.** Falta A5, la prueba en local, antes
+  de publicar. El backend de la parte A está en producción desde el
+  2026-10-21 (`e36f976`); su contrato está resumido abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -163,10 +162,9 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 
 - **A3 — Contratos:** servicio, utilidades y ganchos, con pruebas.
   **Hecho el 2026-10-21, sin commit** (ver "Avance del paso A3").
-- **A4 — Pantalla:** modal, botón, celda calculada y celular. Al terminar,
-  documentar en `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md`
-  (`docs/API_CLIENT.md` ya quedó al día en A3).
-- **A5 — Prueba en local** con el Colegio Demo: ver el documento principal.
+- **A4 — Pantalla:** modal, botón, celda calculada y celular. **Hecho el
+  2026-10-21, sin commit** (ver "Avance del paso A4").
+- **A5 — Prueba en local** con el Colegio Demo: ver "Paso A5".
 
 ## Avance del paso A3, 2026-10-21
 
@@ -214,6 +212,95 @@ cambia en este paso.**
 pruebas en 375 archivos** (eran 2805 en 373: 66 nuevas), lint y build
 correctos. `git diff --check` limpio.
 
+## Avance del paso A4, 2026-10-21
+
+Autorizado por el usuario el 2026-10-21. Al empezar, `main` estaba limpio con
+A3 en `12c2067` (sin push).
+
+**Qué se hizo:**
+
+- `components/planilla/BotonSubnotasPlanilla.jsx` (el botón `▤`),
+  `CeldaCalculadaPlanilla.jsx` (la celda que muestra el promedio o la carita
+  y cuántas subnotas tiene) y `ModalSubnotasPlanilla.jsx` (el modal). Los tres
+  solo presentan.
+- `PlanillaRow.jsx` y `PlanillaMobileCard.jsx`: con `subnotasPorTipo` y
+  `onAbrirSubnotas`, la celda a mano suma el `▤` y la calculada cambia el
+  campo por `CeldaCalculadaPlanilla`. **Sin esas dos props se ven igual que
+  antes**: sus 11 pruebas de siempre pasan sin tocarlas.
+- `TablaNotasPlanilla.jsx` pasa las dos props. `pages/Planilla.jsx` conecta
+  `useComandosSubnotasPlanilla` con el modal.
+- `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md` al día.
+
+**Detalles de la pantalla** (no cambian ninguna regla del diseño):
+
+- La casilla de cada subnota es de texto con teclado decimal, para aceptar la
+  coma ("4,5"). El campo de la planilla sigue siendo numérico, como antes,
+  pero sin las flechitas de subir y bajar del navegador: lo pidió el usuario
+  al revisar A4. Se quitan con clases de Tailwind (`[appearance:textfield]` y
+  `appearance-none` en los botones de subir y bajar), y el build confirma que
+  las reglas quedan en el CSS. Las flechas del teclado y la rueda del mouse
+  sobre el campo enfocado todavía pueden cambiar la nota.
+- En preescolar, pulsar otra vez la carita marcada la deja vacía.
+- Renombrar se hace en el mismo lugar del nombre: Enter guarda y Esc cancela
+  sin cerrar el modal.
+- El foco entra en la primera subnota al abrir y al cambiar de estudiante, y
+  vuelve a la celda al cerrar.
+- Se cierra con la X, con Esc o con un clic en el fondo, fuera del diálogo. Si
+  hay cambios sin guardar, el gancho pregunta antes. El clic fuera faltaba en
+  la primera versión y se agregó al revisarla contra este documento.
+- "Guardando..." sale en el botón Guardar. Agregar, renombrar y borrar se
+  avisan en una línea aparte. Mientras tanto nada se puede tocar y Esc no
+  cierra.
+
+**Verificación:** 29 pruebas nuevas:
+
+- 20 del modal;
+- 1 del formato de la celda calculada, en `utils/planilla/subnotas.test.js`;
+- 6 de la fila y la tarjeta con subnotas;
+- 2 recorridos completos en `Planilla.test.jsx`. En el primero, una celda a
+  mano se abre desde `▤`, se califican dos subnotas, se guarda y la celda
+  pasa a calculada **sin recargar la planilla**; luego Anterior y cerrar. En el
+  segundo, Enter en la última subnota guarda y pasa al estudiante siguiente.
+
+`pnpm run check:deploy` limpio: **2900 pruebas en 376 archivos**, lint y build
+correctos. En una corrida intermedia, solo de la planilla, las pruebas de la
+página fallaron por tiempo agotado (la máquina estaba cargada); solas y en la
+corrida completa pasaron todas. `git diff --check` limpio.
+
+## Paso A5: prueba en local
+
+La hace el usuario. **Solo con el Colegio Demo**, nunca con estudiantes de
+`tenant_2005`: el backend local escribe en la base real.
+
+1. Backend local, en `sistema_escolar_api`:
+   `.\venv\Scripts\python.exe -m uvicorn app.main:app --reload`. Es el mismo
+   código que ya está en Render y la base ya tiene las tablas.
+2. Frontend local, en `frontend-react`: `pnpm run dev`.
+3. Entrar como **profesor del Colegio Demo** y abrir la planilla de una clase
+   de primaria. Crear un tipo de nota de prueba, por ejemplo
+   "Prueba subnotas".
+4. En un estudiante, pulsar `▤` en esa columna. Agregar dos subnotas ("Taller
+   1" y "Quiz") y calificarlas. El promedio cambia mientras se escribe; Enter
+   pasa a la de abajo y, en la última, al estudiante siguiente.
+5. Cerrar y mirar la celda: muestra el promedio con el número de subnotas y ya
+   no tiene campo para escribir. El promedio de la fila también cambió.
+6. Abrir otra vez esa celda, cambiar una nota y guardar: la celda se
+   actualiza.
+7. Renombrar una subnota (las notas no cambian) y borrar otra (avisa cuántas
+   calificaciones se pierden y recalcula las celdas).
+8. Vaciar todas las subnotas de un estudiante y guardar: la celda queda vacía
+   y otra vez se escribe a mano.
+9. Probar la vista de celular (herramientas del navegador, modo celular): la
+   tarjeta dice "Calculada" y el modal ocupa toda la pantalla.
+10. Si el Colegio Demo tiene un curso de preescolar, repetir el punto 4 con
+    caritas.
+11. Limpiar: borrar el tipo "Prueba subnotas" (se lleva sus subnotas). El
+    aviso de borrar debe decir "y sus subnotas".
+12. Contarle al asistente qué salió bien y qué no.
+
+Si todo sale bien, el usuario hace el push del frontend y la parte A queda
+publicada.
+
 ## Fuera de alcance
 
 - Los porcentajes por tipo (parte B): campo de porcentaje al crear el tipo,
@@ -238,11 +325,12 @@ correctos. `git diff --check` limpio.
   responden; la planilla de hoy no las usa.
 - 2026-10-21: **A3 hecho, sin commit** (ver "Avance del paso A3").
   `check:deploy`: 2871 pruebas, lint y build limpios.
-- Siguiente acción exacta: **A4 (pantalla)**, solo con autorización
-  explícita. Conectar `useComandosSubnotasPlanilla` en `Planilla.jsx`,
-  `ModalSubnotasPlanilla.jsx` nuevo, y en `PlanillaRow.jsx` y
-  `PlanillaMobileCard.jsx` el botón `▤` y la celda calculada (con
-  `esCeldaCalculada` y `contarCalificadas`). Más el flujo de caracterización
-  en `Planilla.test.jsx`.
+- A3 en `12c2067`.
+- 2026-10-21: **A4 hecho, sin commit** (ver "Avance del paso A4").
+  `check:deploy`: 2900 pruebas, lint y build limpios.
+- Siguiente acción exacta: **A5, lo hace el usuario** con la lista de "Paso
+  A5" (Colegio Demo). Si sale bien, commit y push del frontend: con eso la
+  parte A queda publicada. La parte B (porcentajes) empieza con su B0 y solo
+  con autorización explícita.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

@@ -34,6 +34,8 @@ describe("PlanillaMobileCard", () => {
         expect(input).toHaveAttribute("min", "1");
         expect(input).toHaveAttribute("max", "5");
         expect(input).toHaveAttribute("step", "0.1");
+        // Sin las flechitas de subir y bajar: la nota se escribe.
+        expect(input).toHaveClass("[appearance:textfield]");
 
         fireEvent.change(input, { target: { value: "5" } });
         fireEvent.blur(input);
@@ -150,5 +152,57 @@ describe("PlanillaMobileCard", () => {
         expect(input).toHaveValue(4);
         expect(input).toHaveClass("border-red-500");
         expect(screen.getByText("Sin guardar")).toBeInTheDocument();
+    });
+});
+
+describe("PlanillaMobileCard con subnotas", () => {
+    const SUBNOTAS = { quiz: [{ id: 7, nombre: "Taller 1" }] };
+
+    function renderConSubnotas(est, tipoEvaluacion = "numerica") {
+        const onAbrirSubnotas = vi.fn();
+        render(
+            <PlanillaMobileCard
+                est={est}
+                numero={1}
+                columnas={["quiz"]}
+                guardarNota={vi.fn()}
+                tipoEvaluacion={tipoEvaluacion}
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+                subnotasPorTipo={SUBNOTAS}
+                onAbrirSubnotas={onAbrirSubnotas}
+            />,
+        );
+        return onAbrirSubnotas;
+    }
+
+    it("a mano: campo de siempre y botón de subnotas junto al tipo", async () => {
+        const onAbrir = renderConSubnotas({ estudiante_id: 301, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4 }, subnotas: {}, promedio: "4.00" });
+
+        expect(screen.getByRole("spinbutton")).toHaveValue(4);
+        expect(screen.getByText("1.0 a 5.0")).toBeInTheDocument();
+        await userEvent.click(screen.getByRole("button", { name: "Subnotas de Quiz de Ruiz Ana" }));
+
+        expect(onAbrir).toHaveBeenCalledWith(301, "quiz");
+    });
+
+    it("calculada: el promedio ocupa el lugar del campo y abre las subnotas", async () => {
+        const onAbrir = renderConSubnotas({ estudiante_id: 301, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4.5 }, subnotas: { 7: 4.5 }, promedio: "4.50" });
+
+        expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+        expect(screen.getByText("Calculada")).toBeInTheDocument();
+        await userEvent.click(screen.getByRole("button", { name: /^Quiz de Ruiz Ana: 4.50. Calculada con 1 subnota./ }));
+
+        expect(onAbrir).toHaveBeenCalledWith(301, "quiz");
+    });
+
+    it("calculada en preescolar: la carita con su nombre", () => {
+        renderConSubnotas(
+            { estudiante_id: 302, nombre: "Luis", apellido: "Pérez", notas: {}, valoraciones: { quiz: "destacado" }, subnotas: { 7: "destacado" }, promedio: "5.00" },
+            "desarrollo",
+        );
+
+        const celda = screen.getByRole("button", { name: /^Quiz de Pérez Luis: Destacado./ });
+        expect(celda).toHaveTextContent("⭐");
+        expect(celda).toHaveTextContent("Destacado");
     });
 });

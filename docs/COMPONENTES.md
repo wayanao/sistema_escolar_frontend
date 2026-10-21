@@ -215,6 +215,22 @@ Estado actual de componentes y paginas del frontend.
   `Tipo de calificación`; `components/planilla/GestionTiposEvaluacion.jsx`
   presenta el alta y baja de tipos; `components/planilla/TablaNotasPlanilla.jsx`
   compone el título, la lista móvil y la tabla de escritorio.
+- **Subnotas** (desde el 2026-10-21, ver
+  `docs/funcionalidades/SUBNOTAS_PLANILLA.md`). Con `subnotasPorTipo` y
+  `onAbrirSubnotas`, que les pasa la página, la fila y la tarjeta cambian así:
+  - una celda a mano conserva su campo o sus caritas y suma
+    `components/planilla/BotonSubnotasPlanilla.jsx` (el botón `▤`);
+  - una celda con subnotas calificadas es
+    `components/planilla/CeldaCalculadaPlanilla.jsx`: muestra el promedio (o
+    la carita) y cuántas subnotas tiene, no se escribe a mano y abre el modal.
+
+  Sin esas dos props se ven exactamente como antes.
+  `components/planilla/ModalSubnotasPlanilla.jsx` es el modal de un
+  estudiante en un tipo de nota. Tiene las subnotas (casillas o caritas), el
+  promedio en vivo, los avisos de nota a mano y de celda vacía, y agregar,
+  renombrar y borrar subnotas. Lleva Anterior/Guardar/Siguiente: Enter pasa a
+  la subnota de abajo y, en la última, al estudiante siguiente; Esc cierra.
+  Solo presenta: todo llega de `hooks/planilla/useComandosSubnotasPlanilla.js`.
 - `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
   composición compacta del encabezado y el contexto de materia, salón, período
   y fecha. Planilla agrega allí mismo `Tipo de calificación`.
@@ -740,6 +756,9 @@ Estado actual de componentes y paginas del frontend.
 - `components/planilla/SelectorTipoEvaluacion.jsx`
 - `components/planilla/GestionTiposEvaluacion.jsx`
 - `components/planilla/TablaNotasPlanilla.jsx`
+- `components/planilla/BotonSubnotasPlanilla.jsx`
+- `components/planilla/CeldaCalculadaPlanilla.jsx`
+- `components/planilla/ModalSubnotasPlanilla.jsx`
 
 ### Admin
 

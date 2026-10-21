@@ -1,9 +1,11 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import EncabezadoContextoCurso from "../components/EncabezadoContextoCurso";
 import GestionTiposEvaluacion from "../components/planilla/GestionTiposEvaluacion";
+import ModalSubnotasPlanilla from "../components/planilla/ModalSubnotasPlanilla";
 import SelectorTipoEvaluacion from "../components/planilla/SelectorTipoEvaluacion";
 import TablaNotasPlanilla from "../components/planilla/TablaNotasPlanilla";
 import useComandosPlanillaProfesor from "../hooks/planilla/useComandosPlanillaProfesor";
+import useComandosSubnotasPlanilla from "../hooks/planilla/useComandosSubnotasPlanilla";
 import useConsultasPlanillaProfesor from "../hooks/planilla/useConsultasPlanillaProfesor";
 import { tipoEvaluacionForzado } from "../utils/nivelAcademico";
 import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
@@ -41,7 +43,16 @@ function Planilla() {
         window.location.href = "/";
     }, []);
 
-    const { estudiantes, columnas, subnotasPorTipo, clases, cargarPlanilla, setEstudiantes, setColumnas } =
+    const {
+        estudiantes,
+        columnas,
+        subnotasPorTipo,
+        clases,
+        cargarPlanilla,
+        setEstudiantes,
+        setColumnas,
+        setSubnotasPorTipo,
+    } =
         useConsultasPlanillaProfesor({
             profesorId,
             asignacionId,
@@ -69,6 +80,19 @@ function Planilla() {
         setEstudiantes,
         setColumnas,
         cargarPlanilla,
+    });
+
+    // Subnotas (docs/funcionalidades/SUBNOTAS_PLANILLA.md): el modal de un
+    // estudiante en un tipo de nota.
+    const subnotas = useComandosSubnotasPlanilla({
+        asignacionId,
+        periodo,
+        tipoEvaluacion,
+        estudiantes,
+        columnas,
+        subnotasPorTipo,
+        setEstudiantes,
+        setSubnotasPorTipo,
     });
 
     useEffect(() => {
@@ -139,7 +163,39 @@ function Planilla() {
             tipoEvaluacion={tipoEvaluacion}
             formatearEtiquetaColumna={formatearEtiquetaColumna}
             notasSinGuardar={notasSinGuardar}
+            subnotasPorTipo={subnotasPorTipo}
+            onAbrirSubnotas={subnotas.abrir}
         />
+
+        {subnotas.abierta && (
+            <ModalSubnotasPlanilla
+                estudiante={subnotas.estudiante}
+                tipo={subnotas.tipo}
+                tipoEvaluacion={tipoEvaluacion}
+                subnotas={subnotas.subnotas}
+                borrador={subnotas.borrador}
+                invalidas={subnotas.invalidas}
+                vistaPrevia={subnotas.vistaPrevia}
+                hayCambios={subnotas.hayCambios}
+                notaAMano={subnotas.notaAMano}
+                quedaraVacia={subnotas.quedaraVacia}
+                limiteAlcanzado={subnotas.limiteAlcanzado}
+                posicion={subnotas.posicion}
+                total={subnotas.total}
+                hayAnterior={subnotas.hayAnterior}
+                haySiguiente={subnotas.haySiguiente}
+                accionEnCurso={subnotas.accionEnCurso}
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+                onCambiarCalificacion={subnotas.cambiarCalificacion}
+                onGuardar={subnotas.guardar}
+                onSiguiente={subnotas.irAlSiguiente}
+                onAnterior={subnotas.irAlAnterior}
+                onCerrar={subnotas.cerrar}
+                onCrearSubnota={subnotas.crearSubnota}
+                onRenombrarSubnota={subnotas.cambiarNombreSubnota}
+                onBorrarSubnota={subnotas.borrarSubnota}
+            />
+        )}
     </div>
 );
 }

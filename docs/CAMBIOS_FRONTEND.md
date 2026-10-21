@@ -1,5 +1,40 @@
 # Cambios Frontend
 
+## 2026-10-21 - Planilla: la pantalla de las subnotas (paso A4)
+
+Paso A4 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`. Es lo primero de las
+subnotas que **ve el profesor**.
+
+- En cada celda de la planilla, escritorio y celular, un botón pequeño `▤`
+  abre el modal de subnotas de ese estudiante en ese tipo de nota. La celda se
+  sigue escribiendo a mano como siempre.
+- Una celda con subnotas calificadas es **calculada**: muestra el promedio (en
+  preescolar, la carita) y cuántas subnotas tiene. No tiene campo para escribir
+  y, al tocarla, abre el modal.
+- El modal (`components/planilla/ModalSubnotasPlanilla.jsx`):
+  - las subnotas del tipo, iguales para todo el curso, con lo que tiene el
+    estudiante, y el promedio en vivo;
+  - Enter pasa a la subnota de abajo y, en la última, guarda y pasa al
+    estudiante siguiente; Anterior/Guardar/Siguiente abajo; la X, Esc o un
+    clic fuera cierran, y si hay cambios sin guardar pregunta;
+  - avisos: nota escrita a mano que se va a reemplazar, y celda que queda
+    vacía;
+  - agregar una subnota (para todo el curso, hasta 20), renombrarla en el
+    mismo lugar y borrarla (dice cuántas calificaciones se pierden);
+  - en celular ocupa toda la pantalla.
+- Pedido del usuario al revisarla: el campo de la nota de la planilla, en
+  escritorio y en celular, ya no muestra las flechitas de subir y bajar del
+  navegador. Sigue siendo numérico, con las mismas validaciones.
+- Componentes nuevos: `BotonSubnotasPlanilla.jsx`, `CeldaCalculadaPlanilla.jsx`
+  y `ModalSubnotasPlanilla.jsx`. `PlanillaRow.jsx` y `PlanillaMobileCard.jsx`
+  solo cambian si reciben las subnotas: sin ellas se ven como antes, y sus
+  pruebas de siempre pasan sin tocarlas.
+
+Verificación: 29 pruebas nuevas (20 del modal, 6 de la fila y la tarjeta, 1
+del formato de la celda y 2 recorridos completos en `Planilla.test.jsx`).
+`pnpm run check:deploy` limpio: 2900 pruebas en 376 archivos, lint y build
+correctos.
+
 ## 2026-10-21 - Planilla: contratos de las subnotas (paso A3)
 
 Paso A3 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`. El backend de la

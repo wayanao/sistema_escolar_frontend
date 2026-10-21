@@ -21,6 +21,7 @@ import {
     contarCalificadas,
     esCeldaCalculada,
     esErrorDeNotaCalculada,
+    formatearNotaCalculada,
     leerNotaDeSubnota,
     mensajeDelServidor,
     normalizarSubnotasPorTipo,
@@ -89,6 +90,14 @@ describe("lo que llega del servidor", () => {
         expect(
             tieneNotaAMano({ subnotas: {}, valoraciones: { Juego: "logrado" } }, "Juego", []),
         ).toBe(true);
+    });
+
+    it("la celda calculada muestra el promedio con dos decimales, o una raya", () => {
+        expect(formatearNotaCalculada(3.8)).toBe("3.80");
+        expect(formatearNotaCalculada(4)).toBe("4.00");
+        expect(formatearNotaCalculada(null)).toBe("—");
+        expect(formatearNotaCalculada("")).toBe("—");
+        expect(formatearNotaCalculada("x")).toBe("—");
     });
 
     it("P5: cuenta cuántos estudiantes tienen calificada una subnota", () => {

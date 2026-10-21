@@ -1,10 +1,18 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
 import { claveNota } from "../../utils/planilla/notas";
+import { contarCalificadas, subnotasDelTipo } from "../../utils/planilla/subnotas";
 import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
+import BotonSubnotasPlanilla from "./BotonSubnotasPlanilla";
+import CeldaCalculadaPlanilla from "./CeldaCalculadaPlanilla";
 
 const TITULO_SIN_GUARDAR = "Sin guardar. Vuelve a salir de la celda para reintentar.";
 
-function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar }) {
+// Sin `onAbrirSubnotas` la fila es la de siempre. Con él, cada celda ofrece sus
+// subnotas, y la que ya tiene subnotas calificadas es calculada: muestra el
+// promedio y no se escribe a mano (P1 de docs/funcionalidades/SUBNOTAS_PLANILLA.md).
+function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar, subnotasPorTipo, onAbrirSubnotas }) {
+    const conSubnotas = typeof onAbrirSubnotas === "function";
+    const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
         ? "text-gray-900"
@@ -48,17 +56,13 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                     const sinGuardar = Boolean(
                         notasSinGuardar?.[claveNota(est.estudiante_id, col)],
                     );
+                    const etiqueta = formatearEtiquetaColumna?.(col) || col;
+                    const calificadas = conSubnotas
+                        ? contarCalificadas(est, subnotasDelTipo(subnotasPorTipo, col))
+                        : 0;
+                    const abrirSubnotas = () => onAbrirSubnotas(est.estudiante_id, col);
 
-                    return (
-                    <td
-                        key={`${est.estudiante_id}-${col}`}
-                        className={`min-w-[100px] border-b border-b-gray-100/70 px-2 py-4 text-center ${
-                            index < columnas.length - 1
-                                ? "border-r border-violet-100/50"
-                                : ""
-                        }`}
-                    >
-                        {tipoEvaluacion === "desarrollo" ? (
+                    const aMano = tipoEvaluacion === "desarrollo" ? (
                             <div
                                 className={`grid grid-cols-2 gap-1 ${
                                     sinGuardar ? "rounded ring-1 ring-red-500" : ""
@@ -98,7 +102,9 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                                         ? est.notas[col]
                                         : ""
                                 }
-                                className={`w-full max-w-[70px] px-1 py-1 border rounded text-center text-sm ${
+                                // Sin las flechitas de subir y bajar del navegador: la nota
+                                // se escribe.
+                                className={`w-full max-w-[70px] px-1 py-1 border rounded text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
                                     sinGuardar
                                         ? "border-red-500 bg-red-50"
                                         : "border-gray-300"
@@ -107,7 +113,45 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                                 translate="no"
                                 onBlur={(event) => guardarNotaNumerica(event, col)}
                             />
-                        )}
+                        );
+
+                    let contenido = aMano;
+                    if (calificadas > 0) {
+                        contenido = (
+                            <CeldaCalculadaPlanilla
+                                est={est}
+                                columna={col}
+                                etiqueta={etiqueta}
+                                nombreEstudiante={nombreCompleto}
+                                tipoEvaluacion={tipoEvaluacion}
+                                cantidad={calificadas}
+                                onAbrir={abrirSubnotas}
+                                className="min-h-8"
+                            />
+                        );
+                    } else if (conSubnotas) {
+                        contenido = (
+                            <div className="flex items-center justify-center gap-1">
+                                {aMano}
+                                <BotonSubnotasPlanilla
+                                    etiqueta={etiqueta}
+                                    nombreEstudiante={nombreCompleto}
+                                    onAbrir={abrirSubnotas}
+                                />
+                            </div>
+                        );
+                    }
+
+                    return (
+                    <td
+                        key={`${est.estudiante_id}-${col}`}
+                        className={`min-w-[100px] border-b border-b-gray-100/70 px-2 py-4 text-center ${
+                            index < columnas.length - 1
+                                ? "border-r border-violet-100/50"
+                                : ""
+                        }`}
+                    >
+                        {contenido}
                     </td>
                     );
                 })}

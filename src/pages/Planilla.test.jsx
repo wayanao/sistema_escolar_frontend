@@ -512,3 +512,131 @@ describe("flujo de planilla del profesor", () => {
     expect(screen.getByText("Tipo de calificación")).toBeInTheDocument();
   });
 });
+
+describe("subnotas en la planilla (paso A4)", () => {
+  const SUBNOTAS_QUIZ = [
+    { id: 7, nombre: "Taller 1" },
+    { id: 8, nombre: "Parcial" },
+  ];
+
+  function prepararConSubnotas() {
+    columnasServidor = ["quiz", "trabajo grupal"];
+    const estudiantes = [
+      {
+        estudiante_id: ANA_ID, nombre: "Ana", apellido: "Ruiz",
+        notas: { quiz: 4, "trabajo grupal": 3 },
+        subnotas: { 7: 4, 8: 4 },
+      },
+      {
+        estudiante_id: LUIS_ID, nombre: "Luis", apellido: "Pérez",
+        notas: { quiz: 2 },
+        subnotas: {},
+      },
+    ];
+    apiMock.get.mockImplementation((url) => {
+      if (url === `/mis-clases/${PROFESOR_ID}`) return Promise.resolve({ data: [CLASE] });
+      if (url === PLANILLA_URL) {
+        return Promise.resolve({
+          data: {
+            columnas: [...columnasServidor],
+            subnotas: { quiz: SUBNOTAS_QUIZ },
+            data: estudiantes.map((est) => ({ ...est, notas: { ...est.notas } })),
+          },
+        });
+      }
+      return Promise.reject(new Error(`GET no simulado: ${url}`));
+    });
+    apiMock.post.mockImplementation((url, body) => {
+      if (url === "/planilla/subnotas/valores") {
+        // El servidor responde lo que quedó guardado: aquí, el promedio simple.
+        const notas = Object.values(body.valores).filter((valor) => valor !== null);
+        const nota = notas.reduce((suma, valor) => suma + valor, 0) / notas.length;
+        return Promise.resolve({
+          data: {
+            estudiante_id: body.estudiante_id,
+            tipo_nota: body.tipo_nota,
+            tipo_evaluacion: "numerica",
+            nota,
+            valoracion: null,
+            subnotas: body.valores,
+          },
+        });
+      }
+      return Promise.reject(new Error(`POST no simulado: ${url}`));
+    });
+  }
+
+  it("califica las subnotas desde la celda: la celda pasa a calculada sin recargar la planilla", async () => {
+    prepararConSubnotas();
+    const usuario = userEvent.setup();
+    await abrirPlanilla();
+    const tabla = screen.getByRole("table");
+
+    // Ana ya tiene subnotas: su celda es calculada y no tiene campo.
+    const filaAna = obtenerFilaEstudiante(tabla, "Ruiz Ana");
+    expect(within(filaAna).getByRole("button", {
+      name: "Quiz de Ruiz Ana: 4.00. Calculada con 2 subnotas. Abrir subnotas",
+    })).toBeInTheDocument();
+    expect(within(filaAna).getAllByRole("spinbutton")).toHaveLength(1); // solo "trabajo grupal"
+
+    // Luis escribe a mano: abre sus subnotas desde el botón de la celda.
+    const filaLuis = obtenerFilaEstudiante(tabla, "Pérez Luis");
+    await usuario.click(within(filaLuis).getByRole("button", { name: "Subnotas de Quiz de Pérez Luis" }));
+
+    const modal = await screen.findByRole("dialog", { name: "Pérez Luis · Quiz" });
+    expect(within(modal).getByRole("note")).toHaveTextContent("Nota escrita a mano: 2.00.");
+    await usuario.type(within(modal).getByLabelText("Taller 1"), "5");
+    await usuario.type(within(modal).getByLabelText("Parcial"), "3");
+    expect(within(modal).getByText("4.00")).toBeInTheDocument();
+
+    await usuario.click(within(modal).getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith(
+      "/planilla/subnotas/valores",
+      {
+        asignacion_id: ASIGNACION_ID,
+        periodo: PERIODO,
+        tipo_nota: "quiz",
+        estudiante_id: LUIS_ID,
+        tipo_evaluacion: "numerica",
+        valores: { 7: 5, 8: 3 },
+      },
+      undefined,
+    ));
+    const celdaLuis = await within(filaLuis).findByRole("button", {
+      name: "Quiz de Pérez Luis: 4.00. Calculada con 2 subnotas. Abrir subnotas",
+    });
+    expect(celdaLuis).toBeInTheDocument();
+    // Solo queda el campo de "trabajo grupal": el de quiz ya es calculado.
+    expect(within(filaLuis).getAllByRole("spinbutton")).toHaveLength(1);
+    expect(within(filaLuis).getByText("4.00", { selector: "td:last-child span" })).toBeInTheDocument();
+    expect(contarLlamadasPlanilla()).toBe(1);
+
+    // Anterior, sin cambios, pasa a Ana sin escribir nada.
+    await usuario.click(within(modal).getByRole("button", { name: "← Anterior" }));
+    expect(await screen.findByRole("dialog", { name: "Ruiz Ana · Quiz" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Taller 1")).toHaveValue("4");
+    expect(apiMock.post).toHaveBeenCalledTimes(1);
+
+    await usuario.click(screen.getByRole("button", { name: "Cerrar" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("Siguiente guarda lo escrito y pasa al estudiante de abajo", async () => {
+    prepararConSubnotas();
+    const usuario = userEvent.setup();
+    await abrirPlanilla();
+    const filaAna = obtenerFilaEstudiante(screen.getByRole("table"), "Ruiz Ana");
+
+    await usuario.click(within(filaAna).getByRole("button", { name: /^Quiz de Ruiz Ana: 4.00/ }));
+    const modal = await screen.findByRole("dialog", { name: "Ruiz Ana · Quiz" });
+    const parcial = within(modal).getByLabelText("Parcial");
+    await usuario.clear(parcial);
+    await usuario.type(parcial, "5{Enter}");
+
+    expect(await screen.findByRole("dialog", { name: "Pérez Luis · Quiz" })).toBeInTheDocument();
+    expect(apiMock.post).toHaveBeenCalledTimes(1);
+    expect(apiMock.post.mock.calls[0][1]).toMatchObject({ estudiante_id: ANA_ID, valores: { 8: 5 } });
+    expect(within(filaAna).getByRole("button", { name: /^Quiz de Ruiz Ana: 5.00/ })).toBeInTheDocument();
+  });
+});

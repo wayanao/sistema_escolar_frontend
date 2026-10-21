@@ -1,10 +1,17 @@
 import { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo";
 import { claveNota } from "../../utils/planilla/notas";
+import { contarCalificadas, subnotasDelTipo } from "../../utils/planilla/subnotas";
 import { valoracionDesdePromedio } from "../../utils/valoracionesDesarrollo";
+import BotonSubnotasPlanilla from "./BotonSubnotasPlanilla";
+import CeldaCalculadaPlanilla from "./CeldaCalculadaPlanilla";
 
 const TITULO_SIN_GUARDAR = "Sin guardar. Vuelve a salir de la celda para reintentar.";
 
-function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar }) {
+// Sin `onAbrirSubnotas` la tarjeta es la de siempre. Con él, cada tipo de nota
+// ofrece sus subnotas, y el que ya tiene subnotas calificadas muestra el
+// promedio en vez del campo (P1 de docs/funcionalidades/SUBNOTAS_PLANILLA.md).
+function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar, subnotasPorTipo, onAbrirSubnotas }) {
+    const conSubnotas = typeof onAbrirSubnotas === "function";
     const nombreCompleto = `${est.apellido || ""} ${est.nombre || ""}`.trim();
     const promedioNumerico = Number(est.promedio);
     const promedioClass = tipoEvaluacion === "desarrollo" || Number.isNaN(promedioNumerico)
@@ -71,6 +78,10 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                             const sinGuardar = Boolean(
                                 notasSinGuardar?.[claveNota(est.estudiante_id, col)],
                             );
+                            const calificadas = conSubnotas
+                                ? contarCalificadas(est, subnotasDelTipo(subnotasPorTipo, col))
+                                : 0;
+                            const abrirSubnotas = () => onAbrirSubnotas(est.estudiante_id, col);
 
                             return (
                                 <div key={`${est.estudiante_id}-${col}-mobile`} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -78,18 +89,44 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                                         <span className="text-sm font-semibold text-gray-800" title={etiqueta} translate="no">
                                             {etiqueta}
                                         </span>
-                                        {sinGuardar ? (
-                                            <span className="text-xs font-semibold text-red-600" title={TITULO_SIN_GUARDAR}>
-                                                Sin guardar
-                                            </span>
-                                        ) : tipoEvaluacion !== "desarrollo" && (
-                                            <span className="text-xs font-medium text-gray-500">
-                                                1.0 a 5.0
-                                            </span>
-                                        )}
+                                        <span className="inline-flex items-center gap-2">
+                                            {sinGuardar ? (
+                                                <span className="text-xs font-semibold text-red-600" title={TITULO_SIN_GUARDAR}>
+                                                    Sin guardar
+                                                </span>
+                                            ) : calificadas > 0 ? (
+                                                <span className="text-xs font-medium text-violet-600">
+                                                    Calculada
+                                                </span>
+                                            ) : tipoEvaluacion !== "desarrollo" && (
+                                                <span className="text-xs font-medium text-gray-500">
+                                                    1.0 a 5.0
+                                                </span>
+                                            )}
+                                            {conSubnotas && calificadas === 0 && (
+                                                <BotonSubnotasPlanilla
+                                                    etiqueta={etiqueta}
+                                                    nombreEstudiante={nombreCompleto}
+                                                    onAbrir={abrirSubnotas}
+                                                    className="h-8 w-8"
+                                                />
+                                            )}
+                                        </span>
                                     </div>
 
-                                    {tipoEvaluacion === "desarrollo" ? (
+                                    {calificadas > 0 ? (
+                                        <CeldaCalculadaPlanilla
+                                            est={est}
+                                            columna={col}
+                                            etiqueta={etiqueta}
+                                            nombreEstudiante={nombreCompleto}
+                                            tipoEvaluacion={tipoEvaluacion}
+                                            cantidad={calificadas}
+                                            onAbrir={abrirSubnotas}
+                                            conEtiqueta
+                                            className="min-h-11 w-full text-base"
+                                        />
+                                    ) : tipoEvaluacion === "desarrollo" ? (
                                         <div className="grid grid-cols-2 gap-2">
                                             {VALORACIONES_DESARROLLO.map((opcion) => {
                                                 const activa = est.valoraciones?.[col] === opcion.value;
@@ -127,7 +164,8 @@ function PlanillaMobileCard({ est, numero, columnas, guardarNota, tipoEvaluacion
                                                     ? est.notas[col]
                                                     : ""
                                             }
-                                            className={`h-11 w-full rounded-lg border px-3 text-center text-base font-semibold text-gray-900 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
+                                            // Sin las flechitas de subir y bajar del navegador.
+                                            className={`h-11 w-full rounded-lg border px-3 text-center text-base font-semibold text-gray-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
                                                 sinGuardar
                                                     ? "border-red-500 bg-red-50"
                                                     : "border-gray-300 bg-white"
