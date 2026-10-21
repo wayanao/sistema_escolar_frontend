@@ -56,9 +56,60 @@ const propsBase = {
 };
 
 describe("VistaCarteraVencida", () => {
-    it("presenta el estado de carga existente", () => {
+    it("presenta el estado de carga y dice qué está cargando", () => {
         render(<VistaCarteraVencida {...propsBase} cargando />);
         expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+        expect(screen.getByRole("status")).toHaveTextContent("Cargando cartera vencida...");
+    });
+
+    it("si falla la carga, muestra el error con Reintentar y no dice que nadie debe", () => {
+        const onActualizar = vi.fn();
+        render(
+            <VistaCarteraVencida
+                {...propsBase}
+                resumen={null}
+                itemsFiltrados={[]}
+                error="No se pudo cargar la cartera vencida."
+                hayDatos={false}
+                onActualizar={onActualizar}
+            />
+        );
+
+        expect(screen.getByRole("alert")).toHaveTextContent("No se pudo cargar la cartera vencida.");
+        expect(screen.queryByText("No hay estudiantes en mora con estos filtros.")).not.toBeInTheDocument();
+        expect(screen.queryByText("Total cuotas vencidas")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+        expect(onActualizar).toHaveBeenCalledTimes(1);
+    });
+
+    it("si falla al actualizar, conserva la tabla y avisa que puede estar desactualizada", () => {
+        render(
+            <VistaCarteraVencida
+                {...propsBase}
+                error="No se pudo cargar la cartera vencida."
+                hayDatos
+            />
+        );
+
+        expect(screen.getByRole("alert")).toHaveTextContent("No se pudo actualizar la cartera");
+        expect(screen.getByText("Pérez, Ana")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
+    });
+
+    it("mientras actualiza, el botón lo dice y espera, sin esconder la tabla", () => {
+        render(<VistaCarteraVencida {...propsBase} actualizando />);
+
+        expect(screen.getByRole("button", { name: "Actualizando..." })).toBeDisabled();
+        expect(screen.getByText("Pérez, Ana")).toBeInTheDocument();
+    });
+
+    it("dice a qué hora se actualizó la cartera", () => {
+        render(
+            <VistaCarteraVencida {...propsBase} actualizadoA={new Date(2026, 9, 21, 10, 32)} />
+        );
+
+        expect(screen.getByText(/^Actualizado a las 10:32/)).toBeInTheDocument();
     });
 
     it("presenta cartera y comunica filtros y acciones mediante callbacks", () => {

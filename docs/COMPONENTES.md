@@ -968,6 +968,19 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   la fecha. Es información de presentación; consultas y totales no cambian.
 - `hooks/carteraTiposPago/`: consulta de cartera, consultas de conceptos,
   formulario básico, configuración y asignación de cursos.
+- Saber qué pasa (2026-10-21, paso 3 de
+  `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`):
+  `VistaCarteraVencida` recibe `actualizando`, `error`, `hayDatos` y
+  `actualizadoA`: dice «Cargando cartera vencida...», muestra el error con
+  «Reintentar» en vez de cifras en $0 o «no hay estudiantes en mora», y la hora
+  de la última actualización. `Actualizar` ya no recarga la página.
+  `VistaAdministrarTiposPago` recibe la carga y el error de conceptos y cursos
+  (con sus «Reintentar»), `guardandoConcepto`, `conceptoResaltadoId`,
+  `configSinGuardar` y las referencias del formulario y del panel; el
+  formulario tiene título («Nuevo concepto» / «Editar concepto»).
+  `hooks/carteraTiposPago/usePanelConfiguracion.js` abre y cierra el panel
+  preguntando antes de perder cambios sin guardar, y lo cierra si no se pudo
+  cargar el detalle.
 - `services/carteraTiposPagoApi.js`: frontera HTTP única del módulo.
 - `utils/carteraTiposPago/`: formatos, filtros, totales, CSV, contratos y
   payloads puros.

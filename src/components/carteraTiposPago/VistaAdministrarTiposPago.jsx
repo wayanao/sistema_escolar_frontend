@@ -15,6 +15,7 @@
  */
 
 import { useMemo } from "react";
+import SpinnerView from "../anioLectivo/SpinnerView";
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
 import {
     FILTROS_ESTADO_CONCEPTO,
@@ -113,8 +114,28 @@ function VistaAdministrarTiposPago({
     // editar también en uno en preparación; en uno cerrado, solo consulta.
     puedeCrear = true,
     puedeEditar = true,
+    // Qué está pasando: la lista la primera vez (`cargandoConceptos`) o al
+    // recargarla (`actualizandoConceptos`), si falló, si se guarda un concepto,
+    // cuál se acaba de guardar y si la configuración tiene cambios sin guardar.
+    cargandoConceptos = false,
+    actualizandoConceptos = false,
+    errorConceptos = null,
+    onReintentarConceptos,
+    cargandoCursos = false,
+    errorCursos = null,
+    onReintentarCursos,
+    guardandoConcepto = false,
+    conceptoResaltadoId = null,
+    configSinGuardar = false,
+    // Para que la página lleve la pantalla al formulario y al panel.
+    formularioRef,
+    tituloFormularioRef,
+    panelRef,
 }) {
     const mostrarFormulario = editingTipoId ? puedeEditar : puedeCrear;
+    const conceptoEditado = editingTipoId
+        ? tiposPagos.find((tipo) => tipo.id === editingTipoId)
+        : null;
     const esMensual = config.tipo_cobro === "mensual";
     const esAnual = config.tipo_cobro === "anual";
     const rangoMesesValido = esRangoMesesValido(config);
@@ -150,54 +171,95 @@ function VistaAdministrarTiposPago({
                 </div>
 
                 {mostrarFormulario && (
-                    <form onSubmit={handleSubmit} className="mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
-                                <input
-                                    type="text"
-                                    value={nuevoTipoPago}
-                                    onChange={(e) => setNuevoTipoPago(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                    placeholder="Ej: Matrícula, Copias..."
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Valor base / Costo</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={valorTipoPago}
-                                    onChange={(e) => setValorTipoPago(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                    placeholder="0.00"
-                                    required
-                                />
-                            </div>
-                        </div>
+                    <div
+                        ref={formularioRef}
+                        className={`mb-6 scroll-mt-4 rounded-lg ${editingTipoId ? "p-3 ring-2 ring-amber-300" : ""}`}
+                    >
+                        <h3
+                            ref={tituloFormularioRef}
+                            tabIndex={-1}
+                            className="text-sm font-semibold text-gray-700 uppercase tracking-wider focus:outline-none"
+                        >
+                            {editingTipoId ? "Editar concepto" : "Nuevo concepto"}
+                        </h3>
+                        {editingTipoId && (
+                            <p className="mt-1 text-sm text-amber-700">
+                                Estás cambiando el nombre o el valor base de «{conceptoEditado?.nombre ?? nuevoTipoPago}».
+                            </p>
+                        )}
+                        <form onSubmit={handleSubmit} className="mt-3" aria-busy={guardandoConcepto}>
+                            <fieldset disabled={guardandoConcepto} className="min-w-0">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
+                                        <input
+                                            type="text"
+                                            value={nuevoTipoPago}
+                                            onChange={(e) => setNuevoTipoPago(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+                                            placeholder="Ej: Matrícula, Copias..."
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Valor base / Costo</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={valorTipoPago}
+                                            onChange={(e) => setValorTipoPago(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+                                            placeholder="0.00"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                        <div className="mt-4 flex gap-2">
-                            <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium">
-                                {editingTipoId ? "Actualizar Concepto" : "Guardar Concepto"}
-                            </button>
-                            {editingTipoId && (
-                                <button
-                                    type="button"
-                                    onClick={cancelarEdicion}
-                                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                                >
-                                    Cancelar
-                                </button>
-                            )}
-                        </div>
-                    </form>
+                                <div className="mt-4 flex gap-2">
+                                    <button
+                                        type="submit"
+                                        disabled={guardandoConcepto}
+                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:cursor-wait disabled:opacity-75"
+                                    >
+                                        {guardandoConcepto ? (
+                                            <>
+                                                <SpinnerView />
+                                                Guardando...
+                                            </>
+                                        ) : editingTipoId ? (
+                                            "Actualizar Concepto"
+                                        ) : (
+                                            "Guardar Concepto"
+                                        )}
+                                    </button>
+                                    {editingTipoId && (
+                                        <button
+                                            type="button"
+                                            onClick={cancelarEdicion}
+                                            disabled={guardandoConcepto}
+                                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    )}
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
                 )}
 
                 <div className="mt-2">
                     <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Conceptos Existentes</h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Conceptos Existentes</h3>
+                                {actualizandoConceptos && (
+                                    <span role="status" className="inline-flex items-center gap-2 text-xs text-purple-700">
+                                        <SpinnerView />
+                                        Actualizando...
+                                    </span>
+                                )}
+                            </div>
                             <p className="mt-1 text-xs text-gray-500">
                                 Los inactivos se conservan para historial, pero quedan fuera de la operación diaria.
                             </p>
@@ -219,7 +281,36 @@ function VistaAdministrarTiposPago({
                             ))}
                         </div>
                     </div>
-                    {tiposPagos.length === 0 ? (
+                    {errorConceptos && tiposPagos.length > 0 && (
+                        <div role="alert" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                            <p>No se pudo actualizar la lista; puede no estar al día.</p>
+                            <button
+                                type="button"
+                                onClick={onReintentarConceptos}
+                                className="rounded border border-amber-400 bg-white px-3 py-1 font-semibold text-amber-800 hover:bg-amber-100"
+                            >
+                                Reintentar
+                            </button>
+                        </div>
+                    )}
+                    {cargandoConceptos ? (
+                        <p className="flex items-center gap-2 text-sm text-gray-500">
+                            <SpinnerView />
+                            Cargando conceptos...
+                        </p>
+                    ) : errorConceptos && tiposPagos.length === 0 ? (
+                        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                            <p className="font-semibold">{errorConceptos}</p>
+                            <p className="mt-1">Revisa la conexión e inténtalo de nuevo.</p>
+                            <button
+                                type="button"
+                                onClick={onReintentarConceptos}
+                                className="mt-3 rounded border border-red-300 bg-white px-3 py-1 font-semibold text-red-700 hover:bg-red-100"
+                            >
+                                Reintentar
+                            </button>
+                        </div>
+                    ) : tiposPagos.length === 0 ? (
                         <span className="text-gray-500 text-sm">No hay conceptos registrados</span>
                     ) : tiposPagosFiltrados.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
@@ -246,12 +337,15 @@ function VistaAdministrarTiposPago({
                                         return (
                                         <tr
                                             key={tp.id}
-                                            className={`hover:bg-purple-50/40 ${
+                                            data-concepto-id={tp.id}
+                                            className={`scroll-my-8 hover:bg-purple-50/40 ${
                                                 selectedTipoId === tp.id
                                                     ? "bg-purple-50"
-                                                    : inactivo
-                                                        ? "bg-gray-50/70"
-                                                        : ""
+                                                    : conceptoResaltadoId === tp.id
+                                                        ? "bg-green-50"
+                                                        : inactivo
+                                                            ? "bg-gray-50/70"
+                                                            : ""
                                             }`}
                                         >
                                             <td className={`px-3 py-2 font-medium ${inactivo ? "text-gray-500" : "text-gray-800"}`}>
@@ -297,7 +391,7 @@ function VistaAdministrarTiposPago({
 
             {/* ============================ Panel avanzado ============================ */}
             {selectedTipoId && (
-                <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <div ref={panelRef} className="scroll-mt-4 bg-white rounded-lg shadow-md p-6 space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
                         <div>
                             <p className="text-xs uppercase tracking-wide font-semibold text-purple-700">Configuración financiera</p>
@@ -319,7 +413,10 @@ function VistaAdministrarTiposPago({
                     </div>
 
                     {loadingDetalle ? (
-                        <p className="text-gray-500">Cargando...</p>
+                        <p className="flex items-center gap-2 text-gray-500">
+                            <SpinnerView />
+                            Cargando configuración...
+                        </p>
                     ) : (
                         // En un año que no se puede editar, la configuración se
                         // ve con todos sus campos bloqueados. `min-w-0` evita que
@@ -546,13 +643,25 @@ function VistaAdministrarTiposPago({
                             )}
 
                             {puedeEditar && (
-                                <div className="flex justify-end">
+                                <div className="flex flex-wrap items-center justify-end gap-3">
+                                    {configSinGuardar && !guardandoConfig && (
+                                        <p className="text-sm font-medium text-amber-700">
+                                            Hay cambios de configuración sin guardar.
+                                        </p>
+                                    )}
                                     <button
                                         onClick={guardarConfiguracion}
                                         disabled={guardandoConfig || !rangoMesesValido}
-                                        className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
                                     >
-                                        {guardandoConfig ? "Guardando..." : "Guardar configuración"}
+                                        {guardandoConfig ? (
+                                            <>
+                                                <SpinnerView />
+                                                Guardando...
+                                            </>
+                                        ) : (
+                                            "Guardar configuración"
+                                        )}
                                     </button>
                                 </div>
                             )}
@@ -564,10 +673,28 @@ function VistaAdministrarTiposPago({
                                         <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
                                             Asignación por cursos
                                         </h3>
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            {cursosAsignadosActivos} de {totalCursosActivos} cursos activos asignados.
-                                            {cursosPendientes > 0 && ` Faltan ${cursosPendientes}.`}
-                                        </p>
+                                        {errorCursos ? (
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-red-700">
+                                                <p>{errorCursos}</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={onReintentarCursos}
+                                                    className="rounded border border-red-300 bg-white px-2 py-0.5 font-semibold hover:bg-red-50"
+                                                >
+                                                    Reintentar
+                                                </button>
+                                            </div>
+                                        ) : cargandoCursos ? (
+                                            <p className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                <SpinnerView />
+                                                Cargando cursos...
+                                            </p>
+                                        ) : (
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                {cursosAsignadosActivos} de {totalCursosActivos} cursos activos asignados.
+                                                {cursosPendientes > 0 && ` Faltan ${cursosPendientes}.`}
+                                            </p>
+                                        )}
                                     </div>
                                     <button
                                         onClick={agregarTodosLosCursos}
@@ -687,13 +814,18 @@ function VistaAdministrarTiposPago({
                                         <button
                                             onClick={guardarAsignacionCursos}
                                             disabled={guardandoCursos || !cursosAsignadosDirty}
-                                            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            {guardandoCursos
-                                                ? "Guardando..."
-                                                : cursosAsignadosDirty
-                                                    ? "Guardar asignación de cursos"
-                                                    : "Asignación de cursos guardada"}
+                                            {guardandoCursos ? (
+                                                <>
+                                                    <SpinnerView />
+                                                    Guardando...
+                                                </>
+                                            ) : cursosAsignadosDirty ? (
+                                                "Guardar asignación de cursos"
+                                            ) : (
+                                                "Asignación de cursos guardada"
+                                            )}
                                         </button>
                                     </div>
                                 )}

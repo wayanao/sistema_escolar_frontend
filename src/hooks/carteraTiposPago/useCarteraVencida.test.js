@@ -79,7 +79,7 @@ describe("useCarteraVencida", () => {
         expect(result.current.cursoSeleccionado).toEqual({ id: 10, nombre: "5A" });
     });
 
-    it("conserva el manejo actual de error y finaliza la carga", async () => {
+    it("si falla la carga, publica el error, finaliza la carga y no inventa datos", async () => {
         const error = new Error("Sin conexión");
         const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
         serviceMock.obtenerResumenCarteraVencida.mockRejectedValue(error);
@@ -87,9 +87,55 @@ describe("useCarteraVencida", () => {
         const { result } = renderHook(() => useCarteraVencida());
         await waitFor(() => expect(result.current.cargando).toBe(false));
 
+        expect(result.current.error).toBe("No se pudo cargar la cartera vencida.");
+        expect(result.current.hayDatos).toBe(false);
         expect(result.current.resumen).toBeNull();
         expect(result.current.items).toEqual([]);
         expect(consoleError).toHaveBeenCalledWith("Error cargando cartera vencida:", error);
+        consoleError.mockRestore();
+    });
+
+    it("al recargar con datos a la vista no los esconde y anota la hora al terminar", async () => {
+        const { result } = renderHook(() => useCarteraVencida());
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        expect(result.current.hayDatos).toBe(true);
+        expect(result.current.actualizadoA).toBeInstanceOf(Date);
+        const primeraHora = result.current.actualizadoA;
+
+        let terminar;
+        serviceMock.obtenerDetalleCarteraVencida.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve(items);
+            })
+        );
+        act(() => result.current.recargar());
+
+        await waitFor(() => expect(result.current.actualizando).toBe(true));
+        expect(result.current.cargando).toBe(false);
+        expect(result.current.items).toEqual(items);
+
+        await act(async () => {
+            terminar();
+        });
+
+        await waitFor(() => expect(result.current.actualizando).toBe(false));
+        expect(result.current.actualizadoA).not.toBe(primeraHora);
+        expect(result.current.error).toBeNull();
+    });
+
+    it("si falla al recargar, conserva lo que se ve y avisa el error", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = renderHook(() => useCarteraVencida());
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+
+        serviceMock.obtenerDetalleCarteraVencida.mockRejectedValueOnce(new Error("Sin conexión"));
+        act(() => result.current.recargar());
+
+        await waitFor(() => expect(result.current.error).toBe("No se pudo cargar la cartera vencida."));
+        expect(result.current.actualizando).toBe(false);
+        expect(result.current.hayDatos).toBe(true);
+        expect(result.current.items).toEqual(items);
+        consoleError.mockRestore();
     });
 
     it("sin año elegido, resumen y lista se piden sin año", async () => {
@@ -133,6 +179,33 @@ describe("useCarteraVencida con un año elegido", () => {
         expect(serviceMock.obtenerDetalleCarteraVencida)
             .toHaveBeenLastCalledWith({ parametrosAnio: otroAnio });
         await waitFor(() => expect(result.current.cargando).toBe(false));
+    });
+
+    it("al cambiar de año no deja a la vista la cartera del año anterior mientras carga", async () => {
+        const { result, rerender } = renderHook(
+            ({ anio }) => useCarteraVencida({ parametrosAnio: anio }),
+            { initialProps: { anio: parametrosAnio } },
+        );
+        await waitFor(() => expect(result.current.cargando).toBe(false));
+        expect(result.current.items).toEqual(items);
+
+        let terminar;
+        serviceMock.obtenerDetalleCarteraVencida.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve([items[1]]);
+            })
+        );
+        rerender({ anio: { anio_lectivo_id: 3 } });
+
+        await waitFor(() => expect(result.current.cargando).toBe(true));
+        expect(result.current.items).toEqual([]);
+        expect(result.current.resumen).toBeNull();
+        expect(result.current.actualizando).toBe(false);
+
+        await act(async () => {
+            terminar();
+        });
+        await waitFor(() => expect(result.current.items).toEqual([items[1]]));
     });
 
     it("recargar vuelve a pedir la cartera del mismo año y conserva los filtros", async () => {

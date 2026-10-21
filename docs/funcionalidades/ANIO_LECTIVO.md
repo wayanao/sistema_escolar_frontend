@@ -664,6 +664,10 @@ commit):**
     ahora recargaba la página, y recargar vuelve al año activo. En el año
     activo, los dos botones siguen igual. Retirados con deuda y sin ventas
     (decisiones 18 y 19 del backend) se muestran tal cual llegan.
+    **Cambio del 2026-10-21** (paso 3 de `EXPERIENCIA_CARTERA_NOMINA.md`): en
+    el año activo "Actualizar" tampoco recarga la página; vuelve a pedir la
+    cartera y conserva filtros y fila abierta. La prueba del año activo en
+    `CarteraVencidaAdmin.anioLectivo.test.jsx` se ajustó a propósito.
   - `utils/anioLectivo.js`: `RUTAS_POR_ANIO` suma `/admin/tipos-pagos` y
     `/admin/cartera-vencida`.
 - No se tocó: Pagos, el inicio del admin (su resumen de cartera sigue siendo

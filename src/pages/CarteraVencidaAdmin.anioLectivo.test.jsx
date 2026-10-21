@@ -65,6 +65,8 @@ const LUIS = {
 beforeEach(() => {
     apiMock.get.mockReset();
     mocks.navigateMock.mockReset();
+    // JSDOM no trae window.scrollTo; se simula para el impreso.
+    window.scrollTo = vi.fn();
     apiMock.get.mockImplementation((url) => {
         if (url === "/cartera/mora/resumen") {
             return Promise.resolve({ data: { total_deuda: 400000, total_estudiantes: 1 } });
@@ -147,7 +149,10 @@ describe("Cartera vencida mirando otro año", () => {
 });
 
 describe("Cartera vencida en el año activo", () => {
-    it("Actualizar recarga la página, como siempre, y Cobrar sigue", async () => {
+    // Hasta el 2026-10-21, en el año activo Actualizar recargaba la página
+    // entera. Desde el paso 3 de EXPERIENCIA_CARTERA_NOMINA.md vuelve a pedir
+    // la cartera, igual que mirando otro año: conserva filtros y fila abierta.
+    it("Actualizar vuelve a pedir la cartera sin recargar la página, y Cobrar sigue", async () => {
         mocks.anioLectivo = ANIO_ACTIVO;
         const reload = vi.fn();
         vi.stubGlobal("location", { ...window.location, reload });
@@ -158,8 +163,11 @@ describe("Cartera vencida en el año activo", () => {
         expect(screen.getByRole("button", { name: /Cobrar/ })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "↻ Actualizar" }));
 
-        expect(reload).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(apiMock.get).toHaveBeenCalledTimes(4));
+        expect(reload).not.toHaveBeenCalled();
         expect(apiMock.get.mock.calls).toEqual([
+            ["/cartera/mora/resumen"],
+            ["/cartera/mora"],
             ["/cartera/mora/resumen"],
             ["/cartera/mora"],
         ]);

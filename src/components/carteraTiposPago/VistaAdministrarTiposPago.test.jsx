@@ -77,6 +77,76 @@ describe("VistaAdministrarTiposPago", () => {
         expect(props.handleEdit).toHaveBeenCalledWith(tipoPago);
     });
 
+    it("mientras carga la lista la primera vez lo dice, en vez de decir que no hay conceptos", () => {
+        render(
+            <VistaAdministrarTiposPago
+                {...crearProps()}
+                tiposPagos={[]}
+                tiposPagosFiltrados={[]}
+                cargandoConceptos
+            />
+        );
+
+        expect(screen.getByText("Cargando conceptos...")).toBeInTheDocument();
+        expect(screen.queryByText("No hay conceptos registrados")).not.toBeInTheDocument();
+    });
+
+    it("si falla la lista sin datos, muestra el error con Reintentar", () => {
+        const onReintentarConceptos = vi.fn();
+        render(
+            <VistaAdministrarTiposPago
+                {...crearProps()}
+                tiposPagos={[]}
+                tiposPagosFiltrados={[]}
+                errorConceptos="No se pudieron cargar los conceptos de pago."
+                onReintentarConceptos={onReintentarConceptos}
+            />
+        );
+
+        expect(screen.getByRole("alert")).toHaveTextContent(
+            "No se pudieron cargar los conceptos de pago."
+        );
+        expect(screen.queryByText("No hay conceptos registrados")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+        expect(onReintentarConceptos).toHaveBeenCalledTimes(1);
+    });
+
+    it("al recargar la lista la conserva y avisa que actualiza", () => {
+        render(<VistaAdministrarTiposPago {...crearProps()} actualizandoConceptos />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("Actualizando...");
+        expect(screen.getByText("Matrícula")).toBeInTheDocument();
+    });
+
+    it("el formulario dice si es un concepto nuevo o cuál se está editando", () => {
+        const props = crearProps();
+        const { rerender } = render(<VistaAdministrarTiposPago {...props} />);
+
+        expect(screen.getByRole("heading", { name: "Nuevo concepto" })).toBeInTheDocument();
+
+        rerender(<VistaAdministrarTiposPago {...props} editingTipoId={1} />);
+
+        expect(screen.getByRole("heading", { name: "Editar concepto" })).toBeInTheDocument();
+        expect(
+            screen.getByText("Estás cambiando el nombre o el valor base de «Matrícula».")
+        ).toBeInTheDocument();
+    });
+
+    it("mientras guarda el concepto, el botón lo dice y el formulario espera", () => {
+        render(<VistaAdministrarTiposPago {...crearProps()} guardandoConcepto />);
+
+        expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
+        expect(screen.getByPlaceholderText("Ej: Matrícula, Copias...")).toBeDisabled();
+    });
+
+    it("resalta el concepto recién guardado y marca cada fila con su número", () => {
+        const { container } = render(
+            <VistaAdministrarTiposPago {...crearProps()} conceptoResaltadoId={1} />
+        );
+
+        expect(container.querySelector('[data-concepto-id="1"]')).toHaveClass("bg-green-50");
+    });
+
     it("muestra el mes final únicamente para cobros mensuales", () => {
         const props = {
             ...crearProps(),
@@ -128,6 +198,59 @@ describe("VistaAdministrarTiposPago según el año que se mira", () => {
 
         rerender(<VistaAdministrarTiposPago {...props} editingTipoId={1} />);
         expect(screen.getByRole("button", { name: "Actualizar Concepto" })).toBeInTheDocument();
+    });
+
+    it("mientras carga el detalle dice qué está cargando", () => {
+        render(
+            <VistaAdministrarTiposPago
+                {...conPanelAbierto(crearProps())}
+                loadingDetalle
+            />
+        );
+
+        expect(screen.getByText("Cargando configuración...")).toBeInTheDocument();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    });
+
+    it("avisa cuando hay cambios de configuración sin guardar", () => {
+        render(
+            <VistaAdministrarTiposPago
+                {...conPanelAbierto(crearProps())}
+                configSinGuardar
+            />
+        );
+
+        expect(screen.getByText("Hay cambios de configuración sin guardar.")).toBeInTheDocument();
+    });
+
+    it("mientras guarda configuración o cursos, cada botón lo dice con el círculo", () => {
+        const props = conPanelAbierto(crearProps());
+        const { rerender } = render(
+            <VistaAdministrarTiposPago {...props} guardandoConfig />
+        );
+
+        expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+
+        rerender(<VistaAdministrarTiposPago {...props} guardandoCursos />);
+
+        expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
+    });
+
+    it("si fallan los cursos, lo dice con Reintentar en vez de mostrar 0 de 0", () => {
+        const onReintentarCursos = vi.fn();
+        render(
+            <VistaAdministrarTiposPago
+                {...conPanelAbierto(crearProps())}
+                errorCursos="No se pudieron cargar los cursos."
+                onReintentarCursos={onReintentarCursos}
+            />
+        );
+
+        expect(screen.getByText("No se pudieron cargar los cursos.")).toBeInTheDocument();
+        expect(screen.queryByText(/cursos activos asignados/)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+        expect(onReintentarCursos).toHaveBeenCalledTimes(1);
     });
 
     it("en un año que se edita, la configuración y los precios se pueden guardar", () => {

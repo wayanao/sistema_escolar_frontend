@@ -13,17 +13,28 @@ const { serviceMock, swalFireMock } = vi.hoisted(() => ({
 vi.mock("../../services/carteraTiposPagoApi", () => serviceMock);
 vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
 
+// Simula que el usuario cerró la última ventana de aviso.
+const cerrarUltimaVentana = async () => {
+    const { didClose } = swalFireMock.mock.calls.at(-1)[0];
+    await act(async () => {
+        didClose();
+    });
+};
+
 describe("useFormularioTipoPago", () => {
     const cargarTiposPagos = vi.fn();
 
     beforeEach(() => {
-        serviceMock.crearTipoPago.mockResolvedValue({ status: 201, data: {} });
+        serviceMock.crearTipoPago.mockResolvedValue({
+            status: 201,
+            data: { id: 9, nombre: "Transporte", valor: 125000.5 },
+        });
         serviceMock.actualizarTipoPago.mockResolvedValue({ status: 200, data: {} });
         swalFireMock.mockResolvedValue({ isConfirmed: true });
         cargarTiposPagos.mockReset();
     });
 
-    it("crea un concepto, limpia el formulario y recarga el listado", async () => {
+    it("crea un concepto, limpia el formulario, recarga el listado y guía al siguiente paso", async () => {
         const { result } = renderHook(() => useFormularioTipoPago({ cargarTiposPagos }));
         const event = { preventDefault: vi.fn() };
 
@@ -38,14 +49,28 @@ describe("useFormularioTipoPago", () => {
             nombre: "Transporte",
             valor: 125000.5,
         });
-        expect(swalFireMock).toHaveBeenCalledWith("Éxito", "Tipo de pago creado", "success");
+        expect(swalFireMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                icon: "success",
+                title: "Concepto creado",
+                text: "«Transporte» quedó como Borrador. Para que genere cobros, ábrelo con ⚙️ Configurar y asígnale cursos.",
+            })
+        );
         expect(cargarTiposPagos).toHaveBeenCalledTimes(1);
         expect(result.current.nuevoTipoPago).toBe("");
         expect(result.current.valorTipoPago).toBe("");
         expect(result.current.editingTipoId).toBeNull();
+        expect(result.current.guardandoConcepto).toBe(false);
+        expect(result.current.conceptoResaltadoId).toBe(9);
+        // Se lleva el concepto a la vista solo cuando la ventana termina de cerrarse.
+        expect(result.current.conceptoPorMostrar).toBeNull();
+
+        await cerrarUltimaVentana();
+
+        expect(result.current.conceptoPorMostrar).toEqual({ id: 9, vez: 1 });
     });
 
-    it("precarga y actualiza un concepto existente", async () => {
+    it("precarga y actualiza un concepto existente, y lo resalta", async () => {
         const { result } = renderHook(() => useFormularioTipoPago({ cargarTiposPagos }));
 
         act(() => result.current.handleEdit({ id: 7, nombre: "Matrícula", valor: 300000 }));
@@ -56,10 +81,41 @@ describe("useFormularioTipoPago", () => {
             valor: 300000,
         });
         expect(swalFireMock).toHaveBeenCalledWith(
-            "Éxito",
-            "Tipo de pago actualizado",
-            "success"
+            expect.objectContaining({
+                icon: "success",
+                title: "Concepto actualizado",
+                text: "«Matrícula» quedó actualizado.",
+            })
         );
+        expect(result.current.conceptoResaltadoId).toBe(7);
+    });
+
+    it("mientras guarda lo avisa e ignora un segundo envío", async () => {
+        let responder;
+        serviceMock.crearTipoPago.mockReturnValueOnce(
+            new Promise((resolve) => {
+                responder = () => resolve({ status: 201, data: { id: 9 } });
+            })
+        );
+        const { result } = renderHook(() => useFormularioTipoPago({ cargarTiposPagos }));
+        act(() => result.current.setNuevoTipoPago("Transporte"));
+
+        let primerEnvio;
+        await act(async () => {
+            primerEnvio = result.current.handleSubmit({ preventDefault: vi.fn() });
+        });
+
+        expect(result.current.guardandoConcepto).toBe(true);
+
+        await act(async () => result.current.handleSubmit({ preventDefault: vi.fn() }));
+        expect(serviceMock.crearTipoPago).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            responder();
+            await primerEnvio;
+        });
+
+        expect(result.current.guardandoConcepto).toBe(false);
     });
 
     it("agrega el año únicamente al crear un concepto en preparación", async () => {

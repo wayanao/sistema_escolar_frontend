@@ -77,6 +77,49 @@ describe("useConfiguracionTipoPago", () => {
         expect(result.current.guardandoConfig).toBe(false);
     });
 
+    it("marca los cambios sin guardar y los limpia al guardar o al volver a cargar el concepto", async () => {
+        const { result } = renderHook(() =>
+            useConfiguracionTipoPago({
+                selectedTipoId: 1,
+                detalle,
+                cargarTiposPagos,
+                actualizarDetalle,
+            })
+        );
+        act(() => result.current.inicializarConfiguracion(detalle));
+        expect(result.current.configSinGuardar).toBe(false);
+
+        act(() => result.current.handleConfigChange("dias_gracia", "5"));
+        expect(result.current.configSinGuardar).toBe(true);
+
+        await act(async () => result.current.guardarConfiguracion());
+        expect(result.current.configSinGuardar).toBe(false);
+
+        act(() => result.current.handleConfigChange("dias_gracia", "7"));
+        act(() => result.current.inicializarConfiguracion(detalle));
+        expect(result.current.configSinGuardar).toBe(false);
+    });
+
+    it("si falla el guardado, los cambios siguen marcados como sin guardar", async () => {
+        actualizarConfiguracionMock.mockRejectedValueOnce({ response: { status: 500, data: {} } });
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = renderHook(() =>
+            useConfiguracionTipoPago({
+                selectedTipoId: 1,
+                detalle,
+                cargarTiposPagos,
+                actualizarDetalle,
+            })
+        );
+        act(() => result.current.inicializarConfiguracion(detalle));
+        act(() => result.current.handleConfigChange("dias_gracia", "5"));
+
+        await act(async () => result.current.guardarConfiguracion());
+
+        expect(result.current.configSinGuardar).toBe(true);
+        consoleError.mockRestore();
+    });
+
     it("no envía un mes final anterior al mes inicial", async () => {
         const { result } = renderHook(() =>
             useConfiguracionTipoPago({

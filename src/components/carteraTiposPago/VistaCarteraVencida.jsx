@@ -16,6 +16,7 @@
 
 import React from "react";
 import DeudasAniosAnterioresView from "../anioLectivo/DeudasAniosAnterioresView";
+import SpinnerView from "../anioLectivo/SpinnerView";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import { calcularTotalesCartera } from "../../utils/carteraTiposPago/cartera";
 import {
@@ -287,9 +288,20 @@ function BadgeTipoDeuda({ tipo }) {
     );
 }
 
+const horaCorta = (fecha) =>
+    fecha.toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" });
+
+// `actualizando`: se vuelve a pedir la cartera con los datos a la vista.
+// `error` sin `hayDatos`: no hay cifras que mostrar, y no se muestran (un
+// error no debe verse como «nadie debe»). `error` con `hayDatos`: lo que se ve
+// es de `actualizadoA`, y se avisa.
 function VistaCarteraVencida({
     resumen,
     cargando,
+    actualizando = false,
+    error = null,
+    hayDatos = true,
+    actualizadoA = null,
     busqueda,
     setBusqueda,
     filtroCurso,
@@ -351,29 +363,37 @@ function VistaCarteraVencida({
 
     if (cargando) {
         return (
-            <div className="flex items-center justify-center h-64">
+            <div role="status" className="flex flex-col items-center justify-center gap-3 h-64 text-gray-600">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+                <p className="text-sm font-medium">Cargando cartera vencida...</p>
             </div>
         );
     }
 
-    return (
-        <div className="p-4 sm:p-6 space-y-6">
-            {/* Header */}
-            <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                    <p className="text-xs uppercase tracking-wide font-semibold text-purple-700">Cartera</p>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📂 Estado de cuenta</h1>
-                    <p className="text-gray-600 text-sm mt-1">
-                        Reporte consolidado de cuotas vencidas académicas y de inventario.
-                    </p>
-                </div>
-                <div className="flex gap-2">
+    const encabezado = (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <p className="text-xs uppercase tracking-wide font-semibold text-purple-700">Cartera</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📂 Estado de cuenta</h1>
+                <p className="text-gray-600 text-sm mt-1">
+                    Reporte consolidado de cuotas vencidas académicas y de inventario.
+                </p>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-wrap justify-end gap-2">
                     <button
                         onClick={onActualizar}
-                        className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium"
+                        disabled={actualizando}
+                        className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium disabled:cursor-wait disabled:opacity-75"
                     >
-                        ↻ Actualizar
+                        {actualizando ? (
+                            <>
+                                <SpinnerView />
+                                Actualizando...
+                            </>
+                        ) : (
+                            "↻ Actualizar"
+                        )}
                     </button>
                     <button
                         onClick={onExportar}
@@ -391,7 +411,55 @@ function VistaCarteraVencida({
                         Imprimir curso
                     </button>
                 </div>
+                {actualizadoA && (
+                    <p className="text-xs text-gray-500">Actualizado a las {horaCorta(actualizadoA)}</p>
+                )}
             </div>
+        </div>
+    );
+
+    // Sin datos que mostrar, solo el error: nada de cifras en $0 ni «🎉 No hay
+    // estudiantes en mora», que harían pasar un error por «nadie debe».
+    if (error && !hayDatos) {
+        return (
+            <div className="p-4 sm:p-6 space-y-6">
+                {encabezado}
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-800">
+                    <p className="font-semibold">{error}</p>
+                    <p className="mt-1 text-sm">Revisa la conexión e inténtalo de nuevo.</p>
+                    <button
+                        type="button"
+                        onClick={onActualizar}
+                        disabled={actualizando}
+                        className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-wait disabled:opacity-50"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-4 sm:p-6 space-y-6">
+            {encabezado}
+
+            {error && (
+                <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                    <p>
+                        No se pudo actualizar la cartera.
+                        {actualizadoA && ` Lo que ves es de las ${horaCorta(actualizadoA)}.`}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onActualizar}
+                        disabled={actualizando}
+                        className="rounded border border-amber-400 bg-white px-3 py-1 font-semibold text-amber-800 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-50"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            )}
 
             {/* KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

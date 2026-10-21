@@ -96,6 +96,71 @@ describe("useConsultasTiposPago", () => {
         expect(serviceMock.obtenerCursosParaTiposPago).toHaveBeenCalledWith({});
     });
 
+    it("dice que carga la lista solo la primera vez; al recargar, que actualiza", async () => {
+        const { result } = renderHook(() => useConsultasTiposPago());
+
+        expect(result.current.cargandoConceptos).toBe(true);
+        expect(result.current.cargandoCursos).toBe(true);
+        await waitFor(() => expect(result.current.cargandoConceptos).toBe(false));
+        await waitFor(() => expect(result.current.cargandoCursos).toBe(false));
+
+        let terminar;
+        serviceMock.obtenerTiposPagoDetallados.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve(tiposPagos);
+            })
+        );
+        let recarga;
+        act(() => {
+            recarga = result.current.cargarTiposPagos();
+        });
+
+        expect(result.current.actualizandoConceptos).toBe(true);
+        expect(result.current.cargandoConceptos).toBe(false);
+        expect(result.current.tiposPagos).toEqual(tiposPagos);
+
+        await act(async () => {
+            terminar();
+            await recarga;
+        });
+
+        expect(result.current.actualizandoConceptos).toBe(false);
+    });
+
+    it("si fallan el listado detallado y el de respaldo, publica el error de conceptos", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        serviceMock.obtenerTiposPagoDetallados.mockRejectedValueOnce(new Error("No disponible"));
+        serviceMock.obtenerTiposPago.mockRejectedValueOnce(new Error("Sin conexión"));
+
+        const { result } = renderHook(() => useConsultasTiposPago());
+
+        await waitFor(() => expect(result.current.cargandoConceptos).toBe(false));
+        expect(result.current.errorConceptos).toBe("No se pudieron cargar los conceptos de pago.");
+        expect(result.current.tiposPagos).toEqual([]);
+
+        await act(() => result.current.cargarTiposPagos());
+
+        expect(result.current.errorConceptos).toBeNull();
+        expect(result.current.tiposPagos).toEqual(tiposPagos);
+        consoleError.mockRestore();
+    });
+
+    it("si fallan los cursos, publica su error y se pueden volver a pedir", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        serviceMock.obtenerCursosParaTiposPago.mockRejectedValueOnce(new Error("Sin conexión"));
+
+        const { result } = renderHook(() => useConsultasTiposPago());
+
+        await waitFor(() => expect(result.current.cargandoCursos).toBe(false));
+        expect(result.current.errorCursos).toBe("No se pudieron cargar los cursos.");
+
+        await act(() => result.current.cargarCursos());
+
+        expect(result.current.errorCursos).toBeNull();
+        expect(result.current.cursos).toEqual(cursos);
+        consoleError.mockRestore();
+    });
+
     it("propaga el error de detalle y siempre finaliza su carga", async () => {
         const error = new Error("Detalle no disponible");
         serviceMock.obtenerDetalleTipoPago.mockRejectedValue(error);

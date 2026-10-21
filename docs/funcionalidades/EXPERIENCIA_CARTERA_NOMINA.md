@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **Pasos 0 y 1 en el commit `9a61a8a` (2026-10-20). Paso 2
-  (Préstamos y Egresos) hecho el 2026-10-20, sin commit. Siguiente: paso 3
-  (Cartera vencida y Tipos de pago), con el visto bueno del usuario.**
+- Estado: **Pasos 0 y 1 en `9a61a8a`, paso 2 en `9306cb5` (2026-10-20). Paso
+  3 (Cartera vencida y Tipos de pago) hecho el 2026-10-21, sin commit.
+  Siguiente: paso 4 (montos y detalles), con el visto bueno del usuario y su
+  pregunta abierta.**
 - Tipo: mejora de pantallas que ya existen. No es un módulo de
   `modularizacion/` y no cambia ninguna petición al backend.
 - Repos: **solo este**. El usuario lo precisó el 2026-10-20: «lo que quiero
@@ -182,11 +183,14 @@ de la vista:
 - Préstamos (paso 2, hecho): al registrar, cuando se cierra el aviso, baja al
   préstamo nuevo (ya en el historial de la persona) si no se ve, y lo resalta.
 - En los dos, si no se sabe si quedó, «Revisar el historial» baja hasta él.
-- Tipos de pago (paso 3): `⚙️ Configurar` baja al panel de configuración, que
-  aparece debajo de la lista; `✏️` sube al formulario y pone el cursor en el
-  nombre (T4).
-- Cartera vencida (paso 3): `Imprimir` muestra el documento desde arriba y
-  `← Atrás` vuelve a la fila donde se estaba. Revisar al implementarlo.
+- Tipos de pago (paso 3, hecho): `⚙️ Configurar` baja al panel de
+  configuración, que aparece debajo de la lista (si hubo que preguntar por
+  cambios sin guardar, cuando se cierra esa ventana); `✏️` sube al formulario
+  y le pasa el foco a su título (T4), como en Egresos; al guardar un concepto,
+  baja a su fila si no se ve.
+- Cartera vencida (paso 3, hecho): `Imprimir` y `Imprimir curso` muestran el
+  documento desde arriba, y `← Atrás` deja la lista donde estaba. Aquí el
+  salto es inmediato (`behavior: "auto"`), porque cambia la vista entera.
 
 Regla aprendida en el paso 1: si se baja justo después de cerrar una ventana
 de SweetAlert, esperar a su `didClose`. Al cerrarse, SweetAlert devuelve la
@@ -367,6 +371,71 @@ página sube al formulario y la fila queda en ámbar) y luego `Cancelar
 edición`; o `Registrar Egreso` y elegir «Revisar» en la confirmación. En
 Préstamos, `Saldar` y «Cancelar». Registrar o saldar de verdad escribe en la
 base real: un préstamo no se elimina y saldar no se deshace.
+
+## Paso 3 — Cartera vencida y Tipos de pago (hecho el 2026-10-21, sin commit)
+
+Qué ve el usuario en Cartera vencida:
+
+- Mientras carga: el círculo y «Cargando cartera vencida...» (C3).
+- Si falla la carga: un aviso rojo con «Reintentar» y **sin** indicadores en
+  $0 ni «🎉 No hay estudiantes en mora», que hacían pasar un error por «nadie
+  debe» (C1). Si falla al actualizar con datos a la vista, los datos se quedan
+  y un aviso dice que no se pudo actualizar y de qué hora son.
+- `Actualizar` ya no recarga la página entera, tampoco en el año activo:
+  vuelve a pedir la cartera, el botón dice «Actualizando...» y se conservan
+  filtros y fila abierta (C2). Debajo de los botones, «Actualizado a las …».
+- Al cambiar de año no queda a la vista la cartera del año anterior mientras
+  carga.
+- `Imprimir` muestra el documento desde arriba y `← Atrás` deja la lista donde
+  estaba.
+
+Qué ve el usuario en Tipos de pago:
+
+- La lista dice «Cargando conceptos...» la primera vez; si falla, un aviso con
+  «Reintentar» en vez de «No hay conceptos registrados» (T3). Al recargarla
+  después de guardar, «Actualizando...» sin esconderla. Los cursos igual:
+  «Cargando cursos...» o su error con «Reintentar» en vez de «0 de 0» (T3).
+- El formulario tiene título: «Nuevo concepto» o «Editar concepto» (con borde
+  ámbar y qué concepto se cambia). `Guardar/Actualizar Concepto` dice
+  «Guardando...», bloquea el formulario y no envía dos veces (T1). Al crear,
+  el aviso dice que el concepto quedó como Borrador y qué falta para que
+  cobre (configurarlo y asignarle cursos); la fila queda en verde.
+- Cambios sin guardar (T2): la configuración avisa «Hay cambios de
+  configuración sin guardar.» (los cursos ya lo hacían), y `✕ Cerrar` o
+  `⚙️ Configurar` en otro concepto preguntan antes de descartarlos
+  («Descartar cambios» / «Seguir editando»).
+- El detalle dice «Cargando configuración...» (T5) y los botones de guardar
+  configuración y cursos muestran el círculo mientras guardan.
+
+Corregido de paso (no estaba en el inventario): si fallaba la carga del
+detalle de un concepto, el panel quedaba abierto con la configuración y los
+cursos **del concepto abierto antes**, y guardar los habría aplicado al
+concepto equivocado. Ahora el panel se cierra con el aviso «No se pudo abrir
+«…»».
+
+Lo que no cubre: si con cambios sin guardar se sale de la pantalla por el
+menú o se recarga el navegador, no se pregunta (la app usa `BrowserRouter`,
+sin el bloqueo de navegación de React Router).
+
+Archivos: `hooks/carteraTiposPago/usePanelConfiguracion.js` (nuevo: abre y
+cierra el panel preguntando antes de perder cambios), los hooks de cartera,
+consultas, formulario y configuración de tipos de pago, las dos vistas, las dos
+páginas y sus pruebas. Se ajustó a propósito en
+`CarteraVencidaAdmin.anioLectivo.test.jsx` la prueba que fijaba que
+`Actualizar` recargaba la página en el año activo, y en
+`useFormularioTipoPago.test.js` las que esperaban los avisos «Éxito» de antes.
+
+Pruebas: escritas primero; 38 fallaron antes del código. Módulo de cartera y
+tipos de pago (hooks, vistas, servicio, utilidades y las cuatro pruebas de
+página): 16 archivos, 119 pruebas correctas, sin advertencias. `pnpm run
+check:deploy` limpio en una sola corrida: 2783 pruebas en 372 archivos, lint y
+build correctos.
+
+Cómo probarlo en local sin guardar nada: en Cartera vencida, poner un filtro y
+pulsar `Actualizar` (no recarga la página y el filtro sigue); `Imprimir` en un
+estudiante de abajo y luego `← Atrás`. En Tipos de pago, `⚙️ Configurar`,
+cambiar «Días de gracia» y pulsar `✕ Cerrar`: debe preguntar; elegir «Seguir
+editando» y luego «Descartar cambios» para no guardar nada.
 
 ## Preguntas abiertas (se hacen justo antes del paso que las necesita)
 

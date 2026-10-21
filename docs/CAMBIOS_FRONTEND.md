@@ -1,5 +1,35 @@
 # Cambios Frontend
 
+## 2026-10-21 - Cartera vencida y Tipos de pago: un error ya no parece «no hay nada» y no se pierden cambios sin aviso
+
+Paso 3 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (solo
+frontend).
+
+- Cartera vencida: «Cargando cartera vencida...»; si falla la carga, aviso con
+  «Reintentar» en vez de indicadores en $0 y «🎉 No hay estudiantes en mora».
+  `Actualizar` ya no recarga la página (tampoco en el año activo): dice
+  «Actualizando...», conserva filtros y fila abierta, y debajo se lee
+  «Actualizado a las …». El impreso se abre desde arriba y `← Atrás` deja la
+  lista donde estaba.
+- Tipos de pago: la lista y los cursos dicen que cargan o muestran su error con
+  «Reintentar» (antes: «No hay conceptos registrados» y «0 de 0»). El
+  formulario tiene título, dice «Guardando...» y no envía dos veces; al crear,
+  el aviso explica que el concepto quedó en Borrador y qué falta. `⚙️
+  Configurar` baja al panel y `✏️` sube al formulario. Con cambios sin
+  guardar, cerrar el panel o abrir otro concepto pregunta antes.
+- Corregido: si fallaba el detalle de un concepto, el panel quedaba con la
+  configuración y los cursos del concepto anterior y guardar los aplicaba al
+  equivocado; ahora se cierra con un aviso.
+- Sin cambios de peticiones ni de backend.
+
+Verificación: pruebas escritas primero (fallaron 38 antes del código). Se
+ajustaron a propósito la del año activo en
+`CarteraVencidaAdmin.anioLectivo.test.jsx` (`Actualizar` ya no recarga la
+página) y las de los avisos de éxito en `useFormularioTipoPago.test.js`.
+Módulo: 16 archivos, 119 pruebas correctas, sin advertencias.
+`pnpm run check:deploy` **limpio en una sola corrida**: 2783 pruebas en 372
+archivos, lint y build correctos.
+
 ## 2026-10-20 - Préstamos y Egresos: dicen qué está pasando al guardar y llevan la pantalla a lo que cambió
 
 Paso 2 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (solo

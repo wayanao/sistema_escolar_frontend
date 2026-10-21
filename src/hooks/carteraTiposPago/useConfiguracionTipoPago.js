@@ -17,13 +17,18 @@ export default function useConfiguracionTipoPago({
 }) {
     const [config, setConfig] = useState(CONFIG_DEFAULT);
     const [guardandoConfig, setGuardandoConfig] = useState(false);
+    // Lo editado que todavía no se guardó, como ya hacen los cursos: la
+    // pantalla lo avisa y pregunta antes de perderlo.
+    const [configSinGuardar, setConfigSinGuardar] = useState(false);
 
     const inicializarConfiguracion = (data) => {
         setConfig(crearConfiguracionDesdeDetalle(data));
+        setConfigSinGuardar(false);
     };
 
     const handleConfigChange = (field, value) => {
         setConfig((prev) => ({ ...prev, [field]: value }));
+        setConfigSinGuardar(true);
     };
 
     const guardarConfiguracion = async () => {
@@ -59,6 +64,7 @@ export default function useConfiguracionTipoPago({
         try {
             const payload = crearPayloadConfiguracion(config);
             await actualizarConfiguracionTipoPago(selectedTipoId, payload);
+            setConfigSinGuardar(false);
             actualizarDetalle(payload);
             Swal.fire(
                 "Guardado",
@@ -94,6 +100,7 @@ export default function useConfiguracionTipoPago({
     return {
         config,
         guardandoConfig,
+        configSinGuardar,
         inicializarConfiguracion,
         handleConfigChange,
         guardarConfiguracion,

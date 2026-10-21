@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CarteraVencidaAdmin from "./CarteraVencidaAdmin";
 
 const { apiMock, navigateMock } = vi.hoisted(() => ({
@@ -89,6 +89,67 @@ describe("CarteraVencidaAdmin", () => {
             if (url === "/cartera/mora") return Promise.resolve({ data: items });
             throw new Error(`GET inesperado: ${url}`);
         });
+        // JSDOM no trae window.scrollTo; se simula para el impreso.
+        window.scrollTo = vi.fn();
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("si falla la carga no dice que nadie debe: muestra el error y Reintentar vuelve a pedir", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        apiMock.get.mockRejectedValueOnce(new Error("sin conexión"));
+
+        render(<CarteraVencidaAdmin />);
+
+        expect(await screen.findByRole("alert")).toHaveTextContent(
+            "No se pudo cargar la cartera vencida."
+        );
+        expect(screen.queryByText("No hay estudiantes en mora con estos filtros.")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+
+        expect(await screen.findByText("Pérez, Ana")).toBeInTheDocument();
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        consoleError.mockRestore();
+    });
+
+    it("Actualizar vuelve a pedir la cartera sin recargar la página y conserva los filtros", async () => {
+        const reload = vi.fn();
+        vi.stubGlobal("location", { ...window.location, reload });
+        render(<CarteraVencidaAdmin />);
+        await screen.findByText("Pérez, Ana");
+        fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "10" } });
+
+        fireEvent.click(screen.getByRole("button", { name: "↻ Actualizar" }));
+
+        await waitFor(() => expect(apiMock.get).toHaveBeenCalledTimes(4));
+        await waitFor(() => {
+            expect(screen.getByRole("button", { name: "↻ Actualizar" })).toBeEnabled();
+        });
+        expect(reload).not.toHaveBeenCalled();
+        expect(screen.getAllByRole("combobox")[0]).toHaveValue("10");
+        expect(screen.getByText("Pérez, Ana")).toBeInTheDocument();
+        expect(screen.queryByText("Gómez, Luis")).not.toBeInTheDocument();
+        expect(screen.getByText(/^Actualizado a las/)).toBeInTheDocument();
+    });
+
+    it("el impreso se abre desde arriba y Atrás deja la lista donde estaba", async () => {
+        render(<CarteraVencidaAdmin />);
+        await screen.findByText("Pérez, Ana");
+        Object.defineProperty(window, "scrollY", { configurable: true, value: 640 });
+
+        fireEvent.click(screen.getAllByRole("button", { name: "Imprimir" })[0]);
+
+        expect(screen.getByTestId("documento-imprimible")).toBeInTheDocument();
+        expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: "auto" });
+
+        fireEvent.click(screen.getByRole("button", { name: "← Atrás" }));
+
+        expect(await screen.findByText("Pérez, Ana")).toBeInTheDocument();
+        expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 640, behavior: "auto" });
+        Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
     });
 
     it("consulta el resumen y el detalle y conserva los filtros de cartera", async () => {

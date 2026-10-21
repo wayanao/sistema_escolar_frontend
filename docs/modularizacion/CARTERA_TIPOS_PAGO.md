@@ -602,6 +602,10 @@ ejecuta migraciones.
   fue eliminado.
 - Riesgos abiertos: los errores de carga inicial continúan visibles solo en
   consola, como antes de la migración; la mejora visual queda fuera de alcance.
+- Seguimiento (2026-10-21): ese riesgo quedó atendido en el paso 3 de
+  `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`. Cartera vencida y
+  Tipos de pago muestran el error con «Reintentar» en vez de una lista vacía,
+  y `Actualizar` ya no usa `window.location.reload()`.
 - Siguiente capa pendiente: Ninguna.
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual como seguimiento operativo si todavía no fue

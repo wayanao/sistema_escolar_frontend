@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import VistaCarteraVencida from "../components/carteraTiposPago/VistaCarteraVencida";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
@@ -9,10 +9,13 @@ import { fechaIsoColombia } from "../utils/fechaColombia";
 
 function CarteraVencidaAdmin() {
     const navigate = useNavigate();
-    const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
+    const { anioSeleccionado, parametros } = useAnioLectivo();
     const cartera = useCarteraVencida({ parametrosAnio: parametros });
     const [expandido, setExpandido] = useState(null);
     const [reporteImpresion, setReporteImpresion] = useState(null);
+    // Dónde estaba la lista al abrir un impreso, para volver ahí con "Atrás".
+    const posicionLista = useRef(0);
+    const volviendoALaLista = useRef(false);
 
     const fechaCorte = useMemo(
         () =>
@@ -24,8 +27,29 @@ function CarteraVencidaAdmin() {
         []
     );
 
+    // El impreso reemplaza la lista: se muestra desde arriba, y al cerrarlo la
+    // lista vuelve a quedar donde estaba (en el estudiante que se imprimió).
+    useEffect(() => {
+        if (reporteImpresion) {
+            window.scrollTo({ top: 0, behavior: "auto" });
+        } else if (volviendoALaLista.current) {
+            volviendoALaLista.current = false;
+            window.scrollTo({ top: posicionLista.current, behavior: "auto" });
+        }
+    }, [reporteImpresion]);
+
+    const abrirReporte = (reporte) => {
+        posicionLista.current = window.scrollY;
+        setReporteImpresion(reporte);
+    };
+
+    const cerrarReporte = () => {
+        volviendoALaLista.current = true;
+        setReporteImpresion(null);
+    };
+
     const abrirReporteEstudiante = (item) => {
-        setReporteImpresion({
+        abrirReporte({
             tipo: "estudiante",
             nombre: nombreCompleto(item),
             fechaCorte,
@@ -36,7 +60,7 @@ function CarteraVencidaAdmin() {
 
     const abrirReporteCurso = () => {
         if (!cartera.cursoSeleccionado || cartera.itemsFiltrados.length === 0) return;
-        setReporteImpresion({
+        abrirReporte({
             tipo: "curso",
             nombre: cartera.cursoSeleccionado.nombre,
             fechaCorte,
@@ -60,20 +84,16 @@ function CarteraVencidaAdmin() {
         URL.revokeObjectURL(url);
     };
 
-    // Mirando el año activo, "Actualizar" recarga la página, como siempre.
-    // Mirando otro año, vuelve a pedir la cartera de ese año: recargar la página
-    // volvería al año activo sin avisar.
-    const actualizar = permisos.esAnioActivo
-        ? () => window.location.reload()
-        : cartera.recargar;
-
+    // "Actualizar" vuelve a pedir la cartera del año que se mira, sin recargar
+    // la página: se conservan los filtros y la fila abierta. Hasta el
+    // 2026-10-21, en el año activo recargaba la página entera.
     return (
         <VistaCarteraVencida
             {...cartera}
             expandido={expandido}
             reporteImpresion={reporteImpresion}
-            onCerrarReporte={() => setReporteImpresion(null)}
-            onActualizar={actualizar}
+            onCerrarReporte={cerrarReporte}
+            onActualizar={cartera.recargar}
             onExportar={exportarCSV}
             onImprimirCurso={abrirReporteCurso}
             onImprimirEstudiante={abrirReporteEstudiante}
