@@ -51,6 +51,10 @@ continuacion para retomarla en otro chat u otro LLM.
   automático, montos sin centavos). Solo frontend. **Completo en código:
   pasos 0 a 3 en `9a61a8a`, `9306cb5` y `9b88cd3`; paso 4 (montos y
   detalles) hecho el 2026-10-21, sin commit.**
+- `funcionalidades/SUBNOTAS_PLANILLA.md`: modal de subnotas por tipo de nota
+  en la planilla del profesor, con la celda calculada a partir de su
+  promedio; después, porcentajes por tipo. El documento principal está en el
+  backend. **Diseñado (A0, 2026-10-21), nada implementado.**
 
 ## Control SaaS
 
