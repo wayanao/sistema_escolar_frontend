@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatearPesos } from "../formatoPesos";
 import {
     avisoErrorPagoNomina,
     busquedaHistorialDeEmpleado,
@@ -11,14 +12,14 @@ import {
     hayBusquedaDeHistorial,
     mensajeConfirmacionPagoNomina,
     mensajeExitoPagoNomina,
+    problemasPagoNomina,
     puedeAbonarAPrestamos,
     tieneDeudaDePrestamos,
     validarPagoNomina,
 } from "./nomina";
 
-// Así escribe Colombia los pesos en los mensajes: "1.525,00".
-const pesos = (valor) =>
-    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Los mensajes escriben los pesos sin centavos (decisión del 2026-10-21).
+const pesos = formatearPesos;
 
 const empleado = { id: 1, nombre: "ana", apellido: "pérez", sueldo: 1500, saldo_prestamos: 400 };
 
@@ -74,7 +75,7 @@ describe("utilidades de nómina", () => {
         ).toBe("El total a pagar no puede ser negativo.");
     });
 
-    it("rechaza un abono mayor que la deuda pendiente e interpola los montos sin formatear", () => {
+    it("rechaza un abono mayor que la deuda pendiente, con los montos en pesos", () => {
         expect(
             validarPagoNomina({
                 empleado,
@@ -84,8 +85,27 @@ describe("utilidades de nómina", () => {
                 otrosDescuentos: "0",
             })
         ).toBe(
-            "El abono al préstamo ($500) no puede ser mayor que su deuda pendiente ($400)."
+            `El abono al préstamo (${pesos(500)}) no puede ser mayor que su deuda pendiente (${pesos(400)}).`
         );
+    });
+
+    it("dice campo por campo lo que hoy impide pagar, para avisarlo mientras se escribe", () => {
+        expect(problemasPagoNomina({ empleado, ...formulario })).toEqual({
+            abono: null,
+            total: null,
+        });
+        expect(
+            problemasPagoNomina({
+                empleado,
+                salarioBase: "100",
+                bonificaciones: "0",
+                abonoPrestamo: "500",
+                otrosDescuentos: "0",
+            })
+        ).toEqual({
+            abono: `No puede ser mayor que la deuda (${pesos(400)}).`,
+            total: "El total a pagar no puede ser negativo.",
+        });
     });
 
     it("acepta un abono igual a la deuda pendiente", () => {

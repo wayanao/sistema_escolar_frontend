@@ -46,7 +46,7 @@ describe("FormularioPrestamo", () => {
         expect(boton).toBeDisabled();
         expect(screen.getByTestId("spinner")).toBeInTheDocument();
         expect(screen.getByRole("combobox")).toBeDisabled();
-        expect(screen.getByPlaceholderText("Ej. 1000.00")).toBeDisabled();
+        expect(screen.getByPlaceholderText("Ej. 500000")).toBeDisabled();
     });
 
     it("con otra operación en curso, el botón espera", () => {
@@ -60,7 +60,7 @@ describe("FormularioPrestamo", () => {
         render_({ onCambiarCampo });
 
         fireEvent.change(screen.getByRole("combobox"), { target: { value: "4" } });
-        fireEvent.change(screen.getByPlaceholderText("Ej. 1000.00"), {
+        fireEvent.change(screen.getByPlaceholderText("Ej. 500000"), {
             target: { value: "1000" },
         });
 

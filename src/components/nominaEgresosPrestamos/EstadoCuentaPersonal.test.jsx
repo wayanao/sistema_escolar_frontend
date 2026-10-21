@@ -26,8 +26,8 @@ describe("EstadoCuentaPersonal", () => {
 
         expect(screen.getByText("1001")).toBeInTheDocument();
         expect(screen.getByText("pérez ana")).toBeInTheDocument();
-        expect(screen.getByText("$400.00")).toHaveClass("text-red-600");
-        expect(screen.getByText("$0.00")).toHaveClass("text-green-600");
+        expect(screen.getByText("$ 400")).toHaveClass("text-red-600");
+        expect(screen.getByText("$ 0")).toHaveClass("text-green-600");
     });
 
     it("informa el empleado elegido al pedir el pago", () => {

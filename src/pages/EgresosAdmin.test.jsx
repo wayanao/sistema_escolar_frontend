@@ -39,7 +39,7 @@ const escribirEgreso = ({ concepto, monto }) => {
     fireEvent.change(screen.getByPlaceholderText("Ej. Compra de papelería"), {
         target: { value: concepto },
     });
-    fireEvent.change(screen.getByPlaceholderText("Ej. 150.50"), {
+    fireEvent.change(screen.getByPlaceholderText("Ej. 150000"), {
         target: { value: monto },
     });
 };
@@ -65,9 +65,9 @@ describe("EgresosAdmin", () => {
         expect(config.params.fecha_desde).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         expect(config.params.fecha_hasta).toBe(config.params.fecha_desde);
 
-        expect(screen.getByText("$150.50")).toBeInTheDocument();
-        expect(screen.getByText("$1200.00")).toBeInTheDocument();
-        expect(screen.getByText("Total: $1350.50")).toBeInTheDocument();
+        expect(screen.getByText("$ 151")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.200")).toBeInTheDocument();
+        expect(screen.getByText("Total: $ 1.351")).toBeInTheDocument();
     });
 
     it("solo ofrece editar los egresos de origen manual", async () => {

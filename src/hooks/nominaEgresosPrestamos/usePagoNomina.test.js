@@ -62,6 +62,19 @@ describe("usePagoNomina", () => {
         expect(result.current.totalNeto).toBe(1525);
     });
 
+    it("dice mientras se escribe lo que impide pagar", () => {
+        const { result } = montarConModalAbierto();
+
+        expect(result.current.problemas).toEqual({ abono: null, total: null });
+
+        act(() => result.current.cambiarCampo("abonoPrestamo", "500"));
+
+        expect(result.current.problemas.abono).toBe(
+            "No puede ser mayor que la deuda ($ 400)."
+        );
+        expect(result.current.problemas.total).toBeNull();
+    });
+
     it("cierra el modal sin registrar nada", () => {
         const { result } = montarConModalAbierto();
 
@@ -101,7 +114,7 @@ describe("usePagoNomina", () => {
         expect(Swal.fire).toHaveBeenCalledWith({
             icon: "warning",
             title: "Revisa el pago",
-            text: "El abono al préstamo ($500) no puede ser mayor que su deuda pendiente ($400).",
+            text: "El abono al préstamo ($ 500) no puede ser mayor que su deuda pendiente ($ 400).",
         });
         expect(serviceMock.registrarPagoNomina).not.toHaveBeenCalled();
     });

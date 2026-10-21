@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatearPesos } from "../formatoPesos";
 import {
     avisoErrorCrearPrestamo,
     avisoErrorSaldar,
@@ -19,9 +20,8 @@ import {
     validarPrestamo,
 } from "./prestamos";
 
-// Así escribe Colombia los pesos en los mensajes: "500.000,00".
-const pesos = (valor) =>
-    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Los mensajes escriben los pesos sin centavos (decisión del 2026-10-21).
+const pesos = formatearPesos;
 
 const prestamoDeAna = { id: 90, profesor_nombre: "Pérez Ana", monto: 500000, fecha: "2026-07-10" };
 

@@ -50,7 +50,7 @@ const elegirEnFiltro = (valor) => {
 
 const escribirPrestamo = ({ profesorId, monto }) => {
     fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: profesorId } });
-    fireEvent.change(screen.getByPlaceholderText("Ej. 1000.00"), { target: { value: monto } });
+    fireEvent.change(screen.getByPlaceholderText("Ej. 500000"), { target: { value: monto } });
 };
 
 const avisoCon = (campos) => expect.objectContaining(campos);
@@ -88,9 +88,9 @@ describe("PrestamosAdmin", () => {
                 params: { profesor_id: "3" },
             });
         });
-        expect(await screen.findByText("$500000.00")).toBeInTheDocument();
-        expect(screen.getByText("$200000.00")).toBeInTheDocument();
-        expect(screen.getByText("Total por Cobrar: $500000.00")).toBeInTheDocument();
+        expect(await screen.findByText("$ 500.000")).toBeInTheDocument();
+        expect(screen.getByText("$ 200.000")).toBeInTheDocument();
+        expect(screen.getByText("Total por Cobrar: $ 500.000")).toBeInTheDocument();
         expect(screen.getAllByRole("button", { name: "Saldar" })).toHaveLength(1);
         expect(screen.getByText("Saldado")).toBeInTheDocument();
     });
@@ -111,14 +111,14 @@ describe("PrestamosAdmin", () => {
         render(<PrestamosAdmin />);
         await esperarProfesores();
         elegirEnFiltro("3");
-        await screen.findByText("$500000.00");
+        await screen.findByText("$ 500.000");
 
         fireEvent.click(screen.getByRole("button", { name: "Limpiar" }));
 
         expect(
             screen.getByText("Selecciona un profesor o trabajador para ver su historial de préstamos.")
         ).toBeInTheDocument();
-        expect(screen.getByText("Total por Cobrar: $0.00")).toBeInTheDocument();
+        expect(screen.getByText("Total por Cobrar: $ 0")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Saldar" })).not.toBeInTheDocument();
         expect(apiMock.get).toHaveBeenCalledTimes(2);
     });
@@ -163,7 +163,7 @@ describe("PrestamosAdmin", () => {
         );
         expect(screen.getAllByRole("combobox")[0]).toHaveValue("");
         expect(screen.getAllByRole("combobox")[1]).toHaveValue("3");
-        expect(screen.getByPlaceholderText("Ej. 1000.00")).toHaveValue(null);
+        expect(screen.getByPlaceholderText("Ej. 500000")).toHaveValue(null);
     });
 
     it("usa una fecha del día cuando el formulario no la especifica", async () => {
@@ -243,7 +243,7 @@ describe("PrestamosAdmin", () => {
         render(<PrestamosAdmin />);
         await esperarProfesores();
         elegirEnFiltro("3");
-        await screen.findByText("$500000.00");
+        await screen.findByText("$ 500.000");
 
         fireEvent.click(screen.getByRole("button", { name: "Saldar" }));
 
@@ -284,7 +284,7 @@ describe("PrestamosAdmin", () => {
                 })
             );
         });
-        expect(screen.getByPlaceholderText("Ej. 1000.00")).toHaveValue(1000);
+        expect(screen.getByPlaceholderText("Ej. 500000")).toHaveValue(1000);
         consoleError.mockRestore();
     });
 
@@ -349,7 +349,7 @@ describe("PrestamosAdmin", () => {
             escribirPrestamo({ profesorId: "3", monto: "1000" });
             fireEvent.click(screen.getByRole("button", { name: "Registrar Préstamo" }));
 
-            await screen.findByText("$1000.00");
+            await screen.findByText("$ 1.000");
             expect(container.querySelector('[data-prestamo-id="92"]')).toHaveClass("bg-green-50");
             expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
 
@@ -375,7 +375,7 @@ describe("PrestamosAdmin", () => {
             escribirPrestamo({ profesorId: "3", monto: "1000" });
             fireEvent.click(screen.getByRole("button", { name: "Registrar Préstamo" }));
 
-            await screen.findByText("$500000.00");
+            await screen.findByText("$ 500.000");
             expect(swalFireMock).toHaveBeenLastCalledWith(
                 avisoCon({
                     icon: "warning",
@@ -383,7 +383,7 @@ describe("PrestamosAdmin", () => {
                     confirmButtonText: "Revisar el historial",
                 })
             );
-            expect(screen.getByPlaceholderText("Ej. 1000.00")).toHaveValue(1000);
+            expect(screen.getByPlaceholderText("Ej. 500000")).toHaveValue(1000);
 
             const { didClose } = swalFireMock.mock.calls.at(-1)[0];
             act(() => didClose());

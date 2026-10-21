@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { formatearPesos } from "../formatoPesos";
 import {
     avisoErrorGuardarEgreso,
     CATEGORIAS_EGRESO,
@@ -16,9 +17,8 @@ import {
     validarEgreso,
 } from "./egresos";
 
-// Así escribe Colombia los pesos en los mensajes: "80.000,00".
-const pesos = (valor) =>
-    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Los mensajes escriben los pesos sin centavos (decisión del 2026-10-21).
+const pesos = formatearPesos;
 
 const formulario = {
     concepto: "  Aseo general  ",

@@ -72,8 +72,8 @@ describe("NominaAdmin", () => {
         expect(apiMock.get).toHaveBeenCalledTimes(2);
         expect(screen.getByText("1001")).toBeInTheDocument();
         expect(screen.getByText("gómez luis")).toBeInTheDocument();
-        expect(screen.getByText("$400.00")).toBeInTheDocument();
-        expect(screen.getByText("$0.00")).toBeInTheDocument();
+        expect(screen.getByText("$ 400")).toBeInTheDocument();
+        expect(screen.getByText("$ 0")).toBeInTheDocument();
         expect(
             screen.getByText("🔍 Escriba el nombre de un empleado para ver su historial de pagos.")
         ).toBeInTheDocument();
@@ -111,50 +111,60 @@ describe("NominaAdmin", () => {
 
         expect(screen.getByText("Procesar Pago Nómina")).toBeInTheDocument();
         expect(screen.getByDisplayValue("1500")).toBeInTheDocument();
-        expect(screen.getByText("$1500.00")).toBeInTheDocument();
-        expect(screen.getByText("Máx: 400")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.500")).toBeInTheDocument();
+        expect(screen.getByText("Máx: $ 400")).toBeInTheDocument();
 
         const [, bonos, abono, otros] = screen.getAllByRole("spinbutton");
         fireEvent.change(bonos, { target: { value: "100" } });
         fireEvent.change(abono, { target: { value: "50" } });
         fireEvent.change(otros, { target: { value: "25" } });
 
-        expect(screen.getByText("$1525.00")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.525")).toBeInTheDocument();
     });
 
-    it("impide registrar un pago cuyo total neto es negativo", async () => {
+    // Desde el paso 4 (2026-10-21) el aviso sale mientras se escribe y el
+    // botón espera; antes salía en una ventana al pulsar «Confirmar Pago».
+    it("impide registrar un pago cuyo total neto es negativo y lo dice mientras se escribe", async () => {
         render(<NominaAdmin />);
         await abrirPagoDelPrimero();
 
         const [salario, , , otros] = screen.getAllByRole("spinbutton");
         fireEvent.change(salario, { target: { value: "100" } });
         fireEvent.change(otros, { target: { value: "500" } });
-        fireEvent.click(screen.getByRole("button", { name: "Confirmar Pago" }));
 
-        await waitFor(() => {
-            expect(swalFireMock).toHaveBeenCalledWith(
-                avisoCon({ icon: "warning", text: "El total a pagar no puede ser negativo." })
-            );
-        });
+        expect(screen.getByText("El total a pagar no puede ser negativo.")).toBeInTheDocument();
+        const confirmar = screen.getByRole("button", { name: "Confirmar Pago" });
+        expect(confirmar).toBeDisabled();
+        fireEvent.click(confirmar);
+
+        expect(swalFireMock).not.toHaveBeenCalled();
         expect(apiMock.post).not.toHaveBeenCalled();
     });
 
-    it("impide abonar más de la deuda pendiente del empleado", async () => {
+    it("impide abonar más de la deuda pendiente del empleado y lo dice junto al abono", async () => {
         render(<NominaAdmin />);
         await abrirPagoDelPrimero();
 
         const [, , abono] = screen.getAllByRole("spinbutton");
         fireEvent.change(abono, { target: { value: "500" } });
-        fireEvent.click(screen.getByRole("button", { name: "Confirmar Pago" }));
 
-        await waitFor(() => {
-            expect(swalFireMock).toHaveBeenCalledWith(
-                avisoCon({
-                    icon: "warning",
-                    text: "El abono al préstamo ($500) no puede ser mayor que su deuda pendiente ($400).",
-                })
-            );
-        });
+        expect(screen.getByText("No puede ser mayor que la deuda ($ 400).")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Confirmar Pago" })).toBeDisabled();
+
+        fireEvent.change(abono, { target: { value: "400" } });
+
+        expect(screen.queryByText(/No puede ser mayor que la deuda/)).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Confirmar Pago" })).toBeEnabled();
+        expect(apiMock.post).not.toHaveBeenCalled();
+    });
+
+    it("Esc cierra el pago sin registrar nada", async () => {
+        render(<NominaAdmin />);
+        await abrirPagoDelPrimero();
+
+        fireEvent.keyDown(document, { key: "Escape" });
+
+        expect(screen.queryByText("Procesar Pago Nómina")).not.toBeInTheDocument();
         expect(apiMock.post).not.toHaveBeenCalled();
     });
 
@@ -353,7 +363,7 @@ describe("NominaAdmin", () => {
         expect(screen.getByText("#N-55")).toBeInTheDocument();
         expect(screen.getByText("2026-07-31")).toBeInTheDocument();
         expect(screen.getByText("Pérez Ana")).toBeInTheDocument();
-        expect(screen.getByText("$1450.00")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.450")).toBeInTheDocument();
 
         fireEvent.change(buscador, { target: { value: "zzz" } });
 
@@ -370,6 +380,6 @@ describe("NominaAdmin", () => {
         expect(abono).toBeDisabled();
         expect(screen.queryByText(/^Máx:/)).not.toBeInTheDocument();
         expect(screen.getByDisplayValue("900")).toBeInTheDocument();
-        expect(screen.getByText("$900.00")).toBeInTheDocument();
+        expect(screen.getByText("$ 900")).toBeInTheDocument();
     });
 });

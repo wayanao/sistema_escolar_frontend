@@ -104,6 +104,27 @@ describe("VistaCarteraVencida", () => {
         expect(screen.getByText("Pérez, Ana")).toBeInTheDocument();
     });
 
+    it("el detalle de un estudiante también se abre con el teclado", () => {
+        const onToggleExpandido = vi.fn();
+        const { rerender } = render(
+            <VistaCarteraVencida {...propsBase} onToggleExpandido={onToggleExpandido} />
+        );
+
+        const boton = screen.getByRole("button", { name: "Ver detalle de Pérez, Ana" });
+        expect(boton).toHaveAttribute("aria-expanded", "false");
+        fireEvent.click(boton);
+        // El clic del botón no se suma al de la fila: abre una sola vez.
+        expect(onToggleExpandido).toHaveBeenCalledTimes(1);
+        expect(onToggleExpandido).toHaveBeenCalledWith(1);
+
+        rerender(
+            <VistaCarteraVencida {...propsBase} expandido={1} onToggleExpandido={onToggleExpandido} />
+        );
+        expect(
+            screen.getByRole("button", { name: "Ocultar detalle de Pérez, Ana" })
+        ).toHaveAttribute("aria-expanded", "true");
+    });
+
     it("dice a qué hora se actualizó la cartera", () => {
         render(
             <VistaCarteraVencida {...propsBase} actualizadoA={new Date(2026, 9, 21, 10, 32)} />

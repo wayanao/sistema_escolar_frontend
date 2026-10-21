@@ -48,10 +48,10 @@ describe("HistorialNomina", () => {
         expect(screen.getByText("#N-55")).toBeInTheDocument();
         expect(screen.getByText("2026-07-31")).toBeInTheDocument();
         expect(screen.getByText("Pérez Ana")).toBeInTheDocument();
-        expect(screen.getByText("$1500.00")).toBeInTheDocument();
-        expect(screen.getByText("$100.00")).toBeInTheDocument();
-        expect(screen.getByText("$50.00")).toBeInTheDocument();
-        expect(screen.getByText("$1450.00")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.500")).toBeInTheDocument();
+        expect(screen.getByText("$ 100")).toBeInTheDocument();
+        expect(screen.getByText("$ 50")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.450")).toBeInTheDocument();
     });
 
     it("informa cada cambio del buscador y conserva su indicador de carga", () => {

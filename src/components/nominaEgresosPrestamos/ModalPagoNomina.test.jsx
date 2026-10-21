@@ -31,18 +31,60 @@ describe("ModalPagoNomina", () => {
 
         expect(screen.getByText("Procesar Pago Nómina")).toBeInTheDocument();
         expect(screen.getByText("ana pérez")).toBeInTheDocument();
-        expect(screen.getByText("$400.00")).toHaveClass("text-red-500");
-        expect(screen.getByText("$1525.00")).toBeInTheDocument();
-        expect(screen.getByText("Máx: 400")).toBeInTheDocument();
+        expect(screen.getByText("$ 400")).toHaveClass("text-red-500");
+        expect(screen.getByText("$ 1.525")).toBeInTheDocument();
+        expect(screen.getByText("Máx: $ 400")).toBeInTheDocument();
     });
 
-    it("deshabilita el abono y oculta la ayuda cuando no hay deuda", () => {
+    it("deshabilita el abono cuando no hay deuda y explica por qué", () => {
         render_({ empleado: { ...empleado, saldo_prestamos: 0 } });
 
         const [, , abono] = screen.getAllByRole("spinbutton");
         expect(abono).toBeDisabled();
         expect(screen.queryByText(/^Máx:/)).not.toBeInTheDocument();
-        expect(screen.getByText("$0.00")).toHaveClass("text-green-500");
+        expect(screen.getByText("Sin préstamos pendientes")).toBeInTheDocument();
+        expect(screen.getByText("$ 0")).toHaveClass("text-green-500");
+    });
+
+    it("avisa mientras se escribe lo que impide pagar y el botón espera", () => {
+        render_({
+            problemas: {
+                abono: "No puede ser mayor que la deuda ($ 400).",
+                total: "El total a pagar no puede ser negativo.",
+            },
+        });
+
+        expect(screen.getByText("No puede ser mayor que la deuda ($ 400).")).toBeInTheDocument();
+        expect(screen.getByText("El total a pagar no puede ser negativo.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Confirmar Pago" })).toBeDisabled();
+    });
+
+    it("es un diálogo con nombre que recibe el foco al abrir", () => {
+        render_();
+
+        expect(screen.getByRole("dialog", { name: "Procesar Pago Nómina" })).toHaveFocus();
+    });
+
+    it("Esc cierra, salvo mientras registra", () => {
+        const onCerrar = vi.fn();
+        const { rerender } = render_({ onCerrar });
+
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(onCerrar).toHaveBeenCalledTimes(1);
+
+        rerender(
+            <ModalPagoNomina
+                empleado={empleado}
+                formulario={formulario}
+                totalNeto={1525}
+                registrando
+                onCambiarCampo={vi.fn()}
+                onCerrar={onCerrar}
+                onEnviar={vi.fn()}
+            />
+        );
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(onCerrar).toHaveBeenCalledTimes(1);
     });
 
     it("informa el campo modificado", () => {

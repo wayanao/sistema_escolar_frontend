@@ -46,9 +46,9 @@ describe("HistorialEgresos", () => {
     it("muestra el total del rango y las filas con su monto", () => {
         render_();
 
-        expect(screen.getByText("Total: $1350.50")).toBeInTheDocument();
-        expect(screen.getByText("$150.50")).toBeInTheDocument();
-        expect(screen.getByText("$1200.00")).toBeInTheDocument();
+        expect(screen.getByText("Total: $ 1.351")).toBeInTheDocument();
+        expect(screen.getByText("$ 151")).toBeInTheDocument();
+        expect(screen.getByText("$ 1.200")).toBeInTheDocument();
     });
 
     it("solo ofrece editar los egresos manuales", () => {
@@ -60,6 +60,47 @@ describe("HistorialEgresos", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "Editar" }));
         expect(onEditar).toHaveBeenCalledWith(egresos[0]);
+    });
+
+    it("explica qué es un egreso Automático cuando aparece alguno", () => {
+        const { rerender } = render(
+            <HistorialEgresos
+                egresos={egresos}
+                cargando={false}
+                total={1350.5}
+                fechaDesde="2026-08-01"
+                fechaHasta="2026-08-10"
+                onCambiarDesde={vi.fn()}
+                onCambiarHasta={vi.fn()}
+                onBuscar={vi.fn()}
+                onFiltrarHoy={vi.fn()}
+                onEditar={vi.fn()}
+            />
+        );
+
+        const leyenda = "Automático: lo registra un pago de nómina y no se edita en esta pantalla.";
+        expect(screen.getByText(leyenda)).toBeInTheDocument();
+        expect(screen.getByText("Automático")).toHaveAttribute(
+            "title",
+            "Lo registró un pago de nómina; no se edita aquí."
+        );
+
+        rerender(
+            <HistorialEgresos
+                egresos={[egresos[0]]}
+                cargando={false}
+                total={150.5}
+                fechaDesde="2026-08-01"
+                fechaHasta="2026-08-10"
+                onCambiarDesde={vi.fn()}
+                onCambiarHasta={vi.fn()}
+                onBuscar={vi.fn()}
+                onFiltrarHoy={vi.fn()}
+                onEditar={vi.fn()}
+            />
+        );
+
+        expect(screen.queryByText(leyenda)).not.toBeInTheDocument();
     });
 
     it("marca la fila que se está editando y no ofrece editarla otra vez", () => {

@@ -2,24 +2,15 @@ import { describe, expect, it } from "vitest";
 import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje } from "./avisos";
 
 describe("avisos compartidos de nómina, egresos y préstamos", () => {
-    it("escribe los pesos como Colombia, con dos decimales", () => {
-        const esperado = (1525).toLocaleString("es-CO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-
-        expect(pesosEnMensaje(1525)).toBe(`$${esperado}`);
-        expect(pesosEnMensaje("1525")).toBe(`$${esperado}`);
+    it("escribe los pesos como Colombia, sin centavos (decisión del 2026-10-21)", () => {
+        expect(pesosEnMensaje(1525)).toBe("$ 1.525");
+        expect(pesosEnMensaje("1525")).toBe("$ 1.525");
+        expect(pesosEnMensaje(1500000)).toBe("$ 1.500.000");
     });
 
     it("trata como cero un monto vacío o que no es número", () => {
-        const cero = (0).toLocaleString("es-CO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-
-        expect(pesosEnMensaje("")).toBe(`$${cero}`);
-        expect(pesosEnMensaje(undefined)).toBe(`$${cero}`);
+        expect(pesosEnMensaje("")).toBe("$ 0");
+        expect(pesosEnMensaje(undefined)).toBe("$ 0");
     });
 
     it("no se sabe si se guardó cuando el servidor no respondió", () => {

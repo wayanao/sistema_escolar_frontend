@@ -58,7 +58,7 @@ describe("HistorialPrestamos", () => {
     it("muestra el total por cobrar y distingue pendiente de saldado", () => {
         render_();
 
-        expect(screen.getByText("Total por Cobrar: $500000.00")).toBeInTheDocument();
+        expect(screen.getByText("Total por Cobrar: $ 500.000")).toBeInTheDocument();
         expect(screen.getByText("Pendiente")).toHaveClass("bg-yellow-100");
         expect(screen.getByText("Pagado")).toHaveClass("bg-green-100");
         expect(screen.getAllByRole("button", { name: "Saldar" })).toHaveLength(1);
