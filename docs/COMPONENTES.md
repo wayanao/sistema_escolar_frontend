@@ -1001,13 +1001,19 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 
 - `components/nominaEgresosPrestamos/EstadoCuentaPersonal.jsx`: tabla de todo el
   personal con documento, nombre, saldo de préstamos coloreado y el botón que
-  abre el pago. Incluye su indicador de carga y su estado vacío.
+  abre el pago. Incluye su indicador de carga (con círculo) y su estado vacío.
+  Con `actualizando` conserva la tabla, muestra «Actualizando...» y bloquea
+  `Realizar Pago` hasta tener los saldos nuevos. Con `pagosRegistrados` marca
+  «✓ Pago #N-… registrado» a quien se le pagó con la página abierta y resalta
+  en verde la fila de `ultimoPagadoId`.
 - `components/nominaEgresosPrestamos/HistorialNomina.jsx`: buscador por empleado
   y tabla de pagos con sus dos estados vacíos: el que pide escribir un nombre y
   el que avisa que ese empleado no tiene pagos.
 - `components/nominaEgresosPrestamos/ModalPagoNomina.jsx`: resumen del empleado
   con su deuda, los cinco campos del pago, el total neto y los tres botones. El
-  campo de abono se deshabilita cuando no hay deuda.
+  campo de abono se deshabilita cuando no hay deuda. Con `registrando`, el botón
+  dice «Registrando pago...» con su círculo y quedan bloqueados los campos,
+  `Cancelar` y la `✕` (que se llama «Cerrar» para los lectores de pantalla).
 - `components/nominaEgresosPrestamos/FormularioEgreso.jsx`: concepto, monto,
   categoría, fecha opcional y notas, con el encabezado y los botones que cambian
   entre registrar y actualizar.
@@ -1030,6 +1036,14 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - El pago de nómina usa el sueldo del profesor como salario base, bloquea un
   neto negativo y un abono mayor que la deuda pendiente, y ante un error conserva
   el modal abierto con lo escrito.
+- Desde el 2026-10-20 el pago avisa qué pasa (ventanas de SweetAlert): pide
+  confirmar con el resumen y los montos, no se puede enviar dos veces, al
+  terminar dice el número `#N-…` y lo abonado, y si falla separa «no se guardó
+  nada» de «no sabemos si quedó» (sin respuesta del servidor). En ese caso
+  recarga y ofrece «Revisar el historial», que busca a la persona y baja hasta
+  el historial cuando la ventana termina de cerrarse. Si falla la carga, el
+  aviso trae «Reintentar». Detalle en
+  `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`.
 - Los egresos automáticos que crea la nómina no se pueden editar desde esta
   pantalla; los préstamos no se eliminan y solo se pueden saldar.
 

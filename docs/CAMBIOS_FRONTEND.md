@@ -1,5 +1,40 @@
 # Cambios Frontend
 
+## 2026-10-20 - Nómina: el pago dice qué está pasando y no se puede enviar dos veces
+
+Paso 1 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (pedido del
+usuario: «los guardando, los auto scroll y las demás cosas que el usuario
+necesita para saber cómo está actuando la página»; solo frontend).
+
+- `Confirmar Pago` pide confirmación con el resumen (persona, salario, bonos,
+  abono, deducciones y neto, en pesos colombianos) y avisa que no se puede
+  anular y que también queda como egreso.
+- Mientras guarda: «Registrando pago...» con círculo; botón, campos,
+  `Cancelar` y `✕` bloqueados; un segundo clic no envía nada. Antes, un doble
+  clic registraba dos nóminas.
+- Al terminar: ventana «Pago registrado» con el número `#N-…`, el neto y lo
+  abonado (solo si hubo abono); la fila de la persona queda en verde con
+  «✓ Pago #N-… registrado». Las tablas se recargan sin desaparecer
+  («Actualizando...») y `Realizar Pago` espera los saldos nuevos.
+- Si falla: «No se registró el pago... No se guardó nada» cuando el servidor
+  respondió con error (sin mostrar el texto interno de un `500`); «No sabemos
+  si el pago quedó registrado» cuando no respondió (o respondió `502`, `503`,
+  `504`). En ese caso recarga y ofrece «Revisar el historial»: cierra el modal,
+  busca a la persona y baja hasta el historial.
+- Las ventanas del navegador (`alert`) de nómina pasaron a SweetAlert, como el
+  resto del sistema. Si falla la carga, el aviso trae «Reintentar».
+- Sin cambios de peticiones ni de backend: el mismo `POST /api/nomina/pagar`
+  con el mismo cuerpo.
+
+Verificación: pruebas escritas primero (fallaron 36 antes del código). Se
+ajustaron a propósito las que esperaban `alert` y las que suponían que recargar
+escondía las tablas. Suite del módulo: 20 archivos, 176 pruebas correctas.
+`pnpm run check:deploy` (con 2,9 GB libres): 2692 de 2693 pruebas en 369
+archivos; la que falló, por tiempo, es de `IngresoBoletinProfesor.test.jsx`, que
+no se tocó y pasa sola (2 de 2). Como la corrida se detuvo ahí, lint y build se
+corrieron aparte: correctos. Conviene repetir `check:deploy` con el equipo más
+libre antes de subir.
+
 ## 2026-10-20 - Años lectivos: al matricular, nadie viene marcado
 
 - En "2. Matricular estudiantes", al elegir el curso de origen ya no vienen

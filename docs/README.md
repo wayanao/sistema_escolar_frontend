@@ -45,6 +45,11 @@ continuacion para retomarla en otro chat u otro LLM.
   partes en el formulario del estudiante (crear, editar y matricular desde
   una admisión). El documento principal está en el backend. **Backend en
   producción; pantalla (S3) escrita el 2026-10-20, sin publicar.**
+- `funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`: saber qué pasa al guardar
+  en Cartera vencida, Tipos de pago, Nómina, Préstamos y Egresos (botones que
+  se bloquean, confirmaciones, avisos de éxito y de error, desplazamiento
+  automático). Solo frontend. **Inventario (paso 0) y Nómina (paso 1) hechos
+  el 2026-10-20, sin commit.**
 
 ## Control SaaS
 

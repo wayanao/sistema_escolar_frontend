@@ -1,4 +1,5 @@
 import React from "react";
+import SpinnerView from "../anioLectivo/SpinnerView";
 
 const HistorialNomina = ({ pagos, cargando, hayBusqueda, busqueda, onCambiarBusqueda }) => (
     <div className="bg-white shadow rounded-lg p-6">
@@ -14,7 +15,10 @@ const HistorialNomina = ({ pagos, cargando, hayBusqueda, busqueda, onCambiarBusq
         </div>
 
         {cargando ? (
-            <p className="text-gray-500">Cargando historial...</p>
+            <p className="flex items-center gap-2 text-gray-500">
+                <SpinnerView />
+                Cargando historial...
+            </p>
         ) : (
             <div className="overflow-x-auto">
                 <table className="min-w-full table-auto border-collapse">

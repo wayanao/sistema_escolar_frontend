@@ -1003,6 +1003,12 @@ están protegidos por pruebas antes de extraer utilidades.
      del sistema ya migró a SweetAlert.
   6. Egresos y préstamos tampoco bloquean su botón de envío, aunque el
      `window.confirm` previo reduce mucho la ventana.
+- Seguimiento (2026-10-20): los defectos 1 y 2, y la parte de nómina del 5,
+  quedaron atendidos en el paso 1 de
+  `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (el pago se confirma,
+  no se envía dos veces y avisa con SweetAlert). El 4 ya se había corregido el
+  2026-09-30 (`fechaColombia.js`). Egresos y préstamos (5 y 6) siguen en el
+  paso 2 de ese documento.
 - Deuda transversal registrada: `obtenerFechaLocal` existe duplicada en
   `utils/pagos/formatos.js` y `utils/nominaEgresosPrestamos/egresos.js`.
   Unificarla exige una tarea que toque el módulo de pagos.

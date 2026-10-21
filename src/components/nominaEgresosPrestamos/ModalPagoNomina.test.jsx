@@ -60,10 +60,26 @@ describe("ModalPagoNomina", () => {
         const onEnviar = vi.fn((e) => e.preventDefault());
         render_({ onCerrar, onEnviar });
 
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar" }));
         fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
         fireEvent.click(screen.getByRole("button", { name: "Confirmar Pago" }));
 
-        expect(onCerrar).toHaveBeenCalledTimes(1);
+        expect(onCerrar).toHaveBeenCalledTimes(2);
         expect(onEnviar).toHaveBeenCalledTimes(1);
+    });
+
+    it("mientras registra, dice Registrando pago... y bloquea los campos y los tres botones", () => {
+        render_({ registrando: true });
+
+        const enviar = screen.getByRole("button", { name: "Registrando pago..." });
+        expect(enviar).toBeDisabled();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Cerrar" })).toBeDisabled();
+        for (const campo of screen.getAllByRole("spinbutton")) {
+            expect(campo).toBeDisabled();
+        }
+        expect(screen.getByPlaceholderText("Mes de Marzo 2026...")).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "Confirmar Pago" })).not.toBeInTheDocument();
     });
 });

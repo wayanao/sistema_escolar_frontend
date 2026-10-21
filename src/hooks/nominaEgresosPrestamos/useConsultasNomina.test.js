@@ -31,6 +31,7 @@ describe("useConsultasNomina", () => {
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
         });
+        expect(result.current.actualizando).toBe(false);
         expect(result.current.empleados).toEqual(empleados);
         expect(result.current.error).toBe("");
         expect(serviceMock.obtenerEmpleadosNomina).toHaveBeenCalledTimes(1);
@@ -59,6 +60,18 @@ describe("useConsultasNomina", () => {
         expect(serviceMock.obtenerHistorialNomina).toHaveBeenCalledTimes(1);
     });
 
+    it("muestra el historial de una persona escribiendo su nombre en el buscador", async () => {
+        const { result } = renderHook(() => useConsultasNomina());
+        await waitFor(() => expect(result.current.loading).toBe(false));
+
+        act(() => {
+            result.current.mostrarHistorialDe({ id: 1, nombre: "ana", apellido: "pérez" });
+        });
+
+        expect(result.current.searchHistorial).toBe("pérez ana");
+        expect(result.current.historialMostrado).toEqual([historial[0]]);
+    });
+
     it("publica el error de carga y deja de mostrar el indicador", async () => {
         const error = new Error("fallo");
         serviceMock.obtenerEmpleadosNomina.mockRejectedValueOnce(error);
@@ -73,6 +86,35 @@ describe("useConsultasNomina", () => {
         expect(result.current.empleados).toEqual([]);
         expect(consoleError).toHaveBeenCalledWith("Error al cargar nómina:", error);
         consoleError.mockRestore();
+    });
+
+    it("al recargar con datos a la vista no los esconde: avisa que actualiza", async () => {
+        const { result } = renderHook(() => useConsultasNomina());
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.actualizando).toBe(false);
+
+        let terminarRecarga;
+        serviceMock.obtenerHistorialNomina.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminarRecarga = () => resolve(historial);
+            })
+        );
+
+        let recarga;
+        act(() => {
+            recarga = result.current.cargarDatos();
+        });
+
+        expect(result.current.actualizando).toBe(true);
+        expect(result.current.loading).toBe(false);
+        expect(result.current.empleados).toEqual(empleados);
+
+        await act(async () => {
+            terminarRecarga();
+            await recarga;
+        });
+
+        expect(result.current.actualizando).toBe(false);
     });
 
     it("recarga las dos consultas bajo demanda y limpia el error anterior", async () => {

@@ -38,4 +38,45 @@ describe("EstadoCuentaPersonal", () => {
 
         expect(onPagar).toHaveBeenCalledWith(empleados[1]);
     });
+
+    it("muestra el círculo mientras carga la primera vez", () => {
+        render(<EstadoCuentaPersonal empleados={[]} cargando onPagar={vi.fn()} />);
+
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    });
+
+    it("al actualizar conserva la tabla, avisa que actualiza y espera para pagar", () => {
+        render(
+            <EstadoCuentaPersonal
+                empleados={empleados}
+                cargando={false}
+                actualizando
+                onPagar={vi.fn()}
+            />
+        );
+
+        expect(screen.getByRole("status")).toHaveTextContent("Actualizando...");
+        expect(screen.getByText("pérez ana")).toBeInTheDocument();
+        for (const boton of screen.getAllByRole("button", { name: "Realizar Pago" })) {
+            expect(boton).toBeDisabled();
+        }
+    });
+
+    it("marca a quien se le pagó en esta visita y resalta el último pago", () => {
+        render(
+            <EstadoCuentaPersonal
+                empleados={empleados}
+                cargando={false}
+                pagosRegistrados={{ 1: 77, 2: null }}
+                ultimoPagadoId={1}
+                onPagar={vi.fn()}
+            />
+        );
+
+        expect(screen.getByText("✓ Pago #N-77 registrado")).toBeInTheDocument();
+        expect(screen.getByText("✓ Pago registrado")).toBeInTheDocument();
+        const [filaAna, filaLuis] = screen.getAllByRole("row").slice(1);
+        expect(filaAna).toHaveClass("bg-green-50");
+        expect(filaLuis).not.toHaveClass("bg-green-50");
+    });
 });

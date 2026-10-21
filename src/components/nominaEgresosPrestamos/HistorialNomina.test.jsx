@@ -59,6 +59,7 @@ describe("HistorialNomina", () => {
         render_({ onCambiarBusqueda, cargando: true });
 
         expect(screen.getByText("Cargando historial...")).toBeInTheDocument();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
         fireEvent.change(screen.getByPlaceholderText("Buscar por empleado..."), {
             target: { value: "gómez" },
         });

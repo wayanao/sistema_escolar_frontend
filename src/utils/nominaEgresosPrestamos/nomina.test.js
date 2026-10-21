@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+    avisoErrorPagoNomina,
+    busquedaHistorialDeEmpleado,
     calcularTotalNomina,
     claseDeudaEmpleado,
     claseSaldoEmpleado,
@@ -7,10 +9,16 @@ import {
     estadoInicialPagoNomina,
     filtrarHistorialNomina,
     hayBusquedaDeHistorial,
+    mensajeConfirmacionPagoNomina,
+    mensajeExitoPagoNomina,
     puedeAbonarAPrestamos,
     tieneDeudaDePrestamos,
     validarPagoNomina,
 } from "./nomina";
+
+// Así escribe Colombia los pesos en los mensajes: "1.525,00".
+const pesos = (valor) =>
+    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const empleado = { id: 1, nombre: "ana", apellido: "pérez", sueldo: 1500, saldo_prestamos: 400 };
 
@@ -155,5 +163,120 @@ describe("utilidades de nómina", () => {
         expect(filtrarHistorialNomina(historial, "zzz")).toEqual([]);
         expect(filtrarHistorialNomina(historial, " ana")).toEqual([historial[0]]);
         expect(filtrarHistorialNomina(historial, "ana ")).toEqual([]);
+    });
+});
+
+describe("mensajes al registrar un pago de nómina", () => {
+    it("resume el pago antes de confirmarlo, con el nombre en mayúsculas y los pesos colombianos", () => {
+        expect(mensajeConfirmacionPagoNomina({ empleado, ...formulario })).toBe(
+            [
+                "Ana Pérez",
+                "",
+                `Salario base: ${pesos(1500)}`,
+                `Bonos: ${pesos(100)}`,
+                `Abono a préstamos: ${pesos(50)}`,
+                `Otras deducciones: ${pesos(25)}`,
+                `Total neto a depositar: ${pesos(1525)}`,
+                "",
+                "No se puede anular desde la aplicación y también quedará registrado como egreso.",
+            ].join("\n")
+        );
+    });
+
+    it("muestra en cero los campos vacíos del resumen", () => {
+        const texto = mensajeConfirmacionPagoNomina({
+            empleado,
+            salarioBase: "1500",
+            bonificaciones: "",
+            abonoPrestamo: "",
+            otrosDescuentos: "",
+        });
+
+        expect(texto).toContain(`Bonos: ${pesos(0)}`);
+        expect(texto).toContain(`Total neto a depositar: ${pesos(1500)}`);
+    });
+
+    it("dice al terminar el número del pago, a quién, cuánto y cuánto se abonó", () => {
+        expect(mensajeExitoPagoNomina({ empleado, nominaId: 77, ...formulario })).toBe(
+            [
+                `Pago #N-77 a Ana Pérez por ${pesos(1525)}.`,
+                `Se abonaron ${pesos(50)} a sus préstamos.`,
+                "También quedó registrado como egreso.",
+            ].join("\n")
+        );
+    });
+
+    it("no habla de préstamos cuando no hubo abono, ni de número si el backend no lo envió", () => {
+        const texto = mensajeExitoPagoNomina({
+            empleado,
+            nominaId: null,
+            ...formulario,
+            abonoPrestamo: "0",
+        });
+
+        expect(texto).toBe(
+            [`Pago a Ana Pérez por ${pesos(1575)}.`, "También quedó registrado como egreso."].join("\n")
+        );
+    });
+
+    it("sin respuesta del servidor no se sabe si el pago quedó guardado", () => {
+        const aviso = avisoErrorPagoNomina(new Error("Network Error"));
+
+        expect(aviso.incierto).toBe(true);
+        expect(aviso.titulo).toBe("No sabemos si el pago quedó registrado");
+        expect(aviso.texto).toContain("revisa en el historial");
+    });
+
+    it("tampoco se sabe cuando responde un intermediario porque el servidor no contestó", () => {
+        for (const status of [502, 503, 504]) {
+            expect(avisoErrorPagoNomina({ response: { status } }).incierto).toBe(true);
+        }
+    });
+
+    it("un error del servidor dice que no se guardó nada y no muestra su texto interno", () => {
+        const aviso = avisoErrorPagoNomina({
+            response: { status: 500, data: { detail: "Error al procesar pago: psycopg2 boom" } },
+        });
+
+        expect(aviso.incierto).toBe(false);
+        expect(aviso.titulo).toBe("No se registró el pago");
+        expect(aviso.texto).toBe(
+            "El servidor no pudo registrar el pago. No se guardó nada; puedes intentarlo de nuevo."
+        );
+        expect(aviso.texto).not.toContain("psycopg2");
+    });
+
+    it("un rechazo con explicación del backend la muestra y aclara que no se guardó nada", () => {
+        const aviso = avisoErrorPagoNomina({
+            response: { status: 403, data: { detail: "El colegio está suspendido." } },
+        });
+
+        expect(aviso).toEqual({
+            incierto: false,
+            titulo: "No se registró el pago",
+            texto: "El colegio está suspendido.\n\nNo se guardó nada.",
+        });
+    });
+
+    it("un rechazo con una lista de errores de formato no la muestra cruda", () => {
+        const aviso = avisoErrorPagoNomina({
+            response: { status: 422, data: { detail: [{ loc: ["body"], msg: "x" }] } },
+        });
+
+        expect(aviso.texto).toBe(
+            "El servidor no pudo registrar el pago. No se guardó nada; puedes intentarlo de nuevo."
+        );
+    });
+
+    it("busca a la persona en el historial como la nombra el historial: Apellido Nombre", () => {
+        const historial = [
+            { id: 55, profesor: "pérez ana" },
+            { id: 56, profesor: "gómez luis" },
+        ];
+
+        expect(busquedaHistorialDeEmpleado(empleado)).toBe("pérez ana");
+        expect(filtrarHistorialNomina(historial, busquedaHistorialDeEmpleado(empleado))).toEqual([
+            historial[0],
+        ]);
     });
 });
