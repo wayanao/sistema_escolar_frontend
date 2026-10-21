@@ -62,9 +62,38 @@ describe("HistorialEgresos", () => {
         expect(onEditar).toHaveBeenCalledWith(egresos[0]);
     });
 
+    it("marca la fila que se está editando y no ofrece editarla otra vez", () => {
+        const container = render_({ editandoId: 10 });
+
+        expect(container.querySelector('[data-egreso-id="10"]')).toHaveClass("bg-amber-50");
+        expect(screen.getByText("Editando")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    });
+
+    it("resalta el egreso recién guardado", () => {
+        const container = render_({ resaltadoId: 11 });
+
+        expect(container.querySelector('[data-egreso-id="11"]')).toHaveClass("bg-green-50");
+        expect(container.querySelector('[data-egreso-id="10"]')).not.toHaveClass("bg-green-50");
+    });
+
+    it("mientras se guarda, Editar espera", () => {
+        render_({ bloqueado: true });
+
+        expect(screen.getByRole("button", { name: "Editar" })).toBeDisabled();
+    });
+
+    it("al actualizar conserva la tabla y lo avisa", () => {
+        render_({ actualizando: true });
+
+        expect(screen.getByRole("status")).toHaveTextContent("Actualizando...");
+        expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
     it("muestra la carga y el estado vacío", () => {
         render_({ cargando: true });
         expect(screen.getByText("Cargando egresos...")).toBeInTheDocument();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
 
         render_({ egresos: [], total: 0 });
         expect(

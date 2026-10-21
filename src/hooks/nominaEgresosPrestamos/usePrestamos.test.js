@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import Swal from "sweetalert2";
 import usePrestamos from "./usePrestamos";
 
 const { serviceMock } = vi.hoisted(() => ({
@@ -10,6 +11,7 @@ const { serviceMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../services/nominaEgresosPrestamosApi", () => serviceMock);
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const profesores = [
     { id: 3, nombre: "Ana", apellido: "Pérez" },
@@ -29,7 +31,6 @@ const montarCargado = async () => {
 
 describe("usePrestamos", () => {
     beforeEach(() => {
-        window.alert = vi.fn();
         serviceMock.obtenerProfesoresParaPrestamos.mockResolvedValue(profesores);
         serviceMock.obtenerPrestamos.mockResolvedValue(prestamos);
     });
@@ -87,10 +88,103 @@ describe("usePrestamos", () => {
             result.current.buscarHistorial();
         });
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "Selecciona un profesor o trabajador para ver su historial."
-        );
+        expect(Swal.fire).toHaveBeenCalledWith({
+            icon: "warning",
+            title: "Falta elegir a la persona",
+            text: "Selecciona un profesor o trabajador para ver su historial.",
+        });
         expect(serviceMock.obtenerPrestamos).not.toHaveBeenCalled();
+    });
+
+    it("al recargar el historial que ya se ve no lo esconde: avisa que actualiza", async () => {
+        const { result } = await montarCargado();
+        await act(async () => {
+            await result.current.mostrarHistorialDe("3");
+        });
+
+        let terminar;
+        serviceMock.obtenerPrestamos.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve(prestamos);
+            })
+        );
+        let recarga;
+        act(() => {
+            recarga = result.current.recargarHistorial();
+        });
+
+        expect(result.current.actualizando).toBe(true);
+        expect(result.current.loadingPrestamos).toBe(false);
+        expect(result.current.prestamos).toEqual(prestamos);
+
+        await act(async () => {
+            terminar();
+            await recarga;
+        });
+
+        expect(result.current.actualizando).toBe(false);
+    });
+
+    it("al cambiar de persona sí muestra la carga, porque el historial es otro", async () => {
+        const { result } = await montarCargado();
+        await act(async () => {
+            await result.current.mostrarHistorialDe("3");
+        });
+
+        let terminar;
+        serviceMock.obtenerPrestamos.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve([]);
+            })
+        );
+        let consulta;
+        act(() => {
+            consulta = result.current.mostrarHistorialDe("4");
+        });
+
+        expect(result.current.loadingPrestamos).toBe(true);
+        expect(result.current.actualizando).toBe(false);
+
+        await act(async () => {
+            terminar();
+            await consulta;
+        });
+    });
+
+    it("Reintentar vuelve a pedir lo que falló: primero los profesores", async () => {
+        serviceMock.obtenerProfesoresParaPrestamos.mockRejectedValueOnce(new Error("fallo"));
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = renderHook(() => usePrestamos());
+        await waitFor(() => expect(result.current.error).not.toBeNull());
+
+        await act(async () => {
+            await result.current.reintentar();
+        });
+
+        expect(result.current.error).toBeNull();
+        expect(result.current.profesores).toEqual(profesores);
+        expect(serviceMock.obtenerProfesoresParaPrestamos).toHaveBeenCalledTimes(2);
+        consoleError.mockRestore();
+    });
+
+    it("Reintentar vuelve a pedir el historial cuando lo que falló fue el historial", async () => {
+        serviceMock.obtenerPrestamos.mockRejectedValueOnce(new Error("fallo"));
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { result } = await montarCargado();
+        await act(async () => {
+            await result.current.mostrarHistorialDe("3");
+        });
+        expect(result.current.error).toBe("Error al cargar el historial de préstamos.");
+
+        await act(async () => {
+            await result.current.reintentar();
+        });
+
+        expect(result.current.error).toBeNull();
+        expect(result.current.prestamos).toEqual(prestamos);
+        expect(serviceMock.obtenerPrestamos).toHaveBeenLastCalledWith({ profesor_id: "3" });
+        expect(serviceMock.obtenerProfesoresParaPrestamos).toHaveBeenCalledTimes(1);
+        consoleError.mockRestore();
     });
 
     it("busca y recarga el historial del filtro vigente", async () => {

@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import Swal from "sweetalert2";
 import useEgresos from "./useEgresos";
 
 const { serviceMock } = vi.hoisted(() => ({
@@ -7,6 +8,7 @@ const { serviceMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../services/nominaEgresosPrestamosApi", () => serviceMock);
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const egresos = [
     { id: 10, concepto: "Papelería", monto: 150.5, origen: "manual" },
@@ -21,7 +23,6 @@ const montarCargado = async () => {
 
 describe("useEgresos", () => {
     beforeEach(() => {
-        window.alert = vi.fn();
         serviceMock.obtenerEgresos.mockResolvedValue(egresos);
     });
 
@@ -82,10 +83,62 @@ describe("useEgresos", () => {
             result.current.buscarPorFechas();
         });
 
-        expect(window.alert).toHaveBeenCalledWith(
-            "La fecha desde no puede ser mayor que la fecha hasta."
-        );
+        expect(Swal.fire).toHaveBeenCalledWith({
+            icon: "warning",
+            title: "Revisa las fechas",
+            text: "La fecha desde no puede ser mayor que la fecha hasta.",
+        });
         expect(serviceMock.obtenerEgresos).toHaveBeenCalledTimes(1);
+    });
+
+    it("al recargar el mismo rango no esconde la tabla: avisa que actualiza", async () => {
+        const { result } = await montarCargado();
+        expect(result.current.actualizando).toBe(false);
+
+        let terminar;
+        serviceMock.obtenerEgresos.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve(egresos);
+            })
+        );
+        let recarga;
+        act(() => {
+            recarga = result.current.recargarRangoVigente();
+        });
+
+        expect(result.current.actualizando).toBe(true);
+        expect(result.current.loading).toBe(false);
+        expect(result.current.egresos).toEqual(egresos);
+
+        await act(async () => {
+            terminar();
+            await recarga;
+        });
+
+        expect(result.current.actualizando).toBe(false);
+    });
+
+    it("al consultar otro rango sí muestra la carga, porque la lista es otra", async () => {
+        const { result } = await montarCargado();
+
+        let terminar;
+        serviceMock.obtenerEgresos.mockReturnValueOnce(
+            new Promise((resolve) => {
+                terminar = () => resolve([]);
+            })
+        );
+        let consulta;
+        act(() => {
+            consulta = result.current.mostrarRangoDeUnDia("2026-08-01");
+        });
+
+        expect(result.current.loading).toBe(true);
+        expect(result.current.actualizando).toBe(false);
+
+        await act(async () => {
+            terminar();
+            await consulta;
+        });
     });
 
     it("mueve el filtro al día indicado y lo consulta", async () => {

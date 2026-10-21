@@ -1,5 +1,39 @@
 # Cambios Frontend
 
+## 2026-10-20 - Préstamos y Egresos: dicen qué está pasando al guardar y llevan la pantalla a lo que cambió
+
+Paso 2 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (solo
+frontend).
+
+- Préstamos: registrar y saldar confirman en una ventana del sistema con la
+  persona, el monto y la fecha (saldar avisa que no se deshace y que la
+  nómina deja de descontarlo). Mientras guardan, el botón lo dice con círculo
+  y no se envía dos veces. Al terminar, aviso con lo que quedó, fila en verde
+  y, al registrar, la página baja al préstamo nuevo cuando se cierra el aviso.
+- Egresos: igual al registrar y al actualizar; el aviso de registro dice que
+  abajo se ven los egresos de ese día (el filtro salta a esa fecha). `Editar`
+  sube al formulario (borde ámbar y una frase) y marca la fila en ámbar; al
+  guardar, la página vuelve a la fila.
+- Errores en los dos: el rechazo del backend se explica y dice que no se
+  guardó nada; sin respuesta, «No sabemos si...», recarga para revisar y
+  ofrece bajar al historial. Lo escrito se conserva.
+- Recargar la misma lista ya no la esconde («Actualizando...»); si falla una
+  carga, «Reintentar». Los `alert`/`confirm` de los dos subflujos pasaron a
+  SweetAlert.
+- Nuevos `utils/nominaEgresosPrestamos/avisos.js` y
+  `hooks/nominaEgresosPrestamos/ventanasAviso.js`, que nómina también usa.
+- Sin cambios de peticiones ni de backend: las mismas rutas y los mismos
+  cuerpos.
+
+Verificación: pruebas escritas primero (fallaron 44 de préstamos y 39 de
+egresos antes del código); se ajustaron a propósito las que esperaban
+`alert`/`confirm` o que recargar escondiera la tabla. Suite del módulo: 22
+archivos, 226 pruebas correctas, sin advertencias. `pnpm run check:deploy`
+(con 2,8 GB libres): 2739 de 2741 pruebas; las dos que fallaron, por tiempo
+(5 s), son de `AniosLectivosAdmin.test.jsx` y `CrearProfesor.test.jsx`, que no
+se tocaron y pasan solas (39 de 39). Lint y build aparte: correctos. Conviene
+repetir `check:deploy` con el equipo más libre antes de subir.
+
 ## 2026-10-20 - Nómina: el pago dice qué está pasando y no se puede enviar dos veces
 
 Paso 1 de `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (pedido del

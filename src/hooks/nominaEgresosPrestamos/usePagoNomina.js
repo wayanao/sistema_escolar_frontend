@@ -10,6 +10,7 @@ import {
     mensajeExitoPagoNomina,
     validarPagoNomina,
 } from "../../utils/nominaEgresosPrestamos/nomina";
+import { TEXTO_CON_SALTOS } from "./ventanasAviso";
 
 // Estado de arranque del formulario. No es observable: el modal no se pinta
 // hasta que se elige un empleado y entonces se precarga con su sueldo.
@@ -20,9 +21,6 @@ const FORMULARIO_VACIO = {
     otrosDescuentos: "0",
     notas: "",
 };
-
-// Los mensajes traen saltos de línea; así la ventana los respeta.
-const TEXTO_CON_SALTOS = { htmlContainer: "whitespace-pre-line" };
 
 // `revisarHistorialDe(empleado)`: lo que hace la página cuando no se sabe si
 // el pago quedó y el usuario pide revisarlo (buscarlo y bajar al historial).

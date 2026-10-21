@@ -1,20 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
+    avisoErrorCrearPrestamo,
+    avisoErrorSaldar,
     claseEstadoPrestamo,
     construirParametrosPrestamos,
     construirPayloadPrestamo,
     ESTADO_PRESTAMO_PAGADO,
     ESTADO_PRESTAMO_PENDIENTE,
     fechaPrestamoPorDefecto,
-    mensajeConfirmacionEstadoPrestamo,
     mensajeConfirmacionPrestamo,
-    mensajeErrorCrearPrestamo,
+    mensajeConfirmacionSaldar,
+    mensajeExitoPrestamo,
+    mensajeExitoSaldar,
     normalizarListaPrestamos,
     obtenerNombreProfesor,
     puedeSaldarPrestamo,
     totalPrestamosPendientes,
     validarPrestamo,
 } from "./prestamos";
+
+// Así escribe Colombia los pesos en los mensajes: "500.000,00".
+const pesos = (valor) =>
+    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const prestamoDeAna = { id: 90, profesor_nombre: "Pérez Ana", monto: 500000, fecha: "2026-07-10" };
 
 const profesores = [
     { id: 3, nombre: "Ana", apellido: "Pérez" },
@@ -87,11 +96,6 @@ describe("utilidades de préstamos", () => {
     });
 
     it("advierte en la confirmación que el préstamo no se puede eliminar", () => {
-        const montoEsperado = (500000).toLocaleString("es-CO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-
         expect(
             mensajeConfirmacionPrestamo({
                 nombreProfesor: "Pérez Ana",
@@ -99,13 +103,27 @@ describe("utilidades de préstamos", () => {
                 fecha: "2026-08-01",
             })
         ).toBe(
-            `¿Seguro que deseas registrar este préstamo?\n\nProfesor o trabajador: Pérez Ana\nMonto: $${montoEsperado}\nFecha: 2026-08-01\n\nUna vez creado no se puede eliminar; solo se podrá saldar.`
+            `Profesor o trabajador: Pérez Ana\nMonto: ${pesos(500000)}\nFecha: 2026-08-01\n\nUna vez creado no se puede eliminar; solo se podrá saldar.`
         );
     });
 
-    it("conserva el texto de la confirmación de saldado", () => {
-        expect(mensajeConfirmacionEstadoPrestamo(ESTADO_PRESTAMO_PAGADO)).toBe(
-            "¿Marcar este préstamo como Pagado?"
+    it("dice al registrar a quién, cuánto, con qué fecha y cómo quedó", () => {
+        expect(
+            mensajeExitoPrestamo({ nombreProfesor: "Pérez Ana", monto: 500000, fecha: "2026-08-01" })
+        ).toBe(
+            `Préstamo de ${pesos(500000)} a Pérez Ana, con fecha 2026-08-01.\nQuedó como Pendiente en su historial.`
+        );
+    });
+
+    it("antes de saldar dice de quién es, cuánto, qué cambia y que no se deshace", () => {
+        expect(mensajeConfirmacionSaldar(prestamoDeAna)).toBe(
+            `Préstamo de ${pesos(500000)} a Pérez Ana, del 2026-07-10.\n\nQuedará como Pagado y ya no se descontará en la nómina. No se puede deshacer.`
+        );
+    });
+
+    it("al saldar confirma cómo quedó el préstamo", () => {
+        expect(mensajeExitoSaldar(prestamoDeAna)).toBe(
+            `El préstamo de ${pesos(500000)} a Pérez Ana quedó como Pagado.`
         );
     });
 
@@ -124,12 +142,48 @@ describe("utilidades de préstamos", () => {
         expect(totalPrestamosPendientes([])).toBe(0);
     });
 
-    it("prefiere el detalle del backend al mensaje genérico", () => {
+    it("al fallar el registro sin respuesta, no se sabe si quedó: hay que revisar el historial", () => {
+        expect(avisoErrorCrearPrestamo(new Error("Network Error"))).toEqual({
+            incierto: true,
+            titulo: "No sabemos si el préstamo quedó registrado",
+            texto:
+                "Se perdió la comunicación con el servidor antes de recibir su respuesta.\n\n" +
+                "Abajo ves el historial de esa persona: revisa si el préstamo ya aparece antes de intentarlo de nuevo.",
+        });
+    });
+
+    it("al rechazar el registro, muestra la explicación del backend y que no se guardó nada", () => {
         expect(
-            mensajeErrorCrearPrestamo({ response: { data: { detail: "Monto no permitido" } } })
-        ).toBe("Monto no permitido");
-        expect(mensajeErrorCrearPrestamo(new Error("timeout"))).toBe(
-            "No se pudo registrar el préstamo."
+            avisoErrorCrearPrestamo({
+                response: { status: 400, data: { detail: "Monto no permitido" } },
+            })
+        ).toEqual({
+            incierto: false,
+            titulo: "No se registró el préstamo",
+            texto: "Monto no permitido\n\nNo se guardó nada.",
+        });
+        expect(avisoErrorCrearPrestamo({ response: { status: 500, data: {} } }).texto).toBe(
+            "El servidor no pudo registrar el préstamo. No se guardó nada; puedes intentarlo de nuevo."
+        );
+    });
+
+    it("al fallar el saldado separa no saber de no haber cambiado nada", () => {
+        expect(avisoErrorSaldar(new Error("Network Error"))).toEqual({
+            incierto: true,
+            titulo: "No sabemos si el préstamo quedó saldado",
+            texto:
+                "Se perdió la comunicación con el servidor antes de recibir su respuesta.\n\n" +
+                "Recargamos el historial: revisa si ya aparece como Pagado.",
+        });
+        expect(
+            avisoErrorSaldar({ response: { status: 404, data: { detail: "Prestamo no encontrado." } } })
+        ).toEqual({
+            incierto: false,
+            titulo: "No se saldó el préstamo",
+            texto: "Prestamo no encontrado.\n\nNo cambió nada.",
+        });
+        expect(avisoErrorSaldar({ response: { status: 500 } }).texto).toBe(
+            "El servidor no pudo saldar el préstamo. No cambió nada; puedes intentarlo de nuevo."
         );
     });
 });

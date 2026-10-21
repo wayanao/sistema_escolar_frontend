@@ -32,10 +32,27 @@ describe("FormularioPrestamo", () => {
         expect(screen.getByDisplayValue("Quincena")).toBeInTheDocument();
     });
 
-    it("deshabilita el selector mientras cargan los profesores", () => {
+    it("deshabilita el selector mientras cargan los profesores y lo dice", () => {
         render_({ cargandoProfesores: true });
 
         expect(screen.getByRole("combobox")).toBeDisabled();
+        expect(screen.getByRole("option", { name: "Cargando profesores..." })).toBeInTheDocument();
+    });
+
+    it("mientras registra dice Registrando préstamo... y bloquea campos y botón", () => {
+        render_({ registrando: true });
+
+        const boton = screen.getByRole("button", { name: "Registrando préstamo..." });
+        expect(boton).toBeDisabled();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+        expect(screen.getByRole("combobox")).toBeDisabled();
+        expect(screen.getByPlaceholderText("Ej. 1000.00")).toBeDisabled();
+    });
+
+    it("con otra operación en curso, el botón espera", () => {
+        render_({ bloqueado: true });
+
+        expect(screen.getByRole("button", { name: "Registrar Préstamo" })).toBeDisabled();
     });
 
     it("informa cada campo modificado", () => {

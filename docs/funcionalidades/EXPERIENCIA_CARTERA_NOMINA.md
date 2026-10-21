@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **Paso 0 (inventario) y paso 1 (Nómina) hechos el 2026-10-20, sin
-  commit. Siguiente: paso 2 (Préstamos y Egresos), con el visto bueno del
-  usuario.**
+- Estado: **Pasos 0 y 1 en el commit `9a61a8a` (2026-10-20). Paso 2
+  (Préstamos y Egresos) hecho el 2026-10-20, sin commit. Siguiente: paso 3
+  (Cartera vencida y Tipos de pago), con el visto bueno del usuario.**
 - Tipo: mejora de pantallas que ya existen. No es un módulo de
   `modularizacion/` y no cambia ninguna petición al backend.
 - Repos: **solo este**. El usuario lo precisó el 2026-10-20: «lo que quiero
@@ -174,10 +174,14 @@ de la vista:
 - Nómina (paso 1, hecho): «Revisar el historial» baja hasta el historial de la
   persona. Al pagar no hace falta bajar: el modal no mueve la página y la fila
   pagada queda resaltada donde estaba.
-- Egresos (paso 2): `Editar` sube al formulario, pone el cursor en el concepto
-  y marca la fila que se edita (E3).
-- Préstamos (paso 2): al registrar, baja al historial de la persona y resalta
-  el préstamo nuevo.
+- Egresos (paso 2, hecho): `Editar` sube al formulario, le pasa el foco a su
+  título y marca la fila que se edita (E3). Al guardar, cuando se cierra el
+  aviso, baja a la fila guardada si no se ve. El foco va al título y no al
+  concepto a propósito: un campo abriría el teclado del celular y taparía
+  medio formulario.
+- Préstamos (paso 2, hecho): al registrar, cuando se cierra el aviso, baja al
+  préstamo nuevo (ya en el historial de la persona) si no se ve, y lo resalta.
+- En los dos, si no se sabe si quedó, «Revisar el historial» baja hasta él.
 - Tipos de pago (paso 3): `⚙️ Configurar` baja al panel de configuración, que
   aparece debajo de la lista; `✏️` sube al formulario y pone el cursor en el
   nombre (T4).
@@ -295,6 +299,74 @@ pago...» y el aviso final hay que registrar un pago de verdad: el backend local
 escribe en la base real y **un pago de nómina no se puede anular desde la
 app**. Si se quiere, en el Colegio Demo, con alguien sin préstamos y un monto
 pequeño.
+
+## Paso 2 — Préstamos y Egresos (hecho el 2026-10-20, sin commit)
+
+Qué ve el usuario en Préstamos:
+
+- `Registrar Préstamo` confirma en una ventana del sistema con la persona, el
+  monto y la fecha. Mientras guarda: «Registrando préstamo...» con círculo y
+  el formulario bloqueado; un segundo clic no envía nada (P1).
+- Al terminar: «Préstamo registrado» con monto, persona y fecha; el historial
+  pasa a esa persona, el préstamo nuevo queda en verde y la página baja hasta
+  él al cerrar el aviso (P2).
+- `Saldar` pregunta «¿Saldar este préstamo?» con persona, monto y fecha, y
+  avisa que ya no se descontará en la nómina y que no se puede deshacer.
+  Mientras salda, ese botón dice «Saldando...» y los demás esperan; al
+  terminar, «Préstamo saldado» y la fila queda en verde (P3).
+- Errores: el rechazo del backend se explica con su texto y «No se guardó
+  nada» / «No cambió nada»; sin respuesta, «No sabemos si...», se recarga el
+  historial para revisarlo y, al registrar, se ofrece bajar a él. Lo escrito
+  se conserva para reintentar.
+- Recargar el historial de la misma persona ya no lo esconde
+  («Actualizando...»); el de otra persona sí muestra «Cargando préstamos...».
+  Si falla una carga, «Reintentar» pide de nuevo lo que falló (P7). Mientras
+  cargan los profesores, el selector dice «Cargando profesores...».
+
+Qué ve el usuario en Egresos:
+
+- `Registrar/Actualizar Egreso` confirma con concepto, monto, fecha y
+  categoría. Mientras guarda: «Registrando egreso...» o «Guardando
+  cambios...», formulario bloqueado y `Editar` en espera (E1).
+- Al terminar: «Egreso registrado» (dice que abajo se ven los egresos de ese
+  día, porque el filtro salta a esa fecha) o «Egreso actualizado» con cómo
+  quedó; la fila queda en verde y la página baja a ella al cerrar el aviso
+  (E2).
+- `Editar` sube al formulario (con borde ámbar y la frase «Estás cambiando un
+  egreso que ya está en la lista.») y la fila queda en ámbar con «Editando»
+  (E3).
+- Errores como en préstamos; sin respuesta al registrar se muestran los
+  egresos de ese día para revisarlo (E5). Recargar el mismo rango no esconde la
+  tabla; si falla la carga, «Reintentar» (E8).
+- Las ventanas del navegador de los dos subflujos pasaron a SweetAlert (P4,
+  E4), también los avisos de buscar sin persona y de fechas al revés.
+
+Archivos nuevos: `utils/nominaEgresosPrestamos/avisos.js` (los pesos de los
+mensajes y la regla «no se guardó nada» / «no se sabe», compartidos por los
+tres subflujos; nómina ahora la usa) y
+`hooks/nominaEgresosPrestamos/ventanasAviso.js` (la ventana con saltos de
+línea y la espera a que se cierre; mismo patrón que
+`hooks/planeaciones/notificacionesPlaneadoresSync.js`). Cambiados: los
+hooks, componentes, utilidades y páginas de préstamos y egresos, y sus
+pruebas. Se retiraron `mensajeConfirmacionEstadoPrestamo`,
+`mensajeErrorCrearPrestamo` y `mensajeErrorGuardarEgreso`, reemplazados por
+los nuevos mensajes; `mensajeConfirmacionPrestamo` y
+`mensajeConfirmacionEgreso` dejan la pregunta al título de la ventana.
+
+Pruebas: escritas primero; fallaron 44 de préstamos y 39 de egresos antes del
+código. Se ajustaron a propósito las que esperaban `alert`/`confirm`, las que
+daban por hecho que recargar escondía la tabla, la que esperaba `onSaldar(id)`
+(ahora recibe el préstamo) y las de errores sin código HTTP (un rechazo real
+siempre lo trae). Suite del módulo: 22 archivos, 226 pruebas correctas, sin
+advertencias. `pnpm run check:deploy` con 2,8 GB libres: 2739 de 2741; las dos
+que fallaron por tiempo (`AniosLectivosAdmin`, `CrearProfesor`) no se tocaron y
+pasan solas. Lint y build aparte: correctos.
+
+Cómo probarlo en local sin guardar nada: en Egresos, `Editar` en una fila (la
+página sube al formulario y la fila queda en ámbar) y luego `Cancelar
+edición`; o `Registrar Egreso` y elegir «Revisar» en la confirmación. En
+Préstamos, `Saldar` y «Cancelar». Registrar o saldar de verdad escribe en la
+base real: un préstamo no se elimina y saldar no se deshace.
 
 ## Preguntas abiertas (se hacen justo antes del paso que las necesita)
 

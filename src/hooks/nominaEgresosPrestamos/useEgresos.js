@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Swal from "sweetalert2";
 import { obtenerEgresos } from "../../services/nominaEgresosPrestamosApi";
 import {
     construirParametrosEgresos,
@@ -8,26 +9,39 @@ import {
     totalEgresos,
 } from "../../utils/nominaEgresosPrestamos/egresos";
 
+const claveDelRango = ({ fecha_desde, fecha_hasta }) => `${fecha_desde}|${fecha_hasta}`;
+
 const useEgresos = () => {
     const [egresos, setEgresos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actualizando, setActualizando] = useState(false);
     const [error, setError] = useState(null);
     const [fechaDesde, setFechaDesde] = useState(() => obtenerFechaLocal(new Date()));
     const [fechaHasta, setFechaHasta] = useState(() => obtenerFechaLocal(new Date()));
+    // El rango de la lista que se ve: recargarlo no la esconde, solo avisa que
+    // actualiza; otro rango sí muestra la carga.
+    const rangoMostrado = useRef(null);
 
     const cargarEgresos = useCallback(async (filtros = null) => {
+        const hoy = obtenerFechaLocal(new Date());
+        const params = filtros || construirParametrosEgresos(hoy, hoy);
+        const mismoRango = rangoMostrado.current === claveDelRango(params);
         try {
-            setLoading(true);
+            if (mismoRango) {
+                setActualizando(true);
+            } else {
+                setLoading(true);
+            }
             setError(null);
-            const hoy = obtenerFechaLocal(new Date());
-            const params = filtros || construirParametrosEgresos(hoy, hoy);
             const datos = await obtenerEgresos(params);
             setEgresos(normalizarListaEgresos(datos));
+            rangoMostrado.current = claveDelRango(params);
         } catch (err) {
             console.error(err);
             setError("Error al cargar los egresos.");
         } finally {
             setLoading(false);
+            setActualizando(false);
         }
     }, []);
 
@@ -57,7 +71,11 @@ const useEgresos = () => {
 
     const buscarPorFechas = useCallback(() => {
         if (rangoDeFechasInvertido(fechaDesde, fechaHasta)) {
-            alert("La fecha desde no puede ser mayor que la fecha hasta.");
+            Swal.fire({
+                icon: "warning",
+                title: "Revisa las fechas",
+                text: "La fecha desde no puede ser mayor que la fecha hasta.",
+            });
             return;
         }
         recargarRangoVigente();
@@ -67,6 +85,7 @@ const useEgresos = () => {
         egresos,
         total: totalEgresos(egresos),
         loading,
+        actualizando,
         error,
         fechaDesde,
         setFechaDesde,

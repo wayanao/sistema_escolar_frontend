@@ -1,9 +1,14 @@
 import React from "react";
+import SpinnerView from "../anioLectivo/SpinnerView";
 import {
     claseEstadoPrestamo,
     puedeSaldarPrestamo,
 } from "../../utils/nominaEgresosPrestamos/prestamos";
 
+// Cada fila lleva `data-prestamo-id` para que la página pueda llevarla a la
+// vista. `resaltadoId` pinta en verde la última registrada o saldada;
+// `saldandoId` es la que se está saldando y `bloqueado` hace esperar a las
+// demás. Con `actualizando`, la tabla se queda a la vista mientras recarga.
 const HistorialPrestamos = ({
     prestamos,
     profesores,
@@ -12,6 +17,10 @@ const HistorialPrestamos = ({
     historialConsultado,
     total,
     profesorFiltro,
+    actualizando = false,
+    saldandoId = null,
+    bloqueado = false,
+    resaltadoId = null,
     onCambiarFiltro,
     onBuscar,
     onLimpiar,
@@ -20,7 +29,15 @@ const HistorialPrestamos = ({
     <div className="bg-white shadow rounded-lg p-6">
         <div className="flex flex-col gap-4 mb-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <h2 className="text-xl font-bold">Historial de Préstamos</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-xl font-bold">Historial de Préstamos</h2>
+                    {actualizando && (
+                        <span role="status" className="inline-flex items-center gap-2 text-sm text-purple-700">
+                            <SpinnerView />
+                            Actualizando...
+                        </span>
+                    )}
+                </div>
                 <p className="text-sm text-gray-500">
                     El historial se carga solo cuando seleccionas un profesor o trabajador.
                 </p>
@@ -63,7 +80,10 @@ const HistorialPrestamos = ({
         </div>
 
         {cargando ? (
-            <p>Cargando préstamos...</p>
+            <p className="flex items-center gap-2">
+                <SpinnerView />
+                Cargando préstamos...
+            </p>
         ) : !historialConsultado ? (
             <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                 <p className="font-semibold text-gray-700">Selecciona un profesor o trabajador para ver su historial de préstamos.</p>
@@ -88,7 +108,11 @@ const HistorialPrestamos = ({
                             </tr>
                         ) : (
                             prestamos.map((prestamo) => (
-                                <tr key={prestamo.id} className="border-b hover:bg-gray-50">
+                                <tr
+                                    key={prestamo.id}
+                                    data-prestamo-id={prestamo.id}
+                                    className={`scroll-my-8 border-b hover:bg-gray-50 ${prestamo.id === resaltadoId ? "bg-green-50" : ""}`}
+                                >
                                     <td className="px-4 py-2">{prestamo.fecha}</td>
                                     <td className="px-4 py-2 font-medium capitalize">{prestamo.profesor_nombre}</td>
                                     <td className="px-4 py-2 text-right font-bold">${prestamo.monto.toFixed(2)}</td>
@@ -100,11 +124,19 @@ const HistorialPrestamos = ({
                                     <td className="px-4 py-2 text-center">
                                         {puedeSaldarPrestamo(prestamo) && (
                                             <button
-                                                onClick={() => onSaldar(prestamo.id)}
-                                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                                                onClick={() => onSaldar(prestamo)}
+                                                disabled={bloqueado}
+                                                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors disabled:cursor-wait disabled:opacity-60"
                                                 title="Marcar como recuperado"
                                             >
-                                                Saldar
+                                                {saldandoId === prestamo.id ? (
+                                                    <>
+                                                        <SpinnerView />
+                                                        Saldando...
+                                                    </>
+                                                ) : (
+                                                    "Saldar"
+                                                )}
                                             </button>
                                         )}
                                         {!puedeSaldarPrestamo(prestamo) && (

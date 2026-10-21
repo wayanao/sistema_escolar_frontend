@@ -52,6 +52,39 @@ describe("FormularioEgreso", () => {
         expect(screen.getByDisplayValue("2026-08-05")).toBeInTheDocument();
     });
 
+    it("en modo edición se distingue del registro y explica qué se está cambiando", () => {
+        const { container } = render_({ editando: true });
+
+        expect(
+            screen.getByText("Estás cambiando un egreso que ya está en la lista.")
+        ).toBeInTheDocument();
+        expect(container.firstChild).toHaveClass("ring-2");
+    });
+
+    it("mientras registra lo dice y bloquea campos y botones", () => {
+        render_({ guardando: true });
+
+        expect(screen.getByRole("button", { name: "Registrando egreso..." })).toBeDisabled();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Ej. Compra de papelería")).toBeDisabled();
+        expect(screen.getByRole("combobox")).toBeDisabled();
+    });
+
+    it("mientras guarda una edición lo dice y no deja cancelarla", () => {
+        render_({ editando: true, guardando: true });
+
+        expect(screen.getByRole("button", { name: "Guardando cambios..." })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Cancelar edición" })).toBeDisabled();
+    });
+
+    it("entrega el título para poder llevar el foco al formulario", () => {
+        const tituloRef = { current: null };
+        render_({ tituloRef });
+
+        expect(tituloRef.current).toHaveTextContent("Registrar Nuevo Egreso");
+        expect(tituloRef.current).toHaveAttribute("tabindex", "-1");
+    });
+
     it("informa cada campo modificado y la cancelación de la edición", () => {
         const onCambiarCampo = vi.fn();
         const onCancelarEdicion = vi.fn();

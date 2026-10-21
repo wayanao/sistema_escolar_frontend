@@ -1,3 +1,5 @@
+import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje } from "./avisos";
+
 export const CATEGORIAS_EGRESO = [
     "Compras Institucionales",
     "Pago de Servicios",
@@ -64,18 +66,40 @@ export const validarEgreso = ({ concepto, monto, categoria }) => {
     return null;
 };
 
-export const mensajeConfirmacionEgreso = (egreso, editando) => {
-    const accion = editando ? "actualizar" : "registrar";
-    const monto = egreso.monto.toLocaleString("es-CO", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+// La pregunta (registrar o actualizar) va en el título de la ventana; este es
+// el cuerpo.
+export const mensajeConfirmacionEgreso = (egreso) =>
+    `Concepto: ${egreso.concepto}\nMonto: ${pesosEnMensaje(egreso.monto)}\nFecha: ${egreso.fecha}\nCategoría: ${egreso.categoria}`;
 
-    return `¿Seguro que deseas ${accion} este egreso?\n\nConcepto: ${egreso.concepto}\nMonto: $${monto}\nFecha: ${egreso.fecha}\nCategoría: ${egreso.categoria}`;
-};
+// Registrar mueve el filtro al día del egreso: el aviso lo dice.
+export const mensajeExitoEgreso = (egreso, editando) =>
+    editando
+        ? `«${egreso.concepto}» quedó con ${pesosEnMensaje(egreso.monto)}, fecha ${egreso.fecha} y categoría ${egreso.categoria}.`
+        : `«${egreso.concepto}» por ${pesosEnMensaje(egreso.monto)} quedó registrado con fecha ${egreso.fecha}.\nAbajo ves los egresos de ese día.`;
 
 export const totalEgresos = (egresos) =>
     egresos.reduce((acc, egreso) => acc + Number(egreso.monto || 0), 0);
 
-export const mensajeErrorGuardarEgreso = (error) =>
-    error.response?.data?.detail || "No se pudo guardar el egreso.";
+export const avisoErrorGuardarEgreso = (error, editando) => {
+    if (esRespuestaIncierta(error)) {
+        return {
+            incierto: true,
+            titulo: editando
+                ? "No sabemos si el cambio quedó guardado"
+                : "No sabemos si el egreso quedó registrado",
+            texto:
+                "Se perdió la comunicación con el servidor antes de recibir su respuesta.\n\n" +
+                (editando
+                    ? "Recargamos el historial: revisa el egreso antes de intentarlo de nuevo."
+                    : "Abajo ves los egresos de ese día: revisa si ya aparece antes de intentarlo de nuevo."),
+        };
+    }
+    const explicacion = explicacionDelRechazo(error);
+    return {
+        incierto: false,
+        titulo: editando ? "No se guardaron los cambios" : "No se registró el egreso",
+        texto: explicacion
+            ? `${explicacion}\n\nNo se guardó nada.`
+            : "El servidor no pudo guardar el egreso. No se guardó nada; puedes intentarlo de nuevo.",
+    };
+};

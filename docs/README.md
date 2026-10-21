@@ -48,8 +48,8 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`: saber qué pasa al guardar
   en Cartera vencida, Tipos de pago, Nómina, Préstamos y Egresos (botones que
   se bloquean, confirmaciones, avisos de éxito y de error, desplazamiento
-  automático). Solo frontend. **Inventario (paso 0) y Nómina (paso 1) hechos
-  el 2026-10-20, sin commit.**
+  automático). Solo frontend. **Inventario y Nómina (pasos 0 y 1) en
+  `9a61a8a`; Préstamos y Egresos (paso 2) hechos el 2026-10-20, sin commit.**
 
 ## Control SaaS
 

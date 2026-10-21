@@ -1016,15 +1016,25 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   `Cancelar` y la `✕` (que se llama «Cerrar» para los lectores de pantalla).
 - `components/nominaEgresosPrestamos/FormularioEgreso.jsx`: concepto, monto,
   categoría, fecha opcional y notas, con el encabezado y los botones que cambian
-  entre registrar y actualizar.
+  entre registrar y actualizar. En edición lleva borde ámbar y una frase que lo
+  explica. Con `guardando`, campos y botones bloqueados y «Registrando
+  egreso...» o «Guardando cambios...». `tituloRef` deja que la página le pase
+  el foco al título al subir a editar.
 - `components/nominaEgresosPrestamos/HistorialEgresos.jsx`: rango de fechas,
   botones `Buscar` y `Hoy`, total del rango, tabla y la distinción entre fila
-  manual editable y fila `Automático`.
+  manual editable y fila `Automático`. Cada fila lleva `data-egreso-id`; la
+  que se edita queda en ámbar con «Editando», la recién guardada en verde, y
+  `Editar` espera mientras se guarda. Con `actualizando` conserva la tabla.
 - `components/nominaEgresosPrestamos/FormularioPrestamo.jsx`: selector de
-  profesor con documento, monto, fecha opcional y notas.
+  profesor con documento, monto, fecha opcional y notas. Con `registrando`,
+  formulario bloqueado y «Registrando préstamo...»; con `bloqueado`, el botón
+  espera a otra operación. Mientras cargan los profesores, el selector lo dice.
 - `components/nominaEgresosPrestamos/HistorialPrestamos.jsx`: filtro por
   profesor, botones `Buscar` y `Limpiar`, total por cobrar, recuadro punteado
-  inicial, tabla con insignia de estado y la acción `Saldar`.
+  inicial, tabla con insignia de estado y la acción `Saldar`, que entrega el
+  préstamo completo. Cada fila lleva `data-prestamo-id`; la recién registrada o
+  saldada queda en verde; la que se salda dice «Saldando...» y las demás
+  esperan. Con `actualizando` conserva la tabla.
 - `pages\NominaAdmin.jsx`, `pages\EgresosAdmin.jsx` y `pages\PrestamosAdmin.jsx`:
   raíces de composición del módulo.
 - `hooks/nominaEgresosPrestamos/`: consultas paralelas de nómina, egresos por
@@ -1046,6 +1056,13 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md`.
 - Los egresos automáticos que crea la nómina no se pueden editar desde esta
   pantalla; los préstamos no se eliminan y solo se pueden saldar.
+- Desde el 2026-10-20 (paso 2), préstamos y egresos avisan igual que el pago
+  de nómina: confirmación con los datos, botón que dice qué hace y no se
+  envía dos veces, aviso al terminar, fila resaltada y la página que baja a
+  ella al cerrar el aviso; errores que separan «no se guardó nada» de «no
+  sabemos si quedó». `Editar` en egresos sube al formulario. Las ventanas
+  comunes viven en `hooks/nominaEgresosPrestamos/ventanasAviso.js` y las
+  reglas de los mensajes en `utils/nominaEgresosPrestamos/avisos.js`.
 
 ### Pagos administrativos
 

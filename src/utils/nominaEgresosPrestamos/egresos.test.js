@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+    avisoErrorGuardarEgreso,
     CATEGORIAS_EGRESO,
     CATEGORIA_EGRESO_INICIAL,
     construirParametrosEgresos,
     formularioDesdeEgreso,
     mensajeConfirmacionEgreso,
-    mensajeErrorGuardarEgreso,
+    mensajeExitoEgreso,
     normalizarEgreso,
     normalizarListaEgresos,
     obtenerFechaLocal,
@@ -14,6 +15,10 @@ import {
     totalEgresos,
     validarEgreso,
 } from "./egresos";
+
+// Así escribe Colombia los pesos en los mensajes: "80.000,00".
+const pesos = (valor) =>
+    `$${valor.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const formulario = {
     concepto: "  Aseo general  ",
@@ -133,18 +138,27 @@ describe("utilidades de egresos", () => {
         expect(validarEgreso(valido)).toBeNull();
     });
 
-    it("cambia solo el verbo entre registrar y actualizar en la confirmación", () => {
+    it("resume el egreso antes de confirmarlo (la pregunta va en el título)", () => {
         const egreso = normalizarEgreso(formulario, "2026-08-07");
-        const montoEsperado = (80000).toLocaleString("es-CO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
 
-        expect(mensajeConfirmacionEgreso(egreso, false)).toBe(
-            `¿Seguro que deseas registrar este egreso?\n\nConcepto: Aseo general\nMonto: $${montoEsperado}\nFecha: 2026-08-01\nCategoría: Mantenimiento`
+        expect(mensajeConfirmacionEgreso(egreso)).toBe(
+            `Concepto: Aseo general\nMonto: ${pesos(80000)}\nFecha: 2026-08-01\nCategoría: Mantenimiento`
         );
-        expect(mensajeConfirmacionEgreso(egreso, true)).toContain(
-            "¿Seguro que deseas actualizar este egreso?"
+    });
+
+    it("al registrar dice qué quedó, con qué fecha y qué muestra el historial", () => {
+        const egreso = normalizarEgreso(formulario, "2026-08-07");
+
+        expect(mensajeExitoEgreso(egreso, false)).toBe(
+            `«Aseo general» por ${pesos(80000)} quedó registrado con fecha 2026-08-01.\nAbajo ves los egresos de ese día.`
+        );
+    });
+
+    it("al actualizar dice cómo quedó el egreso", () => {
+        const egreso = normalizarEgreso(formulario, "2026-08-07");
+
+        expect(mensajeExitoEgreso(egreso, true)).toBe(
+            `«Aseo general» quedó con ${pesos(80000)}, fecha 2026-08-01 y categoría Mantenimiento.`
         );
     });
 
@@ -155,12 +169,43 @@ describe("utilidades de egresos", () => {
         expect(totalEgresos([])).toBe(0);
     });
 
-    it("prefiere el detalle del backend al mensaje genérico", () => {
+    it("sin respuesta al registrar no se sabe si quedó: hay que revisar ese día", () => {
+        expect(avisoErrorGuardarEgreso(new Error("Network Error"), false)).toEqual({
+            incierto: true,
+            titulo: "No sabemos si el egreso quedó registrado",
+            texto:
+                "Se perdió la comunicación con el servidor antes de recibir su respuesta.\n\n" +
+                "Abajo ves los egresos de ese día: revisa si ya aparece antes de intentarlo de nuevo.",
+        });
+    });
+
+    it("sin respuesta al actualizar no se sabe si el cambio quedó", () => {
+        expect(avisoErrorGuardarEgreso(new Error("Network Error"), true)).toEqual({
+            incierto: true,
+            titulo: "No sabemos si el cambio quedó guardado",
+            texto:
+                "Se perdió la comunicación con el servidor antes de recibir su respuesta.\n\n" +
+                "Recargamos el historial: revisa el egreso antes de intentarlo de nuevo.",
+        });
+    });
+
+    it("un rechazo muestra la explicación del backend y que no se guardó nada", () => {
         expect(
-            mensajeErrorGuardarEgreso({ response: { data: { detail: "Concepto duplicado" } } })
-        ).toBe("Concepto duplicado");
-        expect(mensajeErrorGuardarEgreso(new Error("timeout"))).toBe(
-            "No se pudo guardar el egreso."
-        );
+            avisoErrorGuardarEgreso(
+                { response: { status: 400, data: { detail: "Concepto duplicado" } } },
+                false
+            )
+        ).toEqual({
+            incierto: false,
+            titulo: "No se registró el egreso",
+            texto: "Concepto duplicado\n\nNo se guardó nada.",
+        });
+        expect(
+            avisoErrorGuardarEgreso({ response: { status: 500, data: { detail: "boom" } } }, true)
+        ).toEqual({
+            incierto: false,
+            titulo: "No se guardaron los cambios",
+            texto: "El servidor no pudo guardar el egreso. No se guardó nada; puedes intentarlo de nuevo.",
+        });
     });
 });

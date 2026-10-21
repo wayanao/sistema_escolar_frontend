@@ -1,3 +1,5 @@
+import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje as pesos } from "./avisos";
+
 const aNumero = (valor) => parseFloat(valor) || 0;
 
 export const estadoInicialPagoNomina = (empleado) => ({
@@ -83,14 +85,6 @@ export const filtrarHistorialNomina = (historial, busqueda) =>
 export const busquedaHistorialDeEmpleado = (empleado) =>
     `${empleado.apellido ?? ""} ${empleado.nombre ?? ""}`.trim();
 
-// Los mensajes escriben los pesos como ya lo hacen las confirmaciones de
-// egresos y préstamos: formato colombiano con dos decimales.
-const pesos = (valor) =>
-    `$${aNumero(valor).toLocaleString("es-CO", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })}`;
-
 // "ana pérez" → "Ana Pérez". La tabla y el modal ponen las mayúsculas con CSS,
 // pero una ventana de aviso muestra el texto tal cual llega.
 const nombreParaMensaje = (empleado) =>
@@ -144,17 +138,9 @@ export const mensajeExitoPagoNomina = ({
     return lineas.join("\n");
 };
 
-// El pago es una sola transacción en el backend: si respondió con un error, no
-// se guardó nada. Si no respondió, o contestó un intermediario porque el
-// servidor no lo hizo, no se sabe: el pago pudo quedar guardado.
-const ESTADOS_SIN_CERTEZA = [502, 503, 504];
-
-const MENSAJE_RECHAZO_GENERICO =
-    "El servidor no pudo registrar el pago. No se guardó nada; puedes intentarlo de nuevo.";
-
+// El pago es una sola transacción: ver `avisos.js`.
 export const avisoErrorPagoNomina = (error) => {
-    const respuesta = error?.response;
-    if (!respuesta || ESTADOS_SIN_CERTEZA.includes(respuesta.status)) {
+    if (esRespuestaIncierta(error)) {
         return {
             incierto: true,
             titulo: "No sabemos si el pago quedó registrado",
@@ -164,12 +150,12 @@ export const avisoErrorPagoNomina = (error) => {
         };
     }
 
-    // Un 500 trae el texto interno del error: no se le muestra al usuario.
-    const detalle = respuesta.data?.detail;
-    const explicacion =
-        respuesta.status < 500 && typeof detalle === "string" && detalle.trim()
-            ? `${detalle}\n\nNo se guardó nada.`
-            : MENSAJE_RECHAZO_GENERICO;
-
-    return { incierto: false, titulo: "No se registró el pago", texto: explicacion };
+    const explicacion = explicacionDelRechazo(error);
+    return {
+        incierto: false,
+        titulo: "No se registró el pago",
+        texto: explicacion
+            ? `${explicacion}\n\nNo se guardó nada.`
+            : "El servidor no pudo registrar el pago. No se guardó nada; puedes intentarlo de nuevo.",
+    };
 };

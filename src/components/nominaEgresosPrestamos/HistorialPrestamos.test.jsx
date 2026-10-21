@@ -83,15 +83,38 @@ describe("HistorialPrestamos", () => {
         fireEvent.click(screen.getByRole("button", { name: "Buscar" }));
         fireEvent.click(screen.getByRole("button", { name: "Limpiar" }));
 
-        expect(onSaldar).toHaveBeenCalledWith(90);
+        expect(onSaldar).toHaveBeenCalledWith(prestamos[0]);
         expect(onCambiarFiltro).toHaveBeenCalledWith("4");
         expect(onBuscar).toHaveBeenCalledTimes(1);
         expect(onLimpiar).toHaveBeenCalledTimes(1);
     });
 
-    it("muestra su indicador de carga", () => {
+    it("muestra su indicador de carga con el círculo", () => {
         render_({ cargando: true });
 
         expect(screen.getByText("Cargando préstamos...")).toBeInTheDocument();
+        expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    });
+
+    it("mientras salda un préstamo, su botón lo dice y los demás esperan", () => {
+        const otroPendiente = { ...prestamos[0], id: 92, fecha: "2026-08-01" };
+        render_({ prestamos: [prestamos[0], otroPendiente], saldandoId: 90, bloqueado: true });
+
+        expect(screen.getByRole("button", { name: "Saldando..." })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Saldar" })).toBeDisabled();
+    });
+
+    it("resalta el préstamo indicado y marca cada fila con su número", () => {
+        const container = render_({ resaltadoId: 91 }).container;
+
+        expect(container.querySelector('[data-prestamo-id="91"]')).toHaveClass("bg-green-50");
+        expect(container.querySelector('[data-prestamo-id="90"]')).not.toHaveClass("bg-green-50");
+    });
+
+    it("al actualizar conserva la tabla y lo avisa", () => {
+        render_({ actualizando: true });
+
+        expect(screen.getByRole("status")).toHaveTextContent("Actualizando...");
+        expect(screen.getByRole("table")).toBeInTheDocument();
     });
 });

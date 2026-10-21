@@ -1007,8 +1007,9 @@ están protegidos por pruebas antes de extraer utilidades.
   quedaron atendidos en el paso 1 de
   `docs/funcionalidades/EXPERIENCIA_CARTERA_NOMINA.md` (el pago se confirma,
   no se envía dos veces y avisa con SweetAlert). El 4 ya se había corregido el
-  2026-09-30 (`fechaColombia.js`). Egresos y préstamos (5 y 6) siguen en el
-  paso 2 de ese documento.
+  2026-09-30 (`fechaColombia.js`). El 5 (egresos y préstamos) y el 6 quedaron
+  atendidos en el paso 2 del mismo documento: SweetAlert y botones que se
+  bloquean mientras guardan.
 - Deuda transversal registrada: `obtenerFechaLocal` existe duplicada en
   `utils/pagos/formatos.js` y `utils/nominaEgresosPrestamos/egresos.js`.
   Unificarla exige una tarea que toque el módulo de pagos.
