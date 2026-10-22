@@ -180,8 +180,8 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 - **B4c — Aviso al guardar el boletín con porcentajes incompletos (PB11):**
   nació durante B5. **Hecho el 2026-10-22, sin commit** (ver "Avance del
   paso B4c").
-- **B5 — Prueba en local** con el Colegio Demo: ver "Paso B5". Después, el
-  push.
+- **B5 — Prueba en local** con el Colegio Demo: ver "Paso B5". **Hecho el
+  2026-10-22, todo bien** (ver "Avance del paso B5"). Después, el push.
 
 ## Avance del paso A3, 2026-10-21
 
@@ -558,6 +558,35 @@ de porcentajes).
 Si todo sale bien, el usuario hace el push del frontend y la parte B queda
 publicada.
 
+## Avance del paso B5, 2026-10-22
+
+Lo hizo el usuario en su computador, guiado de a un paso por el asistente,
+con el backend y el frontend en local y **solo con el Colegio Demo**. El
+asistente no corrió los servidores ni entró a la pantalla: lo de abajo es lo
+que contó el usuario ("todo bien", "está bien" y "listo" en cada paso).
+
+- **Pasos 1 a 4:** con los tres tipos de prueba (50 %, 30 % y sin
+  porcentaje) salieron las pastillas, "Porcentajes: 80 % de 100 %" y el
+  aviso. Aquí el usuario propuso bloquear las notas; se decidió PB11 y se hizo
+  B4c antes de seguir.
+- **Paso 5:** con notas 4, 3 y 5 el promedio fue el simple (4.00), y al
+  guardar el boletín salió el aviso "Porcentajes incompletos"; con Cancelar
+  no se guardó.
+- **Paso 6:** con 20 % en el tercero, "Porcentajes completos" y el promedio
+  en 3.90; subir el primero a 60 % avisó que no pueden sumar más de 100 %.
+- **Paso 7:** en el boletín del profesor la definitiva fue 3.90 y se guardó
+  sin el aviso.
+- **Paso 8:** como admin, el boletín y el reporte parcial mostraron 3.9 en esa
+  materia.
+- **Paso 9:** vaciar un porcentaje volvió al aviso y al promedio simple sin
+  recargar.
+- **Paso 10:** en la vista de celular la franja se vio y se pudo editar.
+- **Paso 11, preescolar:** con 50 % y 50 %, destacado y logrado dieron
+  destacado (empate hacia la más alta); con 40 % y 60 %, logrado.
+- **Paso 12:** se borraron los cinco tipos de prueba (cada uno con su
+  porcentaje). Queda en el Colegio Demo el boletín guardado en el paso 7.
+- No apareció ningún error, así que no hubo cambios de código en este paso.
+
 ## Fuera de alcance
 
 - Lo de la parte B que queda fuera también allí: porcentajes en las tarjetas
@@ -648,10 +677,12 @@ publicada.
 - Verificación al cerrar B4c: `pnpm run check:deploy` limpio en la primera
   corrida, **2988 pruebas en 379 archivos** (eran 2979: 9 nuevas), lint y
   build correctos. `git diff --check` limpio.
-- **B5 en curso**: pasos 1 a 4 de la lista bien (el usuario creó los tres
-  tipos de prueba y vio "Porcentajes: 80 % de 100 %" con el aviso).
-- Siguiente acción exacta: **seguir B5 desde el paso 5** (que ahora incluye
-  el aviso del boletín). Si sale bien, commit y push del frontend: con eso la
-  parte B queda publicada.
+- B4c en `3b06848`.
+- **B5 (prueba en local) bien el 2026-10-22**, en primaria y preescolar (ver
+  "Avance del paso B5").
+- Siguiente acción exacta: **push del frontend, lo hace el usuario.** Con eso
+  la parte B queda publicada. Después, comprobar en GitHub que Vercel
+  publicó ese commit en `Production` y anotar la publicación aquí y en el
+  documento principal.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

@@ -56,7 +56,7 @@ continuacion para retomarla en otro chat u otro LLM.
   promedio; después, porcentajes por tipo. El documento principal está en el
   backend. **Parte A (subnotas) publicada el 2026-10-21, backend y
   frontend. Parte B (porcentajes): backend en producción el 2026-10-22; en
-  este repo, B4a y B4b (la pantalla) hechos; falta B5 y el push.**
+  este repo, B4a a B4c y la prueba en local (B5) bien; falta el push.**
 
 ## Control SaaS
 
