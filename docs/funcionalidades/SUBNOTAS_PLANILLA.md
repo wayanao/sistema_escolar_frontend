@@ -363,6 +363,12 @@ El diseño completo está en "Avance del paso B0" del documento principal
     planilla del profesor pedirá los dos.
   - Crear un tipo sigue igual (`POST /planilla/nota` con `nota: null`); el
     porcentaje se envía después, con la ruta nueva.
+  - **Boletín (B2c, 2026-10-22):** con porcentajes activos, `GET
+    /boletines/referencia/...` trae `definitiva` (número) en cada estudiante
+    con notas, y `POST /boletines/guardar` guarda la que calcula el servidor
+    sin mirar la que llega. **En B4, la pantalla del boletín debe mostrar esa
+    `definitiva` cuando viene** (en preescolar, su carita) y, si no viene,
+    seguir calculando la suya como hoy.
   - Detalle en `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección
     "Planilla".
 - Ninguna otra pantalla cambia de aspecto. Los certificados y el boletín
@@ -414,8 +420,11 @@ El diseño completo está en "Avance del paso B0" del documento principal
   escrita, sin aplicar), la ruta para guardar porcentajes y su lectura en la
   planilla. El contrato quedó en "Parte B en este repo". Este repo no
   cambió.
-- Siguiente acción exacta: **B2c en el backend** (el boletín del profesor),
-  solo con el visto bueno del usuario. El frontend vuelve a tener trabajo en
-  B4.
+- **B2c hecho el 2026-10-22 en el backend, sin commit**: la definitiva del
+  boletín con porcentajes activos la calcula el servidor. Lo que eso le pide
+  a esta pantalla quedó en "Parte B en este repo". Este repo no cambió.
+- Siguiente acción exacta: **B2d en el backend** (boletín del admin, reporte
+  parcial y rankings), solo con el visto bueno del usuario. El frontend
+  vuelve a tener trabajo en B4.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
