@@ -2,11 +2,11 @@
 
 ## Control
 
-- Estado: **A0 en `1553574`, A3 en `12c2067`, A4 (la pantalla) en `d58fb0e`
-  y `5f9f1b1`. A5, la prueba en local, salió bien el 2026-10-21.** Falta el
-  push del frontend; hasta entonces ningún profesor ve las subnotas. El
-  backend de la parte A está en producción desde el 2026-10-21 (`e36f976`);
-  su contrato está resumido abajo.
+- Estado: **Parte A publicada el 2026-10-21.** A0 en `1553574`, A3 en
+  `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
+  local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
+  parte A está en producción desde el mismo día (`e36f976`); su contrato está
+  resumido abajo. La parte B no ha empezado.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -341,10 +341,12 @@ lo de abajo es lo que contó el usuario.
 
 - Hecho en este repo: **A0** en `1553574`, **A3** en `12c2067`, **A4** en
   `d58fb0e` y `5f9f1b1`. **A5 (prueba en local) bien el 2026-10-21**, en
-  primaria y preescolar (ver "Avance del paso A5"). Al cerrar A5, `main`
-  tenía esos tres commits de código sin push (`origin/main` en `6fdb191`).
-- Backend: la parte A está en producción desde el 2026-10-21 (`e36f976`,
-  migración aplicada en los dos colegios y Render Live).
+  primaria y preescolar (ver "Avance del paso A5").
+- **Parte A publicada el 2026-10-21.** El usuario hizo el push (`origin/main`
+  en `3fb9831`). El despliegue de `Production` de ese commit en Vercel quedó
+  en `success`; el asistente lo comprobó en GitHub, sin entrar a Vercel. El
+  backend está en producción desde el mismo día (`e36f976`, migración
+  aplicada en los dos colegios y Render Live).
 - Verificación al cerrar A5 (solo cambiaron documentos): `pnpm run
   check:deploy` limpio, **2902 pruebas en 376 archivos**, lint y build
   correctos. Una primera corrida, hecha al mismo tiempo que la del backend,
@@ -352,11 +354,9 @@ lo de abajo es lo que contó el usuario.
   (`IngresoBoletinProfesor`, `PlaneadoresClasesAdmin` y
   `NavegacionesView`); solas pasaron (12 de 12) y la segunda corrida completa
   pasó entera. `git diff --check` limpio.
-- Siguiente acción exacta: **push del frontend, lo hace el usuario** (los
-  commits de A3, A4 y el del cierre de A5). Con eso la parte A queda
-  publicada. Después, anotar la publicación aquí y en el documento principal.
-- La parte B (porcentajes) empieza con su B0 y solo con autorización
-  explícita. Antes de B0 hay que responder las preguntas abiertas del
-  documento principal.
+- Siguiente acción exacta: **B0, el diseño de la parte B** (porcentajes),
+  en el documento principal. Solo documentos. Empieza solo con autorización
+  explícita del usuario para B0 y con las preguntas abiertas de "Antes de B0"
+  respondidas.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
