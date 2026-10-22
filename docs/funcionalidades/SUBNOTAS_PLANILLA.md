@@ -177,6 +177,9 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 - **B4b — Pantalla de los porcentajes:** el campo al crear un tipo, el
   porcentaje en cada encabezado, la franja para cambiarlo, la suma y el
   aviso. **Hecho el 2026-10-22, sin commit** (ver "Avance del paso B4b").
+- **B4c — Aviso al guardar el boletín con porcentajes incompletos (PB11):**
+  nació durante B5. **Hecho el 2026-10-22, sin commit** (ver "Avance del
+  paso B4c").
 - **B5 — Prueba en local** con el Colegio Demo: ver "Paso B5". Después, el
   push.
 
@@ -484,6 +487,38 @@ hay un solo lugar, que sirve igual en los dos.
 
 **Verificación:** ver "Entrega para el siguiente chat".
 
+## Avance del paso B4c, 2026-10-22
+
+Nació durante B5: en el paso 2 el usuario propuso bloquear el ingreso de notas
+mientras falte algún porcentaje. Se le explicó por qué no (ver **PB11** en el
+documento principal) y eligió la alternativa: **un aviso al guardar el
+boletín**. Al empezar, este repo estaba limpio con B4b en `63f8528`.
+
+**Qué se hizo** (pruebas primero: las 8 nuevas fallaron antes del cambio):
+
+- `services/boletinesApi.js`: `obtenerEstadoPorcentajesBoletin`, que lee la
+  planilla con `con_porcentajes=true` (ruta que ya existe) y devuelve solo
+  `porcentajes` y `porcentajes_activos`. 2 pruebas.
+- `utils/boletines/ingresoBoletin.js`: `hayPorcentajesIncompletos` (hay
+  alguno y no están activos, según el servidor) y el texto del aviso. 1
+  prueba.
+- `hooks/boletines/useConsultaIngresoBoletinProfesor.js`: al cargar la clase
+  y el periodo pide eso a la vez que la referencia y expone
+  `porcentajesIncompletos`. **Si esa lectura falla, el boletín carga igual y
+  no avisa.** 2 pruebas.
+- `hooks/boletines/useComandosIngresoBoletinProfesor.js`: antes de guardar un
+  estudiante con porcentajes incompletos pregunta "Los porcentajes de esta
+  clase están incompletos: la definitiva es el promedio simple. ¿Guardar
+  igual?" (Guardar igual / Cancelar). **Se acepta una vez por clase y
+  periodo**, para no preguntar 30 veces. En "Guardar todo el grupo" el aviso
+  va dentro de la confirmación que ya existía. Sin porcentajes incompletos,
+  nada cambia. 4 pruebas.
+- `pages/IngresoBoletinProfesor.jsx`: pasa `porcentajesIncompletos` de un
+  gancho al otro.
+
+**Lo que cuesta:** una lectura más al abrir el boletín de una clase y un
+periodo, en paralelo con la de siempre.
+
 ## Paso B5: prueba en local
 
 La hace el usuario. **Solo con el Colegio Demo**, nunca con estudiantes de
@@ -500,12 +535,15 @@ de porcentajes).
 4. Crear "Prueba B5 uno" con 50 % y "Prueba B5 dos" con 30 %, y "Prueba B5
    tres" sin porcentaje. Debe salir "Porcentajes: 80 % de 100 %" y el aviso.
 5. Calificar a un estudiante en los tres (por ejemplo 4, 3 y 5). El promedio
-   es el simple (4.00).
+   es el simple (4.00). Ir a "Ingreso de Boletín" de esa clase y periodo e
+   intentar guardar el boletín de ese estudiante: debe salir el aviso
+   "Porcentajes incompletos" (PB11). Pulsar **Cancelar**: no se guarda.
 6. En la franja, poner 20 % a "Prueba B5 tres": "Porcentajes completos" y el
    promedio pasa a 3.90 (4 × 50 % + 3 × 30 % + 5 × 20 %). Intentar subir
    "Prueba B5 uno" a 60 %: debe avisar que no pueden sumar más de 100 %.
-7. Ir a "Ingreso de Boletín" de esa clase y periodo: la definitiva de ese
-   estudiante es 3.90. Guardar su boletín.
+7. Volver a "Ingreso de Boletín" de esa clase y periodo (recargar la página):
+   la definitiva de ese estudiante es 3.90 y, al guardar, **ya no sale el
+   aviso**. Guardar su boletín.
 8. Como **admin**: abrir el boletín y el reporte parcial de ese estudiante en
    ese periodo: 3.90 en esa materia.
 9. Como profesor, vaciar el porcentaje de un tipo en la franja: vuelve el
@@ -605,8 +643,15 @@ publicada.
   configuración": revisa el desplazamiento apenas aparece el panel, sin
   esperarlo), que no se tocó; sola pasó 3 de 3 y la segunda corrida completa
   pasó entera. Mismo tipo de hallazgo que el de B4a; no se corrige aquí.
-- Siguiente acción exacta: **B5, lo hace el usuario** con la lista de "Paso
-  B5" (Colegio Demo). Si sale bien, commit y push del frontend: con eso la
+- B4b en `63f8528`. **B4c (aviso al guardar el boletín, PB11) hecho el
+  2026-10-22, sin commit** (ver "Avance del paso B4c").
+- Verificación al cerrar B4c: `pnpm run check:deploy` limpio en la primera
+  corrida, **2988 pruebas en 379 archivos** (eran 2979: 9 nuevas), lint y
+  build correctos. `git diff --check` limpio.
+- **B5 en curso**: pasos 1 a 4 de la lista bien (el usuario creó los tres
+  tipos de prueba y vio "Porcentajes: 80 % de 100 %" con el aviso).
+- Siguiente acción exacta: **seguir B5 desde el paso 5** (que ahora incluye
+  el aviso del boletín). Si sale bien, commit y push del frontend: con eso la
   parte B queda publicada.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

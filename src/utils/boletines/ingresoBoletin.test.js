@@ -8,6 +8,8 @@ import {
   crearEstadoGuardadoInicial,
   deduplicarClases,
   formatearEtiquetaNota,
+  hayPorcentajesIncompletos,
+  MENSAJE_PORCENTAJES_INCOMPLETOS,
   normalizarEstudiantesReferencia,
 } from "./ingresoBoletin";
 
@@ -304,5 +306,17 @@ describe("utilidades de ingreso docente a boletines", () => {
     expect(estado[9].definitiva).toBe("3.90");
     expect(estado[10].definitiva).toBe("4.50");
     expect(estado[11].definitiva).toBe("4.00");
+  });
+
+  // Porcentajes por tipo de nota, paso B4c (PB11): el aviso al guardar con
+  // porcentajes incompletos.
+  it("los porcentajes están incompletos si hay alguno pero no están activos", () => {
+    expect(hayPorcentajesIncompletos({ porcentajes: { quiz: 50 }, porcentajes_activos: false })).toBe(true);
+    expect(hayPorcentajesIncompletos({ porcentajes: {}, porcentajes_activos: false })).toBe(false);
+    expect(hayPorcentajesIncompletos({ porcentajes: { quiz: 100 }, porcentajes_activos: true })).toBe(false);
+    expect(hayPorcentajesIncompletos(undefined)).toBe(false);
+    expect(MENSAJE_PORCENTAJES_INCOMPLETOS).toBe(
+      "Los porcentajes de esta clase están incompletos: la definitiva es el promedio simple. ¿Guardar igual?",
+    );
   });
 });

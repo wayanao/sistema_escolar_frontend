@@ -942,6 +942,12 @@ Uso:
   Si no viene, la definitiva se sigue calculando como siempre. Con porcentajes
   activos, `POST /boletines/guardar` guarda la del servidor aunque la pantalla
   envíe otra.
+- **Aviso de porcentajes incompletos** (paso B4c, PB11): al cargar una clase
+  y un periodo, además pide `GET /planilla-excel/{asignacion_id}/{periodo}?con_porcentajes=true`
+  (`obtenerEstadoPorcentajesBoletin`, a la vez que la referencia). Si hay
+  porcentajes pero no están activos, antes de guardar pregunta "¿Guardar
+  igual?" una vez por clase y periodo. Si esa lectura falla, no avisa y el
+  boletín funciona igual.
 
 ## Certificados
 

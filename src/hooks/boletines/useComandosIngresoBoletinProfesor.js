@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
 
 import { guardarBoletinProfesor } from "../../services/boletinesApi";
 import {
+  AVISO_PORCENTAJES_INCOMPLETOS,
+  MENSAJE_PORCENTAJES_INCOMPLETOS,
   aplicarLogrosEnGrupo,
   construirPayloadBoletin,
   obtenerTextoLimpio,
@@ -14,15 +16,37 @@ export default function useComandosIngresoBoletinProfesor({
   estudiantes,
   datosIniciales,
   estadoGuardadoInicial,
+  porcentajesIncompletos = false,
 }) {
   const [datosBoletin, setDatosBoletin] = useState(datosIniciales);
   const [estadoGuardado, setEstadoGuardado] = useState(estadoGuardadoInicial);
   const [guardandoTodos, setGuardandoTodos] = useState(false);
+  // Porcentajes, paso B4c (PB11): el aviso se acepta una vez por clase y
+  // periodo; al cambiar de clase o periodo, vuelve a preguntar.
+  const avisoAceptadoRef = useRef(false);
 
   useEffect(() => {
     setDatosBoletin(datosIniciales);
     setEstadoGuardado(estadoGuardadoInicial);
+    avisoAceptadoRef.current = false;
   }, [datosIniciales, estadoGuardadoInicial]);
+
+  /** `true` si se puede guardar: sin porcentajes incompletos, o si el profesor aceptó. */
+  const confirmarPorcentajesIncompletos = async () => {
+    if (!porcentajesIncompletos || avisoAceptadoRef.current) return true;
+    const respuesta = await Swal.fire({
+      icon: "warning",
+      title: "Porcentajes incompletos",
+      text: MENSAJE_PORCENTAJES_INCOMPLETOS,
+      showCancelButton: true,
+      confirmButtonText: "Guardar igual",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#7c3aed",
+    });
+    if (!respuesta?.isConfirmed) return false;
+    avisoAceptadoRef.current = true;
+    return true;
+  };
 
   const primerEstudianteConFormulario = useMemo(
     () => estudiantes.find((estudiante) => datosBoletin[estudiante.estudiante_id]),
@@ -173,6 +197,7 @@ export default function useComandosIngresoBoletinProfesor({
       periodo,
     });
     if (!payload) return;
+    if (!(await confirmarPorcentajesIncompletos())) return;
 
     try {
       await guardarBoletinProfesor(payload);
@@ -218,10 +243,15 @@ export default function useComandosIngresoBoletinProfesor({
       return;
     }
 
+    // Porcentajes, paso B4c (PB11): con porcentajes incompletos, el aviso va
+    // en esta misma confirmación para no abrir dos ventanas seguidas.
+    const avisarPorcentajes = porcentajesIncompletos && !avisoAceptadoRef.current;
+    const textoGrupo =
+      "Se guardará la información actual de cada estudiante. Las modificaciones individuales se conservarán.";
     const result = await Swal.fire({
       title: "Guardar todo el grupo",
-      text: "Se guardará la información actual de cada estudiante. Las modificaciones individuales se conservarán.",
-      icon: "question",
+      text: avisarPorcentajes ? `${AVISO_PORCENTAJES_INCOMPLETOS} ${textoGrupo}` : textoGrupo,
+      icon: avisarPorcentajes ? "warning" : "question",
       showCancelButton: true,
       confirmButtonText: "Sí, guardar todo",
       cancelButtonText: "Cancelar",
@@ -229,6 +259,7 @@ export default function useComandosIngresoBoletinProfesor({
     });
 
     if (!result.isConfirmed) return;
+    if (avisarPorcentajes) avisoAceptadoRef.current = true;
 
     setGuardandoTodos(true);
 

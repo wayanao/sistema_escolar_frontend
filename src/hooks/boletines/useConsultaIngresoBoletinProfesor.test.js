@@ -1,14 +1,16 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listarClasesMock, obtenerReferenciaMock } = vi.hoisted(() => ({
+const { listarClasesMock, obtenerReferenciaMock, obtenerEstadoPorcentajesMock } = vi.hoisted(() => ({
   listarClasesMock: vi.fn(),
   obtenerReferenciaMock: vi.fn(),
+  obtenerEstadoPorcentajesMock: vi.fn(),
 }));
 
 vi.mock("../../services/boletinesApi", () => ({
   listarClasesProfesorBoletines: listarClasesMock,
   obtenerReferenciaBoletin: obtenerReferenciaMock,
+  obtenerEstadoPorcentajesBoletin: obtenerEstadoPorcentajesMock,
 }));
 
 import useConsultaIngresoBoletinProfesor from "./useConsultaIngresoBoletinProfesor";
@@ -37,6 +39,8 @@ beforeEach(() => {
       ],
     },
   ]);
+  obtenerEstadoPorcentajesMock.mockResolvedValue({ porcentajes: {}, porcentajes_activos: false });
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 describe("useConsultaIngresoBoletinProfesor", () => {
@@ -86,5 +90,30 @@ describe("useConsultaIngresoBoletinProfesor", () => {
     expect(pendientes[1].signal.aborted).toBe(true);
     await waitFor(() => expect(result.current.cargando).toBe(false));
     expect(localStorage.getItem("asignacionId")).toBe("56");
+  });
+
+  // Porcentajes por tipo de nota, paso B4c (PB11): para avisar al guardar.
+  it("sabe si la clase tiene porcentajes incompletos", async () => {
+    obtenerEstadoPorcentajesMock.mockResolvedValue({ porcentajes: { quiz: 50 }, porcentajes_activos: false });
+    const { result } = renderHook(() => useConsultaIngresoBoletinProfesor());
+
+    await waitFor(() => expect(result.current.porcentajesIncompletos).toBe(true));
+    expect(obtenerEstadoPorcentajesMock).toHaveBeenCalledWith("55", "1", {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("sin porcentajes, o si esa consulta falla, no avisa y la pantalla carga igual", async () => {
+    const { result } = renderHook(() => useConsultaIngresoBoletinProfesor());
+    await waitFor(() => expect(result.current.estudiantes).toHaveLength(1));
+    expect(result.current.porcentajesIncompletos).toBe(false);
+
+    obtenerEstadoPorcentajesMock.mockRejectedValue(new Error("red"));
+    act(() => result.current.cambiarPeriodo("2"));
+    await waitFor(() => expect(obtenerEstadoPorcentajesMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.cargando).toBe(false));
+    expect(result.current.porcentajesIncompletos).toBe(false);
+    expect(result.current.errorAlumnos).toBeNull();
+    expect(result.current.estudiantes).toHaveLength(1);
   });
 });

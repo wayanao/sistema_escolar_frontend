@@ -19,6 +19,7 @@ import {
   listarClasesProfesorBoletines,
   listarCursosBoletines,
   listarEstudiantesBoletines,
+  obtenerEstadoPorcentajesBoletin,
   obtenerOrdenBoletin,
   obtenerReferenciaBoletin,
 } from "./boletinesApi";
@@ -165,5 +166,42 @@ describe("contrato HTTP de boletines y el año lectivo (paso 4.5)", () => {
       ],
       ["/boletines/admin/generar/8/3", { params: { anio_lectivo_id: 2 } }],
     ]);
+  });
+});
+
+// Porcentajes por tipo de nota, paso B4c (PB11 de
+// docs/funcionalidades/SUBNOTAS_PLANILLA.md del backend): el boletín pregunta
+// si la clase tiene porcentajes incompletos, con la lectura de la planilla.
+describe("estado de los porcentajes de la clase (paso B4c)", () => {
+  it("pide la planilla con sus porcentajes y devuelve solo eso", async () => {
+    apiMock.get.mockResolvedValue({
+      data: {
+        columnas: ["quiz"],
+        data: [{ estudiante_id: 1, notas: { quiz: 4 } }],
+        porcentajes: { quiz: 50 },
+        porcentajes_activos: false,
+      },
+    });
+    const controller = new AbortController();
+
+    const estado = await obtenerEstadoPorcentajesBoletin("55", "1", { signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/planilla-excel/55/1", {
+      signal: controller.signal,
+      params: { con_porcentajes: true },
+    });
+    expect(estado).toEqual({ porcentajes: { quiz: 50 }, porcentajes_activos: false });
+  });
+
+  it("sin porcentajes en la respuesta (un servidor viejo) devuelve vacío", async () => {
+    apiMock.get.mockResolvedValue({ data: { columnas: [], data: [] } });
+
+    await expect(obtenerEstadoPorcentajesBoletin(55, 1)).resolves.toEqual({
+      porcentajes: {},
+      porcentajes_activos: false,
+    });
+    expect(apiMock.get).toHaveBeenCalledWith("/planilla-excel/55/1", {
+      params: { con_porcentajes: true },
+    });
   });
 });

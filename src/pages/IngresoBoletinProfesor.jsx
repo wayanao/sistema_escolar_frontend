@@ -11,6 +11,7 @@ export default function IngresoBoletinProfesor() {
     estadoGuardadoInicial,
     estudiantes,
     periodo,
+    porcentajesIncompletos,
     cambiarAsignacion,
     cambiarPeriodo,
   } = useConsultaIngresoBoletinProfesor();
@@ -28,6 +29,7 @@ export default function IngresoBoletinProfesor() {
     estudiantes,
     datosIniciales,
     estadoGuardadoInicial,
+    porcentajesIncompletos,
   });
 
   return (

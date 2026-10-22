@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   listarClasesProfesorBoletines,
+  obtenerEstadoPorcentajesBoletin,
   obtenerReferenciaBoletin,
 } from "../../services/boletinesApi";
 import {
   crearDatosBoletinInicial,
   crearEstadoGuardadoInicial,
   deduplicarClases,
+  hayPorcentajesIncompletos,
   normalizarEstudiantesReferencia,
 } from "../../utils/boletines/ingresoBoletin";
 import {
@@ -25,6 +27,8 @@ export default function useConsultaIngresoBoletinProfesor() {
   const [cargando, setCargando] = useState(false);
   const [errorClases, setErrorClases] = useState(null);
   const [errorAlumnos, setErrorAlumnos] = useState(null);
+  // Porcentajes por tipo de nota, paso B4c (PB11): para avisar al guardar.
+  const [porcentajesIncompletos, setPorcentajesIncompletos] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -61,14 +65,28 @@ export default function useConsultaIngresoBoletinProfesor() {
     const cargarAlumnos = async () => {
       setCargando(true);
       setErrorAlumnos(null);
+      setPorcentajesIncompletos(false);
 
       try {
-        const data = await obtenerReferenciaBoletin(asignacionId, periodo, {
-          signal: controller.signal,
-        });
+        // Las dos lecturas van a la vez. Si la de los porcentajes falla, el
+        // boletín carga igual y simplemente no avisa.
+        const [data, estadoPorcentajes] = await Promise.all([
+          obtenerReferenciaBoletin(asignacionId, periodo, {
+            signal: controller.signal,
+          }),
+          obtenerEstadoPorcentajesBoletin(asignacionId, periodo, {
+            signal: controller.signal,
+          }).catch((error) => {
+            if (!controller.signal.aborted) {
+              console.error("No se pudo saber si hay porcentajes incompletos", error);
+            }
+            return null;
+          }),
+        ]);
         if (controller.signal.aborted) return;
         const estudiantesVisibles = normalizarEstudiantesReferencia(data);
         setEstudiantes(estudiantesVisibles);
+        setPorcentajesIncompletos(hayPorcentajesIncompletos(estadoPorcentajes));
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error("Error al cargar alumnos", error);
@@ -113,6 +131,7 @@ export default function useConsultaIngresoBoletinProfesor() {
     estadoGuardadoInicial,
     estudiantes,
     periodo,
+    porcentajesIncompletos,
     cambiarAsignacion: setAsignacionId,
     cambiarPeriodo,
   };

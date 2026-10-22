@@ -1,5 +1,18 @@
 # Cambios Frontend
 
+## 2026-10-22 - Boletín: aviso con porcentajes incompletos (paso B4c)
+
+PB11 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`, aprobado por el usuario
+durante la prueba B5 en vez de bloquear el ingreso de notas.
+
+- Al guardar el boletín de una clase con porcentajes incompletos, pregunta
+  "Los porcentajes de esta clase están incompletos: la definitiva es el
+  promedio simple. ¿Guardar igual?". Se acepta una vez por clase y periodo;
+  en "Guardar todo el grupo" el aviso va en la confirmación de siempre.
+- Para saberlo, el boletín lee también los porcentajes de la planilla al
+  cargar (una lectura más, en paralelo). Si falla, no avisa.
+- Las notas de la planilla se siguen ingresando libres.
+
 ## 2026-10-22 - Planilla: la pantalla de los porcentajes (paso B4b)
 
 Paso B4b de `docs/funcionalidades/SUBNOTAS_PLANILLA.md` (parte B). Es lo

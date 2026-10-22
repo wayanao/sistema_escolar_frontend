@@ -156,4 +156,78 @@ describe("useComandosIngresoBoletinProfesor", () => {
     expect(result.current.estadoGuardado[101].guardado).toBe(true);
     expect(result.current.estadoGuardado[102].guardado).toBe(true);
   });
+
+  // Porcentajes por tipo de nota, paso B4c (PB11 de
+  // docs/funcionalidades/SUBNOTAS_PLANILLA.md del backend).
+  describe("con porcentajes incompletos", () => {
+    const AVISO = "Porcentajes incompletos";
+    const conIncompletos = () => ({ ...crearPropiedades(), porcentajesIncompletos: true });
+    const titulos = () => swalFireMock.mock.calls.map(([opciones]) => opciones?.title);
+
+    it("sin porcentajes incompletos no pregunta nada de más", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+
+      expect(titulos()).not.toContain(AVISO);
+      expect(guardarBoletinMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("pregunta antes de guardar y, si se cancela, no guarda", async () => {
+      swalFireMock.mockImplementation(async (opciones) =>
+        opciones?.title === AVISO ? { isConfirmed: false } : {},
+      );
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conIncompletos()));
+
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+
+      expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
+        title: AVISO,
+        text: "Los porcentajes de esta clase están incompletos: la definitiva es el promedio simple. ¿Guardar igual?",
+        showCancelButton: true,
+        confirmButtonText: "Guardar igual",
+      }));
+      expect(guardarBoletinMock).not.toHaveBeenCalled();
+    });
+
+    it("si acepta, guarda y no vuelve a preguntar en esa clase y periodo", async () => {
+      swalFireMock.mockImplementation(async (opciones) =>
+        opciones?.title === AVISO ? { isConfirmed: true } : {},
+      );
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conIncompletos()));
+
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(102);
+      });
+
+      expect(guardarBoletinMock).toHaveBeenCalledTimes(2);
+      expect(titulos().filter((titulo) => titulo === AVISO)).toHaveLength(1);
+    });
+
+    it("al guardar todo el grupo, el aviso va en la misma confirmación", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conIncompletos()));
+
+      await act(async () => {
+        await result.current.guardarTodosBoletines();
+      });
+
+      const confirmacion = swalFireMock.mock.calls.find(([opciones]) => opciones?.title === "Guardar todo el grupo")[0];
+      expect(confirmacion.text).toContain("la definitiva es el promedio simple");
+      expect(titulos()).not.toContain(AVISO);
+      expect(guardarBoletinMock).toHaveBeenCalledTimes(2);
+
+      // Ya aceptó: guardar uno después no vuelve a preguntar.
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+      expect(titulos()).not.toContain(AVISO);
+    });
+  });
 });

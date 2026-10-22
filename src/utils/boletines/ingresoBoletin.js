@@ -15,6 +15,22 @@ export { VALORACIONES_DESARROLLO } from "../../constants/valoracionesDesarrollo"
 
 const COLUMNAS_INTERNAS_OCULTAS = new Set(["mas_alto"]);
 
+// Porcentajes por tipo de nota, paso B4c (PB11 de
+// docs/funcionalidades/SUBNOTAS_PLANILLA.md del backend): al guardar el
+// boletín con porcentajes incompletos se avisa que la definitiva es el
+// promedio simple. No bloquea: el profesor decide.
+export const AVISO_PORCENTAJES_INCOMPLETOS =
+  "Los porcentajes de esta clase están incompletos: la definitiva es el promedio simple.";
+export const MENSAJE_PORCENTAJES_INCOMPLETOS = `${AVISO_PORCENTAJES_INCOMPLETOS} ¿Guardar igual?`;
+
+/**
+ * `true` si la clase tiene algún porcentaje pero no están activos. Usa lo que
+ * decide el servidor (`porcentajes_activos`), el mismo que calcula la
+ * definitiva al guardar.
+ */
+export const hayPorcentajesIncompletos = (estado) =>
+  Object.keys(estado?.porcentajes || {}).length > 0 && !estado?.porcentajes_activos;
+
 export const obtenerTipoNota = (nota) =>
   nota?.tipo_nota || nota?.descripcion || nota?.referencia || "";
 

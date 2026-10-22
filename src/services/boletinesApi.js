@@ -60,6 +60,23 @@ export async function guardarBoletinProfesor(payload) {
   return data;
 }
 
+/**
+ * Porcentajes por tipo de nota de una clase en un periodo (paso B4c, PB11 de
+ * docs/funcionalidades/SUBNOTAS_PLANILLA.md del backend), para avisar al
+ * guardar el boletín si están incompletos. Usa la lectura de la planilla con
+ * `con_porcentajes=true`, que ya existe, y devuelve solo eso.
+ */
+export async function obtenerEstadoPorcentajesBoletin(asignacionId, periodo, { signal } = {}) {
+  const { data } = await api.get(`/planilla-excel/${asignacionId}/${periodo}`, {
+    ...(signal ? { signal } : {}),
+    params: { con_porcentajes: true },
+  });
+  return {
+    porcentajes: data?.porcentajes || {},
+    porcentajes_activos: Boolean(data?.porcentajes_activos),
+  };
+}
+
 export async function obtenerOrdenBoletin(cursoId, { signal } = {}) {
   const { data } = await getConSignal(
     `/cursos/${cursoId}/orden-boletin`,
