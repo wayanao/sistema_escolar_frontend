@@ -351,9 +351,20 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - **Vista previa:** el cálculo ponderado tiene su gemela en `utils/`, con los
   mismos casos que `app/core/nota_periodo.py` (PB4). Preescolar también
   lleva porcentajes (QB1), con la misma regla de caritas.
-- **Contrato previsto (PB8):** `PUT /planilla/tipos/porcentaje` y `GET
-  /planilla-excel/...?con_porcentajes=true`. Crear un tipo sigue igual; el
-  porcentaje se envía después, con la ruta nueva.
+- **Contrato (PB8), fijado con pruebas en el backend en B2b (2026-10-22):**
+  - `PUT /planilla/tipos/porcentaje` con `{ asignacion_id, periodo,
+    tipo_nota, porcentaje }`; `porcentaje` es obligatorio, entero de 1 a 100
+    o `null` para quitarlo. Responde `{ tipo_nota, porcentaje, suma, activos
+    }`, con el nombre exacto de la columna. `404` si el tipo no está; `422`
+    con mensaje en español si no es entero de 1 a 100, si la suma pasaría de
+    100 o si es una columna interna.
+  - `GET /planilla-excel/...?con_porcentajes=true` agrega `porcentajes: {
+    "<tipo>": 40 }` y `porcentajes_activos`. Es aparte de `con_subnotas`: la
+    planilla del profesor pedirá los dos.
+  - Crear un tipo sigue igual (`POST /planilla/nota` con `nota: null`); el
+    porcentaje se envía después, con la ruta nueva.
+  - Detalle en `sistema_escolar_api/docs/API_ENDPOINTS.md`, sección
+    "Planilla".
 - Ninguna otra pantalla cambia de aspecto. Los certificados y el boletín
   impreso reciben la definitiva del servidor.
 
@@ -399,7 +410,12 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - **B2 (backend) va en cuatro partes; B2a (el cálculo ponderado,
   `app/core/nota_periodo.py`) hecho el 2026-10-22.** Sus 46 pruebas son los
   casos que tendrá la gemela de este repo en B4. Este repo no cambió.
-- Siguiente acción exacta: **B2b en el backend**, solo con el visto bueno
-  del usuario. El frontend vuelve a tener trabajo en B4.
+- **B2b hecho el 2026-10-22 en el backend, sin commit**: la tabla (migración
+  escrita, sin aplicar), la ruta para guardar porcentajes y su lectura en la
+  planilla. El contrato quedó en "Parte B en este repo". Este repo no
+  cambió.
+- Siguiente acción exacta: **B2c en el backend** (el boletín del profesor),
+  solo con el visto bueno del usuario. El frontend vuelve a tener trabajo en
+  B4.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
