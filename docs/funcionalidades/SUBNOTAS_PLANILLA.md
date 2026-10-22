@@ -175,9 +175,10 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
   **Hecho el 2026-10-22, sin commit** (ver "Avance del paso B4a"). Lo que ve
   el profesor no cambia todavía.
 - **B4b — Pantalla de los porcentajes:** el campo al crear un tipo, el
-  porcentaje en cada encabezado con la forma de cambiarlo, la suma y el aviso.
-  Pendiente, con su propio visto bueno.
-- **B5 — Prueba en local** con el Colegio Demo, y después el push.
+  porcentaje en cada encabezado, la franja para cambiarlo, la suma y el
+  aviso. **Hecho el 2026-10-22, sin commit** (ver "Avance del paso B4b").
+- **B5 — Prueba en local** con el Colegio Demo: ver "Paso B5". Después, el
+  push.
 
 ## Avance del paso A3, 2026-10-21
 
@@ -437,6 +438,88 @@ de crearlo.
 
 **Verificación:** ver "Entrega para el siguiente chat".
 
+## Avance del paso B4b, 2026-10-22
+
+Visto bueno del usuario el 2026-10-22 ("sigue", respuesta a "¿Le das el visto
+bueno a B4b?"). Al empezar, este repo estaba limpio con B4a en `7ddd42c`.
+
+**Qué se hizo:**
+
+- `components/planilla/PorcentajesPlanilla.jsx` (nuevo, solo presenta), la
+  franja encima de la tabla: una pastilla por tipo ("Quiz · 40 %", o "+ %"
+  sin porcentaje). Al pulsarla se escribe ahí mismo: Enter o ✓ guardan, Esc o
+  ✕ cancelan, y si no se guardó el campo sigue abierto con lo escrito.
+  Debajo, la suma ("Porcentajes: 70 % de 100 %") y, en una línea con
+  `role="status"`, el aviso "Faltan porcentajes: se usa el promedio simple."
+  o "Porcentajes completos: el promedio es ponderado.". **Sin ningún
+  porcentaje no hay suma ni aviso.** Mientras se guarda uno, ninguno se
+  puede tocar. 8 pruebas.
+- `TablaNotasPlanilla.jsx`: con `porcentajesPorTipo`, el porcentaje junto al
+  nombre de cada columna ("40 %"). 1 prueba.
+- `GestionTiposEvaluacion.jsx`: con `onCambiarNuevoPorcentaje`, el campo
+  opcional "Porcentaje (%)" al crear un tipo. 3 pruebas.
+- **Sin esas props, los dos componentes se ven como antes**, y sus pruebas
+  de siempre pasan sin tocarlas.
+- `useConsultasPlanillaProfesor` expone además `sumaPorcentajes`.
+  `pages/Planilla.jsx` conecta `useComandosPorcentajesPlanilla` con la franja
+  y pasa el porcentaje a la tabla y al formulario.
+- `pages/Planilla.test.jsx`, **4 recorridos nuevos**: sin porcentajes (solo
+  las pastillas "+ %", sin aviso, promedio de siempre), con porcentajes
+  completos (promedio 3.60 en vez de 3.50 y el porcentaje en cada
+  encabezado), cambiar uno (el `PUT`, el aviso y el promedio simple **sin
+  recargar la planilla**) y crear un tipo con su porcentaje. **Las 16 pruebas
+  de siempre de la página pasan sin tocarlas.**
+- `docs/COMPONENTES.md` y `docs/CAMBIOS_FRONTEND.md` al día.
+
+**Pruebas primero:** las de los componentes se corrieron antes de escribirlos
+y fallaron (el archivo nuevo no existía; 3 de las otras dos, por el campo y el
+porcentaje que faltaban).
+
+**Decisión de pantalla** (no cambia ninguna regla aprobada): PB9 decía "el
+porcentaje en el encabezado y la forma de cambiarlo". El encabezado **muestra**
+el porcentaje, pero **se cambia en la franja de encima de la tabla**. En
+celular no hay encabezados, porque cada estudiante es una tarjeta. Con el
+botón en el encabezado habría que repetirlo en otro lado para el celular; así
+hay un solo lugar, que sirve igual en los dos.
+
+**Verificación:** ver "Entrega para el siguiente chat".
+
+## Paso B5: prueba en local
+
+La hace el usuario. **Solo con el Colegio Demo**, nunca con estudiantes de
+`tenant_2005`: el backend local escribe en la base real (que ya tiene la tabla
+de porcentajes).
+
+1. Backend local, en `sistema_escolar_api`, con el `.env` de siempre (la
+   conexión con `-pooler`): `.\venv\Scripts\python.exe -m uvicorn app.main:app --reload`.
+2. Frontend local, en `frontend-react`: `pnpm run dev`.
+3. Entrar como **profesor del Colegio Demo** y abrir la planilla de una clase
+   de primaria en un periodo **sin tipos de nota todavía**. Así los
+   porcentajes de prueba no se mezclan con otros tipos: con un tipo sin
+   porcentaje, nunca estarían completos.
+4. Crear "Prueba B5 uno" con 50 % y "Prueba B5 dos" con 30 %, y "Prueba B5
+   tres" sin porcentaje. Debe salir "Porcentajes: 80 % de 100 %" y el aviso.
+5. Calificar a un estudiante en los tres (por ejemplo 4, 3 y 5). El promedio
+   es el simple (4.00).
+6. En la franja, poner 20 % a "Prueba B5 tres": "Porcentajes completos" y el
+   promedio pasa a 3.90 (4 × 50 % + 3 × 30 % + 5 × 20 %). Intentar subir
+   "Prueba B5 uno" a 60 %: debe avisar que no pueden sumar más de 100 %.
+7. Ir a "Ingreso de Boletín" de esa clase y periodo: la definitiva de ese
+   estudiante es 3.90. Guardar su boletín.
+8. Como **admin**: abrir el boletín y el reporte parcial de ese estudiante en
+   ese periodo: 3.90 en esa materia.
+9. Como profesor, vaciar el porcentaje de un tipo en la franja: vuelve el
+   aviso y el promedio simple.
+10. Vista de celular (herramientas del navegador): la franja se ve y se puede
+    editar.
+11. Si el Colegio Demo tiene preescolar, repetir 4 a 6 con caritas.
+12. Limpiar: borrar los tres tipos de prueba (cada uno se lleva su
+    porcentaje). El boletín guardado en el paso 7 queda en el Colegio Demo.
+13. Contarle al asistente qué salió bien y qué no.
+
+Si todo sale bien, el usuario hace el push del frontend y la parte B queda
+publicada.
+
 ## Fuera de alcance
 
 - Lo de la parte B que queda fuera también allí: porcentajes en las tarjetas
@@ -511,8 +594,19 @@ de crearlo.
   nivel del curso cambie el modo a numérico. Con la máquina lenta puede mirar
   antes de tiempo. Arreglarla es esperar ese cambio con `findAllByRole`; queda
   para cuando el usuario lo pida.
-- Siguiente acción exacta: **B4b, la pantalla de los porcentajes** (campo al
-  crear un tipo, porcentaje en cada encabezado con la forma de cambiarlo,
-  suma y aviso), solo con el visto bueno del usuario. Después B5 y el push.
+- B4a en `7ddd42c`.
+- **B4b (la pantalla de los porcentajes) hecho el 2026-10-22, sin commit**
+  (ver "Avance del paso B4b").
+- Verificación al cerrar B4b: `pnpm run check:deploy` limpio en la segunda
+  corrida completa, **2979 pruebas en 379 archivos** (eran 2963 en 378: 16
+  nuevas), lint y build correctos. `git diff --check` limpio. La primera
+  corrida falló en **1 prueba vieja de otra pantalla**
+  (`pages/TiposPagosAdmin.test.jsx`, "Configurar baja al panel de
+  configuración": revisa el desplazamiento apenas aparece el panel, sin
+  esperarlo), que no se tocó; sola pasó 3 de 3 y la segunda corrida completa
+  pasó entera. Mismo tipo de hallazgo que el de B4a; no se corrige aquí.
+- Siguiente acción exacta: **B5, lo hace el usuario** con la lista de "Paso
+  B5" (Colegio Demo). Si sale bien, commit y push del frontend: con eso la
+  parte B queda publicada.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

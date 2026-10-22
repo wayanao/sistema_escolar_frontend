@@ -6,6 +6,7 @@ const { apiMock, swalFireMock } = vi.hoisted(() => ({
   apiMock: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
     delete: vi.fn(),
   },
   swalFireMock: vi.fn(),
@@ -59,6 +60,8 @@ const ESTUDIANTES_INICIALES = [
 ];
 
 let columnasServidor;
+// Porcentajes por tipo de nota (parte B, paso B4b), como los guarda el servidor.
+let porcentajesServidor;
 
 function prepararApi({ clase = CLASE, estudiantes = ESTUDIANTES_INICIALES } = {}) {
   apiMock.get.mockImplementation((url) => {
@@ -69,11 +72,21 @@ function prepararApi({ clase = CLASE, estudiantes = ESTUDIANTES_INICIALES } = {}
       return Promise.resolve({
         data: {
           columnas: [...columnasServidor],
+          porcentajes: { ...porcentajesServidor },
           data: estudiantes.map((est) => ({ ...est, notas: { ...est.notas } })),
         },
       });
     }
     return Promise.reject(new Error(`GET no simulado: ${url}`));
+  });
+
+  apiMock.put.mockImplementation((url, body) => {
+    if (url === "/planilla/tipos/porcentaje") {
+      if (body.porcentaje === null) delete porcentajesServidor[body.tipo_nota];
+      else porcentajesServidor[body.tipo_nota] = body.porcentaje;
+      return Promise.resolve({ data: { tipo_nota: body.tipo_nota, porcentaje: body.porcentaje } });
+    }
+    return Promise.reject(new Error(`PUT no simulado: ${url}`));
   });
 
   apiMock.post.mockImplementation((url, body) => {
@@ -122,9 +135,11 @@ beforeEach(() => {
   localStorage.setItem("fechaAsistencia", "2026-08-01");
 
   columnasServidor = ["quiz", "trabajo grupal", "mas_alto"];
+  porcentajesServidor = {};
 
   apiMock.get.mockReset();
   apiMock.post.mockReset();
+  apiMock.put.mockReset();
   apiMock.delete.mockReset();
   swalFireMock.mockReset();
   swalFireMock.mockResolvedValue({ isConfirmed: true });
@@ -642,5 +657,76 @@ describe("subnotas en la planilla (paso A4)", () => {
     expect(apiMock.post).toHaveBeenCalledTimes(1);
     expect(apiMock.post.mock.calls[0][1]).toMatchObject({ estudiante_id: ANA_ID, valores: { 8: 5 } });
     expect(within(filaAna).getByRole("button", { name: /^Quiz de Ruiz Ana: 5.00/ })).toBeInTheDocument();
+  });
+});
+
+// Porcentajes por tipo de nota, paso B4b (parte B de
+// docs/funcionalidades/SUBNOTAS_PLANILLA.md, PB9): la franja de porcentajes,
+// el porcentaje en cada encabezado y el promedio ponderado.
+describe("porcentajes por tipo de nota en la planilla", () => {
+  const promedioDe = (fila) => within(fila).getAllByRole("cell").at(-1);
+
+  it("sin ningún porcentaje solo ofrece ponerlos: sin suma, sin aviso y el promedio de siempre", async () => {
+    await abrirPlanilla();
+
+    expect(screen.getByRole("button", { name: "Poner porcentaje a Quiz" })).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    const filaAna = obtenerFilaEstudiante(screen.getByRole("table"), "Ruiz Ana");
+    expect(promedioDe(filaAna)).toHaveTextContent("3.50");
+  });
+
+  it("con porcentajes completos el promedio es el ponderado y cada encabezado muestra el suyo", async () => {
+    porcentajesServidor = { quiz: 60, "trabajo grupal": 40 };
+    await abrirPlanilla();
+
+    const tabla = screen.getByRole("table");
+    // Ana: 4 x 60 % + 3 x 40 % = 3.60 (el simple era 3.50).
+    expect(promedioDe(obtenerFilaEstudiante(tabla, "Ruiz Ana"))).toHaveTextContent("3.60");
+    expect(within(tabla).getByText("60 %")).toBeInTheDocument();
+    expect(within(tabla).getByText("40 %")).toBeInTheDocument();
+    expect(screen.getByText("Porcentajes: 100 % de 100 %")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Porcentajes completos: el promedio es ponderado.");
+  });
+
+  it("cambiar un porcentaje lo guarda y, si ya no suman 100, vuelve el promedio simple con el aviso, sin recargar", async () => {
+    const usuario = userEvent.setup();
+    porcentajesServidor = { quiz: 60, "trabajo grupal": 40 };
+    await abrirPlanilla();
+    const cargasAntes = contarLlamadasPlanilla();
+
+    await usuario.click(screen.getByRole("button", { name: "Cambiar el porcentaje de Quiz: 60 %" }));
+    const campo = screen.getByRole("textbox", { name: "Porcentaje de Quiz" });
+    await usuario.clear(campo);
+    await usuario.type(campo, "50{Enter}");
+
+    expect(apiMock.put).toHaveBeenCalledWith(
+      "/planilla/tipos/porcentaje",
+      { asignacion_id: ASIGNACION_ID, periodo: PERIODO, tipo_nota: "quiz", porcentaje: 50 },
+      undefined,
+    );
+    await screen.findByText("Porcentajes: 90 % de 100 %");
+    expect(screen.getByRole("status")).toHaveTextContent("Faltan porcentajes: se usa el promedio simple.");
+    const filaAna = obtenerFilaEstudiante(screen.getByRole("table"), "Ruiz Ana");
+    expect(promedioDe(filaAna)).toHaveTextContent("3.50");
+    expect(contarLlamadasPlanilla()).toBe(cargasAntes);
+  });
+
+  it("crear un tipo con su porcentaje lo guarda después de crear el tipo", async () => {
+    const usuario = userEvent.setup();
+    await abrirPlanilla();
+
+    fireEvent.change(screen.getByPlaceholderText("Ej: Quiz, Taller..."), { target: { value: "Cuaderno" } });
+    fireEvent.change(screen.getByLabelText("Porcentaje (%)"), { target: { value: "40" } });
+    await usuario.click(screen.getByRole("button", { name: "Agregar Tipo" }));
+
+    await screen.findByRole("button", { name: "Cambiar el porcentaje de Cuaderno: 40 %" });
+    expect(apiMock.post).toHaveBeenCalledWith("/planilla/nota", expect.objectContaining({ descripcion: "Cuaderno" }));
+    expect(apiMock.put).toHaveBeenCalledWith(
+      "/planilla/tipos/porcentaje",
+      { asignacion_id: ASIGNACION_ID, periodo: PERIODO, tipo_nota: "Cuaderno", porcentaje: 40 },
+      undefined,
+    );
+    expect(screen.getByText("Porcentajes: 40 % de 100 %")).toBeInTheDocument();
+    expect(screen.getByLabelText("Porcentaje (%)")).toHaveValue("");
   });
 });

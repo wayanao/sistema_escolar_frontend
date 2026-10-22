@@ -1,6 +1,8 @@
 function GestionTiposEvaluacion({
     nuevoTipo,
     onCambiarNuevoTipo,
+    nuevoPorcentaje = "",
+    onCambiarNuevoPorcentaje,
     onAgregarTipo,
     tipoEliminar,
     onCambiarTipoEliminar,
@@ -23,6 +25,27 @@ function GestionTiposEvaluacion({
                         onChange={(e) => onCambiarNuevoTipo(e.target.value)}
                         disabled={Boolean(accionTipoEnCurso)}
                     />
+                    {/* Porcentajes, paso B4b (PB9): opcional. Sin el manejador, como antes. */}
+                    {onCambiarNuevoPorcentaje && (
+                        <>
+                            <label
+                                htmlFor="nuevo-tipo-porcentaje"
+                                className="mt-3 block text-sm font-medium text-gray-700 mb-1"
+                            >
+                                Porcentaje (%)
+                            </label>
+                            <input
+                                id="nuevo-tipo-porcentaje"
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="Opcional"
+                                className="w-full sm:w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                value={nuevoPorcentaje}
+                                onChange={(e) => onCambiarNuevoPorcentaje(e.target.value)}
+                                disabled={Boolean(accionTipoEnCurso)}
+                            />
+                        </>
+                    )}
                     <button
                         type="button"
                         disabled={Boolean(accionTipoEnCurso)}

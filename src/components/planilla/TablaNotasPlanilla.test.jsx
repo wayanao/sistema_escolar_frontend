@@ -31,6 +31,33 @@ describe("TablaNotasPlanilla", () => {
         expect(screen.getAllByText("Ruiz Ana")).toHaveLength(2);
     });
 
+    it("con porcentajes, cada encabezado muestra el suyo; sin ellos, ninguno", () => {
+        const { rerender } = render(
+            <TablaNotasPlanilla
+                estudiantes={[]}
+                columnas={["quiz", "taller"]}
+                guardarNota={vi.fn()}
+                tipoEvaluacion="numerica"
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+                porcentajesPorTipo={{ quiz: 40 }}
+            />,
+        );
+        const tabla = screen.getByRole("table");
+        expect(within(tabla).getByText("40 %")).toBeInTheDocument();
+        expect(within(tabla).getAllByText(/%/)).toHaveLength(1);
+
+        rerender(
+            <TablaNotasPlanilla
+                estudiantes={[]}
+                columnas={["quiz", "taller"]}
+                guardarNota={vi.fn()}
+                tipoEvaluacion="numerica"
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+            />,
+        );
+        expect(within(screen.getByRole("table")).queryByText(/%/)).not.toBeInTheDocument();
+    });
+
     it("muestra el estado vacío cuando no hay estudiantes", () => {
         render(
             <TablaNotasPlanilla

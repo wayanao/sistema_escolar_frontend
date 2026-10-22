@@ -93,6 +93,7 @@ describe("useConsultasPlanillaProfesor", () => {
 
         await waitFor(() => expect(result.current.porcentajesPorTipo).toEqual({ Cognitivo: 60 }));
         expect(result.current.porcentajesActivos).toBe(false);
+        expect(result.current.sumaPorcentajes).toBe(60);
         expect(result.current.estudiantes[0].promedio).toBe("3.50");
     });
 

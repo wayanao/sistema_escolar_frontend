@@ -1,5 +1,22 @@
 # Cambios Frontend
 
+## 2026-10-22 - Planilla: la pantalla de los porcentajes (paso B4b)
+
+Paso B4b de `docs/funcionalidades/SUBNOTAS_PLANILLA.md` (parte B). Es lo
+primero de los porcentajes que **ve el profesor** (cuando se publique).
+
+- Al crear un tipo de nota, un campo opcional "Porcentaje (%)".
+- Encima de la tabla, `components/planilla/PorcentajesPlanilla.jsx`: una
+  pastilla por tipo con su porcentaje, que se cambia en el mismo lugar (Enter
+  guarda, Esc cancela; vacío lo quita), la suma y el aviso "Faltan
+  porcentajes: se usa el promedio simple." mientras no estén completos. Sin
+  ningún porcentaje solo están las pastillas "+ %", sin suma ni aviso.
+- En la tabla de escritorio, el porcentaje junto al nombre de cada columna.
+- Con porcentajes completos, la columna Promedio muestra el ponderado (lo
+  calcula el gancho de B4a).
+- Sin porcentajes, la planilla calcula y guarda igual que antes: las 16
+  pruebas de siempre de la página pasan sin tocarlas.
+
 ## 2026-10-22 - Planilla y boletín: contratos de los porcentajes (paso B4a)
 
 Paso B4a de `docs/funcionalidades/SUBNOTAS_PLANILLA.md` (parte B). **Lo que ve

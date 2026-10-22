@@ -11,6 +11,7 @@ import {
     aplicarPromediosPonderados,
     normalizarPorcentajesPorTipo,
     porcentajesActivos as calcularPorcentajesActivos,
+    sumaDePorcentajes,
 } from "../../utils/planilla/porcentajes";
 import { normalizarSubnotasPorTipo } from "../../utils/planilla/subnotas";
 
@@ -113,6 +114,7 @@ export default function useConsultasPlanillaProfesor({
     // tipo o cambiar un porcentaje, el promedio se actualiza sin recargar.
     // Sin porcentajes activos, `estudiantes` es la misma lista de siempre.
     const porcentajesActivos = calcularPorcentajesActivos(columnas, porcentajesPorTipo);
+    const sumaPorcentajes = sumaDePorcentajes(columnas, porcentajesPorTipo);
     const estudiantesConPromedio = useMemo(
         () => aplicarPromediosPonderados(estudiantes, columnas, porcentajesPorTipo),
         [estudiantes, columnas, porcentajesPorTipo],
@@ -124,6 +126,7 @@ export default function useConsultasPlanillaProfesor({
         subnotasPorTipo,
         porcentajesPorTipo,
         porcentajesActivos,
+        sumaPorcentajes,
         clases,
         cargarPlanilla,
         setEstudiantes,

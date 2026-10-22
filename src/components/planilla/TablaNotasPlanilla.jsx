@@ -1,7 +1,7 @@
 import PlanillaMobileCard from "./PlanillaMobileCard";
 import PlanillaRow from "./PlanillaRow";
 
-function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar, subnotasPorTipo, onAbrirSubnotas }) {
+function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion, formatearEtiquetaColumna, notasSinGuardar, subnotasPorTipo, onAbrirSubnotas, porcentajesPorTipo }) {
     return (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
             <div className="border-b border-gray-200 bg-white p-4 sm:p-6">
@@ -99,6 +99,12 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                         >
                                             {formatearEtiquetaColumna(col)}
                                         </span>
+                                        {/* Porcentajes, paso B4b (PB9): se cambian encima de la tabla. */}
+                                        {Number.isInteger(porcentajesPorTipo?.[col]) && (
+                                            <span className="rounded-full bg-violet-100 px-2 py-0.5 text-sm font-semibold leading-none text-violet-800">
+                                                {porcentajesPorTipo[col]} %
+                                            </span>
+                                        )}
                                     </div>
                                 </th>
                             ))}

@@ -2,9 +2,11 @@ import { useCallback, useState, useEffect, useRef } from "react";
 import EncabezadoContextoCurso from "../components/EncabezadoContextoCurso";
 import GestionTiposEvaluacion from "../components/planilla/GestionTiposEvaluacion";
 import ModalSubnotasPlanilla from "../components/planilla/ModalSubnotasPlanilla";
+import PorcentajesPlanilla from "../components/planilla/PorcentajesPlanilla";
 import SelectorTipoEvaluacion from "../components/planilla/SelectorTipoEvaluacion";
 import TablaNotasPlanilla from "../components/planilla/TablaNotasPlanilla";
 import useComandosPlanillaProfesor from "../hooks/planilla/useComandosPlanillaProfesor";
+import useComandosPorcentajesPlanilla from "../hooks/planilla/useComandosPorcentajesPlanilla";
 import useComandosSubnotasPlanilla from "../hooks/planilla/useComandosSubnotasPlanilla";
 import useConsultasPlanillaProfesor from "../hooks/planilla/useConsultasPlanillaProfesor";
 import { tipoEvaluacionForzado } from "../utils/nivelAcademico";
@@ -48,11 +50,14 @@ function Planilla() {
         columnas,
         subnotasPorTipo,
         porcentajesPorTipo,
+        porcentajesActivos,
+        sumaPorcentajes,
         clases,
         cargarPlanilla,
         setEstudiantes,
         setColumnas,
         setSubnotasPorTipo,
+        setPorcentajesPorTipo,
     } =
         useConsultasPlanillaProfesor({
             profesorId,
@@ -64,6 +69,8 @@ function Planilla() {
     const {
         nuevoTipo,
         setNuevoTipo,
+        nuevoPorcentaje,
+        setNuevoPorcentaje,
         tipoEliminar,
         setTipoEliminar,
         accionTipoEnCurso,
@@ -82,6 +89,15 @@ function Planilla() {
         setEstudiantes,
         setColumnas,
         cargarPlanilla,
+    });
+
+    // Porcentajes por tipo de nota (parte B de docs/funcionalidades/SUBNOTAS_PLANILLA.md).
+    const porcentajes = useComandosPorcentajesPlanilla({
+        asignacionId,
+        periodo,
+        columnas,
+        porcentajesPorTipo,
+        setPorcentajesPorTipo,
     });
 
     // Subnotas (docs/funcionalidades/SUBNOTAS_PLANILLA.md): el modal de un
@@ -149,6 +165,8 @@ function Planilla() {
         <GestionTiposEvaluacion
             nuevoTipo={nuevoTipo}
             onCambiarNuevoTipo={setNuevoTipo}
+            nuevoPorcentaje={nuevoPorcentaje}
+            onCambiarNuevoPorcentaje={setNuevoPorcentaje}
             onAgregarTipo={agregarTipoEvaluacion}
             tipoEliminar={tipoEliminar}
             onCambiarTipoEliminar={setTipoEliminar}
@@ -156,6 +174,16 @@ function Planilla() {
             columnas={columnas}
             accionTipoEnCurso={accionTipoEnCurso}
             formatearEtiquetaColumna={formatearEtiquetaColumna}
+        />
+
+        <PorcentajesPlanilla
+            columnas={columnas}
+            porcentajesPorTipo={porcentajesPorTipo}
+            suma={sumaPorcentajes}
+            activos={porcentajesActivos}
+            tipoGuardando={porcentajes.tipoGuardando}
+            formatearEtiquetaColumna={formatearEtiquetaColumna}
+            onGuardar={porcentajes.guardarPorcentaje}
         />
 
         <TablaNotasPlanilla
@@ -167,6 +195,7 @@ function Planilla() {
             notasSinGuardar={notasSinGuardar}
             subnotasPorTipo={subnotasPorTipo}
             onAbrirSubnotas={subnotas.abrir}
+            porcentajesPorTipo={porcentajesPorTipo}
         />
 
         {subnotas.abierta && (

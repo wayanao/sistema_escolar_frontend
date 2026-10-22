@@ -231,6 +231,19 @@ Estado actual de componentes y paginas del frontend.
   renombrar y borrar subnotas. Lleva Anterior/Guardar/Siguiente: Enter pasa a
   la subnota de abajo y, en la última, al estudiante siguiente; Esc cierra.
   Solo presenta: todo llega de `hooks/planilla/useComandosSubnotasPlanilla.js`.
+- **Porcentajes por tipo de nota** (desde el 2026-10-22, paso B4b de
+  `docs/funcionalidades/SUBNOTAS_PLANILLA.md`, parte B).
+  `components/planilla/PorcentajesPlanilla.jsx` es la franja encima de la
+  tabla: una pastilla por tipo ("Quiz · 40 %", o "+ %" si no tiene) que se
+  edita en el mismo lugar (Enter guarda, Esc cancela), la suma ("Porcentajes:
+  70 % de 100 %") y el aviso "Faltan porcentajes: se usa el promedio simple."
+  mientras no estén completos. Sin ningún porcentaje no hay suma ni aviso. Va
+  fuera de la tabla para que sirva igual en celular. Solo presenta: guarda
+  `hooks/planilla/useComandosPorcentajesPlanilla.js`.
+  `TablaNotasPlanilla.jsx`, con `porcentajesPorTipo`, muestra el porcentaje
+  junto al nombre de cada columna; `GestionTiposEvaluacion.jsx`, con
+  `onCambiarNuevoPorcentaje`, suma el campo opcional "Porcentaje (%)" al crear
+  un tipo. Sin esas props se ven como antes.
 - `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
   composición compacta del encabezado y el contexto de materia, salón, período
   y fecha. Planilla agrega allí mismo `Tipo de calificación`.
@@ -759,6 +772,7 @@ Estado actual de componentes y paginas del frontend.
 - `components/planilla/BotonSubnotasPlanilla.jsx`
 - `components/planilla/CeldaCalculadaPlanilla.jsx`
 - `components/planilla/ModalSubnotasPlanilla.jsx`
+- `components/planilla/PorcentajesPlanilla.jsx`
 
 ### Admin
 

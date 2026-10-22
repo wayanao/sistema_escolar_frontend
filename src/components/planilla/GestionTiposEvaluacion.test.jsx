@@ -62,4 +62,29 @@ describe("GestionTiposEvaluacion", () => {
         expect(screen.getByRole("button", { name: "Eliminar Tipo" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Eliminar Tipo" })).toHaveAttribute("aria-busy", "false");
     });
+
+    // Porcentajes por tipo de nota, paso B4b (PB9): un campo opcional al crear.
+    it("sin el manejador del porcentaje no muestra el campo, como antes", () => {
+        renderComponente();
+        expect(screen.queryByLabelText("Porcentaje (%)")).not.toBeInTheDocument();
+    });
+
+    it("con el manejador muestra el campo opcional y avisa lo que se escribe", () => {
+        const onCambiarNuevoPorcentaje = vi.fn();
+        renderComponente({ nuevoPorcentaje: "", onCambiarNuevoPorcentaje });
+
+        const campo = screen.getByLabelText("Porcentaje (%)");
+        expect(campo).toHaveAttribute("placeholder", "Opcional");
+        fireEvent.change(campo, { target: { value: "40" } });
+        expect(onCambiarNuevoPorcentaje).toHaveBeenCalledWith("40");
+    });
+
+    it("el campo del porcentaje también se bloquea mientras una acción está en curso", () => {
+        renderComponente({
+            nuevoPorcentaje: "40",
+            onCambiarNuevoPorcentaje: vi.fn(),
+            accionTipoEnCurso: "agregar",
+        });
+        expect(screen.getByLabelText("Porcentaje (%)")).toBeDisabled();
+    });
 });
