@@ -423,8 +423,13 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - **B2c hecho el 2026-10-22 en el backend, sin commit**: la definitiva del
   boletín con porcentajes activos la calcula el servidor. Lo que eso le pide
   a esta pantalla quedó en "Parte B en este repo". Este repo no cambió.
-- Siguiente acción exacta: **B2d en el backend** (boletín del admin, reporte
-  parcial y rankings), solo con el visto bueno del usuario. El frontend
-  vuelve a tener trabajo en B4.
+- **B2d hecho el 2026-10-22 en el backend, sin commit**: con porcentajes
+  activos, el boletín del admin (materia sin boletín guardado), el reporte
+  parcial y los rankings usan la nota ponderada, solo con notas numéricas.
+  Esas pantallas reciben la cifra ya calculada y no cambian. **B2 está
+  completo.**
+- Siguiente acción exacta: **B3 en el backend, lo hace el usuario** (rama de
+  Neon). Después, migración en producción y push del backend. **B4 (este
+  repo) empieza después**, con visto bueno del usuario.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
