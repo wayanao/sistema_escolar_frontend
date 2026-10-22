@@ -228,3 +228,31 @@ describe("redondearNota y claveNota", () => {
         expect(claveNota(501, "quiz")).not.toBe(claveNota(501, "taller"));
     });
 });
+
+// Porcentajes por tipo de nota, paso B1: el promedio que ve hoy el profesor.
+// Sin porcentajes activos tiene que seguir dando esto (QB4 en
+// docs/funcionalidades/SUBNOTAS_PLANILLA.md del backend). `toFixed` sube los
+// empates exactos: 3.625 se ve 3.63, aunque el promedio que calcula el
+// servidor para la planilla (y que esta pantalla no usa) diga 3.62.
+describe("promedio de la planilla sin porcentajes (caracterización de B1)", () => {
+    const columnas = ["Cognitivo", "Procedimental"];
+
+    it("sube los empates exactos al mostrar dos decimales", () => {
+        expect(
+            calcularPromedioEstudiante({ notas: { Cognitivo: 3.25, Procedimental: 4 } }, columnas),
+        ).toBe("3.63");
+        expect(
+            calcularPromedioEstudiante({ notas: { Cognitivo: 4, Procedimental: 4.25 } }, columnas),
+        ).toBe("4.13");
+    });
+
+    it("no cuenta la columna interna mas_alto", () => {
+        const visibles = obtenerColumnasVisibles(["Cognitivo", "mas_alto"]);
+        const [estudiante] = normalizarEstudiantesPlanilla(
+            [{ notas: { Cognitivo: 3, mas_alto: 5 } }],
+            visibles,
+        );
+
+        expect(estudiante.promedio).toBe("3.00");
+    });
+});

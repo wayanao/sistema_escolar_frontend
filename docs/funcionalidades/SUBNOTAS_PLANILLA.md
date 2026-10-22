@@ -6,9 +6,9 @@
   `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
   local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
   parte A está en producción desde el mismo día (`e36f976`); su contrato está
-  resumido abajo. **Parte B: diseño (B0) hecho el 2026-10-21, con las
-  propuestas PB1 a PB10 aprobadas por el usuario**; sin código (ver "Parte B
-  en este repo").
+  resumido abajo. **Parte B: diseño (B0) aprobado y caracterización (B1)
+  hecha el 2026-10-21**; sin código de la aplicación (ver "Parte B en este
+  repo").
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -387,7 +387,15 @@ El diseño completo está en "Avance del paso B0" del documento principal
   Sin código. **El usuario aprobó PB1 a PB10 el mismo día.**
   `check:deploy` al cerrar B0: 2902 pruebas en 376 archivos, lint y build
   correctos (corrida sola, sin otra carga). `git diff --check` limpio.
-- Siguiente acción exacta: **B1** (caracterización en el backend), solo con
+- **B1 (caracterización) hecho el 2026-10-21, sin commit.** En este repo, 4
+  pruebas nuevas que fijan el promedio que ve hoy el profesor y la
+  definitiva que envía: empates que suben (3.625 → 3.63), `mas_alto` fuera y
+  caritas sin redondear (`utils/planilla/notas.test.js` y
+  `utils/boletines/ingresoBoletin.test.js`). Detalle y hallazgos en "Avance
+  del paso B1" del documento principal. No cambió el código de la
+  aplicación. `check:deploy`: **2906 pruebas en 376 archivos** (eran 2902),
+  lint y build correctos. `git diff --check` limpio.
+- Siguiente acción exacta: **B2** (backend y migración), solo con
   autorización explícita del usuario. El frontend vuelve a tener trabajo en
   B4.
 - Prompt para retomar:

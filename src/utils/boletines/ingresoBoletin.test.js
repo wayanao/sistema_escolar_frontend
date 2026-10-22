@@ -225,4 +225,50 @@ describe("utilidades de ingreso docente a boletines", () => {
 
     expect(estado[9].definitiva).toBe("4.50");
   });
+
+  // Porcentajes por tipo de nota, paso B1: hoy la definitiva la calcula esta
+  // pantalla y el servidor la guarda tal como llega. Sin porcentajes activos
+  // tiene que seguir así (PB5 y QB4 en docs/funcionalidades/SUBNOTAS_PLANILLA.md
+  // del backend).
+  it("calcula la definitiva numérica con dos decimales y la envía así", () => {
+    const estado = crearDatosBoletinInicial([
+      {
+        estudiante_id: 9,
+        notas: [
+          { tipo_nota: "Cognitivo", valor: 3.25, tipo_evaluacion: "numerica" },
+          { tipo_nota: "Procedimental", valor: 4, tipo_evaluacion: "numerica" },
+        ],
+      },
+    ]);
+
+    expect(estado[9].definitiva).toBe("3.63");
+    expect(
+      construirPayloadBoletin({
+        datosBoletin: estado,
+        estudianteId: 9,
+        asignacionId: "55",
+        periodo: "2",
+      }).definitiva,
+    ).toBe(3.63);
+  });
+
+  it("envía sin redondear la definitiva de las caritas", () => {
+    const payload = construirPayloadBoletin({
+      datosBoletin: {
+        9: {
+          definitiva: 0,
+          observaciones: [
+            { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "destacado" },
+            { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+            { nota: null, observacion: "", tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+          ],
+        },
+      },
+      estudianteId: 9,
+      asignacionId: "55",
+      periodo: "2",
+    });
+
+    expect(payload.definitiva).toBe(13 / 3);
+  });
 });
