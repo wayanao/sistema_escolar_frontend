@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     listarClasesProfesorPlanilla,
     obtenerPlanillaNotas,
@@ -7,6 +7,11 @@ import {
     normalizarEstudiantesPlanilla,
     obtenerColumnasVisibles,
 } from "../../utils/planilla/notas";
+import {
+    aplicarPromediosPonderados,
+    normalizarPorcentajesPorTipo,
+    porcentajesActivos as calcularPorcentajesActivos,
+} from "../../utils/planilla/porcentajes";
 import { normalizarSubnotasPorTipo } from "../../utils/planilla/subnotas";
 
 function iniciarSolicitud(ref) {
@@ -31,6 +36,8 @@ export default function useConsultasPlanillaProfesor({
     // Subnotas por tipo de nota (docs/funcionalidades/SUBNOTAS_PLANILLA.md).
     // Las calificaciones de cada estudiante viajan dentro de él, en `subnotas`.
     const [subnotasPorTipo, setSubnotasPorTipo] = useState({});
+    // Porcentajes por tipo de nota (parte B, paso B4a): `{ "<tipo>": 40 }`.
+    const [porcentajesPorTipo, setPorcentajesPorTipo] = useState({});
     const [clases, setClases] = useState([]);
     const clasesControllerRef = useRef(null);
     const planillaControllerRef = useRef(null);
@@ -60,12 +67,14 @@ export default function useConsultasPlanillaProfesor({
             const data = await obtenerPlanillaNotas(asignacionId, periodo, {
                 signal: controller.signal,
                 conSubnotas: true,
+                conPorcentajes: true,
             });
             if (!solicitudVigente(planillaControllerRef, controller)) return;
 
             const columnasVisibles = obtenerColumnasVisibles(data.columnas);
             setColumnas(columnasVisibles);
             setSubnotasPorTipo(normalizarSubnotasPorTipo(data.subnotas, columnasVisibles));
+            setPorcentajesPorTipo(normalizarPorcentajesPorTipo(data.porcentajes, columnasVisibles));
             setEstudiantes(normalizarEstudiantesPlanilla(data.data || [], columnasVisibles));
         } catch (error) {
             if (!solicitudVigente(planillaControllerRef, controller)) return;
@@ -99,14 +108,27 @@ export default function useConsultasPlanillaProfesor({
         return cancelarSolicitudPlanilla;
     }, [asignacionId, periodo, cargarPlanilla, cancelarSolicitudPlanilla]);
 
+    // Porcentajes (parte B): se deciden aquí, con las columnas que se ven, y
+    // no se toma el `porcentajes_activos` de la respuesta. Así, al borrar un
+    // tipo o cambiar un porcentaje, el promedio se actualiza sin recargar.
+    // Sin porcentajes activos, `estudiantes` es la misma lista de siempre.
+    const porcentajesActivos = calcularPorcentajesActivos(columnas, porcentajesPorTipo);
+    const estudiantesConPromedio = useMemo(
+        () => aplicarPromediosPonderados(estudiantes, columnas, porcentajesPorTipo),
+        [estudiantes, columnas, porcentajesPorTipo],
+    );
+
     return {
-        estudiantes,
+        estudiantes: estudiantesConPromedio,
         columnas,
         subnotasPorTipo,
+        porcentajesPorTipo,
+        porcentajesActivos,
         clases,
         cargarPlanilla,
         setEstudiantes,
         setColumnas,
         setSubnotasPorTipo,
+        setPorcentajesPorTipo,
     };
 }

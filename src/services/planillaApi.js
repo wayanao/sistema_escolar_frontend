@@ -16,25 +16,26 @@ export async function listarClasesProfesorPlanilla(profesorId, { signal } = {}) 
 /**
  * La planilla de una clase en un periodo.
  *
- * Con `conSubnotas` pide también las subnotas (`?con_subnotas=true`, ver
- * docs/funcionalidades/SUBNOTAS_PLANILLA.md). Sin esa opción manda exactamente
- * la misma petición de siempre.
+ * Con `conSubnotas` pide también las subnotas (`?con_subnotas=true`) y con
+ * `conPorcentajes` los porcentajes por tipo de nota (`?con_porcentajes=true`).
+ * Ver docs/funcionalidades/SUBNOTAS_PLANILLA.md. Sin ninguna de las dos
+ * opciones manda exactamente la misma petición de siempre.
  */
 export async function obtenerPlanillaNotas(
   asignacionId,
   periodo,
-  { signal, conSubnotas = false } = {},
+  { signal, conSubnotas = false, conPorcentajes = false } = {},
 ) {
   const url = `/planilla-excel/${asignacionId}/${periodo}`;
-  if (!conSubnotas) {
+  if (!conSubnotas && !conPorcentajes) {
     const { data } = await getConSignal(url, signal);
     return data;
   }
 
-  const { data } = await api.get(url, {
-    ...conSenal(signal),
-    params: { con_subnotas: true },
-  });
+  const params = {};
+  if (conSubnotas) params.con_subnotas = true;
+  if (conPorcentajes) params.con_porcentajes = true;
+  const { data } = await api.get(url, { ...conSenal(signal), params });
   return data;
 }
 
@@ -81,5 +82,16 @@ export async function eliminarSubnotaPlanilla({ subnotaId, asignacionId }, { sig
 
 export async function guardarCalificacionesSubnotas(payload, { signal } = {}) {
   const { data } = await api.post("/planilla/subnotas/valores", payload, conSenal(signal));
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Porcentajes por tipo de nota (parte B de docs/funcionalidades/SUBNOTAS_PLANILLA.md).
+// El cuerpo lo arma `utils/planilla/porcentajes.js`; aquí viaja tal cual.
+// ---------------------------------------------------------------------------
+
+/** Guarda, cambia o quita (`porcentaje: null`) el porcentaje de un tipo. */
+export async function guardarPorcentajeTipo(payload, { signal } = {}) {
+  const { data } = await api.put("/planilla/tipos/porcentaje", payload, conSenal(signal));
   return data;
 }

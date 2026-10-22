@@ -1,6 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 import Swal from "sweetalert2";
-import { eliminarTipoEvaluacionPlanilla, guardarNotaPlanilla } from "../../services/planillaApi";
+import {
+    eliminarTipoEvaluacionPlanilla,
+    guardarNotaPlanilla,
+    guardarPorcentajeTipo,
+} from "../../services/planillaApi";
 import {
     calcularPromedioNotas,
     calcularPromedioValoraciones,
@@ -13,8 +17,13 @@ import {
     redondearNota,
 } from "../../utils/planilla/notas";
 import {
+    construirPayloadPorcentaje,
+    validarPorcentajeNuevo,
+} from "../../utils/planilla/porcentajes";
+import {
     MENSAJE_NOTA_CALCULADA,
     esErrorDeNotaCalculada,
+    mensajeDelServidor,
     subnotasDelTipo,
 } from "../../utils/planilla/subnotas";
 
@@ -25,11 +34,14 @@ export default function useComandosPlanillaProfesor({
     estudiantes,
     columnas,
     subnotasPorTipo = {},
+    porcentajesPorTipo = {},
     setEstudiantes,
     setColumnas,
     cargarPlanilla,
 }) {
     const [nuevoTipo, setNuevoTipo] = useState("");
+    // Porcentajes, paso B4a (PB8): opcional, se envía después de crear el tipo.
+    const [nuevoPorcentaje, setNuevoPorcentaje] = useState("");
     const [tipoEliminar, setTipoEliminar] = useState("");
     const [accionTipoEnCurso, setAccionTipoEnCurso] = useState(null);
     const [notasSinGuardar, setNotasSinGuardar] = useState({});
@@ -197,6 +209,21 @@ export default function useComandosPlanillaProfesor({
             return;
         }
 
+        // Porcentajes, paso B4a (PB8): si se escribió un porcentaje, se valida
+        // antes de crear nada. Sin porcentaje, todo sigue como siempre.
+        const porcentaje = String(nuevoPorcentaje ?? "").trim()
+            ? validarPorcentajeNuevo({
+                columnas,
+                porcentajes: porcentajesPorTipo,
+                tipo: tipoLimpio,
+                texto: nuevoPorcentaje,
+            })
+            : { porcentaje: null };
+        if (porcentaje.error) {
+            Swal.fire({ icon: 'warning', title: 'Porcentaje', text: porcentaje.error });
+            return;
+        }
+
         setAccionTipoEnCurso("agregar");
         try {
             await guardarNotaPlanilla(construirPayloadNota({
@@ -206,8 +233,36 @@ export default function useComandosPlanillaProfesor({
                 descripcion: tipoLimpio,
                 tipoEvaluacion,
             }));
+
+            // El tipo ya existe. Si su porcentaje no se guarda, el tipo se
+            // queda (sin porcentaje, la planilla usa el promedio simple) y se
+            // avisa para ponerlo desde su columna.
+            let porcentajeFallido = null;
+            if (porcentaje.porcentaje !== null) {
+                try {
+                    await guardarPorcentajeTipo(construirPayloadPorcentaje({
+                        asignacionId,
+                        periodo,
+                        tipoNota: tipoLimpio,
+                        porcentaje: porcentaje.porcentaje,
+                    }));
+                } catch (error) {
+                    console.error("Error guardando el porcentaje del tipo nuevo", error);
+                    porcentajeFallido = mensajeDelServidor(error, "Intenta nuevamente en un momento.");
+                }
+            }
+
             setNuevoTipo("");
+            setNuevoPorcentaje("");
             await cargarPlanilla();
+            if (porcentajeFallido) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Tipo agregado sin porcentaje',
+                    text: `El tipo de evaluación "${formatearEtiquetaColumna(tipoLimpio)}" se agregó, pero su porcentaje no se guardó: ${porcentajeFallido} Puedes ponerlo desde su columna.`,
+                });
+                return;
+            }
             await Swal.fire({
                 icon: 'success',
                 title: 'Guardado',
@@ -225,7 +280,7 @@ export default function useComandosPlanillaProfesor({
         } finally {
             setAccionTipoEnCurso(null);
         }
-    }, [accionTipoEnCurso, nuevoTipo, columnas, estudiantes, asignacionId, periodo, tipoEvaluacion, cargarPlanilla]);
+    }, [accionTipoEnCurso, nuevoTipo, nuevoPorcentaje, porcentajesPorTipo, columnas, estudiantes, asignacionId, periodo, tipoEvaluacion, cargarPlanilla]);
 
     const eliminarTipoEvaluacion = useCallback(async () => {
         if (accionTipoEnCurso) return;
@@ -293,6 +348,8 @@ export default function useComandosPlanillaProfesor({
     return {
         nuevoTipo,
         setNuevoTipo,
+        nuevoPorcentaje,
+        setNuevoPorcentaje,
         tipoEliminar,
         setTipoEliminar,
         accionTipoEnCurso,

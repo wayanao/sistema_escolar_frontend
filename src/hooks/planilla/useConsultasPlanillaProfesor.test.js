@@ -63,15 +63,62 @@ describe("useConsultasPlanillaProfesor", () => {
 
         expect(result.current.columnas).toEqual(["quiz"]);
         expect(result.current.clases).toEqual([{ id: 88, materia: "Ciencias Naturales" }]);
-        // Subnotas, paso A3: la planilla se pide con sus subnotas.
+        // Subnotas, paso A3: la planilla se pide con sus subnotas. Porcentajes,
+        // paso B4a: y con sus porcentajes por tipo de nota.
         expect(obtenerPlanillaMock).toHaveBeenCalledWith("88", "3", {
             signal: expect.any(AbortSignal),
             conSubnotas: true,
+            conPorcentajes: true,
         });
         expect(listarClasesMock).toHaveBeenCalledWith(12, {
             signal: expect.any(AbortSignal),
         });
         expect(result.current.subnotasPorTipo).toEqual({});
+        expect(result.current.porcentajesPorTipo).toEqual({});
+        expect(result.current.porcentajesActivos).toBe(false);
+    });
+
+    it("con porcentajes incompletos guarda los porcentajes y deja el promedio simple", async () => {
+        obtenerPlanillaMock.mockResolvedValue({
+            columnas: ["Cognitivo", "Procedimental", "mas_alto"],
+            porcentajes: { Cognitivo: 60, mas_alto: 10 },
+            porcentajes_activos: false,
+            data: [{ estudiante_id: 501, notas: { Cognitivo: 4, Procedimental: 3 } }],
+        });
+
+        const { result } = renderHook(() => useConsultasPlanillaProfesor({
+            ...parametrosBase,
+            onClaseNoDisponible: vi.fn(),
+        }));
+
+        await waitFor(() => expect(result.current.porcentajesPorTipo).toEqual({ Cognitivo: 60 }));
+        expect(result.current.porcentajesActivos).toBe(false);
+        expect(result.current.estudiantes[0].promedio).toBe("3.50");
+    });
+
+    it("con porcentajes activos el promedio de cada estudiante es el ponderado", async () => {
+        obtenerPlanillaMock.mockResolvedValue({
+            columnas: ["Cognitivo", "Procedimental", "Actitudinal"],
+            porcentajes: { Cognitivo: 50, Procedimental: 30, Actitudinal: 20 },
+            porcentajes_activos: true,
+            data: [{ estudiante_id: 501, notas: { Cognitivo: 4, Procedimental: 3, Actitudinal: 5 } }],
+        });
+
+        const { result } = renderHook(() => useConsultasPlanillaProfesor({
+            ...parametrosBase,
+            onClaseNoDisponible: vi.fn(),
+        }));
+
+        // Simple seria 4.00; ponderado, 3.90.
+        await waitFor(() => expect(result.current.estudiantes[0].promedio).toBe("3.90"));
+        expect(result.current.porcentajesActivos).toBe(true);
+
+        // Si se quita un porcentaje, vuelve el promedio simple sin recargar.
+        act(() => {
+            result.current.setPorcentajesPorTipo({ Cognitivo: 50, Procedimental: 30 });
+        });
+        expect(result.current.porcentajesActivos).toBe(false);
+        expect(result.current.estudiantes[0].promedio).toBe("4.00");
     });
 
     it("guarda las subnotas por tipo de las columnas visibles y las de cada estudiante", async () => {

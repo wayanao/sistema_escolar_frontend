@@ -81,7 +81,15 @@ export const crearDatosBoletinInicial = (estudiantes) => {
           notasNumericas.length
         : null;
 
-    const promedio = promedioDesarrollo ?? promedioNumerico;
+    // Porcentajes por tipo de nota, paso B4a (PB5): con los porcentajes de la
+    // clase activos, el servidor manda la definitiva que va a guardar, y se
+    // muestra esa. Si no viene, la cuenta de siempre.
+    const delServidor = Number(estudiante.definitiva);
+    const tieneDelServidor =
+      estudiante.definitiva !== null
+      && estudiante.definitiva !== undefined
+      && Number.isFinite(delServidor);
+    const promedio = tieneDelServidor ? delServidor : promedioDesarrollo ?? promedioNumerico;
     const definitiva = promedio === null ? 0 : promedio.toFixed(2);
 
     estadoInicial[estudiante.estudiante_id] = {

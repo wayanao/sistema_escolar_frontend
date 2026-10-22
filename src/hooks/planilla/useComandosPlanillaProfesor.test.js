@@ -4,16 +4,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
     guardarNotaPlanillaMock,
     eliminarTipoEvaluacionPlanillaMock,
+    guardarPorcentajeTipoMock,
     swalFireMock,
 } = vi.hoisted(() => ({
     guardarNotaPlanillaMock: vi.fn(),
     eliminarTipoEvaluacionPlanillaMock: vi.fn(),
+    guardarPorcentajeTipoMock: vi.fn(),
     swalFireMock: vi.fn(),
 }));
 
 vi.mock("../../services/planillaApi", () => ({
     guardarNotaPlanilla: guardarNotaPlanillaMock,
     eliminarTipoEvaluacionPlanilla: eliminarTipoEvaluacionPlanillaMock,
+    guardarPorcentajeTipo: guardarPorcentajeTipoMock,
 }));
 
 vi.mock("sweetalert2", () => ({
@@ -421,6 +424,79 @@ describe("useComandosPlanillaProfesor", () => {
             expect(swalFireMock.mock.calls[1][0].text).toBe(
                 "Esta acción eliminará el tipo de evaluación para todos los estudiantes",
             );
+        });
+    });
+
+    describe("porcentaje al crear un tipo (parte B, paso B4a)", () => {
+        const crearCuaderno = async (result, porcentaje) => {
+            act(() => result.current.setNuevoTipo("Cuaderno"));
+            act(() => result.current.setNuevoPorcentaje(porcentaje));
+            await act(async () => {
+                await result.current.agregarTipoEvaluacion();
+            });
+        };
+
+        it("sin porcentaje crea el tipo como siempre y no pide nada más", async () => {
+            const params = crearParametros();
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            await crearCuaderno(result, "");
+
+            expect(guardarNotaPlanillaMock).toHaveBeenCalledTimes(1);
+            expect(guardarPorcentajeTipoMock).not.toHaveBeenCalled();
+        });
+
+        it("con porcentaje crea el tipo, guarda su porcentaje y después recarga", async () => {
+            const params = crearParametros({ porcentajesPorTipo: { quiz: 60 } });
+            const orden = [];
+            guardarNotaPlanillaMock.mockImplementation(async () => orden.push("tipo"));
+            guardarPorcentajeTipoMock.mockImplementation(async () => orden.push("porcentaje"));
+            params.cargarPlanilla.mockImplementation(async () => orden.push("recarga"));
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            await crearCuaderno(result, "40");
+
+            expect(orden).toEqual(["tipo", "porcentaje", "recarga"]);
+            expect(guardarPorcentajeTipoMock).toHaveBeenCalledWith({
+                asignacion_id: 88,
+                periodo: 3,
+                tipo_nota: "Cuaderno",
+                porcentaje: 40,
+            });
+            expect(result.current.nuevoPorcentaje).toBe("");
+            expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+        });
+
+        it.each([
+            ["0", "El porcentaje debe ser un número entero de 1 a 100."],
+            ["45", "Los porcentajes de esta planilla no pueden sumar más de 100 %."],
+        ])("un porcentaje que no sirve (%s) avisa y no crea nada", async (porcentaje, mensaje) => {
+            const params = crearParametros({ porcentajesPorTipo: { quiz: 60 } });
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            await crearCuaderno(result, porcentaje);
+
+            expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({ text: mensaje }));
+            expect(guardarNotaPlanillaMock).not.toHaveBeenCalled();
+            expect(guardarPorcentajeTipoMock).not.toHaveBeenCalled();
+        });
+
+        it("si el porcentaje no se guarda, el tipo queda creado y lo dice", async () => {
+            const params = crearParametros();
+            guardarPorcentajeTipoMock.mockRejectedValue(Object.assign(new Error("422"), {
+                response: { status: 422, data: { detail: "Los porcentajes de esta planilla no pueden sumar más de 100 %." } },
+            }));
+            const { result } = renderHook(() => useComandosPlanillaProfesor(params));
+
+            await crearCuaderno(result, "40");
+
+            expect(params.cargarPlanilla).toHaveBeenCalledTimes(1);
+            expect(result.current.nuevoTipo).toBe("");
+            expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
+                icon: "warning",
+                text: expect.stringContaining("no pueden sumar más de 100 %"),
+            }));
+            expect(swalFireMock).not.toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
         });
     });
 });

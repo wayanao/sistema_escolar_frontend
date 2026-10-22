@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-10-22 - Planilla y boletín: contratos de los porcentajes (paso B4a)
+
+Paso B4a de `docs/funcionalidades/SUBNOTAS_PLANILLA.md` (parte B). **Lo que ve
+el profesor no cambia todavía**: la pantalla para poner porcentajes llega en
+B4b. El backend de la parte B está en producción desde el 2026-10-22.
+
+- `utils/planilla/porcentajes.js` (nuevo, puro): gemela de
+  `app/core/nota_periodo.py` del backend, con los mismos casos de prueba:
+  cuándo están activos los porcentajes (todo o nada), la suma, la nota
+  ponderada en centésimas enteras, mitad hacia arriba (primaria y caritas), y
+  la validación de lo que escribe el profesor.
+- `services/planillaApi.js`: la planilla se pide también con
+  `con_porcentajes=true`, y `guardarPorcentajeTipo` (`PUT
+  /planilla/tipos/porcentaje`).
+- `hooks/planilla/useConsultasPlanillaProfesor.js`: guarda los porcentajes y,
+  si están activos, entrega el promedio ponderado. Sin porcentajes, la misma
+  lista de estudiantes de siempre.
+- `hooks/planilla/useComandosPorcentajesPlanilla.js` (nuevo): guardar,
+  cambiar o quitar el porcentaje de una columna.
+- `hooks/planilla/useComandosPlanillaProfesor.js`: al crear un tipo se puede
+  dar su porcentaje (se envía después de crear el tipo). Sin porcentaje, todo
+  igual.
+- `utils/boletines/ingresoBoletin.js`: el boletín del profesor muestra la
+  definitiva que manda el servidor cuando viene (porcentajes activos).
+
 ## 2026-10-21 - Planilla: la pantalla de las subnotas (paso A4)
 
 Paso A4 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`. Es lo primero de las

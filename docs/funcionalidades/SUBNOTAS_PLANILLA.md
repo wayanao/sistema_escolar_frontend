@@ -170,6 +170,14 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
   `5f9f1b1` (ver "Avance del paso A4").
 - **A5 — Prueba en local** con el Colegio Demo: ver "Paso A5". **Hecho el
   2026-10-21, todo bien** (ver "Avance del paso A5").
+- **B4a — Contratos de los porcentajes:** servicio, cálculo gemelo del
+  backend, ganchos y la definitiva del servidor en el boletín, con pruebas.
+  **Hecho el 2026-10-22, sin commit** (ver "Avance del paso B4a"). Lo que ve
+  el profesor no cambia todavía.
+- **B4b — Pantalla de los porcentajes:** el campo al crear un tipo, el
+  porcentaje en cada encabezado con la forma de cambiarlo, la suma y el aviso.
+  Pendiente, con su propio visto bueno.
+- **B5 — Prueba en local** con el Colegio Demo, y después el push.
 
 ## Avance del paso A3, 2026-10-21
 
@@ -374,6 +382,61 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - Ninguna otra pantalla cambia de aspecto. Los certificados y el boletín
   impreso reciben la definitiva del servidor.
 
+## Avance del paso B4a, 2026-10-22
+
+Visto bueno del usuario el 2026-10-22 ("sigue", respuesta a "¿Le das el visto
+bueno a B4a?"), con el backend de la parte B ya en producción. Al empezar,
+este repo estaba en `main` y limpio (`a4ee599`). **Lo que ve el profesor no
+cambia en este paso.**
+
+**Qué se hizo:**
+
+- `utils/planilla/porcentajes.js` (nuevo, puro), **gemela de
+  `app/core/nota_periodo.py`** del backend, con 37 pruebas que repiten sus
+  casos y cifras: 3.90 y 3.63 (ejemplos de B0), 4.13, 1.01, 33 + 33 + 34,
+  caritas con y sin empate, casi empate (4.49, logrado), `mas_alto` y notas
+  fuera de 1 a 5 que no cuentan, tipos sin mayúsculas. La cuenta va en
+  centésimas enteras, mitad hacia arriba. Reutiliza de la parte A
+  `leerNotaDeSubnota` (el mismo rango y redondeo de una nota) y la escala de
+  caritas. También valida lo que escribe el profesor (entero de 1 a 100, con
+  o sin "%", y suma de hasta 100), con los mismos mensajes del backend.
+- `services/planillaApi.js`: `obtenerPlanillaNotas(..., { conPorcentajes })`
+  y `guardarPorcentajeTipo`. 4 pruebas nuevas, entre ellas que sin ninguna
+  opción la petición es exactamente la de siempre.
+- `hooks/planilla/useConsultasPlanillaProfesor.js`: pide la planilla con
+  porcentajes, los guarda (`porcentajesPorTipo`, `setPorcentajesPorTipo`) y
+  expone `porcentajesActivos`. **Con porcentajes activos entrega el promedio
+  ponderado; sin ellos, la misma lista de estudiantes de siempre** (sin
+  tocarla). Lo decide con las columnas que se ven, no con el
+  `porcentajes_activos` de la respuesta: así, al borrar un tipo o cambiar un
+  porcentaje, el promedio se actualiza sin recargar. 2 pruebas nuevas.
+- `hooks/planilla/useComandosPorcentajesPlanilla.js` (nuevo), 8 pruebas:
+  guardar, quitar con vacío, sin cambios no envía nada, valida antes de
+  enviar, muestra el mensaje del servidor si rechaza, y no lanza un segundo
+  guardado mientras el primero sigue.
+- `hooks/planilla/useComandosPlanillaProfesor.js`: `nuevoPorcentaje` al crear
+  un tipo. Se valida antes de crear nada; se crea el tipo como siempre y
+  después se envía su porcentaje; si eso falla, el tipo queda creado y se
+  avisa ("Tipo agregado sin porcentaje"). **Sin porcentaje, todo igual**: las
+  pruebas de siempre pasan sin tocarlas. 5 pruebas nuevas.
+- `utils/boletines/ingresoBoletin.js`: el boletín del profesor muestra la
+  `definitiva` del servidor cuando viene (porcentajes activos), también en
+  caritas; si no viene, la cuenta de siempre. 1 prueba nueva.
+- `pages/Planilla.jsx`: solo pasa `porcentajesPorTipo` al gancho de comandos.
+- `docs/API_CLIENT.md` y `docs/CAMBIOS_FRONTEND.md` al día.
+
+**Pruebas primero:** se escribieron antes que el código. Las de los ganchos y
+la del boletín se corrieron antes del cambio y fallaron (5 de los comandos, el
+gancho nuevo que no existía y "Expected 3.90, Received 4.00" del boletín). La
+de `porcentajes.js` se escribió antes que el archivo, pero no se corrió antes
+de crearlo.
+
+**Prueba que cambió a propósito:** `pages/Planilla.test.jsx` y
+`useConsultasPlanillaProfesor.test.js`: la planilla ahora se pide con
+`params: { con_subnotas: true, con_porcentajes: true }`.
+
+**Verificación:** ver "Entrega para el siguiente chat".
+
 ## Fuera de alcance
 
 - Lo de la parte B que queda fuera también allí: porcentajes en las tarjetas
@@ -434,8 +497,22 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - **Backend de la parte B en producción el 2026-10-22** (`dfe0336`,
   migración aplicada en los dos colegios, Render Live). Las rutas de
   porcentajes ya responden; ninguna pantalla las usa todavía.
-- Siguiente acción exacta: **B4 en este repo** (la pantalla de porcentajes en
-  la planilla y la definitiva del servidor en el boletín, según "Parte B en
-  este repo"), solo con el visto bueno del usuario. Después B5 y el push.
+- **B4a (contratos de los porcentajes) hecho el 2026-10-22, sin commit**
+  (ver "Avance del paso B4a"). Lo que ve el profesor no cambia todavía.
+- Verificación al cerrar B4a: `pnpm run check:deploy` limpio en la segunda
+  corrida completa, **2963 pruebas en 378 archivos** (eran 2906 en 376: 57
+  nuevas), lint y build correctos. `git diff --check` limpio. La primera
+  corrida completa falló en **1 prueba vieja** de `pages/Planilla.test.jsx`
+  ("en un curso de primaria evalúa con numérica aunque localStorage diga
+  desarrollo"), no por tiempo agotado; sola pasó 3 de 3 veces y la segunda
+  corrida completa pasó entera.
+- **Hallazgo (no se corrige aquí):** esa prueba mira el modo de captura
+  apenas aparecen la materia y el primer estudiante, sin esperar a que el
+  nivel del curso cambie el modo a numérico. Con la máquina lenta puede mirar
+  antes de tiempo. Arreglarla es esperar ese cambio con `findAllByRole`; queda
+  para cuando el usuario lo pida.
+- Siguiente acción exacta: **B4b, la pantalla de los porcentajes** (campo al
+  crear un tipo, porcentaje en cada encabezado con la forma de cambiarlo,
+  suma y aviso), solo con el visto bueno del usuario. Después B5 y el push.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

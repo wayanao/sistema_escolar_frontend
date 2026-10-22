@@ -271,4 +271,38 @@ describe("utilidades de ingreso docente a boletines", () => {
 
     expect(payload.definitiva).toBe(13 / 3);
   });
+
+  // Porcentajes por tipo de nota, paso B4a (PB5): con los porcentajes de la
+  // clase activos, el servidor manda la definitiva que va a guardar, y la
+  // pantalla muestra esa. Sin ella, la cuenta de siempre.
+  it("usa la definitiva del servidor cuando viene, también en caritas", () => {
+    const estado = crearDatosBoletinInicial([
+      {
+        estudiante_id: 9,
+        definitiva: 3.9,
+        notas: [
+          { tipo_nota: "Cognitivo", valor: 4, tipo_evaluacion: "numerica" },
+          { tipo_nota: "Procedimental", valor: 3, tipo_evaluacion: "numerica" },
+          { tipo_nota: "Actitudinal", valor: 5, tipo_evaluacion: "numerica" },
+        ],
+      },
+      {
+        estudiante_id: 10,
+        definitiva: 4.5,
+        notas: [
+          { valor: null, tipo_evaluacion: "desarrollo", valoracion: "destacado" },
+          { valor: null, tipo_evaluacion: "desarrollo", valoracion: "proceso" },
+        ],
+      },
+      {
+        estudiante_id: 11,
+        notas: [{ tipo_nota: "Cognitivo", valor: 4, tipo_evaluacion: "numerica" }],
+      },
+    ]);
+
+    // Simple serían 4.00 y 4.00; el servidor manda las ponderadas.
+    expect(estado[9].definitiva).toBe("3.90");
+    expect(estado[10].definitiva).toBe("4.50");
+    expect(estado[11].definitiva).toBe("4.00");
+  });
 });

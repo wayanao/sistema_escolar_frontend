@@ -19,6 +19,7 @@ import {
   eliminarTipoEvaluacionPlanilla,
   guardarCalificacionesSubnotas,
   guardarNotaPlanilla,
+  guardarPorcentajeTipo,
   listarClasesProfesorPlanilla,
   obtenerPlanillaNotas,
   renombrarSubnotaPlanilla,
@@ -183,5 +184,59 @@ describe("contrato HTTP de las subnotas", () => {
 
     await expect(crearSubnotaPlanilla({})).rejects.toBe(error);
     await expect(guardarCalificacionesSubnotas({})).rejects.toBe(error);
+  });
+});
+
+describe("contrato HTTP de los porcentajes (parte B, paso B4a)", () => {
+  it("con conPorcentajes agrega su parámetro, solo o junto al de subnotas", async () => {
+    apiMock.get.mockResolvedValue({ data: {} });
+    const controller = new AbortController();
+
+    await obtenerPlanillaNotas(88, 3, { conPorcentajes: true });
+    await obtenerPlanillaNotas(88, 3, {
+      signal: controller.signal,
+      conSubnotas: true,
+      conPorcentajes: true,
+    });
+
+    expect(apiMock.get.mock.calls).toEqual([
+      ["/planilla-excel/88/3", { params: { con_porcentajes: true } }],
+      [
+        "/planilla-excel/88/3",
+        { signal: controller.signal, params: { con_subnotas: true, con_porcentajes: true } },
+      ],
+    ]);
+  });
+
+  it("sin ninguna de las dos opciones pide la planilla exactamente como siempre", async () => {
+    apiMock.get.mockResolvedValue({ data: {} });
+
+    await obtenerPlanillaNotas(88, 3, { conSubnotas: false, conPorcentajes: false });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/planilla-excel/88/3");
+  });
+
+  it("guarda el porcentaje con PUT y devuelve lo que responde el servidor", async () => {
+    const payload = { asignacion_id: 88, periodo: 3, tipo_nota: "Cognitivo", porcentaje: 40 };
+    const respuesta = { tipo_nota: "Cognitivo", porcentaje: 40, suma: 70, activos: false };
+    apiMock.put.mockResolvedValue({ data: respuesta });
+    const controller = new AbortController();
+
+    await expect(guardarPorcentajeTipo(payload, { signal: controller.signal })).resolves.toEqual(respuesta);
+    await guardarPorcentajeTipo(payload);
+
+    expect(apiMock.put.mock.calls).toEqual([
+      ["/planilla/tipos/porcentaje", payload, { signal: controller.signal }],
+      ["/planilla/tipos/porcentaje", payload, undefined],
+    ]);
+  });
+
+  it("propaga el error del servidor tal cual", async () => {
+    const error = Object.assign(new Error("422"), {
+      response: { status: 422, data: { detail: "Los porcentajes de esta planilla no pueden sumar más de 100 %." } },
+    });
+    apiMock.put.mockRejectedValue(error);
+
+    await expect(guardarPorcentajeTipo({})).rejects.toBe(error);
   });
 });

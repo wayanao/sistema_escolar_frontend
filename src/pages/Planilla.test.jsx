@@ -142,9 +142,13 @@ describe("flujo de planilla del profesor", () => {
       { signal: expect.any(AbortSignal) },
     );
     // Subnotas, paso A3: la planilla se pide con sus subnotas, en la misma ruta.
+    // Porcentajes, paso B4a: y con sus porcentajes por tipo de nota.
     expect(apiMock.get).toHaveBeenCalledWith(
       PLANILLA_URL,
-      { signal: expect.any(AbortSignal), params: { con_subnotas: true } },
+      {
+        signal: expect.any(AbortSignal),
+        params: { con_subnotas: true, con_porcentajes: true },
+      },
     );
 
     expect(screen.getByText(CLASE.materia)).toBeInTheDocument();

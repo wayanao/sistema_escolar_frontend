@@ -722,13 +722,14 @@ Uso:
 
 ```text
 GET /mis-clases/{profesor_id}
-GET /planilla-excel/{asignacion_id}/{periodo}?con_subnotas=true
+GET /planilla-excel/{asignacion_id}/{periodo}?con_subnotas=true&con_porcentajes=true
 POST /planilla/nota
 DELETE /planilla/tipo?asignacion_id={id}&descripcion={tipo}&periodo={periodo}
 POST /planilla/subnotas
 PUT /planilla/subnotas/{subnota_id}
 DELETE /planilla/subnotas/{subnota_id}?asignacion_id={id}
 POST /planilla/subnotas/valores
+PUT /planilla/tipos/porcentaje
 ```
 
 Uso:
@@ -760,6 +761,23 @@ Uso:
   calculada) se avisa con ese mensaje y recarga la planilla, sin dejar la nota
   pendiente. Cualquier otro `409`, como el de un año cerrado, sigue como
   antes.
+- **Porcentajes por tipo de nota** (desde el 2026-10-22, paso B4a de
+  `docs/funcionalidades/SUBNOTAS_PLANILLA.md`, parte B). La planilla se pide
+  también con `con_porcentajes=true`: llegan `porcentajes` (`{ "<tipo>": 40 }`)
+  y `porcentajes_activos`. La pantalla no usa ese `porcentajes_activos`: lo
+  decide con `utils/planilla/porcentajes.js` sobre las columnas que se ven, así
+  el promedio se actualiza sin recargar al borrar un tipo o cambiar un
+  porcentaje.
+- `guardarPorcentajeTipo` (`PUT /planilla/tipos/porcentaje`) guarda, cambia o
+  quita (`porcentaje: null`) el porcentaje de un tipo; el cuerpo lo arma
+  `construirPayloadPorcentaje`. Antes de enviar se valida el entero de 1 a 100
+  y la suma de hasta 100, con los mismos mensajes del backend; el backend lo
+  vuelve a comprobar. Al crear un tipo con porcentaje, primero se crea el tipo
+  (`POST /planilla/nota`, como siempre) y después se envía el porcentaje; si
+  eso falla, el tipo queda creado sin porcentaje y se avisa.
+- Con porcentajes **activos** el promedio de la planilla es el ponderado
+  (gemela de `app/core/nota_periodo.py`, en centésimas enteras, mitad hacia
+  arriba). Sin porcentajes activos, el promedio de siempre.
 
 ### Asistencia
 
@@ -917,6 +935,13 @@ Uso:
 - Muestra tipos de nota con etiquetas humanas y `translate="no"` para evitar
   traduccion automatica en Android/Chrome.
 - Guarda resumen del boletin por estudiante.
+- **Porcentajes por tipo de nota** (desde el 2026-10-22, paso B4a de
+  `docs/funcionalidades/SUBNOTAS_PLANILLA.md`, PB5): con los porcentajes de la
+  clase activos, `GET /boletines/referencia/...` trae `definitiva` en cada
+  estudiante con notas, y la pantalla muestra esa (en preescolar, su carita).
+  Si no viene, la definitiva se sigue calculando como siempre. Con porcentajes
+  activos, `POST /boletines/guardar` guarda la del servidor aunque la pantalla
+  envíe otra.
 
 ## Certificados
 
