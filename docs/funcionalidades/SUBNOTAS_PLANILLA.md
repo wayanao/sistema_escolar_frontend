@@ -6,8 +6,9 @@
   `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
   local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
   parte A está en producción desde el mismo día (`e36f976`); su contrato está
-  resumido abajo. **Parte B: diseño (B0) escrito el 2026-10-21, pendiente
-  del visto bueno del usuario**; sin código (ver "Parte B en este repo").
+  resumido abajo. **Parte B: diseño (B0) hecho el 2026-10-21, con las
+  propuestas PB1 a PB10 aprobadas por el usuario**; sin código (ver "Parte B
+  en este repo").
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -331,7 +332,7 @@ lo de abajo es lo que contó el usuario.
 
 **Verificación al cerrar:** ver "Entrega para el siguiente chat".
 
-## Parte B en este repo (diseño de B0, pendiente del visto bueno)
+## Parte B en este repo (diseño de B0, aprobado el 2026-10-21)
 
 El diseño completo está en "Avance del paso B0" del documento principal
 (preguntas QB1 a QB4 y propuestas PB1 a PB10). Lo que toca a este repo:
@@ -381,12 +382,13 @@ El diseño completo está en "Avance del paso B0" del documento principal
   (`IngresoBoletinProfesor`, `PlaneadoresClasesAdmin` y
   `NavegacionesView`); solas pasaron (12 de 12) y la segunda corrida completa
   pasó entera. `git diff --check` limpio.
-- **B0 (diseño de la parte B) escrito el 2026-10-21, sin commit**, en el
-  documento principal; resumen en "Parte B en este repo". Sin código.
+- **B0 (diseño de la parte B) hecho el 2026-10-21** (en este repo,
+  `7ded771`), en el documento principal; resumen en "Parte B en este repo".
+  Sin código. **El usuario aprobó PB1 a PB10 el mismo día.**
   `check:deploy` al cerrar B0: 2902 pruebas en 376 archivos, lint y build
   correctos (corrida sola, sin otra carga). `git diff --check` limpio.
-- Siguiente acción exacta: **que el usuario apruebe las propuestas PB1 a
-  PB10.** Después, B1 (caracterización en el backend), solo con
-  autorización explícita. El frontend vuelve a tener trabajo en B4.
+- Siguiente acción exacta: **B1** (caracterización en el backend), solo con
+  autorización explícita del usuario. El frontend vuelve a tener trabajo en
+  B4.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
