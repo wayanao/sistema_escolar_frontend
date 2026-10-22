@@ -6,9 +6,9 @@
   `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
   local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
   parte A está en producción desde el mismo día (`e36f976`); su contrato está
-  resumido abajo. **Parte B: diseño (B0) aprobado y caracterización (B1)
-  hecha el 2026-10-21**; sin código de la aplicación (ver "Parte B en este
-  repo").
+  resumido abajo. **Parte B: diseño (B0) aprobado, caracterización (B1)
+  hecha y B2 (backend) en curso**; en este repo, sin código nuevo de la
+  aplicación (ver "Parte B en este repo").
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -19,7 +19,7 @@
 - Depende de: el backend de la parte A (pasos A1 y A2) y su migración
   aplicada en producción antes de publicar esta pantalla. **Cumplido el
   2026-10-21.**
-- Última actualización: 2026-10-21.
+- Última actualización: 2026-10-22.
 
 ## Dónde se ve
 
@@ -395,8 +395,11 @@ El diseño completo está en "Avance del paso B0" del documento principal
   del paso B1" del documento principal. No cambió el código de la
   aplicación. `check:deploy`: **2906 pruebas en 376 archivos** (eran 2902),
   lint y build correctos. `git diff --check` limpio.
-- Siguiente acción exacta: **B2** (backend y migración), solo con
-  autorización explícita del usuario. El frontend vuelve a tener trabajo en
-  B4.
+- B1 en este repo: `f6b22f6`.
+- **B2 (backend) va en cuatro partes; B2a (el cálculo ponderado,
+  `app/core/nota_periodo.py`) hecho el 2026-10-22.** Sus 46 pruebas son los
+  casos que tendrá la gemela de este repo en B4. Este repo no cambió.
+- Siguiente acción exacta: **B2b en el backend**, solo con el visto bueno
+  del usuario. El frontend vuelve a tener trabajo en B4.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.

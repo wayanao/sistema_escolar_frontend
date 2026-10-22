@@ -55,8 +55,8 @@ continuacion para retomarla en otro chat u otro LLM.
   en la planilla del profesor, con la celda calculada a partir de su
   promedio; después, porcentajes por tipo. El documento principal está en el
   backend. **Parte A (subnotas) publicada el 2026-10-21, backend y
-  frontend. Parte B (porcentajes): diseño (B0) aprobado y caracterización
-  (B1) hecha el 2026-10-21; sin código de la aplicación.**
+  frontend. Parte B (porcentajes): diseño (B0) aprobado, caracterización
+  (B1) hecha y B2 (backend) en curso; en este repo, nada nuevo todavía.**
 
 ## Control SaaS
 
