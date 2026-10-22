@@ -6,9 +6,9 @@
   `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
   local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
   parte A está en producción desde el mismo día (`e36f976`); su contrato está
-  resumido abajo. **Parte B: diseño (B0) aprobado, caracterización (B1)
-  hecha y B2 (backend) en curso**; en este repo, sin código nuevo de la
-  aplicación (ver "Parte B en este repo").
+  resumido abajo. **Parte B (porcentajes) publicada el 2026-10-22**: backend
+  en `dfe0336` y este repo hasta `82eecf9` (ver "Parte B en este repo" y
+  "Entrega para el siguiente chat").
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -680,9 +680,16 @@ que contó el usuario ("todo bien", "está bien" y "listo" en cada paso).
 - B4c en `3b06848`.
 - **B5 (prueba en local) bien el 2026-10-22**, en primaria y preescolar (ver
   "Avance del paso B5").
-- Siguiente acción exacta: **push del frontend, lo hace el usuario.** Con eso
-  la parte B queda publicada. Después, comprobar en GitHub que Vercel
-  publicó ese commit en `Production` y anotar la publicación aquí y en el
-  documento principal.
+- **Parte B publicada el 2026-10-22.** El usuario hizo el push
+  (`origin/main` en `82eecf9`, con B1 a B5). El despliegue de `Production` de
+  ese commit en Vercel quedó en `success`; el asistente lo comprobó en
+  GitHub, sin entrar a Vercel. El backend de la parte B está en producción
+  desde el mismo día (`dfe0336`).
+- **La funcionalidad "Subnotas y porcentajes en la planilla" está completa y
+  publicada** (partes A y B).
+- Hallazgos que quedan anotados, sin prisa: dos pruebas viejas que a veces
+  fallan por tiempo (`pages/Planilla.test.jsx`, "en un curso de primaria
+  evalúa con numérica…", y `pages/TiposPagosAdmin.test.jsx`, "Configurar
+  baja al panel de configuración"; ver B4a y B4b).
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
