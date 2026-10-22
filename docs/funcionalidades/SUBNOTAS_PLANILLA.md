@@ -6,7 +6,8 @@
   `12c2067`, A4 (la pantalla) en `d58fb0e` y `5f9f1b1`, A5 (la prueba en
   local) bien, y push hasta `3fb9831`, publicado en Vercel. El backend de la
   parte A está en producción desde el mismo día (`e36f976`); su contrato está
-  resumido abajo. La parte B no ha empezado.
+  resumido abajo. **Parte B: diseño (B0) escrito el 2026-10-21, pendiente
+  del visto bueno del usuario**; sin código (ver "Parte B en este repo").
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -330,10 +331,36 @@ lo de abajo es lo que contó el usuario.
 
 **Verificación al cerrar:** ver "Entrega para el siguiente chat".
 
+## Parte B en este repo (diseño de B0, pendiente del visto bueno)
+
+El diseño completo está en "Avance del paso B0" del documento principal
+(preguntas QB1 a QB4 y propuestas PB1 a PB10). Lo que toca a este repo:
+
+- **Hallazgo:** hoy la definitiva del boletín la calcula este repo
+  (`utils/boletines/ingresoBoletin.js: crearDatosBoletinInicial`) y el
+  servidor la guarda tal como llega. Con porcentajes activos la calculará el
+  servidor (PB5), y la pantalla mostrará la que él mande. Sin porcentajes,
+  todo sigue igual.
+- **Planilla (PB9):** campo opcional "Porcentaje (%)" al crear un tipo; el
+  porcentaje en el encabezado de cada columna, con la forma de cambiarlo; la
+  suma encima de la tabla y el aviso "Faltan porcentajes: se usa el promedio
+  simple" mientras no estén activos. Con porcentajes activos, la columna
+  Promedio muestra el ponderado. Sin ningún porcentaje, la planilla se ve
+  como hoy.
+- **Vista previa:** el cálculo ponderado tiene su gemela en `utils/`, con los
+  mismos casos que `app/core/nota_periodo.py` (PB4). Preescolar también
+  lleva porcentajes (QB1), con la misma regla de caritas.
+- **Contrato previsto (PB8):** `PUT /planilla/tipos/porcentaje` y `GET
+  /planilla-excel/...?con_porcentajes=true`. Crear un tipo sigue igual; el
+  porcentaje se envía después, con la ruta nueva.
+- Ninguna otra pantalla cambia de aspecto. Los certificados y el boletín
+  impreso reciben la definitiva del servidor.
+
 ## Fuera de alcance
 
-- Los porcentajes por tipo (parte B): campo de porcentaje al crear el tipo,
-  porcentaje en el encabezado y suma. Se diseñan en B0.
+- Lo de la parte B que queda fuera también allí: porcentajes en las tarjetas
+  del tablero y en la ficha del estudiante, y copiar porcentajes entre
+  periodos.
 - Mostrar subnotas fuera de la planilla del profesor.
 - Reordenar subnotas arrastrando.
 
@@ -354,9 +381,12 @@ lo de abajo es lo que contó el usuario.
   (`IngresoBoletinProfesor`, `PlaneadoresClasesAdmin` y
   `NavegacionesView`); solas pasaron (12 de 12) y la segunda corrida completa
   pasó entera. `git diff --check` limpio.
-- Siguiente acción exacta: **B0, el diseño de la parte B** (porcentajes),
-  en el documento principal. Solo documentos. Empieza solo con autorización
-  explícita del usuario para B0 y con las preguntas abiertas de "Antes de B0"
-  respondidas.
+- **B0 (diseño de la parte B) escrito el 2026-10-21, sin commit**, en el
+  documento principal; resumen en "Parte B en este repo". Sin código.
+  `check:deploy` al cerrar B0: 2902 pruebas en 376 archivos, lint y build
+  correctos (corrida sola, sin otra carga). `git diff --check` limpio.
+- Siguiente acción exacta: **que el usuario apruebe las propuestas PB1 a
+  PB10.** Después, B1 (caracterización en el backend), solo con
+  autorización explícita. El frontend vuelve a tener trabajo en B4.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
