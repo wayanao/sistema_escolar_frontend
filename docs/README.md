@@ -55,8 +55,8 @@ continuacion para retomarla en otro chat u otro LLM.
   en la planilla del profesor, con la celda calculada a partir de su
   promedio; después, porcentajes por tipo. El documento principal está en el
   backend. **El backend de la parte A está en producción; en este repo, A3
-  en `12c2067` y la pantalla (A4) escrita el 2026-10-21, sin commit. Falta la
-  prueba en local (A5) antes de publicar.**
+  en `12c2067`, la pantalla (A4) en `d58fb0e` y `5f9f1b1`, y la prueba en
+  local (A5) bien el 2026-10-21. Falta el push del frontend.**
 
 ## Control SaaS
 

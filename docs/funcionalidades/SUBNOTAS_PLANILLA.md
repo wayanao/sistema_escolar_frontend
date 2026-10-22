@@ -2,10 +2,11 @@
 
 ## Control
 
-- Estado: **A0 en `1553574`, A3 en `12c2067`. A4 (la pantalla) escrito y
-  verificado el 2026-10-21, sin commit.** Falta A5, la prueba en local, antes
-  de publicar. El backend de la parte A está en producción desde el
-  2026-10-21 (`e36f976`); su contrato está resumido abajo.
+- Estado: **A0 en `1553574`, A3 en `12c2067`, A4 (la pantalla) en `d58fb0e`
+  y `5f9f1b1`. A5, la prueba en local, salió bien el 2026-10-21.** Falta el
+  push del frontend; hasta entonces ningún profesor ve las subnotas. El
+  backend de la parte A está en producción desde el 2026-10-21 (`e36f976`);
+  su contrato está resumido abajo.
 - Tipo: Función nueva de producto. No es un módulo del plan de
   `docs/modularizacion/README.md` y no debe confundirse con uno.
 - **El documento principal es
@@ -161,10 +162,12 @@ llegan como `{ detail: "<mensaje en español>" }`, listo para mostrar.
 ## Plan por pasos de este repo
 
 - **A3 — Contratos:** servicio, utilidades y ganchos, con pruebas.
-  **Hecho el 2026-10-21, sin commit** (ver "Avance del paso A3").
+  **Hecho el 2026-10-21**, en `12c2067` (ver "Avance del paso A3").
 - **A4 — Pantalla:** modal, botón, celda calculada y celular. **Hecho el
-  2026-10-21, sin commit** (ver "Avance del paso A4").
-- **A5 — Prueba en local** con el Colegio Demo: ver "Paso A5".
+  2026-10-21**, en `d58fb0e`, con el ajuste de la rueda del mouse en
+  `5f9f1b1` (ver "Avance del paso A4").
+- **A5 — Prueba en local** con el Colegio Demo: ver "Paso A5". **Hecho el
+  2026-10-21, todo bien** (ver "Avance del paso A5").
 
 ## Avance del paso A3, 2026-10-21
 
@@ -306,6 +309,27 @@ La hace el usuario. **Solo con el Colegio Demo**, nunca con estudiantes de
 Si todo sale bien, el usuario hace el push del frontend y la parte A queda
 publicada.
 
+## Avance del paso A5, 2026-10-21
+
+Lo hizo el usuario en su computador, con el backend y el frontend en local y
+como profesor del **Colegio Demo**. No se usaron estudiantes de
+`tenant_2005`. El asistente no corrió los servidores ni entró a la pantalla:
+lo de abajo es lo que contó el usuario.
+
+- **Puntos 3 a 9, primaria: todo bien.** Crear el tipo de prueba, agregar y
+  calificar subnotas, el promedio que cambia mientras se escribe, Enter y
+  Siguiente, la celda calculada y el promedio de la fila, editar y guardar,
+  renombrar, borrar con aviso, vaciar hasta volver a la celda a mano y la
+  vista de celular.
+- **Punto 10, preescolar: funcionó.** Las subnotas se califican con caritas
+  y la celda muestra la carita del promedio.
+- **Punto 11, limpieza: hecha.** Se borró el tipo "Prueba subnotas" y el
+  aviso decía "y sus subnotas".
+- No apareció ningún problema, así que no hubo cambios de código en este
+  paso: solo se actualizaron los documentos.
+
+**Verificación al cerrar:** ver "Entrega para el siguiente chat".
+
 ## Fuera de alcance
 
 - Los porcentajes por tipo (parte B): campo de porcentaje al crear el tipo,
@@ -315,27 +339,24 @@ publicada.
 
 ## Entrega para el siguiente chat
 
-- Hecho: **A0 (diseño), 2026-10-21, sin commit.** No hay código de esta
-  funcionalidad.
-- Verificación de A0 (solo documentos): `pnpm run check:deploy` pasó 2804 de
-  2805 pruebas. La que falló (`IngresoBoletinProfesor.test.jsx`) pasa sola (2
-  de 2): fue el fallo al azar por carga de la máquina. Lint y build pasan por
-  separado y `git diff --check` está limpio.
-- 2026-10-21: el usuario aprobó las propuestas P1 a P12, y el backend
-  terminó A1 y A2: código, migración probada en una rama de Neon y esquema
-  base regenerado. Todo sin commit y sin publicar. Su contrato quedó en
-  "Contrato del backend".
-- 2026-10-21: **el backend de la parte A quedó en producción** (`e36f976`,
-  migración aplicada en los dos colegios y Render Live). Las rutas nuevas ya
-  responden; la planilla de hoy no las usa.
-- 2026-10-21: **A3 hecho, sin commit** (ver "Avance del paso A3").
-  `check:deploy`: 2871 pruebas, lint y build limpios.
-- A3 en `12c2067`.
-- 2026-10-21: **A4 hecho, sin commit** (ver "Avance del paso A4").
-  `check:deploy`: 2902 pruebas, lint y build limpios.
-- Siguiente acción exacta: **A5, lo hace el usuario** con la lista de "Paso
-  A5" (Colegio Demo). Si sale bien, commit y push del frontend: con eso la
-  parte A queda publicada. La parte B (porcentajes) empieza con su B0 y solo
-  con autorización explícita.
+- Hecho en este repo: **A0** en `1553574`, **A3** en `12c2067`, **A4** en
+  `d58fb0e` y `5f9f1b1`. **A5 (prueba en local) bien el 2026-10-21**, en
+  primaria y preescolar (ver "Avance del paso A5"). Al cerrar A5, `main`
+  tenía esos tres commits de código sin push (`origin/main` en `6fdb191`).
+- Backend: la parte A está en producción desde el 2026-10-21 (`e36f976`,
+  migración aplicada en los dos colegios y Render Live).
+- Verificación al cerrar A5 (solo cambiaron documentos): `pnpm run
+  check:deploy` limpio, **2902 pruebas en 376 archivos**, lint y build
+  correctos. Una primera corrida, hecha al mismo tiempo que la del backend,
+  falló por carga en 3 pruebas que no son de la planilla
+  (`IngresoBoletinProfesor`, `PlaneadoresClasesAdmin` y
+  `NavegacionesView`); solas pasaron (12 de 12) y la segunda corrida completa
+  pasó entera. `git diff --check` limpio.
+- Siguiente acción exacta: **push del frontend, lo hace el usuario** (los
+  commits de A3, A4 y el del cierre de A5). Con eso la parte A queda
+  publicada. Después, anotar la publicación aquí y en el documento principal.
+- La parte B (porcentajes) empieza con su B0 y solo con autorización
+  explícita. Antes de B0 hay que responder las preguntas abiertas del
+  documento principal.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
