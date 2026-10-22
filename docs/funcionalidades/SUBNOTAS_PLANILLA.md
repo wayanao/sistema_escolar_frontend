@@ -428,8 +428,11 @@ El diseño completo está en "Avance del paso B0" del documento principal
   parcial y los rankings usan la nota ponderada, solo con notas numéricas.
   Esas pantallas reciben la cifra ya calculada y no cambian. **B2 está
   completo.**
-- Siguiente acción exacta: **B3 en el backend, lo hace el usuario** (rama de
-  Neon). Después, migración en producción y push del backend. **B4 (este
-  repo) empieza después**, con visto bueno del usuario.
+- **B3 hecho el 2026-10-22** en el backend: la migración funcionó en una rama
+  de Neon y la planilla, el boletín, el reporte parcial y los rankings de
+  siempre funcionaron contra ella.
+- Siguiente acción exacta: **migración en producción y push del backend**
+  (lo hace el usuario). **B4 (este repo) empieza después**, con visto bueno
+  del usuario.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
