@@ -431,8 +431,11 @@ El diseño completo está en "Avance del paso B0" del documento principal
 - **B3 hecho el 2026-10-22** en el backend: la migración funcionó en una rama
   de Neon y la planilla, el boletín, el reporte parcial y los rankings de
   siempre funcionaron contra ella.
-- Siguiente acción exacta: **migración en producción y push del backend**
-  (lo hace el usuario). **B4 (este repo) empieza después**, con visto bueno
-  del usuario.
+- **Backend de la parte B en producción el 2026-10-22** (`dfe0336`,
+  migración aplicada en los dos colegios, Render Live). Las rutas de
+  porcentajes ya responden; ninguna pantalla las usa todavía.
+- Siguiente acción exacta: **B4 en este repo** (la pantalla de porcentajes en
+  la planilla y la definitiva del servidor en el boletín, según "Parte B en
+  este repo"), solo con el visto bueno del usuario. Después B5 y el push.
 - Prompt para retomar:
   `docs/funcionalidades/PROMPT_CONTINUACION_SUBNOTAS_PLANILLA.md`.
