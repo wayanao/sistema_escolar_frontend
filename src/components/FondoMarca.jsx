@@ -14,10 +14,10 @@ function FondoMarca({ animado = false }) {
         className={`absolute -left-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-purple-600/35 blur-[120px] ${brillo}`}
       />
       <div
-        className={`absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-violet-500/20 blur-[110px] ${brillo} [animation-delay:-6s]`}
+        className={`absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-violet-500/20 blur-[110px] ${brillo} [--retraso:-6s]`}
       />
       <div
-        className={`absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-lime-400/15 blur-[90px] ${brillo} [animation-delay:-12s]`}
+        className={`absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-lime-400/15 blur-[90px] ${brillo} [--retraso:-12s]`}
       />
       <div className="fondo-marca-trama absolute inset-0" />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-slate-950/20" />

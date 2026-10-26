@@ -848,6 +848,15 @@ campos, los textos, los mensajes y el flujo de inicio de sesión son los mismos.
   no tiene la columna izquierda con el título grande.
 - `LoginFormView.jsx`: colores para vidrio oscuro, logo claro
   (`auligo-logo-nav.png`), botón lima y el saludo como `h1` de la página.
+- Burbujas sueltas por toda la pantalla (`BURBUJAS_SUELTAS`, animación
+  `.burbuja-deriva`) para que el espacio alrededor de la tarjeta no se vea
+  vacío; en el celular solo quedan las que no saturan. Las gotas no usan
+  `backdrop-filter`: son muchas, se mueven y en celulares sencillos cuesta.
+- Las animaciones de login y landing toman duración y desfase de las variables
+  `--duracion` y `--retraso` (clases como `[--retraso:-6s]`). Las clases
+  `[animation-delay:...]` que había antes no funcionaban: el atajo `animation`
+  de `index.css` va después de las utilidades de Tailwind y las pisaba, así
+  que todo flotaba sincronizado.
 - `RUTAS_SESION.PORTADA` (`/`): la usan el enlace del login y `App.jsx`.
 - El autocompletado del navegador (`.login-field:-webkit-autofill`) ahora
   pinta fondo oscuro y texto blanco.

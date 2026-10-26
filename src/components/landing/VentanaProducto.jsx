@@ -100,7 +100,7 @@ function VentanaProducto({ planilla }) {
         </div>
       </div>
 
-      <div className="landing-flotar absolute -bottom-8 -right-3 hidden w-48 rounded-2xl border border-white/60 bg-white/90 p-3.5 shadow-[0_18px_40px_rgba(10,4,25,0.35)] backdrop-blur [animation-delay:-2s] sm:block lg:-right-8">
+      <div className="landing-flotar absolute -bottom-8 -right-3 hidden w-48 rounded-2xl border border-white/60 bg-white/90 p-3.5 shadow-[0_18px_40px_rgba(10,4,25,0.35)] backdrop-blur [--retraso:-2s] sm:block lg:-right-8">
         <p className="text-[11px] font-semibold text-slate-500">Asistencia de hoy</p>
         <div className="mt-1 flex items-end gap-2">
           <p className="text-2xl font-black leading-none text-slate-900">96%</p>
@@ -110,7 +110,7 @@ function VentanaProducto({ planilla }) {
         </div>
       </div>
 
-      <div className="landing-flotar absolute -bottom-10 left-8 hidden items-end gap-3 rounded-2xl border border-white/60 bg-white/90 p-3.5 shadow-[0_18px_40px_rgba(10,4,25,0.35)] backdrop-blur [animation-delay:-4s] lg:flex">
+      <div className="landing-flotar absolute -bottom-10 left-8 hidden items-end gap-3 rounded-2xl border border-white/60 bg-white/90 p-3.5 shadow-[0_18px_40px_rgba(10,4,25,0.35)] backdrop-blur [--retraso:-4s] lg:flex">
         <div>
           <p className="text-[11px] font-semibold text-slate-500">Cartera</p>
           <p className="text-sm font-black text-slate-900">Al día</p>
