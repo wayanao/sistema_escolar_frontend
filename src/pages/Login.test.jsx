@@ -58,9 +58,15 @@ describe("Login", () => {
     const main = container.querySelector("main");
     expect(main).toHaveClass("notranslate", "min-h-[100svh]");
     expect(main).toHaveAttribute("translate", "no");
+    // La foto de fondo se retiró el 2026-10-26: el fondo son degradados y una
+    // trama, decorativos, que los lectores de pantalla no anuncian.
     expect(
-      screen.getByAltText("Comunidad educativa reunida en una celebración escolar"),
-    ).toBeInTheDocument();
+      screen.queryByAltText("Comunidad educativa reunida en una celebración escolar"),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector(".login-trama").parentElement).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
     expect(screen.getByRole("heading", { name: /tu aula,/i })).toBeInTheDocument();
   });
 

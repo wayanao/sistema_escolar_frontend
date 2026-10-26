@@ -1,6 +1,5 @@
 import LoginFormView from "../components/autenticacion/LoginFormView";
 import auligoLogoNav from "../assets/auligo-logo-nav.png";
-import fondoLogin from "../assets/login-auligo-original.jpg";
 import { useComandoLogin } from "../hooks/autenticacion/useComandoLogin";
 
 function Login() {
@@ -23,15 +22,16 @@ function Login() {
       className="notranslate relative min-h-[100svh] overflow-hidden bg-slate-950"
       translate="no"
     >
-      <img
-        src={fondoLogin}
-        alt="Comunidad educativa reunida en una celebración escolar"
-        className="absolute inset-0 h-full w-full scale-[1.035] object-cover object-center brightness-[0.76] contrast-[1.08] saturate-[0.86] blur-[1.2px]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-950/95 via-purple-950/72 to-slate-950/60" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/25" />
-      <div className="absolute -left-24 top-1/4 h-96 w-96 rounded-full bg-purple-600/20 blur-3xl" />
-      <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-lime-400/10 blur-3xl" />
+      {/* Fondo sin foto: los morados de la marca, un brillo lima y una trama de
+          puntos. Es decorativo, así que los lectores de pantalla lo ignoran. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-[#21103d] to-slate-950" />
+        <div className="absolute -left-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-purple-600/35 blur-[120px]" />
+        <div className="absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-violet-500/20 blur-[110px]" />
+        <div className="absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-lime-400/15 blur-[90px]" />
+        <div className="login-trama absolute inset-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-slate-950/20" />
+      </div>
 
       <div className="relative mx-auto grid min-h-[100svh] w-full max-w-[1440px] items-center gap-10 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[1fr_500px] lg:gap-16 lg:px-10 xl:px-16">
         <section className="hidden max-w-2xl text-white lg:block">

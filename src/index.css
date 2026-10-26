@@ -13,6 +13,15 @@
   transition: background-color 9999s ease-out 0s;
 }
 
+/* Trama de puntos del fondo del login. Se desvanece hacia los bordes para que
+   no compita con el formulario. */
+.login-trama {
+  background-image: radial-gradient(rgb(255 255 255 / 9%) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse at 35% 45%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 35% 45%, #000 25%, transparent 75%);
+}
+
 .nav-brand-logo {
   filter:
     drop-shadow(0 4px 4px rgb(24 7 58 / 70%))

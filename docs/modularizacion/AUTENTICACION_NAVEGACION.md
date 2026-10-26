@@ -802,3 +802,17 @@ Después del commit, push y deploy que realizará el usuario:
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual anterior como seguimiento operativo si todavía no fue
   registrada.
+
+## Después del cierre: fondo del login sin foto (2026-10-26)
+
+Cambio visual pedido por el usuario. `src/pages/Login.jsx` deja de usar la
+foto `src/assets/login-auligo-original.jpg`: el fondo pasa a ser degradados con
+los morados de la marca, un brillo lima suave y una trama de puntos (la clase
+`.login-trama` de `src/index.css`). Es decorativo, con `aria-hidden`. El texto
+de la izquierda, la tarjeta y `LoginFormView` no cambian, ni el flujo de inicio
+de sesión.
+
+- `Login.test.jsx` («conserva el shell visual») se actualizó a propósito: ahora
+  fija que la foto ya no está y que el fondo es decorativo.
+- La foto sigue en `src/assets/`, sin usarse; borrarla queda a decisión del
+  usuario. Vite no la incluye en el build porque nadie la importa.
