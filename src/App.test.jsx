@@ -11,6 +11,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("./pages/Login", () => ({
   default: () => <div data-testid="pagina-login">Login</div>,
 }));
+vi.mock("./pages/Landing", () => ({
+  default: ({ rutaIngreso }) => <div data-testid="pagina-landing">{rutaIngreso}</div>,
+}));
 vi.mock("./pages/DashboardProfesor", () => ({
   default: () => <div data-testid="dashboard-profesor">Dashboard profesor</div>,
 }));
@@ -94,10 +97,23 @@ describe("rutas de autenticacion y sesion", () => {
     expect(screen.getByTestId("pagina-login")).toBeInTheDocument();
   });
 
+  // Desde el 2026-10-26, `/` sin sesión es la landing; el resto de rutas
+  // privadas sin sesión sigue yendo al login.
   it("redirige el layout general a /login cuando no hay usuario ni profesor", async () => {
-    renderApp("/");
+    renderApp("/planilla");
 
     expect(await screen.findByTestId("pagina-login")).toBeInTheDocument();
+    expect(mocks.useEstadoTenant).not.toHaveBeenCalled();
+  });
+
+  it("muestra la landing en / a quien no ha iniciado sesion, sin montar el layout", async () => {
+    renderApp("/");
+
+    const landing = await screen.findByTestId("pagina-landing");
+    expect(landing).toHaveTextContent("/login");
+    expect(screen.queryByTestId("pagina-login")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("nav-profesor")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("nav-admin")).not.toBeInTheDocument();
     expect(mocks.useEstadoTenant).not.toHaveBeenCalled();
   });
 
@@ -109,6 +125,8 @@ describe("rutas de autenticacion y sesion", () => {
     expect(screen.getByTestId("nav-profesor")).toBeInTheDocument();
     expect(screen.getByTestId("tenant-status")).toBeInTheDocument();
     expect(await screen.findByTestId("dashboard-profesor")).toBeInTheDocument();
+    // Con sesión, `/` sigue siendo el panel del profesor y no la landing.
+    expect(screen.queryByTestId("pagina-landing")).not.toBeInTheDocument();
     expect(mocks.useEstadoTenant).toHaveBeenCalledTimes(1);
   });
 
@@ -224,7 +242,7 @@ describe("rutas de autenticacion y sesion", () => {
   it("no usa super_admin como sesion del layout general", async () => {
     guardarSesion("super_admin", { id: 9, rol: "super_admin" });
 
-    renderApp("/");
+    renderApp("/planilla");
 
     expect(await screen.findByTestId("pagina-login")).toBeInTheDocument();
   });

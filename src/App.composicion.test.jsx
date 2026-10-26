@@ -23,6 +23,9 @@ vi.mock("./pages/Login", () => ({
 vi.mock("./pages/DashboardProfesor", () => ({
   default: () => <div data-testid="dashboard-profesor">Dashboard profesor</div>,
 }));
+vi.mock("./pages/Landing", () => ({
+  default: () => <div data-testid="pagina-landing">Landing</div>,
+}));
 vi.mock("./pages/AdminDashboard", () => ({
   default: () => <div data-testid="dashboard-admin">Dashboard admin</div>,
 }));
@@ -211,10 +214,15 @@ describe("composicion de autenticacion y navegacion", () => {
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
   });
 
-  it("no monta comandos ni tenant cuando el layout general rechaza la sesion", async () => {
-    renderApp("/");
+  // `/` sin sesión es la landing desde el 2026-10-26; por eso el rechazo se
+  // prueba en otra ruta privada, y la landing tampoco monta nada del layout.
+  it.each([
+    ["/planilla", "pagina-login"],
+    ["/", "pagina-landing"],
+  ])("no monta comandos ni tenant sin sesion en %s", async (ruta, pantalla) => {
+    renderApp(ruta);
 
-    expect(await screen.findByTestId("pagina-login")).toBeInTheDocument();
+    expect(await screen.findByTestId(pantalla)).toBeInTheDocument();
     expect(mocks.useCerrarSesion).not.toHaveBeenCalled();
     expect(mocks.useEstadoTenant).not.toHaveBeenCalled();
     expect(mocks.navAdmin).not.toHaveBeenCalled();

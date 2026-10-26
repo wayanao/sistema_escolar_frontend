@@ -807,12 +807,51 @@ Después del commit, push y deploy que realizará el usuario:
 
 Cambio visual pedido por el usuario. `src/pages/Login.jsx` deja de usar la
 foto `src/assets/login-auligo-original.jpg`: el fondo pasa a ser degradados con
-los morados de la marca, un brillo lima suave y una trama de puntos (la clase
-`.login-trama` de `src/index.css`). Es decorativo, con `aria-hidden`. El texto
-de la izquierda, la tarjeta y `LoginFormView` no cambian, ni el flujo de inicio
-de sesión.
+los morados de la marca, un brillo lima suave y una trama de puntos. Vive en
+`src/components/FondoMarca.jsx`, compartido con la landing, y la trama es la
+clase `.fondo-marca-trama` de `src/index.css`. Es decorativo, con
+`aria-hidden`. El texto de la izquierda, la tarjeta y `LoginFormView` no
+cambian, ni el flujo de inicio de sesión.
 
 - `Login.test.jsx` («conserva el shell visual») se actualizó a propósito: ahora
   fija que la foto ya no está y que el fondo es decorativo.
 - La foto sigue en `src/assets/`, sin usarse; borrarla queda a decisión del
   usuario. Vite no la incluye en el build porque nadie la importa.
+
+## Después del cierre: la landing en `/` sin sesión (2026-10-26)
+
+`Layout` en `src/App.jsx` ya no manda al login a todo visitante sin sesión: en
+`/` muestra `src/pages/Landing.jsx` (carga diferida). Cualquier otra ruta sin
+sesión sigue yendo a `/login`, y con sesión `/` sigue siendo el panel del
+profesor. La landing recibe `rutaIngreso` desde `App`, dueño de
+`RUTAS_SESION`, para no importar utilidades de este módulo.
+
+- No toca autenticación, roles ni backend: es una pantalla informativa sin
+  datos, y la autorización real sigue en el backend.
+- `App.test.jsx` y `App.composicion.test.jsx` se actualizaron a propósito: el
+  rechazo sin sesión se prueba ahora en `/planilla`, y se agregaron la landing
+  en `/` sin sesión (sin montar menú, aviso de tenant ni comandos) y que con
+  sesión `/` no la muestra.
+- Contenido y diseño de la landing: `src/utils/landing/contenido.js` y
+  `src/components/landing/`.
+
+## Después del cierre: login "gota de agua" (2026-10-26)
+
+Rediseño visual pedido por el usuario: el login anterior se veía muy grande al
+llegar desde la landing. Solo cambia la presentación; `useComandoLogin`, los
+campos, los textos, los mensajes y el flujo de inicio de sesión son los mismos.
+
+- `Login.jsx`: una tarjeta compacta (400 px) de vidrio transparente
+  (`.vidrio-gota` en `src/index.css`) sobre `FondoMarca` animado, con gotas de
+  vidrio alrededor (`.gota-agua`, quietas si el equipo pide reducir
+  movimiento), el enlace "Volver al inicio" a la landing y el lema debajo. Ya
+  no tiene la columna izquierda con el título grande.
+- `LoginFormView.jsx`: colores para vidrio oscuro, logo claro
+  (`auligo-logo-nav.png`), botón lima y el saludo como `h1` de la página.
+- `RUTAS_SESION.PORTADA` (`/`): la usan el enlace del login y `App.jsx`.
+- El autocompletado del navegador (`.login-field:-webkit-autofill`) ahora
+  pinta fondo oscuro y texto blanco.
+- `src/assets/auligo-login-logo.png` quedó sin uso, igual que las dos fotos de
+  fondo; borrarlos queda a decisión del usuario.
+- `Login.test.jsx` monta la página con enrutador (por el enlace) y fija a
+  propósito el nuevo aspecto: el `h1`, el lema y la vuelta a la landing.

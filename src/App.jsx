@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import NotificacionesPlaneadores from "./components/planeaciones/NotificacionesPlaneadores";
 import NavAdminView from "./components/autenticacion/NavAdminView";
@@ -54,6 +54,7 @@ const CarteraVencidaAdmin = lazy(() => import("./pages/CarteraVencidaAdmin"));
 const ListasSeguimientoAdmin = lazy(() => import("./pages/ListasSeguimientoAdmin"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const CambiarPassword = lazy(() => import("./pages/CambiarPassword"));
+const Landing = lazy(() => import("./pages/Landing"));
 
 function renderNotificacionesAdmin(onNavigate) {
   return <NotificacionesPlaneadores rol="admin" onNavigate={onNavigate} />;
@@ -188,8 +189,18 @@ function SuperAdminLayout() {
 
 function Layout() {
   const { haySesion, esAdmin } = useEstadoSesionGeneral();
+  const { pathname } = useLocation();
 
   if (!haySesion) {
+    // Sin sesión, la dirección principal es la portada pública. Cualquier otra
+    // ruta sigue mandando al login, igual que antes de la landing.
+    if (pathname === RUTAS_SESION.PORTADA) {
+      return (
+        <Suspense fallback={<div className="min-h-screen bg-slate-950" />}>
+          <Landing rutaIngreso={RUTAS_SESION.LOGIN} />
+        </Suspense>
+      );
+    }
     return <Navigate to={RUTAS_SESION.LOGIN} />;
   }
 

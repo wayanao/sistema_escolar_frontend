@@ -2,12 +2,13 @@
 
 Estado actual de rutas definido en `src/App.jsx`.
 
-Ultima revision documental: 2026-10-06.
+Ultima revision documental: 2026-10-26.
 
 ## Rutas publicas
 
 | Ruta | Componente | Observacion |
 | --- | --- | --- |
+| `/` sin sesion | `Landing` | Portada publica (desde el 2026-10-26). Con sesion, `/` es el panel del profesor. |
 | `/login` | `Login` | Pantalla de acceso. |
 | `/cambiar-password` | `CambiarPassword` | `PasswordChangeRoute`: solo admin con `debe_cambiar_password = true`. |
 
@@ -15,9 +16,14 @@ Ultima revision documental: 2026-10-06.
 Si no existe `localStorage.usuario` con rol `admin`, redirige a `/login`; si el
 admin ya no tiene cambio obligatorio, redirige a `/dashboard-admin`.
 
+La landing no tiene ruta propia: el layout `/*` la muestra en `/` cuando no hay
+sesion, en vez de mandar al login. Sus botones "Ingresar" llevan a `/login`. No
+consulta el backend ni monta nada del layout (menu, avisos, tenant).
+
 ## Rutas dentro del layout autenticado
 
-El layout `/*` valida que exista `usuario` o `profesor` en `localStorage`.
+El layout `/*` valida que exista `usuario` o `profesor` en `localStorage`. Sin
+sesion, `/` muestra la landing y cualquier otra ruta redirige a `/login`.
 
 | Ruta | Componente | Guard |
 | --- | --- | --- |

@@ -1,6 +1,17 @@
+import { Link } from "react-router-dom";
+import FondoMarca from "../components/FondoMarca";
 import LoginFormView from "../components/autenticacion/LoginFormView";
-import auligoLogoNav from "../assets/auligo-logo-nav.png";
 import { useComandoLogin } from "../hooks/autenticacion/useComandoLogin";
+import { RUTAS_SESION } from "../utils/autenticacion/sesion";
+
+// Gotas de vidrio alrededor de la tarjeta: tamaño, posición y desfase de su
+// flotación. Las que quedan detrás de la tarjeta se ven a través del vidrio.
+const GOTAS = [
+  "-right-8 -top-10 h-28 w-28 sm:-right-16 sm:-top-14 sm:h-36 sm:w-36",
+  "-bottom-8 -left-8 h-20 w-20 sm:-bottom-12 sm:-left-16 sm:h-28 sm:w-28 [animation-delay:-3s]",
+  "-bottom-5 right-10 h-9 w-9 [animation-delay:-5s]",
+  "-left-5 top-28 h-7 w-7 sm:-left-9 [animation-delay:-7s]",
+];
 
 function Login() {
   const {
@@ -19,65 +30,53 @@ function Login() {
 
   return (
     <main
-      className="notranslate relative min-h-[100svh] overflow-hidden bg-slate-950"
+      className="notranslate relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-slate-950 px-4 py-10"
       translate="no"
     >
-      {/* Fondo sin foto: los morados de la marca, un brillo lima y una trama de
-          puntos. Es decorativo, así que los lectores de pantalla lo ignoran. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-[#21103d] to-slate-950" />
-        <div className="absolute -left-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-purple-600/35 blur-[120px]" />
-        <div className="absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-violet-500/20 blur-[110px]" />
-        <div className="absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-lime-400/15 blur-[90px]" />
-        <div className="login-trama absolute inset-0" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-slate-950/20" />
-      </div>
+      <FondoMarca animado />
 
-      <div className="relative mx-auto grid min-h-[100svh] w-full max-w-[1440px] items-center gap-10 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[1fr_500px] lg:gap-16 lg:px-10 xl:px-16">
-        <section className="hidden max-w-2xl text-white lg:block">
-          <img
-            src={auligoLogoNav}
-            alt="Auligo"
-            className="nav-brand-logo h-16 w-auto object-contain xl:h-[72px]"
-          />
+      <div className="relative w-full max-w-[400px]">
+        <Link
+          to={RUTAS_SESION.PORTADA}
+          className="mb-5 inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-sm font-semibold text-purple-100/75 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-300/60"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6-6-6 6 6 6" />
+          </svg>
+          Volver al inicio
+        </Link>
 
-          <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-purple-50 backdrop-blur-md">
-            <span className="h-2 w-2 rounded-full bg-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.85)]" />
-            Gestión escolar en un solo lugar
-          </div>
-
-          <h1 className="mt-7 max-w-xl text-5xl font-black leading-[1.06] tracking-tight text-white xl:text-6xl">
-            Tu aula,
-            <span className="block text-purple-100">tu camino,</span>
-            <span className="block text-lime-300">tu futuro.</span>
-          </h1>
-
-          <p className="mt-6 max-w-xl text-base leading-7 text-slate-100/90 xl:text-lg">
-            Una experiencia clara y segura para conectar la gestión académica,
-            los docentes y cada proceso de tu institución.
-          </p>
-        </section>
-
-        <section className="relative isolate mx-auto w-full max-w-[500px] overflow-hidden rounded-[30px] border border-white/60 bg-white/70 p-5 shadow-[0_30px_90px_rgba(15,5,35,0.38),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-white/25 backdrop-blur-2xl backdrop-saturate-150 sm:p-7 lg:justify-self-end lg:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/80 via-white/50 to-purple-100/30" />
-          <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-purple-300/20 blur-3xl" />
-          <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
-          <div className="relative">
-            <LoginFormView
-              email={email}
-              password={password}
-              codigoColegio={codigoColegio}
-              formError={formError}
-              isSubmitting={isSubmitting}
-              isTakingLong={isTakingLong}
-              loginSucceeded={loginSucceeded}
-              actualizarEmail={actualizarEmail}
-              actualizarPassword={actualizarPassword}
-              actualizarCodigoColegio={actualizarCodigoColegio}
-              iniciarSesion={iniciarSesion}
+        <div className="relative">
+          {GOTAS.map((clases) => (
+            <span
+              key={clases}
+              aria-hidden="true"
+              className={`gota-agua gota-flotar pointer-events-none absolute ${clases}`}
             />
-          </div>
-        </section>
+          ))}
+
+          <section className="vidrio-gota relative rounded-[30px] p-6 sm:p-8">
+            <div className="relative">
+              <LoginFormView
+                email={email}
+                password={password}
+                codigoColegio={codigoColegio}
+                formError={formError}
+                isSubmitting={isSubmitting}
+                isTakingLong={isTakingLong}
+                loginSucceeded={loginSucceeded}
+                actualizarEmail={actualizarEmail}
+                actualizarPassword={actualizarPassword}
+                actualizarCodigoColegio={actualizarCodigoColegio}
+                iniciarSesion={iniciarSesion}
+              />
+            </div>
+          </section>
+        </div>
+
+        <p className="mt-7 text-center text-sm font-semibold tracking-wide text-purple-100/70">
+          Tu aula, tu camino, <span className="text-lime-300">tu futuro.</span>
+        </p>
       </div>
     </main>
   );

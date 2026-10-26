@@ -11,6 +11,9 @@ export const CLAVES_SESION = Object.freeze({
 });
 
 export const RUTAS_SESION = Object.freeze({
+  // Sin sesión, la dirección principal es la landing; con sesión, el panel del
+  // profesor (`INICIO_PROFESOR`). Es la misma ruta con dos caras.
+  PORTADA: "/",
   LOGIN: "/login",
   CAMBIAR_PASSWORD: "/cambiar-password",
   INICIO_ADMIN: "/dashboard-admin",

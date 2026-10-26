@@ -1,7 +1,11 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Login from "./Login";
+
+// El login tiene un enlace de vuelta a la landing: necesita el enrutador.
+const renderLogin = () => render(<Login />, { wrapper: MemoryRouter });
 
 const mocks = vi.hoisted(() => ({
   iniciarSesion: vi.fn(),
@@ -53,7 +57,7 @@ describe("Login", () => {
   });
 
   it("conserva el shell visual de la pagina de acceso", () => {
-    const { container } = render(<Login />);
+    const { container } = renderLogin();
 
     const main = container.querySelector("main");
     expect(main).toHaveClass("notranslate", "min-h-[100svh]");
@@ -63,11 +67,17 @@ describe("Login", () => {
     expect(
       screen.queryByAltText("Comunidad educativa reunida en una celebración escolar"),
     ).not.toBeInTheDocument();
-    expect(container.querySelector(".login-trama").parentElement).toHaveAttribute(
+    expect(container.querySelector(".fondo-marca-trama").parentElement).toHaveAttribute(
       "aria-hidden",
       "true",
     );
-    expect(screen.getByRole("heading", { name: /tu aula,/i })).toBeInTheDocument();
+    // Desde el 2026-10-26 la tarjeta es compacta: el título de la página es el
+    // saludo del formulario, el lema queda debajo y hay vuelta a la landing.
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Qué bueno tenerte aquí" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/tu aula, tu camino,/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
   });
 
   it.each([
@@ -76,14 +86,14 @@ describe("Login", () => {
   ])("precarga el ultimo codigo normalizado y descarta demo: %s", (guardado, esperado) => {
     localStorage.setItem("ultimo_codigo_colegio", guardado);
 
-    render(<Login />);
+    renderLogin();
 
     expect(screen.getByLabelText("Código del colegio")).toHaveValue(esperado);
   });
 
   it("valida campos obligatorios sin hacer una peticion", async () => {
     const user = userEvent.setup();
-    render(<Login />);
+    renderLogin();
 
     await user.click(screen.getByRole("button", { name: "Entrar a Auligo" }));
 
@@ -98,7 +108,7 @@ describe("Login", () => {
 
   it("alterna la visibilidad de la password con su contrato accesible", async () => {
     const user = userEvent.setup();
-    render(<Login />);
+    renderLogin();
     const password = screen.getByLabelText("Contraseña");
 
     expect(password).toHaveAttribute("type", "password");
@@ -154,7 +164,7 @@ describe("Login", () => {
       localStorage.setItem(item, JSON.stringify({ id: "anterior" }));
     });
     mocks.iniciarSesion.mockResolvedValue(respuesta);
-    render(<Login />);
+    renderLogin();
 
     await completarFormulario(user);
     await user.click(screen.getByRole("button", { name: "Entrar a Auligo" }));
@@ -212,7 +222,7 @@ describe("Login", () => {
   ])("muestra el mensaje actual para %s", async (_nombre, error, alerta) => {
     const user = userEvent.setup();
     mocks.iniciarSesion.mockRejectedValue(error);
-    render(<Login />);
+    renderLogin();
 
     await completarFormulario(user, { codigo: "colegio-sur" });
     await user.click(screen.getByRole("button", { name: "Entrar a Auligo" }));

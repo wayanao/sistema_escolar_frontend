@@ -79,6 +79,10 @@ Si el admin tiene password temporal pendiente, tambien redirige a
 
 Si falla la validacion, ambos redirigen a `/login`.
 
+El layout general (`/*`) sin `usuario` ni `profesor` redirige a `/login`, salvo
+en `/`: ahi muestra la landing publica (desde el 2026-10-26). La landing no da
+acceso a nada; es solo informativa y lleva al login.
+
 ## Menus por rol
 
 `App.jsx` decide el menu principal:
