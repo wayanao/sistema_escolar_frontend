@@ -277,6 +277,7 @@ GET /super-admin/tenants
 POST /super-admin/tenants
 PATCH /super-admin/tenants/{tenant_id}/estado
 GET /super-admin/tenants/{tenant_id}/estado-auditoria
+POST /super-admin/tenants/{tenant_id}/pagos
 POST /auth/cambiar-password
 ```
 
@@ -286,6 +287,11 @@ Uso:
 - crear colegio con admin inicial y suscripcion;
 - cambiar estado SaaS entre `activo`, `en_mora`, `suspendido` y `cancelado`.
 - consultar historial de cambios de estado.
+- registrar el pago de un colegio (desde el 2026-10-26): envia
+  `{ fecha_proximo_pago, nota }` y recibe el tenant con su estado recalculado.
+  Es lo que reactiva a un colegio que pago, porque el estado efectivo sale de
+  esa fecha. La fecha debe ser posterior a hoy; el backend aplica la misma
+  regla.
 
 ## Estados de estudiantes, profesores, cursos, materias e inventario
 

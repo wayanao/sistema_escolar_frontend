@@ -15,6 +15,7 @@ import {
     obtenerRankingBajoRendimiento,
     obtenerRankingMejorRendimiento,
     obtenerResumenCarteraParaDashboard,
+    registrarPagoTenant,
 } from "./dashboardsApi";
 
 vi.mock("../utils/api", () => ({
@@ -134,6 +135,16 @@ describe("dashboardsApi", () => {
         await expect(obtenerAuditoriaEstadoTenant(1)).resolves.toBe(historial);
 
         expect(api.get).toHaveBeenCalledWith("/super-admin/tenants/1/estado-auditoria");
+    });
+
+    it("registra el pago de un tenant", async () => {
+        const actualizado = { id: 1, estado: "activo", fecha_proximo_pago: "2026-12-01" };
+        api.post.mockResolvedValue({ data: actualizado });
+        const payload = { fecha_proximo_pago: "2026-12-01", nota: "Transferencia" };
+
+        await expect(registrarPagoTenant(1, payload)).resolves.toBe(actualizado);
+
+        expect(api.post).toHaveBeenCalledWith("/super-admin/tenants/1/pagos", payload);
     });
 
     it("propaga el error de Axios sin decidir mensajes", async () => {

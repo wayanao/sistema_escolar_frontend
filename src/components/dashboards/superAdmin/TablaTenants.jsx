@@ -4,7 +4,16 @@ import {
   estadoManualDe,
 } from "../../../utils/dashboards/superAdmin";
 
-function TablaTenants({ tenants, loading, error, savingId, onCambiarEstado, onVerHistorial }) {
+function TablaTenants({
+  tenants,
+  loading,
+  error,
+  savingId,
+  pagandoId,
+  onCambiarEstado,
+  onRegistrarPago,
+  onVerHistorial,
+}) {
   return (
     <section className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-4 py-3">
@@ -29,6 +38,7 @@ function TablaTenants({ tenants, loading, error, savingId, onCambiarEstado, onVe
                 <th className="px-4 py-3">Gracia</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Cambiar</th>
+                <th className="px-4 py-3">Pago</th>
                 <th className="px-4 py-3">Historial</th>
               </tr>
             </thead>
@@ -67,6 +77,16 @@ function TablaTenants({ tenants, loading, error, savingId, onCambiarEstado, onVe
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onRegistrarPago(tenant)}
+                      disabled={pagandoId === tenant.id}
+                      className="whitespace-nowrap rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Registrar pago
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <button

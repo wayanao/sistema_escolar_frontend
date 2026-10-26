@@ -2,6 +2,7 @@ import ResumenTenants from "../components/dashboards/superAdmin/ResumenTenants";
 import TablaTenants from "../components/dashboards/superAdmin/TablaTenants";
 import useAltaTenant from "../hooks/dashboards/useAltaTenant";
 import useEstadoTenant from "../hooks/dashboards/useEstadoTenant";
+import usePagoTenant from "../hooks/dashboards/usePagoTenant";
 import useTenants from "../hooks/dashboards/useTenants";
 
 function SuperAdminDashboard() {
@@ -16,6 +17,7 @@ function SuperAdminDashboard() {
   } = useTenants();
   const { crearColegio } = useAltaTenant(agregarTenant);
   const { savingId, cambiarEstado, verHistorial } = useEstadoTenant(reemplazarTenant);
+  const { pagandoId, registrarPago } = usePagoTenant(reemplazarTenant);
 
   return (
     <div className="space-y-6">
@@ -53,7 +55,9 @@ function SuperAdminDashboard() {
         loading={loading}
         error={error}
         savingId={savingId}
+        pagandoId={pagandoId}
         onCambiarEstado={cambiarEstado}
+        onRegistrarPago={registrarPago}
         onVerHistorial={verHistorial}
       />
     </div>

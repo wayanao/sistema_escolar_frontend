@@ -14,6 +14,8 @@ export const MENSAJE_MOTIVO_OBLIGATORIO = "Escribe el motivo para suspender o ca
 
 export const MENSAJE_ERROR_CREAR_TENANT = "Revisa los datos e intenta nuevamente.";
 
+export const MENSAJE_ERROR_REGISTRAR_PAGO = "No se pudo registrar el pago. Intenta nuevamente.";
+
 const ESTADOS_CRITICOS = new Set(["suspendido", "cancelado"]);
 
 const CORREO_VALIDO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -141,6 +143,59 @@ export const mensajeErrorCrearTenant = (error) => {
 export const formatearFechaAuditoria = (valor) =>
     valor ? new Date(valor).toLocaleString("es-CO") : "";
 
+// Registrar un pago mueve la fecha de próximo pago. Es lo único que reactiva a
+// un colegio que pagó: el estado efectivo sale de esa fecha, y elegir "activo"
+// en el selector no le gana a una fecha vencida.
+
+const dosDigitos = (numero) => String(numero).padStart(2, "0");
+
+// El mismo día del mes siguiente o, si ese mes es más corto, su último día
+// (31 de enero → 28 o 29 de febrero). Opera sobre el texto AAAA-MM-DD, sin
+// zonas horarias.
+export const sumarUnMes = (fechaIso) => {
+    const [anio, mes, dia] = String(fechaIso).split("-").map(Number);
+    const anioSiguiente = mes === 12 ? anio + 1 : anio;
+    const mesSiguiente = mes === 12 ? 1 : mes + 1;
+    const ultimoDia = new Date(Date.UTC(anioSiguiente, mesSiguiente, 0)).getUTCDate();
+    return `${anioSiguiente}-${dosDigitos(mesSiguiente)}-${dosDigitos(Math.min(dia, ultimoDia))}`;
+};
+
+// Un mes después del próximo pago vigente, para conservar el ciclo de cobro. Si
+// el colegio va tan atrasado que eso no pasa de hoy, un mes después de hoy. Las
+// fechas AAAA-MM-DD se comparan bien como texto.
+export const sugerirProximoPago = (fechaActual, hoy) => {
+    const siguiente = fechaActual ? sumarUnMes(fechaActual) : "";
+    return siguiente > hoy ? siguiente : sumarUnMes(hoy);
+};
+
+// Con una fecha de hoy o anterior, el colegio seguiría bloqueado. El backend
+// aplica la misma regla.
+export const validarFechaPago = (fecha, hoy) => {
+    if (!fecha) return "Elige la fecha del próximo pago.";
+    if (fecha <= hoy) {
+        return "La fecha debe ser posterior a hoy; si no, el colegio seguirá bloqueado.";
+    }
+    return "";
+};
+
+export const construirPayloadPago = (fecha, nota) => ({
+    fecha_proximo_pago: fecha,
+    nota: String(nota || "").trim(),
+});
+
+// Con la fecha al día, lo único que puede dejarlo sin activar es su estado
+// manual, y eso se cambia en el selector.
+export const textoPagoRegistrado = (tenant) => {
+    const proximo = `Próximo pago: ${tenant.fecha_proximo_pago}.`;
+    if (tenant.estado === "activo") return `${tenant.nombre} quedó activo. ${proximo}`;
+    return `${proximo} ${tenant.nombre} sigue en ${tenant.estado} por su estado manual: cámbialo a activo en la columna Cambiar.`;
+};
+
+export const mensajeErrorPago = (error) => {
+    const detail = error?.response?.data?.detail;
+    return typeof detail === "string" ? detail : MENSAJE_ERROR_REGISTRAR_PAGO;
+};
+
 // Marcado del formulario de alta que pinta SweetAlert. Los identificadores son
 // el contrato que después lee el comando desde el DOM.
 export const htmlFormularioTenant = (hoy) => `
@@ -180,6 +235,24 @@ export const htmlFormularioTenant = (hoy) => `
           <label class="text-xs font-bold uppercase text-slate-500 sm:col-span-2">
             Notas
             <textarea id="tenant-notas" class="swal2-textarea" placeholder="Plan, observaciones de suscripcion..."></textarea>
+          </label>
+        </div>
+      `;
+
+// Marcado del diálogo de pago. Los identificadores son el contrato que después
+// lee el comando desde el DOM.
+export const htmlFormularioPago = (tenant, fechaSugerida) => `
+        <div class="grid gap-3 text-left">
+          <p class="text-sm text-slate-600">
+            Próximo pago actual: <strong>${escapeHtml(tenant.fecha_proximo_pago || "Sin fecha")}</strong>
+          </p>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Nuevo próximo pago
+            <input id="pago-fecha-proximo" type="date" class="swal2-input" value="${escapeHtml(fechaSugerida)}" />
+          </label>
+          <label class="text-xs font-bold uppercase text-slate-500">
+            Nota
+            <textarea id="pago-nota" class="swal2-textarea" placeholder="Ej. Pagó por transferencia"></textarea>
           </label>
         </div>
       `;

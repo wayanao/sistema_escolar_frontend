@@ -149,9 +149,11 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 | `POST` | `/super-admin/tenants` | Alta de colegio con su admin inicial. |
 | `PATCH` | `/super-admin/tenants/:id/estado` | Cambio de estado con motivo. |
 | `GET` | `/super-admin/tenants/:id/estado-auditoria` | Historial de cambios de estado. |
+| `POST` | `/super-admin/tenants/:id/pagos` | Registrar el pago: mueve la fecha de próximo pago (desde el 2026-10-26). |
 
-Son catorce contratos, los catorce protegidos por la caracterización de esta
-capa.
+Son quince contratos, los quince protegidos por la caracterización de la
+página. El último se agregó después del cierre de la capa (ver la última
+sección).
 
 Contratos de escritura protegidos:
 
@@ -1353,3 +1355,27 @@ Así el rediseño se paga una sola vez y con una justificación funcional detrá
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual como seguimiento operativo si todavía no fue
   registrada.
+
+## Después del cierre: registrar el pago de un colegio (2026-10-26)
+
+El super admin no podía reactivar a un colegio que pagó. El estado efectivo
+sale de la fecha de próximo pago, y elegir `activo` en el selector no le gana a
+una fecha vencida; esa fecha solo se fijaba al crear el colegio. Requirió la
+ruta nueva del backend `POST /super-admin/tenants/{tenant_id}/pagos`.
+
+- `services/dashboardsApi.js`: `registrarPagoTenant`.
+- `utils/dashboards/superAdmin.js`: `sumarUnMes`, `sugerirProximoPago` (un mes
+  después del pago vigente o, si el colegio va atrasado, de hoy),
+  `validarFechaPago` (posterior a hoy, la misma regla del backend),
+  `construirPayloadPago`, `textoPagoRegistrado`, `mensajeErrorPago` y
+  `htmlFormularioPago`.
+- `hooks/dashboards/usePagoTenant.js` (nuevo): el comando. Usa el mismo diálogo
+  de SweetAlert que el alta, con dos campos leídos del DOM, y el título va como
+  texto plano (`titleText`). Si algún día el alta pasa a modal React (ver la
+  deuda de arriba), este diálogo debe pasar con ella.
+- `TablaTenants`: columna «Pago» con el botón «Registrar pago», deshabilitado
+  en la fila que se está guardando.
+- Si el colegio sigue sin quedar activo después del pago, es por su estado
+  manual, y el aviso lo dice.
+- Pruebas: utilidades, servicio, hook (`usePagoTenant.test.js`), tabla y una de
+  la página con el flujo completo.

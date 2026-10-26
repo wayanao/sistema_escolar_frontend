@@ -84,3 +84,9 @@ export const obtenerAuditoriaEstadoTenant = async (tenantId) => {
     const response = await api.get(`/super-admin/tenants/${tenantId}/estado-auditoria`);
     return response.data;
 };
+
+// Mueve la fecha de próximo pago y devuelve el tenant con su estado recalculado.
+export const registrarPagoTenant = async (tenantId, payload) => {
+    const response = await api.post(`/super-admin/tenants/${tenantId}/pagos`, payload);
+    return response.data;
+};

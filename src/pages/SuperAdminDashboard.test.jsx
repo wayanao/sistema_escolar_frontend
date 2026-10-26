@@ -235,6 +235,59 @@ describe("SuperAdminDashboard", () => {
         expect(apiMock.patch).not.toHaveBeenCalled();
     });
 
+    it("registra el pago de un colegio vencido y su fila queda activa", async () => {
+        // Una fecha lejana: la validación exige que sea posterior a hoy.
+        const actualizado = {
+            ...tenants[2],
+            estado: "activo",
+            estado_manual: "activo",
+            fecha_proximo_pago: "2099-01-15",
+        };
+        apiMock.post.mockResolvedValue({ data: actualizado });
+        // Monta los campos que pintaría SweetAlert y confirma con su `preConfirm`.
+        swalFireMock.mockImplementationOnce(async (configuracion) => {
+            const fecha = document.createElement("input");
+            fecha.id = "pago-fecha-proximo";
+            fecha.value = "2099-01-15";
+            const nota = document.createElement("textarea");
+            nota.id = "pago-nota";
+            nota.value = "  Transferencia  ";
+            document.body.append(fecha, nota);
+            try {
+                return { isConfirmed: true, value: configuracion.preConfirm() };
+            } finally {
+                fecha.remove();
+                nota.remove();
+            }
+        });
+
+        render(<SuperAdminDashboard />);
+        await esperarTabla();
+
+        fireEvent.click(
+            within(filaDe("Colegio Tres")).getByRole("button", { name: "Registrar pago" }),
+        );
+
+        await waitFor(() => {
+            expect(apiMock.post).toHaveBeenCalledWith("/super-admin/tenants/3/pagos", {
+                fecha_proximo_pago: "2099-01-15",
+                nota: "Transferencia",
+            });
+        });
+        await waitFor(() => {
+            expect(within(filaDe("Colegio Tres")).getByText("2099-01-15")).toBeInTheDocument();
+        });
+        // La insignia de estado; el selector también tiene una opción "activo".
+        expect(
+            within(filaDe("Colegio Tres")).getByText("activo", { selector: "span" }),
+        ).toBeInTheDocument();
+        expect(swalFireMock).toHaveBeenLastCalledWith({
+            icon: "success",
+            title: "Pago registrado",
+            text: "Colegio Tres quedó activo. Próximo pago: 2099-01-15.",
+        });
+    });
+
     it("avisa sin guardar cuando el cambio de estado falla", async () => {
         swalFireMock.mockResolvedValueOnce({ isConfirmed: true, value: "Motivo" });
         apiMock.patch.mockRejectedValue(new Error("500"));

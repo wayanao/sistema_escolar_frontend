@@ -28,7 +28,9 @@ const propiedades = (extra = {}) => ({
     loading: false,
     error: "",
     savingId: null,
+    pagandoId: null,
     onCambiarEstado: vi.fn(),
+    onRegistrarPago: vi.fn(),
     onVerHistorial: vi.fn(),
     ...extra,
 });
@@ -94,5 +96,27 @@ describe("TablaTenants", () => {
 
         expect(within(filaDe("Colegio Uno")).getByRole("combobox")).toBeDisabled();
         expect(within(filaDe("Colegio Dos")).getByRole("combobox")).toBeEnabled();
+    });
+
+    it("informa el registro de pago de la fila", () => {
+        const onRegistrarPago = vi.fn();
+        render(<TablaTenants {...propiedades({ onRegistrarPago })} />);
+
+        fireEvent.click(
+            within(filaDe("Colegio Dos")).getByRole("button", { name: "Registrar pago" }),
+        );
+
+        expect(onRegistrarPago).toHaveBeenCalledWith(tenants[1]);
+    });
+
+    it("deshabilita solo el botón de pago de la fila que se está guardando", () => {
+        render(<TablaTenants {...propiedades({ pagandoId: 2 })} />);
+
+        expect(
+            within(filaDe("Colegio Dos")).getByRole("button", { name: "Registrar pago" }),
+        ).toBeDisabled();
+        expect(
+            within(filaDe("Colegio Uno")).getByRole("button", { name: "Registrar pago" }),
+        ).toBeEnabled();
     });
 });
