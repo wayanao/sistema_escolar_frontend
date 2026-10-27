@@ -17,8 +17,9 @@
     "prepreview": "node -e \"if(!/pnpm/.test(process.env.npm_config_user_agent||'')){console.error('\\n\\u274C Usa pnpm: pnpm run preview\\n');process.exit(1)}\"",
     "preview": "vite preview"
   },
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.25.0",
   "engines": {
+    "node": "24.x",
     "pnpm": ">=8",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm"

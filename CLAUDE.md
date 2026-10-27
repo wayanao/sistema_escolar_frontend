@@ -44,6 +44,8 @@ test/build/lint as passing unless it actually ran and passed.
 ## Commands
 
 Package manager is **pnpm**, enforced by `pre*` scripts that abort under npm/yarn.
+pnpm runs the version pinned in `packageManager`. Node is **24 LTS**: `.nvmrc` holds
+the exact tested version and `engines.node: "24.x"` makes Vercel build with Node 24.
 
 ```bash
 pnpm run dev            # start Vite dev server

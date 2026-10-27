@@ -42,6 +42,14 @@ La salida generada se ubica en:
 dist/
 ```
 
+Versiones del entorno de build:
+
+- Node 24 LTS. `.nvmrc` guarda la version exacta probada y `engines.node:
+  "24.x"` en `package.json` hace que Vercel compile con Node 24 aunque su panel
+  diga otra version. Vercel solo deja elegir la version mayor y aplica los
+  parches por su cuenta.
+- pnpm: la version sale de `packageManager` en `package.json`.
+
 ## Preview local
 
 Comando actual:

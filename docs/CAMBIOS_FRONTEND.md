@@ -1,5 +1,26 @@
 # Cambios Frontend
 
+## 2026-10-27 - Entorno: Node 24.22.1 y pnpm 11.25.0 (seguridad, etapa A)
+
+Primera etapa de la actualización de dependencias por seguridad. **Ninguna
+librería de la app cambia todavía**: el lockfile queda igual y los colegios no
+ven diferencia.
+
+- `package.json`: `packageManager` pasa de pnpm 11.1.2 a 11.25.0. La 11.1.2
+  tenía 17 avisos de seguridad propios (11 altos), corregidos desde la 11.11.0.
+- `package.json`: `engines.node: "24.x"`, para que Vercel compile con Node 24
+  aunque su panel diga otra versión.
+- `.nvmrc` (nuevo): la versión exacta probada, 24.22.1 (LTS "Krypton", versión
+  de seguridad del 2026-10-20).
+- En el equipo de desarrollo, Node 24.22.1 y pnpm 11.25.0 se instalaron con
+  winget. Node quedó anclado a `24.*` para que no salte a Node 26, que pasa a
+  LTS el 2026-10-28.
+- Docs: `CLAUDE.md` y `PRODUCCION_FRONTEND.md`.
+
+Verificación: `pnpm install --frozen-lockfile` no cambió nada;
+`pnpm run check:deploy` pasó (3033 pruebas, lint y build). `pnpm audit` sigue
+en 124 avisos, que se corrigen en las etapas siguientes.
+
 ## 2026-10-22 - Boletín: aviso con porcentajes incompletos (paso B4c)
 
 PB11 de `docs/funcionalidades/SUBNOTAS_PLANILLA.md`, aprobado por el usuario
