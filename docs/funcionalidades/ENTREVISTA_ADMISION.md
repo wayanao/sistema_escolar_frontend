@@ -663,6 +663,46 @@ título para saber que la lista había cargado y ahora esperan la sección
 "Salud". `pnpm run check:deploy` → **2661 pruebas en 369 archivos**, lint y
 build correctos. Sin probar todavía en el navegador.
 
+## Solo en los colegios que la usan (2026-10-30)
+
+Pedido por el usuario: la entrevista es solo para el colegio 2005. Backend y
+decisiones en `sistema_escolar_api/docs/funcionalidades/ENTREVISTA_ADMISION.md`
+(misma sección). Los dos colegios de hoy (Demo y 2005) la conservan: **para
+ellos no cambia nada**; un colegio nuevo empieza sin entrevista.
+
+**Paso 1, frontend (hecho el 2026-10-30, sin commit):**
+
+- `utils/admisiones/admisiones.js`: `leerUsoEntrevista` (sin el dato,
+  `true`).
+- `hooks/admisiones/useUsoEntrevistaAdmision.js` (nuevo): pide
+  `GET /tenant/status` solo si está habilitado; `null` mientras no sabe y
+  `true` si falla.
+- `AniosLectivosAdmin`: la tarjeta "Admisiones" y sus conteos solo con
+  entrevista; "Crear estudiante en {año}" (el enlace de antes del E5) solo
+  sin ella. Mientras no se sabe, ninguna de las dos.
+- `EstudiantesAdmin` mirando el año en preparación: con entrevista, el
+  aviso "Ir a admisiones"; sin ella, "Nuevo Estudiante" con el alta directa
+  de antes del E5 (`crearEstudianteEnPreparacion`). Con el año activo no
+  cambia nada, tampoco las peticiones.
+- `AdmisionesAdmin`: sin entrevista, solo `SinEntrevistaView`. Mientras no
+  se sabe, carga como siempre (el 2005 no espera una petición más).
+- Pruebas: 2 de la utilidad, 5 del hook nuevo, 2 de Admisiones, 1 nueva de
+  Años lectivos y 1 de Estudiantes (recuperada de antes del E5). Ajustadas a
+  propósito: la de la tarjeta y la de "ya no ofrece crear" en Años lectivos
+  (ahora esperan a saber si el colegio usa la entrevista), "sin año en
+  preparación" (tampoco pregunta) y la de Estudiantes en preparación (su
+  lista exacta de peticiones suma `/tenant/status`). `pnpm run
+  check:deploy` → **3131 pruebas en 389 archivos**, lint y build correctos
+  (la primera pasada tuvo un fallo por carga en
+  `IngresoBoletinProfesor.test.jsx`, que pasó sola y en la segunda pasada
+  completa).
+- Orden para publicar: la migración ya está en producción; primero el push
+  del backend (Render en **Live**) y después el del frontend. Si el frontend
+  sale antes, `usa_entrevista_admision` no llega y todo sigue como hoy.
+
+**Paso 2 (pendiente):** botón "Entrevista", opcional, en "Matricular
+estudiantes" para los estudiantes que siguen.
+
 ## Entrega para el siguiente chat
 
 - 2026-10-20: **ajuste pedido por el usuario, sin commit**: Estudios

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Estudiantes mirando un año que no es el activo (paso 4.4 del año lectivo).
@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   },
   navigateMock: vi.fn(),
   anioLectivo: null,
+  usaEntrevista: true,
 }));
 
 vi.mock("../utils/api", () => ({ default: mocks.apiMock }));
@@ -44,9 +45,26 @@ const CURSOS_DEL_ANIO = [{ id: 50, nombre: "PRIMERO A" }];
 const ANA = { id: 11, nombre: "Ana", apellido: "Rojas", estado: "activo", curso_id: 50 };
 const LUIS = { id: 12, nombre: "Luis", apellido: "Pardo", estado: "retirado", curso_id: 50 };
 
+const controlDe = (contenedor, etiqueta) =>
+  within(contenedor)
+    .getByText(etiqueta, { selector: "label" })
+    .parentElement.querySelector("input, select, textarea");
+
 beforeEach(() => {
   Object.values(apiMock).forEach((mock) => mock.mockReset());
+  mocks.usaEntrevista = true;
   apiMock.get.mockImplementation((url, opciones) => {
+    // 2026-10-30: si el colegio usa la entrevista de admisión.
+    if (url === "/tenant/status") {
+      return Promise.resolve({
+        data: {
+          estado: "activo",
+          mostrar_aviso: false,
+          mensaje: "",
+          usa_entrevista_admision: mocks.usaEntrevista,
+        },
+      });
+    }
     if (url === "/estudiantes") {
       return Promise.resolve({
         data: opciones?.params?.estado === "todos" ? [ANA, LUIS] : [ANA],
@@ -93,22 +111,62 @@ describe("Estudiantes mirando otro año", () => {
     render(<EstudiantesAdmin />);
 
     expect(await screen.findByText("Rojas Ana")).toBeInTheDocument();
+    // Desde el 2026-10-30 también pregunta si el colegio usa la entrevista.
+    expect(
+      await screen.findByText(/Un estudiante nuevo de 2027 se matricula desde Admisiones/),
+    ).toBeInTheDocument();
     expect(apiMock.get.mock.calls).toEqual([
       ["/estudiantes", { params: { estado: "activo", anio_lectivo_id: 2 } }],
       ["/cursos", { params: { anio_lectivo_id: 2 } }],
+      ["/tenant/status"],
     ]);
     // El curso que se ve es el de ese año.
     expect(within(screen.getByText("Rojas Ana").closest("tr")).getByText("PRIMERO A"))
       .toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Nuevo Estudiante" })).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/Un estudiante nuevo de 2027 se matricula desde Admisiones/),
-    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Ir a admisiones" }));
 
     expect(mocks.navigateMock).toHaveBeenCalledWith("/admin/anios-lectivos/admisiones");
     expect(apiMock.post).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
+  });
+
+  // 2026-10-30: en un colegio que no usa la entrevista vuelve el alta directa
+  // de antes del E5 (prueba recuperada de esa versión).
+  it("sin entrevista, en preparación permite solo el alta directa con los cursos de ese año", async () => {
+    mocks.anioLectivo = EN_PREPARACION;
+    mocks.usaEntrevista = false;
+
+    render(<EstudiantesAdmin />);
+
+    expect(await screen.findByText("Rojas Ana")).toBeInTheDocument();
+    // El alta crea los datos globales y solo la matrícula de 2027. Editar o
+    // cambiar el estado global sigue prohibido fuera del año activo.
+    fireEvent.click(await screen.findByRole("button", { name: "Nuevo Estudiante" }));
+    expect(screen.queryByRole("button", { name: "Ir a admisiones" })).not.toBeInTheDocument();
+    const formulario = screen.getByText("🎓 Crear Nuevo Estudiante").parentElement;
+    fireEvent.change(controlDe(formulario, "Nombre *"), { target: { value: "Carla" } });
+    fireEvent.change(controlDe(formulario, "Apellidos *"), { target: { value: "Gómez" } });
+    fireEvent.change(controlDe(formulario, "Tipo de Documento *"), {
+      target: { value: "Registro Civil" },
+    });
+    fireEvent.change(controlDe(formulario, "Documento de Identidad *"), {
+      target: { value: "2002" },
+    });
+    fireEvent.change(controlDe(formulario, "Curso *"), { target: { value: "50" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear Estudiante" }));
+
+    await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith(
+      "/anios-lectivos/2/estudiantes",
+      expect.objectContaining({
+        nombre: "Carla",
+        apellido: "Gómez",
+        documento_identidad: "2002",
+        curso_id: "50",
+      }),
+    ));
     expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Acciones" })).not.toBeInTheDocument();
   });

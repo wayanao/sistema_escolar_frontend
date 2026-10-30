@@ -80,6 +80,26 @@ GET /tenant/status
 - `en_mora`: muestra banner de pago.
 - `suspendido` y `cancelado`: el bloqueo real lo aplica el backend.
 
+Desde el 2026-10-30 la respuesta trae también `usa_entrevista_admision`
+(si el colegio usa la entrevista de admisión). Lo lee
+`hooks/admisiones/useUsoEntrevistaAdmision.js` (con
+`leerUsoEntrevista`: sin el dato, `true`; si la consulta falla, también
+`true`), y solo donde hace falta: Años lectivos y Admisiones con un año en
+preparación, y Estudiantes mirando un año en preparación. Es una petición
+más en esas pantallas; las demás no cambian.
+
+- Con entrevista: todo como antes (tarjeta "Admisiones", aviso "Ir a
+  admisiones" en Estudiantes).
+- Sin entrevista: no se ve "Admisiones" ni se piden sus conteos; vuelve
+  "Crear estudiante en {año}" (Años lectivos lleva a Estudiantes con ese año
+  elegido, y allí "Nuevo Estudiante" guarda por
+  `POST /anios-lectivos/{id}/estudiantes` con `crearEstudianteEnPreparacion`);
+  la página de Admisiones muestra "Este colegio no usa la entrevista de
+  admisión".
+- Quien lo hace cumplir es el backend: registrar, editar, poner el resultado
+  y matricular una admisión responden `403` en un colegio sin entrevista, y
+  el alta directa sigue cerrada en uno con entrevista.
+
 ## Años lectivos
 
 `services/aniosLectivosApi.js` encapsula:

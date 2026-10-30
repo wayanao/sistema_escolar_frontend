@@ -78,3 +78,10 @@ export function mensajeDeErrorAdmision(error, respaldo) {
   }
   return respaldo;
 }
+
+// 2026-10-30: si el colegio usa la entrevista de admisión, según
+// `GET /tenant/status`. Sin el dato (un backend anterior) sigue con la
+// entrevista, que es lo de siempre. Solo decide qué se muestra: el backend lo
+// hace cumplir (403 al escribir en Admisiones, alta directa cerrada).
+export const leerUsoEntrevista = (estadoColegio) =>
+  estadoColegio?.usa_entrevista_admision !== false;

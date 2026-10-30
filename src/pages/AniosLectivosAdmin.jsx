@@ -10,6 +10,7 @@ import SpinnerView from "../components/anioLectivo/SpinnerView";
 import ValoresPagoMatriculaView from "../components/anioLectivo/ValoresPagoMatriculaView";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import useConsultasAdmisiones from "../hooks/admisiones/useConsultasAdmisiones";
+import useUsoEntrevistaAdmision from "../hooks/admisiones/useUsoEntrevistaAdmision";
 import useActivacionAnio from "../hooks/anioLectivo/useActivacionAnio";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioAnioPasado from "../hooks/anioLectivo/useCambioAnioPasado";
@@ -80,9 +81,15 @@ function AniosLectivosAdmin() {
   );
   const siguienteAnio = anioActivo ? anioActivo.anio + 1 : null;
   const preparacion = usePreparacionMatriculas(anioPreparacion);
+  // 2026-10-30: con entrevista, la tarjeta de Admisiones; sin ella, "Crear
+  // estudiante en {año}". Mientras no se sabe (`null`), ninguna de las dos.
+  const usaEntrevista = useUsoEntrevistaAdmision({ habilitado: Boolean(anioPreparacion) });
   // Solo los conteos para la tarjeta de admisiones (una petición, y solo con
-  // un año en preparación); la lista completa vive en su propia página.
-  const admisiones = useConsultasAdmisiones(anioPreparacion?.id ?? null);
+  // un año en preparación de un colegio que use la entrevista); la lista
+  // completa vive en su propia página.
+  const admisiones = useConsultasAdmisiones(
+    usaEntrevista === true ? anioPreparacion?.id ?? null : null,
+  );
   // Al activar, recarga los años dejando elegido el nuevo activo: así toda la
   // aplicación pasa a trabajar en él.
   const alActivar = useCallback(
@@ -385,14 +392,25 @@ function AniosLectivosAdmin() {
             >
               Administrar conceptos de pago
             </Link>
+            {/* Hasta el paso E5 de la entrevista de admisión estaba siempre.
+                Desde entonces, en un colegio con entrevista, un estudiante
+                nuevo entra desde su admisión aprobada (la tarjeta de
+                Admisiones, debajo); desde el 2026-10-30 vuelve para los
+                colegios que no la usan. */}
+            {usaEntrevista === false && (
+              <Link
+                to="/admin/estudiantes"
+                onClick={() => seleccionarAnio(anioPreparacion.id)}
+                className="w-full rounded-lg bg-white px-4 py-2 text-center font-semibold text-blue-800 shadow-sm hover:bg-blue-100 sm:w-auto"
+              >
+                Crear estudiante en {anioPreparacion.anio}
+              </Link>
+            )}
           </div>
-          {/* Hasta el paso E5 de la entrevista de admisión había aquí "Crear
-              estudiante en {año}". Un estudiante nuevo entra ahora desde su
-              admisión aprobada: ver la tarjeta de Admisiones, debajo. */}
         </section>
       )}
 
-      {anioPreparacion && (
+      {anioPreparacion && usaEntrevista === true && (
         <TarjetaAdmisionesView
           anio={anioPreparacion.anio}
           conteos={admisiones.conteos}

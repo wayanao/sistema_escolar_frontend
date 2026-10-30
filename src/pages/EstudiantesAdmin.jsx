@@ -1,14 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DetalleEstudianteAdmin from "../components/estudiantesObservador/admin/DetalleEstudianteAdmin";
 import EncabezadoEstudiantesAdmin from "../components/estudiantesObservador/admin/EncabezadoEstudiantesAdmin";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import ListaEstudiantesAdmin from "../components/estudiantesObservador/admin/ListaEstudiantesAdmin";
+import useUsoEntrevistaAdmision from "../hooks/admisiones/useUsoEntrevistaAdmision";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useCambioEstadoEstudianteAdmin from "../hooks/estudiantesObservador/useCambioEstadoEstudianteAdmin";
 import useDetalleEstudianteAdmin from "../hooks/estudiantesObservador/useDetalleEstudianteAdmin";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import useListadoEstudiantesAdmin from "../hooks/estudiantesObservador/useListadoEstudiantesAdmin";
+import { crearEstudianteEnPreparacion } from "../services/aniosLectivosApi";
 import { ESTADO_PREPARACION } from "../utils/anioLectivo";
 
 // Lleva la pantalla hasta un elemento: suave, salvo que el sistema pida menos
@@ -36,11 +38,7 @@ function EstudiantesAdmin() {
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
   const { anioSeleccionado, parametros, permisos } = useAnioLectivo();
   const esPreparacion = anioSeleccionado?.estado === ESTADO_PREPARACION;
-  // Crear, editar o cambiar el estado global es solo del año activo. Desde el
-  // paso E5 de la entrevista de admisión, un estudiante nuevo del año en
-  // preparación entra solo desde una admisión aprobada (antes había aquí un
-  // alta directa); quien sigue, por la promoción de Años lectivos.
-  const puedeCrear = permisos.esAnioActivo;
+  // Editar o cambiar el estado global es solo del año activo.
   const puedeEditar = permisos.esAnioActivo;
   const {
     setEstudiantes,
@@ -72,6 +70,18 @@ function EstudiantesAdmin() {
     errorRespuestasAdmision,
     verDatosAdmision,
   } = useDetalleEstudianteAdmin({ parametrosAnio: parametros });
+  // Crear es del año activo. En el año en preparación, desde el paso E5 de la
+  // entrevista de admisión, un estudiante nuevo entra desde una admisión
+  // aprobada en los colegios que la usan; en los demás, desde el 2026-10-30,
+  // vuelve el alta directa de antes (la ficha y solo la matrícula de ese año).
+  // Quien sigue, por la promoción de Años lectivos.
+  const usaEntrevista = useUsoEntrevistaAdmision({ habilitado: esPreparacion });
+  const altaEnPreparacion = esPreparacion && usaEntrevista === false;
+  const puedeCrear = permisos.esAnioActivo || altaEnPreparacion;
+  const crearEnPreparacion = useCallback(
+    (payload) => crearEstudianteEnPreparacion(anioSeleccionado?.id, payload),
+    [anioSeleccionado?.id],
+  );
   const {
     showForm,
     editingId,
@@ -84,7 +94,10 @@ function EstudiantesAdmin() {
     guardarEstudiante,
     // Después de guardar, la lista se vuelve a pedir sin esconder la página
     // (antes todo se cambiaba por el círculo y la pantalla saltaba arriba).
-  } = useFormularioEstudianteAdmin({ recargar: () => cargarDatos({ silencioso: true }) });
+  } = useFormularioEstudianteAdmin({
+    recargar: () => cargarDatos({ silencioso: true }),
+    crearEstudianteFn: altaEnPreparacion ? crearEnPreparacion : undefined,
+  });
   const { cambiarEstado: ejecutarCambioEstado } =
     useCambioEstadoEstudianteAdmin({
       estadoFiltro,
@@ -186,7 +199,7 @@ function EstudiantesAdmin() {
         onAlternarFormulario={alternarFormulario}
         puedeCrear={puedeCrear}
       />
-      {esPreparacion && (
+      {esPreparacion && usaEntrevista === true && (
         <div className="mb-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-900">
           <p>
             Un estudiante nuevo de {anioSeleccionado.anio} se matricula desde Admisiones,

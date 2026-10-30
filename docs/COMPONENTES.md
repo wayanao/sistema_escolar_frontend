@@ -1319,7 +1319,9 @@ Entrevista de admisión, paso E4 (2026-10-13). Ver
 - `components/admisiones/TarjetaAdmisionesView.jsx`: la tarjeta "Admisiones
   {año}" de Años lectivos, con los conteos y "Ir a admisiones".
 - `EncabezadoAdmisionesView.jsx`: título, avisos y regreso a Años lectivos;
-  exporta también `SinAnioEnPreparacionView`.
+  exporta también `SinAnioEnPreparacionView` y, desde el 2026-10-30,
+  `SinEntrevistaView` ("Este colegio no usa la entrevista de admisión", con
+  "Ir a Años lectivos").
 - `ListaAdmisionesView.jsx`: aspirantes del año con documento, curso y
   resultado (o "Matriculado"), filtros con su conteo y "Nuevo aspirante" si el
   backend dice `editable`.

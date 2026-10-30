@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   guardarValorPersonalizado: vi.fn(),
   listarAdmisiones: vi.fn(),
   listarEstudiantes: vi.fn(),
+  obtenerEstadoTenant: vi.fn(),
   obtenerEstudiante: vi.fn(),
   obtenerResumenAnio: vi.fn(),
   obtenerValoresPagoEstudiante: vi.fn(),
@@ -48,6 +49,9 @@ vi.mock("../services/aniosLectivosApi", () => ({
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
+}));
+vi.mock("../services/autenticacionApi", () => ({
+  obtenerEstadoTenant: mocks.obtenerEstadoTenant,
 }));
 vi.mock("../services/admisionesApi", () => ({
   listarAdmisiones: mocks.listarAdmisiones,
@@ -170,6 +174,12 @@ beforeEach(() => {
     admisiones: [],
   });
   mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
+  mocks.obtenerEstadoTenant.mockResolvedValue({
+    estado: "activo",
+    mostrar_aviso: false,
+    mensaje: "",
+    usa_entrevista_admision: true,
+  });
   mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_CON_PENDIENTES);
   mocks.listarEstudiantes.mockResolvedValue([]);
   mocks.activarAnioLectivo.mockResolvedValue({
@@ -1045,7 +1055,9 @@ describe("acceso a admisiones (entrevista de admisión, paso E4)", () => {
 
     renderPagina();
 
-    expect(screen.getByRole("heading", { name: "Admisiones 2027" })).toBeInTheDocument();
+    // Desde el 2026-10-30 la tarjeta espera a saber si el colegio usa la
+    // entrevista.
+    expect(await screen.findByRole("heading", { name: "Admisiones 2027" })).toBeInTheDocument();
     expect(await screen.findByText("Pendientes: 4")).toBeInTheDocument();
     expect(screen.getByText("Matriculados: 1")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ir a admisiones" })).toHaveAttribute(
@@ -1056,12 +1068,13 @@ describe("acceso a admisiones (entrevista de admisión, paso E4)", () => {
     expect(mocks.listarAdmisiones).toHaveBeenCalledWith(3, { signal: expect.any(AbortSignal) });
   });
 
-  it("Continuar la preparación ya no ofrece crear estudiantes: entran por admisiones (E5)", () => {
+  it("Continuar la preparación ya no ofrece crear estudiantes: entran por admisiones (E5)", async () => {
     mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
 
     renderPagina();
 
     expect(screen.getByRole("link", { name: "Administrar cursos" })).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Admisiones 2027" });
     expect(screen.queryByRole("link", { name: "Crear estudiante en 2027" })).not.toBeInTheDocument();
   });
 
@@ -1070,5 +1083,29 @@ describe("acceso a admisiones (entrevista de admisión, paso E4)", () => {
 
     expect(screen.queryByRole("heading", { name: /^Admisiones/ })).not.toBeInTheDocument();
     expect(mocks.listarAdmisiones).not.toHaveBeenCalled();
+    expect(mocks.obtenerEstadoTenant).not.toHaveBeenCalled();
+  });
+
+  // 2026-10-30: la entrevista solo en los colegios que la usan.
+  it("en un colegio sin entrevista no hay Admisiones y vuelve Crear estudiante en 2027", async () => {
+    mocks.anioLectivo = { anios: [PREPARACION, ACTIVO], anioActivo: ACTIVO };
+    mocks.obtenerEstadoTenant.mockResolvedValue({
+      estado: "activo",
+      mostrar_aviso: false,
+      mensaje: "",
+      usa_entrevista_admision: false,
+    });
+    const user = userEvent.setup();
+
+    renderPagina();
+
+    const enlace = await screen.findByRole("link", { name: "Crear estudiante en 2027" });
+    expect(enlace).toHaveAttribute("href", "/admin/estudiantes");
+    expect(screen.queryByRole("heading", { name: /^Admisiones/ })).not.toBeInTheDocument();
+    expect(mocks.listarAdmisiones).not.toHaveBeenCalled();
+
+    await user.click(enlace);
+
+    expect(mocks.seleccionarAnio).toHaveBeenCalledWith(3);
   });
 });

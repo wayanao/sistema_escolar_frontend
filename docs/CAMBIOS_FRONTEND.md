@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-10-30 - Entrevista de admisión solo en los colegios que la usan (paso 1)
+
+Pedido por el usuario. Detalle en `docs/funcionalidades/ENTREVISTA_ADMISION.md`
+("Solo en los colegios que la usan"). Necesita el backend del mismo día; la
+migración ya está aplicada en producción.
+
+- `GET /tenant/status` dice ahora `usa_entrevista_admision`. Lo lee el hook
+  nuevo `useUsoEntrevistaAdmision`, solo en Años lectivos, Admisiones y
+  Estudiantes mirando el año en preparación.
+- Con entrevista (Demo y 2005): nada cambia.
+- Sin entrevista (colegios nuevos): no se ve "Admisiones"; vuelve "Crear
+  estudiante en {año}" en Años lectivos y "Nuevo Estudiante" en Estudiantes
+  mirando ese año (`POST /anios-lectivos/{id}/estudiantes`); la página de
+  Admisiones lo explica.
+- Archivos nuevos: `hooks/admisiones/useUsoEntrevistaAdmision.js` y su
+  prueba. Cambian: `utils/admisiones/admisiones.js`
+  (`leerUsoEntrevista`), `EncabezadoAdmisionesView.jsx`
+  (`SinEntrevistaView`), `AniosLectivosAdmin.jsx`, `EstudiantesAdmin.jsx`
+  y `AdmisionesAdmin.jsx`.
+- Verificación: las pruebas nuevas fallaron antes del código;
+  `pnpm run check:deploy` → **3131 pruebas en 389 archivos**, lint y build
+  correctos. Sin probar todavía en el navegador.
+
 ## 2026-10-30 - Años lectivos: "Activar" muestra quién va en cada curso
 
 Pedido por el usuario. Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`

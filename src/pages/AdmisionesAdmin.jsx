@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import EncabezadoAdmisionesView, {
   SinAnioEnPreparacionView,
+  SinEntrevistaView,
 } from "../components/admisiones/EncabezadoAdmisionesView";
 import EntrevistaImprimible from "../components/admisiones/EntrevistaImprimible";
 import FichaAdmisionView from "../components/admisiones/FichaAdmisionView";
@@ -12,6 +13,7 @@ import SpinnerView from "../components/anioLectivo/SpinnerView";
 import FormularioEstudianteAdmin from "../components/estudiantesObservador/admin/FormularioEstudianteAdmin";
 import useComandosAdmision from "../hooks/admisiones/useComandosAdmision";
 import useConsultasAdmisiones from "../hooks/admisiones/useConsultasAdmisiones";
+import useUsoEntrevistaAdmision from "../hooks/admisiones/useUsoEntrevistaAdmision";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useFormularioEstudianteAdmin from "../hooks/estudiantesObservador/useFormularioEstudianteAdmin";
 import { datosParaMatricular } from "../utils/admisiones/formularios";
@@ -34,7 +36,11 @@ function AdmisionesAdmin() {
     () => anios.find((anio) => anio.estado === ESTADO_PREPARACION) ?? null,
     [anios],
   );
-  const anioLectivoId = anioPreparacion?.id ?? null;
+  // 2026-10-30: en un colegio que no usa la entrevista, solo el aviso. Mientras
+  // no se sabe, la página carga como siempre: así el colegio que la usa no
+  // espera una petición más.
+  const usaEntrevista = useUsoEntrevistaAdmision({ habilitado: Boolean(anioPreparacion) });
+  const anioLectivoId = usaEntrevista === false ? null : anioPreparacion?.id ?? null;
   const consultas = useConsultasAdmisiones(anioLectivoId, {
     cargarCursos: true,
     cargarCuestionario: true,
@@ -51,6 +57,7 @@ function AdmisionesAdmin() {
   const [imprimiendo, setImprimiendo] = useState(false);
 
   if (!anioPreparacion) return <SinAnioEnPreparacionView cargando={cargandoAnios} />;
+  if (usaEntrevista === false) return <SinEntrevistaView />;
 
   // Cambiar de aspirante cierra la ficha del estudiante que estuviera abierta.
   const abrirFicha = (admisionId) => {

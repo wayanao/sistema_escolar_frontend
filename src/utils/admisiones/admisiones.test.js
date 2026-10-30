@@ -7,9 +7,24 @@ import {
   conteoDeFiltro,
   etiquetaResultado,
   filtrarAdmisiones,
+  leerUsoEntrevista,
   mensajeDeErrorAdmision,
   normalizarListaAdmisiones,
 } from "./admisiones";
+
+// 2026-10-30: la entrevista solo en los colegios que la usan.
+describe("leerUsoEntrevista", () => {
+  it("lee lo que dice el backend en GET /tenant/status", () => {
+    expect(leerUsoEntrevista({ estado: "activo", usa_entrevista_admision: true })).toBe(true);
+    expect(leerUsoEntrevista({ estado: "activo", usa_entrevista_admision: false })).toBe(false);
+  });
+
+  it("sin el dato (un backend anterior) sigue con la entrevista, como siempre", () => {
+    expect(leerUsoEntrevista({ estado: "activo" })).toBe(true);
+    expect(leerUsoEntrevista(null)).toBe(true);
+    expect(leerUsoEntrevista(undefined)).toBe(true);
+  });
+});
 
 describe("contrato de la lista de admisiones", () => {
   it("lee la respuesta del backend tal cual la manda", () => {

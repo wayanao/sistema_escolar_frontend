@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   obtenerEstudiante: vi.fn(),
   obtenerAdmision: vi.fn(),
   obtenerCuestionarioAdmision: vi.fn(),
+  obtenerEstadoTenant: vi.fn(),
   registrarAdmision: vi.fn(),
   swalFire: vi.fn(),
 }));
@@ -30,6 +31,9 @@ vi.mock("../services/admisionesApi", () => ({
   obtenerAdmision: mocks.obtenerAdmision,
   obtenerCuestionarioAdmision: mocks.obtenerCuestionarioAdmision,
   registrarAdmision: mocks.registrarAdmision,
+}));
+vi.mock("../services/autenticacionApi", () => ({
+  obtenerEstadoTenant: mocks.obtenerEstadoTenant,
 }));
 vi.mock("../services/cursosApi", () => ({
   listarCursos: mocks.listarCursos,
@@ -120,9 +124,44 @@ beforeEach(() => {
   mocks.obtenerAdmision.mockResolvedValue(DETALLE);
   mocks.obtenerCuestionarioAdmision.mockResolvedValue({ secciones: CUESTIONARIO });
   mocks.swalFire.mockResolvedValue({ isConfirmed: true });
+  mocks.obtenerEstadoTenant.mockResolvedValue({
+    estado: "activo",
+    mostrar_aviso: false,
+    mensaje: "",
+    usa_entrevista_admision: true,
+  });
 });
 
 describe("AdmisionesAdmin", () => {
+  // 2026-10-30: la entrevista solo en los colegios que la usan.
+  it("en un colegio que no usa la entrevista lo dice y lleva a Años lectivos", async () => {
+    mocks.obtenerEstadoTenant.mockResolvedValue({
+      estado: "activo",
+      mostrar_aviso: false,
+      mensaje: "",
+      usa_entrevista_admision: false,
+    });
+
+    pintar();
+
+    expect(
+      await screen.findByText(/Este colegio no usa la entrevista de admisión/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir a Años lectivos" })).toHaveAttribute(
+      "href",
+      "/admin/anios-lectivos",
+    );
+    expect(screen.queryByRole("button", { name: /Nuevo aspirante/ })).not.toBeInTheDocument();
+  });
+
+  it("sin año en preparación no pregunta si el colegio usa la entrevista", () => {
+    mocks.anioLectivo = { anios: [ACTIVO], cargando: false };
+
+    pintar();
+
+    expect(mocks.obtenerEstadoTenant).not.toHaveBeenCalled();
+  });
+
   it("sin año en preparación dice cómo crearlo y no pide admisiones", () => {
     mocks.anioLectivo = { anios: [ACTIVO], cargando: false };
 
