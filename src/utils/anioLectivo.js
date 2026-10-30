@@ -121,6 +121,9 @@ export function leerValorPersonalizado(texto) {
 // 409 cuando quedan estudiantes sin decidir; viene con su lista.
 export const CODIGO_ACTIVACION_CON_PENDIENTES = "activacion_con_pendientes";
 
+// "PRIMERO A · Mañana", o solo el nombre si el curso no tiene jornada.
+const etiquetaCurso = (nombre, jornada) => [nombre, jornada].filter(Boolean).join(" · ");
+
 // Los pendientes de la vista previa agrupados por su curso del año activo, en
 // el orden en que llegan (el backend ya los ordena por curso y apellido).
 export function agruparPendientesPorCurso(sinDecidir) {
@@ -133,8 +136,32 @@ export function agruparPendientesPorCurso(sinDecidir) {
       const curso =
         estudiante.curso_id == null
           ? "Sin curso"
-          : [estudiante.curso_nombre, estudiante.curso_jornada].filter(Boolean).join(" · ");
+          : etiquetaCurso(estudiante.curso_nombre, estudiante.curso_jornada);
       grupos.set(clave, { clave, curso, estudiantes: [] });
+    }
+    grupos.get(clave).estudiantes.push(estudiante);
+  }
+  return [...grupos.values()];
+}
+
+// Ajuste del 2026-10-30: los matriculados del año en preparación agrupados
+// por su curso de ese año, en el orden de `cursos` y también los cursos que
+// aún no tienen a nadie. Dentro de cada curso, en el orden en que llegan (el
+// backend los ordena por apellido). Quien llegue con un curso que no está en
+// la lista (por ejemplo, uno inactivo) va al final, en "Otro curso".
+export function agruparMatriculadosPorCurso(matriculados, cursos) {
+  const grupos = new Map(
+    (Array.isArray(cursos) ? cursos : []).map((curso) => [
+      String(curso.id),
+      { clave: String(curso.id), curso: etiquetaCurso(curso.nombre, curso.jornada), estudiantes: [] },
+    ]),
+  );
+  for (const estudiante of Array.isArray(matriculados) ? matriculados : []) {
+    const clave = grupos.has(String(estudiante.curso_id))
+      ? String(estudiante.curso_id)
+      : "otro-curso";
+    if (!grupos.has(clave)) {
+      grupos.set(clave, { clave, curso: "Otro curso", estudiantes: [] });
     }
     grupos.get(clave).estudiantes.push(estudiante);
   }

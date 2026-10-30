@@ -1585,6 +1585,32 @@ matrícula de 2027 desde la app.
   --check` limpio. Documentado en `docs/API_CLIENT.md`.
 - **Paso 6.7 terminado; el usuario lo confirmó en el commit `f6a035e`.**
 
+**Ajuste del 2026-10-30 — "Activar" muestra quién va en cada curso, pedido
+por el usuario.** Al revisar por qué dos estudiantes "matriculados" no salían
+en 2027 (les habían cambiado el curso en la ficha, dentro de 2026; ya están
+matriculados bien), el usuario pidió que esta sección muestre lo que va en
+cada curso en vez de la lista de lo que falta, que ya se ve al matricular
+cada curso. Como "Activar" se bloquea mientras falte alguien, se acordó
+dejar de los pendientes una línea con cuántos faltan en cada curso, sin
+nombres.
+
+- `useActivacionAnio`: junto con la vista previa pide `listarEstudiantes(
+  "todos", { parametrosAnio: { anio_lectivo_id }, signal })` y expone
+  `matriculados`. Viajan juntos, así que las recargas de siempre (matricular,
+  marcar, editar, "Actualizar vista previa") traen los dos.
+- `utils/anioLectivo.js`: `agruparMatriculadosPorCurso(matriculados, cursos)`
+  en el orden de los cursos del año en preparación, también los que no tienen
+  a nadie; un curso que no esté en la lista va al final como "Otro curso".
+- `ActivacionAnioView`: tarjetas verdes "Matriculados en 2027 por curso" con
+  "N estudiantes" y los nombres (o "Todavía nadie."); el recuadro rojo dice
+  cuántos faltan y, por curso de 2026, "CURSO · Jornada: N".
+- `services/estudiantesObservadorApi.js`: `listarEstudiantes` acepta
+  `signal`; sin él, la petición queda igual que antes.
+- Sin cambios de backend.
+- Pruebas: 3 de la utilidad, 1 del servicio, 2 nuevas y 2 ajustadas del hook,
+  2 nuevas y 2 ajustadas de la página (las que esperaban los nombres de los
+  pendientes). Fallaron 12 antes del código.
+
 **Avance del 2026-10-09 — paso 6.8, reabrir y volver a cerrar:**
 
 - Repos en `main` y limpios al iniciar (frontend `f6a035e`), sin push.

@@ -6,11 +6,12 @@ const getConAnio = (url, parametrosAnio) =>
   parametrosAnio ? api.get(url, { params: parametrosAnio }) : api.get(url);
 
 // Con otro año, el backend devuelve los matriculados de ese año, cada uno con
-// su curso de ese año.
-export async function listarEstudiantes(estado, { parametrosAnio } = {}) {
-  const { data } = await api.get("/estudiantes", {
-    params: { estado, ...parametrosAnio },
-  });
+// su curso de ese año. La señal viaja solo si la pasan (la usa la sección
+// "Activar" del año lectivo).
+export async function listarEstudiantes(estado, { parametrosAnio, signal } = {}) {
+  const opciones = { params: { estado, ...parametrosAnio } };
+  if (signal) opciones.signal = signal;
+  const { data } = await api.get("/estudiantes", opciones);
   return data;
 }
 

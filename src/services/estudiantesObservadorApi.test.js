@@ -122,6 +122,21 @@ describe("contrato HTTP de estudiantes y observador", () => {
     ]);
   });
 
+  it("la lista de estudiantes lleva la señal solo si se la pasan", async () => {
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: [] });
+
+    await listarEstudiantes("todos", {
+      parametrosAnio: { anio_lectivo_id: 3 },
+      signal: controller.signal,
+    });
+
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes", {
+      params: { estado: "todos", anio_lectivo_id: 3 },
+      signal: controller.signal,
+    });
+  });
+
   it("propaga la señal en la consulta y conserva el payload del observador", async () => {
     const controller = new AbortController();
     const observacion = { conductual: "Avance" };

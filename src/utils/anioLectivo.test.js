@@ -11,6 +11,7 @@ import {
   SALIDA_RETIRADO,
   SIN_PARAMETROS_DE_ANIO,
   accionDeAnioPasado,
+  agruparMatriculadosPorCurso,
   agruparPendientesPorCurso,
   aniosPasados,
   confirmacionCoincide,
@@ -291,6 +292,49 @@ describe("activación del año (paso 6.7)", () => {
       { clave: "sin-curso", curso: "Sin curso", estudiantes: [PENDIENTES[3]] },
     ]);
     expect(agruparPendientesPorCurso(undefined)).toEqual([]);
+  });
+
+  // Ajuste del 2026-10-30: la sección "Activar" muestra quién va en cada
+  // curso del año en preparación.
+  describe("agruparMatriculadosPorCurso", () => {
+    const CURSOS = [
+      { id: 43, nombre: "TRANSICIÓN-A", jornada: "Mañana" },
+      { id: 41, nombre: "JARDIN-A", jornada: "Mañana" },
+      { id: 39, nombre: "PARVULO", jornada: null },
+    ];
+    const MATRICULADOS = [
+      { id: 542, nombre: "Jurian", apellido: "Escobar", curso_id: 41, estado: "activo" },
+      { id: 587, nombre: "Katrina", apellido: "Romo", curso_id: 43, estado: "activo" },
+      { id: 600, nombre: "Luis", apellido: "Ariza", curso_id: 41, estado: "retirado" },
+    ];
+
+    it("agrupa por curso en el orden de los cursos e incluye los que aún no tienen a nadie", () => {
+      expect(agruparMatriculadosPorCurso(MATRICULADOS, CURSOS)).toEqual([
+        { clave: "43", curso: "TRANSICIÓN-A · Mañana", estudiantes: [MATRICULADOS[1]] },
+        {
+          clave: "41",
+          curso: "JARDIN-A · Mañana",
+          estudiantes: [MATRICULADOS[0], MATRICULADOS[2]],
+        },
+        { clave: "39", curso: "PARVULO", estudiantes: [] },
+      ]);
+    });
+
+    it("quien llega con un curso que no está en la lista va al final, en otro grupo", () => {
+      const fuera = { id: 9, nombre: "Ana", apellido: "Gil", curso_id: 99, estado: "activo" };
+
+      expect(agruparMatriculadosPorCurso([fuera], CURSOS.slice(0, 1))).toEqual([
+        { clave: "43", curso: "TRANSICIÓN-A · Mañana", estudiantes: [] },
+        { clave: "otro-curso", curso: "Otro curso", estudiantes: [fuera] },
+      ]);
+    });
+
+    it("sin datos no rompe", () => {
+      expect(agruparMatriculadosPorCurso(undefined, undefined)).toEqual([]);
+      expect(agruparMatriculadosPorCurso(null, CURSOS.slice(2))).toEqual([
+        { clave: "39", curso: "PARVULO", estudiantes: [] },
+      ]);
+    });
   });
 
   it("la confirmación coincide solo con el año exacto, sin espacios de más", () => {

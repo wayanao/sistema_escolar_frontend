@@ -3,12 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   activarAnioLectivo: vi.fn(),
+  listarEstudiantes: vi.fn(),
   obtenerVistaPreviaActivacion: vi.fn(),
 }));
 
 vi.mock("../../services/aniosLectivosApi", () => ({
   activarAnioLectivo: mocks.activarAnioLectivo,
   obtenerVistaPreviaActivacion: mocks.obtenerVistaPreviaActivacion,
+}));
+vi.mock("../../services/estudiantesObservadorApi", () => ({
+  listarEstudiantes: mocks.listarEstudiantes,
 }));
 
 import useActivacionAnio from "./useActivacionAnio";
@@ -29,6 +33,9 @@ const VISTA_LISTA = {
   puede_activar: true,
   sin_decidir: [],
 };
+const MATRICULADOS = [
+  { id: 587, nombre: "Katrina", apellido: "Romo", curso_id: 43, estado: "activo" },
+];
 const ACTIVADO = {
   anio_cerrado: { id: 2, anio: 2026, estado: "cerrado" },
   anio_activo: { id: 3, anio: 2027, estado: "activo" },
@@ -38,6 +45,7 @@ const ACTIVADO = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_LISTA);
+  mocks.listarEstudiantes.mockResolvedValue(MATRICULADOS);
   mocks.activarAnioLectivo.mockResolvedValue(ACTIVADO);
 });
 
@@ -56,11 +64,33 @@ describe("useActivacionAnio", () => {
     });
   });
 
+  it("junto con la vista previa pide los matriculados del año en preparación, de todo estado", async () => {
+    const { result } = await conVistaPrevia();
+
+    expect(mocks.listarEstudiantes).toHaveBeenCalledWith("todos", {
+      parametrosAnio: { anio_lectivo_id: 3 },
+      signal: expect.any(AbortSignal),
+    });
+    expect(result.current.matriculados).toEqual(MATRICULADOS);
+  });
+
+  it("si no se pueden leer los matriculados, avisa como con la vista previa", async () => {
+    mocks.listarEstudiantes.mockRejectedValue(new Error("red"));
+    const { result } = renderHook(() => useActivacionAnio(PREPARACION));
+
+    await waitFor(() =>
+      expect(result.current.error).toBe("No se pudo cargar la vista previa de la activación."),
+    );
+    expect(result.current.cargandoVistaPrevia).toBe(false);
+  });
+
   it("sin año en preparación no pide nada", () => {
     const { result } = renderHook(() => useActivacionAnio(null));
 
     expect(result.current.vistaPrevia).toBe(null);
+    expect(result.current.matriculados).toBe(null);
     expect(mocks.obtenerVistaPreviaActivacion).not.toHaveBeenCalled();
+    expect(mocks.listarEstudiantes).not.toHaveBeenCalled();
   });
 
   it("no activa si el año escrito no coincide", async () => {
@@ -167,5 +197,6 @@ describe("useActivacionAnio", () => {
     });
 
     expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledTimes(2);
+    expect(mocks.listarEstudiantes).toHaveBeenCalledTimes(2);
   });
 });

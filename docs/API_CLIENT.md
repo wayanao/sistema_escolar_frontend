@@ -135,6 +135,13 @@ POST /anios-lectivos/{anio_lectivo_id}/cerrar
   y su `sin_decidir`; los demás errores llegan como texto. Después de activar,
   recarga los años dejando elegido el nuevo activo
   (`recargarAnios({ seleccionarId })`).
+- Desde el 2026-10-30, junto con la vista previa pide `GET
+  /estudiantes?estado=todos&anio_lectivo_id=<año en preparación>`
+  (`listarEstudiantes` de `estudiantesObservadorApi.js`, que ahora acepta
+  `signal`): los matriculados de ese año, cada uno con su curso de ese año.
+  Se muestran agrupados por curso; de `sin_decidir` queda solo cuántos faltan
+  en cada curso. Si cualquiera de las dos lecturas falla, se avisa como antes
+  ("No se pudo cargar la vista previa de la activación.").
 - Desde el paso 6.8, la sección "Años pasados" lista los años `cerrado` y
   `reabierto` de `GET /anios-lectivos`. Reabrir y volver a cerrar envían
   `{ confirmar_anio: <año escrito> }`; el backend compara el año y permite un

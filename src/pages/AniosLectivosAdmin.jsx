@@ -475,6 +475,8 @@ function AniosLectivosAdmin() {
           anioActivo={anioActivo}
           anioPreparacion={anioPreparacion}
           vistaPrevia={activacion.vistaPrevia}
+          matriculados={activacion.matriculados}
+          cursosDestino={preparacion.cursosDestino}
           cargando={activacion.cargandoVistaPrevia}
           confirmacion={activacion.confirmacion}
           activando={activacion.activando}

@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   guardarDecisionSalida: vi.fn(),
   guardarValorPersonalizado: vi.fn(),
   listarAdmisiones: vi.fn(),
+  listarEstudiantes: vi.fn(),
   obtenerEstudiante: vi.fn(),
   obtenerResumenAnio: vi.fn(),
   obtenerValoresPagoEstudiante: vi.fn(),
@@ -54,6 +55,7 @@ vi.mock("../services/admisionesApi", () => ({
 vi.mock("../services/estudiantesObservadorApi", () => ({
   actualizarEstudiante: mocks.actualizarEstudiante,
   crearEstudiante: vi.fn(),
+  listarEstudiantes: mocks.listarEstudiantes,
   obtenerEstudiante: mocks.obtenerEstudiante,
 }));
 vi.mock("../services/pagosApi", () => ({
@@ -169,6 +171,7 @@ beforeEach(() => {
   });
   mocks.obtenerResumenAnio.mockResolvedValue(RESUMEN);
   mocks.obtenerVistaPreviaActivacion.mockResolvedValue(VISTA_CON_PENDIENTES);
+  mocks.listarEstudiantes.mockResolvedValue([]);
   mocks.activarAnioLectivo.mockResolvedValue({
     anio_cerrado: { id: 2, anio: 2026, estado: "cerrado" },
     anio_activo: { id: 3, anio: 2027, estado: "activo" },
@@ -836,15 +839,16 @@ describe("activar el año en preparación (paso 6.7)", () => {
     };
   });
 
-  it("muestra la vista previa con los pendientes por curso y bloquea activar", async () => {
+  it("muestra cuántos faltan en cada curso, sin la lista de nombres, y bloquea activar", async () => {
     renderPagina();
 
     expect(
       await screen.findByRole("heading", { name: "3. Activar 2027" }),
     ).toBeInTheDocument();
     expect(await screen.findByText("Falta 1 estudiante por decidir.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "PRIMERO A · Mañana" })).toBeInTheDocument();
-    expect(screen.getByText("Esteban Castro")).toBeInTheDocument();
+    // Ajuste del 2026-10-30: los nombres ya se ven al matricular cada curso.
+    expect(screen.getByText("PRIMERO A · Mañana: 1")).toBeInTheDocument();
+    expect(screen.queryByText("Esteban Castro")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Activar 2027" })).toBeDisabled();
     expect(
       screen.queryByRole("textbox", { name: "Escribe 2027 para confirmar" }),
@@ -852,6 +856,39 @@ describe("activar el año en preparación (paso 6.7)", () => {
     expect(mocks.obtenerVistaPreviaActivacion).toHaveBeenCalledWith(3, {
       signal: expect.any(AbortSignal),
     });
+  });
+
+  it("muestra quién va matriculado en cada curso de 2027 (ajuste del 2026-10-30)", async () => {
+    mocks.listarEstudiantes.mockResolvedValue([
+      { id: 3, nombre: "Sara", apellido: "Díaz", curso_id: 20, estado: "activo" },
+      { id: 4, nombre: "Tomás", apellido: "Gil", curso_id: 20, estado: "activo" },
+    ]);
+    renderPagina();
+
+    const seccion = (
+      await screen.findByRole("heading", { name: "3. Activar 2027" })
+    ).closest("section");
+    expect(
+      await within(seccion).findByRole("heading", { name: "Matriculados en 2027 por curso" }),
+    ).toBeInTheDocument();
+    const curso = within(seccion).getByRole("heading", { name: "SEGUNDO A · Mañana" });
+    const tarjeta = curso.closest("div").parentElement;
+    expect(within(tarjeta).getByText("2 estudiantes")).toBeInTheDocument();
+    expect(within(tarjeta).getByText("Sara Díaz")).toBeInTheDocument();
+    expect(within(tarjeta).getByText("Tomás Gil")).toBeInTheDocument();
+    expect(mocks.listarEstudiantes).toHaveBeenCalledWith("todos", {
+      parametrosAnio: { anio_lectivo_id: 3 },
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("un curso de 2027 sin matriculados lo dice", async () => {
+    renderPagina();
+
+    const curso = await screen.findByRole("heading", { name: "SEGUNDO A · Mañana" });
+    const tarjeta = curso.closest("div").parentElement;
+    expect(within(tarjeta).getByText("0 estudiantes")).toBeInTheDocument();
+    expect(within(tarjeta).getByText("Todavía nadie.")).toBeInTheDocument();
   });
 
   it("activa solo con el año escrito y recarga los años dejando elegido el nuevo activo", async () => {
@@ -904,7 +941,7 @@ describe("activar el año en preparación (paso 6.7)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No se puede activar 2027: faltan 1 estudiantes por decidir.",
     );
-    expect(screen.getByText("Esteban Castro")).toBeInTheDocument();
+    expect(screen.getByText("PRIMERO A · Mañana: 1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Activar 2027" })).toBeDisabled();
     expect(mocks.recargarAnios).not.toHaveBeenCalled();
   });

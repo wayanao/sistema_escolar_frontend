@@ -1,4 +1,5 @@
 import {
+  agruparMatriculadosPorCurso,
   agruparPendientesPorCurso,
   confirmacionCoincide,
 } from "../../utils/anioLectivo";
@@ -19,12 +20,23 @@ function textoPendientes(cantidad) {
     : `Faltan ${cantidad} estudiantes por decidir.`;
 }
 
+function contarEstudiantes(cantidad) {
+  return cantidad === 1 ? "1 estudiante" : `${cantidad} estudiantes`;
+}
+
 // Paso 6.7: vista previa y activación del año en preparación. Presentacional:
-// los números, la lista y `puede_activar` vienen del backend.
+// los números, las listas y `puede_activar` vienen del backend.
+//
+// Ajuste del 2026-10-30, pedido por el usuario: la lista grande es la de
+// quién va en cada curso del año en preparación. De los pendientes queda
+// cuántos faltan por curso del año activo: sus nombres ya se ven al
+// matricular cada curso.
 export default function ActivacionAnioView({
   anioActivo,
   anioPreparacion,
   vistaPrevia,
+  matriculados,
+  cursosDestino,
   cargando,
   confirmacion,
   activando,
@@ -35,6 +47,9 @@ export default function ActivacionAnioView({
   const resumen = vistaPrevia?.resumen;
   const pendientes = vistaPrevia?.sin_decidir ?? [];
   const grupos = agruparPendientesPorCurso(pendientes);
+  const gruposMatriculados = matriculados
+    ? agruparMatriculadosPorCurso(matriculados, cursosDestino)
+    : [];
   const puedeActivar = Boolean(vistaPrevia?.puede_activar);
   const coincide = confirmacionCoincide(confirmacion, anioPreparacion.anio);
   const idCampo = "confirmar-activacion";
@@ -81,27 +96,58 @@ export default function ActivacionAnioView({
         </dl>
       )}
 
+      {gruposMatriculados.length > 0 && (
+        <div className="mt-5">
+          <h3 className="text-base font-bold text-gray-900">
+            Matriculados en {anioPreparacion.anio} por curso
+          </h3>
+          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {gruposMatriculados.map((grupo) => (
+              <div
+                key={grupo.clave}
+                className="min-w-0 rounded-lg border border-emerald-200 bg-emerald-50 p-3"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                  <h4 className="text-sm font-bold text-gray-900">{grupo.curso}</h4>
+                  <span className="text-xs font-semibold text-emerald-800">
+                    {contarEstudiantes(grupo.estudiantes.length)}
+                  </span>
+                </div>
+                {grupo.estudiantes.length > 0 ? (
+                  <ul className="mt-1 space-y-0.5 text-sm text-gray-800">
+                    {grupo.estudiantes.map((estudiante) => (
+                      <li key={estudiante.id} className="break-words">
+                        {estudiante.nombre} {estudiante.apellido}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-500">Todavía nadie.</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {pendientes.length > 0 && (
         <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-red-900">
           <p className="font-semibold">{textoPendientes(pendientes.length)}</p>
           <p className="mt-1 text-sm">
             Pásalos a {anioPreparacion.anio} o márcalos como retirados o egresados
-            en "Matricular estudiantes".
+            en "Matricular estudiantes". Cuántos faltan en cada curso de{" "}
+            {anioActivo.anio}:
           </p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="mt-3 flex flex-wrap gap-2">
             {grupos.map((grupo) => (
-              <div key={grupo.clave} className="min-w-0 rounded-lg bg-white p-3">
-                <h3 className="text-sm font-bold text-gray-900">{grupo.curso}</h3>
-                <ul className="mt-1 space-y-0.5 text-sm text-gray-800">
-                  {grupo.estudiantes.map((estudiante) => (
-                    <li key={estudiante.id} className="break-words">
-                      {estudiante.nombre} {estudiante.apellido}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <li
+                key={grupo.clave}
+                className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-gray-900"
+              >
+                {grupo.curso}: {grupo.estudiantes.length}
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 

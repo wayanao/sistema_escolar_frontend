@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-10-30 - Años lectivos: "Activar" muestra quién va en cada curso
+
+Pedido por el usuario. Detalle en `docs/funcionalidades/ANIO_LECTIVO.md`
+("Ajuste del 2026-10-30").
+
+- La sección "3. Activar {año}" muestra "Matriculados en {año} por curso":
+  una tarjeta por curso del año en preparación con cuántos van y sus nombres,
+  o "Todavía nadie.".
+- De los pendientes queda el recuadro rojo con cuántos faltan y, por curso
+  del año activo, "CURSO · Jornada: N". Los nombres ya se ven al matricular
+  cada curso. Activar sigue bloqueado mientras falte alguien.
+- Archivos que cambian: `hooks/anioLectivo/useActivacionAnio.js`
+  (`matriculados`), `utils/anioLectivo.js` (`agruparMatriculadosPorCurso`),
+  `components/anioLectivo/ActivacionAnioView.jsx`,
+  `pages/AniosLectivosAdmin.jsx` y `services/estudiantesObservadorApi.js`
+  (`listarEstudiantes` acepta `signal`).
+- Una petición más al abrir la página y en cada recarga de la vista previa:
+  `GET /estudiantes?estado=todos&anio_lectivo_id=`. Sin cambios de backend.
+- Verificación: 12 pruebas fallaron antes del código; después, `pnpm run
+  check:deploy` → **3120 pruebas en 388 archivos**, lint y build correctos.
+  Sin probar todavía en el navegador.
+
 ## 2026-10-27 - Observador: firma del acudiente en pantalla (paso 2)
 
 Paso 2 de `docs/funcionalidades/FIRMA_OBSERVADOR.md`. El backend (paso 1)

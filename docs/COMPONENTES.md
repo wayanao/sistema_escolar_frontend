@@ -1425,6 +1425,11 @@ Entrevista de admisión, paso E4 (2026-10-13). Ver
   Guardar y "Volver al precio del curso"; en móvil, campos y botones a ancho
   completo. `ResumenPreparacionView.jsx` presenta solo los totales del
   backend.
+- `components/anioLectivo/ActivacionAnioView.jsx` ("3. Activar {año}"):
+  conteos de la vista previa, y desde el 2026-10-30 las tarjetas
+  "Matriculados en {año} por curso" (nombres por curso del año en
+  preparación, o "Todavía nadie.") y, de los pendientes, solo cuántos faltan
+  por curso del año activo. Campo para escribir el año y botón de activar.
 - `components/anioLectivo/SpinnerView.jsx` y `AvisoTrabajandoView.jsx`
   (2026-10-12): el círculo que gira junto a "Creando...", "Copiando...",
   "Cargando..." y demás (decorativo, `aria-hidden`; las pruebas lo encuentran

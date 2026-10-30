@@ -3,6 +3,7 @@ import {
   activarAnioLectivo,
   obtenerVistaPreviaActivacion,
 } from "../../services/aniosLectivosApi";
+import { listarEstudiantes } from "../../services/estudiantesObservadorApi";
 import {
   confirmacionCoincide,
   leerPendientesDeActivacion,
@@ -16,9 +17,15 @@ import {
 // `onActivado` recibe la respuesta del backend; la página la usa para
 // recargar los años y dejar elegido el nuevo activo. El resultado se conserva
 // aunque el año en preparación desaparezca de la lista al activarse.
+//
+// Ajuste del 2026-10-30: con la vista previa llegan los matriculados del año
+// en preparación, para mostrar quién va en cada curso. Viajan juntos para que
+// las recargas de siempre (matricular, marcar, editar, "Actualizar") traigan
+// los dos.
 export default function useActivacionAnio(anioPreparacion, { onActivado } = {}) {
   const anioLectivoId = anioPreparacion?.id ?? null;
   const [vistaPrevia, setVistaPrevia] = useState(null);
+  const [matriculados, setMatriculados] = useState(null);
   const [cargandoVistaPrevia, setCargandoVistaPrevia] = useState(false);
   const [confirmacion, setConfirmacion] = useState("");
   const [activando, setActivando] = useState(false);
@@ -29,9 +36,19 @@ export default function useActivacionAnio(anioPreparacion, { onActivado } = {}) 
     if (!anioLectivoId) return;
     setCargandoVistaPrevia(true);
     try {
-      const datos = await obtenerVistaPreviaActivacion(anioLectivoId, { signal });
+      // Con el id de un año que no es el activo, el backend devuelve solo sus
+      // matriculados, cada uno con su curso de ese año. "todos": también
+      // quien conserva otro estado (decisión del paso 6.3).
+      const [datos, estudiantes] = await Promise.all([
+        obtenerVistaPreviaActivacion(anioLectivoId, { signal }),
+        listarEstudiantes("todos", {
+          parametrosAnio: { anio_lectivo_id: anioLectivoId },
+          signal,
+        }),
+      ]);
       if (signal?.aborted) return;
       setVistaPrevia(datos);
+      setMatriculados(Array.isArray(estudiantes) ? estudiantes : []);
     } catch (err) {
       if (signal?.aborted) return;
       setError(
@@ -45,6 +62,7 @@ export default function useActivacionAnio(anioPreparacion, { onActivado } = {}) 
   useEffect(() => {
     if (!anioLectivoId) {
       setVistaPrevia(null);
+      setMatriculados(null);
       setConfirmacion("");
       return undefined;
     }
@@ -99,6 +117,7 @@ export default function useActivacionAnio(anioPreparacion, { onActivado } = {}) 
 
   return {
     vistaPrevia,
+    matriculados,
     cargandoVistaPrevia,
     confirmacion,
     setConfirmacion,
