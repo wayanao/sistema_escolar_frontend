@@ -1,13 +1,25 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { obtenerObservadorMock, usePrintConfigMock } = vi.hoisted(() => ({
+const {
+  firmarAnotacionMock,
+  firmarAnotacionesDelPeriodoMock,
+  obtenerFirmantesSugeridosMock,
+  obtenerObservadorMock,
+  usePrintConfigMock,
+} = vi.hoisted(() => ({
+  firmarAnotacionMock: vi.fn(),
+  firmarAnotacionesDelPeriodoMock: vi.fn(),
+  obtenerFirmantesSugeridosMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
   usePrintConfigMock: vi.fn(),
 }));
 
 vi.mock("../../services/observadorApi", () => ({
+  firmarAnotacion: firmarAnotacionMock,
+  firmarAnotacionesDelPeriodo: firmarAnotacionesDelPeriodoMock,
+  obtenerFirmantesSugeridos: obtenerFirmantesSugeridosMock,
   obtenerObservador: obtenerObservadorMock,
 }));
 
@@ -16,6 +28,7 @@ vi.mock("../../hooks/certificadosImpresion/usePrintConfig", () => ({
 }));
 
 import ObservadorEnFichaAdmin from "./ObservadorEnFichaAdmin";
+import { instalarLienzoFalso } from "../../test/lienzoFalso";
 
 const ESTUDIANTE = { id: 11, nombre: "Ana", apellido: "Rojas" };
 
@@ -160,5 +173,36 @@ describe("ObservadorEnFichaAdmin", () => {
       await screen.findByText("Todavía nadie le ha escrito nada a este estudiante."),
     ).toBeInTheDocument();
     expect(screen.getByText("0 registros")).toBeInTheDocument();
+  });
+});
+
+describe("ObservadorEnFichaAdmin: firma del acudiente", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("el admin no escribe, pero sí toma la firma donde el servidor lo permite", async () => {
+    instalarLienzoFalso();
+    obtenerFirmantesSugeridosMock.mockResolvedValue([]);
+    obtenerObservadorMock.mockResolvedValue({
+      ...BITACORA,
+      anotaciones: [
+        { ...BITACORA.anotaciones[0], puede_firmar: true, firma: null, version: "v12" },
+        { ...BITACORA.anotaciones[1], puede_firmar: false, firma: null },
+      ],
+    });
+    const user = userEvent.setup();
+    render(<ObservadorEnFichaAdmin estudiante={ESTUDIANTE} />);
+
+    await user.click(await screen.findByRole("button", { name: "Firmar con el acudiente" }));
+
+    // Sigue sin poder escribir ni editar: firmar no cambia el texto de nadie.
+    expect(screen.queryByRole("button", { name: "Nueva anotación" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    const ventana = screen.getByRole("dialog", { name: "Firma del acudiente" });
+    expect(within(ventana).getByText("Participa mucho.")).toBeInTheDocument();
+    await waitFor(() => expect(obtenerFirmantesSugeridosMock).toHaveBeenCalledWith(11, {
+      signal: expect.any(AbortSignal),
+    }));
   });
 });

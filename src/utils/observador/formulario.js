@@ -88,3 +88,11 @@ export function esAnotacionPropia(anotacion, profesorId) {
   if (profesorId === null || profesorId === undefined || profesorId === "") return false;
   return Number(anotacion?.profesor_id) === Number(profesorId);
 }
+
+/** `true` si se pinta `[Editar]`: la anotación es propia **y no está firmada**.
+ * Lo firmado por el acudiente no se edita, ni siquiera su autora: se aclara con
+ * una anotación nueva (`docs/funcionalidades/FIRMA_OBSERVADOR.md`, decisión 4).
+ * También es cosmético: el servidor responde 409 a quien lo intente. */
+export function puedeEditarAnotacion(anotacion, profesorId) {
+  return esAnotacionPropia(anotacion, profesorId) && !anotacion?.firma;
+}

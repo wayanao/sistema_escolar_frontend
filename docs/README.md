@@ -30,7 +30,8 @@ continuacion para retomarla en otro chat u otro LLM.
   **Disenado, nada implementado.**
 - `funcionalidades/FIRMA_OBSERVADOR.md`: firma del acudiente en pantalla, una
   por anotacion del observador, y la firma en el impreso. El documento
-  principal esta en el backend. **Disenado, nada implementado.**
+  principal esta en el backend. **Paso 2 (la pantalla) construido el
+  2026-10-27, sin publicar; falta el impreso (paso 3).**
 - `funcionalidades/LISTAS_SEGUIMIENTO.md`: pantalla nueva de admin para crear
   columnas por curso y marcar alumnos con un check y una nota corta.
   **Disenado, nada implementado.**

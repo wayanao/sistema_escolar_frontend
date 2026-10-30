@@ -5,9 +5,26 @@ import {
   construirPayloadEdicionAnotacion,
   crearFormularioAnotacion,
   esAnotacionPropia,
+  puedeEditarAnotacion,
   puedeGuardarAnotacion,
   tieneContenidoAnotacion,
 } from "./formulario";
+
+describe("qué se puede editar", () => {
+  const propia = { id: 12, profesor_id: 7, firma: null };
+
+  it("la anotación propia sin firma se puede editar", () => {
+    expect(puedeEditarAnotacion(propia, 7)).toBe(true);
+  });
+
+  it("lo firmado por el acudiente no se edita, ni siquiera la autora", () => {
+    expect(puedeEditarAnotacion({ ...propia, firma: { firmante_nombre: "Maria" } }, 7)).toBe(false);
+  });
+
+  it("la de otro profesor tampoco", () => {
+    expect(puedeEditarAnotacion(propia, 9)).toBe(false);
+  });
+});
 
 describe("estado inicial del formulario", () => {
   it("arranca vacío, y solo con los tres textos", () => {

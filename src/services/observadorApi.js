@@ -89,3 +89,52 @@ export async function editarAnotacion(anotacionId, payload) {
   const { data } = await api.put(`/observador/${anotacionId}`, payload);
   return data;
 }
+
+/**
+ * El acudiente firma una anotación en pantalla. Ver
+ * `docs/funcionalidades/FIRMA_OBSERVADOR.md`.
+ *
+ * El cuerpo lo arma `construirPayloadFirma`: los datos de quien firma, la
+ * imagen y la `version` que trajo la bitácora. **Quién toma la firma y la hora
+ * no viajan**: el servidor los saca del token y de su reloj.
+ *
+ * Devuelve la firma guardada, sin imagen y con el documento enmascarado. `409`
+ * si la anotación ya estaba firmada o cambió desde que se mostró; `403` si
+ * quien pide no es su autor, el director de grupo ni el admin.
+ *
+ * Una firma **no se edita ni se borra**: no hay contrato para eso.
+ */
+export async function firmarAnotacion(anotacionId, payload) {
+  const { data } = await api.post(`/observador/anotaciones/${anotacionId}/firma`, payload);
+  return data;
+}
+
+/**
+ * Una sola firma del acudiente para todo un periodo: varias anotaciones del
+ * estudiante de una vez. El cuerpo lo arma `construirPayloadFirmaPeriodo` y
+ * lleva la lista exacta que se mostró, `[{ id, version }]`.
+ *
+ * **Todas o ninguna**: si una no se puede firmar (otro profesor, ya firmada,
+ * cambió), el servidor no firma ninguna y responde `403` o `409`. Devuelve la
+ * lista de firmas guardadas.
+ */
+export async function firmarAnotacionesDelPeriodo(estudianteId, payload) {
+  const { data } = await api.post(`/observador/${estudianteId}/firmas`, payload);
+  return data;
+}
+
+/**
+ * El padre y la madre de la ficha del estudiante, para no escribirlos a mano
+ * al firmar: `[{ parentesco, nombre, tipo_documento, documento }]`, solo los
+ * que tienen nombre.
+ *
+ * El servidor solo los da a quien puede tomar alguna firma del alumno; a otro
+ * profesor le responde `403`, y la ventana sigue funcionando a mano.
+ */
+export async function obtenerFirmantesSugeridos(estudianteId, { signal } = {}) {
+  const { data } = await api.get(
+    `/observador/${estudianteId}/firmantes-sugeridos`,
+    signal ? { signal } : undefined,
+  );
+  return data;
+}

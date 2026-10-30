@@ -2,14 +2,17 @@
 
 ## Control
 
-- Estado: **diseñado el 2026-10-27, nada implementado.**
+- Estado: **paso 2 (la pantalla) construido el 2026-10-27, sin publicar.**
+  Pasa `pnpm run check:deploy`. Falta la prueba en local contra la rama
+  `prueba-firma-observador` de Neon y, después, publicar. El paso 3 (la firma
+  en el impreso) viene después. Ver "Avance del paso 2".
 - Tipo: función nueva de producto. No es un módulo de `docs/modularizacion/`.
 - **El documento principal es
   `sistema_escolar_api/docs/funcionalidades/FIRMA_OBSERVADOR.md`**, con las
   decisiones, la tabla, los permisos, la API y el orden de publicación. Este
   documento cubre las pantallas y la impresión.
 - Depende de que el paso 1 del backend esté publicado, con sus endpoints y la
-  migración en producción. **El paso 2 no empieza antes.**
+  migración en producción. **Cumplido el 2026-10-27** (backend `c195fff`).
 - Última actualización: 2026-10-27.
 
 ## Dónde se ve
@@ -107,3 +110,77 @@ Errores:
 Son los pasos 2 y 3 del documento principal. Cada uno se cierra con
 `pnpm run check:deploy` y con una prueba en local con el Colegio Demo antes de
 publicar.
+
+## Avance del paso 2 (2026-10-27)
+
+Construido como se describe arriba. Ajustes que salieron al construirlo:
+
+- **El documento llega ya enmascarado del servidor.** La pantalla no
+  enmascara nada; solo muestra `firmante_documento_enmascarado`.
+- **La ventana no se cierra al tocar fuera**, a diferencia de la de subnotas.
+  Un dedo que se resbala mientras alguien firma no puede borrar lo hecho.
+- **Los botones van en su propia barra, fuera del `<fieldset>`**, y solo el
+  cuerpo se desplaza. En la primera prueba del usuario (2026-10-27), con el
+  `<fieldset>` repartiendo el alto, la ventana creció por debajo de la pantalla
+  y "Guardar firma" no se veía. Ahora el fieldset solo deshabilita los campos
+  mientras se guarda, y el fondo también se puede desplazar como red de
+  seguridad. Hay una prueba que lo fija.
+- **Va en un portal sobre `document.body`, en `z-[60]`.** En la ficha del
+  admin, la ventana de firma queda por encima de la ficha, que también es una
+  ventana (`z-50`).
+- **`useFirmaAnotacion` entrega `propsVentana`.** La página del profesor y la
+  ficha del admin montan la ventana igual, sin repetir la lista de props.
+- **`TIPOS_DOCUMENTO_ACUDIENTE` pasó a `src/constants/documentosEstudiante.js`.**
+  Son «Cédula» y «Cédula Extranjera», que estaban escritos a mano en
+  `FormularioEstudianteAdmin.jsx`. La ficha y la firma usan ahora la misma
+  lista, y así el papá y la mamá sugeridos encajan en una opción. La ficha se
+  ve igual. La firma añade «Pasaporte», «PPT» y «Otro», y si la ficha trae otro
+  valor, lo agrega en vez de perderlo.
+- **Sin firmantes sugeridos, la ventana se llena a mano.** Pasa con un `403` o
+  con un fallo de la consulta; las sugerencias no son necesarias.
+
+Pruebas:
+
+- Nuevas: `utils/observador/firma.test.js`, `hooks/observador/useFirmaAnotacion.test.js`,
+  `RecuadroFirma.test.jsx`, `SelloFirma.test.jsx` y `VentanaFirmaAnotacion.test.jsx`.
+- Ampliadas: el servicio, `formulario.test.js`, `AnotacionObservador.test.jsx`,
+  `VistaObservadorEstudiante.test.jsx`, `ObservadorEnFichaAdmin.test.jsx` y
+  `pages/Observador.test.jsx`, que ahora incluye el flujo completo de firmar.
+- jsdom no dibuja: `src/test/lienzoFalso.js` cambia el contexto del `<canvas>`
+  por uno que acepta los trazos.
+- `pnpm run check:deploy`: **3095 pruebas** en 388 archivos (antes 3033 en 383),
+  lint limpio y build con 505 módulos.
+
+Falta la prueba en local. Una firma no se borra, así que el backend local debe
+apuntar a la rama `prueba-firma-observador` de Neon, que ya tiene la tabla, y
+no a producción.
+
+## Ampliación: firmar un periodo de una vez (2026-10-27)
+
+El usuario pidió, mientras probaba, poder firmar todo un periodo de una vez sin
+quitar la firma individual. Eligió que el acudiente vea **todas las anotaciones
+pendientes del periodo** y firme una sola vez (no una firma por dimensión).
+
+- **Botón «Firmar un periodo»** en la bitácora, junto a «Nueva anotación». Solo
+  sale si hay algo pendiente que el usuario pueda firmar (`puede_firmar`). Abre
+  con el periodo del selector si tiene pendientes; si no, con el primero que
+  tenga (`periodoParaFirmar`).
+- **La misma ventana en modo periodo.** Muestra:
+  - todas las anotaciones que se firman, con su texto completo;
+  - botones para cambiar de periodo (`Periodo 2 (3)`);
+  - la casilla "El acudiente leyó estas N anotaciones";
+  - "Guardar firma (N)".
+
+  Al guardar, dice "Firma guardada en N anotaciones".
+- **La lista se congela al abrir.** El acudiente firma exactamente lo que vio,
+  aunque la bitácora se recargue. Cambiar de periodo borra el trazo y la
+  casilla, porque lo que se firma ya es otra cosa; quien firma se conserva.
+- `services/observadorApi.js`: `firmarAnotacionesDelPeriodo` envía la lista
+  exacta `[{id, version}]` (`construirPayloadFirmaPeriodo`), nunca el número
+  del periodo.
+- Si una de las anotaciones no se puede firmar, el servidor no firma ninguna
+  y la pantalla recarga la bitácora.
+- `check:deploy` con la carga habitual de esta máquina: 8 procesos de Vitest
+  no alcanzaron a arrancar ("Timeout starting forks runner"), sin ninguna
+  prueba fallida. Corriendo por partes: **3112 pruebas en 388 archivos**, lint y
+  build correctos.

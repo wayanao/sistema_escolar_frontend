@@ -16,6 +16,13 @@ export const TIPOS_DOCUMENTO_ESTUDIANTE = [
     "Otro",
 ];
 
+// Tipo de documento del padre y de la madre, tal como lo guarda la ficha
+// (`tipo_documento_padre` y `tipo_documento_madre`). Lo usa también la firma
+// del acudiente en el observador (docs/funcionalidades/FIRMA_OBSERVADOR.md):
+// al sugerir al papá o a la mamá, su tipo tiene que caer en una de estas
+// opciones. Por eso vive aquí y no copiado en los dos módulos.
+export const TIPOS_DOCUMENTO_ACUDIENTE = ["Cédula", "Cédula Extranjera"];
+
 // Paz y salvo del colegio anterior. Se guarda tal cual: "SI" o "NO".
 export const OPCIONES_PAZ_Y_SALVO = ["SI", "NO"];
 

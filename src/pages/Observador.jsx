@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState } from "react";
 import FormularioAnotacionObservador from "../components/observador/FormularioAnotacionObservador";
 import ListaAlumnosObservador from "../components/observador/ListaAlumnosObservador";
 import ObservadorImprimible from "../components/observador/ObservadorImprimible";
+import VentanaFirmaAnotacion from "../components/observador/VentanaFirmaAnotacion";
 import VistaObservadorEstudiante from "../components/observador/VistaObservadorEstudiante";
 import useComandosObservador from "../hooks/observador/useComandosObservador";
+import useFirmaAnotacion from "../hooks/observador/useFirmaAnotacion";
 import useFormularioAnotacion from "../hooks/observador/useFormularioAnotacion";
 import useMisEstudiantes, {
   ERROR_SIN_LISTA,
@@ -82,6 +84,15 @@ function Observador() {
 
   const formulario = useFormularioAnotacion();
   const { guardando, guardarNueva, guardarCorreccion } = useComandosObservador();
+
+  // Firma del acudiente (docs/funcionalidades/FIRMA_OBSERVADOR.md). Al firmar
+  // -o si el servidor dice que la anotación cambió- se vuelve a pedir la
+  // bitácora: es la única forma de ver el sello y de que desaparezca [Editar].
+  const firma = useFirmaAnotacion({
+    estudianteId: seleccionado?.estudiante_id,
+    anotaciones,
+    onFirmada: recargar,
+  });
 
   // El filtro es local sobre la lista ya cargada: escribir en el buscador no
   // vuelve a preguntarle nada al servidor.
@@ -218,6 +229,8 @@ function Observador() {
           onVolver={volverALaLista}
           profesorId={profesorId}
           onEditar={abrirCorreccion}
+          onFirmar={firma.abrir}
+          onFirmarPeriodo={firma.abrirPeriodo}
           onNuevaAnotacion={abrirNueva}
           formulario={vistaFormulario}
         />
@@ -231,6 +244,10 @@ function Observador() {
           onReintentar={recargarEstudiantes}
           onAbrir={abrirEstudiante}
         />
+      )}
+
+      {seleccionado && firma.abierta && (
+        <VentanaFirmaAnotacion titulo={tituloAlumno} {...firma.propsVentana} />
       )}
     </div>
   );

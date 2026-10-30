@@ -970,6 +970,40 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `utils/observador/texto.js`: la corrección de mayúsculas. Espejo comprobado de
   `app/core/texto_observador.py`.
 
+Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
+
+- `components/observador/VentanaFirmaAnotacion.jsx`: la ventana donde el
+  acudiente lee la anotación y la firma. Muestra el texto completo de lo que se
+  firma, quién firma (el papá o la mamá de la ficha, u otro acudiente), el
+  recuadro de firma y la casilla de lectura; «Guardar firma» solo se activa con
+  todo completo y dice qué falta. Va en un portal sobre `document.body`
+  (`z-[60]`, por encima de la ficha del admin) y ocupa toda la pantalla en el
+  celular. **No se cierra al tocar fuera**: solo con la X, «Cancelar» o Esc.
+- `components/observador/RecuadroFirma.jsx`: el recuadro de firma, propio, con
+  `<canvas>` y eventos de puntero (dedo, lápiz o mouse), **sin librerías
+  nuevas**. Tamaño interno fijo (900×300) estirado al ancho; entrega un PNG en
+  `data:` al terminar cada trazo y `null` al borrar.
+- `components/observador/SelloFirma.jsx`: el sello de una anotación firmada.
+  Si el servidor dice `integra: false`, lo advierte en rojo.
+- `hooks/observador/useFirmaAnotacion.js`: el estado de la ventana y guardar.
+  «Firmar la siguiente» conserva los datos de quien firma pero no el trazo;
+  nada se guarda en el navegador. Entrega `propsVentana` para que la página y
+  la ficha del admin monten la ventana igual.
+- `hooks/observador/useFirmantesSugeridos.js`: el padre y la madre de la ficha,
+  una vez por estudiante y solo con la ventana abierta. Si falla, la ventana se
+  llena a mano.
+- `utils/observador/firma.js`: qué falta para guardar, el cuerpo del envío (sin
+  quién toma la firma ni la hora), el texto del sello, la siguiente pendiente y
+  los mensajes de error, como contratos puros.
+- `utils/observador/formulario.js`: `puedeEditarAnotacion`, porque lo firmado
+  no se edita, ni siquiera por su autora.
+- `EncabezadoAnotacion.jsx` pinta «Firmar con el acudiente» donde el servidor
+  dice `puede_firmar`; las dos tarjetas de anotación llevan el sello.
+- `VistaObservadorEstudiante.jsx` pinta «Firmar un periodo» si hay algo
+  pendiente que se pueda firmar. La ventana, en modo periodo, muestra todas
+  las anotaciones que se firman con una sola firma y deja cambiar de periodo;
+  el hook congela esa lista al abrir.
+
 ### Constantes
 
 - `constants/valoracionesDesarrollo.js`: opciones compartidas de desarrollo
@@ -981,7 +1015,11 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
   matricular. Desde el E6, también `DATOS_DE_ADMISION_EN_LA_FICHA`: los ocho
   datos que pasaron a la entrevista, con su etiqueta, que usan admisiones
   (llenar la ficha) y la ficha del estudiante ("Datos de admisión"). Paz y
-  salvo ya solo se usa en la entrevista.
+  salvo ya solo se usa en la entrevista. Desde el 2026-10-27, también
+  `TIPOS_DOCUMENTO_ACUDIENTE` («Cédula» y «Cédula Extranjera»): el tipo de
+  documento del padre y de la madre en la ficha, que la firma del acudiente del
+  observador usa para que el papá y la mamá sugeridos encajen. Antes estaban
+  escritos a mano en `FormularioEstudianteAdmin.jsx`.
 
 ### Cartera
 

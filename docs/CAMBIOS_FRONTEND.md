@@ -1,5 +1,51 @@
 # Cambios Frontend
 
+## 2026-10-27 - Observador: firma del acudiente en pantalla (paso 2)
+
+Paso 2 de `docs/funcionalidades/FIRMA_OBSERVADOR.md`. El backend (paso 1)
+está publicado desde el mismo día.
+
+- Cada anotación que se puede firmar muestra «Firmar con el acudiente». Lo
+  decide el servidor con `puede_firmar`: el autor, el director de grupo o el
+  admin.
+- La ventana muestra el texto completo que se firma y quién firma: el papá o
+  la mamá de la ficha, u otro acudiente. Después vienen el recuadro para
+  firmar con el dedo y la casilla «El acudiente leyó esta anotación».
+- «Firmar la siguiente» conserva los datos de quien firma, pero la firma se
+  dibuja otra vez, porque cada anotación se firma por separado.
+- Lo firmado lleva su sello ("Firmada por … · documento enmascarado · fecha y
+  hora · ante …") y ya no muestra `[Editar]`. Si el servidor dice que el texto
+  cambió después de firmar, el sello lo advierte en rojo.
+- La ficha del admin también puede tomar firmas; sigue sin escribir ni editar.
+- **«Firmar un periodo»** (ampliación pedida el mismo día): una sola firma
+  para todas las anotaciones pendientes de un periodo. La ventana muestra
+  todo lo que se firma, deja cambiar de periodo y guarda con
+  `firmarAnotacionesDelPeriodo`. Es todo o nada en el servidor. La firma
+  individual se mantiene.
+- Archivos nuevos:
+  - `utils/observador/firma.js`;
+  - `hooks/observador/useFirmaAnotacion.js` y `useFirmantesSugeridos.js`;
+  - `components/observador/VentanaFirmaAnotacion.jsx`, `RecuadroFirma.jsx` y
+    `SelloFirma.jsx`.
+- Archivos que cambian:
+  - `services/observadorApi.js`: `firmarAnotacion` y
+    `obtenerFirmantesSugeridos`;
+  - `utils/observador/formulario.js`: `puedeEditarAnotacion`;
+  - `EncabezadoAnotacion.jsx`, las dos tarjetas de anotación,
+    `VistaObservadorEstudiante.jsx`, `pages/Observador.jsx` y
+    `ObservadorEnFichaAdmin.jsx`.
+- `constants/documentosEstudiante.js`: nueva `TIPOS_DOCUMENTO_ACUDIENTE`, que
+  ahora usan la ficha (`FormularioEstudianteAdmin.jsx`, que se ve igual) y la
+  firma.
+- Sin librerías nuevas: el recuadro de firma es un `<canvas>` propio.
+- Docs: `FIRMA_OBSERVADOR.md`, `API_CLIENT.md`, `COMPONENTES.md` y
+  `ROLES_UI.md`.
+
+Verificación: 3112 pruebas en 388 archivos (antes 3033 en 383), lint y build
+correctos. `check:deploy` falló una vez por la carga de la máquina: 8
+procesos de Vitest no alcanzaron a arrancar, sin pruebas fallidas. Se corrió
+por partes, con `--maxWorkers=2`. La firma en el impreso es el paso 3.
+
 ## 2026-10-27 - Entorno: Node 24.22.1 y pnpm 11.25.0 (seguridad, etapa A)
 
 Primera etapa de la actualización de dependencias por seguridad. **Ninguna

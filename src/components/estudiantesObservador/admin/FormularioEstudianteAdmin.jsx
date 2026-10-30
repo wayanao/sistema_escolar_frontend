@@ -1,4 +1,7 @@
-import { TIPOS_DOCUMENTO_ESTUDIANTE } from "../../../constants/documentosEstudiante";
+import {
+  TIPOS_DOCUMENTO_ACUDIENTE,
+  TIPOS_DOCUMENTO_ESTUDIANTE,
+} from "../../../constants/documentosEstudiante";
 import {
   GRUPOS_SISBEN,
   NIVELES_SISBEN,
@@ -338,8 +341,9 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           >
             <option value="">Seleccione...</option>
-            <option value="Cédula">Cédula</option>
-            <option value="Cédula Extranjera">Cédula Extranjera</option>
+            {TIPOS_DOCUMENTO_ACUDIENTE.map((tipo) => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
           </select>
         </Campo>
         <Campo label="Documento (Padre)">
@@ -374,8 +378,9 @@ export default function FormularioEstudianteAdmin({
             className={inputClass}
           >
             <option value="">Seleccione...</option>
-            <option value="Cédula">Cédula</option>
-            <option value="Cédula Extranjera">Cédula Extranjera</option>
+            {TIPOS_DOCUMENTO_ACUDIENTE.map((tipo) => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
           </select>
         </Campo>
         <Campo label="Documento (Madre)">

@@ -8,7 +8,8 @@ import {
   OPCIONES_PERIODO_OBSERVADOR,
   PERIODO_TODOS,
 } from "../../utils/observador/anotaciones";
-import { esAnotacionPropia } from "../../utils/observador/formulario";
+import { periodoParaFirmar } from "../../utils/observador/firma";
+import { puedeEditarAnotacion } from "../../utils/observador/formulario";
 import { OPCIONES_IMPRESION } from "../../utils/observador/impresion";
 
 /** Cuando no hay nada que mostrar, el aviso cambia según el selector: filtrar
@@ -30,6 +31,12 @@ function avisoSinAnotaciones(periodo) {
  * una anotación nueva como para corregir una propia. Va **una sola vez** aunque
  * la anotación aparezca bajo varias dimensiones: repetirlo tres veces sería
  * incomprensible.
+ *
+ * `onFirmar` abre la firma del acudiente de una anotación (`FIRMA_OBSERVADOR.md`)
+ * y `onFirmarPeriodo`, la de todo un periodo de una vez. La ventana la monta
+ * quien usa la vista, no la vista. Sin ellos no hay botones de firmar.
+ * «Firmar un periodo» solo sale si hay algo pendiente que se pueda firmar, y
+ * abre con el periodo del selector si tiene pendientes.
  */
 export default function VistaObservadorEstudiante({
   titulo,
@@ -45,10 +52,13 @@ export default function VistaObservadorEstudiante({
   onVolver,
   profesorId,
   onEditar,
+  onFirmar,
+  onFirmarPeriodo,
   onNuevaAnotacion,
   formulario,
   opcionesImpresion = OPCIONES_IMPRESION,
 }) {
+  const periodoAFirmar = periodoParaFirmar(anotaciones, periodo);
   const grupos = agruparAnotacionesPorDimension(anotaciones);
   const cronologicas = anotacionesEnOrdenCronologico(anotaciones);
   const porFecha = agrupacion === AGRUPACION_FECHA;
@@ -78,7 +88,17 @@ export default function VistaObservadorEstudiante({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {onFirmarPeriodo && periodoAFirmar !== null && !cargando && (
+            <button
+              type="button"
+              onClick={() => onFirmarPeriodo(periodoAFirmar)}
+              className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100"
+            >
+              Firmar un periodo
+            </button>
+          )}
+
           {onNuevaAnotacion && !formulario && (
             <button
               type="button"
@@ -184,8 +204,9 @@ export default function VistaObservadorEstudiante({
           <AnotacionCronologica
             key={anotacion.id}
             anotacion={anotacion}
-            esPropia={esAnotacionPropia(anotacion, profesorId)}
+            esPropia={puedeEditarAnotacion(anotacion, profesorId)}
             onEditar={onEditar}
+            onFirmar={onFirmar}
           />
         ))}
 
@@ -202,8 +223,9 @@ export default function VistaObservadorEstudiante({
                 key={`${grupo.campo}-${entrada.anotacion.id}`}
                 anotacion={entrada.anotacion}
                 texto={entrada.texto}
-                esPropia={esAnotacionPropia(entrada.anotacion, profesorId)}
+                esPropia={puedeEditarAnotacion(entrada.anotacion, profesorId)}
                 onEditar={onEditar}
+                onFirmar={onFirmar}
               />
             ))}
           </div>

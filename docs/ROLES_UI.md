@@ -120,6 +120,14 @@ en `AdminRoute`. La proteccion real la da el backend, cuyo router
 `/listas-seguimiento` es admin-only a nivel de router; un profesor recibe 403
 en los cuatro endpoints aunque llegue a la direccion.
 
+Firma del acudiente en el observador (2026-10-27,
+`docs/funcionalidades/FIRMA_OBSERVADOR.md`): el boton «Firmar con el
+acudiente» se pinta donde el backend dice `puede_firmar` en cada anotacion; la
+pantalla no calcula quien puede. Lo ven el autor, el director de grupo y el
+**admin**, que en la ficha del estudiante sigue sin escribir ni editar, pero
+ahora puede tomar firmas. `[Editar]` deja de pintarse en lo firmado
+(`puedeEditarAnotacion`); el backend responde 409 si alguien lo intenta igual.
+
 ## Riesgo pendiente observado
 
 Estas validaciones de rol son de frontend. Protegen la experiencia de usuario, pero no reemplazan las validaciones del backend. La seguridad real depende de que cada endpoint valide token, rol, tenant y permisos.

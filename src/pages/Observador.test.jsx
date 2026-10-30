@@ -1,23 +1,32 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   crearAnotacionMock,
   editarAnotacionMock,
+  firmarAnotacionMock,
+  firmarAnotacionesDelPeriodoMock,
   listarMisEstudiantesMock,
+  obtenerFirmantesSugeridosMock,
   obtenerObservadorMock,
 } = vi.hoisted(() => ({
   crearAnotacionMock: vi.fn(),
   editarAnotacionMock: vi.fn(),
+  firmarAnotacionMock: vi.fn(),
+  firmarAnotacionesDelPeriodoMock: vi.fn(),
   listarMisEstudiantesMock: vi.fn(),
+  obtenerFirmantesSugeridosMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
 }));
 
 vi.mock("../services/observadorApi", () => ({
   crearAnotacion: crearAnotacionMock,
   editarAnotacion: editarAnotacionMock,
+  firmarAnotacion: firmarAnotacionMock,
+  firmarAnotacionesDelPeriodo: firmarAnotacionesDelPeriodoMock,
   listarMisEstudiantes: listarMisEstudiantesMock,
+  obtenerFirmantesSugeridos: obtenerFirmantesSugeridosMock,
   obtenerObservador: obtenerObservadorMock,
 }));
 
@@ -27,6 +36,7 @@ vi.mock("../utils/periodoProfesor", () => ({
 }));
 
 import Observador from "./Observador";
+import { IMAGEN_FALSA, instalarLienzoFalso } from "../test/lienzoFalso";
 
 const ESTUDIANTES = [
   { estudiante_id: 11, nombre: "Ana", apellido: "Rojas", curso: "PRIMERO-A" },
@@ -424,5 +434,133 @@ describe("página del Observador", () => {
         "Esta pantalla es para profesores. Abre el observador desde la ficha del estudiante.",
       ),
     ).toBeInTheDocument();
+  });
+});
+
+describe("página del Observador: firma del acudiente", () => {
+  const PENDIENTE = {
+    id: 12,
+    profesor_id: 7,
+    profesor: "Ana Gómez",
+    periodo: 1,
+    conductual: "Se para mucho.",
+    cognitivo: "",
+    lenguaje: "",
+    creada_en: "2026-03-20T12:00:00Z",
+    editada_en: null,
+    editada_por: null,
+    version: "v12",
+    puede_firmar: true,
+    firma: null,
+  };
+  const MADRE = {
+    parentesco: "Madre",
+    nombre: "Maria Lopez",
+    tipo_documento: "Cédula",
+    documento: "52123456",
+  };
+  const FIRMA = {
+    firmante_nombre: "Maria Lopez",
+    firmante_parentesco: "Madre",
+    firmante_tipo_documento: "Cédula",
+    firmante_documento_enmascarado: "****3456",
+    firmada_en: "2026-10-27T15:00:00Z",
+    tomada_por_nombre: "Ana Gómez",
+    integra: true,
+  };
+
+  beforeEach(() => {
+    instalarLienzoFalso();
+    obtenerObservadorMock.mockResolvedValue({ nivel: "primaria", anotaciones: [PENDIENTE] });
+    obtenerFirmantesSugeridosMock.mockResolvedValue([MADRE]);
+    firmarAnotacionMock.mockResolvedValue({ id: 99, anotacion_id: 12, ...FIRMA });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("firma una anotación con la madre de la ficha y vuelve a pedir la bitácora", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Firmar con el acudiente" }));
+
+    const ventana = screen.getByRole("dialog", { name: "Firma del acudiente" });
+    expect(within(ventana).getByText("Se para mucho.")).toBeInTheDocument();
+
+    await user.click(await within(ventana).findByRole("button", { name: "Madre: Maria Lopez" }));
+    const lienzo = within(ventana).getByRole("img", { name: "Recuadro para la firma del acudiente" });
+    fireEvent.pointerDown(lienzo, { pointerId: 1 });
+    fireEvent.pointerUp(lienzo, { pointerId: 1 });
+    await user.click(within(ventana).getByLabelText("El acudiente leyó esta anotación."));
+    await user.click(within(ventana).getByRole("button", { name: "Guardar firma" }));
+
+    await waitFor(() => expect(firmarAnotacionMock).toHaveBeenCalledTimes(1));
+    // Quién la toma y la hora no viajan: los pone el servidor.
+    expect(firmarAnotacionMock).toHaveBeenCalledWith(12, {
+      firmante_nombre: "Maria Lopez",
+      firmante_tipo_documento: "Cédula",
+      firmante_documento: "52123456",
+      firmante_parentesco: "Madre",
+      imagen: IMAGEN_FALSA,
+      version: "v12",
+    });
+    expect(await within(ventana).findByRole("status")).toHaveTextContent("Firma guardada.");
+    // La de abrir el alumno y la de después de firmar: así aparece el sello.
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
+  });
+
+  it("una anotación propia ya firmada lleva su sello y no ofrece editar ni firmar", async () => {
+    obtenerObservadorMock.mockResolvedValue({
+      nivel: "primaria",
+      anotaciones: [{ ...PENDIENTE, puede_firmar: false, firma: FIRMA }],
+    });
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+
+    expect(await screen.findByText(/Firmada por Maria Lopez \(Madre\)/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Firmar con el acudiente" })).not.toBeInTheDocument();
+  });
+
+  it("firma todas las pendientes de un periodo con una sola firma", async () => {
+    const OTRA = { ...PENDIENTE, id: 13, conductual: "Tampoco trae tareas.", version: "v13" };
+    obtenerObservadorMock.mockResolvedValue({ nivel: "primaria", anotaciones: [PENDIENTE, OTRA] });
+    firmarAnotacionesDelPeriodoMock.mockResolvedValue([
+      { id: 99, anotacion_id: 12, ...FIRMA },
+      { id: 100, anotacion_id: 13, ...FIRMA },
+    ]);
+    const user = userEvent.setup();
+    render(<Observador />);
+    await user.click(await screen.findByRole("button", { name: "Ana Rojas" }));
+    await user.click(await screen.findByRole("button", { name: "Firmar un periodo" }));
+
+    const ventana = screen.getByRole("dialog", { name: "Firma del acudiente" });
+    // El acudiente ve las dos antes de firmar.
+    expect(within(ventana).getByText("Se para mucho.")).toBeInTheDocument();
+    expect(within(ventana).getByText("Tampoco trae tareas.")).toBeInTheDocument();
+
+    await user.click(await within(ventana).findByRole("button", { name: "Madre: Maria Lopez" }));
+    const lienzo = within(ventana).getByRole("img", { name: "Recuadro para la firma del acudiente" });
+    fireEvent.pointerDown(lienzo, { pointerId: 1 });
+    fireEvent.pointerUp(lienzo, { pointerId: 1 });
+    await user.click(within(ventana).getByLabelText("El acudiente leyó estas 2 anotaciones."));
+    await user.click(within(ventana).getByRole("button", { name: "Guardar firma (2)" }));
+
+    await waitFor(() => expect(firmarAnotacionesDelPeriodoMock).toHaveBeenCalledTimes(1));
+    expect(firmarAnotacionesDelPeriodoMock).toHaveBeenCalledWith(11, {
+      firmante_nombre: "Maria Lopez",
+      firmante_tipo_documento: "Cédula",
+      firmante_documento: "52123456",
+      firmante_parentesco: "Madre",
+      imagen: IMAGEN_FALSA,
+      anotaciones: [{ id: 12, version: "v12" }, { id: 13, version: "v13" }],
+    });
+    expect(await within(ventana).findByRole("status")).toHaveTextContent(
+      "Firma guardada en 2 anotaciones.",
+    );
+    await waitFor(() => expect(obtenerObservadorMock).toHaveBeenCalledTimes(2));
   });
 });

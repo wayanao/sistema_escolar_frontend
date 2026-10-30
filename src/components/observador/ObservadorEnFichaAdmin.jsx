@@ -1,7 +1,9 @@
 import { useState } from "react";
 import ObservadorImprimible from "./ObservadorImprimible";
+import VentanaFirmaAnotacion from "./VentanaFirmaAnotacion";
 import VistaObservadorEstudiante from "./VistaObservadorEstudiante";
 import useAnioLectivo from "../../hooks/anioLectivo/useAnioLectivo";
+import useFirmaAnotacion from "../../hooks/observador/useFirmaAnotacion";
 import useObservadorEstudiante, {
   ERROR_ESTUDIANTE_NO_EXISTE,
 } from "../../hooks/observador/useObservadorEstudiante";
@@ -24,13 +26,17 @@ import {
  * garantiza que el coordinador vea exactamente lo mismo; una segunda pantalla
  * acabaría diciendo otra cosa.
  *
- * Tres diferencias, todas porque **el admin solo mira**:
+ * Tres diferencias, todas porque **el admin no escribe**:
  *
  * - no hay «Nueva anotación» ni `[Editar]` -el servidor responde `403` a las
  *   dos cosas, y esto solo evita enseñar botones que no funcionarían-;
  * - solo puede imprimir el **documento general**: no tiene anotaciones propias,
  *   así que «Solo mis anotaciones» le saldría siempre en blanco;
  * - no hay «Volver a la lista» ni título: la ficha ya dice de quién es.
+ *
+ * Lo que sí puede es **tomar la firma del acudiente** (decisión 3 de
+ * `docs/funcionalidades/FIRMA_OBSERVADOR.md`): firmar no cambia el texto de
+ * nadie. El botón sale donde el servidor dice `puede_firmar`.
  *
  * Y una que no es de permisos: muestra la bitácora del año lectivo que mira el
  * admin (`useAnioLectivo`); la profesora ve siempre la del año activo.
@@ -48,6 +54,12 @@ export default function ObservadorEnFichaAdmin({ estudiante }) {
     estudianteId: estudiante?.id,
     periodo,
     parametrosAnio: parametros,
+  });
+
+  const firma = useFirmaAnotacion({
+    estudianteId: estudiante?.id,
+    anotaciones,
+    onFirmada: recargar,
   });
 
   const alumno = titularObservador({ ...estudiante, nivel });
@@ -96,8 +108,12 @@ export default function ObservadorEnFichaAdmin({ estudiante }) {
           cargando={cargando}
           error={mensajeError}
           onReintentar={recargar}
+          onFirmar={firma.abrir}
+          onFirmarPeriodo={firma.abrirPeriodo}
         />
       </div>
+
+      {firma.abierta && <VentanaFirmaAnotacion titulo={alumno} {...firma.propsVentana} />}
     </div>
   );
 }

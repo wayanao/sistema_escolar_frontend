@@ -178,6 +178,65 @@ describe("VistaObservadorEstudiante", () => {
     expect(screen.getAllByRole("button", { name: "Editar" })).toHaveLength(1);
   });
 
+  it("una anotación propia ya firmada por el acudiente no se puede editar", () => {
+    pintar({
+      profesorId: 7,
+      onEditar: vi.fn(),
+      onFirmar: vi.fn(),
+      anotaciones: [
+        anotacion({
+          id: 12,
+          profesor_id: 7,
+          conductual: "Mía y firmada.",
+          puede_firmar: false,
+          firma: { firmante_nombre: "Maria Lopez", firmante_parentesco: "Madre", integra: true },
+        }),
+      ],
+    });
+
+    // Lo firmado se aclara con una anotación nueva (FIRMA_OBSERVADOR.md).
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Firmar con el acudiente" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Firmada por Maria Lopez/)).toBeInTheDocument();
+  });
+
+  it("«Firmar un periodo» abre con el periodo del selector si tiene pendientes", async () => {
+    const user = userEvent.setup();
+    const onFirmarPeriodo = vi.fn();
+    pintar({
+      periodo: "2",
+      onFirmarPeriodo,
+      anotaciones: [
+        anotacion({ id: 12, periodo: 1, conductual: "Del uno.", puede_firmar: true }),
+        anotacion({ id: 13, periodo: 2, conductual: "Del dos.", puede_firmar: true }),
+      ],
+    });
+
+    await user.click(screen.getByRole("button", { name: "Firmar un periodo" }));
+
+    expect(onFirmarPeriodo).toHaveBeenCalledWith(2);
+  });
+
+  it("sin nada pendiente que se pueda firmar no ofrece firmar un periodo", () => {
+    pintar({
+      onFirmarPeriodo: vi.fn(),
+      anotaciones: [anotacion({ id: 12, conductual: "Ajena.", puede_firmar: false })],
+    });
+
+    expect(screen.queryByRole("button", { name: "Firmar un periodo" })).not.toBeInTheDocument();
+  });
+
+  it("pasa el botón de firmar a las dos vistas", async () => {
+    const user = userEvent.setup();
+    const onFirmar = vi.fn();
+    const pendiente = anotacion({ id: 12, conductual: "Pendiente.", puede_firmar: true });
+
+    pintar({ onFirmar, anotaciones: [pendiente], agrupacion: AGRUPACION_FECHA });
+    await user.click(screen.getByRole("button", { name: "Firmar con el acudiente" }));
+
+    expect(onFirmar).toHaveBeenCalledWith(pendiente);
+  });
+
   it("el formulario va una sola vez aunque la anotación esté bajo varias dimensiones", () => {
     pintar({
       formulario: <div>Formulario abierto</div>,

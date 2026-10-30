@@ -15,7 +15,10 @@ vi.mock("../utils/api", () => ({
 import {
   crearAnotacion,
   editarAnotacion,
+  firmarAnotacion,
+  firmarAnotacionesDelPeriodo,
   listarMisEstudiantes,
+  obtenerFirmantesSugeridos,
   obtenerObservador,
 } from "./observadorApi";
 
@@ -130,15 +133,70 @@ describe("contrato HTTP del observador del estudiante", () => {
     expect(apiMock.put.mock.calls[0][1]).not.toHaveProperty("estudiante_id");
   });
 
+  it("firma una anotación sin mandar quién la toma ni la hora", async () => {
+    const firmada = { id: 99, anotacion_id: 12, integra: true };
+    apiMock.post.mockResolvedValue({ data: firmada });
+    const payload = {
+      firmante_nombre: "Maria Lopez",
+      firmante_tipo_documento: "Cédula",
+      firmante_documento: "52123456",
+      firmante_parentesco: "Madre",
+      imagen: "data:image/png;base64,AAAA",
+      version: "a1b2c3",
+    };
+
+    await expect(firmarAnotacion(12, payload)).resolves.toStrictEqual(firmada);
+
+    expect(apiMock.post).toHaveBeenCalledWith("/observador/anotaciones/12/firma", payload);
+    // Quién la toma y la hora los pone el servidor (invariante 4).
+    expect(apiMock.post.mock.calls[0][1]).not.toHaveProperty("tomada_por_profesor_id");
+    expect(apiMock.post.mock.calls[0][1]).not.toHaveProperty("firmada_en");
+  });
+
+  it("firma un periodo entero mandando la lista exacta que se mostró", async () => {
+    const firmadas = [{ id: 99, anotacion_id: 12 }, { id: 100, anotacion_id: 13 }];
+    apiMock.post.mockResolvedValue({ data: firmadas });
+    const payload = {
+      firmante_nombre: "Maria Lopez",
+      firmante_tipo_documento: "Cédula",
+      firmante_documento: "52123456",
+      firmante_parentesco: "Madre",
+      imagen: "data:image/png;base64,AAAA",
+      anotaciones: [{ id: 12, version: "v12" }, { id: 13, version: "v13" }],
+    };
+
+    await expect(firmarAnotacionesDelPeriodo(11, payload)).resolves.toStrictEqual(firmadas);
+
+    expect(apiMock.post).toHaveBeenCalledWith("/observador/11/firmas", payload);
+  });
+
+  it("pide los acudientes sugeridos del estudiante, cancelables", async () => {
+    const sugeridos = [{ parentesco: "Madre", nombre: "Maria Lopez" }];
+    apiMock.get.mockResolvedValue({ data: sugeridos });
+    const controller = new AbortController();
+
+    await expect(
+      obtenerFirmantesSugeridos(11, { signal: controller.signal }),
+    ).resolves.toStrictEqual(sugeridos);
+
+    expect(apiMock.get).toHaveBeenCalledWith("/observador/11/firmantes-sugeridos", {
+      signal: controller.signal,
+    });
+  });
+
   it("no expone ningún contrato de borrado", async () => {
     const modulo = await import("./observadorApi");
 
-    // Nadie borra una anotación: no hay endpoint DELETE en el servidor y no
-    // debe aparecer aquí un atajo que lo sugiera.
+    // Nadie borra una anotación, y una firma tampoco se edita ni se borra
+    // (FIRMA_OBSERVADOR.md): no hay DELETE en el servidor y no debe aparecer
+    // aquí un atajo que lo sugiera.
     expect(Object.keys(modulo).sort()).toStrictEqual([
       "crearAnotacion",
       "editarAnotacion",
+      "firmarAnotacion",
+      "firmarAnotacionesDelPeriodo",
       "listarMisEstudiantes",
+      "obtenerFirmantesSugeridos",
       "obtenerObservador",
     ]);
     expect(apiMock).not.toHaveProperty("delete");

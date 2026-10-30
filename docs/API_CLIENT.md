@@ -836,6 +836,38 @@ Uso:
 - Durante el guardado, el boton muestra spinner y el resultado se confirma con
   un modal de SweetAlert2.
 
+### Observador unificado: firma del acudiente (2026-10-27)
+
+`services/observadorApi.js` (ver `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
+
+```text
+POST /observador/anotaciones/{anotacion_id}/firma
+POST /observador/{estudiante_id}/firmas
+GET /observador/{estudiante_id}/firmantes-sugeridos
+```
+
+- `firmarAnotacionesDelPeriodo(estudianteId, payload)`: una sola firma para
+  todas las anotaciones pendientes de un periodo. El cuerpo lleva los mismos
+  datos de quien firma y la `imagen`, mas `anotaciones: [{ id, version }]`, la
+  lista exacta que se mostro (nunca el numero del periodo). Todo o nada: si
+  una falla, el servidor no firma ninguna (`403`/`409`) y la pantalla recarga
+  la bitacora.
+
+- `firmarAnotacion(anotacionId, payload)`: el cuerpo lleva `firmante_nombre`,
+  `firmante_tipo_documento`, `firmante_documento`, `firmante_parentesco`,
+  `imagen` (PNG en `data:`) y `version` (la que trajo la bitacora). **No lleva
+  quien toma la firma ni la hora**: el servidor las saca del token y de su
+  reloj. `409` si la anotacion ya estaba firmada o cambio desde que se mostro;
+  la pantalla vuelve a pedir la bitacora.
+- `obtenerFirmantesSugeridos(estudianteId, { signal })`: el padre y la madre de
+  la ficha. Si responde `403` o falla, la ventana se llena a mano.
+- `GET /observador/{estudiante_id}` trae ahora, por anotacion, `version`,
+  `puede_firmar` (decide si se pinta el boton) y `firma` (el sello, con el
+  documento enmascarado). Sigue siendo una sola peticion.
+- `PUT /observador/{anotacion_id}` responde `409` si la anotacion esta firmada;
+  la pantalla ya no ofrece `[Editar]` en esas.
+- No hay contrato para editar ni borrar una firma.
+
 ### Plan de clases
 
 `PlanDeClases.jsx` consume:

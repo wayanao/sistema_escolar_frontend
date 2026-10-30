@@ -169,3 +169,46 @@ describe("AnotacionObservador", () => {
     expect(botones).toStrictEqual(["Editar"]);
   });
 });
+
+describe("AnotacionObservador: firma del acudiente", () => {
+  const FIRMA = {
+    firmante_nombre: "Maria Lopez",
+    firmante_parentesco: "Madre",
+    firmante_tipo_documento: "Cédula",
+    firmante_documento_enmascarado: "****3456",
+    firmada_en: "2026-10-27T15:00:00Z",
+    tomada_por_nombre: "Ana Gómez",
+    integra: true,
+  };
+
+  it("ofrece firmar donde el servidor dice que se puede", async () => {
+    const user = userEvent.setup();
+    const onFirmar = vi.fn();
+    const pendiente = anotacion({ puede_firmar: true, firma: null });
+    render(<AnotacionObservador anotacion={pendiente} texto="Se para mucho." onFirmar={onFirmar} />);
+
+    await user.click(screen.getByRole("button", { name: "Firmar con el acudiente" }));
+
+    expect(onFirmar).toHaveBeenCalledWith(pendiente);
+  });
+
+  it("sin permiso del servidor no hay botón de firmar", () => {
+    render(
+      <AnotacionObservador
+        anotacion={anotacion({ puede_firmar: false })}
+        texto="Se para mucho."
+        onFirmar={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Firmar con el acudiente" })).not.toBeInTheDocument();
+  });
+
+  it("una firmada lleva su sello", () => {
+    render(
+      <AnotacionObservador anotacion={anotacion({ firma: FIRMA })} texto="Se para mucho." />,
+    );
+
+    expect(screen.getByText(/Firmada por Maria Lopez \(Madre\)/)).toBeInTheDocument();
+  });
+});

@@ -17,11 +17,17 @@ import { colorDeProfesor } from "../../utils/observador/coloresProfesor";
  * ninguna vista y para nadie (invariante 2). `[Editar]` se pinta únicamente en
  * las anotaciones propias, y es comodidad visual: la regla de verdad la impone
  * el servidor, que responde 403 a quien intente corregir lo de otro.
+ *
+ * «Firmar con el acudiente» (`docs/funcionalidades/FIRMA_OBSERVADOR.md`) se
+ * pinta cuando el servidor dice `puede_firmar`: él sabe quién es el director de
+ * grupo y en qué año se puede firmar. También es comodidad visual. Una
+ * anotación firmada ya llega con `esPropia` en falso: lo firmado no se edita.
  */
 export default function EncabezadoAnotacion({
   anotacion,
   esPropia,
   onEditar,
+  onFirmar,
   fechaPrimero = false,
 }) {
   const profesor = anotacion.profesor || "Profesor sin nombre";
@@ -45,15 +51,27 @@ export default function EncabezadoAnotacion({
         )}
       </p>
 
-      {esPropia && onEditar && (
-        <button
-          type="button"
-          onClick={() => onEditar(anotacion)}
-          className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Editar
-        </button>
-      )}
+      <div className="flex shrink-0 flex-wrap justify-end gap-1">
+        {anotacion.puede_firmar && onFirmar && (
+          <button
+            type="button"
+            onClick={() => onFirmar(anotacion)}
+            className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-800 hover:bg-emerald-100"
+          >
+            Firmar con el acudiente
+          </button>
+        )}
+
+        {esPropia && onEditar && (
+          <button
+            type="button"
+            onClick={() => onEditar(anotacion)}
+            className="rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Editar
+          </button>
+        )}
+      </div>
     </header>
   );
 }

@@ -1,4 +1,5 @@
 import EncabezadoAnotacion from "./EncabezadoAnotacion";
+import SelloFirma from "./SelloFirma";
 import {
   dimensionesConTextoDeAnotacion,
   formatearFechaAnotacion,
@@ -14,7 +15,7 @@ import {
  *
  * Presentacional: sin hooks propios y sin HTTP.
  */
-export default function AnotacionCronologica({ anotacion, esPropia, onEditar }) {
+export default function AnotacionCronologica({ anotacion, esPropia, onEditar, onFirmar }) {
   const dimensiones = dimensionesConTextoDeAnotacion(anotacion);
   const editada = Boolean(anotacion.editada_en);
 
@@ -24,6 +25,7 @@ export default function AnotacionCronologica({ anotacion, esPropia, onEditar }) 
         anotacion={anotacion}
         esPropia={esPropia}
         onEditar={onEditar}
+        onFirmar={onFirmar}
         fechaPrimero
       />
 
@@ -45,6 +47,8 @@ export default function AnotacionCronologica({ anotacion, esPropia, onEditar }) 
           Editada el {formatearFechaAnotacion(anotacion.editada_en)}
         </p>
       )}
+
+      <SelloFirma firma={anotacion.firma} />
     </article>
   );
 }

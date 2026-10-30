@@ -1,4 +1,5 @@
 import EncabezadoAnotacion from "./EncabezadoAnotacion";
+import SelloFirma from "./SelloFirma";
 import { formatearFechaAnotacion } from "../../utils/observador/anotaciones";
 
 /**
@@ -12,9 +13,12 @@ import { formatearFechaAnotacion } from "../../utils/observador/anotaciones";
  * compartido con la vista por fecha para que las dos no puedan decir cosas
  * distintas de la misma anotación.
  *
+ * Si el acudiente la firmó, lleva su sello (`SelloFirma`) en cada bloque donde
+ * aparece, igual que la marca de editada.
+ *
  * Presentacional: sin hooks propios y sin HTTP.
  */
-export default function AnotacionObservador({ anotacion, texto, esPropia, onEditar }) {
+export default function AnotacionObservador({ anotacion, texto, esPropia, onEditar, onFirmar }) {
   const editada = Boolean(anotacion.editada_en);
 
   return (
@@ -23,6 +27,7 @@ export default function AnotacionObservador({ anotacion, texto, esPropia, onEdit
         anotacion={anotacion}
         esPropia={esPropia}
         onEditar={onEditar}
+        onFirmar={onFirmar}
       />
 
       <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{texto}</p>
@@ -32,6 +37,8 @@ export default function AnotacionObservador({ anotacion, texto, esPropia, onEdit
           Editada el {formatearFechaAnotacion(anotacion.editada_en)}
         </p>
       )}
+
+      <SelloFirma firma={anotacion.firma} />
     </article>
   );
 }
