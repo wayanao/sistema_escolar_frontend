@@ -2,7 +2,9 @@
 
 ## Control
 
-- Estado: **diseñado el 2026-10-31 (paso 0), nada implementado.**
+- Estado: **diseñado el 2026-10-31 (paso 0). El backend (paso 1) se publicó
+  ese mismo día, con la migración en producción. El paso 2 (este documento)
+  no ha comenzado.**
 - Tipo: función nueva de producto. No es un módulo de
   `docs/modularizacion/`; vive dentro del módulo `planeaciones`.
 - **El documento principal es
