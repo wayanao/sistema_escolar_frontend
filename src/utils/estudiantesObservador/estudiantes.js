@@ -1,5 +1,6 @@
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
 import { SUBGRUPOS_SISBEN } from "../../constants/sisben";
+import { obtenerValoracion } from "../valoracionesDesarrollo";
 
 export const ESTADOS_ESTUDIANTE = [
   { value: "activo", label: "Activo" },
@@ -176,6 +177,115 @@ export function normalizarDetalleEstudiante(detallesBase, deudasData) {
         (total, deuda) => total + Number(deuda.deuda || 0),
         0,
       ),
+    notas_por_periodo: normalizarNotasPorPeriodo(detallesBase.notas_por_periodo),
+    inasistencias_por_periodo: normalizarInasistenciasPorPeriodo(
+      detallesBase.inasistencias_por_periodo,
+    ),
+  };
+}
+
+// Notas por periodo en el resumen (docs/funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md).
+// El backend manda los cuatro periodos y el año de una vez; aquí no se
+// calcula ninguna nota, solo se lee y se traduce la carita a su nombre.
+// Sin `notas_por_periodo` (un backend anterior), los dos campos quedan en
+// `null` y la ficha se ve como antes.
+export const PERIODOS_RESUMEN = ["1", "2", "3", "4"];
+export const PERIODO_RESUMEN_ANIO = "anio";
+export const OPCIONES_PERIODO_RESUMEN = [
+  ...PERIODOS_RESUMEN.map((periodo) => ({ value: periodo, label: `Periodo ${periodo}` })),
+  { value: PERIODO_RESUMEN_ANIO, label: "Todo el año" },
+];
+// El color de siempre de la ficha: verde desde 3,0.
+const NOTA_APROBATORIA = 3;
+const CLAVES_RESUMEN = [...PERIODOS_RESUMEN, PERIODO_RESUMEN_ANIO];
+
+const numeroONulo = (valor) => {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
+};
+
+function normalizarCeldaResumen(celda) {
+  if (!celda || typeof celda !== "object") return null;
+  const nota = numeroONulo(celda.nota);
+  const valoracion = typeof celda.valoracion === "string" ? celda.valoracion : null;
+  if (nota === null && !valoracion) return null;
+  return { nota, valoracion };
+}
+
+function normalizarNotasPorPeriodo(valor) {
+  if (!valor || !Array.isArray(valor.materias)) return null;
+  return {
+    materias: valor.materias.map((materia) => ({
+      materia: String(materia?.materia ?? ""),
+      tipo_evaluacion: materia?.tipo_evaluacion === "desarrollo" ? "desarrollo" : "numerica",
+      periodos: Object.fromEntries(
+        PERIODOS_RESUMEN.map((periodo) => [
+          periodo,
+          normalizarCeldaResumen(materia?.periodos?.[periodo]),
+        ]),
+      ),
+      anio: normalizarCeldaResumen(materia?.anio),
+    })),
+    promedio: Object.fromEntries(
+      CLAVES_RESUMEN.map((clave) => [clave, numeroONulo(valor.promedio?.[clave])]),
+    ),
+  };
+}
+
+function normalizarInasistenciasPorPeriodo(valor) {
+  if (!valor || typeof valor !== "object") return null;
+  return Object.fromEntries(
+    CLAVES_RESUMEN.map((clave) => [clave, numeroONulo(valor[clave]) ?? 0]),
+  );
+}
+
+/** El último periodo con alguna nota; sin ninguna, el Periodo 1. */
+export function ultimoPeriodoConNotas(notasPorPeriodo) {
+  const materias = notasPorPeriodo?.materias || [];
+  const conNotas = PERIODOS_RESUMEN.filter((periodo) =>
+    materias.some((materia) => materia.periodos[periodo] !== null),
+  );
+  return conNotas.at(-1) || PERIODOS_RESUMEN[0];
+}
+
+function filaDeMateria(materia, celda) {
+  if (!celda) return { materia: materia.materia, texto: "Sin nota", tono: "sin_nota" };
+  if (materia.tipo_evaluacion === "desarrollo") {
+    const opcion = obtenerValoracion(celda.valoracion);
+    return {
+      materia: materia.materia,
+      texto: opcion ? `${opcion.emoji} ${opcion.label}` : "Sin nota",
+      tono: opcion ? "carita" : "sin_nota",
+    };
+  }
+  return {
+    materia: materia.materia,
+    texto: celda.nota.toFixed(1),
+    tono: celda.nota >= NOTA_APROBATORIA ? "aprobada" : "reprobada",
+  };
+}
+
+/**
+ * Lo que muestra la tarjeta "Rendimiento" para un periodo ("1" a "4") o
+ * para "anio": el promedio general (solo con materias numéricas), las
+ * inasistencias y una fila por materia, en el orden del boletín.
+ */
+export function rendimientoDelPeriodo(detalles, periodo) {
+  const clave = CLAVES_RESUMEN.includes(periodo) ? periodo : PERIODOS_RESUMEN[0];
+  const materias = detalles?.notas_por_periodo?.materias || [];
+  const celdaDe = (materia) =>
+    clave === PERIODO_RESUMEN_ANIO ? materia.anio : materia.periodos[clave];
+  const promedio = detalles?.notas_por_periodo?.promedio?.[clave] ?? null;
+
+  return {
+    promedio:
+      promedio === null
+        ? null
+        : { texto: promedio.toFixed(1), aprobado: promedio >= NOTA_APROBATORIA },
+    inasistencias: detalles?.inasistencias_por_periodo?.[clave] ?? 0,
+    materias: materias.map((materia) => filaDeMateria(materia, celdaDe(materia))),
+    hayNotas: materias.some((materia) => celdaDe(materia) !== null),
   };
 }
 

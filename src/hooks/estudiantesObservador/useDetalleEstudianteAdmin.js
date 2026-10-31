@@ -11,6 +11,8 @@ import { respuestasLegibles } from "../../utils/cuestionarioAdmision";
 import {
   datosDeAdmisionEstudiante,
   normalizarDetalleEstudiante,
+  PERIODOS_RESUMEN,
+  ultimoPeriodoConNotas,
 } from "../../utils/estudiantesObservador/estudiantes";
 
 // `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
@@ -20,6 +22,10 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
   const [detallesEstudiante, setDetallesEstudiante] = useState(null);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
   const [errorDetalle, setErrorDetalle] = useState(null);
+  // Notas por periodo (NOTAS_RESUMEN_ESTUDIANTE.md): el periodo que se mira
+  // en la tarjeta "Rendimiento". Cambiarlo no pide nada: los cuatro periodos
+  // y el año llegan juntos. Cada ficha abre en su último periodo con notas.
+  const [periodoResumen, setPeriodoResumen] = useState(PERIODOS_RESUMEN[0]);
   // "Datos de admisión" (paso E6 de la entrevista de admisión): se piden solo
   // si el admin los abre, para no sumar una petición a cada ficha.
   const [datosAdmision, setDatosAdmision] = useState(null);
@@ -79,9 +85,9 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
       const detallesBase =
         detallesRes.status === "fulfilled" ? detallesRes.value : {};
       const deudasData = deudasRes.status === "fulfilled" ? deudasRes.value : {};
-      setDetallesEstudiante(
-        normalizarDetalleEstudiante(detallesBase, deudasData),
-      );
+      const detalles = normalizarDetalleEstudiante(detallesBase, deudasData);
+      setDetallesEstudiante(detalles);
+      setPeriodoResumen(ultimoPeriodoConNotas(detalles.notas_por_periodo));
     } catch (requestError) {
       if (solicitudRef.current !== solicitudId) return;
       console.error("Error al cargar detalles", requestError);
@@ -163,6 +169,8 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     detallesEstudiante,
     loadingDetalles,
     errorDetalle,
+    periodoResumen,
+    cambiarPeriodoResumen: setPeriodoResumen,
     verDetalles,
     cerrarModal,
     datosAdmision,

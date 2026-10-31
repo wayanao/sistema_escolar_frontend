@@ -2,7 +2,9 @@
 
 ## Control
 
-- Estado: **diseñado el 2026-10-31 (paso 0), nada implementado.**
+- Estado: **paso 2 (este documento) construido el 2026-10-31, sin commit y
+  sin probar en el navegador.** El backend (paso 1) se publicó ese mismo día
+  (`a7560e0`). Ver "Avance del paso 2".
 - Tipo: mejora del resumen del estudiante del admin
   (`components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`).
 - **El documento principal es
@@ -72,3 +74,30 @@ No hace falta un servicio nuevo: es la misma `obtenerDetalleEstudiante`.
 Es el paso 2 del documento principal. Se cierra con `pnpm run check:deploy`
 y con una prueba en local con el Colegio Demo, con un estudiante de primaria
 y uno de preescolar, antes de publicar.
+
+## Avance del paso 2 (2026-10-31)
+
+Construido como en el diseño. La tarjeta salió a un componente propio,
+`RendimientoEstudianteAdmin.jsx`, que también conserva la tarjeta de antes
+para cuando no llega `notas_por_periodo`.
+
+- La nota va con un decimal (`toFixed(1)`), igual que el reporte parcial.
+- La carita sale de `obtenerValoracion` (`utils/valoracionesDesarrollo.js`),
+  con su emoji y su nombre.
+- `rendimientoDelPeriodo` no calcula notas: solo elige la celda del periodo
+  o del año que mandó el backend.
+
+Verificación: `pnpm run check:deploy` → **3205 pruebas en 395 archivos**,
+lint y build correctos. Pruebas nuevas:
+
+- en `estudiantes.test.js`, normalizar sin los campos nuevos, el último
+  periodo con notas, un periodo, "Todo el año", preescolar y un periodo sin
+  notas;
+- en el hook, el periodo inicial por ficha y que cambiar no pide nada;
+- en el componente, los cinco botones, los colores, la carita sin promedio,
+  "Sin nota" y la tarjeta de antes.
+
+Para la prueba en local, el Colegio Demo tiene:
+
+- el estudiante 1, de primaria, con notas en los 4 periodos;
+- el estudiante 9, de preescolar, con "Logrado" en Sociales, periodo 1.

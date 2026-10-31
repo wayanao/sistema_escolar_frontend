@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-10-31 - Notas por periodo en el resumen del estudiante (paso 2)
+
+Pedido por el usuario. Detalle en
+`docs/funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md`. Necesita el backend del
+mismo día (`a7560e0`), que ya está publicado. No lleva migración.
+
+- La tarjeta "Rendimiento" de la ficha del admin tiene botones "Periodo 1" a
+  "Periodo 4" y "Todo el año". Abre en el último periodo con notas.
+- Cada materia muestra su nota a un decimal, en verde desde 3,0. En
+  preescolar muestra su carita, por ejemplo "😀 Logrado", y no hay promedio
+  general. Las inasistencias son las del periodo, o el total en "Todo el
+  año".
+- Cambiar de periodo no hace ninguna petición.
+- Archivos nuevos: `RendimientoEstudianteAdmin.jsx` y su prueba. Cambian:
+  - `utils/estudiantesObservador/estudiantes.js` (`OPCIONES_PERIODO_RESUMEN`,
+    `ultimoPeriodoConNotas`, `rendimientoDelPeriodo` y la normalización de
+    los dos campos nuevos);
+  - `useDetalleEstudianteAdmin.js` (`periodoResumen`);
+  - `DetalleEstudianteAdmin.jsx`;
+  - `EstudiantesAdmin.jsx`.
+- Verificación: `pnpm run check:deploy` → **3205 pruebas en 395 archivos**,
+  lint y build correctos. Sin probar todavía en el navegador.
+
 ## 2026-10-31 - Puntos de miles al escribir pesos (paso 1: Pagos y Valores de pago)
 
 Pedido por el usuario: que en todo campo donde se escribe un valor de dinero

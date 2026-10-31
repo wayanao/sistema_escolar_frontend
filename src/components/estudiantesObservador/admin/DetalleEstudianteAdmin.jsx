@@ -1,5 +1,6 @@
 import DeudasAniosAnterioresView from "../../anioLectivo/DeudasAniosAnterioresView";
 import ObservadorEnFichaAdmin from "../../observador/ObservadorEnFichaAdmin";
+import RendimientoEstudianteAdmin from "./RendimientoEstudianteAdmin";
 
 /**
  * Ficha del alumno para el admin. Desde el 2026-09-10 la sección «Observador»
@@ -22,6 +23,10 @@ export default function DetalleEstudianteAdmin({
   // Paso E11b: las respuestas del anexo de su entrevista, ya en texto.
   respuestasAdmision = null,
   errorRespuestasAdmision = null,
+  // Notas por periodo (NOTAS_RESUMEN_ESTUDIANTE.md): el periodo que se mira
+  // en "Rendimiento" y cómo cambiarlo.
+  periodoResumen = "1",
+  onCambiarPeriodoResumen,
 }) {
   if (!estudiante) return null;
 
@@ -57,51 +62,11 @@ export default function DetalleEstudianteAdmin({
             </div>
           ) : detalles ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                <h3 className="text-lg font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                  👨‍🏫 Rendimiento
-                </h3>
-                <p className="text-sm text-gray-700 mb-2">
-                  <strong>Promedio General:</strong>{" "}
-                  <span
-                    className={`font-bold ${detalles.promedio_general >= 3.0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {detalles.promedio_general !== undefined
-                      ? detalles.promedio_general
-                      : "N/A"}
-                  </span>
-                </p>
-                <p className="text-sm text-gray-700 mb-2">
-                  <strong>Inasistencias Acumuladas:</strong>{" "}
-                  {detalles.inasistencias}
-                </p>
-                <div className="mt-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Promedio de Notas por Materia:
-                  </p>
-                  {detalles.notas && detalles.notas.length > 0 ? (
-                    <ul className="space-y-1">
-                      {detalles.notas.map((nota, indice) => (
-                        <li
-                          key={indice}
-                          className="text-sm flex justify-between bg-white px-2 py-1 rounded shadow-sm"
-                        >
-                          <span>{nota.materia}</span>
-                          <span
-                            className={`font-semibold ${nota.promedio >= 3.0 ? "text-green-600" : "text-red-600"}`}
-                          >
-                            {nota.promedio}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs text-gray-500 italic">
-                      No hay notas registradas
-                    </p>
-                  )}
-                </div>
-              </div>
+              <RendimientoEstudianteAdmin
+                detalles={detalles}
+                periodo={periodoResumen}
+                onCambiarPeriodo={onCambiarPeriodoResumen}
+              />
 
               <div className="bg-red-50 p-4 rounded-lg border border-red-100 flex flex-col">
                 <h3 className="text-lg font-semibold text-red-800 mb-3 flex items-center gap-2">

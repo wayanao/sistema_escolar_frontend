@@ -907,6 +907,16 @@ Estado actual de componentes y paginas del frontend.
   los ocho datos que pasaron a la entrevista, pedidos con un botón solo si
   se usan (`useDetalleEstudianteAdmin.verDatosAdmision`). Sin
   `onVerDatosAdmision`, la sección no aparece.
+- `components/estudiantesObservador/admin/RendimientoEstudianteAdmin.jsx`
+  (2026-10-31, `docs/funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md`): la
+  tarjeta "Rendimiento" de la ficha.
+  - Tiene botones "Periodo 1" a "Periodo 4" y "Todo el año".
+  - Debajo, el promedio general (no aparece en preescolar), las
+    inasistencias y cada materia con su nota a un decimal (verde desde 3,0)
+    o con su carita.
+  - El periodo vive en `useDetalleEstudianteAdmin` (`periodoResumen`): cada
+    ficha abre en su último periodo con notas, y cambiarlo no pide nada.
+  - Sin `notas_por_periodo` muestra la tarjeta de antes.
 - `components/estudiantesObservador/FormularioObservacionEstudiante.jsx` y
   `VistaPlanillaObservador.jsx`: formulario individual y planilla visual del
   observador del profesor.

@@ -10,6 +10,9 @@ import {
   normalizarDetalleEstudiante,
   normalizarEstudianteParaEdicion,
   obtenerEtiquetaEstadoEstudiante,
+  OPCIONES_PERIODO_RESUMEN,
+  rendimientoDelPeriodo,
+  ultimoPeriodoConNotas,
 } from "./estudiantes";
 
 describe("contratos puros de estudiantes", () => {
@@ -298,5 +301,96 @@ describe("SISBÉN y lugar de residencia", () => {
       expect(siguiente).toEqual({ ...conSisben, barrio: "El Carmen" });
       expect(conSisben.barrio).toBe("");
     });
+  });
+});
+
+describe("notas por periodo en el resumen (NOTAS_RESUMEN_ESTUDIANTE.md)", () => {
+  const sinNota = { 1: null, 2: null, 3: null, 4: null };
+  const RESPUESTA = {
+    notas_por_periodo: {
+      materias: [
+        {
+          materia: "MATEMÁTICAS",
+          tipo_evaluacion: "numerica",
+          periodos: { ...sinNota, 1: { nota: 4.67, valoracion: null }, 2: { nota: 2.95, valoracion: null } },
+          anio: { nota: 3.81, valoracion: null },
+        },
+        {
+          materia: "SOCIALES",
+          tipo_evaluacion: "numerica",
+          periodos: { ...sinNota, 1: { nota: 3.5, valoracion: null } },
+          anio: { nota: 3.5, valoracion: null },
+        },
+      ],
+      promedio: { 1: 4.085, 2: 2.95, 3: null, 4: null, anio: 3.655 },
+    },
+    inasistencias_por_periodo: { 1: 4, 2: 1, 3: 0, 4: 0, anio: 5 },
+  };
+  const PREESCOLAR = {
+    notas_por_periodo: {
+      materias: [
+        {
+          materia: "DIMENSIÓN COGNITIVA",
+          tipo_evaluacion: "desarrollo",
+          periodos: { ...sinNota, 1: { nota: 3.5, valoracion: "logrado" } },
+          anio: { nota: 3.5, valoracion: "logrado" },
+        },
+      ],
+      promedio: { 1: null, 2: null, 3: null, 4: null, anio: null },
+    },
+    inasistencias_por_periodo: { 1: 0, 2: 0, 3: 0, 4: 0, anio: 0 },
+  };
+  const normalizar = (base) => normalizarDetalleEstudiante(base, {});
+
+  it("ofrece los cuatro periodos y Todo el año", () => {
+    expect(OPCIONES_PERIODO_RESUMEN.map(({ value }) => value)).toEqual(["1", "2", "3", "4", "anio"]);
+    expect(OPCIONES_PERIODO_RESUMEN.at(-1).label).toBe("Todo el año");
+  });
+
+  it("sin los campos nuevos (backend anterior) quedan en null", () => {
+    const detalles = normalizar({ notas: [], promedio_general: 0 });
+
+    expect(detalles.notas_por_periodo).toBeNull();
+    expect(detalles.inasistencias_por_periodo).toBeNull();
+  });
+
+  it("abre en el último periodo con notas, o en el 1 sin ninguna", () => {
+    expect(ultimoPeriodoConNotas(normalizar(RESPUESTA).notas_por_periodo)).toBe("2");
+    expect(ultimoPeriodoConNotas(normalizar(PREESCOLAR).notas_por_periodo)).toBe("1");
+    expect(ultimoPeriodoConNotas({ materias: [] })).toBe("1");
+    expect(ultimoPeriodoConNotas(null)).toBe("1");
+  });
+
+  it("un periodo: promedio, inasistencias y cada materia con un decimal y su color", () => {
+    expect(rendimientoDelPeriodo(normalizar(RESPUESTA), "2")).toEqual({
+      promedio: { texto: "3.0", aprobado: false },
+      inasistencias: 1,
+      materias: [
+        { materia: "MATEMÁTICAS", texto: "3.0", tono: "reprobada" },
+        { materia: "SOCIALES", texto: "Sin nota", tono: "sin_nota" },
+      ],
+      hayNotas: true,
+    });
+  });
+
+  it("Todo el año usa la nota del año y el total de inasistencias", () => {
+    const anio = rendimientoDelPeriodo(normalizar(RESPUESTA), "anio");
+
+    expect(anio.promedio).toEqual({ texto: "3.7", aprobado: true });
+    expect(anio.inasistencias).toBe(5);
+    expect(anio.materias[0]).toEqual({ materia: "MATEMÁTICAS", texto: "3.8", tono: "aprobada" });
+  });
+
+  it("preescolar muestra la carita y no tiene promedio general", () => {
+    const periodo = rendimientoDelPeriodo(normalizar(PREESCOLAR), "1");
+
+    expect(periodo.promedio).toBeNull();
+    expect(periodo.materias).toEqual([
+      { materia: "DIMENSIÓN COGNITIVA", texto: "😀 Logrado", tono: "carita" },
+    ]);
+  });
+
+  it("un periodo sin ninguna nota lo dice", () => {
+    expect(rendimientoDelPeriodo(normalizar(RESPUESTA), "4").hayNotas).toBe(false);
   });
 });

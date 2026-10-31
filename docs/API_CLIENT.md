@@ -341,6 +341,13 @@ PATCH /estudiantes/{estudiante_id}/estado
 Las dos de la entrevista de admisión (paso E11b) solo se piden al pulsar "Ver
 datos de admisión"; ver la sección "Admisiones".
 
+Notas por periodo (2026-10-31, `docs/funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md`):
+`GET /estudiantes/{estudiante_id}/detalles` trae además `notas_por_periodo`
+(por materia, los cuatro periodos y el año, con la carita en preescolar) e
+`inasistencias_por_periodo`. `normalizarDetalleEstudiante` los deja en `null`
+si no llegan, y entonces la ficha se ve como antes. La tarjeta "Rendimiento"
+escoge el periodo sin pedir nada más.
+
 Uso:
 
 - Por defecto muestra estudiantes `activo`.

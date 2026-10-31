@@ -409,3 +409,53 @@ describe("respuestas de la entrevista de admisión (paso E11b)", () => {
     expect(result.current.errorRespuestasAdmision).toBeNull();
   });
 });
+
+describe("el periodo del resumen (NOTAS_RESUMEN_ESTUDIANTE.md)", () => {
+  const celda = (nota) => ({ nota, valoracion: null });
+  const conNotasHasta = (ultimo) => ({
+    notas_por_periodo: {
+      materias: [{
+        materia: "MATEMÁTICAS",
+        tipo_evaluacion: "numerica",
+        periodos: {
+          1: celda(4),
+          2: ultimo >= 2 ? celda(3.5) : null,
+          3: ultimo >= 3 ? celda(5) : null,
+          4: null,
+        },
+        anio: celda(4),
+      }],
+      promedio: { 1: 4, 2: null, 3: null, 4: null, anio: 4 },
+    },
+    inasistencias_por_periodo: { 1: 0, 2: 0, 3: 0, 4: 0, anio: 0 },
+  });
+
+  beforeEach(() => {
+    obtenerDeudasMock.mockResolvedValue({ deudas: [] });
+  });
+
+  it("cada ficha abre en su último periodo con notas", async () => {
+    obtenerDetalleMock
+      .mockResolvedValueOnce(conNotasHasta(3))
+      .mockResolvedValueOnce({ notas: [], promedio_general: 0 });
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+    await act(() => result.current.verDetalles({ id: 11 }));
+    expect(result.current.periodoResumen).toBe("3");
+
+    await act(() => result.current.verDetalles({ id: 12 }));
+    expect(result.current.periodoResumen).toBe("1");
+  });
+
+  it("cambiar de periodo no vuelve a pedir la ficha", async () => {
+    obtenerDetalleMock.mockResolvedValue(conNotasHasta(2));
+    const { result } = renderHook(() => useDetalleEstudianteAdmin());
+    await act(() => result.current.verDetalles({ id: 11 }));
+
+    act(() => result.current.cambiarPeriodoResumen("anio"));
+
+    expect(result.current.periodoResumen).toBe("anio");
+    expect(obtenerDetalleMock).toHaveBeenCalledTimes(1);
+    expect(obtenerDeudasMock).toHaveBeenCalledTimes(1);
+  });
+});

@@ -61,6 +61,8 @@ function EstudiantesAdmin() {
     setSelectedEstudiante,
     detallesEstudiante,
     loadingDetalles,
+    periodoResumen,
+    cambiarPeriodoResumen,
     verDetalles,
     cerrarModal,
     datosAdmision,
@@ -253,6 +255,8 @@ function EstudiantesAdmin() {
         onVerDatosAdmision={verDatosAdmision}
         respuestasAdmision={respuestasAdmision}
         errorRespuestasAdmision={errorRespuestasAdmision}
+        periodoResumen={periodoResumen}
+        onCambiarPeriodoResumen={cambiarPeriodoResumen}
       />
     </div>
   );
