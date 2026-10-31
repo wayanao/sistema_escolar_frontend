@@ -1,3 +1,4 @@
+import CampoPesos from "../CampoPesos";
 import { formatearMoneda } from "../../utils/pagos/formatos";
 
 export default function ValoresPersonalizadosPago({
@@ -35,12 +36,10 @@ export default function ValoresPersonalizadosPago({
           ))}
         </select>
 
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={valorPersonalizadoData.valor}
-          onChange={(event) => onActualizarCampo("valor", event.target.value)}
+        <CampoPesos
+          min={0}
+          valor={valorPersonalizadoData.valor}
+          onCambiar={(valor) => onActualizarCampo("valor", valor)}
           className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
           placeholder="Valor personalizado"
         />

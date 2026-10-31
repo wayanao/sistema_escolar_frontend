@@ -1,5 +1,7 @@
 import { etiquetaTipoCobro } from "../../utils/anioLectivo";
 import { formatMoney } from "../../utils/carteraTiposPago/formatos";
+import { separarMiles } from "../../utils/formatoPesos";
+import CampoPesos from "../CampoPesos";
 import SpinnerView from "./SpinnerView";
 
 const claseCampo =
@@ -113,16 +115,12 @@ export default function ValoresPagoMatriculaView({
                 <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)_auto_auto] sm:items-end">
                   <label className="text-xs font-medium text-gray-700">
                     Valor para este estudiante
-                    <input
-                      type="number"
-                      min="0"
-                      inputMode="numeric"
-                      value={borrador.valor}
-                      onChange={(event) =>
-                        onCambiarBorrador(fila.tipoPagoId, "valor", event.target.value)
-                      }
+                    <CampoPesos
+                      min={0}
+                      valor={borrador.valor}
+                      onCambiar={(valor) => onCambiarBorrador(fila.tipoPagoId, "valor", valor)}
                       aria-label={`Valor personalizado de ${fila.nombre}`}
-                      placeholder={String(fila.precioCurso)}
+                      placeholder={separarMiles(fila.precioCurso)}
                       className={claseCampo}
                     />
                   </label>

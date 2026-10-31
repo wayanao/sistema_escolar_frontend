@@ -278,7 +278,7 @@ describe("PagosAdmin - caracterización", () => {
     expect(await screen.findByText("Acuerdo familiar", { exact: false })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Editar" }));
 
-    expect(screen.getByPlaceholderText("Valor personalizado")).toHaveValue(85000);
+    expect(screen.getByPlaceholderText("Valor personalizado")).toHaveValue("85.000");
     expect(screen.getByPlaceholderText("Motivo o acuerdo")).toHaveValue("Acuerdo familiar");
   });
 
@@ -362,7 +362,7 @@ describe("PagosAdmin - caracterización", () => {
       .find((option) => option.textContent.includes("por mes"));
     await user.selectOptions(opcionAdelanto.parentElement, "11");
     await user.click(screen.getByRole("button", { name: "Distribuir un monto" }));
-    fireEvent.change(screen.getByPlaceholderText("Ej: 80000"), {
+    fireEvent.change(screen.getByPlaceholderText("Ej: 80.000"), {
       target: { value: "150000" },
     });
 

@@ -82,8 +82,13 @@ describe("ValoresPagoMatriculaView", () => {
     const user = userEvent.setup();
     const funciones = renderVista();
 
-    expect(screen.getByRole("spinbutton", { name: "Valor personalizado de MENSUALIDAD" })).toHaveValue(180000);
-    await user.type(screen.getByRole("spinbutton", { name: "Valor personalizado de MATRICULA" }), "2");
+    expect(screen.getByRole("textbox", { name: "Valor personalizado de MENSUALIDAD" })).toHaveValue("180.000");
+    // Vacío, el campo muestra de ejemplo el precio del curso, también con puntos.
+    expect(screen.getByRole("textbox", { name: "Valor personalizado de MATRICULA" })).toHaveAttribute(
+      "placeholder",
+      "300.000",
+    );
+    await user.type(screen.getByRole("textbox", { name: "Valor personalizado de MATRICULA" }), "2");
     expect(funciones.onCambiarBorrador).toHaveBeenCalledWith(13, "valor", "2");
     await user.type(screen.getByRole("textbox", { name: "Motivo de MATRICULA" }), "A");
     expect(funciones.onCambiarBorrador).toHaveBeenCalledWith(13, "motivo", "A");

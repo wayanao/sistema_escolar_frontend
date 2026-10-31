@@ -630,7 +630,7 @@ describe("valores de pago de un estudiante ya matriculado", () => {
     expect(screen.getByRole("button", { name: "Editar datos de Ana Rojas" })).toBeDisabled();
 
     await user.type(
-      within(recuadro).getByRole("spinbutton", { name: "Valor personalizado de MENSUALIDAD" }),
+      within(recuadro).getByRole("textbox", { name: "Valor personalizado de MENSUALIDAD" }),
       "170000",
     );
     await user.type(within(recuadro).getByRole("textbox", { name: "Motivo de MENSUALIDAD" }), "Hermanos");

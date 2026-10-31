@@ -244,6 +244,14 @@ Estado actual de componentes y paginas del frontend.
   junto al nombre de cada columna; `GestionTiposEvaluacion.jsx`, con
   `onCambiarNuevoPorcentaje`, suma el campo opcional "Porcentaje (%)" al crear
   un tipo. Sin esas props se ven como antes.
+- `components/CampoPesos.jsx` (compartido, 2026-10-31): campo para escribir
+  pesos. Pone los puntos de miles mientras se escribe ("150.000") y entrega
+  solo los dígitos ("150000") en `onCambiar(valor)`, así el estado y el envío
+  al backend no cambian. Ignora el punto y la coma que se escriban a mano
+  (pesos enteros), conserva el cursor al corregir en medio, abre el teclado
+  numérico en el celular y reemplaza `min`/`max` con el aviso del navegador.
+  Las reglas puras están en `utils/formatoPesos.js`. Hoy lo usan Pagos y
+  "Valores de pago" al matricular (`anioLectivo/ValoresPagoMatriculaView.jsx`).
 - `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
   composición compacta del encabezado y el contexto de materia, salón, período
   y fecha. Planilla agrega allí mismo `Tipo de calificación`.
@@ -1239,6 +1247,8 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - Los metodos de pago deben sumar el total calculado y el backend vuelve a
   validar meses, asignacion y valor vigente.
 - Un error al consultar adelantos no impide usar el pago normal.
+- Puntos de miles (2026-10-31): el monto, el monto a distribuir, el monto de
+  cada método y el valor personalizado usan `components/CampoPesos.jsx`.
 - Año lectivo, paso 5.9 (2026-10-07): al elegir otro año se recargan conceptos,
   deudas, cuotas, adelantos y valores personalizados y el pago lleva su id.
   Historial y ventas conservan sus contratos; las ventas se excluyen del

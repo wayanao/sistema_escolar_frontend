@@ -1,3 +1,4 @@
+import CampoPesos from "../CampoPesos";
 import { METODOS_PAGO } from "../../utils/pagos/contratos";
 import {
   formatearMoneda,
@@ -410,19 +411,17 @@ export default function FormularioPago({
                         <label className="mb-1 block text-sm font-semibold text-gray-700">
                           Monto recibido o subsidio
                         </label>
-                        <input
-                          type="number"
-                          min="0.01"
+                        <CampoPesos
+                          min={1}
                           max={opcionAdelantoSeleccionada.total_disponible}
-                          step="0.01"
-                          value={pagoData.monto_distribuir}
-                          onChange={(event) => onCambiarMontoDistribuir(event.target.value)}
+                          valor={pagoData.monto_distribuir}
+                          onCambiar={onCambiarMontoDistribuir}
                           className={`w-full rounded-lg border bg-white p-2.5 focus:ring-2 ${
                             saldoAdelantoSinDistribuir > 0
                               ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                               : "border-amber-300 focus:border-amber-500 focus:ring-amber-200"
                           }`}
-                          placeholder="Ej: 80000"
+                          placeholder="Ej: 80.000"
                         />
                         <p className="mt-1 text-xs text-gray-600">
                           Disponible hasta {formatearNombreMes(opcionAdelantoSeleccionada.mes_final)}:{" "}
@@ -518,14 +517,13 @@ export default function FormularioPago({
               ? "Total calculado ($)"
               : "Monto ($)"}
           </label>
-          <input
-            type="number"
-            step="0.01"
-            value={pagoData.monto}
-            onChange={(event) => onCambiarMontoPago(event.target.value)}
-            onBlur={(event) => {
-              if (modoPago === "normal" && event.target.value) {
-                onValidarMonto(Number(event.target.value));
+          <CampoPesos
+            valor={pagoData.monto}
+            onCambiar={onCambiarMontoPago}
+            // El campo muestra "150.000": se valida el valor del estado, no el texto.
+            onBlur={() => {
+              if (modoPago === "normal" && pagoData.monto) {
+                onValidarMonto(Number(pagoData.monto));
               }
             }}
             readOnly={modoPago === "adelantado" || pagoData.aplicaciones.length > 0}
@@ -537,7 +535,7 @@ export default function FormularioPago({
                   : "border-gray-300 bg-white focus:ring-purple-500"
             }`}
             required
-            placeholder="0.00"
+            placeholder="Ej: 150.000"
           />
         </div>
       </div>
@@ -561,14 +559,12 @@ export default function FormularioPago({
                 <label htmlFor={`metodo-${tipo}`} className="capitalize w-24">{tipo}</label>
                 {seleccionado && (
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                    <CampoPesos
+                      min={0}
                       placeholder="Monto"
                       className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white w-32"
-                      value={pagoData.metodos[indice]?.monto || ""}
-                      onChange={(event) => onCambiarMontoMetodo(tipo, event.target.value)}
+                      valor={pagoData.metodos[indice]?.monto || ""}
+                      onCambiar={(monto) => onCambiarMontoMetodo(tipo, monto)}
                       required
                     />
                     {(tipo === "transferencia" || tipo === "subsidio") && (

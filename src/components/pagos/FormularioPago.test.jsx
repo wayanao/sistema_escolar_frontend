@@ -72,8 +72,8 @@ describe("FormularioPago", () => {
     fireEvent.change(screen.getByDisplayValue("2026-08-04"), {
       target: { value: "2026-08-05" },
     });
-    fireEvent.change(screen.getByPlaceholderText("0.00"), { target: { value: "45000" } });
-    fireEvent.blur(screen.getByPlaceholderText("0.00"));
+    fireEvent.change(screen.getByPlaceholderText("Ej: 150.000"), { target: { value: "45000" } });
+    fireEvent.blur(screen.getByPlaceholderText("Ej: 150.000"));
     fireEvent.click(screen.getByLabelText("efectivo"));
     fireEvent.submit(screen.getByRole("button", { name: "Registrar Pago" }).closest("form"));
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
@@ -133,7 +133,7 @@ describe("FormularioPago", () => {
     expect(screen.getByText("Hay deuda vencida por $25.000.")).toBeInTheDocument();
     expect(screen.getByText("Disponible hasta noviembre: $200.000")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText("Ej: 80000"), {
+    fireEvent.change(screen.getByPlaceholderText("Ej: 80.000"), {
       target: { value: "120000" },
     });
     fireEvent.change(screen.getByLabelText("Referencia del subsidio"), {

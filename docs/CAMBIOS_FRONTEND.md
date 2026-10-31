@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-10-31 - Puntos de miles al escribir pesos (paso 1: Pagos y Valores de pago)
+
+Pedido por el usuario: que en todo campo donde se escribe un valor de dinero
+aparezca el punto de miles mientras se escribe, para que nadie confunda
+150.000 con 150. Se hace por pantallas, un paso a la vez.
+
+- Campo compartido nuevo `components/CampoPesos.jsx` y reglas puras en
+  `utils/formatoPesos.js` (`limpiarPesos`, `separarMiles`,
+  `posicionTrasDigitos`, `avisoRangoPesos`). El campo muestra "150.000" y
+  entrega "150000": el estado, los payloads y el backend no cambian.
+- Pesos enteros: el punto y la coma que se escriban a mano se ignoran
+  ("150,000" también es ciento cincuenta mil). Un valor con decimales que ya
+  viniera del backend se muestra redondeado, como en el resto de la
+  plataforma, y se envía igual mientras no se edite.
+- Paso 1, Pagos: monto, monto a distribuir del adelanto, monto de cada método
+  y valor personalizado. Textos de ejemplo nuevos: "Ej: 150.000" y
+  "Ej: 80.000".
+- Años lectivos, "Valores de pago" al matricular (lo señaló el usuario con
+  una captura): el valor para cada concepto. El ejemplo del campo vacío es el
+  precio del curso, también con puntos ("300.000").
+- Arreglo incluido: al salir del campo "Monto", la validación contra el saldo
+  leía el texto del campo; con los puntos habría leído 150 en vez de 150000.
+  Ahora lee el valor del estado.
+- El `min`/`max` del monto a distribuir se conserva como aviso del navegador
+  ("El valor máximo es $ 200.000.").
+- Pendiente (pasos siguientes, con visto bueno): Tipos de pago; Nómina,
+  Egresos, Préstamos y sueldo del profesor; Inventario.
+- Verificación: pruebas de Pagos, del campo y de las reglas → **89 pruebas en
+  19 archivos** (73 de antes más 16 nuevas); las de Años lectivos → **165 en
+  13 archivos**. `pnpm run check:deploy` → **3189 pruebas en 394 archivos**,
+  lint y build correctos. Sin probar todavía en el navegador.
+
 ## 2026-10-31 - Nombres de los cuadros del plan de clase (paso 2)
 
 Pedido por el usuario. Detalle en
