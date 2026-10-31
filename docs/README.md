@@ -61,6 +61,11 @@ continuacion para retomarla en otro chat u otro LLM.
   backend. **Parte A (subnotas) publicada el 2026-10-21, backend y
   frontend. Parte B (porcentajes) publicada el 2026-10-22, backend y
   frontend (`82eecf9`). Partes A y B completas.**
+- `funcionalidades/NOMBRES_CUADROS_PLAN.md`: ventana del admin para
+  renombrar los cuadros del plan de clase y su texto de ayuda, mostrando qué
+  recibe cada uno; las pantallas del plan leen esos nombres. El documento
+  principal está en el backend. **Diseñado (paso 0, 2026-10-31), nada
+  implementado.**
 
 ## Control SaaS
 
