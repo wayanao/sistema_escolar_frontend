@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **paso 2 (este documento) construido el 2026-10-31, sin commit y
-  sin probar en el navegador.** El backend (paso 1) se publicó ese mismo
-  día, con la migración en producción. Ver "Avance del paso 2".
+- Estado: **publicado el 2026-10-31** (`860af97`; Vercel terminó bien). El
+  backend (paso 1) salió ese mismo día, con la migración en producción. Ver
+  "Avance del paso 2".
 - Tipo: función nueva de producto. No es un módulo de
   `docs/modularizacion/`; vive dentro del módulo `planeaciones`.
 - **El documento principal es
@@ -149,5 +149,5 @@ Verificación:
   - en `PlaneadoresClasesAdmin.test.jsx`: renombrar desde la bandeja manda
     la lista completa, y el detalle usa los nombres del colegio.
 
-Falta: la prueba en el navegador, en local con el Colegio Demo, antes del
-commit y el push.
+Publicación: el usuario hizo el commit (`860af97`) y el push el 2026-10-31, y
+Vercel terminó bien ("Deployment has completed").
