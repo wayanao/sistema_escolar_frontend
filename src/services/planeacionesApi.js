@@ -70,6 +70,20 @@ export async function obtenerPlanAnioAnterior(asignacionId, planId) {
   return data;
 }
 
+// Nombres de los cuadros del plan (docs/funcionalidades/NOMBRES_CUADROS_PLAN.md).
+// Solo viajan los cuadros que el colegio renombró; los originales viven en
+// `utils/planeaciones/cuadros.js`. Guardar manda la lista completa y la
+// reemplaza: una lista vacía vuelve a los originales.
+export async function obtenerCuadrosPlan() {
+  const { data } = await api.get("/plan-de-clases/cuadros");
+  return data;
+}
+
+export async function guardarCuadrosPlan(payload) {
+  const { data } = await api.put("/admin/plan-de-clases/cuadros", payload);
+  return data;
+}
+
 export async function listarProfesoresPlaneaciones() {
   const { data } = await api.get("/profesores");
   return data;

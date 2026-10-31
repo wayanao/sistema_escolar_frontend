@@ -1,4 +1,5 @@
 import guiaDidacticaUtilesBg from "../../../assets/guia-didactica-utiles-bg.jpg";
+import { NOMBRES_CUADROS_ORIGINALES } from "../../../utils/planeaciones/cuadros";
 import CampoTextareaPlanProfesor from "./CampoTextareaPlanProfesor";
 import EvidenciasPlanProfesor from "./EvidenciasPlanProfesor";
 
@@ -13,6 +14,8 @@ export default function GuiaDidacticaProfesor({
   onManejarImagen,
   onEliminarImagen,
   onAbrirPresentacion,
+  // Nombres y ayudas de los cuadros que usa el colegio (useCuadrosPlan).
+  cuadros = NOMBRES_CUADROS_ORIGINALES,
 }) {
   return (
     <section
@@ -70,18 +73,22 @@ export default function GuiaDidacticaProfesor({
         <div className="space-y-4">
           <ContextoPedagogico
             form={form}
+            cuadros={cuadros}
             onActualizarCampo={onActualizarCampo}
           />
           <TemaYLogro
             form={form}
+            cuadros={cuadros}
             onActualizarCampo={onActualizarCampo}
           />
           <ActividadInicial
             form={form}
+            cuadros={cuadros}
             onActualizarCampo={onActualizarCampo}
           />
           <EvidenciasPlanProfesor
             form={form}
+            cuadros={cuadros}
             imagenesSeleccionadas={imagenesSeleccionadas}
             imagenesGuardadas={imagenesGuardadas}
             onActualizarCampo={onActualizarCampo}
@@ -136,7 +143,7 @@ function ResumenAsignacion({ asignacion }) {
   );
 }
 
-function ContextoPedagogico({ form, onActualizarCampo }) {
+function ContextoPedagogico({ form, cuadros, onActualizarCampo }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
       <EncabezadoBloque
@@ -146,18 +153,18 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
       />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <CampoTextareaPlanProfesor
-          label="Unidad"
+          label={cuadros.unidad.nombre}
           value={form.unidad}
           onChange={(valor) => onActualizarCampo("unidad", valor)}
-          placeholder="Nombre de la unidad o eje de trabajo"
+          placeholder={cuadros.unidad.ayuda}
           rows={2}
         />
 
         <CampoTextareaPlanProfesor
-          label="Estándar / Lineamientos curriculares"
+          label={cuadros.estandar.nombre}
           value={form.estandar}
           onChange={(valor) => onActualizarCampo("estandar", valor)}
-          placeholder="Estándar, lineamientos curriculares o referente curricular"
+          placeholder={cuadros.estandar.ayuda}
           rows={3}
         />
       </div>
@@ -165,24 +172,24 @@ function ContextoPedagogico({ form, onActualizarCampo }) {
   );
 }
 
-function TemaYLogro({ form, onActualizarCampo }) {
+function TemaYLogro({ form, cuadros, onActualizarCampo }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
       <div className="grid grid-cols-1 gap-4">
         <CampoTextareaPlanProfesor
-          label="Tema"
+          label={cuadros.tema.nombre}
           value={form.tema}
           onChange={(valor) => onActualizarCampo("tema", valor)}
-          placeholder="Tema central de la clase"
+          placeholder={cuadros.tema.ayuda}
           rows={2}
           color="bg-emerald-500"
         />
 
         <CampoTextareaPlanProfesor
-          label="Logro"
+          label={cuadros.proposito.nombre}
           value={form.proposito}
           onChange={(valor) => onActualizarCampo("proposito", valor)}
-          placeholder="Qué se espera que logren los estudiantes"
+          placeholder={cuadros.proposito.ayuda}
           rows={3}
           color="bg-emerald-500"
         />
@@ -191,14 +198,14 @@ function TemaYLogro({ form, onActualizarCampo }) {
   );
 }
 
-function ActividadInicial({ form, onActualizarCampo }) {
+function ActividadInicial({ form, cuadros, onActualizarCampo }) {
   return (
     <div className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-purple-50/50 p-4 sm:p-5">
       <CampoTextareaPlanProfesor
-        label="Actividad inicial"
+        label={cuadros.clase.nombre}
         value={form.clase}
         onChange={(valor) => onActualizarCampo("clase", valor)}
-        placeholder="Cómo inicia la clase y qué hacen los estudiantes"
+        placeholder={cuadros.clase.ayuda}
         rows={6}
         color="bg-purple-600"
       />

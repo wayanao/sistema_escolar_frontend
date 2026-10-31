@@ -4,6 +4,7 @@ import {
   ACCEPT_EVIDENCIA,
   esEvidenciaPdf,
 } from "../../../utils/planeaciones/evidencias";
+import { NOMBRES_CUADROS_ORIGINALES } from "../../../utils/planeaciones/cuadros";
 import ContenidoEvidencia from "../ContenidoEvidencia";
 import VisorPdfPlaneacion from "../VisorPdfPlaneacion";
 import CampoTextareaPlanProfesor from "./CampoTextareaPlanProfesor";
@@ -16,22 +17,23 @@ export default function EvidenciasPlanProfesor({
   onRegistrarInputImagen,
   onManejarImagen,
   onEliminarImagen,
+  cuadros = NOMBRES_CUADROS_ORIGINALES,
 }) {
   return (
     <>
       <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
         <div className="space-y-4">
           <CampoTextareaPlanProfesor
-            label="Desarrollo cognitivo"
+            label={cuadros.dba.nombre}
             value={form.dba}
             onChange={(valor) => onActualizarCampo("dba", valor)}
-            placeholder="Proceso, habilidad o DBA relacionado"
+            placeholder={cuadros.dba.ayuda}
             rows={5}
             color="bg-orange-500"
           />
           <EvidenciaCampo
             id="evidencia-desarrollo-cognitivo"
-            label="Actividad a desarrollar"
+            label={cuadros.imagen1.nombre}
             inputRef={(element) =>
               onRegistrarInputImagen("imagen1", element)
             }
@@ -46,16 +48,16 @@ export default function EvidenciasPlanProfesor({
       <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-5">
         <div className="space-y-4">
           <CampoTextareaPlanProfesor
-            label="Actividad en casa"
+            label={cuadros.actividad_casa.nombre}
             value={form.actividad_casa}
             onChange={(valor) => onActualizarCampo("actividad_casa", valor)}
-            placeholder="Refuerzo, consulta o producción para casa"
+            placeholder={cuadros.actividad_casa.ayuda}
             rows={5}
             color="bg-sky-500"
           />
           <EvidenciaCampo
             id="evidencia-actividad-casa"
-            label="Evidencia de actividad en casa"
+            label={cuadros.imagen2.nombre}
             inputRef={(element) =>
               onRegistrarInputImagen("imagen2", element)
             }

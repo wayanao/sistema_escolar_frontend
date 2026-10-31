@@ -7,6 +7,7 @@ import ContenidoEvidencia from "../ContenidoEvidencia";
 import TextoConEnlaces from "../TextoConEnlaces";
 import VisorPdfPlaneacion from "../VisorPdfPlaneacion";
 import { formatearFechaPlan } from "../../../utils/planeaciones/profesor";
+import { NOMBRES_CUADROS_ORIGINALES } from "../../../utils/planeaciones/cuadros";
 
 export default function PresentacionClaseProfesor({
   asignacion,
@@ -17,6 +18,7 @@ export default function PresentacionClaseProfesor({
   imagenesGuardadas,
   hayCambios,
   onCerrar,
+  cuadros = NOMBRES_CUADROS_ORIGINALES,
 }) {
   useEffect(() => {
     const overflowAnteriorBody = document.body.style.overflow;
@@ -80,11 +82,11 @@ export default function PresentacionClaseProfesor({
           <SeccionPresentacion titulo="Contexto pedagógico" tono="violet">
             <div className="grid gap-4 md:grid-cols-2">
               {tieneTexto(form.unidad) && (
-                <CampoPresentacion label="Unidad" contenido={form.unidad} />
+                <CampoPresentacion label={cuadros.unidad.nombre} contenido={form.unidad} />
               )}
               {tieneTexto(form.estandar) && (
                 <CampoPresentacion
-                  label="Estándar / Lineamientos curriculares"
+                  label={cuadros.estandar.nombre}
                   contenido={form.estandar}
                 />
               )}
@@ -93,13 +95,13 @@ export default function PresentacionClaseProfesor({
         )}
 
         {tieneLogro && (
-          <SeccionPresentacion titulo="Logro" tono="emerald">
+          <SeccionPresentacion titulo={cuadros.proposito.nombre} tono="emerald">
             <CampoPresentacion contenido={form.proposito} />
           </SeccionPresentacion>
         )}
 
         {tieneActividadInicial && (
-          <SeccionPresentacion titulo="Actividad inicial" tono="purple">
+          <SeccionPresentacion titulo={cuadros.clase.nombre} tono="purple">
             <CampoPresentacion contenido={form.clase} />
           </SeccionPresentacion>
         )}
@@ -111,7 +113,7 @@ export default function PresentacionClaseProfesor({
         )}
 
         {tieneDesarrolloCognitivo && (
-          <SeccionPresentacion titulo="Desarrollo cognitivo" tono="orange">
+          <SeccionPresentacion titulo={cuadros.dba.nombre} tono="orange">
             <div
               className={`grid gap-5 ${
                 tieneTexto(form.dba) && tieneImagen1
@@ -126,7 +128,7 @@ export default function PresentacionClaseProfesor({
                 <ImagenPresentacion
                   seleccionada={imagenesSeleccionadas.imagen1}
                   guardada={imagenesGuardadas.imagen1}
-                  alt="Evidencia de desarrollo cognitivo"
+                  alt={cuadros.imagen1.nombre}
                 />
               )}
             </div>
@@ -134,7 +136,7 @@ export default function PresentacionClaseProfesor({
         )}
 
         {tieneActividadCasa && (
-          <SeccionPresentacion titulo="Actividad en casa" tono="sky">
+          <SeccionPresentacion titulo={cuadros.actividad_casa.nombre} tono="sky">
             <div
               className={`grid gap-5 ${
                 tieneTexto(form.actividad_casa) && tieneImagen2
@@ -149,7 +151,7 @@ export default function PresentacionClaseProfesor({
                 <ImagenPresentacion
                   seleccionada={imagenesSeleccionadas.imagen2}
                   guardada={imagenesGuardadas.imagen2}
-                  alt="Evidencia de actividad en casa"
+                  alt={cuadros.imagen2.nombre}
                 />
               )}
             </div>

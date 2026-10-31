@@ -1,5 +1,41 @@
 # Cambios Frontend
 
+## 2026-10-31 - Nombres de los cuadros del plan de clase (paso 2)
+
+Pedido por el usuario. Detalle en
+`docs/funcionalidades/NOMBRES_CUADROS_PLAN.md`. Necesita el backend del mismo
+día (`f4c7fcb`), que ya está publicado y con la migración en producción.
+
+- **Admin:** botón "Nombres de los cuadros" en Planeaciones de clase. Abre una
+  ventana para cambiar el nombre de los nueve cuadros (siete de texto y dos
+  archivos) y el texto gris de ayuda de los de texto. Cada fila dice qué
+  recibe el cuadro, y arriba un aviso dice que renombrar no cambia eso ni
+  borra lo escrito. "Volver a los originales" solo cambia lo que se está
+  editando; se guarda con "Guardar".
+- **Profesor y admin:** el formulario, la presentación de la clase y el
+  detalle del admin usan los nombres del colegio.
+- **Cambio visible sin renombrar nada (P1, opción A):** el admin ve ahora los
+  nombres del formulario del profesor: "Estándar / Lineamientos curriculares"
+  en vez de "Estándar", y "Actividad a desarrollar" en vez de "Evidencia de
+  desarrollo cognitivo".
+- Peticiones: una más al abrir el plan del profesor, y una al abrir
+  Planeaciones del admin, compartida por la bandeja y el detalle. Ninguna al
+  cambiar de fecha, de clase o de plan.
+- Archivos nuevos: `utils/planeaciones/cuadros.js`,
+  `hooks/planeaciones/useCuadrosPlan.js`,
+  `hooks/planeaciones/useEdicionCuadrosPlanAdmin.js`,
+  `components/planeaciones/admin/VentanaCuadrosPlanAdmin.jsx` y sus pruebas.
+  Cambian: `planeacionesApi.js`, `GuiaDidacticaProfesor.jsx`,
+  `EvidenciasPlanProfesor.jsx`, `PresentacionClaseProfesor.jsx`,
+  `DetallePlaneacionAdmin.jsx`, `EncabezadoPlaneacionesAdmin.jsx`,
+  `PlanDeClases.jsx` y `PlaneadoresClasesAdmin.jsx`.
+- Pruebas viejas ajustadas: las que buscaban "Evidencia de desarrollo
+  cognitivo", las dos que fijan las peticiones del detalle del admin (suman
+  `/plan-de-clases/cuadros`) y las cuatro páginas, que ahora simulan esa
+  lectura.
+- Verificación: `pnpm run check:deploy` → **3173 pruebas en 393 archivos**,
+  lint y build correctos. Sin probar todavía en el navegador.
+
 ## 2026-10-30 - Entrevista de admisión solo en los colegios que la usan (paso 1)
 
 Pedido por el usuario. Detalle en `docs/funcionalidades/ENTREVISTA_ADMISION.md`

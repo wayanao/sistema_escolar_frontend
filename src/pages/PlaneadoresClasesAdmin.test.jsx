@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +9,7 @@ const { apiMock } = vi.hoisted(() => ({
     get: vi.fn(),
     patch: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
     delete: vi.fn(),
   },
 }));
@@ -73,6 +74,7 @@ beforeEach(() => {
     }
     if (url === "/admin/plan-de-clases/91") return Promise.resolve({ data: PLAN });
     if (url === "/plan-de-clases/91/observaciones") return Promise.resolve({ data: [] });
+    if (url === "/plan-de-clases/cuadros") return Promise.resolve({ data: { cuadros: [] } });
     return Promise.reject(new Error(`GET inesperado: ${url}`));
   });
   apiMock.patch.mockResolvedValue({ data: {} });
@@ -118,9 +120,12 @@ describe("PlaneadoresClasesAdmin", () => {
     renderizar("/admin/planeadores-clases/91?vista=todas&estado=pendiente");
 
     expect(await screen.findByText("Revisión y comentario al profesor")).toBeInTheDocument();
+    // Nombres de los cuadros (NOMBRES_CUADROS_PLAN.md): una petición más,
+    // la de la página y no la del plan.
     expect(apiMock.get.mock.calls).toEqual([
       ["/admin/plan-de-clases/91"],
       ["/plan-de-clases/91/observaciones"],
+      ["/plan-de-clases/cuadros"],
     ]);
 
     fireEvent.click(screen.getByRole("button", { name: "Aprobar planeación" }));
@@ -129,5 +134,56 @@ describe("PlaneadoresClasesAdmin", () => {
       "/admin/plan-de-clases/91/revision",
       { estado: "revisado", version: 4, comentario: null },
     ));
+  });
+});
+
+describe("nombres de los cuadros (NOMBRES_CUADROS_PLAN.md)", () => {
+  function conCuadrosDelColegio(cuadros) {
+    const previa = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) => (
+      url === "/plan-de-clases/cuadros"
+        ? Promise.resolve({ data: { cuadros } })
+        : previa(url, opciones)
+    ));
+  }
+
+  it("desde la bandeja se renombra un cuadro y se guarda la lista completa", async () => {
+    apiMock.put.mockImplementation((url, payload) => Promise.resolve({ data: payload }));
+    renderizar();
+    await screen.findAllByText("Fracciones equivalentes");
+
+    fireEvent.click(screen.getByRole("button", { name: "Nombres de los cuadros" }));
+    const ventana = await screen.findByRole("dialog", { name: "Nombres de los cuadros" });
+    const logro = await within(ventana).findByRole("group", { name: "Cuadro Logro" });
+    fireEvent.change(within(logro).getByLabelText("Nombre"), {
+      target: { value: "Objetivo de aprendizaje" },
+    });
+    fireEvent.click(within(ventana).getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(apiMock.put).toHaveBeenCalledWith(
+      "/admin/plan-de-clases/cuadros",
+      { cuadros: [{
+        clave: "proposito",
+        nombre: "Objetivo de aprendizaje",
+        ayuda: "Qué se espera que logren los estudiantes",
+      }] },
+    ));
+    expect(await screen.findByText("Nombres guardados.")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("el detalle del plan usa los nombres del colegio", async () => {
+    conCuadrosDelColegio([{ clave: "proposito", nombre: "Objetivo de aprendizaje", ayuda: "" }]);
+
+    renderizar("/admin/planeadores-clases/91?vista=todas&estado=pendiente");
+
+    expect(
+      await screen.findByRole("heading", { name: "Objetivo de aprendizaje" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Logro" })).not.toBeInTheDocument();
+    // Un solo nombre por cuadro: el del formulario del profesor (P1).
+    expect(
+      screen.getByRole("heading", { name: "Estándar / Lineamientos curriculares" }),
+    ).toBeInTheDocument();
   });
 });

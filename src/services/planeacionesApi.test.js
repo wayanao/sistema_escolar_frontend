@@ -6,6 +6,7 @@ const { apiMock } = vi.hoisted(() => ({
     get: vi.fn(),
     patch: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -19,6 +20,7 @@ import {
   descargarImagenPlaneacion,
   eliminarImagenPlaneacionAdmin,
   eliminarImagenPlanProfesor,
+  guardarCuadrosPlan,
   guardarPlanProfesor,
   listarClasesProfesor,
   listarHistorialPlanesProfesor,
@@ -28,6 +30,7 @@ import {
   listarPlaneacionesAdmin,
   listarProfesoresPlaneaciones,
   marcarObservacionVista,
+  obtenerCuadrosPlan,
   obtenerPlanAnioAnterior,
   obtenerPlaneacionAdmin,
   obtenerPlanProfesor,
@@ -236,5 +239,23 @@ describe("planes del año pasado (año lectivo, paso 7.4)", () => {
 
     await expect(obtenerPlanAnioAnterior(200, 1)).resolves.toBe(texto);
     expect(apiMock.get).toHaveBeenCalledWith("/plan-de-clases/200/anio-anterior/1");
+  });
+});
+
+describe("nombres de los cuadros del plan (NOMBRES_CUADROS_PLAN.md)", () => {
+  it("lee los cuadros que el colegio renombró", async () => {
+    const respuesta = { cuadros: [{ clave: "proposito", nombre: "Objetivo", ayuda: "" }] };
+    apiMock.get.mockResolvedValue({ data: respuesta });
+
+    await expect(obtenerCuadrosPlan()).resolves.toBe(respuesta);
+    expect(apiMock.get).toHaveBeenCalledWith("/plan-de-clases/cuadros");
+  });
+
+  it("guarda la lista completa con PUT en la ruta del admin", async () => {
+    const payload = { cuadros: [{ clave: "tema", nombre: "Asunto", ayuda: "" }] };
+    apiMock.put.mockResolvedValue({ data: payload });
+
+    await expect(guardarCuadrosPlan(payload)).resolves.toBe(payload);
+    expect(apiMock.put).toHaveBeenCalledWith("/admin/plan-de-clases/cuadros", payload);
   });
 });

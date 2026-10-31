@@ -628,6 +628,23 @@ Estado actual de componentes y paginas del frontend.
 - La columna lateral `Envios recibidos` y su scroll vertical interno fueron
   retirados. La lista usa todo el ancho disponible y el desplazamiento normal
   de la pagina.
+- Nombres de los cuadros (2026-10-31,
+  `docs/funcionalidades/NOMBRES_CUADROS_PLAN.md`): ninguna pantalla del plan
+  escribe a mano el nombre de un cuadro. `GuiaDidacticaProfesor`,
+  `EvidenciasPlanProfesor`, `PresentacionClaseProfesor` y
+  `DetallePlaneacionAdmin` reciben la prop `cuadros` (los originales si no
+  llega) y toman de ahí el nombre, el texto de ayuda y el nombre de cada
+  archivo. "Contexto pedagógico" y "Actividad en clase" siguen fijos.
+- `components/planeaciones/admin/VentanaCuadrosPlanAdmin.jsx`: la ventana
+  donde el admin renombra los cuadros. Arriba, el aviso de que renombrar no
+  cambia lo que recibe el cuadro ni borra lo escrito; después, una fila por
+  cuadro con el nombre original, el nombre, el texto de ayuda (solo en los de
+  texto) y qué recibe. Sin haber leído los nombres actuales no muestra campos
+  ni deja guardar. Mismo patrón que `VentanaFirmaAnotacion`: portal,
+  `z-[60]`, pantalla completa en el celular, no se cierra al tocar fuera. La
+  abre el botón "Nombres de los cuadros" de `EncabezadoPlaneacionesAdmin`
+  (prop `onAbrirNombresCuadros`; sin ella no hay botón). El estado vive en
+  `hooks/planeaciones/useEdicionCuadrosPlanAdmin.js`.
 - Al entrar, `Hoy y próximas` queda seleccionado por defecto. El administrador
   puede cambiar a `Anteriores` o `Todas`; `Anteriores` usa fechas previas al
   dia actual y la fecha de hoy pertenece a `Hoy y próximas`.

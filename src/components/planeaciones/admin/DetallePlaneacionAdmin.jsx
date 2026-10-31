@@ -1,6 +1,7 @@
 import useAperturaEvidencia from "../../../hooks/planeaciones/useAperturaEvidencia";
 import { useImagenProtegida } from "../../../hooks/planeaciones/useImagenProtegida";
 import { esEvidenciaPdf } from "../../../utils/planeaciones/evidencias";
+import { NOMBRES_CUADROS_ORIGINALES } from "../../../utils/planeaciones/cuadros";
 import ContenidoEvidencia from "../ContenidoEvidencia";
 import TextoConEnlaces from "../TextoConEnlaces";
 import VisorPdfPlaneacion from "../VisorPdfPlaneacion";
@@ -32,6 +33,8 @@ function DetallePlaneacionAdmin({
   // Falso mirando un año cerrado: solo consulta, sin revisión ni borrar
   // evidencias.
   puedeEditar = true,
+  // Nombres de los cuadros que usa el colegio (useCuadrosPlan).
+  cuadros = NOMBRES_CUADROS_ORIGINALES,
 }) {
   if (cargando) {
     return (
@@ -89,6 +92,7 @@ function DetallePlaneacionAdmin({
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <PlanRecibidoDetalle
             plan={plan}
+            cuadros={cuadros}
             onEliminarImagen={puedeEditar ? onEliminarImagen : undefined}
             eliminandoImagen={eliminandoImagen}
           />
@@ -207,6 +211,7 @@ function FormularioRevision({
 
 function PlanRecibidoDetalle({
   plan,
+  cuadros,
   onEliminarImagen,
   eliminandoImagen,
 }) {
@@ -227,8 +232,8 @@ function PlanRecibidoDetalle({
     .join("")
     .toLocaleUpperCase("es-CO");
   const contexto = [
-    { titulo: "Unidad", texto: plan.unidad },
-    { titulo: "Estándar", texto: plan.estandar },
+    { clave: "unidad", titulo: cuadros.unidad.nombre, texto: plan.unidad },
+    { clave: "estandar", titulo: cuadros.estandar.nombre, texto: plan.estandar },
   ];
   const tieneActividadEnClase = Boolean(String(plan.competencias || "").trim());
 
@@ -291,15 +296,15 @@ function PlanRecibidoDetalle({
 
       <section>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {contexto.map((item) => (
-            <DetallePlanBloque key={item.titulo} {...item} />
+          {contexto.map(({ clave, ...item }) => (
+            <DetallePlanBloque key={clave} {...item} />
           ))}
         </div>
       </section>
 
       <section>
         <DetallePlanBloque
-          titulo="Logro"
+          titulo={cuadros.proposito.nombre}
           texto={plan.proposito}
           color="bg-emerald-500"
         />
@@ -312,7 +317,7 @@ function PlanRecibidoDetalle({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-black text-purple-800">
-              Actividad inicial
+              {cuadros.clase.nombre}
             </h3>
             <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-800">
               {plan.clase ? (
@@ -339,12 +344,12 @@ function PlanRecibidoDetalle({
             />
           )}
           <DetallePlanBloque
-            titulo="Desarrollo cognitivo"
+            titulo={cuadros.dba.nombre}
             texto={plan.dba}
             color="bg-orange-500"
           />
           <DetallePlanBloque
-            titulo="Actividad en casa"
+            titulo={cuadros.actividad_casa.nombre}
             texto={plan.actividad_casa}
             color="bg-sky-500"
           />
@@ -354,6 +359,7 @@ function PlanRecibidoDetalle({
       <section className="border-t border-slate-200 pt-5">
         <Evidencias
           plan={plan}
+          cuadros={cuadros}
           onEliminarImagen={onEliminarImagen}
           eliminandoImagen={eliminandoImagen}
         />
@@ -484,17 +490,17 @@ function DetallePlanBloque({ titulo, texto, color }) {
   );
 }
 
-function Evidencias({ plan, onEliminarImagen, eliminandoImagen }) {
+function Evidencias({ plan, cuadros, onEliminarImagen, eliminandoImagen }) {
   const imagenes = [
     {
       slot: "imagen1",
       path: plan.imagen1,
-      label: "Evidencia de desarrollo cognitivo",
+      label: cuadros.imagen1.nombre,
     },
     {
       slot: "imagen2",
       path: plan.imagen2,
-      label: "Evidencia de actividad en casa",
+      label: cuadros.imagen2.nombre,
     },
   ].filter((imagen) => Boolean(imagen.path));
 

@@ -10,6 +10,7 @@ import PresentacionClaseProfesor from "../components/planeaciones/profesor/Prese
 import SeguimientoPlanProfesor from "../components/planeaciones/profesor/SeguimientoPlanProfesor";
 import useCargaPlanDiarioProfesor from "../hooks/planeaciones/useCargaPlanDiarioProfesor";
 import useClasesPlaneacionProfesor from "../hooks/planeaciones/useClasesPlaneacionProfesor";
+import useCuadrosPlan from "../hooks/planeaciones/useCuadrosPlan";
 import useEliminacionImagenPlanProfesor from "../hooks/planeaciones/useEliminacionImagenPlanProfesor";
 import useFormularioPlaneacionProfesor from "../hooks/planeaciones/useFormularioPlaneacionProfesor";
 import useGuardadoPlaneacionProfesor from "../hooks/planeaciones/useGuardadoPlaneacionProfesor";
@@ -39,6 +40,9 @@ function PlanDeClases() {
   const [avisoGuardadoId, setAvisoGuardadoId] = useState(0);
   const [presentacionAbierta, setPresentacionAbierta] = useState(false);
   const presentacionAutomaticaPendienteRef = useRef(searchParams.get("presentacion") === "1");
+  // Nombres de los cuadros del colegio: una petición al abrir la página; si
+  // falla, los originales (docs/funcionalidades/NOMBRES_CUADROS_PLAN.md).
+  const { cuadros } = useCuadrosPlan();
   const {
     asignacionId,
     setAsignacionId,
@@ -264,6 +268,7 @@ function PlanDeClases() {
             onManejarImagen={manejarImagen}
             onEliminarImagen={eliminarImagenGuardada}
             onAbrirPresentacion={() => setPresentacionAbierta(true)}
+            cuadros={cuadros}
           />
 
           <GuardadoPlanProfesor
@@ -298,6 +303,7 @@ function PlanDeClases() {
             imagenesGuardadas={imagenesGuardadas}
             hayCambios={estadoGuardado.modificado}
             onCerrar={() => setPresentacionAbierta(false)}
+            cuadros={cuadros}
           />
         )}
       </div>

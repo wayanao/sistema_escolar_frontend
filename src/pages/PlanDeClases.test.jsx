@@ -86,6 +86,12 @@ function prepararApi(planActual = null) {
       return Promise.resolve({ data: [] });
     }
 
+    // Nombres de los cuadros (NOMBRES_CUADROS_PLAN.md): el colegio no
+    // renombró ninguno.
+    if (url === '/plan-de-clases/cuadros') {
+      return Promise.resolve({ data: { cuadros: [] } });
+    }
+
     return Promise.reject(new Error(`Consulta no simulada: ${url}`));
   });
   apiMock.patch.mockResolvedValue({ data: {} });
@@ -240,5 +246,61 @@ describe('guardado del plan de clases del profesor', () => {
     expect(primerEnvio.get('version_esperada')).toBe('0');
     expect(segundoEnvio.get('version_esperada')).toBe('0');
     expect(await screen.findByText('Plan guardado después de reconectar.')).toBeInTheDocument();
+  });
+});
+
+describe('nombres de los cuadros del colegio (NOMBRES_CUADROS_PLAN.md)', () => {
+  function conCuadrosDelColegio(cuadros) {
+    const previa = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, config) => (
+      url === '/plan-de-clases/cuadros'
+        ? Promise.resolve({ data: { cuadros } })
+        : previa(url, config)
+    ));
+  }
+
+  it('el formulario y la presentación usan los nombres del colegio, con una sola petición', async () => {
+    prepararApi(crearPlanGuardado());
+    conCuadrosDelColegio([
+      { clave: 'proposito', nombre: 'Objetivo de aprendizaje', ayuda: 'Qué aprenderán hoy' },
+      { clave: 'actividad_casa', nombre: 'Tarea', ayuda: '' },
+    ]);
+    const user = userEvent.setup();
+
+    await abrirPlaneador();
+
+    expect(await screen.findByText('Objetivo de aprendizaje')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Qué aprenderán hoy')).toBeInTheDocument();
+    expect(screen.getByText('Tarea')).toBeInTheDocument();
+    expect(screen.queryByText('Logro')).not.toBeInTheDocument();
+    // Los que el colegio no cambió siguen con su nombre original.
+    expect(screen.getByText('Desarrollo cognitivo')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Presentación de clase' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Objetivo de aprendizaje' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tarea' })).toBeInTheDocument();
+
+    expect(
+      apiMock.get.mock.calls.filter(([url]) => url === '/plan-de-clases/cuadros'),
+    ).toHaveLength(1);
+  });
+
+  it('si no se pueden leer los nombres, el profesor sigue planeando con los originales', async () => {
+    prepararApi();
+    const previa = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, config) => (
+      url === '/plan-de-clases/cuadros'
+        ? Promise.reject(new Error('sin red'))
+        : previa(url, config)
+    ));
+    const consola = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await abrirPlaneador();
+
+    expect(screen.getByText('Logro')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Guardar y enviar' })).toBeEnabled();
+    consola.mockRestore();
   });
 });

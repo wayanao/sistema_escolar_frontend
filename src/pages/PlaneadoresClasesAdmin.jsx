@@ -3,8 +3,11 @@ import DetallePlaneacionAdmin from "../components/planeaciones/admin/DetallePlan
 import EncabezadoPlaneacionesAdmin from "../components/planeaciones/admin/EncabezadoPlaneacionesAdmin";
 import FiltrosPlaneacionesAdmin from "../components/planeaciones/admin/FiltrosPlaneacionesAdmin";
 import ResultadosPlaneacionesAdmin from "../components/planeaciones/admin/ResultadosPlaneacionesAdmin";
+import VentanaCuadrosPlanAdmin from "../components/planeaciones/admin/VentanaCuadrosPlanAdmin";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
+import useCuadrosPlan from "../hooks/planeaciones/useCuadrosPlan";
 import useDetallePlaneacionAdmin from "../hooks/planeaciones/useDetallePlaneacionAdmin";
+import useEdicionCuadrosPlanAdmin from "../hooks/planeaciones/useEdicionCuadrosPlanAdmin";
 import useListadoPlaneacionesAdmin from "../hooks/planeaciones/useListadoPlaneacionesAdmin";
 import useRevisionMasivaPlaneacionesAdmin from "../hooks/planeaciones/useRevisionMasivaPlaneacionesAdmin";
 
@@ -22,14 +25,18 @@ function subirAlInicio() {
 
 function PlaneadoresClasesAdmin() {
   const { planId } = useParams();
+  // Nombres de los cuadros del plan (docs/funcionalidades/NOMBRES_CUADROS_PLAN.md):
+  // los usa el detalle y los edita la ventana de la bandeja. Se leen aquí, una
+  // vez, y no en cada plan que se abre.
+  const cuadrosPlan = useCuadrosPlan();
   return planId ? (
-    <DetallePlaneadorAdmin planId={planId} />
+    <DetallePlaneadorAdmin planId={planId} cuadros={cuadrosPlan.cuadros} />
   ) : (
-    <ListadoPlaneadoresAdmin />
+    <ListadoPlaneadoresAdmin cuadrosPlan={cuadrosPlan} />
   );
 }
 
-function ListadoPlaneadoresAdmin() {
+function ListadoPlaneadoresAdmin({ cuadrosPlan }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { parametros, permisos } = useAnioLectivo();
@@ -77,6 +84,13 @@ function ListadoPlaneadoresAdmin() {
     planes,
     onMarcados: recargar,
   });
+  // Los nombres son del colegio, no de un año: se renombran también mirando
+  // un año cerrado.
+  const edicionCuadros = useEdicionCuadrosPlanAdmin({
+    cuadros: cuadrosPlan.cuadros,
+    disponible: !cuadrosPlan.cargando && !cuadrosPlan.error,
+    onGuardados: cuadrosPlan.reemplazar,
+  });
 
   const abrirPlan = (id) => {
     const query = queryActual.toString();
@@ -91,6 +105,8 @@ function ListadoPlaneadoresAdmin() {
         <EncabezadoPlaneacionesAdmin
           vista={vista}
           onCambiarVista={cambiarVista}
+          onAbrirNombresCuadros={edicionCuadros.abrir}
+          avisoNombresCuadros={edicionCuadros.aviso}
         />
 
         <FiltrosPlaneacionesAdmin
@@ -134,11 +150,28 @@ function ListadoPlaneadoresAdmin() {
           onMarcarVistos={marcarComoVistos}
         />
       </div>
+
+      {edicionCuadros.abierta && (
+        <VentanaCuadrosPlanAdmin
+          cuadros={cuadrosPlan.cuadros}
+          valores={edicionCuadros.valores}
+          errores={edicionCuadros.errores}
+          error={edicionCuadros.error}
+          cargando={cuadrosPlan.cargando}
+          errorLectura={cuadrosPlan.error}
+          guardando={edicionCuadros.guardando}
+          onCambiar={edicionCuadros.cambiar}
+          onVolverAOriginales={edicionCuadros.volverAOriginales}
+          onGuardar={edicionCuadros.guardar}
+          onReintentar={cuadrosPlan.recargar}
+          onCerrar={edicionCuadros.cerrar}
+        />
+      )}
     </div>
   );
 }
 
-function DetallePlaneadorAdmin({ planId }) {
+function DetallePlaneadorAdmin({ planId, cuadros }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // El detalle parte del id del plan y no trae su año: los botones siguen el
@@ -177,6 +210,7 @@ function DetallePlaneadorAdmin({ planId }) {
       mensaje={mensaje}
       eliminandoImagen={eliminandoImagen}
       puedeEditar={permisos.puedeEditar}
+      cuadros={cuadros}
       onVolver={volver}
       onCambiarObservacion={setObservacion}
       onAprobar={marcarRevisado}

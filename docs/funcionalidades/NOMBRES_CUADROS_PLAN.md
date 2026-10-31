@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **diseñado el 2026-10-31 (paso 0). El backend (paso 1) se publicó
-  ese mismo día, con la migración en producción. El paso 2 (este documento)
-  no ha comenzado.**
+- Estado: **paso 2 (este documento) construido el 2026-10-31, sin commit y
+  sin probar en el navegador.** El backend (paso 1) se publicó ese mismo
+  día, con la migración en producción. Ver "Avance del paso 2".
 - Tipo: función nueva de producto. No es un módulo de
   `docs/modularizacion/`; vive dentro del módulo `planeaciones`.
 - **El documento principal es
@@ -34,8 +34,10 @@ confundiría con ella.
    - **Qué recibe**: "Texto. Acepta enlaces: los de YouTube se reproducen
      dentro de la clase y los demás se abren en otra pestaña", o "Un archivo:
      imagen PNG, JPG o WEBP de hasta 5 MB, o un PDF de hasta 15 MB".
-3. Botones: **"Guardar"**, **"Volver a los originales"** (pide confirmación) y
-   **"Cancelar"**.
+3. Botones: **"Guardar"**, **"Volver a los originales"** y **"Cancelar"**.
+   "Volver a los originales" solo cambia lo que se está editando, sin
+   guardar; por eso no pide confirmación. Se guarda con "Guardar", y
+   "Cancelar" lo descarta.
 
 Reglas de la ventana:
 
@@ -63,9 +65,10 @@ Reglas de la ventana:
   detalle del admin. Renombrarlo solo cambia el formulario.
 - **"Actividad en clase"** (`competencias`) conserva su nombre fijo; solo
   aparece en planes viejos.
-- Hoy el admin ve "Estándar" y "Evidencia de desarrollo cognitivo". Con un
-  solo nombre por cuadro pasaría a ver los del formulario (P1 del documento
-  principal).
+- Antes el admin veía "Estándar" y "Evidencia de desarrollo cognitivo". El
+  usuario eligió el 2026-10-31 la opción A de la P1 del documento principal:
+  el original es el nombre del formulario del profesor. Así, el admin ve
+  ahora "Estándar / Lineamientos curriculares" y "Actividad a desarrollar".
 
 ## Dónde va el código (patrón del proyecto)
 
@@ -110,3 +113,41 @@ con una prueba en local con el Colegio Demo antes de publicar.
 
 Si el backend local apunta a la base de producción, esa prueba renombra los
 cuadros del Colegio Demo de verdad. Se deshace con "Volver a los originales".
+
+## Avance del paso 2 (2026-10-31)
+
+Construido como en el diseño, con estos ajustes:
+
+- **Una lectura para todo Planeaciones del admin.** `useCuadrosPlan` va en
+  `PlaneadoresClasesAdmin`, el componente que elige entre la bandeja y el
+  detalle, y no en cada uno. La bandeja la usa para la ventana y el detalle
+  para los títulos. Abrir otro plan no vuelve a pedir los nombres.
+- **"Volver a los originales" no guarda por sí solo** (ver arriba). Por eso
+  no hace falta confirmación.
+- **Si la ventana se abre antes de que termine la lectura,** muestra
+  "Cargando los nombres actuales..." y, en cuanto llegan, los campos con lo
+  leído. Mientras el admin no escriba, los valores salen de lo leído
+  (`useEdicionCuadrosPlanAdmin`).
+- **Después de guardar,** la ventana se cierra, el encabezado dice "Nombres
+  guardados." y la página usa los nombres nuevos sin volver a pedirlos
+  (`reemplazar`).
+- Los nombres no dependen del año que mira el admin: se pueden cambiar
+  también mirando un año cerrado.
+
+Verificación:
+
+- `pnpm run check:deploy`: **3173 pruebas en 393 archivos**, lint y build
+  correctos.
+- Pruebas nuevas:
+  - `utils/planeaciones/cuadros.test.js`;
+  - los dos hooks;
+  - `VentanaCuadrosPlanAdmin.test.jsx`;
+  - las dos llamadas en `planeacionesApi.test.js`;
+  - en `PlanDeClases.test.jsx`: los nombres del colegio en el formulario y
+    en la presentación, con una sola petición, y que una falla de lectura
+    no bloquea al profesor;
+  - en `PlaneadoresClasesAdmin.test.jsx`: renombrar desde la bandeja manda
+    la lista completa, y el detalle usa los nombres del colegio.
+
+Falta: la prueba en el navegador, en local con el Colegio Demo, antes del
+commit y el push.

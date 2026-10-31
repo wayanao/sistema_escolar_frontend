@@ -76,6 +76,12 @@ function prepararApi({ planActual = null, planes = PLANES_2026 } = {}) {
     if (url === `${URL_LISTA}/1`) {
       return Promise.resolve({ data: TEXTO_PLAN_1 });
     }
+    // Nombres de los cuadros (NOMBRES_CUADROS_PLAN.md): el colegio no
+    // renombró ninguno.
+    if (url === '/plan-de-clases/cuadros') {
+      return Promise.resolve({ data: { cuadros: [] } });
+    }
+
     return Promise.reject(new Error(`Consulta no simulada: ${url}`));
   });
 }

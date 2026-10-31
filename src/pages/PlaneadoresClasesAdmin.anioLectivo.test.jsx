@@ -86,6 +86,7 @@ beforeEach(() => {
     }
     if (url === "/admin/plan-de-clases/91") return Promise.resolve({ data: PLAN });
     if (url === "/plan-de-clases/91/observaciones") return Promise.resolve({ data: [] });
+    if (url === "/plan-de-clases/cuadros") return Promise.resolve({ data: { cuadros: [] } });
     return Promise.reject(new Error(`GET inesperado: ${url}`));
   });
 });
@@ -116,9 +117,12 @@ describe("Bandeja de planes mirando otro año", () => {
 
     expect(await screen.findByRole("button", { name: /Volver a la bandeja/ })).toBeInTheDocument();
     // El detalle parte del id del plan: no lleva año.
+    // Nombres de los cuadros (NOMBRES_CUADROS_PLAN.md): una petición más,
+    // la de la página y no la del plan.
     expect(apiMock.get.mock.calls).toEqual([
       ["/admin/plan-de-clases/91"],
       ["/plan-de-clases/91/observaciones"],
+      ["/plan-de-clases/cuadros"],
     ]);
     expect(screen.queryByText("Revisión y comentario al profesor")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Aprobar/ })).not.toBeInTheDocument();

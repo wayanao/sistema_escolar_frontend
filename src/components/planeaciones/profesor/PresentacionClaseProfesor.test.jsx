@@ -157,7 +157,7 @@ describe("PresentacionClaseProfesor", () => {
     );
 
     expect(
-      screen.getByAltText("Evidencia de desarrollo cognitivo"),
+      screen.getByAltText("Actividad a desarrollar"),
     ).toHaveAttribute("src", imagenLocal.url);
     expect(screen.getByText("actividad.png")).toBeInTheDocument();
     expect(useImagenProtegidaMock).toHaveBeenCalledWith("");
@@ -227,22 +227,22 @@ describe("PresentacionClaseProfesor", () => {
     render(<PresentacionClaseProfesor {...propiedades} />);
 
     expect(
-      screen.queryByTitle("Evidencia de desarrollo cognitivo"),
+      screen.queryByTitle("Actividad a desarrollar"),
     ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
-        name: "Abrir documento: Evidencia de desarrollo cognitivo",
+        name: "Abrir documento: Actividad a desarrollar",
       }),
     );
 
     expect(
-      screen.getByTitle("Evidencia de desarrollo cognitivo"),
+      screen.getByTitle("Actividad a desarrollar"),
     ).toHaveAttribute("src", "https://auligo.test/evidencia-guardada.webp");
     expect(window.open).not.toHaveBeenCalled();
 
     await user.keyboard("{Escape}");
     expect(
-      screen.queryByTitle("Evidencia de desarrollo cognitivo"),
+      screen.queryByTitle("Actividad a desarrollar"),
     ).not.toBeInTheDocument();
     expect(propiedades.onCerrar).not.toHaveBeenCalled();
   });
@@ -262,7 +262,7 @@ describe("PresentacionClaseProfesor", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Ver imagen completa: Evidencia de desarrollo cognitivo",
+        name: "Ver imagen completa: Actividad a desarrollar",
       }),
     );
 

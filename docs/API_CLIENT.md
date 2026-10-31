@@ -940,6 +940,26 @@ GET /plan-de-clases/{asignacion_id}/anio-anterior/{plan_id}
 - Si el backend rechaza el texto (`403` o `409`), se muestra su `detail` en el
   mensaje del formulario y no se toca nada.
 
+Nombres de los cuadros (2026-10-31, `docs/funcionalidades/NOMBRES_CUADROS_PLAN.md`):
+
+```text
+GET /plan-de-clases/cuadros
+PUT /admin/plan-de-clases/cuadros
+```
+
+- `obtenerCuadrosPlan` y `guardarCuadrosPlan` en `services/planeacionesApi.js`.
+  Solo viajan los cuadros que el colegio renombró, como
+  `{"cuadros": [{"clave", "nombre", "ayuda"}]}`; los nombres originales viven
+  en `utils/planeaciones/cuadros.js`.
+- La lectura la hace `useCuadrosPlan`, **una vez al abrir la página**: en el
+  plan del profesor y en Planeaciones del admin (la bandeja y el detalle la
+  comparten). No se repite al cambiar de fecha, de clase ni de plan. Si
+  falla, se usan los originales y el profesor sigue planeando.
+- Guardar (solo admin) manda la lista **completa** de cuadros distintos del
+  original y reemplaza la del colegio; una lista vacía vuelve a los
+  originales. La ventana no guarda si no pudo leer los nombres actuales. Un
+  `422` del backend se muestra con su `detail`.
+
 ### Malla Curricular
 
 `PlaneadorAnual.jsx` consume:

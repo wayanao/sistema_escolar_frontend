@@ -1,6 +1,13 @@
 import { VISTAS_FECHA } from "../../../utils/planeaciones/admin";
 
-function EncabezadoPlaneacionesAdmin({ vista, onCambiarVista }) {
+// `onAbrirNombresCuadros` abre la ventana para renombrar los cuadros del plan
+// (docs/funcionalidades/NOMBRES_CUADROS_PLAN.md); sin él, no hay botón.
+function EncabezadoPlaneacionesAdmin({
+  vista,
+  onCambiarVista,
+  onAbrirNombresCuadros,
+  avisoNombresCuadros = "",
+}) {
   return (
     <section className="overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm">
       <div className="relative px-5 py-6 sm:px-7">
@@ -17,6 +24,22 @@ function EncabezadoPlaneacionesAdmin({ vista, onCambiarVista }) {
               Revisa los envíos docentes desde una sola bandeja y abre cada clase en su propio espacio de
               trabajo.
             </p>
+            {onAbrirNombresCuadros && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onAbrirNombresCuadros}
+                  className="inline-flex min-h-9 items-center rounded-xl border border-violet-200 bg-white px-3.5 py-1.5 text-sm font-bold text-violet-800 shadow-sm transition hover:border-violet-300 hover:bg-violet-50"
+                >
+                  Nombres de los cuadros
+                </button>
+                {avisoNombresCuadros && (
+                  <p role="status" className="text-sm font-semibold text-emerald-700">
+                    {avisoNombresCuadros}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="w-full rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-3 shadow-[0_18px_40px_-26px_rgba(5,150,105,0.8)] xl:max-w-[520px]">

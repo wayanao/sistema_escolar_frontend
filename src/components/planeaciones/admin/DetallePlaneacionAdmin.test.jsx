@@ -228,7 +228,7 @@ describe("DetallePlaneacionAdmin", () => {
     );
     expect(
       screen.getByRole("img", {
-        name: "Evidencia de desarrollo cognitivo",
+        name: "Actividad a desarrollar",
       }),
     ).toBeInTheDocument();
 
