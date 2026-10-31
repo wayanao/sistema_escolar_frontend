@@ -69,9 +69,8 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md`: en el resumen del
   estudiante del admin, escoger el periodo (o "Todo el año"), ver las caritas
   de preescolar y las inasistencias del periodo. El documento principal está
-  en el backend. **Backend publicado el 2026-10-31 (`a7560e0`); la
-  pantalla (paso 2) construida ese día, sin commit ni prueba en el
-  navegador.**
+  en el backend. **Publicado el 2026-10-31: backend (`a7560e0`) y
+  pantalla (`f5a573d`, Vercel OK).**
 
 ## Control SaaS
 

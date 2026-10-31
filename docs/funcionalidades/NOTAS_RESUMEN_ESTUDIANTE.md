@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **paso 2 (este documento) construido el 2026-10-31, sin commit y
-  sin probar en el navegador.** El backend (paso 1) se publicó ese mismo día
-  (`a7560e0`). Ver "Avance del paso 2".
+- Estado: **publicado el 2026-10-31** (`f5a573d`; Vercel terminó bien),
+  después de que el usuario lo probara en local. El backend (paso 1) salió
+  ese mismo día (`a7560e0`). Ver "Avance del paso 2".
 - Tipo: mejora del resumen del estudiante del admin
   (`components/estudiantesObservador/admin/DetalleEstudianteAdmin.jsx`).
 - **El documento principal es
@@ -101,3 +101,10 @@ Para la prueba en local, el Colegio Demo tiene:
 
 - el estudiante 1, de primaria, con notas en los 4 periodos;
 - el estudiante 9, de preescolar, con "Logrado" en Sociales, periodo 1.
+
+Publicación (2026-10-31):
+
+- El usuario lo probó en local con esos dos estudiantes y dijo que todo
+  estaba bien.
+- Hizo el commit (`f5a573d`) y el push, y Vercel terminó bien ("Deployment
+  has completed").
