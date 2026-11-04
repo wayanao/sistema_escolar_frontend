@@ -1,5 +1,18 @@
 # Cambios Frontend
 
+## 2026-11-04 - Gestión de Pagos: «Lo que debe» con borde de color
+
+Pedido por el usuario: «el cuadrito que muestra que debe, ¿se puede poner el
+borde rojo para diferenciar y que a la vista muestre que debe?».
+
+- «Lo que debe» tiene borde rojo y fondo rojo muy suave cuando el estudiante
+  debe algo, borde verde cuando está al día y gris mientras consulta o si la
+  consulta falló.
+- Archivo: `components/pagos/ResumenDeudaPago.jsx` y su prueba.
+- Verificación: pruebas de Pagos → **132 en 20 archivos**.
+  `pnpm run check:deploy` → **3247 pruebas en 397 archivos**, lint y build
+  correctos. Sin probar todavía en el navegador.
+
 ## 2026-11-04 - Gestión de Pagos más clara (paso 5: historial cerrado)
 
 Pedido por el usuario. Detalle en

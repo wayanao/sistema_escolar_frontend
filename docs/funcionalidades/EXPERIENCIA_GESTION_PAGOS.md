@@ -371,6 +371,13 @@ En el Colegio Demo: elegir un estudiante con pagos (el historial sale
 cerrado), registrar un pago (sale solo ese, con «Imprimir Recibo») y abrir
 el historial con el botón.
 
+## Ajuste (2026-11-04): «Lo que debe» con borde de color
+
+Pedido del usuario: que el recuadro muestre a la vista que el estudiante
+debe. Borde rojo (`border-2 border-red-300`) y fondo rojo muy suave cuando
+hay deuda; borde verde cuando está al día; gris mientras consulta o si la
+consulta falló. Solo `ResumenDeudaPago.jsx`; Pagos pasa a **132** pruebas.
+
 ## Preguntas abiertas
 
 Se hacen justo antes del paso que las necesita.

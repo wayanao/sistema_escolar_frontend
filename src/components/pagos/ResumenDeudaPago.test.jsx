@@ -123,6 +123,20 @@ describe("ResumenDeudaPago", () => {
     expect(screen.queryByText(/Al día/)).not.toBeInTheDocument();
   });
 
+  it("se ve de lejos si debe: borde rojo con deuda, verde al día y gris mientras consulta", () => {
+    const { rerender } = render(
+      <ResumenDeudaPago {...propsBase} resumen={{ filas: [pension], total: 300000 }} />
+    );
+    const recuadro = () => screen.getByRole("region", { name: "Lo que debe en 2026" });
+    expect(recuadro()).toHaveClass("border-red-300");
+
+    rerender(<ResumenDeudaPago {...propsBase} resumen={{ filas: [transporte], total: 0 }} />);
+    expect(recuadro()).toHaveClass("border-emerald-200");
+
+    rerender(<ResumenDeudaPago {...propsBase} cargando />);
+    expect(recuadro()).toHaveClass("border-gray-200");
+  });
+
   it("el Cobrar es un botón verde lleno, para que se note", () => {
     render(<ResumenDeudaPago {...propsBase} resumen={{ filas: [pension], total: 300000 }} />);
 

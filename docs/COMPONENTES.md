@@ -1238,7 +1238,8 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   formulario con ese concepto, y la página baja hasta el formulario en
   cualquier pantalla. Compacto. Las filas salen de
   `utils/pagos/resumenDeuda.js`; las de al día no suman al total. No dice
-  "Al día" mientras consulta ni si la consulta falló.
+  "Al día" mientras consulta ni si la consulta falló. Su borde es rojo si
+  debe, verde si está al día y gris mientras consulta (2026-11-04).
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
   adelantos, distribución por monto y métodos combinados. Desde el
   2026-11-04 muestra el concepto elegido en "Lo que debe" como texto, sin

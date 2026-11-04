@@ -43,11 +43,19 @@ export default function ResumenDeudaPago({
   const titulo = anio ? `Lo que debe en ${anio}` : "Lo que debe";
   const { filas, total } = resumen;
   const conDeuda = filas.some((fila) => !fila.alDia);
+  const alDia = !conDeuda && !cargando && !error;
+  // Que se vea de lejos (pedido del usuario, 2026-11-04): rojo si debe, verde
+  // si está al día y gris mientras consulta o si falló.
+  const claseEstado = conDeuda
+    ? "border-2 border-red-300 bg-red-50/40"
+    : alDia
+      ? "border border-emerald-200 bg-white"
+      : "border border-gray-200 bg-white";
 
   return (
     <section
       aria-label={titulo}
-      className="mb-4 rounded-lg border border-gray-200 bg-white px-3 py-2"
+      className={`mb-4 rounded-lg px-3 py-2 ${claseEstado}`}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-900">{titulo}</h3>
@@ -59,7 +67,7 @@ export default function ResumenDeudaPago({
       {!conDeuda && cargando && (
         <p className="mt-1 text-sm text-slate-600">Consultando lo que debe...</p>
       )}
-      {!conDeuda && !cargando && !error && (
+      {alDia && (
         <p className="mt-1 text-sm font-medium text-emerald-700">
           Al día: no debe nada{anio ? ` en ${anio}` : ""}.
         </p>
