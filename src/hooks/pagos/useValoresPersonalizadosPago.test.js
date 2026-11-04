@@ -46,6 +46,7 @@ function crearProps(sobrescrituras = {}) {
     actualizarValoresPersonalizados: vi.fn(),
     cargarDeudasEstudiante: vi.fn(),
     cargarOpcionesVencidas: vi.fn(),
+    cargarOpcionesAdelanto: vi.fn(),
     ...sobrescrituras,
   };
 }
@@ -133,6 +134,7 @@ describe("useValoresPersonalizadosPago", () => {
     expect(props.actualizarValoresPersonalizados).toHaveBeenCalledWith([{ id: 1 }]);
     expect(props.cargarDeudasEstudiante).toHaveBeenCalledWith(7);
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
     expect(pagosApi.obtenerValoresPagoEstudiante).toHaveBeenCalledTimes(2);
     expect(result.current.mensajeValoresPago).toBe("Se guardó el valor de MATRICULA para Ana.");
     expect(result.current.guardandoTipoId).toBe(null);
@@ -160,6 +162,7 @@ describe("useValoresPersonalizadosPago", () => {
     ]);
     expect(props.cargarDeudasEstudiante).toHaveBeenCalledWith(7);
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
     expect(result.current.mensajeValoresPago).toBe(
       "MENSUALIDAD vuelve al precio del curso para Ana."
     );

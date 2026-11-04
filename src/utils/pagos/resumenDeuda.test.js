@@ -42,6 +42,7 @@ describe("crearResumenDeuda", () => {
         mora: 0,
         valorPersonalizado: true,
         inventario: false,
+        alDia: false,
         cobro: { concepto: "Pensión" },
       },
       {
@@ -53,6 +54,7 @@ describe("crearResumenDeuda", () => {
         mora: 15000,
         valorPersonalizado: false,
         inventario: false,
+        alDia: false,
         cobro: { concepto: "Matrícula" },
       },
       {
@@ -64,10 +66,30 @@ describe("crearResumenDeuda", () => {
         mora: 0,
         valorPersonalizado: false,
         inventario: true,
+        alDia: false,
         cobro: { ventaId: 80 },
       },
     ]);
     expect(total).toBe(590000);
+  });
+
+  it("agrega al final los conceptos al día para adelantar, sin sumarlos al total", () => {
+    const { filas, total } = crearResumenDeuda({
+      deudas: [matricula],
+      conceptosAlDia: [
+        { tipo_pago_id: 11, concepto: "Pensión", valor_unitario: 100000, max_meses: 2 },
+      ],
+    });
+
+    expect(filas.at(-1)).toEqual({
+      clave: "adelanto-11",
+      nombre: "Pensión",
+      alDia: true,
+      valorMes: 100000,
+      mesesPorAdelantar: 2,
+      cobro: { concepto: "Pensión" },
+    });
+    expect(total).toBe(200000);
   });
 
   it("cuenta los meses por pagar, no todas las cuotas vencidas", () => {

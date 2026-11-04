@@ -24,7 +24,6 @@ export default function useFormularioPago({
   opcionesAdelanto = [],
   cargarOpcionesVencidas,
   cargarOpcionesAdelanto,
-  reiniciarOpcionesAdelanto,
 }) {
   const [pagoData, setPagoData] = useState(() => crearPagoActual());
   const [modoPago, setModoPago] = useState("normal");
@@ -80,33 +79,14 @@ export default function useFormularioPago({
   const reiniciarPagoConservandoFecha = (estudianteId) =>
     setPagoData((actual) => ({ ...crearPagoActual(estudianteId), fecha: actual.fecha }));
 
-  // El formulario siempre abre igual: limpio, con los meses vencidos al día y
-  // con las opciones de adelanto, porque los conceptos al día para adelantar
-  // salen en la misma lista de conceptos.
+  // El formulario siempre abre igual: limpio y con los meses vencidos al día.
+  // Las opciones de adelanto ya llegaron al elegir el estudiante.
   const abrirLimpio = (estudianteId) => {
     prepararFormulario(estudianteId);
-    reiniciarOpcionesAdelanto();
     cargarOpcionesVencidas(estudianteId);
-    cargarOpcionesAdelanto(estudianteId);
     setShowForm(true);
-  };
-
-  // Al llegar con un estudiante ya elegido (desde Cartera vencida), la página
-  // ya lo preparó y pidió sus meses vencidos: solo faltan los de adelanto.
-  const abrirFormulario = (estudianteId = selectedEstudiante?.id) => {
-    setShowForm(true);
-    if (estudianteId) cargarOpcionesAdelanto(estudianteId);
   };
   const cerrarFormulario = () => setShowForm(false);
-
-  const toggleFormularioPago = () => {
-    if (!selectedEstudiante) return;
-    if (showForm) {
-      setShowForm(false);
-      return;
-    }
-    abrirLimpio(selectedEstudiante.id);
-  };
 
   const obtenerSaldoSeleccionado = () => {
     if (pagoData.venta_id) {
@@ -190,17 +170,8 @@ export default function useFormularioPago({
     }));
   };
 
-  // "Cobrar" de una fila de lo que debe: abre el formulario limpio, igual que
-  // el botón de arriba, y elige ese concepto o cargo como lo haría la lista.
-  const cobrarPendiente = ({ concepto = "", ventaId = null } = {}) => {
-    if (!selectedEstudiante) return;
-    abrirLimpio(selectedEstudiante.id);
-    seleccionarConceptoPendiente(ventaId ? `CargoVenta_${ventaId}` : concepto);
-  };
-
-  // La lista "Concepto de Pago". Un concepto mensual al día no tiene deuda que
-  // pagar: elegirlo es adelantar sus meses. Todo lo demás se paga como
-  // siempre. Ya no hay botones aparte para cada modo.
+  // Elige qué se cobra. Un concepto mensual al día no tiene deuda que pagar:
+  // elegirlo es adelantar sus meses. Todo lo demás se paga como siempre.
   const seleccionarConcepto = (valor) => {
     if (!selectedEstudiante) return;
     const esPendiente =
@@ -218,6 +189,15 @@ export default function useFormularioPago({
     }
     setModoPago("normal");
     seleccionarConceptoPendiente(valor);
+  };
+
+  // "Cobrar" o "Adelantar" de una fila de lo que debe, la única forma de
+  // elegir qué cobrar desde el 2026-11-04: abre el formulario limpio con ese
+  // concepto o cargo ya elegido.
+  const cobrarConcepto = ({ concepto = "", ventaId = null } = {}) => {
+    if (!selectedEstudiante) return;
+    abrirLimpio(selectedEstudiante.id);
+    seleccionarConcepto(ventaId ? `CargoVenta_${ventaId}` : concepto);
   };
 
   const activarAbonoLibre = () => {
@@ -418,14 +398,12 @@ export default function useFormularioPago({
     abonoLibre,
     showForm,
     prepararFormulario,
-    abrirFormulario,
     cerrarFormulario,
-    toggleFormularioPago,
     validarMontoContraSaldo,
     actualizarCuotasSeleccionadas,
     seleccionarConceptoPendiente,
     seleccionarConcepto,
-    cobrarPendiente,
+    cobrarConcepto,
     activarAbonoLibre,
     cambiarModoPago,
     seleccionarConceptoAdelanto,

@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-11-04 - Gestión de Pagos más clara (paso 4: solo «Lo que debe»)
+
+Pedido por el usuario. Detalle en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`. Solo frontend.
+
+- Se cobra solo desde «Lo que debe»: sin la lista «Concepto de Pago» ni el
+  «Cobrar» general. Cada deuda tiene un «💰 Cobrar» verde lleno, y los
+  conceptos mensuales al día un «Adelantar».
+- El recuadro es más compacto, y al pulsar «Cobrar» o «Adelantar» la
+  pantalla baja hasta el formulario en cualquier pantalla.
+- Desde Cartera vencida se llega con el estudiante elegido y lo que debe a la
+  vista, sin abrir el formulario.
+- `GET /pagos/adelanto/opciones/{id}` se pide al elegir el estudiante, al
+  cambiar de año y después de pagar, anular o cambiar un valor
+  personalizado; ya no al abrir el formulario.
+- Lo que se envía al backend no cambia.
+- Verificación: pruebas de Pagos → **125 en 20 archivos**.
+  `pnpm run check:deploy` → **3240 pruebas en 397 archivos**, lint y build
+  correctos, en la segunda corrida; la primera falló por carga del equipo en
+  `TiposPagosAdmin.test.jsx`, que pasa sola y no tiene que ver con Pagos.
+  Sin probar todavía en el navegador.
+
 ## 2026-11-03 - Gestión de Pagos más clara (paso 3: valores personalizados)
 
 Pedido por el usuario. Detalle en

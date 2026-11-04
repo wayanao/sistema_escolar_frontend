@@ -19,6 +19,7 @@ function crearProps(sobrescrituras = {}) {
     cargarVentasPendientes: vi.fn(),
     cargarDeudasEstudiante: vi.fn(),
     cargarOpcionesVencidas: vi.fn(),
+    cargarOpcionesAdelanto: vi.fn(),
     ...sobrescrituras,
   };
 }
@@ -38,7 +39,7 @@ describe("useAnulacionPago", () => {
     expect(pagosApi.anularPago).not.toHaveBeenCalled();
   });
 
-  it("envía el motivo recortado y recarga las cuatro consultas", async () => {
+  it("envía el motivo recortado y recarga las cinco consultas", async () => {
     const props = crearProps();
     Swal.fire.mockResolvedValueOnce({ isConfirmed: true, value: "  Error manual  " });
     pagosApi.anularPago.mockResolvedValue({ ok: true });
@@ -51,6 +52,8 @@ describe("useAnulacionPago", () => {
     expect(props.cargarVentasPendientes).toHaveBeenCalledWith(7);
     expect(props.cargarDeudasEstudiante).toHaveBeenCalledWith(7);
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    // Anular un adelanto libera esos meses, que se ven en lo que debe.
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
     expect(Swal.fire).toHaveBeenLastCalledWith(
       "Pago anulado",
       "La deuda y los reportes se actualizarán con este cambio.",

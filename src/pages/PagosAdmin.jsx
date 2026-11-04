@@ -23,16 +23,25 @@ import { crearResumenDeuda } from "../utils/pagos/resumenDeuda";
 const notificarErrorCargaEstudiantes = () =>
   Swal.fire("Error", "Error al cargar estudiantes", "error");
 
-// Por debajo de `lg` (1024px) todo queda apilado: al elegir un estudiante se
-// baja hasta el panel de pagos, y al abrir el formulario, hasta el formulario,
-// que queda debajo de lo que debe.
-function bajarHasta(elemento) {
-  if (!elemento || !window.matchMedia?.("(max-width: 1023.98px)").matches) return;
-  const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function moverHasta(elemento) {
+  const reducirMovimiento = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   elemento.scrollIntoView?.({
     behavior: reducirMovimiento ? "auto" : "smooth",
     block: "start",
   });
+}
+
+// Por debajo de `lg` (1024px) la lista y el panel quedan apilados: al elegir
+// un estudiante se baja hasta el panel de pagos.
+function bajarAlPanel(panel) {
+  if (!panel || !window.matchMedia?.("(max-width: 1023.98px)").matches) return;
+  moverHasta(panel);
+}
+
+// Al elegir qué cobrar en lo que debe, el formulario queda debajo: se baja
+// hasta él en cualquier pantalla (pedido del usuario, 2026-11-04).
+function bajarAlFormulario(formulario) {
+  if (formulario) moverHasta(formulario);
 }
 
 function PagosAdmin() {
@@ -89,7 +98,6 @@ function PagosAdmin() {
     errorOpcionesAdelanto,
     cargarOpcionesAdelanto,
     reiniciarOpcionesAdelanto,
-    limpiarOpcionesAdelanto,
   } = useOpcionesAdelanto({ parametrosAnio: parametrosAnioPago });
   const ventasDelAnioPago = esAnioPagoActivo ? ventasPendientes : [];
   const {
@@ -98,13 +106,10 @@ function PagosAdmin() {
     abonoLibre,
     showForm,
     prepararFormulario,
-    abrirFormulario,
     cerrarFormulario,
-    toggleFormularioPago,
     validarMontoContraSaldo,
     actualizarCuotasSeleccionadas,
-    seleccionarConcepto,
-    cobrarPendiente,
+    cobrarConcepto,
     activarAbonoLibre,
     cambiarModoPago,
     cambiarCantidadAdelanto,
@@ -135,7 +140,6 @@ function PagosAdmin() {
     opcionesAdelanto,
     cargarOpcionesVencidas,
     cargarOpcionesAdelanto,
-    reiniciarOpcionesAdelanto,
   });
   const {
     filasValoresPago,
@@ -155,6 +159,7 @@ function PagosAdmin() {
     actualizarValoresPersonalizados,
     cargarDeudasEstudiante,
     cargarOpcionesVencidas,
+    cargarOpcionesAdelanto,
   });
   const { registrandoPago, registrarPago } = useRegistroPago({
     selectedEstudiante,
@@ -168,11 +173,11 @@ function PagosAdmin() {
     deudaDelConceptoAdelantado,
     validarMontoContraSaldo,
     reiniciarFormularioTrasRegistro,
-    limpiarOpcionesAdelanto,
     cargarHistorialPagos,
     cargarVentasPendientes,
     cargarDeudasEstudiante,
     cargarOpcionesVencidas,
+    cargarOpcionesAdelanto,
     anioLectivoId: parametrosAnioPago.anio_lectivo_id,
   });
   const { anularPago } = useAnulacionPago({
@@ -181,20 +186,21 @@ function PagosAdmin() {
     cargarVentasPendientes,
     cargarDeudasEstudiante,
     cargarOpcionesVencidas,
+    cargarOpcionesAdelanto,
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [pagoAImprimir, setPagoAImprimir] = useState(null);
   const anioCargadoRef = useRef(null);
   const panelPagoRef = useRef(null);
   const formularioRef = useRef(null);
-  // Cada vez que se abre el formulario (o se cobra otra fila) sube este
-  // contador; el efecto baja hasta el formulario ya pintado.
+  // Cada vez que se elige qué cobrar en lo que debe sube este contador; el
+  // efecto baja hasta el formulario ya pintado.
   const [aperturasFormulario, setAperturasFormulario] = useState(0);
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
   useEffect(() => {
-    if (aperturasFormulario > 0) bajarHasta(formularioRef.current);
+    if (aperturasFormulario > 0) bajarAlFormulario(formularioRef.current);
   }, [aperturasFormulario]);
 
   useEffect(() => {
@@ -223,8 +229,8 @@ function PagosAdmin() {
     if (selectedEstudiante) {
       prepararFormulario(selectedEstudiante.id);
       recargarDatosDelAnio(selectedEstudiante.id);
-      // Con el formulario abierto, los conceptos para adelantar son del año nuevo.
-      if (showForm) cargarOpcionesAdelanto(selectedEstudiante.id);
+      // Lo que debe muestra los conceptos para adelantar del año nuevo.
+      cargarOpcionesAdelanto(selectedEstudiante.id);
     }
   }, [
     anioPago?.id,
@@ -234,11 +240,10 @@ function PagosAdmin() {
     reiniciarOpcionesAdelanto,
     reiniciarValorPersonalizado,
     selectedEstudiante,
-    showForm,
   ]);
 
-  // Auto-seleccionar estudiante y abrir formulario cuando se navega
-  // con estado desde Cartera Vencida ("Cobrar") u otra pantalla.
+  // Al llegar desde Cartera Vencida ("Cobrar") u otra pantalla, se elige el
+  // estudiante y se muestra lo que debe: ahí se escoge qué cobrar.
   useEffect(() => {
     if (!estudianteIdPreseleccionado || estudiantes.length === 0) return;
     if (selectedEstudiante?.id === estudianteIdPreseleccionado) return;
@@ -248,9 +253,8 @@ function PagosAdmin() {
     );
     if (estudiante) {
       handleEstudianteSelect(estudiante);
-      abrirFormulario(estudiante.id);
-      setAperturasFormulario((total) => total + 1);
-      // Limpiar el state de navegación para que F5 no vuelva a abrir el form.
+      bajarAlPanel(panelPagoRef.current);
+      // Limpiar el state de navegación para que F5 no lo vuelva a elegir.
       navigate(location.pathname, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -261,25 +265,23 @@ function PagosAdmin() {
     return null;
   }
 
+  // Lo que debe necesita también los meses para adelantar: se piden al elegir
+  // el estudiante, no al abrir el formulario.
   const handleEstudianteSelect = (estudiante) => {
     seleccionarEstudiante(estudiante);
     prepararFormulario(estudiante.id);
     reiniciarOpcionesAdelanto();
+    cargarOpcionesAdelanto(estudiante.id);
     reiniciarValorPersonalizado();
   };
 
   const seleccionarDesdeLista = (estudiante) => {
     handleEstudianteSelect(estudiante);
-    bajarHasta(panelPagoRef.current);
-  };
-
-  const alternarFormulario = () => {
-    if (!showForm) setAperturasFormulario((total) => total + 1);
-    toggleFormularioPago();
+    bajarAlPanel(panelPagoRef.current);
   };
 
   const cobrarDesdeResumen = (fila) => {
-    cobrarPendiente(fila.cobro);
+    cobrarConcepto(fila.cobro);
     setAperturasFormulario((total) => total + 1);
   };
 
@@ -288,9 +290,13 @@ function PagosAdmin() {
     deudas: deudasEstudiante,
     ventasPendientes: ventasDelAnioPago,
     opcionesVencidas,
+    conceptosAlDia,
   });
   const cargandoResumen =
-    cargandoDeudas || loadingOpcionesVencidas || (esAnioPagoActivo && cargandoVentas);
+    cargandoDeudas ||
+    loadingOpcionesVencidas ||
+    loadingOpcionesAdelanto ||
+    (esAnioPagoActivo && cargandoVentas);
   const errorResumen = errorDeudas || (esAnioPagoActivo ? errorVentas : "");
 
   const reintentarResumen = () => {
@@ -359,26 +365,11 @@ function PagosAdmin() {
         >
           {selectedEstudiante ? (
             <>
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-xl font-semibold capitalize">
-                  Pagos de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
-                </h2>
-                <button
-                  type="button"
-                  onClick={alternarFormulario}
-                  className={`w-full rounded-lg px-5 py-2.5 text-base font-semibold shadow-sm transition-colors sm:w-auto ${
-                    showForm
-                      ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                      : "bg-green-600 text-white hover:bg-green-700"
-                  }`}
-                >
-                  {showForm ? "Cancelar" : (
-                    <>
-                      <span aria-hidden="true">💰</span> Cobrar
-                    </>
-                  )}
-                </button>
-              </div>
+              {/* Desde el 2026-11-04 se cobra desde cada fila de lo que debe:
+                  ya no hay un "Cobrar" general aquí arriba. */}
+              <h2 className="mb-4 text-xl font-semibold capitalize">
+                Pagos de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
+              </h2>
 
               {mostrarSelectorAnioPago && (
                 <SelectorAnioPago
@@ -394,7 +385,9 @@ function PagosAdmin() {
                 resumen={resumenDeuda}
                 cargando={cargandoResumen}
                 error={errorResumen}
+                errorAdelanto={errorOpcionesAdelanto}
                 onReintentar={reintentarResumen}
+                onReintentarAdelanto={() => cargarOpcionesAdelanto(selectedEstudiante.id)}
                 onCobrar={cobrarDesdeResumen}
               />
 
@@ -403,10 +396,10 @@ function PagosAdmin() {
                 className="mb-5"
               />
 
-              {/* Cobrar es lo más frecuente: el formulario abre arriba, debajo
-                  de lo que debe. Los valores personalizados se configuran de
-                  vez en cuando, van debajo y empiezan cerrados con cada
-                  estudiante y cada año (`key`). */}
+              {/* El formulario abre debajo de lo que debe, con el concepto ya
+                  elegido. Los valores personalizados se configuran de vez en
+                  cuando, van debajo y empiezan cerrados con cada estudiante y
+                  cada año (`key`). */}
               {showForm && (
                 <div ref={formularioRef} className="scroll-mt-4">
                   <FormularioPago
@@ -414,15 +407,12 @@ function PagosAdmin() {
                     modoPago={modoPago}
                     abonoLibre={abonoLibre}
                     registrandoPago={registrandoPago}
-                    ventasPendientes={ventasDelAnioPago}
-                    deudasEstudiante={deudasEstudiante}
                     deudaPendienteSeleccionada={deudaPendienteSeleccionada}
                     opcionVencidaSeleccionada={opcionVencidaSeleccionada}
                     periodosVencidosSeleccionados={periodosVencidosSeleccionados}
                     todasLasCuotasSeleccionadas={todasLasCuotasSeleccionadas}
                     loadingOpcionesVencidas={loadingOpcionesVencidas}
                     errorOpcionesVencidas={errorOpcionesVencidas}
-                    conceptosAlDia={conceptosAlDia}
                     puedeElegirPendienteOAdelanto={puedeElegirPendienteOAdelanto}
                     loadingOpcionesAdelanto={loadingOpcionesAdelanto}
                     errorOpcionesAdelanto={errorOpcionesAdelanto}
@@ -433,7 +423,6 @@ function PagosAdmin() {
                     onRegistrar={registrarPago}
                     onCerrar={cerrarFormulario}
                     onCambiarModoPago={cambiarModoPago}
-                    onSeleccionarConcepto={seleccionarConcepto}
                     onActualizarCuotasSeleccionadas={actualizarCuotasSeleccionadas}
                     onActivarAbonoLibre={activarAbonoLibre}
                     onReintentarOpcionesVencidas={cargarOpcionesVencidas}

@@ -130,6 +130,14 @@ async function seleccionarEstudiante(user) {
   });
 }
 
+// Desde el 2026-11-04 se cobra desde las filas de lo que debe ("Cobrar
+// Pensión", "Adelantar Pensión"). Sus botones esperan a que termine la consulta.
+async function pulsarFila(user, nombre) {
+  const boton = await screen.findByRole("button", { name: nombre });
+  await waitFor(() => expect(boton).toBeEnabled());
+  await user.click(boton);
+}
+
 // JSDOM no trae matchMedia ni scrollIntoView; se simulan solo en estas pruebas.
 function simularPantalla({ angosta }) {
   window.matchMedia = vi.fn((consulta) => ({
@@ -172,7 +180,7 @@ describe("PagosAdmin - caracterización", () => {
     expect(screen.queryByRole("heading", { name: "💰 Gestión de Pagos" })).not.toBeInTheDocument();
   });
 
-  it("preselecciona el estudiante de location.state, abre el formulario y limpia el estado", async () => {
+  it("preselecciona el estudiante de location.state, muestra lo que debe y limpia el estado", async () => {
     renderPagos([
       {
         pathname: "/admin/pagos",
@@ -181,7 +189,9 @@ describe("PagosAdmin - caracterización", () => {
     ]);
 
     expect(await screen.findByText("Pagos de Pérez Ana")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toBeInTheDocument();
+    // Lo que se cobra se elige en lo que debe: el formulario no abre solo.
+    expect(screen.getByRole("region", { name: "Lo que debe" })).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: /Cobro de/ })).not.toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByTestId("estado-ruta")).toHaveTextContent("null");
     });
@@ -229,15 +239,19 @@ describe("PagosAdmin - caracterización", () => {
       expect(panel).toContainElement(screen.getByText("Pagos de Pérez Ana"));
     });
 
-    it("en computador no mueve la pantalla", async () => {
+    it("en computador, elegir el estudiante no mueve la pantalla, pero Cobrar baja al formulario", async () => {
       simularPantalla({ angosta: false });
       const user = userEvent.setup();
       renderPagos();
 
       await seleccionarEstudiante(user);
-      await user.click(screen.getByRole("button", { name: "Cobrar" }));
-
       expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+
+      await pulsarFila(user, "Cobrar Pensión");
+
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+      const [formulario] = Element.prototype.scrollIntoView.mock.contexts;
+      expect(formulario).toContainElement(screen.getByRole("form", { name: "Cobro de Pensión" }));
     });
 
     it("en celular, el Cobrar de lo que debe baja hasta el formulario", async () => {
@@ -245,16 +259,12 @@ describe("PagosAdmin - caracterización", () => {
       const user = userEvent.setup();
       renderPagos();
       await seleccionarEstudiante(user);
-      const cobrar = await screen.findByRole("button", { name: "Cobrar Pensión" });
-      await waitFor(() => expect(cobrar).toBeEnabled());
 
-      await user.click(cobrar);
+      await pulsarFila(user, "Cobrar Pensión");
 
       expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
       const [, formulario] = Element.prototype.scrollIntoView.mock.contexts;
-      expect(formulario).toContainElement(
-        screen.getByRole("combobox", { name: "Concepto de Pago" })
-      );
+      expect(formulario).toContainElement(screen.getByRole("form", { name: "Cobro de Pensión" }));
     });
   });
 
@@ -281,21 +291,23 @@ describe("PagosAdmin - caracterización", () => {
     expect(screen.queryByText("Pérez Ana")).not.toBeInTheDocument();
   });
 
-  it("Cobrar abre el formulario arriba y los valores personalizados quedan cerrados debajo", async () => {
+  it("Cobrar de una fila abre el formulario debajo de lo que debe y los valores quedan cerrados", async () => {
     const user = userEvent.setup();
     renderPagos();
     await seleccionarEstudiante(user);
 
+    // Ya no hay un "Cobrar" general: se cobra desde cada fila.
+    expect(screen.queryByRole("button", { name: "Cobrar" })).not.toBeInTheDocument();
     const valores = screen.getByRole("button", { name: /Valores personalizados/ });
     expect(valores).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("region", { name: /Valores de pago/ })).not.toBeInTheDocument();
     // Cerrado no consulta nada: cobrar no paga esa petición.
     expect(pagosApi.obtenerValoresPagoEstudiante).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "Cobrar" }));
+    await pulsarFila(user, "Cobrar Pensión");
 
     const resumen = screen.getByRole("region", { name: "Lo que debe" });
-    const formulario = screen.getByRole("combobox", { name: "Concepto de Pago" });
+    const formulario = screen.getByRole("form", { name: "Cobro de Pensión" });
     const historial = screen.getByRole("heading", { name: "Historial de Pagos" });
     expect(
       resumen.compareDocumentPosition(formulario) & Node.DOCUMENT_POSITION_FOLLOWING
@@ -308,7 +320,7 @@ describe("PagosAdmin - caracterización", () => {
     ).toBeTruthy();
   });
 
-  it("Lo que debe muestra cada concepto y su Cobrar arma el mismo pago que la lista", async () => {
+  it("Lo que debe muestra cada concepto y su Cobrar arma el mismo pago de siempre", async () => {
     const user = userEvent.setup();
     renderPagos();
     await seleccionarEstudiante(user);
@@ -316,12 +328,10 @@ describe("PagosAdmin - caracterización", () => {
     const resumen = screen.getByRole("region", { name: "Lo que debe" });
     expect(await within(resumen).findByText("2 meses pendientes")).toBeInTheDocument();
     expect(within(resumen).getByText("Pensión")).toBeInTheDocument();
-    const cobrar = within(resumen).getByRole("button", { name: "Cobrar Pensión" });
-    await waitFor(() => expect(cobrar).toBeEnabled());
 
-    await user.click(cobrar);
+    await pulsarFila(user, "Cobrar Pensión");
 
-    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toHaveValue("Pensión");
+    expect(screen.getByRole("form", { name: "Cobro de Pensión" })).toBeInTheDocument();
     expect(await screen.findByText("Junio de 2026")).toBeInTheDocument();
     await user.click(screen.getByLabelText("efectivo"));
     await user.click(screen.getByRole("button", { name: "Registrar Pago" }));
@@ -431,9 +441,7 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    await user.click(screen.getByRole("button", { name: "Cobrar" }));
-    const opcionPension = document.querySelector('option[value="Pensión"]');
-    await user.selectOptions(opcionPension.closest("select"), "Pensión");
+    await pulsarFila(user, "Cobrar Pensión");
     await screen.findByText("Junio de 2026");
 
     await user.click(screen.getByLabelText("efectivo"));
@@ -468,16 +476,11 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    await user.click(screen.getByRole("button", { name: "Cobrar" }));
-    await waitFor(() => {
-      expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7);
-    });
+    // Los meses para adelantar se piden al elegir el estudiante.
+    expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7);
 
-    // Pensión tiene deuda: se elige en la lista y luego "Adelantar meses".
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Concepto de Pago" }),
-      "Pensión",
-    );
+    // Pensión tiene deuda: "Cobrar Pensión" y luego "Adelantar meses".
+    await pulsarFila(user, "Cobrar Pensión");
     await user.click(await screen.findByRole("button", { name: "Adelantar meses" }));
     await user.click(screen.getByRole("button", { name: "Distribuir un monto" }));
     fireEvent.change(screen.getByPlaceholderText("Ej: 80.000"), {
@@ -507,19 +510,20 @@ describe("PagosAdmin - caracterización", () => {
     });
   });
 
-  it("un concepto mensual al día se adelanta desde la misma lista de conceptos", async () => {
+  it("un concepto mensual al día se adelanta desde lo que debe", async () => {
     const user = userEvent.setup();
     pagosApi.obtenerDeudasEstudiante.mockResolvedValue({ deudas: [] });
     pagosApi.obtenerOpcionesVencidas.mockResolvedValue({ opciones: [] });
     renderPagos();
     await seleccionarEstudiante(user);
     expect(await screen.findByText("Al día: no debe nada.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Al día · $100.000 por mes · 2 meses por adelantar")
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Cobrar" }));
-    const concepto = screen.getByRole("combobox", { name: "Concepto de Pago" });
-    await within(concepto).findByRole("option", { name: "Pensión · $100.000 por mes" });
-    await user.selectOptions(concepto, "Pensión");
+    await pulsarFila(user, "Adelantar Pensión");
 
+    expect(screen.getByRole("form", { name: "Cobro de Pensión" })).toBeInTheDocument();
     expect(screen.getByText("Registrar mensualidades futuras")).toBeInTheDocument();
     expect(
       screen.queryByRole("group", { name: "Qué pagar de este concepto" })
@@ -590,6 +594,8 @@ describe("PagosAdmin - caracterización", () => {
 
     expect(screen.getByRole("heading", { name: "Deudas de años anteriores" })).toBeInTheDocument();
     expect(screen.getByText("Año 2025")).toBeInTheDocument();
+    // En el año activo, el cargo de inventario sí está para cobrar.
+    expect(await screen.findByRole("button", { name: "Cobrar Uniforme" })).toBeInTheDocument();
     const selector = screen.getByRole("combobox", { name: "Año del pago" });
     expect(selector).toHaveValue("1");
 
@@ -606,12 +612,9 @@ describe("PagosAdmin - caracterización", () => {
     expect(pagosApi.obtenerHistorialPagos).toHaveBeenCalledTimes(1);
     expect(pagosApi.obtenerVentasPendientes).toHaveBeenCalledTimes(1);
 
-    await user.click(screen.getByRole("button", { name: "Cobrar" }));
-    expect(screen.queryByRole("option", { name: /Uniforme/ })).not.toBeInTheDocument();
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Concepto de Pago" }),
-      "Matrícula",
-    );
+    await pulsarFila(user, "Cobrar Matrícula");
+    // Las ventas son del año activo: en 2027 no salen para cobrar.
+    expect(screen.queryByRole("button", { name: "Cobrar Uniforme" })).not.toBeInTheDocument();
     await user.click(screen.getByLabelText("efectivo"));
     await user.click(screen.getByRole("button", { name: "Registrar Pago" }));
 

@@ -33,6 +33,7 @@ export default function useValoresPersonalizadosPago({
   actualizarValoresPersonalizados,
   cargarDeudasEstudiante,
   cargarOpcionesVencidas,
+  cargarOpcionesAdelanto,
 }) {
   const [filasValoresPago, setFilasValoresPago] = useState([]);
   const [borradoresValoresPago, setBorradoresValoresPago] = useState({});
@@ -101,6 +102,8 @@ export default function useValoresPersonalizadosPago({
     if (turno.current !== miTurno) return;
     cargarDeudasEstudiante(estudianteId);
     cargarOpcionesVencidas(estudianteId);
+    // El valor del mes también cambia lo que cuesta adelantar.
+    cargarOpcionesAdelanto(estudianteId);
     setMensajeValoresPago(texto);
     try {
       const datos = await pedirFilas(estudianteId);

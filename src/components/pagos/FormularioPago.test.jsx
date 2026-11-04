@@ -21,15 +21,12 @@ const crearProps = (cambios = {}) => ({
   modoPago: "normal",
   abonoLibre: false,
   registrandoPago: false,
-  ventasPendientes: [],
-  deudasEstudiante: [],
   deudaPendienteSeleccionada: null,
   opcionVencidaSeleccionada: null,
   periodosVencidosSeleccionados: new Set(),
   todasLasCuotasSeleccionadas: false,
   loadingOpcionesVencidas: false,
   errorOpcionesVencidas: "",
-  conceptosAlDia: [],
   puedeElegirPendienteOAdelanto: false,
   loadingOpcionesAdelanto: false,
   errorOpcionesAdelanto: "",
@@ -40,7 +37,6 @@ const crearProps = (cambios = {}) => ({
   onRegistrar: vi.fn(),
   onCerrar: vi.fn(),
   onCambiarModoPago: vi.fn(),
-  onSeleccionarConcepto: vi.fn(),
   onActualizarCuotasSeleccionadas: vi.fn(),
   onActivarAbonoLibre: vi.fn(),
   onReintentarOpcionesVencidas: vi.fn(),
@@ -58,18 +54,18 @@ const crearProps = (cambios = {}) => ({
 });
 
 describe("FormularioPago", () => {
-  it("presenta el pago normal y delega sus controles", () => {
+  it("muestra el concepto elegido en lo que debe y delega sus controles", () => {
     const props = crearProps({
-      pagoData: crearPagoData({ monto: "50000" }),
-      deudasEstudiante: [
-        { concepto: "Matrícula", deuda: 50000, pagado: 0, tipo_cobro: "unico" },
-      ],
+      pagoData: crearPagoData({ descripcion: "Matrícula", monto: "50000" }),
     });
     render(<FormularioPago {...props} />);
 
+    expect(screen.getByRole("form", { name: "Cobro de Matrícula" })).toBeInTheDocument();
+    expect(screen.getByText("Matrícula")).toBeInTheDocument();
+    // El concepto se elige en lo que debe: aquí ya no hay lista ni botones de modo.
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Pago pendiente" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Meses adelantados" })).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "Matrícula" } });
     fireEvent.change(screen.getByDisplayValue("2026-08-04"), {
       target: { value: "2026-08-05" },
     });
@@ -79,7 +75,6 @@ describe("FormularioPago", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Registrar Pago" }).closest("form"));
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(props.onSeleccionarConcepto).toHaveBeenCalledWith("Matrícula");
     expect(props.onActualizarCampoPago).toHaveBeenCalledWith("fecha", "2026-08-05");
     expect(props.onCambiarMontoPago).toHaveBeenCalledWith("45000");
     expect(props.onValidarMonto).toHaveBeenCalledWith(50000);
@@ -114,7 +109,6 @@ describe("FormularioPago", () => {
         monto_distribuir: "150000",
         metodos: [{ tipo: "subsidio", monto: "150000", nota: "Convenio 2026" }],
       }),
-      deudasEstudiante: [deudaPension],
       puedeElegirPendienteOAdelanto: true,
       opcionAdelantoSeleccionada: opcionAdelanto,
       deudaDelConceptoAdelantado: deudaPension,
@@ -135,6 +129,7 @@ describe("FormularioPago", () => {
     });
     render(<FormularioPago {...props} />);
 
+    expect(screen.getByRole("form", { name: "Cobro de Pensión" })).toBeInTheDocument();
     expect(screen.getByText("Agosto 2026")).toBeInTheDocument();
     expect(screen.getByText("Septiembre 2026")).toBeInTheDocument();
     expect(screen.getByText("Queda cubierto")).toBeInTheDocument();
@@ -151,32 +146,10 @@ describe("FormularioPago", () => {
     fireEvent.click(screen.getByRole("button", { name: "Meses completos" }));
     fireEvent.click(screen.getByRole("button", { name: "Pagar lo que debe" }));
 
-    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toHaveValue("Pensión");
     expect(props.onCambiarMontoDistribuir).toHaveBeenCalledWith("120000");
     expect(props.onCambiarNotaMetodo).toHaveBeenCalledWith("subsidio", "Nuevo convenio");
     expect(props.onCambiarModalidadAdelanto).toHaveBeenCalledWith("meses");
     expect(props.onCambiarModoPago).toHaveBeenCalledWith("normal");
-  });
-
-  it("un concepto mensual al día sale aparte en la lista y se elige como los demás", () => {
-    const props = crearProps({
-      conceptosAlDia: [
-        { tipo_pago_id: 13, concepto: "Transporte", valor_unitario: 50000, max_meses: 3 },
-        { tipo_pago_id: 14, concepto: "Refrigerio", valor_unitario: 30000, max_meses: 0 },
-      ],
-    });
-    render(<FormularioPago {...props} />);
-
-    expect(screen.getByRole("option", { name: "Transporte · $50.000 por mes" })).toBeEnabled();
-    expect(
-      screen.getByRole("option", { name: "Refrigerio · $30.000 por mes · Sin meses disponibles" })
-    ).toBeDisabled();
-    fireEvent.change(screen.getByRole("combobox", { name: "Concepto de Pago" }), {
-      target: { value: "Transporte" },
-    });
-
-    expect(props.onSeleccionarConcepto).toHaveBeenCalledWith("Transporte");
-    expect(screen.queryByRole("group", { name: "Qué pagar de este concepto" })).not.toBeInTheDocument();
   });
 
   it("con deuda mensual y meses por adelantar ofrece pagar lo que debe o adelantar", () => {
@@ -189,7 +162,6 @@ describe("FormularioPago", () => {
     };
     const props = crearProps({
       pagoData: crearPagoData({ descripcion: "Pensión", monto: "100000" }),
-      deudasEstudiante: [deudaPension],
       deudaPendienteSeleccionada: deudaPension,
       puedeElegirPendienteOAdelanto: true,
     });
@@ -203,8 +175,10 @@ describe("FormularioPago", () => {
     expect(props.onCambiarModoPago).toHaveBeenCalledWith("adelantado");
   });
 
-  it("avisa si no se pudieron consultar los meses para adelantar", () => {
+  it("en el adelanto, si no se pudieron consultar los meses, avisa y deja reintentar", () => {
     const props = crearProps({
+      modoPago: "adelantado",
+      pagoData: crearPagoData({ descripcion: "Pensión", tipo_pago_id_adelanto: "11" }),
       errorOpcionesAdelanto: "No se pudieron consultar los meses disponibles.",
     });
     render(<FormularioPago {...props} />);

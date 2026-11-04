@@ -11,15 +11,12 @@ export default function FormularioPago({
   modoPago,
   abonoLibre,
   registrandoPago,
-  ventasPendientes,
-  deudasEstudiante,
   deudaPendienteSeleccionada,
   opcionVencidaSeleccionada,
   periodosVencidosSeleccionados,
   todasLasCuotasSeleccionadas,
   loadingOpcionesVencidas,
   errorOpcionesVencidas,
-  conceptosAlDia,
   puedeElegirPendienteOAdelanto,
   loadingOpcionesAdelanto,
   errorOpcionesAdelanto,
@@ -30,7 +27,6 @@ export default function FormularioPago({
   onRegistrar,
   onCerrar,
   onCambiarModoPago,
-  onSeleccionarConcepto,
   onActualizarCuotasSeleccionadas,
   onActivarAbonoLibre,
   onReintentarOpcionesVencidas,
@@ -46,71 +42,16 @@ export default function FormularioPago({
   onCambiarNotaMetodo,
 }) {
   return (
-    <form onSubmit={onRegistrar} className="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
-      {/* Una sola lista: primero se elige qué se cobra. Un concepto mensual al
-          día solo se puede adelantar; uno con deuda ofrece las dos cosas. */}
+    <form
+      onSubmit={onRegistrar}
+      aria-label={`Cobro de ${pagoData.descripcion}`}
+      className="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200"
+    >
+      {/* Qué se cobra se eligió en "Lo que debe" (2026-11-04): aquí solo se
+          muestra. Un concepto mensual con deuda ofrece pagar o adelantar. */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Concepto de Pago</label>
-        <select
-          aria-label="Concepto de Pago"
-          value={pagoData.venta_id ? `CargoVenta_${pagoData.venta_id}` : pagoData.descripcion}
-          onChange={(event) => onSeleccionarConcepto(event.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-          required
-        >
-          <option value="">-- Seleccione un Concepto --</option>
-
-          {ventasPendientes.length > 0 && (
-            <optgroup label="Cargos de Inventario (Pendientes)">
-              {ventasPendientes.map((ventaPendiente) => (
-                <option
-                  key={`venta_${ventaPendiente.id}`}
-                  value={`CargoVenta_${ventaPendiente.id}`}
-                >
-                  {ventaPendiente.descripcion} (${ventaPendiente.total.toLocaleString()})
-                </option>
-              ))}
-            </optgroup>
-          )}
-
-          <optgroup label="Pensiones, Matrícula y Colegiatura">
-            {deudasEstudiante.length > 0 ? deudasEstudiante.map((deuda, index) => (
-              <option key={`deuda_${index}`} value={deuda.concepto}>
-                {deuda.concepto} (${deuda.deuda.toLocaleString()}) {deuda.pagado > 0 ? "- Saldo" : ""}
-              </option>
-            )) : (
-              <option disabled>No hay deudas pendientes</option>
-            )}
-          </optgroup>
-
-          {conceptosAlDia.length > 0 && (
-            <optgroup label="Al día: adelantar meses">
-              {conceptosAlDia.map((opcion) => (
-                <option
-                  key={`adelanto_${opcion.tipo_pago_id}`}
-                  value={opcion.concepto}
-                  disabled={opcion.max_meses === 0}
-                >
-                  {opcion.concepto} · {formatearMoneda(opcion.valor_unitario)} por mes
-                  {opcion.max_meses === 0 ? " · Sin meses disponibles" : ""}
-                </option>
-              ))}
-            </optgroup>
-          )}
-        </select>
-
-        {modoPago === "normal" && errorOpcionesAdelanto && (
-          <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800">
-            <span>{errorOpcionesAdelanto}</span>{" "}
-            <button
-              type="button"
-              onClick={onReintentarOpcionesAdelanto}
-              className="font-bold underline"
-            >
-              Reintentar
-            </button>
-          </div>
-        )}
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Concepto</p>
+        <p className="text-lg font-bold text-gray-900">{pagoData.descripcion}</p>
       </div>
 
       {puedeElegirPendienteOAdelanto && (

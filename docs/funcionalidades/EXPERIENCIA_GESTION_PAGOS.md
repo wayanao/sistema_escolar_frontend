@@ -2,9 +2,9 @@
 
 ## Control
 
-- Estado: **pasos 1, 2a y 2b en `4acb48f`, `fda883f` y `efc789e`
-  (2026-11-03), sin publicar. Paso 3 construido el 2026-11-03, sin commit;
-  falta la prueba en local.** Con él, el plan queda completo en código.
+- Estado: **pasos 1 a 3 en `4acb48f`, `fda883f`, `efc789e` y `2658caf`
+  (2026-11-03), sin publicar. Paso 4 (pedido después del plan: solo «Lo que
+  debe») construido el 2026-11-04, sin commit; falta la prueba en local.**
 - **Pruebas en local:** el backend local escribe en la base real (rama
   `production` de Neon), donde vive el colegio real `tenant_2005`.
   Registrar pagos o guardar valores de prueba solo en el Colegio Demo
@@ -280,6 +280,60 @@ En el Colegio Demo, no en el 2005:
 2. Escribir un valor en la mensualidad y «Guardar»: dice «Se guardó…» y
    «Lo que debe» cambia.
 3. «Volver al precio del curso»: pide confirmación y vuelve al precio.
+
+## Paso 4 (2026-11-04): solo «Lo que debe»
+
+Pedido del usuario después del paso 3: «me gusta más la nueva ventana, lo que
+debe, ¿me puedo quedar solo con esa?», y al aprobarlo: «que el botón cobrar
+sea verde, que sea notorio, que esa caja no ocupe mucho espacio, y cuando
+seleccione la deuda haga auto scroll para cobrar».
+
+- **Se cobra solo desde «Lo que debe».** Se quitó la lista «Concepto de
+  Pago» del formulario y el «Cobrar» general de arriba. El formulario
+  muestra el concepto elegido como texto («Concepto: Pensión»).
+- **Cada deuda tiene un «💰 Cobrar» verde lleno.** Los conceptos mensuales
+  al día salen en el mismo recuadro, con «Al día · $X por mes · N meses
+  por adelantar» y un botón «Adelantar» igual de verde. Sin meses por
+  adelantar dicen «Al día · Sin meses por adelantar», sin botón. No suman al
+  total.
+- **Recuadro más compacto:** menos relleno, letra más pequeña y el detalle de
+  cada fila en una línea chica.
+- **Al pulsar «Cobrar» o «Adelantar» la pantalla baja hasta el formulario**,
+  en cualquier pantalla (antes, solo en celular). Al elegir un estudiante
+  sigue bajando al panel solo en celular.
+- **Desde Cartera vencida** se llega con el estudiante elegido y lo que debe a
+  la vista; ya no abre el formulario solo, porque no se sabe qué concepto.
+- **Los meses para adelantar se piden al elegir el estudiante** (para mostrar
+  las filas al día), al cambiar de año y después de registrar un pago,
+  anularlo o cambiar un valor personalizado. Ya no al abrir el formulario.
+  Si esa consulta falla, el recuadro lo avisa con su propio «Reintentar» y
+  conserva el total.
+- Se quitaron `toggleFormularioPago` y `abrirFormulario` de
+  `useFormularioPago`: eran del botón general y de la llegada desde Cartera.
+  `cobrarPendiente` pasó a llamarse `cobrarConcepto` y también abre el
+  adelanto de un concepto al día.
+- No cambia lo que se envía al backend: las pruebas de los pagos (normal,
+  métodos combinados, adelanto por monto, adelanto de un concepto al día y
+  otro año) dan exactamente lo mismo.
+- Archivos: `ResumenDeudaPago.jsx`, `FormularioPago.jsx`,
+  `utils/pagos/resumenDeuda.js`, `useFormularioPago.js`,
+  `useRegistroPago.js`, `useAnulacionPago.js`,
+  `useValoresPersonalizadosPago.js`, `PagosAdmin.jsx` y sus pruebas.
+- Pruebas: Pagos pasa de 122 a **125**.
+- Verificación: `pnpm run check:deploy` → **397 archivos, 3240 pruebas
+  correctas**, lint y build correctos, en la segunda corrida. La primera
+  falló por carga del equipo en `TiposPagosAdmin.test.jsx`, que pasa sola y
+  no tiene que ver con Pagos.
+
+### Prueba en local (paso 4)
+
+En el Colegio Demo, no en el 2005:
+
+1. Elegir un estudiante con deuda: en «Lo que debe», cada fila tiene su
+   «💰 Cobrar» verde. Al pulsarlo, la pantalla baja al formulario con ese
+   concepto.
+2. Con un estudiante al día: la mensualidad sale «Al día» con «Adelantar»
+   (o «Sin meses por adelantar» si ya no quedan meses este año).
 
 ## Preguntas abiertas
 

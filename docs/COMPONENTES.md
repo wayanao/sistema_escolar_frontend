@@ -1230,17 +1230,19 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   botones `Guardar` y `Volver al precio del curso`. Ya no trae la lista de
   todos los conceptos del colegio. La página lo reinicia por estudiante y por
   año con `key`.
-- Desde el 2026-11-03 el botón `💰 Cobrar` (antes `+ Nuevo Pago/Factura`)
-  abre el formulario arriba, antes de los valores personalizados y del
-  historial.
-- `components/pagos/ResumenDeudaPago.jsx` (2026-11-03) presenta "Lo que
-  debe" del año del pago: una fila por concepto con deuda y por cargo de
-  inventario, con su detalle, el total y un `Cobrar` por fila que abre el
-  formulario con ese concepto (`cobrarPendiente`). Las filas salen de
-  `utils/pagos/resumenDeuda.js`. No dice "Al día" mientras consulta ni si
-  la consulta falló.
+- `components/pagos/ResumenDeudaPago.jsx` presenta "Lo que debe" del año del
+  pago. Desde el 2026-11-04 es la única forma de elegir qué cobrar (ya no hay
+  `Cobrar` general ni lista `Concepto de Pago`): cada concepto con deuda y
+  cada cargo de inventario tiene un `💰 Cobrar` verde lleno, y cada concepto
+  mensual al día un `Adelantar`. Los dos llaman `cobrarConcepto`, que abre el
+  formulario con ese concepto, y la página baja hasta el formulario en
+  cualquier pantalla. Compacto. Las filas salen de
+  `utils/pagos/resumenDeuda.js`; las de al día no suman al total. No dice
+  "Al día" mientras consulta ni si la consulta falló.
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
-  adelantos, distribución por monto y métodos combinados.
+  adelantos, distribución por monto y métodos combinados. Desde el
+  2026-11-04 muestra el concepto elegido en "Lo que debe" como texto, sin
+  lista para cambiarlo.
 - `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y
   delega impresión y anulación.
 - `components/pagos/ComprobantePago.jsx` compone `FacturaModerna.jsx` dentro de
@@ -1258,12 +1260,11 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   para mantener el registro anterior sin periodo.
 - El total y el primer metodo se sincronizan con los meses seleccionados y una
   confirmacion resume periodos y valor antes de guardar.
-- Desde el 2026-11-03 no hay botones `Pago pendiente` ni `Meses adelantados`:
-  todo se elige en la lista `Concepto de Pago`. Los conceptos mensuales al
-  día salen en el grupo `Al día: adelantar meses` y abren directo el
-  adelanto; uno mensual con deuda ofrece `Pagar lo que debe` o `Adelantar
-  meses`, y cambiar entre los dos conserva el concepto y la fecha. Las
-  opciones de adelanto se piden al abrir el formulario.
+- Desde el 2026-11-03 no hay botones `Pago pendiente` ni `Meses adelantados`.
+  Un concepto mensual al día abre directo el adelanto; uno mensual con deuda
+  ofrece `Pagar lo que debe` o `Adelantar meses`, y cambiar entre los dos
+  conserva el concepto y la fecha. Desde el 2026-11-04 las opciones de
+  adelanto se piden al elegir el estudiante y después de cada cambio.
 - El modo adelantado muestra los meses futuros libres, cantidad, valor por
   cuota y total antes de registrar; no permite editar manualmente ese total.
 - Dentro de adelantos se puede alternar entre `Meses completos` y `Distribuir

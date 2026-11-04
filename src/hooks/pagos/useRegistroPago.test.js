@@ -47,11 +47,11 @@ function crearProps(sobrescrituras = {}) {
     deudaDelConceptoAdelantado: null,
     validarMontoContraSaldo: vi.fn(() => true),
     reiniciarFormularioTrasRegistro: vi.fn(),
-    limpiarOpcionesAdelanto: vi.fn(),
     cargarHistorialPagos: vi.fn(),
     cargarVentasPendientes: vi.fn(),
     cargarDeudasEstudiante: vi.fn(),
     cargarOpcionesVencidas: vi.fn(),
+    cargarOpcionesAdelanto: vi.fn(),
     ...sobrescrituras,
   };
 }
@@ -99,11 +99,12 @@ describe("useRegistroPago", () => {
       aplicaciones: [{ tipo_pago_id: 11, periodo: "2026-06", monto: 100000 }],
     });
     expect(props.reiniciarFormularioTrasRegistro).toHaveBeenCalledWith(7);
-    expect(props.limpiarOpcionesAdelanto).toHaveBeenCalledTimes(1);
     expect(props.cargarHistorialPagos).toHaveBeenCalledWith(7);
     expect(props.cargarVentasPendientes).toHaveBeenCalledWith(7);
     expect(props.cargarDeudasEstudiante).toHaveBeenCalledWith(7);
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    // Los meses para adelantar se ven en lo que debe: se vuelven a pedir.
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
   });
 
   it("conserva el detalle del backend cuando el registro falla", async () => {

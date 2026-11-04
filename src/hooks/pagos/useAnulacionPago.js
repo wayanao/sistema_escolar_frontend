@@ -7,6 +7,7 @@ export default function useAnulacionPago({
   cargarVentasPendientes,
   cargarDeudasEstudiante,
   cargarOpcionesVencidas,
+  cargarOpcionesAdelanto,
 }) {
   const anularPago = async (pago) => {
     if (!selectedEstudiante || pago.anulado) return;
@@ -37,6 +38,8 @@ export default function useAnulacionPago({
       cargarVentasPendientes(selectedEstudiante.id);
       cargarDeudasEstudiante(selectedEstudiante.id);
       cargarOpcionesVencidas(selectedEstudiante.id);
+      // Anular un adelanto libera esos meses, que se ven en lo que debe.
+      cargarOpcionesAdelanto(selectedEstudiante.id);
     } catch (error) {
       console.error("Error anulando pago:", error);
       const detail = error?.response?.data?.detail;

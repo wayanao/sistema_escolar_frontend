@@ -19,11 +19,11 @@ export default function useRegistroPago({
   deudaDelConceptoAdelantado,
   validarMontoContraSaldo,
   reiniciarFormularioTrasRegistro,
-  limpiarOpcionesAdelanto,
   cargarHistorialPagos,
   cargarVentasPendientes,
   cargarDeudasEstudiante,
   cargarOpcionesVencidas,
+  cargarOpcionesAdelanto,
   anioLectivoId,
 }) {
   const [registrandoPago, setRegistrandoPago] = useState(false);
@@ -144,7 +144,6 @@ export default function useRegistroPago({
         );
       }
       reiniciarFormularioTrasRegistro(estudianteId);
-      limpiarOpcionesAdelanto();
       Swal.fire(
         '¡Éxito!',
         esDistribucionAdelanto
@@ -156,11 +155,14 @@ export default function useRegistroPago({
           : 'Pago registrado correctamente',
         'success'
       );
+      // Un pago también cambia los meses que quedan por adelantar, que se ven
+      // en lo que debe.
       Promise.all([
         cargarHistorialPagos(estudianteId),
         cargarVentasPendientes(estudianteId),
         cargarDeudasEstudiante(estudianteId),
         cargarOpcionesVencidas(estudianteId),
+        cargarOpcionesAdelanto(estudianteId),
       ]).catch((reloadError) => {
         console.error("Error recargando datos despues del pago:", reloadError);
       });
