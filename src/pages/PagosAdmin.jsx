@@ -103,11 +103,10 @@ function PagosAdmin() {
     toggleFormularioPago,
     validarMontoContraSaldo,
     actualizarCuotasSeleccionadas,
-    seleccionarConceptoPendiente,
+    seleccionarConcepto,
     cobrarPendiente,
     activarAbonoLibre,
     cambiarModoPago,
-    seleccionarConceptoAdelanto,
     cambiarCantidadAdelanto,
     cambiarModalidadAdelanto,
     cambiarMontoDistribuir,
@@ -125,6 +124,8 @@ function PagosAdmin() {
     opcionVencidaSeleccionada,
     periodosVencidosSeleccionados,
     todasLasCuotasSeleccionadas,
+    conceptosAlDia,
+    puedeElegirPendienteOAdelanto,
   } = useFormularioPago({
     selectedEstudiante,
     ventasPendientes: ventasDelAnioPago,
@@ -218,14 +219,18 @@ function PagosAdmin() {
     if (selectedEstudiante) {
       prepararFormulario(selectedEstudiante.id);
       recargarDatosDelAnio(selectedEstudiante.id);
+      // Con el formulario abierto, los conceptos para adelantar son del año nuevo.
+      if (showForm) cargarOpcionesAdelanto(selectedEstudiante.id);
     }
   }, [
     anioPago?.id,
+    cargarOpcionesAdelanto,
     prepararFormulario,
     recargarDatosDelAnio,
     reiniciarOpcionesAdelanto,
     reiniciarValorPersonalizado,
     selectedEstudiante,
+    showForm,
   ]);
 
   // Auto-seleccionar estudiante y abrir formulario cuando se navega
@@ -239,7 +244,7 @@ function PagosAdmin() {
     );
     if (estudiante) {
       handleEstudianteSelect(estudiante);
-      abrirFormulario();
+      abrirFormulario(estudiante.id);
       setAperturasFormulario((total) => total + 1);
       // Limpiar el state de navegación para que F5 no vuelva a abrir el form.
       navigate(location.pathname, { replace: true });
@@ -413,7 +418,8 @@ function PagosAdmin() {
                     todasLasCuotasSeleccionadas={todasLasCuotasSeleccionadas}
                     loadingOpcionesVencidas={loadingOpcionesVencidas}
                     errorOpcionesVencidas={errorOpcionesVencidas}
-                    opcionesAdelanto={opcionesAdelanto}
+                    conceptosAlDia={conceptosAlDia}
+                    puedeElegirPendienteOAdelanto={puedeElegirPendienteOAdelanto}
                     loadingOpcionesAdelanto={loadingOpcionesAdelanto}
                     errorOpcionesAdelanto={errorOpcionesAdelanto}
                     opcionAdelantoSeleccionada={opcionAdelantoSeleccionada}
@@ -423,11 +429,10 @@ function PagosAdmin() {
                     onRegistrar={registrarPago}
                     onCerrar={cerrarFormulario}
                     onCambiarModoPago={cambiarModoPago}
-                    onSeleccionarConceptoPendiente={seleccionarConceptoPendiente}
+                    onSeleccionarConcepto={seleccionarConcepto}
                     onActualizarCuotasSeleccionadas={actualizarCuotasSeleccionadas}
                     onActivarAbonoLibre={activarAbonoLibre}
                     onReintentarOpcionesVencidas={cargarOpcionesVencidas}
-                    onSeleccionarConceptoAdelanto={seleccionarConceptoAdelanto}
                     onCambiarCantidadAdelanto={cambiarCantidadAdelanto}
                     onCambiarModalidadAdelanto={cambiarModalidadAdelanto}
                     onCambiarMontoDistribuir={cambiarMontoDistribuir}

@@ -6,7 +6,10 @@ import {
   crearPeriodosAdelantoPorCantidad,
   distribuirMontoEnPeriodos,
 } from "../../utils/pagos/calculos";
-import { crearPagoInicial } from "../../utils/pagos/contratos";
+import {
+  conceptosAlDiaParaAdelantar,
+  crearPagoInicial,
+} from "../../utils/pagos/contratos";
 import { obtenerFechaLocal } from "../../utils/pagos/formatos";
 
 const crearPagoActual = (estudianteId = "") =>
@@ -73,19 +76,36 @@ export default function useFormularioPago({
     setAbonoLibre(false);
   };
 
-  const abrirFormulario = () => setShowForm(true);
+  // Reinicia el pago sin perder la fecha que ya se escribió.
+  const reiniciarPagoConservandoFecha = (estudianteId) =>
+    setPagoData((actual) => ({ ...crearPagoActual(estudianteId), fecha: actual.fecha }));
+
+  // El formulario siempre abre igual: limpio, con los meses vencidos al día y
+  // con las opciones de adelanto, porque los conceptos al día para adelantar
+  // salen en la misma lista de conceptos.
+  const abrirLimpio = (estudianteId) => {
+    prepararFormulario(estudianteId);
+    reiniciarOpcionesAdelanto();
+    cargarOpcionesVencidas(estudianteId);
+    cargarOpcionesAdelanto(estudianteId);
+    setShowForm(true);
+  };
+
+  // Al llegar con un estudiante ya elegido (desde Cartera vencida), la página
+  // ya lo preparó y pidió sus meses vencidos: solo faltan los de adelanto.
+  const abrirFormulario = (estudianteId = selectedEstudiante?.id) => {
+    setShowForm(true);
+    if (estudianteId) cargarOpcionesAdelanto(estudianteId);
+  };
   const cerrarFormulario = () => setShowForm(false);
 
   const toggleFormularioPago = () => {
     if (!selectedEstudiante) return;
-    setShowForm((abierto) => {
-      if (!abierto) {
-        prepararFormulario(selectedEstudiante.id);
-        reiniciarOpcionesAdelanto();
-        cargarOpcionesVencidas(selectedEstudiante.id);
-      }
-      return !abierto;
-    });
+    if (showForm) {
+      setShowForm(false);
+      return;
+    }
+    abrirLimpio(selectedEstudiante.id);
   };
 
   const obtenerSaldoSeleccionado = () => {
@@ -174,11 +194,30 @@ export default function useFormularioPago({
   // el botón de arriba, y elige ese concepto o cargo como lo haría la lista.
   const cobrarPendiente = ({ concepto = "", ventaId = null } = {}) => {
     if (!selectedEstudiante) return;
-    prepararFormulario(selectedEstudiante.id);
-    reiniciarOpcionesAdelanto();
-    cargarOpcionesVencidas(selectedEstudiante.id);
-    setShowForm(true);
+    abrirLimpio(selectedEstudiante.id);
     seleccionarConceptoPendiente(ventaId ? `CargoVenta_${ventaId}` : concepto);
+  };
+
+  // La lista "Concepto de Pago". Un concepto mensual al día no tiene deuda que
+  // pagar: elegirlo es adelantar sus meses. Todo lo demás se paga como
+  // siempre. Ya no hay botones aparte para cada modo.
+  const seleccionarConcepto = (valor) => {
+    if (!selectedEstudiante) return;
+    const esPendiente =
+      valor.startsWith("CargoVenta_") ||
+      deudasEstudiante.some((deuda) => deuda.concepto === valor);
+    const adelanto = esPendiente
+      ? null
+      : opcionesAdelanto.find((opcion) => opcion.concepto === valor);
+    setAbonoLibre(false);
+    reiniciarPagoConservandoFecha(selectedEstudiante.id);
+    if (adelanto) {
+      setModoPago("adelantado");
+      seleccionarConceptoAdelanto(String(adelanto.tipo_pago_id));
+      return;
+    }
+    setModoPago("normal");
+    seleccionarConceptoPendiente(valor);
   };
 
   const activarAbonoLibre = () => {
@@ -195,15 +234,24 @@ export default function useFormularioPago({
     }));
   };
 
+  // Dentro de un concepto mensual con deuda: "Pagar lo que debe" o "Adelantar
+  // meses". El concepto y la fecha se conservan; solo cambia qué se paga.
   const cambiarModoPago = (modo) => {
     if (!selectedEstudiante || modo === modoPago) return;
+    const concepto = pagoData.descripcion;
     setModoPago(modo);
-    setPagoData(crearPagoActual(selectedEstudiante.id));
+    reiniciarPagoConservandoFecha(selectedEstudiante.id);
     setAbonoLibre(false);
-    if (modo === "normal") cargarOpcionesVencidas(selectedEstudiante.id);
-    if (modo === "adelantado" && opcionesAdelanto.length === 0) {
+    if (modo === "normal") {
+      cargarOpcionesVencidas(selectedEstudiante.id);
+      if (concepto) seleccionarConceptoPendiente(concepto);
+      return;
+    }
+    if (opcionesAdelanto.length === 0) {
       cargarOpcionesAdelanto(selectedEstudiante.id);
     }
+    const adelanto = opcionesAdelanto.find((opcion) => opcion.concepto === concepto);
+    if (adelanto) seleccionarConceptoAdelanto(String(adelanto.tipo_pago_id));
   };
 
   const seleccionarConceptoAdelanto = (tipoPagoId) => {
@@ -351,6 +399,18 @@ export default function useFormularioPago({
       (cuota) => periodosVencidosSeleccionados.has(cuota.periodo)
     )
   );
+  const conceptosAlDia = conceptosAlDiaParaAdelantar(opcionesAdelanto, deudasEstudiante);
+  // Un concepto mensual con deuda y con meses por adelantar ofrece las dos
+  // cosas. Uno al día solo se adelanta, y uno sin meses futuros solo se paga.
+  const puedeElegirPendienteOAdelanto = Boolean(
+    !pagoData.venta_id &&
+    deudasEstudiante.some(
+      (deuda) => deuda.concepto === pagoData.descripcion && deuda.tipo_cobro === "mensual"
+    ) &&
+    opcionesAdelanto.some(
+      (opcion) => opcion.concepto === pagoData.descripcion && opcion.max_meses > 0
+    )
+  );
 
   return {
     pagoData,
@@ -364,6 +424,7 @@ export default function useFormularioPago({
     validarMontoContraSaldo,
     actualizarCuotasSeleccionadas,
     seleccionarConceptoPendiente,
+    seleccionarConcepto,
     cobrarPendiente,
     activarAbonoLibre,
     cambiarModoPago,
@@ -385,5 +446,7 @@ export default function useFormularioPago({
     opcionVencidaSeleccionada,
     periodosVencidosSeleccionados,
     todasLasCuotasSeleccionadas,
+    conceptosAlDia,
+    puedeElegirPendienteOAdelanto,
   };
 }

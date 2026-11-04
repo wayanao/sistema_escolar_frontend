@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   METODOS_PAGO,
+  conceptosAlDiaParaAdelantar,
   crearPagoInicial,
   crearPayloadPagoAdelantado,
   crearPayloadPagoNormal,
@@ -107,6 +108,20 @@ describe("contratos de pagos", () => {
       tipo_pago_id: 11,
       periodos_disponibles: [],
     }])[0].mes_final).toBe(12);
+  });
+
+  it("separa los conceptos mensuales al día, que no vienen en las deudas", () => {
+    const pension = { tipo_pago_id: 11, concepto: "Pensión", max_meses: 2 };
+    const transporte = { tipo_pago_id: 13, concepto: "Transporte", max_meses: 0 };
+
+    expect(
+      conceptosAlDiaParaAdelantar(
+        [pension, transporte],
+        [{ concepto: "Pensión", concepto_id: "11", deuda: 100000 }]
+      )
+    ).toEqual([transporte]);
+    expect(conceptosAlDiaParaAdelantar([pension], [])).toEqual([pension]);
+    expect(conceptosAlDiaParaAdelantar()).toEqual([]);
   });
 
   it("construye el payload normal conservando cadenas y convirtiendo aplicaciones", () => {

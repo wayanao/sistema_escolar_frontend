@@ -51,6 +51,15 @@ export const normalizarOpcionesAdelanto = (opciones) =>
     };
   });
 
+// Conceptos mensuales que se pueden adelantar y no tienen deuda: como
+// `/deudas` solo trae los que deben algo, sin esto no habría dónde elegirlos
+// para adelantar. Se relacionan por id, como las demás opciones.
+export const conceptosAlDiaParaAdelantar = (opcionesAdelanto = [], deudas = []) =>
+  opcionesAdelanto.filter(
+    (opcion) =>
+      !deudas.some((deuda) => Number(deuda.concepto_id) === Number(opcion.tipo_pago_id))
+  );
+
 export const crearPayloadPagoNormal = (pagoData, estudianteId, anioLectivoId) => {
   const payload = {
     ...pagoData,

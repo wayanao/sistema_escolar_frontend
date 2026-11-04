@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-11-03 - Gestión de Pagos más clara (paso 2b: una sola lista de conceptos)
+
+Propuesta del usuario, hecha solo en el frontend. Detalle en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`.
+
+- Sin botones «Pago pendiente» ni «Meses adelantados»: todo se elige en
+  «Concepto de Pago». Los conceptos mensuales al día salen en el grupo «Al
+  día: adelantar meses» y abren directo el adelanto.
+- Un concepto mensual con deuda ofrece «Pagar lo que debe» o «Adelantar
+  meses»; cambiar conserva el concepto y la fecha.
+- Los dos cobros del backend no cambian (`POST /pagos` y
+  `POST /pagos/adelanto`).
+- Petición nueva: `GET /pagos/adelanto/opciones/:id` al abrir el
+  formulario y al cambiar de año con el formulario abierto. Antes, solo al
+  tocar «Meses adelantados».
+- Archivos: `FormularioPago.jsx`, `useFormularioPago.js`,
+  `utils/pagos/contratos.js`, `PagosAdmin.jsx` y sus pruebas.
+- Verificación: pruebas de Pagos → **116 en 20 archivos** (107 de antes, 6
+  de ellas adaptadas, y 9 nuevas). `pnpm run check:deploy` → **3231
+  pruebas en 397 archivos**, lint y build correctos, en una sola corrida.
+  Sin probar todavía en el navegador.
+
 ## 2026-11-03 - Gestión de Pagos más clara (paso 2a: lo que debe)
 
 Pedido por el usuario («sigue el paso 2»). Detalle en

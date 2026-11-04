@@ -2,10 +2,9 @@
 
 ## Control
 
-- Estado: **paso 1 en `4acb48f` (2026-11-03), sin publicar. Paso 2a
-  construido el 2026-11-03, sin commit; falta la prueba en local.** El paso
-  2b (juntar «Pago pendiente» y «Meses adelantados», propuesta del usuario
-  aprobada para el plan el 2026-11-03) y el paso 3 sin empezar.
+- Estado: **pasos 1 y 2a en `4acb48f` y `fda883f` (2026-11-03), sin
+  publicar. Paso 2b construido el 2026-11-03, sin commit; falta la prueba
+  en local.** El paso 3 sin empezar.
 - Tipo: mejora de una pantalla que ya existe (`/admin/pagos`,
   `pages/PagosAdmin.jsx`). No es un módulo de `modularizacion/`.
 - Repos: **solo este**. No cambia ninguna petición al backend, ni cómo se
@@ -56,7 +55,8 @@ Los valores personalizados confunden:
      `cuotas_vencidas` cuenta todas las cuotas que ya vencieron, pagadas o
      no; los meses por pagar salen de `GET /pagos/vencidos/opciones/:id`.
    - **2b. Juntar los dos modos del formulario** (propuesta del usuario,
-     aprobada para el plan el 2026-11-03). Se quitan los botones «Pago
+     aprobada para el plan el 2026-11-03; hecho ese día, ver abajo, solo en
+     el frontend). Se quitan los botones «Pago
      pendiente» y «Meses adelantados» de arriba del formulario: al elegir un
      concepto mensual se ven sus meses vencidos y, ahí mismo, la opción de
      adelantar. No se pierde ninguna forma de pagar (cargos de inventario,
@@ -181,19 +181,67 @@ Con un estudiante que deba una pensión de varios meses:
    historial.
 4. Con un estudiante sin deudas: dice "Al día".
 
+## Paso 2b (2026-11-03)
+
+El usuario aprobó hacerlo solo en el frontend («continua») después de la
+pregunta del mes en curso (ver "Preguntas abiertas").
+
+- Se quitaron los botones «Pago pendiente» y «Meses adelantados» de arriba
+  del formulario, y la lista «Concepto mensual» del adelanto.
+- **Una sola lista «Concepto de Pago»:** cargos de inventario, conceptos con
+  deuda y, en un grupo aparte, «Al día: adelantar meses», con los conceptos
+  mensuales sin deuda que se pueden adelantar
+  (`conceptosAlDiaParaAdelantar` en `utils/pagos/contratos.js`). Uno sin
+  meses por adelantar sale deshabilitado, «Sin meses disponibles», como en
+  la lista de antes.
+- Elegir un concepto al día abre directo el adelanto. Elegir uno mensual con
+  deuda abre sus meses pendientes y, si le quedan meses por adelantar, la
+  elección **«Pagar lo que debe | Adelantar meses»**. Cambiar entre las dos
+  conserva el concepto y la fecha escrita (`cambiarModoPago`).
+- Siguen siendo dos cobros, sin cambios: `POST /pagos` y
+  `POST /pagos/adelanto`. Un pago es una cosa o la otra.
+- **Petición nueva:** `GET /pagos/adelanto/opciones/:id` al abrir el
+  formulario ("Cobrar" de arriba, "Cobrar" de una fila o llegada desde
+  Cartera vencida) y al cambiar de año con el formulario abierto. Antes solo
+  se pedía al tocar «Meses adelantados».
+- Si esa consulta falla, debajo de la lista sale el aviso con «Reintentar».
+- Abrir el formulario quedó en una sola función (`abrirLimpio`), que ya no
+  pide datos dentro de la actualización del estado de React.
+- El mes en curso, antes de su fecha límite, sigue sin aparecer: es la regla
+  del backend y no se tocó.
+- Archivos: `FormularioPago.jsx`, `useFormularioPago.js`,
+  `utils/pagos/contratos.js`, `PagosAdmin.jsx` y sus pruebas.
+- Pruebas: Pagos pasa de 107 a **116** (1 de la regla, 3 del formulario, 4
+  del hook y 1 de la página: un estudiante al día adelanta desde la lista).
+  Se adaptaron 6 que buscaban los botones quitados; las que fijan lo que se
+  envía al backend dan exactamente lo mismo.
+- Verificación: `pnpm run check:deploy` → **397 archivos, 3231 pruebas
+  correctas**, lint y build correctos, en una sola corrida.
+
+### Prueba en local (paso 2b)
+
+1. Con un estudiante que deba pensión: "Cobrar", elegir la pensión. Sale
+   «Pagar lo que debe» con sus meses; al tocar «Adelantar meses» salen los
+   meses futuros con el aviso de la deuda vencida.
+2. Con un estudiante al día: "Cobrar"; en la lista, el grupo «Al día:
+   adelantar meses». Al elegir la pensión abre directo el adelanto.
+3. Registrar un adelanto y revisar que salga en el historial.
+
 ## Preguntas abiertas
 
 Se hacen justo antes del paso que las necesita.
 
-- **Backend, sin prisa (antes del paso 2b):** el mes en curso solo se cobra
-  cuando vence (`app/services/cartera.py`: «solo cobra la cuota del mes
-  actual si ya venció»), y los adelantos empiezan el mes siguiente
+- **Resuelta el 2026-11-03: el mes en curso.** Solo se cobra cuando vence
+  (`app/services/cartera.py`: «solo cobra la cuota del mes actual si ya
+  venció»), y los adelantos empiezan el mes siguiente
   (`_periodos_programados` en `pagos_controller.py`; lo fija
-  `test_anio_lectivo_cobros_caracterizacion.py`). Si la pensión vence el 5,
-  del 1 al 4 de noviembre el mes de noviembre no sale ni como vencido ni
-  como adelanto. Ya pasa hoy, pero con los dos modos juntos se notará más.
-  ¿Debe poder pagarse el mes antes de que venza? Lo decide el backend; el
-  frontend no.
+  `test_anio_lectivo_cobros_caracterizacion.py`). El usuario notó que se
+  configura en Tipos de pago: con «Día de vencimiento» 1 y sin días de
+  gracia, el mes se cobra desde el día 1 (vacío equivale al último día del
+  mes). Pero esa fecha también lo vuelve vencido: sale en Cartera vencida y,
+  si el concepto tiene mora, la suma desde ese día. Decisión: el 2b solo en
+  el frontend. Separar «desde cuándo se puede cobrar» de «desde cuándo hay
+  mora» queda para el backend, cuando un colegio con mora lo necesite.
 - **Paso 3:** `GET /estudiantes/:id/valores-pago` no trae los conceptos
   opcionales ni los inactivos, y la lista de hoy sí. Si algún colegio tiene un
   valor personalizado en uno de ellos, dejaría de verse en Pagos. Revisarlo

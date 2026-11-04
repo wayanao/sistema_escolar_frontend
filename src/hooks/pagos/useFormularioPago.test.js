@@ -134,6 +134,76 @@ describe("useFormularioPago", () => {
     expect(result.current.pagoData.monto).toBe("100000");
     expect(props.reiniciarOpcionesAdelanto).toHaveBeenCalled();
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
+  });
+
+  it("abrir el formulario también pide los meses para adelantar; cerrarlo no pide nada", () => {
+    const props = crearProps();
+    const { result } = renderHook(() => useFormularioPago(props));
+
+    act(() => result.current.toggleFormularioPago());
+    expect(result.current.showForm).toBe(true);
+    expect(props.reiniciarOpcionesAdelanto).toHaveBeenCalledTimes(1);
+    expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
+
+    act(() => result.current.toggleFormularioPago());
+    expect(result.current.showForm).toBe(false);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledTimes(1);
+  });
+
+  it("al llegar con el estudiante ya elegido solo pide los meses para adelantar", () => {
+    const props = crearProps();
+    const { result } = renderHook(() => useFormularioPago(props));
+
+    act(() => result.current.abrirFormulario(7));
+
+    expect(result.current.showForm).toBe(true);
+    expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
+    expect(props.cargarOpcionesVencidas).not.toHaveBeenCalled();
+  });
+
+  it("elegir en la lista un concepto mensual al día lo deja listo para adelantar", () => {
+    const { result } = renderHook(() =>
+      useFormularioPago(crearProps({ deudasEstudiante: [], opcionesVencidas: [] }))
+    );
+    act(() => result.current.prepararFormulario(7));
+    act(() => result.current.actualizarCampoPago("fecha", "2026-08-15"));
+
+    act(() => result.current.seleccionarConcepto("Pensión"));
+
+    expect(result.current.conceptosAlDia).toEqual([opcionAdelanto]);
+    expect(result.current.modoPago).toBe("adelantado");
+    expect(result.current.pagoData).toMatchObject({
+      descripcion: "Pensión",
+      tipo_pago_id_adelanto: "11",
+      cantidad_meses: 1,
+      monto: "100000",
+      fecha: "2026-08-15",
+    });
+    expect(result.current.puedeElegirPendienteOAdelanto).toBe(false);
+  });
+
+  it("con deuda mensual se puede pasar a adelantar y volver sin perder el concepto", () => {
+    const { result } = renderHook(() => useFormularioPago(crearProps()));
+    act(() => result.current.prepararFormulario(7));
+
+    act(() => result.current.seleccionarConcepto("Pensión"));
+    expect(result.current.conceptosAlDia).toEqual([]);
+    expect(result.current.modoPago).toBe("normal");
+    expect(result.current.puedeElegirPendienteOAdelanto).toBe(true);
+
+    act(() => result.current.cambiarModoPago("adelantado"));
+    expect(result.current.modoPago).toBe("adelantado");
+    expect(result.current.pagoData.descripcion).toBe("Pensión");
+    expect(result.current.pagoData.tipo_pago_id_adelanto).toBe("11");
+    expect(result.current.puedeElegirPendienteOAdelanto).toBe(true);
+
+    act(() => result.current.cambiarModoPago("normal"));
+    expect(result.current.modoPago).toBe("normal");
+    expect(result.current.pagoData.aplicaciones).toEqual([
+      { tipo_pago_id: 11, periodo: "2026-06", monto: 100000 },
+    ]);
   });
 
   it("Cobrar de un cargo de inventario lo deja elegido como en la lista", () => {

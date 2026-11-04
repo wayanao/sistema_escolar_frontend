@@ -179,12 +179,13 @@ describe("PagosAdmin - caracterización", () => {
     ]);
 
     expect(await screen.findByText("Pagos de Pérez Ana")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pago pendiente" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByTestId("estado-ruta")).toHaveTextContent("null");
     });
     expect(pagosApi.obtenerHistorialPagos).toHaveBeenCalledWith(7);
     expect(pagosApi.obtenerOpcionesVencidas).toHaveBeenCalledWith(7);
+    expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7);
   });
 
   it("consulta los contratos actuales al cargar y seleccionar un estudiante", async () => {
@@ -250,7 +251,7 @@ describe("PagosAdmin - caracterización", () => {
       expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
       const [, formulario] = Element.prototype.scrollIntoView.mock.contexts;
       expect(formulario).toContainElement(
-        screen.getByRole("group", { name: "Tipo de registro de pago" })
+        screen.getByRole("combobox", { name: "Concepto de Pago" })
       );
     });
   });
@@ -290,7 +291,7 @@ describe("PagosAdmin - caracterización", () => {
     await user.click(screen.getByRole("button", { name: "Cobrar" }));
 
     const resumen = screen.getByRole("region", { name: "Lo que debe" });
-    const formulario = screen.getByRole("group", { name: "Tipo de registro de pago" });
+    const formulario = screen.getByRole("combobox", { name: "Concepto de Pago" });
     const historial = screen.getByRole("heading", { name: "Historial de Pagos" });
     expect(
       resumen.compareDocumentPosition(formulario) & Node.DOCUMENT_POSITION_FOLLOWING
@@ -428,14 +429,16 @@ describe("PagosAdmin - caracterización", () => {
     await seleccionarEstudiante(user);
 
     await user.click(screen.getByRole("button", { name: "Cobrar" }));
-    await user.click(screen.getByRole("button", { name: "Meses adelantados" }));
     await waitFor(() => {
       expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7);
     });
 
-    const opcionAdelanto = Array.from(document.querySelectorAll("option"))
-      .find((option) => option.textContent.includes("por mes"));
-    await user.selectOptions(opcionAdelanto.parentElement, "11");
+    // Pensión tiene deuda: se elige en la lista y luego "Adelantar meses".
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Concepto de Pago" }),
+      "Pensión",
+    );
+    await user.click(await screen.findByRole("button", { name: "Adelantar meses" }));
     await user.click(screen.getByRole("button", { name: "Distribuir un monto" }));
     fireEvent.change(screen.getByPlaceholderText("Ej: 80.000"), {
       target: { value: "150000" },
@@ -462,6 +465,37 @@ describe("PagosAdmin - caracterización", () => {
         { tipo: "subsidio", monto: 150000, nota: "Convenio 2026" },
       ],
     });
+  });
+
+  it("un concepto mensual al día se adelanta desde la misma lista de conceptos", async () => {
+    const user = userEvent.setup();
+    pagosApi.obtenerDeudasEstudiante.mockResolvedValue({ deudas: [] });
+    pagosApi.obtenerOpcionesVencidas.mockResolvedValue({ opciones: [] });
+    renderPagos();
+    await seleccionarEstudiante(user);
+    expect(await screen.findByText("Al día: no debe nada.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cobrar" }));
+    const concepto = screen.getByRole("combobox", { name: "Concepto de Pago" });
+    await within(concepto).findByRole("option", { name: "Pensión · $100.000 por mes" });
+    await user.selectOptions(concepto, "Pensión");
+
+    expect(screen.getByText("Registrar mensualidades futuras")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Qué pagar de este concepto" })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByLabelText("efectivo"));
+    await user.click(screen.getByRole("button", { name: "Registrar adelanto" }));
+
+    await waitFor(() => expect(pagosApi.registrarPagoAdelantado).toHaveBeenCalled());
+    expect(pagosApi.registrarPagoAdelantado.mock.calls[0][0]).toEqual({
+      estudiante_id: 7,
+      tipo_pago_id: 11,
+      cantidad_meses: 1,
+      fecha: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      metodos: [{ tipo: "efectivo", monto: 100000, nota: "" }],
+    });
+    expect(pagosApi.registrarPago).not.toHaveBeenCalled();
   });
 
   it("elige explícitamente otro año, recarga sus cobros y no mezcla ventas", async () => {

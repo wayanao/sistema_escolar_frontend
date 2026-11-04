@@ -1248,14 +1248,19 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   contratos, formatos, cálculos y payloads puros.
 - El módulo conserva el registro normal de deudas y cargos de inventario
   mediante `POST /pagos`.
-- En conceptos mensuales, `Pago pendiente` muestra tarjetas seleccionables por
-  mes, saldo y estado vencido/parcial; el mes mas antiguo inicia seleccionado.
+- En conceptos mensuales con deuda, `Pagar lo que debe` muestra tarjetas
+  seleccionables por mes, saldo y estado vencido/parcial; el mes mas antiguo
+  inicia seleccionado.
 - Se puede elegir todos los meses, volver al mas antiguo o usar `Abono libre`
   para mantener el registro anterior sin periodo.
 - El total y el primer metodo se sincronizan con los meses seleccionados y una
   confirmacion resume periodos y valor antes de guardar.
-- El formulario ofrece de forma separada `Meses adelantados`, disponible solo
-  para conceptos mensuales asignados al estudiante.
+- Desde el 2026-11-03 no hay botones `Pago pendiente` ni `Meses adelantados`:
+  todo se elige en la lista `Concepto de Pago`. Los conceptos mensuales al
+  día salen en el grupo `Al día: adelantar meses` y abren directo el
+  adelanto; uno mensual con deuda ofrece `Pagar lo que debe` o `Adelantar
+  meses`, y cambiar entre los dos conserva el concepto y la fecha. Las
+  opciones de adelanto se piden al abrir el formulario.
 - El modo adelantado muestra los meses futuros libres, cantidad, valor por
   cuota y total antes de registrar; no permite editar manualmente ese total.
 - Dentro de adelantos se puede alternar entre `Meses completos` y `Distribuir

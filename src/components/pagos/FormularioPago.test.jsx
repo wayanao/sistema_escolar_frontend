@@ -29,7 +29,8 @@ const crearProps = (cambios = {}) => ({
   todasLasCuotasSeleccionadas: false,
   loadingOpcionesVencidas: false,
   errorOpcionesVencidas: "",
-  opcionesAdelanto: [],
+  conceptosAlDia: [],
+  puedeElegirPendienteOAdelanto: false,
   loadingOpcionesAdelanto: false,
   errorOpcionesAdelanto: "",
   opcionAdelantoSeleccionada: null,
@@ -39,11 +40,10 @@ const crearProps = (cambios = {}) => ({
   onRegistrar: vi.fn(),
   onCerrar: vi.fn(),
   onCambiarModoPago: vi.fn(),
-  onSeleccionarConceptoPendiente: vi.fn(),
+  onSeleccionarConcepto: vi.fn(),
   onActualizarCuotasSeleccionadas: vi.fn(),
   onActivarAbonoLibre: vi.fn(),
   onReintentarOpcionesVencidas: vi.fn(),
-  onSeleccionarConceptoAdelanto: vi.fn(),
   onCambiarCantidadAdelanto: vi.fn(),
   onCambiarModalidadAdelanto: vi.fn(),
   onCambiarMontoDistribuir: vi.fn(),
@@ -67,7 +67,8 @@ describe("FormularioPago", () => {
     });
     render(<FormularioPago {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Meses adelantados" }));
+    expect(screen.queryByRole("button", { name: "Pago pendiente" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Meses adelantados" })).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "Matrícula" } });
     fireEvent.change(screen.getByDisplayValue("2026-08-04"), {
       target: { value: "2026-08-05" },
@@ -78,8 +79,7 @@ describe("FormularioPago", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Registrar Pago" }).closest("form"));
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(props.onCambiarModoPago).toHaveBeenCalledWith("adelantado");
-    expect(props.onSeleccionarConceptoPendiente).toHaveBeenCalledWith("Matrícula");
+    expect(props.onSeleccionarConcepto).toHaveBeenCalledWith("Matrícula");
     expect(props.onActualizarCampoPago).toHaveBeenCalledWith("fecha", "2026-08-05");
     expect(props.onCambiarMontoPago).toHaveBeenCalledWith("45000");
     expect(props.onValidarMonto).toHaveBeenCalledWith(50000);
@@ -97,18 +97,27 @@ describe("FormularioPago", () => {
       max_meses: 2,
       total_disponible: 200000,
     };
+    const deudaPension = {
+      concepto: "Pensión",
+      concepto_id: 11,
+      tipo_cobro: "mensual",
+      deuda: 25000,
+      pagado: 0,
+    };
     const props = crearProps({
       modoPago: "adelantado",
       pagoData: crearPagoData({
+        descripcion: "Pensión",
         monto: "150000",
         tipo_pago_id_adelanto: "11",
         modalidad_adelanto: "monto",
         monto_distribuir: "150000",
         metodos: [{ tipo: "subsidio", monto: "150000", nota: "Convenio 2026" }],
       }),
-      opcionesAdelanto: [opcionAdelanto],
+      deudasEstudiante: [deudaPension],
+      puedeElegirPendienteOAdelanto: true,
       opcionAdelantoSeleccionada: opcionAdelanto,
-      deudaDelConceptoAdelantado: { deuda: 25000 },
+      deudaDelConceptoAdelantado: deudaPension,
       periodosAdelantoSeleccionados: [
         {
           periodo: "2026-08",
@@ -140,9 +149,69 @@ describe("FormularioPago", () => {
       target: { value: "Nuevo convenio" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Meses completos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pagar lo que debe" }));
 
+    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toHaveValue("Pensión");
     expect(props.onCambiarMontoDistribuir).toHaveBeenCalledWith("120000");
     expect(props.onCambiarNotaMetodo).toHaveBeenCalledWith("subsidio", "Nuevo convenio");
     expect(props.onCambiarModalidadAdelanto).toHaveBeenCalledWith("meses");
+    expect(props.onCambiarModoPago).toHaveBeenCalledWith("normal");
+  });
+
+  it("un concepto mensual al día sale aparte en la lista y se elige como los demás", () => {
+    const props = crearProps({
+      conceptosAlDia: [
+        { tipo_pago_id: 13, concepto: "Transporte", valor_unitario: 50000, max_meses: 3 },
+        { tipo_pago_id: 14, concepto: "Refrigerio", valor_unitario: 30000, max_meses: 0 },
+      ],
+    });
+    render(<FormularioPago {...props} />);
+
+    expect(screen.getByRole("option", { name: "Transporte · $50.000 por mes" })).toBeEnabled();
+    expect(
+      screen.getByRole("option", { name: "Refrigerio · $30.000 por mes · Sin meses disponibles" })
+    ).toBeDisabled();
+    fireEvent.change(screen.getByRole("combobox", { name: "Concepto de Pago" }), {
+      target: { value: "Transporte" },
+    });
+
+    expect(props.onSeleccionarConcepto).toHaveBeenCalledWith("Transporte");
+    expect(screen.queryByRole("group", { name: "Qué pagar de este concepto" })).not.toBeInTheDocument();
+  });
+
+  it("con deuda mensual y meses por adelantar ofrece pagar lo que debe o adelantar", () => {
+    const deudaPension = {
+      concepto: "Pensión",
+      concepto_id: 11,
+      tipo_cobro: "mensual",
+      deuda: 100000,
+      pagado: 0,
+    };
+    const props = crearProps({
+      pagoData: crearPagoData({ descripcion: "Pensión", monto: "100000" }),
+      deudasEstudiante: [deudaPension],
+      deudaPendienteSeleccionada: deudaPension,
+      puedeElegirPendienteOAdelanto: true,
+    });
+    render(<FormularioPago {...props} />);
+
+    const eleccion = screen.getByRole("group", { name: "Qué pagar de este concepto" });
+    expect(eleccion).toHaveTextContent("Pagar lo que debe");
+    expect(screen.getByText("Meses pendientes")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Adelantar meses" }));
+
+    expect(props.onCambiarModoPago).toHaveBeenCalledWith("adelantado");
+  });
+
+  it("avisa si no se pudieron consultar los meses para adelantar", () => {
+    const props = crearProps({
+      errorOpcionesAdelanto: "No se pudieron consultar los meses disponibles.",
+    });
+    render(<FormularioPago {...props} />);
+
+    expect(screen.getByText("No se pudieron consultar los meses disponibles.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+
+    expect(props.onReintentarOpcionesAdelanto).toHaveBeenCalledTimes(1);
   });
 });

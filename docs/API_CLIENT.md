@@ -586,7 +586,11 @@ Uso:
 - Si se elige `Abono libre`, el cliente omite `aplicaciones` y conserva el
   comportamiento anterior.
 - `GET /pagos/adelanto/opciones/{estudiante_id}` devuelve conceptos mensuales,
-  valor unitario y meses futuros disponibles del año lectivo actual.
+  valor unitario y meses futuros disponibles del año lectivo actual. Desde el
+  2026-11-03 Pagos la pide al abrir el formulario (y al cambiar de año con el
+  formulario abierto), porque los conceptos mensuales al día para adelantar
+  salen en la misma lista de conceptos; antes, solo al tocar «Meses
+  adelantados».
 - `POST /pagos/adelanto` recibe `tipo_pago_id`, `cantidad_meses`, `fecha` y los
   metodos de pago. El total se calcula y valida nuevamente en backend.
 - Como alternativa a `cantidad_meses`, envia `monto_distribuir` para subsidios
