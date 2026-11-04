@@ -87,16 +87,18 @@ acceso a nada; es solo informativa y lleva al login.
 
 `App.jsx` decide el menu principal:
 
-- `NavAdminView` cuando existe `usuario` con rol `admin`.
+- `MenuLateralView` (dentro de `MarcoAdmin`) cuando existe `usuario` con rol
+  `admin`, desde el 2026-11-04. Antes era `NavAdminView`, que quedó sin uso.
 - `NavProfesorView` cuando no hay admin y existe profesor.
 - `NavSuperAdminView` en la ruta `/super-admin`.
 
 La entrada `Listas de Seguimiento`, del grupo Gestion Academica, se agrego el
-2026-09-22. Como todas las del menu admin, vive **en dos archivos**:
-`src/utils/autenticacion/navegacion.js` para escritorio y
-`src/components/autenticacion/NavAdminView.jsx`, a mano, para movil. El segundo
-no se genera a partir del primero, asi que tocar solo uno deja la entrada en
-una de las dos vistas sin que nada falle.
+2026-09-22. Hasta el 2026-11-04 las entradas del menu admin vivian **en dos
+archivos** (`navegacion.js` para escritorio y `NavAdminView.jsx`, a mano, para
+movil). Desde el menú lateral, `ADMIN_DESKTOP_ITEMS` de
+`src/utils/autenticacion/navegacion.js` arma el menú del admin en PC, tablet y
+celular: una entrada nueva se agrega solo ahí. El menú del profesor sigue en
+dos archivos hasta que pase al menú lateral.
 
 Desde el 2026-10-06, el admin tiene además la entrada `Años lectivos` en los
 dos menús. Abre `/admin/anios-lectivos` bajo `AdminRoute`; profesor y

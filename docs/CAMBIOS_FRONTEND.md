@@ -1,5 +1,46 @@
 # Cambios Frontend
 
+## 2026-11-04 - Menú lateral del admin (paso 2)
+
+Pedido por el usuario: un menú «más moderno y no tan artesanal». Se diseñó
+con él en una maqueta (PC, tablet y celular, admin y profesor) y este paso
+pasa al código **solo el admin**; el profesor sigue con su barra hasta el
+paso 3. Rutas, permisos y backend no cambian.
+
+- **PC (1280 px o más):** menú oscuro a la izquierda (#2a1150, el morado de
+  la landing) con íconos; los grupos se abren con clic y el de la página
+  actual ya viene abierto; la página actual se marca con una barrita verde.
+  Arriba, una barra blanca con la ubicación («Cartera › Gestión de Pagos»),
+  el año lectivo y la campana. Abajo del menú, el nombre del admin; «Cerrar
+  sesión» va en su menú.
+- **Riel:** el menú encogido es una barra de 92 px con cada ícono y su nombre
+  debajo; tocar un grupo abre sus páginas en un panel al lado. Es el modo de
+  la tablet vertical (fijo) y de la horizontal o el portátil pequeño (de 1024
+  a 1279 px, con el botón para abrir el menú completo). La elección se
+  recuerda en el navegador (`menuLateral`).
+- **Celular (menos de 768 px, o menos de 560 px de alto):** barra oscura con
+  ☰, logo, año y campana; el menú se desliza desde la izquierda y se cierra
+  al elegir, con Escape, con la X o tocando fuera. El alto cuenta porque un
+  celular acostado pasa de 768 px de ancho y el riel no le cabe.
+- Una sola lista (`navegacion.js`) arma el menú en PC, tablet y celular: ya
+  no hay un menú móvil escrito a mano.
+- El menú y las barras no salen en el papel (`print:hidden`).
+- Archivos nuevos: `MenuLateralView.jsx`, `IconoMenu.jsx` (íconos dibujados
+  a mano, sin dependencias), `useMenuLateral.js`, `utils/autenticacion/menuLateral.js`
+  y sus pruebas. Cambian: `App.jsx` (marco del admin), `navegacion.js`
+  (ícono de cada entrada y `obtenerUbicacionNavegacion`), `useSesion.js`
+  (`useSesionUsuario`, solo lectura), `NotificacionesPlaneadoresVista.jsx` y
+  `SelectorAnioLectivoView.jsx` (un `tono` por barra; el profesor conserva
+  el de siempre) y los dobles de prueba de `App*.test.jsx`.
+- `NavAdminView.jsx` queda sin uso, con sus pruebas pasando; no se borró:
+  queda a decisión del usuario.
+- Verificación: prueba de conteo escrita antes de tocar (19 pantallas del
+  admin, cada una con su ruta) y repetida sobre el menú nuevo en sus tres
+  modos. `pnpm run check:deploy` → **3307 pruebas en 401 archivos**, lint y
+  build correctos. Build principal: JS 364.451 → 374.466 bytes (comprimido
+  106.786 → 110.385) y CSS 119.254 → 122.016. Sin probar todavía en el
+  navegador.
+
 ## 2026-11-04 - Gestión de Pagos: «Lo que debe» como tabla y año del pago sutil
 
 Pedido por el usuario con capturas. En celular el nombre de la deuda se

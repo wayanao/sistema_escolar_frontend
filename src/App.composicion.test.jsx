@@ -46,15 +46,19 @@ vi.mock("./services/aniosLectivosApi", () => ({
   listarAniosLectivos: mocks.listarAniosLectivos,
 }));
 
-vi.mock("./components/autenticacion/NavAdminView", () => ({
+// El admin trabaja dentro del menú lateral: el doble pinta también la página.
+vi.mock("./components/autenticacion/MenuLateralView", () => ({
   default: (props) => {
     mocks.navAdmin(props);
     return (
-      <div data-testid="nav-admin">
-        <button type="button" onClick={props.onCerrarSesion}>Cerrar sesión admin</button>
-        {props.renderNotificaciones(mocks.onNavigate)}
-        {props.renderSelectorAnio?.()}
-      </div>
+      <>
+        <div data-testid="nav-admin">
+          <button type="button" onClick={props.onCerrarSesion}>Cerrar sesión admin</button>
+          {props.renderNotificaciones(mocks.onNavigate)}
+          {props.renderSelectorAnio?.()}
+        </div>
+        {props.children}
+      </>
     );
   },
 }));

@@ -53,8 +53,14 @@ vi.mock("./pages/AdminDashboard", async () => {
 vi.mock("./pages/Login", () => ({
   default: () => <div data-testid="pagina-login">Login</div>,
 }));
-vi.mock("./components/autenticacion/NavAdminView", () => ({
-  default: ({ renderSelectorAnio }) => <div data-testid="nav-admin">{renderSelectorAnio?.()}</div>,
+// El admin trabaja dentro del menú lateral: el doble pinta también la página.
+vi.mock("./components/autenticacion/MenuLateralView", () => ({
+  default: ({ renderSelectorAnio, children }) => (
+    <>
+      <div data-testid="nav-admin">{renderSelectorAnio?.()}</div>
+      {children}
+    </>
+  ),
 }));
 vi.mock("./components/autenticacion/TenantStatusBannerView", () => ({
   default: () => null,

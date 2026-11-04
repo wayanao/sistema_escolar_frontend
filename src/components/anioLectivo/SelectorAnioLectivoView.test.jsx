@@ -21,6 +21,26 @@ describe("SelectorAnioLectivoView", () => {
     ]);
   });
 
+  it("se pinta según la barra donde va", () => {
+    const { unmount } = render(
+      <SelectorAnioLectivoView opciones={OPCIONES} anioSeleccionadoId={1} onCambiar={vi.fn()} />,
+    );
+    expect(screen.getByRole("combobox", { name: "Año lectivo" })).toHaveClass("bg-purple-800");
+    unmount();
+
+    render(
+      <SelectorAnioLectivoView
+        opciones={OPCIONES}
+        anioSeleccionadoId={1}
+        onCambiar={vi.fn()}
+        tono="claro"
+      />,
+    );
+    const claro = screen.getByRole("combobox", { name: "Año lectivo" });
+    expect(claro).toHaveClass("bg-white", "text-slate-900");
+    expect(claro).not.toHaveClass("bg-purple-800");
+  });
+
   it("avisa el año elegido como número", async () => {
     const user = userEvent.setup();
     const onCambiar = vi.fn();

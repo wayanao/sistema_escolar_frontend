@@ -8,7 +8,7 @@ import {
 } from "../../utils/planeaciones/notificacionesContratos";
 import NotificacionesPlaneadoresVista from "./NotificacionesPlaneadoresVista";
 
-function NotificacionesPlaneadores({ rol, onNavigate }) {
+function NotificacionesPlaneadores({ rol, onNavigate, tono }) {
   const navigate = useNavigate();
   const location = useLocation();
   const contenedorRef = useRef(null);
@@ -68,6 +68,7 @@ function NotificacionesPlaneadores({ rol, onNavigate }) {
   return (
     <NotificacionesPlaneadoresVista
       rol={rol}
+      tono={tono}
       abierto={abierto}
       total={total}
       totalProfesores={totalProfesores}

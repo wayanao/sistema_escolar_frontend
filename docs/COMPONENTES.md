@@ -17,7 +17,20 @@ Estado actual de componentes y paginas del frontend.
 - `components/autenticacion/CambiarPasswordView.jsx`: formulario
   presentacional del cambio obligatorio; recibe valores, cambios, submit y
   estado de guardado desde `pages/CambiarPassword.jsx`.
-- `components/autenticacion/NavAdminView.jsx`: menu principal para usuario
+- `components/autenticacion/MenuLateralView.jsx` (2026-11-04): menú lateral
+  del admin con su marco. Recibe `modo` de `useMenuLateral`: `abierto`
+  (264 px, grupos que se abren con clic), `riel` (92 px, ícono con su nombre
+  y las páginas de cada grupo en un panel al lado) o `celular` (barra oscura
+  arriba y menú que se desliza). Arriba del contenido, desde tablet, una barra
+  blanca con la ubicación, el año (`renderSelectorAnio`) y la campana
+  (`renderNotificaciones`); los dos reciben `{ tono }` para pintarse según la
+  barra. El nombre del admin va en la tarjeta de abajo y «Cerrar sesión» en
+  su menú. Todo lleva `print:hidden`.
+- `components/autenticacion/IconoMenu.jsx`: íconos de línea del menú lateral,
+  dibujados a mano como los de la landing.
+- `components/autenticacion/NavAdminView.jsx`: **sin uso desde el
+  2026-11-04** (lo reemplazó `MenuLateralView`); se conserva con sus pruebas
+  hasta que el usuario decida borrarlo. Era el menu principal para usuario
   admin; en movil agrupa secciones, usa etiquetas principales mas legibles,
   muestra solo la marca mas visible en un encabezado compacto, protege etiquetas
   como `Nómina` con `translate="no"` y mantiene visible la campana de planeaciones.
@@ -73,8 +86,9 @@ Estado actual de componentes y paginas del frontend.
   `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
   escritorio usan `15px` para mejorar lectura.
 - En el menú admin, `Administración` agrupa `Estructura académica` (`/admin`) y
-  `Años lectivos` (`/admin/anios-lectivos`). `NavAdminView` replica el grupo en
-  móvil; las pruebas comparan sus destinos con el árbol de escritorio.
+  `Años lectivos` (`/admin/anios-lectivos`). Desde el 2026-11-04 el menú
+  lateral arma PC, tablet y celular con esa misma lista; sus pruebas recorren
+  los 19 destinos en cada modo.
 - `components/autenticacion/NavSuperAdminView.jsx`: menu principal para super
   admin de plataforma.
 - Las tres vistas de navegación muestran el logotipo
@@ -729,10 +743,12 @@ Estado actual de componentes y paginas del frontend.
 
 ## Comportamiento UX movil documentado
 
-- `components/autenticacion/NavAdminView.jsx`: en movil muestra enlaces
-  principales y grupos colapsables.
-  Las subpestanas de admin se abren solo al seleccionar su grupo, para evitar
-  que el menu despliegue todas las opciones al abrirse.
+- `components/autenticacion/MenuLateralView.jsx`: en celular, el menú del
+  admin se desliza desde la izquierda sobre la página (no la empuja hacia
+  abajo). Los grupos se abren con un toque y el de la página actual ya viene
+  abierto; cada fila mide 44 px para el dedo. Se cierra al elegir, con
+  Escape, con la X o tocando fuera, y «Cerrar sesión» va a la vista abajo.
+  Un celular acostado (menos de 560 px de alto) también usa este menú.
 - `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
   necesitan comportamiento especial de pantalla. Los documentos marcados como
   boletin, certificado o cartera usan root con scroll lateral en movil.
@@ -759,9 +775,10 @@ Estado actual de componentes y paginas del frontend.
   dos formularios.
 - `App.jsx`: raíz de rutas, guards, layouts, navegación y aviso tenant. En
   el layout del admin conecta también el año lectivo: `AnioLectivoProvider`,
-  el selector (que `NavAdminView` dibuja con `renderSelectorAnio`, como las
+  el selector (que `MenuLateralView` dibuja con `renderSelectorAnio`, como las
   notificaciones) y el aviso, y reinicia la página al cambiar de año
-  (`RutasDelAnio`).
+  (`RutasDelAnio`). El admin trabaja dentro de `MarcoAdmin`: menú lateral a la
+  izquierda y la página, con sus avisos, a la derecha.
 - `components/anioLectivo/SelectorAnioLectivoView.jsx`: la cajita para elegir
   el año en la barra del admin. Solo aparece con más de un año y en las
   pantallas que siguen el año.

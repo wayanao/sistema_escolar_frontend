@@ -21,6 +21,8 @@ Claves observadas:
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
 - `ultimo_codigo_colegio`: ultimo codigo de colegio usado en un login exitoso,
   solo para precargar el campo visual del formulario.
+- `menuLateral`: si el admin dejó el menú lateral `abierto` o en `riel`
+  (encogido) desde portátil. Desde el 2026-11-04.
 
 Separacion importante:
 
@@ -32,6 +34,8 @@ Separacion importante:
   limpiado `periodo`.
 - `ultimo_codigo_colegio` es una preferencia local del login; no autoriza,
   no define tenant y no reemplaza el codigo enviado al backend.
+- `menuLateral` es una preferencia de la pantalla, no de la sesión: no se
+  limpia en logout ni ante `401`, como `ultimo_codigo_colegio`.
 
 Tambien se usa cookie:
 

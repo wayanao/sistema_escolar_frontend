@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import NotificacionesPlaneadores from "./components/planeaciones/NotificacionesPlaneadores";
-import NavAdminView from "./components/autenticacion/NavAdminView";
+import MenuLateralView from "./components/autenticacion/MenuLateralView";
 import NavProfesorView from "./components/autenticacion/NavProfesorView";
 import NavSuperAdminView from "./components/autenticacion/NavSuperAdminView";
 import TenantStatusBannerView from "./components/autenticacion/TenantStatusBannerView";
@@ -13,6 +13,7 @@ import useAnioLectivo from "./hooks/anioLectivo/useAnioLectivo";
 import useAnioLectivoEnPantalla from "./hooks/anioLectivo/useAnioLectivoEnPantalla";
 import { useCerrarSesion } from "./hooks/autenticacion/useCerrarSesion";
 import { useEstadoTenant } from "./hooks/autenticacion/useEstadoTenant";
+import { useMenuLateral } from "./hooks/autenticacion/useMenuLateral";
 import {
   useEstadoSesionGeneral,
   useRedireccionCambioPassword,
@@ -20,7 +21,9 @@ import {
   useRedireccionRutaProtegida,
   useRedireccionSuperAdmin,
   useSesionSuperAdmin,
+  useSesionUsuario,
 } from "./hooks/autenticacion/useSesion";
+import { ADMIN_DESKTOP_ITEMS } from "./utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "./utils/autenticacion/sesion";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
@@ -56,15 +59,16 @@ const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const CambiarPassword = lazy(() => import("./pages/CambiarPassword"));
 const Landing = lazy(() => import("./pages/Landing"));
 
-function renderNotificacionesAdmin(onNavigate) {
-  return <NotificacionesPlaneadores rol="admin" onNavigate={onNavigate} />;
+// `tono` es el de la barra donde va la campana: oscura en celular, blanca desde tablet.
+function renderNotificacionesAdmin(onNavigate, opciones) {
+  return <NotificacionesPlaneadores rol="admin" onNavigate={onNavigate} tono={opciones?.tono} />;
 }
 
 function renderNotificacionesProfesor(onNavigate) {
   return <NotificacionesPlaneadores rol="profesor" onNavigate={onNavigate} />;
 }
 
-function SelectorAnioLectivoAdmin() {
+function SelectorAnioLectivoAdmin({ tono }) {
   const { mostrarSelector, opciones, anioSeleccionadoId, seleccionarAnio } =
     useAnioLectivoEnPantalla();
 
@@ -75,12 +79,13 @@ function SelectorAnioLectivoAdmin() {
       opciones={opciones}
       anioSeleccionadoId={anioSeleccionadoId}
       onCambiar={seleccionarAnio}
+      tono={tono}
     />
   );
 }
 
-function renderSelectorAnioAdmin() {
-  return <SelectorAnioLectivoAdmin />;
+function renderSelectorAnioAdmin(opciones) {
+  return <SelectorAnioLectivoAdmin tono={opciones?.tono} />;
 }
 
 function PageLoader() {
@@ -116,16 +121,36 @@ function SuperAdminRoute({ children }) {
   return redireccion ? <Navigate to={redireccion} /> : children;
 }
 
-function NavegacionSesion({ esAdmin }) {
+// El admin trabaja dentro del menú lateral: el menú a la izquierda (en celular,
+// una barra arriba) y la página a la derecha.
+function MarcoAdmin({ children }) {
   const cerrarSesion = useCerrarSesion();
+  const usuario = useSesionUsuario();
+  const { modo, puedeAlternar, alternarMenu } = useMenuLateral();
 
-  return esAdmin ? (
-    <NavAdminView
+  return (
+    <MenuLateralView
+      items={ADMIN_DESKTOP_ITEMS}
+      rutaInicio={RUTAS_SESION.INICIO_ADMIN}
+      etiqueta="Navegación principal de administrador"
+      nombre={usuario?.nombre}
+      rol="Administrador"
+      modo={modo}
+      puedeAlternar={puedeAlternar}
+      onAlternarMenu={alternarMenu}
       onCerrarSesion={cerrarSesion}
       renderNotificaciones={renderNotificacionesAdmin}
       renderSelectorAnio={renderSelectorAnioAdmin}
-    />
-  ) : (
+    >
+      {children}
+    </MenuLateralView>
+  );
+}
+
+function NavegacionProfesor() {
+  const cerrarSesion = useCerrarSesion();
+
+  return (
     <NavProfesorView
       onCerrarSesion={cerrarSesion}
       renderNotificaciones={renderNotificacionesProfesor}
@@ -204,9 +229,8 @@ function Layout() {
     return <Navigate to={RUTAS_SESION.LOGIN} />;
   }
 
-  const layout = (
-    <div className="notranslate min-h-screen bg-slate-50" translate="no">
-      <NavegacionSesion esAdmin={esAdmin} />
+  const contenido = (
+    <>
       <AvisoEstadoTenant />
       {esAdmin ? <AvisoAnioLectivo /> : null}
       <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 xl:px-8">
@@ -250,6 +274,19 @@ function Layout() {
           </RutasDelAnio>
         </Suspense>
       </main>
+    </>
+  );
+
+  const layout = (
+    <div className="notranslate min-h-screen bg-slate-50" translate="no">
+      {esAdmin ? (
+        <MarcoAdmin>{contenido}</MarcoAdmin>
+      ) : (
+        <>
+          <NavegacionProfesor />
+          {contenido}
+        </>
+      )}
     </div>
   );
 

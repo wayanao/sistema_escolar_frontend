@@ -1,9 +1,12 @@
+// `icono` es el nombre del dibujo en IconoMenu.jsx; solo lo lleva el primer
+// nivel, porque en el menú lateral las páginas de un grupo van sin ícono.
 export const ADMIN_DESKTOP_ITEMS = [
-  { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin" },
+  { id: "dashboard", type: "link", label: "Dashboard", to: "/dashboard-admin", icono: "dashboard" },
   {
     id: "academica",
     type: "group",
     label: "Gestión Académica",
+    icono: "academica",
     children: [
       { id: "horarios", label: "Horarios Asignados", to: "/admin/horarios" },
       { id: "planeadores", label: "Planeadores de Clases", to: "/admin/planeadores-clases" },
@@ -17,6 +20,7 @@ export const ADMIN_DESKTOP_ITEMS = [
     id: "cartera",
     type: "group",
     label: "Cartera",
+    icono: "cartera",
     children: [
       { id: "pagos", label: "Gestión de Pagos", to: "/admin/pagos" },
       { id: "tipos-pagos", label: "Tipos de Pago", to: "/admin/tipos-pagos" },
@@ -32,6 +36,7 @@ export const ADMIN_DESKTOP_ITEMS = [
     id: "administracion",
     type: "group",
     label: "Administración",
+    icono: "administracion",
     children: [
       {
         id: "estructura-academica",
@@ -46,8 +51,8 @@ export const ADMIN_DESKTOP_ITEMS = [
       },
     ],
   },
-  { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes" },
-  { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes" },
+  { id: "estudiantes", type: "link", label: "Estudiantes", to: "/admin/estudiantes", icono: "estudiantes" },
+  { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes", icono: "reportes" },
 ];
 
 export const PROFESOR_DESKTOP_ITEMS = [
@@ -95,4 +100,18 @@ export function esRutaNavegacionActiva(item, pathname) {
 
 export function obtenerIdItemNavegacionActivo(items, pathname) {
   return items.find((item) => esRutaNavegacionActiva(item, pathname))?.id || null;
+}
+
+// Lo que dice la barra de arriba: «Cartera › Gestión de Pagos», o solo
+// «Estudiantes» para una entrada suelta. null si la ruta no está en el menú.
+export function obtenerUbicacionNavegacion(items, pathname) {
+  for (const item of items) {
+    if (item.type === "group") {
+      const hijo = item.children.find((child) => esRutaNavegacionActiva(child, pathname));
+      if (hijo) return { seccion: item.label, pagina: hijo.label };
+    } else if (esRutaNavegacionActiva(item, pathname)) {
+      return { seccion: null, pagina: item.label };
+    }
+  }
+  return null;
 }

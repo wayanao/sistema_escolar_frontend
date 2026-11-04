@@ -864,3 +864,36 @@ campos, los textos, los mensajes y el flujo de inicio de sesión son los mismos.
   fondo; borrarlos queda a decisión del usuario.
 - `Login.test.jsx` monta la página con enrutador (por el enlace) y fija a
   propósito el nuevo aspecto: el `h1`, el lema y la vuelta a la landing.
+
+## Después del cierre: menú lateral del admin (2026-11-04)
+
+Rediseño pedido por el usuario y aprobado sobre una maqueta. Este paso lo
+aplica solo al admin; el profesor conserva `NavProfesorView` hasta el paso 3.
+
+- Capas, como el resto del módulo:
+  - `utils/autenticacion/menuLateral.js` (puro): modos `celular`, `riel` y
+    `abierto`, los cortes de pantalla (768, 1024 y 1280 px de ancho; 560 px
+    de alto), la preferencia guardada y las iniciales de la tarjeta.
+  - `utils/autenticacion/navegacion.js`: `icono` en el primer nivel de
+    `ADMIN_DESKTOP_ITEMS` y `obtenerUbicacionNavegacion` para la barra de
+    arriba.
+  - `hooks/autenticacion/useMenuLateral.js`: mide la pantalla con
+    `matchMedia` (sin él, asume PC) y guarda la preferencia en
+    `localStorage.menuLateral`.
+  - `hooks/autenticacion/useSesion.js`: `useSesionUsuario`, solo lectura de
+    `usuario`, para el nombre de la tarjeta.
+  - `components/autenticacion/MenuLateralView.jsx`: presenta el menú y su
+    marco; recibe el modo, los comandos y el contenido (`children`).
+  - `App.jsx` (`MarcoAdmin`): conecta los hooks con la vista.
+- Contratos que se mantienen: `onCerrarSesion`, `renderNotificaciones` y
+  `renderSelectorAnio`. Los dos últimos reciben ahora un segundo dato,
+  `{ tono }`, para pintarse según la barra; sin él se ven como antes.
+- La entrada de menú ya no vive en dos archivos para el admin: la misma lista
+  arma PC, tablet y celular.
+- `NavAdminView.jsx` quedó sin uso, con sus pruebas pasando; borrarlo queda a
+  decisión del usuario.
+- Pruebas: `menuLateral.test.js`, `useMenuLateral.test.js`,
+  `MenuLateralView.test.jsx` (las 19 pantallas del admin en cada modo, Escape,
+  foco, impresión) y la prueba de conteo de `navegacion.test.js`, escrita
+  antes de tocar el código. Los dobles de `App*.test.jsx` imitan ahora
+  `MenuLateralView` y pintan la página que va dentro.

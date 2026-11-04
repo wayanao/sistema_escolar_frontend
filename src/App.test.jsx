@@ -41,8 +41,14 @@ vi.mock("./pages/Observador", () => ({
 vi.mock("./components/autenticacion/NavProfesorView", () => ({
   default: () => <div data-testid="nav-profesor">Nav profesor</div>,
 }));
-vi.mock("./components/autenticacion/NavAdminView", () => ({
-  default: () => <div data-testid="nav-admin">Nav admin</div>,
+// El admin trabaja dentro del menú lateral: el doble pinta también la página.
+vi.mock("./components/autenticacion/MenuLateralView", () => ({
+  default: ({ children }) => (
+    <>
+      <div data-testid="nav-admin">Nav admin</div>
+      {children}
+    </>
+  ),
 }));
 vi.mock("./components/autenticacion/NavSuperAdminView", () => ({
   default: () => <div data-testid="nav-super-admin">Nav super admin</div>,

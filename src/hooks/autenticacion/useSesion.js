@@ -49,3 +49,9 @@ export function useRedireccionSuperAdmin() {
 export function useSesionSuperAdmin() {
   return leerSesion(CLAVES_SESION.SUPER_ADMIN);
 }
+
+// Identidad visual del admin (nombre para la tarjeta del menú). Solo lee: los
+// permisos los decide el backend.
+export function useSesionUsuario() {
+  return leerSesion(CLAVES_SESION.USUARIO);
+}

@@ -1,7 +1,26 @@
 import { formatearMomentoNotificacion } from "../../utils/planeaciones/notificacionesContratos";
 
+// La campana va sobre tres barras: la morada del profesor, la oscura del admin
+// en celular y la blanca del admin desde tablet. El borde del contador es del
+// color de la barra, para que el número se despegue de la campana.
+const TONOS_CAMPANA = {
+  morado: {
+    boton: "border-white/25 bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
+    contador: "border-purple-700",
+  },
+  oscuro: {
+    boton: "border-white/25 bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
+    contador: "border-[#2a1150]",
+  },
+  claro: {
+    boton: "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-purple-700 focus:ring-purple-300",
+    contador: "border-white",
+  },
+};
+
 function NotificacionesPlaneadoresVista({
   rol,
+  tono = "morado",
   abierto,
   total,
   totalProfesores,
@@ -16,18 +35,20 @@ function NotificacionesPlaneadoresVista({
   onAbrirNotificacion,
   onVerTodos,
 }) {
+  const estilo = TONOS_CAMPANA[tono] ?? TONOS_CAMPANA.morado;
+
   return (
     <div ref={contenedorRef} className="static shrink-0 lg:relative">
       <button
         type="button"
         onClick={onAlternar}
-        className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-white/25 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition focus:outline-none focus:ring-2 ${estilo.boton}`}
         aria-label={total ? `Notificaciones de planeadores: ${total} sin leer` : "Notificaciones de planeadores"}
         aria-expanded={abierto}
       >
         <IconoCampana />
         {total > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-purple-700 bg-rose-500 px-1 text-[10px] font-black leading-none text-white">
+          <span className={`absolute -right-1.5 -top-1.5 flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 bg-rose-500 px-1 text-[10px] font-black leading-none text-white ${estilo.contador}`}>
             {total > 99 ? "99+" : total}
           </span>
         )}

@@ -4,6 +4,7 @@ import {
   PROFESOR_DESKTOP_ITEMS,
   esRutaNavegacionActiva,
   obtenerIdItemNavegacionActivo,
+  obtenerUbicacionNavegacion,
 } from "./navegacion";
 
 function resumirItems(items) {
@@ -78,6 +79,17 @@ describe("contratos puros de navegacion", () => {
     ]);
   });
 
+  it("lleva al admin a 19 pantallas distintas, cada una con su ruta", () => {
+    // Prueba de conteo escrita antes de pasar el admin al menú lateral: el
+    // menú nuevo se arma con esta misma lista y no puede perder ningún destino.
+    const destinos = ADMIN_DESKTOP_ITEMS.flatMap((item) =>
+      item.type === "group" ? item.children : [item],
+    ).map((destino) => destino.to);
+
+    expect(destinos).toHaveLength(19);
+    expect(new Set(destinos).size).toBe(19);
+  });
+
   it("conserva el arbol, orden, mayusculas y rutas de profesor", () => {
     expect(resumirItems(PROFESOR_DESKTOP_ITEMS)).toStrictEqual([
       { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
@@ -128,5 +140,32 @@ describe("contratos puros de navegacion", () => {
   it("no confunde prefijos parciales ni descendientes de items end", () => {
     expect(esRutaNavegacionActiva({ to: "/admin/pagos" }, "/admin/pagos-extra")).toBe(false);
     expect(esRutaNavegacionActiva({ to: "/admin", end: true }, "/admin/hijos")).toBe(false);
+  });
+
+  it("da un ícono a cada entrada del primer nivel del admin, y ninguno a las páginas de un grupo", () => {
+    expect(ADMIN_DESKTOP_ITEMS.map((item) => item.icono)).toStrictEqual([
+      "dashboard",
+      "academica",
+      "cartera",
+      "administracion",
+      "estudiantes",
+      "reportes",
+    ]);
+    ADMIN_DESKTOP_ITEMS.filter((item) => item.type === "group").forEach((grupo) => {
+      grupo.children.forEach((hijo) => expect(hijo).not.toHaveProperty("icono"));
+    });
+  });
+
+  it.each([
+    ["/admin/pagos", { seccion: "Cartera", pagina: "Gestión de Pagos" }],
+    ["/admin/pagos/18", { seccion: "Cartera", pagina: "Gestión de Pagos" }],
+    ["/dashboard-admin", { seccion: null, pagina: "Dashboard" }],
+    ["/admin", { seccion: "Administración", pagina: "Estructura académica" }],
+    ["/admin/anios-lectivos/admisiones", { seccion: "Administración", pagina: "Años lectivos" }],
+    ["/admin/planeadores-clases/7", { seccion: "Gestión Académica", pagina: "Planeadores de Clases" }],
+    ["/admin/estudiantes", { seccion: null, pagina: "Estudiantes" }],
+    ["/admin/desconocida", null],
+  ])("ubica %s en la barra de arriba", (pathname, esperado) => {
+    expect(obtenerUbicacionNavegacion(ADMIN_DESKTOP_ITEMS, pathname)).toStrictEqual(esperado);
   });
 });

@@ -7,6 +7,7 @@ import {
   useRedireccionRutaProtegida,
   useRedireccionSuperAdmin,
   useSesionSuperAdmin,
+  useSesionUsuario,
 } from "./useSesion";
 
 function guardarSesion(clave, datos) {
@@ -88,6 +89,16 @@ describe("useSesion", () => {
       sesiones: { super_admin: { rol: "super_admin", nombre: "Soporte" } },
       esperado: { rol: "super_admin", nombre: "Soporte" },
       claves: ["super_admin"],
+    },
+    {
+      caso: "identidad visual del admin para el menú",
+      hook: useSesionUsuario,
+      sesiones: {
+        usuario: { rol: "admin", nombre: "Rectoría" },
+        profesor: { rol: "profesor", nombre: "No se lee" },
+      },
+      esperado: { rol: "admin", nombre: "Rectoría" },
+      claves: ["usuario"],
     },
   ])("lee solo las claves actuales para $caso", ({ hook, sesiones, esperado, claves }) => {
     Object.entries(sesiones).forEach(([clave, datos]) => guardarSesion(clave, datos));
