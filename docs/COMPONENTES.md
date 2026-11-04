@@ -1223,7 +1223,13 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   contrato ya calculado por el backend y se comparte con Pagos, Cartera y la
   ficha de Estudiantes.
 - `components/pagos/ValoresPersonalizadosPago.jsx` presenta el formulario y
-  listado de ajustes individuales.
+  listado de ajustes individuales. Desde el 2026-11-03 empieza cerrado: una
+  barra dice cuántos conceptos tienen valor personalizado y se abre con un
+  clic (estado de la vista, no del pago). La página lo reinicia por
+  estudiante con `key`.
+- Desde el 2026-11-03 el botón `💰 Cobrar` (antes `+ Nuevo Pago/Factura`)
+  abre el formulario arriba, antes de los valores personalizados y del
+  historial.
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
   adelantos, distribución por monto y métodos combinados.
 - `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y

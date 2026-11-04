@@ -260,6 +260,27 @@ describe("PagosAdmin - caracterización", () => {
     expect(screen.queryByText("Pérez Ana")).not.toBeInTheDocument();
   });
 
+  it("Cobrar abre el formulario arriba y los valores personalizados quedan cerrados debajo", async () => {
+    const user = userEvent.setup();
+    renderPagos();
+    await seleccionarEstudiante(user);
+
+    const valores = screen.getByRole("button", { name: /Valores personalizados/ });
+    expect(valores).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Guardar valor" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cobrar" }));
+
+    const formulario = screen.getByRole("group", { name: "Tipo de registro de pago" });
+    const historial = screen.getByRole("heading", { name: "Historial de Pagos" });
+    expect(
+      formulario.compareDocumentPosition(valores) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      valores.compareDocumentPosition(historial) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
   it("conserva la edición visual de un valor personalizado", async () => {
     const user = userEvent.setup();
     pagosApi.obtenerValoresPersonalizados.mockResolvedValue([
@@ -275,7 +296,10 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    expect(await screen.findByText("Acuerdo familiar", { exact: false })).toBeInTheDocument();
+    await user.click(
+      await screen.findByRole("button", { name: /1 concepto con valor personalizado/ })
+    );
+    expect(screen.getByText("Acuerdo familiar", { exact: false })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Editar" }));
 
     expect(screen.getByPlaceholderText("Valor personalizado")).toHaveValue("85.000");
@@ -315,7 +339,7 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    await user.click(screen.getByRole("button", { name: "+ Nuevo Pago/Factura" }));
+    await user.click(screen.getByRole("button", { name: "Cobrar" }));
     const opcionPension = document.querySelector('option[value="Pensión"]');
     await user.selectOptions(opcionPension.closest("select"), "Pensión");
     await screen.findByText("Junio de 2026");
@@ -352,7 +376,7 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    await user.click(screen.getByRole("button", { name: "+ Nuevo Pago/Factura" }));
+    await user.click(screen.getByRole("button", { name: "Cobrar" }));
     await user.click(screen.getByRole("button", { name: "Meses adelantados" }));
     await waitFor(() => {
       expect(pagosApi.obtenerOpcionesAdelanto).toHaveBeenCalledWith(7);
@@ -457,7 +481,7 @@ describe("PagosAdmin - caracterización", () => {
     expect(pagosApi.obtenerHistorialPagos).toHaveBeenCalledTimes(1);
     expect(pagosApi.obtenerVentasPendientes).toHaveBeenCalledTimes(1);
 
-    await user.click(screen.getByRole("button", { name: "+ Nuevo Pago/Factura" }));
+    await user.click(screen.getByRole("button", { name: "Cobrar" }));
     expect(screen.queryByRole("option", { name: /Uniforme/ })).not.toBeInTheDocument();
     await user.selectOptions(
       screen.getByRole("combobox", { name: "Concepto de Pago" }),

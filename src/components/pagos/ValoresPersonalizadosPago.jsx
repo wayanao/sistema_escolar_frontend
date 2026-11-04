@@ -1,6 +1,12 @@
+import { useState } from "react";
 import CampoPesos from "../CampoPesos";
 import { formatearMoneda } from "../../utils/pagos/formatos";
 
+const ID_PANEL = "valores-personalizados-panel";
+
+// Se configura de vez en cuando (una beca, un acuerdo), no en cada cobro: por
+// eso empieza cerrado y la barra solo dice si el estudiante tiene alguno. Qué
+// está abierto es estado de la vista, no del pago.
 export default function ValoresPersonalizadosPago({
   tiposPagos,
   valoresPersonalizados,
@@ -11,104 +17,135 @@ export default function ValoresPersonalizadosPago({
   onGuardar,
   onQuitar,
 }) {
+  const [abierto, setAbierto] = useState(false);
+  const cantidad = valoresPersonalizados.length;
+  const resumen = cantidad === 0
+    ? "Usa los valores normales de su curso"
+    : `${cantidad} ${cantidad === 1 ? "concepto" : "conceptos"} con valor personalizado`;
+
   return (
-    <section className="mb-6 rounded-lg border border-purple-100 bg-purple-50/50 p-4">
-      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">Valores personalizados</h3>
-          <p className="text-sm text-slate-600">
-            Ajusta el valor de un concepto solo para este estudiante.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_0.8fr] xl:grid-cols-[1fr_0.7fr_1.3fr_auto]">
-        <select
-          value={valorPersonalizadoData.tipo_pago_id}
-          onChange={(event) => onSeleccionarTipo(event.target.value)}
-          className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-        >
-          <option value="">Selecciona concepto</option>
-          {tiposPagos.map((tipoPago) => (
-            <option key={tipoPago.id} value={tipoPago.id}>
-              {tipoPago.nombre} - base {formatearMoneda(tipoPago.valor)}
-            </option>
-          ))}
-        </select>
-
-        <CampoPesos
-          min={0}
-          valor={valorPersonalizadoData.valor}
-          onCambiar={(valor) => onActualizarCampo("valor", valor)}
-          className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-          placeholder="Valor personalizado"
-        />
-
-        <input
-          type="text"
-          value={valorPersonalizadoData.motivo}
-          onChange={(event) => onActualizarCampo("motivo", event.target.value)}
-          className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-          placeholder="Motivo o acuerdo"
-          maxLength={250}
-        />
-
+    <section className="mb-6 rounded-lg border border-purple-100 bg-purple-50/50">
+      <h3>
         <button
           type="button"
-          onClick={onGuardar}
-          disabled={guardandoValorPersonalizado}
-          className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+          aria-expanded={abierto}
+          aria-controls={ID_PANEL}
+          onClick={() => setAbierto((actual) => !actual)}
+          className="flex min-h-[44px] w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left hover:bg-purple-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
-          {guardandoValorPersonalizado ? "Guardando..." : "Guardar valor"}
-        </button>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-2">
-        {valoresPersonalizados.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-purple-200 bg-white/70 p-3 text-sm text-slate-500">
-            Este estudiante usa los valores normales de su curso.
-          </p>
-        ) : (
-          valoresPersonalizados.map((valorPersonalizado) => (
-            <div
-              key={valorPersonalizado.id}
-              className="flex flex-col gap-3 rounded-lg border border-purple-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+          <span className="min-w-0">
+            <span className="block text-base font-semibold text-slate-900">
+              Valores personalizados
+            </span>
+            <span
+              className={`block text-sm ${
+                cantidad > 0 ? "font-semibold text-purple-700" : "text-slate-600"
+              }`}
             >
-              <div>
-                <p className="font-semibold text-slate-900">{valorPersonalizado.tipo_pago_nombre}</p>
-                <p className="text-sm text-slate-600">
-                  Personalizado:{" "}
-                  <span className="font-semibold text-purple-700">
-                    {formatearMoneda(valorPersonalizado.valor)}
-                  </span>
-                  {" · "}
-                  Curso/base:{" "}
-                  {formatearMoneda(valorPersonalizado.valor_curso ?? valorPersonalizado.valor_base)}
-                </p>
-                {valorPersonalizado.motivo && (
-                  <p className="text-xs text-slate-500">Motivo: {valorPersonalizado.motivo}</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => onSeleccionarTipo(valorPersonalizado.tipo_pago_id)}
-                  className="rounded-lg border border-purple-200 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50"
+              {resumen}
+            </span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-sm text-purple-700">
+            {abierto ? "▲" : "▼"}
+          </span>
+        </button>
+      </h3>
+
+      {abierto && (
+        <div id={ID_PANEL} className="border-t border-purple-100 p-4">
+          <p className="mb-3 text-sm text-slate-600">
+            Ajusta el valor de un concepto solo para este estudiante.
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_0.8fr] xl:grid-cols-[1fr_0.7fr_1.3fr_auto]">
+            <select
+              value={valorPersonalizadoData.tipo_pago_id}
+              onChange={(event) => onSeleccionarTipo(event.target.value)}
+              className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            >
+              <option value="">Selecciona concepto</option>
+              {tiposPagos.map((tipoPago) => (
+                <option key={tipoPago.id} value={tipoPago.id}>
+                  {tipoPago.nombre} - base {formatearMoneda(tipoPago.valor)}
+                </option>
+              ))}
+            </select>
+
+            <CampoPesos
+              min={0}
+              valor={valorPersonalizadoData.valor}
+              onCambiar={(valor) => onActualizarCampo("valor", valor)}
+              className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              placeholder="Valor personalizado"
+            />
+
+            <input
+              type="text"
+              value={valorPersonalizadoData.motivo}
+              onChange={(event) => onActualizarCampo("motivo", event.target.value)}
+              className="w-full rounded-lg border border-purple-200 bg-white p-2 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              placeholder="Motivo o acuerdo"
+              maxLength={250}
+            />
+
+            <button
+              type="button"
+              onClick={onGuardar}
+              disabled={guardandoValorPersonalizado}
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+            >
+              {guardandoValorPersonalizado ? "Guardando..." : "Guardar valor"}
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-2">
+            {valoresPersonalizados.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-purple-200 bg-white/70 p-3 text-sm text-slate-500">
+                Este estudiante usa los valores normales de su curso.
+              </p>
+            ) : (
+              valoresPersonalizados.map((valorPersonalizado) => (
+                <div
+                  key={valorPersonalizado.id}
+                  className="flex flex-col gap-3 rounded-lg border border-purple-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  Editar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onQuitar(valorPersonalizado)}
-                  className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                >
-                  Quitar
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">{valorPersonalizado.tipo_pago_nombre}</p>
+                    <p className="text-sm text-slate-600">
+                      Personalizado:{" "}
+                      <span className="font-semibold text-purple-700">
+                        {formatearMoneda(valorPersonalizado.valor)}
+                      </span>
+                      {" · "}
+                      Curso/base:{" "}
+                      {formatearMoneda(valorPersonalizado.valor_curso ?? valorPersonalizado.valor_base)}
+                    </p>
+                    {valorPersonalizado.motivo && (
+                      <p className="text-xs text-slate-500">Motivo: {valorPersonalizado.motivo}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onSeleccionarTipo(valorPersonalizado.tipo_pago_id)}
+                      className="rounded-lg border border-purple-200 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onQuitar(valorPersonalizado)}
+                      className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

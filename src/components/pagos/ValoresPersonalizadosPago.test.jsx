@@ -13,7 +13,35 @@ const propsBase = {
   onQuitar: vi.fn(),
 };
 
+const abrir = () =>
+  fireEvent.click(screen.getByRole("button", { name: /Valores personalizados/ }));
+
 describe("ValoresPersonalizadosPago", () => {
+  it("empieza cerrado y la barra dice si el estudiante tiene valores personalizados", () => {
+    const { rerender } = render(<ValoresPersonalizadosPago {...propsBase} />);
+
+    const barra = screen.getByRole("button", { name: /Valores personalizados/ });
+    expect(barra).toHaveAttribute("aria-expanded", "false");
+    expect(barra).toHaveTextContent("Usa los valores normales de su curso");
+    expect(screen.queryByRole("button", { name: "Guardar valor" })).not.toBeInTheDocument();
+
+    rerender(
+      <ValoresPersonalizadosPago
+        {...propsBase}
+        valoresPersonalizados={[
+          { id: 31, tipo_pago_id: 11, tipo_pago_nombre: "Pensión", valor: 85000 },
+          { id: 32, tipo_pago_id: 12, tipo_pago_nombre: "Matrícula", valor: 0 },
+        ]}
+      />
+    );
+    expect(barra).toHaveTextContent("2 conceptos con valor personalizado");
+
+    fireEvent.click(barra);
+
+    expect(barra).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Guardar valor" })).toBeInTheDocument();
+  });
+
   it("conserva el estado vacío y delega la edición del formulario", () => {
     const onSeleccionarTipo = vi.fn();
     const onActualizarCampo = vi.fn();
@@ -26,6 +54,7 @@ describe("ValoresPersonalizadosPago", () => {
         onGuardar={onGuardar}
       />
     );
+    abrir();
 
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "11" } });
     fireEvent.change(screen.getByPlaceholderText("Valor personalizado"), {
@@ -62,6 +91,7 @@ describe("ValoresPersonalizadosPago", () => {
         onQuitar={onQuitar}
       />
     );
+    abrir();
 
     fireEvent.click(screen.getByRole("button", { name: "Editar" }));
     fireEvent.click(screen.getByRole("button", { name: "Quitar" }));

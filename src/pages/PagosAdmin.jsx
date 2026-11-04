@@ -307,15 +307,24 @@ function PagosAdmin() {
         >
           {selectedEstudiante ? (
             <>
-              <div className="flex justify-between items-center mb-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold capitalize">
                   Pagos de {selectedEstudiante.apellido} {selectedEstudiante.nombre}
                 </h2>
                 <button
+                  type="button"
                   onClick={toggleFormularioPago}
-                  className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
+                  className={`w-full rounded-lg px-5 py-2.5 text-base font-semibold shadow-sm transition-colors sm:w-auto ${
+                    showForm
+                      ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
                 >
-                  {showForm ? "Cancelar" : "+ Nuevo Pago/Factura"}
+                  {showForm ? "Cancelar" : (
+                    <>
+                      <span aria-hidden="true">💰</span> Cobrar
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -333,17 +342,9 @@ function PagosAdmin() {
                 className="mb-5"
               />
 
-              <ValoresPersonalizadosPago
-                tiposPagos={tiposPagos}
-                valoresPersonalizados={valoresPersonalizados}
-                valorPersonalizadoData={valorPersonalizadoData}
-                guardandoValorPersonalizado={guardandoValorPersonalizado}
-                onSeleccionarTipo={seleccionarTipoValorPersonalizado}
-                onActualizarCampo={actualizarCampoValorPersonalizado}
-                onGuardar={guardarValorPersonalizado}
-                onQuitar={quitarValorPersonalizado}
-              />
-
+              {/* Cobrar es lo más frecuente: el formulario abre arriba. Los
+                  valores personalizados se configuran de vez en cuando, van
+                  debajo y empiezan cerrados con cada estudiante (`key`). */}
               {showForm && (
                 <FormularioPago
                   pagoData={pagoData}
@@ -387,6 +388,18 @@ function PagosAdmin() {
                   onCambiarNotaMetodo={cambiarNotaMetodo}
                 />
               )}
+
+              <ValoresPersonalizadosPago
+                key={selectedEstudiante.id}
+                tiposPagos={tiposPagos}
+                valoresPersonalizados={valoresPersonalizados}
+                valorPersonalizadoData={valorPersonalizadoData}
+                guardandoValorPersonalizado={guardandoValorPersonalizado}
+                onSeleccionarTipo={seleccionarTipoValorPersonalizado}
+                onActualizarCampo={actualizarCampoValorPersonalizado}
+                onGuardar={guardarValorPersonalizado}
+                onQuitar={quitarValorPersonalizado}
+              />
 
               <HistorialPagos
                 pagos={pagos}

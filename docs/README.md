@@ -71,6 +71,10 @@ continuacion para retomarla en otro chat u otro LLM.
   de preescolar y las inasistencias del periodo. El documento principal está
   en el backend. **Publicado el 2026-10-31: backend (`a7560e0`) y
   pantalla (`f5a573d`, Vercel OK).**
+- `funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`: Gestión de Pagos más
+  clara en tres pasos (botón "Cobrar" visible, lo que debe a la vista y
+  valores personalizados claros). Solo frontend. **Paso 1 construido el
+  2026-11-03, sin commit; falta la prueba en local.**
 
 ## Control SaaS
 

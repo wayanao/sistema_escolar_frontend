@@ -1,5 +1,26 @@
 # Cambios Frontend
 
+## 2026-11-03 - Gestión de Pagos más clara (paso 1: botón Cobrar)
+
+Pedido por el usuario. Detalle y plan en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`. Solo frontend: no
+cambia ninguna petición ni cómo se registra un pago.
+
+- El botón para cobrar se llama "💰 Cobrar" (antes "+ Nuevo Pago/Factura")
+  y es más grande. Con el formulario abierto dice "Cancelar" en gris.
+- El formulario se abre arriba, antes de los valores personalizados y del
+  historial.
+- "Valores personalizados" empieza cerrado; la barra dice si el estudiante
+  tiene alguno y cuántos. Vuelve a empezar cerrado al cambiar de estudiante.
+  Adentro no cambia nada.
+- Archivos: `pages/PagosAdmin.jsx`,
+  `components/pagos/ValoresPersonalizadosPago.jsx` y sus pruebas.
+- Verificación: pruebas de Pagos → **92 pruebas en 18 archivos** (90 de
+  antes y 2 nuevas). `pnpm run check:deploy` se cortó por carga del equipo
+  (2,8 GB libres, «Timeout waiting for worker to respond»); verificado por
+  tandas con `--maxWorkers=2` → **3207 pruebas en 395 archivos**, y lint y
+  build aparte, correctos. Sin probar todavía en el navegador.
+
 ## 2026-10-31 - Notas por periodo en el resumen del estudiante (paso 2)
 
 Pedido por el usuario. Detalle en
