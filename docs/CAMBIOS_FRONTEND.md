@@ -1,5 +1,22 @@
 # Cambios Frontend
 
+## 2026-11-04 - Gestión de Pagos más clara (paso 5: historial cerrado)
+
+Pedido por el usuario. Detalle en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`. Solo frontend, sin
+peticiones nuevas.
+
+- El historial de pagos sale cerrado, con el botón «🧾 Ver historial de
+  pagos» y el número de pagos; abierto dice «Ocultar historial».
+- Después de registrar un pago se ve solo ese pago («✓ Pago recién
+  registrado»), con todas sus filas si se pagó con varios métodos.
+- Archivos: `HistorialPagos.jsx`, `useRegistroPago.js`,
+  `utils/pagos/contratos.js` (`idsDelPagoRegistrado`), `PagosAdmin.jsx` y
+  sus pruebas.
+- Verificación: pruebas de Pagos → **131 en 20 archivos**.
+  `pnpm run check:deploy` → **3246 pruebas en 397 archivos**, lint y build
+  correctos, en una sola corrida. Sin probar todavía en el navegador.
+
 ## 2026-11-04 - Gestión de Pagos más clara (paso 4: solo «Lo que debe»)
 
 Pedido por el usuario. Detalle en

@@ -423,7 +423,10 @@ describe("PagosAdmin - caracterización", () => {
     renderPagos();
     await seleccionarEstudiante(user);
 
-    expect(await screen.findByText("Pensión agosto")).toBeInTheDocument();
+    // El historial empieza cerrado: se abre con su botón.
+    expect(screen.queryByText("Pensión agosto")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: /Ver historial de pagos/ }));
+    expect(screen.getByText("Pensión agosto")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Imprimir Recibo/ }));
     expect(screen.getByRole("button", { name: "← Volver" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "← Volver" }));
@@ -434,6 +437,48 @@ describe("PagosAdmin - caracterización", () => {
         motivo: "Motivo válido",
       });
     });
+  });
+
+  it("después de registrar, el historial muestra solo el pago recién hecho", async () => {
+    const user = userEvent.setup();
+    const anterior = {
+      pago_id: 10,
+      descripcion: "Matrícula de febrero",
+      fecha: "2026-02-01",
+      monto: 300000,
+      tipo_pago: "efectivo",
+      anulado: false,
+    };
+    const nuevo = {
+      pago_id: 43,
+      descripcion: "Pensión · Cuotas: Junio 2026",
+      fecha: "2026-11-04",
+      monto: 100000,
+      tipo_pago: "efectivo",
+      anulado: false,
+    };
+    pagosApi.obtenerHistorialPagos
+      .mockResolvedValueOnce([anterior])
+      .mockResolvedValue([nuevo, anterior]);
+    pagosApi.registrarPago.mockResolvedValue({ pago_id: 43 });
+    renderPagos();
+    await seleccionarEstudiante(user);
+    expect(
+      await screen.findByRole("button", { name: /Ver historial de pagos/ })
+    ).toHaveTextContent("1 pago registrado");
+    expect(screen.queryByText("Matrícula de febrero")).not.toBeInTheDocument();
+
+    await pulsarFila(user, "Cobrar Pensión");
+    await screen.findByText("Junio de 2026");
+    await user.click(screen.getByLabelText("efectivo"));
+    await user.click(screen.getByRole("button", { name: "Registrar Pago" }));
+
+    expect(await screen.findByText(/Pago recién registrado/)).toBeInTheDocument();
+    expect(screen.getByText("Pensión · Cuotas: Junio 2026")).toBeInTheDocument();
+    expect(screen.queryByText("Matrícula de febrero")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Ver historial de pagos/ })).toHaveTextContent(
+      "2 pagos registrados"
+    );
   });
 
   it("conserva el payload de un pago mensual con métodos combinados", async () => {

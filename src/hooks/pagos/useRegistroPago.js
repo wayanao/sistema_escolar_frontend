@@ -4,6 +4,7 @@ import pagosApi from "../../services/pagosApi";
 import {
   crearPayloadPagoAdelantado,
   crearPayloadPagoNormal,
+  idsDelPagoRegistrado,
 } from "../../utils/pagos/contratos";
 import { formatearMoneda, formatearPeriodo } from "../../utils/pagos/formatos";
 
@@ -25,6 +26,7 @@ export default function useRegistroPago({
   cargarOpcionesVencidas,
   cargarOpcionesAdelanto,
   anioLectivoId,
+  alRegistrar,
 }) {
   const [registrandoPago, setRegistrandoPago] = useState(false);
 
@@ -144,6 +146,8 @@ export default function useRegistroPago({
         );
       }
       reiniciarFormularioTrasRegistro(estudianteId);
+      // El historial muestra solo el pago recién hecho (todas sus filas).
+      alRegistrar?.(idsDelPagoRegistrado(resultado));
       Swal.fire(
         '¡Éxito!',
         esDistribucionAdelanto

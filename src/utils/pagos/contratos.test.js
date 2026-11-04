@@ -6,6 +6,7 @@ import {
   crearPayloadPagoAdelantado,
   crearPayloadPagoNormal,
   crearValorPersonalizadoInicial,
+  idsDelPagoRegistrado,
   normalizarOpcionesAdelanto,
   normalizarOpcionesVencidas,
   normalizarTiposPagos,
@@ -122,6 +123,13 @@ describe("contratos de pagos", () => {
     ).toEqual([transporte]);
     expect(conceptosAlDiaParaAdelantar([pension], [])).toEqual([pension]);
     expect(conceptosAlDiaParaAdelantar()).toEqual([]);
+  });
+
+  it("lee los pagos creados: uno, uno por método o ninguno", () => {
+    expect(idsDelPagoRegistrado({ pago_id: 42 })).toEqual([42]);
+    expect(idsDelPagoRegistrado({ pago_id: ["43", 44] })).toEqual([43, 44]);
+    expect(idsDelPagoRegistrado({ periodos: [] })).toEqual([]);
+    expect(idsDelPagoRegistrado(undefined)).toEqual([]);
   });
 
   it("construye el payload normal conservando cadenas y convirtiendo aplicaciones", () => {

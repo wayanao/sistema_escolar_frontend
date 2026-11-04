@@ -73,10 +73,10 @@ continuacion para retomarla en otro chat u otro LLM.
   pantalla (`f5a573d`, Vercel OK).**
 - `funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`: Gestión de Pagos más
   clara en tres pasos (botón "Cobrar" visible, lo que debe a la vista y
-  valores personalizados claros). Solo frontend. **Pasos 1 a 3 en
-  `4acb48f`, `fda883f`, `efc789e` y `2658caf` (2026-11-03), sin publicar.
-  Paso 4 (solo «Lo que debe», con «Cobrar» verde y bajada al formulario)
-  construido el 2026-11-04, sin commit.**
+  valores personalizados claros). Solo frontend. **Pasos 1 a 4 en commits
+  sin publicar (el 4, `c066dfc`: solo «Lo que debe»). Paso 5 (historial
+  cerrado, con el pago recién registrado) construido el 2026-11-04, sin
+  commit.**
 
 ## Control SaaS
 

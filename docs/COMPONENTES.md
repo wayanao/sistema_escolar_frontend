@@ -1244,7 +1244,10 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   2026-11-04 muestra el concepto elegido en "Lo que debe" como texto, sin
   lista para cambiarlo.
 - `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y
-  delega impresión y anulación.
+  delega impresión y anulación. Desde el 2026-11-04 empieza cerrado, con el
+  botón `🧾 Ver historial de pagos` y el conteo; después de registrar muestra
+  solo ese pago (`idsRecientes`, todas sus filas). La página lo reinicia por
+  estudiante y por pago con `key`.
 - `components/pagos/ComprobantePago.jsx` compone `FacturaModerna.jsx` dentro de
   `components/impresion/DocumentoImprimible.jsx`.
 - `hooks/pagos/` separa catálogos, consultas por estudiante, opciones de

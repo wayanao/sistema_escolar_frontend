@@ -60,6 +60,16 @@ export const conceptosAlDiaParaAdelantar = (opcionesAdelanto = [], deudas = []) 
       !deudas.some((deuda) => Number(deuda.concepto_id) === Number(opcion.tipo_pago_id))
   );
 
+// Los pagos que acaba de crear un registro. `POST /pagos` crea una fila por
+// método de pago y devuelve un id o una lista de ids; `POST /pagos/adelanto`,
+// un id. Siempre como lista de números, para encontrarlos en el historial.
+export const idsDelPagoRegistrado = (resultado) => {
+  const ids = resultado?.pago_id;
+  return (Array.isArray(ids) ? ids : [ids])
+    .filter((id) => id !== null && id !== undefined)
+    .map(Number);
+};
+
 export const crearPayloadPagoNormal = (pagoData, estudianteId, anioLectivoId) => {
   const payload = {
     ...pagoData,

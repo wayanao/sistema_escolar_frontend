@@ -107,6 +107,19 @@ describe("useRegistroPago", () => {
     expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
   });
 
+  it("avisa qué pagos creó, para mostrarlos en el historial", async () => {
+    const alRegistrar = vi.fn();
+    const props = crearProps({ alRegistrar });
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+    // Dos métodos de pago: el backend crea una fila por cada uno.
+    pagosApi.registrarPago.mockResolvedValue({ pago_id: [42, 43] });
+    const { result } = renderHook(() => useRegistroPago(props));
+
+    await act(async () => result.current.registrarPago({ preventDefault: vi.fn() }));
+
+    expect(alRegistrar).toHaveBeenCalledWith([42, 43]);
+  });
+
   it("conserva el detalle del backend cuando el registro falla", async () => {
     const error = { response: { data: { detail: "Pago duplicado" } } };
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});

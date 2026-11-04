@@ -161,6 +161,9 @@ function PagosAdmin() {
     cargarOpcionesVencidas,
     cargarOpcionesAdelanto,
   });
+  // Los pagos que se acaban de registrar: el historial muestra solo esos hasta
+  // que se elija otro estudiante.
+  const [pagosRecientes, setPagosRecientes] = useState([]);
   const { registrandoPago, registrarPago } = useRegistroPago({
     selectedEstudiante,
     pagoData,
@@ -179,6 +182,7 @@ function PagosAdmin() {
     cargarOpcionesVencidas,
     cargarOpcionesAdelanto,
     anioLectivoId: parametrosAnioPago.anio_lectivo_id,
+    alRegistrar: setPagosRecientes,
   });
   const { anularPago } = useAnulacionPago({
     selectedEstudiante,
@@ -273,6 +277,7 @@ function PagosAdmin() {
     reiniciarOpcionesAdelanto();
     cargarOpcionesAdelanto(estudiante.id);
     reiniciarValorPersonalizado();
+    setPagosRecientes([]);
   };
 
   const seleccionarDesdeLista = (estudiante) => {
@@ -459,8 +464,11 @@ function PagosAdmin() {
                 onVolverAlPrecio={volverAlPrecio}
               />
 
+              {/* Cerrado con cada estudiante y después de cada pago (`key`). */}
               <HistorialPagos
+                key={`${selectedEstudiante.id}-${pagosRecientes.join(",")}`}
                 pagos={pagos}
+                idsRecientes={pagosRecientes}
                 onImprimir={imprimirFactura}
                 onAnular={anularPago}
               />

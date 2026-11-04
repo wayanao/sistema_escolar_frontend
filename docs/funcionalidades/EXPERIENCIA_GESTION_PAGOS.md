@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **pasos 1 a 3 en `4acb48f`, `fda883f`, `efc789e` y `2658caf`
-  (2026-11-03), sin publicar. Paso 4 (pedido después del plan: solo «Lo que
-  debe») construido el 2026-11-04, sin commit; falta la prueba en local.**
+- Estado: **pasos 1 a 4 en `4acb48f`, `fda883f`, `efc789e`, `2658caf` y
+  `c066dfc`, sin publicar. Paso 5 (historial cerrado, con el pago recién
+  registrado) construido el 2026-11-04, sin commit; falta la prueba en
+  local.**
 - **Pruebas en local:** el backend local escribe en la base real (rama
   `production` de Neon), donde vive el colegio real `tenant_2005`.
   Registrar pagos o guardar valores de prueba solo en el Colegio Demo
@@ -334,6 +335,41 @@ En el Colegio Demo, no en el 2005:
    concepto.
 2. Con un estudiante al día: la mensualidad sale «Al día» con «Adelantar»
    (o «Sin meses por adelantar» si ya no quedan meses este año).
+
+## Paso 5 (2026-11-04): historial cerrado, con el pago recién registrado
+
+Pedido del usuario: «con el historial de pago, quiero que solo se muestre el
+pago recién, y que si no se hace un pago no se abran todos por sí solos, sino
+que haya un botón para desplegar», y al aprobarlo: «que sea bien diseñado ese
+botón».
+
+- **Al elegir un estudiante el historial sale cerrado**, solo con el botón
+  «🧾 Ver historial de pagos · N pagos registrados» (ancho completo, ícono,
+  conteo y flecha que gira; `aria-expanded`). Abierto dice «Ocultar
+  historial».
+- **Al registrar un pago se ve solo ese pago**, en un recuadro verde «✓ Pago
+  recién registrado», con su «Imprimir Recibo» a la mano. Se olvida al elegir
+  otro estudiante.
+- Un pago normal con varios métodos crea **una fila por método** en el
+  backend, y `POST /pagos` devuelve un id o una lista de ids
+  (`registrar_pago_controller`); `POST /pagos/adelanto` devuelve un id.
+  `idsDelPagoRegistrado` (`utils/pagos/contratos.js`) los deja siempre como
+  lista, así que el recuadro muestra todas las filas del pago.
+- El historial llega del más reciente al más viejo (`ORDER BY id DESC`) y se
+  sigue pidiendo completo: no cambia ninguna petición.
+- Imprimir y anular no cambian.
+- Archivos: `HistorialPagos.jsx`, `useRegistroPago.js` (avisa con
+  `alRegistrar` qué pagos creó), `utils/pagos/contratos.js`,
+  `PagosAdmin.jsx` y sus pruebas.
+- Pruebas: Pagos pasa de 125 a **131**.
+- Verificación: `pnpm run check:deploy` → **397 archivos, 3246 pruebas
+  correctas**, lint y build correctos, en una sola corrida.
+
+### Prueba en local (paso 5)
+
+En el Colegio Demo: elegir un estudiante con pagos (el historial sale
+cerrado), registrar un pago (sale solo ese, con «Imprimir Recibo») y abrir
+el historial con el botón.
 
 ## Preguntas abiertas
 
