@@ -2,8 +2,9 @@
 
 ## Control
 
-- Estado: **paso 1 construido el 2026-11-03, sin commit**; falta la prueba
-  en local. Pasos 2 y 3 sin empezar.
+- Estado: **paso 1 en `4acb48f` (2026-11-03), sin publicar.** Pasos 2 y 3
+  sin empezar; el paso 2 incluye juntar «Pago pendiente» y «Meses
+  adelantados», propuesta del usuario aprobada para el plan el 2026-11-03.
 - Tipo: mejora de una pantalla que ya existe (`/admin/pagos`,
   `pages/PagosAdmin.jsx`). No es un módulo de `modularizacion/`.
 - Repos: **solo este**. No cambia ninguna petición al backend, ni cómo se
@@ -49,10 +50,30 @@ Los valores personalizados confunden:
    de `GET /estudiantes/:id/deudas`, que ya trae `concepto`, `deuda`,
    `cuotas_vencidas`, `valor_personalizado` y `total_deuda`: el frontend no
    calcula nada nuevo.
-   - Propuesta (2026-11-03, sin aprobar): el usuario preguntó por los dos
-     botones de arriba del formulario. Están bien ubicados, pero «Pago
-     pendiente» se puede leer como «un pago que falta hacer»: cambiarlos a
-     «Lo que debe» y «Adelantar meses», que encajan con este paso.
+   - **Juntar los dos modos del formulario** (propuesta del usuario,
+     aprobada para el plan el 2026-11-03). Se quitan los botones «Pago
+     pendiente» y «Meses adelantados» de arriba del formulario: al elegir un
+     concepto mensual se ven sus meses vencidos y, ahí mismo, la opción de
+     adelantar. No se pierde ninguna forma de pagar (cargos de inventario,
+     conceptos no mensuales y abono libre siguen igual). Reemplaza la idea
+     de solo renombrar esos dos botones. Condiciones:
+     1. **Siguen siendo dos cobros.** Los vencidos van por `POST /pagos`,
+        que rechaza meses que no han vencido (`_preparar_aplicaciones_pago`),
+        y el adelanto por `POST /pagos/adelanto`. Un pago es una cosa o la
+        otra; las dos son dos pagos y dos recibos, como hoy. Nada de mandar
+        dos peticiones seguidas como si fueran un solo pago: si una falla,
+        queda medio pago. Juntarlos en uno exigiría cambiar el backend.
+     2. **Un concepto al día no sale en la lista.**
+        `GET /estudiantes/:id/deudas` solo trae los que tienen deuda
+        (`_formatear_resumen_deudas`). Hay que sumar los conceptos de
+        `GET /pagos/adelanto/opciones/:id`, que hoy se pide solo al tocar
+        «Meses adelantados»: pasaría a pedirse al abrir el formulario, una
+        petición más.
+     3. **El mes en curso, antes de vencer, no sale en ninguna lista** (ver
+        "Preguntas abiertas"). La pantalla no debe inventarlo.
+     4. **Toca cómo se arma el pago**, no solo la vista: `useFormularioPago`
+        y `useRegistroPago`. Las pruebas que fijan los dos payloads en
+        `PagosAdmin.test.jsx` tienen que seguir dando exactamente lo mismo.
 3. **Valores personalizados claros.** El mismo diseño de "Valores de pago"
    al matricular (`components/anioLectivo/ValoresPagoMatriculaView.jsx`),
    con `GET /estudiantes/:id/valores-pago`: solo los conceptos que se le
@@ -104,6 +125,15 @@ Con un estudiante que tenga deuda y otro con un valor personalizado:
 
 Se hacen justo antes del paso que las necesita.
 
+- **Backend, sin prisa (antes del paso 2):** el mes en curso solo se cobra
+  cuando vence (`app/services/cartera.py`: «solo cobra la cuota del mes
+  actual si ya venció»), y los adelantos empiezan el mes siguiente
+  (`_periodos_programados` en `pagos_controller.py`; lo fija
+  `test_anio_lectivo_cobros_caracterizacion.py`). Si la pensión vence el 5,
+  del 1 al 4 de noviembre el mes de noviembre no sale ni como vencido ni
+  como adelanto. Ya pasa hoy, pero con los dos modos juntos se notará más.
+  ¿Debe poder pagarse el mes antes de que venza? Lo decide el backend; el
+  frontend no.
 - **Paso 3:** `GET /estudiantes/:id/valores-pago` no trae los conceptos
   opcionales ni los inactivos, y la lista de hoy sí. Si algún colegio tiene un
   valor personalizado en uno de ellos, dejaría de verse en Pagos. Revisarlo

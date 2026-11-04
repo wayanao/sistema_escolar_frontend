@@ -73,8 +73,9 @@ continuacion para retomarla en otro chat u otro LLM.
   pantalla (`f5a573d`, Vercel OK).**
 - `funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`: Gestión de Pagos más
   clara en tres pasos (botón "Cobrar" visible, lo que debe a la vista y
-  valores personalizados claros). Solo frontend. **Paso 1 construido el
-  2026-11-03, sin commit; falta la prueba en local.**
+  valores personalizados claros). Solo frontend. **Paso 1 en `4acb48f`
+  (2026-11-03), sin publicar. El paso 2 incluye juntar «Pago pendiente» y
+  «Meses adelantados».**
 
 ## Control SaaS
 
