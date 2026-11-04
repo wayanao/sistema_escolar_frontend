@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-11-03 - Gestión de Pagos más clara (paso 2a: lo que debe)
+
+Pedido por el usuario («sigue el paso 2»). Detalle en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`. Solo frontend y sin
+peticiones nuevas.
+
+- Recuadro "Lo que debe en 2026" arriba del formulario: cada concepto con
+  deuda y cada cargo de inventario, con su valor, su detalle (meses
+  pendientes, lo ya abonado, la mora) y el total. Marca los conceptos con
+  valor personalizado.
+- Cada fila tiene su "Cobrar": abre el formulario con ese concepto elegido.
+  El pago que se envía es el mismo que al elegirlo en la lista.
+- Mientras consulta no dice "Al día"; si falla, avisa con "Reintentar" y no
+  muestra un total incompleto. Los meses pendientes salen de las opciones
+  vencidas, no de `cuotas_vencidas` (que cuenta también las pagadas).
+- Arreglo: al cambiar de estudiante ya no se ven un momento los cargos de
+  inventario del anterior.
+- En celular y tablet, abrir el formulario baja hasta él.
+- Archivos nuevos: `utils/pagos/resumenDeuda.js`,
+  `components/pagos/ResumenDeudaPago.jsx` y sus pruebas. Cambian:
+  `useConsultasEstudiantePagos.js`, `useFormularioPago.js`,
+  `pages/PagosAdmin.jsx` y sus pruebas.
+- Verificación: pruebas de Pagos → **107 en 20 archivos** (92 de antes y 15
+  nuevas). `pnpm run check:deploy` → **3222 pruebas en 397 archivos**, lint
+  y build correctos, en una sola corrida. Sin probar todavía en el navegador.
+
 ## 2026-11-03 - Gestión de Pagos más clara (paso 1: botón Cobrar)
 
 Pedido por el usuario. Detalle y plan en

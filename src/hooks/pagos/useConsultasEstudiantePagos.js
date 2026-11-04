@@ -8,7 +8,11 @@ export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
   anioLectivoIdRef.current = anioLectivoId;
   const [pagos, setPagos] = useState([]);
   const [ventasPendientes, setVentasPendientes] = useState([]);
+  const [cargandoVentas, setCargandoVentas] = useState(false);
+  const [errorVentas, setErrorVentas] = useState("");
   const [deudasEstudiante, setDeudasEstudiante] = useState([]);
+  const [cargandoDeudas, setCargandoDeudas] = useState(false);
+  const [errorDeudas, setErrorDeudas] = useState("");
   const [deudaAniosAnteriores, setDeudaAniosAnteriores] = useState([]);
   const [valoresPersonalizados, setValoresPersonalizados] = useState([]);
   const [selectedEstudiante, setSelectedEstudiante] = useState(null);
@@ -26,8 +30,12 @@ export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
     }
   }, []);
 
+  // "Lo que debe" no puede decir "Al día" mientras consulta ni cuando la
+  // consulta falló: por eso deudas y ventas avisan si están cargando o fallaron.
   const cargarDeudasEstudiante = useCallback(async (estudianteId) => {
     const anioSolicitud = anioLectivoId;
+    setCargandoDeudas(true);
+    setErrorDeudas("");
     try {
       const data = anioSolicitud
         ? await pagosApi.obtenerDeudasEstudiante(estudianteId, { parametrosAnio })
@@ -40,16 +48,26 @@ export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
       console.error("Error cargando deudas del estudiante:", error);
       setDeudasEstudiante([]);
       setDeudaAniosAnteriores([]);
+      setErrorDeudas("No se pudo consultar lo que debe el estudiante.");
+    } finally {
+      if (anioLectivoIdRef.current === anioSolicitud) {
+        setCargandoDeudas(false);
+      }
     }
   }, [anioLectivoId, parametrosAnio]);
 
   const cargarVentasPendientes = useCallback(async (estudianteId) => {
+    setCargandoVentas(true);
+    setErrorVentas("");
     try {
       const data = await pagosApi.obtenerVentasPendientes(estudianteId);
       setVentasPendientes(data);
     } catch (error) {
       console.error("Error cargando ventas pendientes:", error);
       setVentasPendientes([]);
+      setErrorVentas("No se pudieron consultar los cargos de inventario.");
+    } finally {
+      setCargandoVentas(false);
     }
   }, []);
 
@@ -117,6 +135,8 @@ export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
   const seleccionarEstudiante = useCallback(
     (estudiante) => {
       setSelectedEstudiante(estudiante);
+      // Sin esto, por un momento se verían los cargos del estudiante anterior.
+      setVentasPendientes([]);
       setOpcionesVencidas([]);
       setErrorOpcionesVencidas("");
       cargarHistorialPagos(estudiante.id);
@@ -133,7 +153,11 @@ export default function useConsultasEstudiantePagos({ parametrosAnio } = {}) {
   return {
     pagos,
     ventasPendientes,
+    cargandoVentas,
+    errorVentas,
     deudasEstudiante,
+    cargandoDeudas,
+    errorDeudas,
     deudaAniosAnteriores,
     valoresPersonalizados,
     selectedEstudiante,

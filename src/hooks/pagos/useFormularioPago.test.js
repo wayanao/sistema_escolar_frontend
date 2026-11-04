@@ -118,6 +118,42 @@ describe("useFormularioPago", () => {
     expect(result.current.saldoAdelantoSinDistribuir).toBe(0);
   });
 
+  it("Cobrar de una fila abre el formulario limpio con ese concepto elegido", () => {
+    const props = crearProps();
+    const { result } = renderHook(() => useFormularioPago(props));
+    act(() => result.current.cambiarModoPago("adelantado"));
+
+    act(() => result.current.cobrarPendiente({ concepto: "Pensión" }));
+
+    expect(result.current.showForm).toBe(true);
+    expect(result.current.modoPago).toBe("normal");
+    expect(result.current.pagoData.descripcion).toBe("Pensión");
+    expect(result.current.pagoData.aplicaciones).toEqual([
+      { tipo_pago_id: 11, periodo: "2026-06", monto: 100000 },
+    ]);
+    expect(result.current.pagoData.monto).toBe("100000");
+    expect(props.reiniciarOpcionesAdelanto).toHaveBeenCalled();
+    expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
+  });
+
+  it("Cobrar de un cargo de inventario lo deja elegido como en la lista", () => {
+    const { result } = renderHook(() =>
+      useFormularioPago(
+        crearProps({ ventasPendientes: [{ id: 80, descripcion: "Uniforme", total: 90000 }] })
+      )
+    );
+
+    act(() => result.current.cobrarPendiente({ ventaId: 80 }));
+
+    expect(result.current.showForm).toBe(true);
+    expect(result.current.pagoData).toMatchObject({
+      descripcion: "Uniforme",
+      monto: 90000,
+      venta_id: 80,
+      aplicaciones: [],
+    });
+  });
+
   it("conserva la advertencia cuando el monto supera el saldo", () => {
     const { result } = renderHook(() => useFormularioPago(crearProps()));
     act(() => result.current.seleccionarConceptoPendiente("Pensión"));

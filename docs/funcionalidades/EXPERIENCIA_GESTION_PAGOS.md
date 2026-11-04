@@ -2,9 +2,10 @@
 
 ## Control
 
-- Estado: **paso 1 en `4acb48f` (2026-11-03), sin publicar.** Pasos 2 y 3
-  sin empezar; el paso 2 incluye juntar «Pago pendiente» y «Meses
-  adelantados», propuesta del usuario aprobada para el plan el 2026-11-03.
+- Estado: **paso 1 en `4acb48f` (2026-11-03), sin publicar. Paso 2a
+  construido el 2026-11-03, sin commit; falta la prueba en local.** El paso
+  2b (juntar «Pago pendiente» y «Meses adelantados», propuesta del usuario
+  aprobada para el plan el 2026-11-03) y el paso 3 sin empezar.
 - Tipo: mejora de una pantalla que ya existe (`/admin/pagos`,
   `pages/PagosAdmin.jsx`). No es un módulo de `modularizacion/`.
 - Repos: **solo este**. No cambia ninguna petición al backend, ni cómo se
@@ -45,12 +46,16 @@ Los valores personalizados confunden:
 ## Plan (un paso a la vez, con visto bueno)
 
 1. **Botón visible y formulario arriba.** Hecho el 2026-11-03 (ver abajo).
-2. **"Lo que debe" a la vista.** Cada concepto del año con su deuda y su
-   botón "Cobrar", que abre el formulario con ese concepto ya elegido. Sale
-   de `GET /estudiantes/:id/deudas`, que ya trae `concepto`, `deuda`,
-   `cuotas_vencidas`, `valor_personalizado` y `total_deuda`: el frontend no
-   calcula nada nuevo.
-   - **Juntar los dos modos del formulario** (propuesta del usuario,
+2. **"Lo que debe" a la vista.** El usuario dijo «sigue el paso 2» el
+   2026-11-03; se hace en dos partes para probar cada una por separado:
+   - **2a. Lo que debe con su "Cobrar".** Hecho el 2026-11-03 (ver abajo).
+     Cada concepto del año con su deuda y su botón "Cobrar", que abre el
+     formulario con ese concepto ya elegido. Sale de lo que ya se consultaba:
+     `GET /estudiantes/:id/deudas`, los cargos de inventario y los meses
+     vencidos. El frontend no calcula ninguna deuda. **Ojo:**
+     `cuotas_vencidas` cuenta todas las cuotas que ya vencieron, pagadas o
+     no; los meses por pagar salen de `GET /pagos/vencidos/opciones/:id`.
+   - **2b. Juntar los dos modos del formulario** (propuesta del usuario,
      aprobada para el plan el 2026-11-03). Se quitan los botones «Pago
      pendiente» y «Meses adelantados» de arriba del formulario: al elegir un
      concepto mensual se ven sus meses vencidos y, ahí mismo, la opción de
@@ -121,11 +126,66 @@ Con un estudiante que tenga deuda y otro con un valor personalizado:
 5. Desde Cartera vencida, "Cobrar" sigue abriendo el formulario del
    estudiante.
 
+## Paso 2a (2026-11-03)
+
+- **Recuadro "Lo que debe en 2026"** (`components/pagos/ResumenDeudaPago.jsx`)
+  entre el año del pago y las deudas de años anteriores. Una fila por
+  concepto con deuda y por cargo de inventario: nombre, valor y detalle
+  («3 meses pendientes», «Ya abonó $100.000», «Incluye mora de $20.000»,
+  «Cargo de inventario») y la etiqueta «Valor personalizado» cuando el
+  backend la marca. Arriba, el total de lo que se ve.
+- **Cada fila tiene su "Cobrar"** (`cobrarPendiente` en
+  `useFormularioPago`): abre el formulario limpio, igual que el botón de
+  arriba, y elige ese concepto como lo haría la lista "Concepto de Pago". El
+  pago que se arma es el mismo de siempre (lo fija una prueba de la página).
+- Las filas y el total salen de `crearResumenDeuda`
+  (`utils/pagos/resumenDeuda.js`). Los meses vienen de las opciones
+  vencidas, no de `cuotas_vencidas`. El total se suma en centavos.
+- **Nunca dice "Al día" sin saberlo.** Mientras consulta dice «Consultando
+  lo que debe...»; si falla la consulta de deudas o de cargos de
+  inventario, avisa con «Reintentar» y no muestra un total incompleto.
+  Para eso `useConsultasEstudiantePagos` ahora expone `cargandoDeudas`,
+  `errorDeudas`, `cargandoVentas` y `errorVentas`. Antes, un fallo dejaba
+  la lista vacía sin avisar.
+- Mientras se consulta, los "Cobrar" de las filas no se pueden usar: así no
+  se elige un concepto mensual antes de que lleguen sus meses.
+- Arreglo incluido: al elegir otro estudiante se limpian los cargos de
+  inventario del anterior; antes se veían un momento.
+- En celular y tablet, al abrir el formulario (con "Cobrar" de arriba, con
+  el de una fila o al llegar desde Cartera vencida) la pantalla baja hasta
+  él, porque ahora queda debajo de lo que debe. En computador no se mueve.
+- En un año que no es el activo no hay cargos de inventario, como en el
+  formulario.
+- No cambia ninguna petición: son las mismas consultas de antes.
+- Archivos nuevos: `utils/pagos/resumenDeuda.js`,
+  `components/pagos/ResumenDeudaPago.jsx` y sus pruebas. Cambian:
+  `useConsultasEstudiantePagos.js`, `useFormularioPago.js`,
+  `pages/PagosAdmin.jsx` y sus pruebas.
+- Pruebas: Pagos pasa de 92 a **107** (4 de la regla, 5 del recuadro, 2 de
+  cada hook y 2 de la página: el pago desde "Cobrar Pensión" y que en
+  celular baja hasta el formulario).
+- Verificación: `pnpm run check:deploy` → **397 archivos, 3222 pruebas
+  correctas**, lint y build correctos, en una sola corrida (2,7 GB libres).
+  Como incluye el paso 1, también cierra la verificación pendiente de ese
+  paso.
+
+### Prueba en local (paso 2a)
+
+Con un estudiante que deba una pensión de varios meses:
+
+1. Elegirlo: arriba aparece "Lo que debe" con la pensión, sus meses
+   pendientes y el total.
+2. Darle "Cobrar" en la fila de la pensión: el formulario abre con la
+   pensión elegida y el mes más antiguo marcado.
+3. Registrar el pago: el recuadro se actualiza y el pago sale en el
+   historial.
+4. Con un estudiante sin deudas: dice "Al día".
+
 ## Preguntas abiertas
 
 Se hacen justo antes del paso que las necesita.
 
-- **Backend, sin prisa (antes del paso 2):** el mes en curso solo se cobra
+- **Backend, sin prisa (antes del paso 2b):** el mes en curso solo se cobra
   cuando vence (`app/services/cartera.py`: «solo cobra la cuota del mes
   actual si ya venció»), y los adelantos empiezan el mes siguiente
   (`_periodos_programados` en `pagos_controller.py`; lo fija

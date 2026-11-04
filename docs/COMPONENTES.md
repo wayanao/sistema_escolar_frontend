@@ -1230,6 +1230,12 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - Desde el 2026-11-03 el botón `💰 Cobrar` (antes `+ Nuevo Pago/Factura`)
   abre el formulario arriba, antes de los valores personalizados y del
   historial.
+- `components/pagos/ResumenDeudaPago.jsx` (2026-11-03) presenta "Lo que
+  debe" del año del pago: una fila por concepto con deuda y por cargo de
+  inventario, con su detalle, el total y un `Cobrar` por fila que abre el
+  formulario con ese concepto (`cobrarPendiente`). Las filas salen de
+  `utils/pagos/resumenDeuda.js`. No dice "Al día" mientras consulta ni si
+  la consulta falló.
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
   adelantos, distribución por monto y métodos combinados.
 - `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y

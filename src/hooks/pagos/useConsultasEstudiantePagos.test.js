@@ -75,6 +75,59 @@ describe("useConsultasEstudiantePagos", () => {
     consoleError.mockRestore();
   });
 
+  it("avisa mientras consulta lo que debe y cuando la consulta falla", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    let resolverDeudas;
+    pagosApi.obtenerDeudasEstudiante.mockImplementation(
+      () => new Promise((resolve) => { resolverDeudas = resolve; })
+    );
+    const { result } = renderHook(() => useConsultasEstudiantePagos());
+
+    act(() => {
+      void result.current.cargarDeudasEstudiante(7);
+    });
+    expect(result.current.cargandoDeudas).toBe(true);
+    expect(result.current.errorDeudas).toBe("");
+
+    await act(async () => {
+      resolverDeudas({ deudas: [{ concepto: "Pensión", deuda: 100000 }] });
+    });
+    expect(result.current.cargandoDeudas).toBe(false);
+    expect(result.current.deudasEstudiante).toEqual([{ concepto: "Pensión", deuda: 100000 }]);
+
+    pagosApi.obtenerDeudasEstudiante.mockRejectedValue(new Error("sin red"));
+    await act(async () => {
+      await result.current.cargarDeudasEstudiante(7);
+    });
+    expect(result.current.cargandoDeudas).toBe(false);
+    expect(result.current.deudasEstudiante).toEqual([]);
+    expect(result.current.errorDeudas).toBe("No se pudo consultar lo que debe el estudiante.");
+    consoleError.mockRestore();
+  });
+
+  it("limpia los cargos del estudiante anterior y avisa si no se pudieron consultar", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    pagosApi.obtenerHistorialPagos.mockResolvedValue([]);
+    pagosApi.obtenerDeudasEstudiante.mockResolvedValue({ deudas: [] });
+    pagosApi.obtenerOpcionesVencidas.mockResolvedValue({ opciones: [] });
+    pagosApi.obtenerValoresPersonalizados.mockResolvedValue([]);
+    pagosApi.obtenerVentasPendientes.mockResolvedValueOnce([{ id: 20, total: 90000 }]);
+    const { result } = renderHook(() => useConsultasEstudiantePagos());
+
+    act(() => result.current.seleccionarEstudiante(estudiante));
+    await waitFor(() => expect(result.current.ventasPendientes).toHaveLength(1));
+
+    pagosApi.obtenerVentasPendientes.mockRejectedValueOnce(new Error("sin red"));
+    act(() => result.current.seleccionarEstudiante({ id: 8, nombre: "Luis" }));
+
+    expect(result.current.ventasPendientes).toEqual([]);
+    await waitFor(() => {
+      expect(result.current.errorVentas).toBe("No se pudieron consultar los cargos de inventario.");
+    });
+    expect(result.current.cargandoVentas).toBe(false);
+    consoleError.mockRestore();
+  });
+
   it("permite actualizar la lista consultada después de un comando", () => {
     const { result } = renderHook(() => useConsultasEstudiantePagos());
 

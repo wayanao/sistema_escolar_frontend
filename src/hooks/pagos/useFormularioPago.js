@@ -170,6 +170,17 @@ export default function useFormularioPago({
     }));
   };
 
+  // "Cobrar" de una fila de lo que debe: abre el formulario limpio, igual que
+  // el botón de arriba, y elige ese concepto o cargo como lo haría la lista.
+  const cobrarPendiente = ({ concepto = "", ventaId = null } = {}) => {
+    if (!selectedEstudiante) return;
+    prepararFormulario(selectedEstudiante.id);
+    reiniciarOpcionesAdelanto();
+    cargarOpcionesVencidas(selectedEstudiante.id);
+    setShowForm(true);
+    seleccionarConceptoPendiente(ventaId ? `CargoVenta_${ventaId}` : concepto);
+  };
+
   const activarAbonoLibre = () => {
     const deuda = deudasEstudiante.find((item) => item.concepto === pagoData.descripcion);
     const monto = deuda ? String(deuda.deuda || "") : pagoData.monto;
@@ -353,6 +364,7 @@ export default function useFormularioPago({
     validarMontoContraSaldo,
     actualizarCuotasSeleccionadas,
     seleccionarConceptoPendiente,
+    cobrarPendiente,
     activarAbonoLibre,
     cambiarModoPago,
     seleccionarConceptoAdelanto,

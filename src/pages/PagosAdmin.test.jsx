@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -232,8 +232,26 @@ describe("PagosAdmin - caracterización", () => {
       renderPagos();
 
       await seleccionarEstudiante(user);
+      await user.click(screen.getByRole("button", { name: "Cobrar" }));
 
       expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    it("en celular, el Cobrar de lo que debe baja hasta el formulario", async () => {
+      simularPantalla({ angosta: true });
+      const user = userEvent.setup();
+      renderPagos();
+      await seleccionarEstudiante(user);
+      const cobrar = await screen.findByRole("button", { name: "Cobrar Pensión" });
+      await waitFor(() => expect(cobrar).toBeEnabled());
+
+      await user.click(cobrar);
+
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
+      const [, formulario] = Element.prototype.scrollIntoView.mock.contexts;
+      expect(formulario).toContainElement(
+        screen.getByRole("group", { name: "Tipo de registro de pago" })
+      );
     });
   });
 
@@ -271,14 +289,47 @@ describe("PagosAdmin - caracterización", () => {
 
     await user.click(screen.getByRole("button", { name: "Cobrar" }));
 
+    const resumen = screen.getByRole("region", { name: "Lo que debe" });
     const formulario = screen.getByRole("group", { name: "Tipo de registro de pago" });
     const historial = screen.getByRole("heading", { name: "Historial de Pagos" });
+    expect(
+      resumen.compareDocumentPosition(formulario) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(
       formulario.compareDocumentPosition(valores) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
       valores.compareDocumentPosition(historial) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  it("Lo que debe muestra cada concepto y su Cobrar arma el mismo pago que la lista", async () => {
+    const user = userEvent.setup();
+    renderPagos();
+    await seleccionarEstudiante(user);
+
+    const resumen = screen.getByRole("region", { name: "Lo que debe" });
+    expect(await within(resumen).findByText("2 meses pendientes")).toBeInTheDocument();
+    expect(within(resumen).getByText("Pensión")).toBeInTheDocument();
+    const cobrar = within(resumen).getByRole("button", { name: "Cobrar Pensión" });
+    await waitFor(() => expect(cobrar).toBeEnabled());
+
+    await user.click(cobrar);
+
+    expect(screen.getByRole("combobox", { name: "Concepto de Pago" })).toHaveValue("Pensión");
+    expect(await screen.findByText("Junio de 2026")).toBeInTheDocument();
+    await user.click(screen.getByLabelText("efectivo"));
+    await user.click(screen.getByRole("button", { name: "Registrar Pago" }));
+
+    await waitFor(() => expect(pagosApi.registrarPago).toHaveBeenCalled());
+    expect(pagosApi.registrarPago.mock.calls[0][0]).toEqual({
+      estudiante_id: 7,
+      descripcion: "Pensión",
+      fecha: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      monto: "100000",
+      metodos: [{ tipo: "efectivo", monto: "100000", nota: "" }],
+      aplicaciones: [{ tipo_pago_id: 11, periodo: "2026-06", monto: 100000 }],
+    });
   });
 
   it("conserva la edición visual de un valor personalizado", async () => {
