@@ -138,16 +138,20 @@ function PagosAdmin() {
     reiniciarOpcionesAdelanto,
   });
   const {
-    valorPersonalizadoData,
-    guardandoValorPersonalizado,
+    filasValoresPago,
+    borradoresValoresPago,
+    cargandoValoresPago,
+    guardandoTipoId,
+    mensajeValoresPago,
+    errorValoresPago,
     reiniciarValorPersonalizado,
-    seleccionarTipoValorPersonalizado,
-    actualizarCampoValorPersonalizado,
-    guardarValorPersonalizado,
-    quitarValorPersonalizado,
+    abrirValoresPago,
+    cambiarBorradorValorPago,
+    guardarValorPago,
+    volverAlPrecio,
   } = useValoresPersonalizadosPago({
     selectedEstudiante,
-    valoresPersonalizados,
+    parametrosAnio: parametrosAnioPago,
     actualizarValoresPersonalizados,
     cargarDeudasEstudiante,
     cargarOpcionesVencidas,
@@ -402,7 +406,7 @@ function PagosAdmin() {
               {/* Cobrar es lo más frecuente: el formulario abre arriba, debajo
                   de lo que debe. Los valores personalizados se configuran de
                   vez en cuando, van debajo y empiezan cerrados con cada
-                  estudiante (`key`). */}
+                  estudiante y cada año (`key`). */}
               {showForm && (
                 <div ref={formularioRef} className="scroll-mt-4">
                   <FormularioPago
@@ -450,15 +454,20 @@ function PagosAdmin() {
               )}
 
               <ValoresPersonalizadosPago
-                key={selectedEstudiante.id}
-                tiposPagos={tiposPagos}
+                key={`${selectedEstudiante.id}-${anioPago?.id ?? "activo"}`}
+                anio={anioPago?.anio ?? null}
+                estudianteNombre={`${selectedEstudiante.nombre} ${selectedEstudiante.apellido}`}
                 valoresPersonalizados={valoresPersonalizados}
-                valorPersonalizadoData={valorPersonalizadoData}
-                guardandoValorPersonalizado={guardandoValorPersonalizado}
-                onSeleccionarTipo={seleccionarTipoValorPersonalizado}
-                onActualizarCampo={actualizarCampoValorPersonalizado}
-                onGuardar={guardarValorPersonalizado}
-                onQuitar={quitarValorPersonalizado}
+                filas={filasValoresPago}
+                borradores={borradoresValoresPago}
+                cargando={cargandoValoresPago}
+                guardandoTipoId={guardandoTipoId}
+                mensaje={mensajeValoresPago}
+                error={errorValoresPago}
+                onAbrir={abrirValoresPago}
+                onCambiarBorrador={cambiarBorradorValorPago}
+                onGuardar={guardarValorPago}
+                onVolverAlPrecio={volverAlPrecio}
               />
 
               <HistorialPagos

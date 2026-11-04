@@ -1,5 +1,29 @@
 # Cambios Frontend
 
+## 2026-11-03 - Gestión de Pagos más clara (paso 3: valores personalizados)
+
+Pedido por el usuario. Detalle en
+`docs/funcionalidades/EXPERIENCIA_GESTION_PAGOS.md`. Solo frontend; no
+cambia Año lectivo.
+
+- Al abrir «Valores personalizados» se ve el recuadro de matricular, sin
+  cambios: una fila por concepto que se le cobra, con el precio del curso, lo
+  que paga, el valor para el estudiante, el motivo, «Guardar» y «Volver al
+  precio del curso».
+- Se quitó la lista con todos los conceptos del colegio y su valor «base».
+- Las filas se piden al abrir el recuadro (`GET /estudiantes/{id}/valores-pago`);
+  guardar y quitar usan el mismo `PUT` y `DELETE`, y después se actualizan
+  las filas, lo que debe y sus meses.
+- Arreglo: un guardado lento ya no recarga las deudas del estudiante anterior
+  en la pantalla del nuevo.
+- Archivos: `ValoresPersonalizadosPago.jsx`,
+  `useValoresPersonalizadosPago.js`, `PagosAdmin.jsx` y sus pruebas.
+- Verificación: pruebas de Pagos → **122 en 20 archivos**, y las 7 del
+  recuadro de matricular. `pnpm run check:deploy` → **3237 pruebas en 397
+  archivos**, lint y build correctos, en la segunda corrida; la primera falló
+  por carga del equipo en `IngresoBoletinProfesor.test.jsx`, que pasa sola y
+  no tiene que ver con Pagos. Sin probar todavía en el navegador.
+
 ## 2026-11-03 - Gestión de Pagos más clara (paso 2b: una sola lista de conceptos)
 
 Propuesta del usuario, hecha solo en el frontend. Detalle en

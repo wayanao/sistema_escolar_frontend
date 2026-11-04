@@ -1,103 +1,93 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ValoresPersonalizadosPago from "./ValoresPersonalizadosPago";
 
-const propsBase = {
-  tiposPagos: [{ id: 11, nombre: "Pensión", valor: 100000 }],
-  valoresPersonalizados: [],
-  valorPersonalizadoData: { tipo_pago_id: "", valor: "", motivo: "" },
-  guardandoValorPersonalizado: false,
-  onSeleccionarTipo: vi.fn(),
-  onActualizarCampo: vi.fn(),
-  onGuardar: vi.fn(),
-  onQuitar: vi.fn(),
+const MENSUALIDAD = {
+  tipoPagoId: 11,
+  nombre: "MENSUALIDAD",
+  tipoCobro: "mensual",
+  precioCurso: 200000,
+  valorPersonalizado: 180000,
+  personalizado: true,
+  motivo: "Beca parcial",
+  valorAPagar: 180000,
 };
 
-const abrir = () =>
-  fireEvent.click(screen.getByRole("button", { name: /Valores personalizados/ }));
+const propsBase = {
+  anio: 2026,
+  estudianteNombre: "Ana Pérez",
+  valoresPersonalizados: [],
+  filas: [MENSUALIDAD],
+  borradores: { 11: { valor: "180000", motivo: "Beca parcial" } },
+  cargando: false,
+  guardandoTipoId: null,
+  mensaje: "",
+  error: "",
+  onAbrir: vi.fn(),
+  onCambiarBorrador: vi.fn(),
+  onGuardar: vi.fn(),
+  onVolverAlPrecio: vi.fn(),
+};
+
+const barra = () => screen.getByRole("button", { name: /Valores personalizados/ });
 
 describe("ValoresPersonalizadosPago", () => {
-  it("empieza cerrado y la barra dice si el estudiante tiene valores personalizados", () => {
-    const { rerender } = render(<ValoresPersonalizadosPago {...propsBase} />);
+  it("empieza cerrado, no pide nada y la barra dice cuántos tiene", () => {
+    const onAbrir = vi.fn();
+    const { rerender } = render(<ValoresPersonalizadosPago {...propsBase} onAbrir={onAbrir} />);
 
-    const barra = screen.getByRole("button", { name: /Valores personalizados/ });
-    expect(barra).toHaveAttribute("aria-expanded", "false");
-    expect(barra).toHaveTextContent("Usa los valores normales de su curso");
-    expect(screen.queryByRole("button", { name: "Guardar valor" })).not.toBeInTheDocument();
+    expect(barra()).toHaveAttribute("aria-expanded", "false");
+    expect(barra()).toHaveTextContent("Usa los valores normales de su curso");
+    expect(screen.queryByRole("region", { name: /Valores de pago/ })).not.toBeInTheDocument();
+    expect(onAbrir).not.toHaveBeenCalled();
 
     rerender(
       <ValoresPersonalizadosPago
         {...propsBase}
-        valoresPersonalizados={[
-          { id: 31, tipo_pago_id: 11, tipo_pago_nombre: "Pensión", valor: 85000 },
-          { id: 32, tipo_pago_id: 12, tipo_pago_nombre: "Matrícula", valor: 0 },
-        ]}
+        onAbrir={onAbrir}
+        valoresPersonalizados={[{ id: 31 }, { id: 32 }]}
       />
     );
-    expect(barra).toHaveTextContent("2 conceptos con valor personalizado");
-
-    fireEvent.click(barra);
-
-    expect(barra).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("button", { name: "Guardar valor" })).toBeInTheDocument();
+    expect(barra()).toHaveTextContent("2 conceptos con valor personalizado");
   });
 
-  it("conserva el estado vacío y delega la edición del formulario", () => {
-    const onSeleccionarTipo = vi.fn();
-    const onActualizarCampo = vi.fn();
-    const onGuardar = vi.fn();
-    render(
-      <ValoresPersonalizadosPago
-        {...propsBase}
-        onSeleccionarTipo={onSeleccionarTipo}
-        onActualizarCampo={onActualizarCampo}
-        onGuardar={onGuardar}
-      />
-    );
-    abrir();
+  it("al abrir pide los conceptos y muestra el recuadro de matricular", () => {
+    const props = { ...propsBase, onAbrir: vi.fn(), onGuardar: vi.fn(), onVolverAlPrecio: vi.fn() };
+    render(<ValoresPersonalizadosPago {...props} valoresPersonalizados={[{ id: 31 }]} />);
 
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "11" } });
-    fireEvent.change(screen.getByPlaceholderText("Valor personalizado"), {
-      target: { value: "85000" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Motivo o acuerdo"), {
-      target: { value: "Acuerdo" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Guardar valor" }));
+    fireEvent.click(barra());
 
-    expect(screen.getByText("Este estudiante usa los valores normales de su curso.")).toBeInTheDocument();
-    expect(onSeleccionarTipo).toHaveBeenCalledWith("11");
-    expect(onActualizarCampo).toHaveBeenCalledWith("valor", "85000");
-    expect(onActualizarCampo).toHaveBeenCalledWith("motivo", "Acuerdo");
-    expect(onGuardar).toHaveBeenCalledTimes(1);
+    expect(props.onAbrir).toHaveBeenCalledTimes(1);
+    expect(barra()).toHaveAttribute("aria-expanded", "true");
+    const recuadro = screen.getByRole("region", { name: "Valores de pago de Ana Pérez" });
+    expect(within(recuadro).getByText(/Lo que se le cobrará en 2026/)).toBeInTheDocument();
+    const mensualidad = within(recuadro).getByRole("listitem", { name: "MENSUALIDAD" });
+    expect(within(mensualidad).getByText(/Precio del curso:/)).toHaveTextContent(/200\.000/);
+
+    fireEvent.click(screen.getByRole("button", { name: "Guardar el valor de MENSUALIDAD" }));
+    fireEvent.click(screen.getByRole("button", { name: "Volver al precio del curso en MENSUALIDAD" }));
+
+    expect(props.onGuardar).toHaveBeenCalledWith(11);
+    expect(props.onVolverAlPrecio).toHaveBeenCalledWith(11);
   });
 
-  it("presenta el valor existente y delega editar o quitar", () => {
-    const onSeleccionarTipo = vi.fn();
-    const onQuitar = vi.fn();
-    const valorPersonalizado = {
-      id: 31,
-      tipo_pago_id: 11,
-      tipo_pago_nombre: "Pensión",
-      valor: 85000,
-      valor_curso: 100000,
-      motivo: "Acuerdo familiar",
-    };
-    render(
-      <ValoresPersonalizadosPago
-        {...propsBase}
-        valoresPersonalizados={[valorPersonalizado]}
-        onSeleccionarTipo={onSeleccionarTipo}
-        onQuitar={onQuitar}
-      />
-    );
-    abrir();
+  it("Cerrar del recuadro lo cierra y volver a abrir lo pide otra vez", () => {
+    const onAbrir = vi.fn();
+    render(<ValoresPersonalizadosPago {...propsBase} onAbrir={onAbrir} />);
+    fireEvent.click(barra());
 
-    fireEvent.click(screen.getByRole("button", { name: "Editar" }));
-    fireEvent.click(screen.getByRole("button", { name: "Quitar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar valores de pago" }));
 
-    expect(screen.getByText("Acuerdo familiar", { exact: false })).toBeInTheDocument();
-    expect(onSeleccionarTipo).toHaveBeenCalledWith(11);
-    expect(onQuitar).toHaveBeenCalledWith(valorPersonalizado);
+    expect(barra()).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("region", { name: /Valores de pago/ })).not.toBeInTheDocument();
+    fireEvent.click(barra());
+    expect(onAbrir).toHaveBeenCalledTimes(2);
+  });
+
+  it("sin año en el contexto habla de este año", () => {
+    render(<ValoresPersonalizadosPago {...propsBase} anio={null} />);
+    fireEvent.click(barra());
+
+    expect(screen.getByText(/Lo que se le cobrará en este año\./)).toBeInTheDocument();
   });
 });

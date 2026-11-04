@@ -1222,11 +1222,14 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - `components/anioLectivo/DeudasAniosAnterioresView.jsx` presenta por año el
   contrato ya calculado por el backend y se comparte con Pagos, Cartera y la
   ficha de Estudiantes.
-- `components/pagos/ValoresPersonalizadosPago.jsx` presenta el formulario y
-  listado de ajustes individuales. Desde el 2026-11-03 empieza cerrado: una
-  barra dice cuántos conceptos tienen valor personalizado y se abre con un
-  clic (estado de la vista, no del pago). La página lo reinicia por
-  estudiante con `key`.
+- `components/pagos/ValoresPersonalizadosPago.jsx` empieza cerrado: una barra
+  dice cuántos conceptos tienen valor personalizado y se abre con un clic
+  (estado de la vista, no del pago). Desde el 2026-11-03 (paso 3), abierto
+  muestra `components/anioLectivo/ValoresPagoMatriculaView.jsx` sin cambios:
+  una fila por concepto que se le cobra, con el precio del curso, y sus
+  botones `Guardar` y `Volver al precio del curso`. Ya no trae la lista de
+  todos los conceptos del colegio. La página lo reinicia por estudiante y por
+  año con `key`.
 - Desde el 2026-11-03 el botón `💰 Cobrar` (antes `+ Nuevo Pago/Factura`)
   abre el formulario arriba, antes de los valores personalizados y del
   historial.

@@ -2,9 +2,13 @@
 
 ## Control
 
-- Estado: **pasos 1 y 2a en `4acb48f` y `fda883f` (2026-11-03), sin
-  publicar. Paso 2b construido el 2026-11-03, sin commit; falta la prueba
-  en local.** El paso 3 sin empezar.
+- Estado: **pasos 1, 2a y 2b en `4acb48f`, `fda883f` y `efc789e`
+  (2026-11-03), sin publicar. Paso 3 construido el 2026-11-03, sin commit;
+  falta la prueba en local.** Con él, el plan queda completo en código.
+- **Pruebas en local:** el backend local escribe en la base real (rama
+  `production` de Neon), donde vive el colegio real `tenant_2005`.
+  Registrar pagos o guardar valores de prueba solo en el Colegio Demo
+  (`tenant_colegio_1`).
 - Tipo: mejora de una pantalla que ya existe (`/admin/pagos`,
   `pages/PagosAdmin.jsx`). No es un módulo de `modularizacion/`.
 - Repos: **solo este**. No cambia ninguna petición al backend, ni cómo se
@@ -83,7 +87,7 @@ Los valores personalizados confunden:
    al matricular (`components/anioLectivo/ValoresPagoMatriculaView.jsx`),
    con `GET /estudiantes/:id/valores-pago`: solo los conceptos que se le
    cobran, el precio de su curso y lo que paga. Guardar y quitar siguen con
-   las rutas de hoy.
+   las rutas de hoy. Hecho el 2026-11-03 (ver abajo).
 
 ## Paso 1 (2026-11-03)
 
@@ -171,7 +175,7 @@ Con un estudiante que tenga deuda y otro con un valor personalizado:
 
 ### Prueba en local (paso 2a)
 
-Con un estudiante que deba una pensión de varios meses:
+En el Colegio Demo, con un estudiante que deba una pensión de varios meses:
 
 1. Elegirlo: arriba aparece "Lo que debe" con la pensión, sus meses
    pendientes y el total.
@@ -220,12 +224,62 @@ pregunta del mes en curso (ver "Preguntas abiertas").
 
 ### Prueba en local (paso 2b)
 
+En el Colegio Demo:
+
 1. Con un estudiante que deba pensión: "Cobrar", elegir la pensión. Sale
    «Pagar lo que debe» con sus meses; al tocar «Adelantar meses» salen los
    meses futuros con el aviso de la deuda vencida.
 2. Con un estudiante al día: "Cobrar"; en la lista, el grupo «Al día:
    adelantar meses». Al elegir la pensión abre directo el adelanto.
 3. Registrar un adelanto y revisar que salga en el historial.
+
+## Paso 3 (2026-11-03)
+
+El usuario preguntó si afecta Año lectivo: no. El recuadro de matricular se
+reutiliza tal cual y los valores se guardan con las mismas rutas que Pagos y
+matricular ya compartían. Aprobado con «continua».
+
+- Al abrir «Valores personalizados» se ve el recuadro de matricular
+  (`components/anioLectivo/ValoresPagoMatriculaView.jsx`, sin cambios): una
+  fila por concepto que se le cobra en el año del pago, con «Precio del
+  curso», lo que paga, «Valor para este estudiante», «Motivo», «Guardar» y
+  «Volver al precio del curso». Su «Cerrar» cierra el recuadro.
+- Se quitó la lista con todos los conceptos activos del colegio y su valor
+  «base», y la lista de valores con «Editar» y «Quitar».
+- Las filas se piden al abrir el recuadro
+  (`GET /estudiantes/:id/valores-pago`, con el año solo si no es el
+  activo). Guardar o volver al precio usa el mismo `PUT` y `DELETE`;
+  después se piden otra vez las filas, lo que debe y sus meses. El conteo de
+  la barra sigue saliendo de `valores-pago-personalizados`, que se pide al
+  elegir el estudiante, como antes.
+- Los avisos de guardado y de error salen dentro del recuadro, como en
+  matricular. Volver al precio pide confirmación («¿Volver al precio del
+  curso?»).
+- Si se elige otro estudiante o año mientras carga o guarda, la respuesta
+  tardía se descarta y no toca la pantalla del estudiante nuevo. Arreglo
+  incluido: antes, un guardado lento podía recargar las deudas del
+  estudiante anterior en la pantalla del nuevo.
+- El recuadro empieza cerrado con cada estudiante y cada año (`key`).
+- Archivos: `ValoresPersonalizadosPago.jsx`,
+  `useValoresPersonalizadosPago.js`, `PagosAdmin.jsx` y sus pruebas. Nada
+  de `anioLectivo` cambia.
+- Pruebas: Pagos pasa de 116 a **122** (el hook pasa de 3 a 8 pruebas y el
+  recuadro de 3 a 4; en la página se reescribió la de valores
+  personalizados). Las 7 del recuadro de matricular siguen igual.
+- Verificación: `pnpm run check:deploy` → **397 archivos, 3237 pruebas
+  correctas**, lint y build correctos, en la segunda corrida. La primera
+  falló por carga del equipo en `IngresoBoletinProfesor.test.jsx`, que pasa
+  sola y no tiene que ver con Pagos.
+
+### Prueba en local (paso 3)
+
+En el Colegio Demo, no en el 2005:
+
+1. Elegir un estudiante y abrir «Valores personalizados»: sale una fila por
+   concepto, con el precio del curso.
+2. Escribir un valor en la mensualidad y «Guardar»: dice «Se guardó…» y
+   «Lo que debe» cambia.
+3. «Volver al precio del curso»: pide confirmación y vuelve al precio.
 
 ## Preguntas abiertas
 
@@ -242,7 +296,8 @@ Se hacen justo antes del paso que las necesita.
   si el concepto tiene mora, la suma desde ese día. Decisión: el 2b solo en
   el frontend. Separar «desde cuándo se puede cobrar» de «desde cuándo hay
   mora» queda para el backend, cuando un colegio con mora lo necesite.
-- **Paso 3:** `GET /estudiantes/:id/valores-pago` no trae los conceptos
-  opcionales ni los inactivos, y la lista de hoy sí. Si algún colegio tiene un
-  valor personalizado en uno de ellos, dejaría de verse en Pagos. Revisarlo
-  antes de empezar el paso 3.
+- **Resuelta el 2026-11-03: paso 3.** `GET /estudiantes/:id/valores-pago`
+  no trae los conceptos opcionales ni los inactivos, y la lista de antes sí:
+  un valor personalizado en uno de ellos dejaría de verse en Pagos (no se
+  borra). El usuario: «solo me importa mensualidad y es el colegio 2005».
+  La mensualidad es activa y mensual, así que sale.

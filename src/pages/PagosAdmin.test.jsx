@@ -18,6 +18,7 @@ vi.mock("../services/pagosApi", () => ({
     obtenerOpcionesAdelanto: vi.fn(),
     obtenerCursos: vi.fn(),
     obtenerValoresPersonalizados: vi.fn(),
+    obtenerValoresPagoEstudiante: vi.fn(),
     guardarValorPersonalizado: vi.fn(),
     quitarValorPersonalizado: vi.fn(),
     registrarPago: vi.fn(),
@@ -153,6 +154,7 @@ describe("PagosAdmin - caracterización", () => {
     pagosApi.obtenerVentasPendientes.mockResolvedValue([]);
     pagosApi.obtenerOpcionesVencidas.mockResolvedValue(cuotasVencidas);
     pagosApi.obtenerValoresPersonalizados.mockResolvedValue([]);
+    pagosApi.obtenerValoresPagoEstudiante.mockResolvedValue({ conceptos: [] });
     pagosApi.obtenerOpcionesAdelanto.mockResolvedValue(opcionesAdelanto);
     pagosApi.registrarPago.mockResolvedValue({ periodos: [] });
     pagosApi.registrarPagoAdelantado.mockResolvedValue({ periodos: [] });
@@ -286,7 +288,9 @@ describe("PagosAdmin - caracterización", () => {
 
     const valores = screen.getByRole("button", { name: /Valores personalizados/ });
     expect(valores).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("button", { name: "Guardar valor" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /Valores de pago/ })).not.toBeInTheDocument();
+    // Cerrado no consulta nada: cobrar no paga esa petición.
+    expect(pagosApi.obtenerValoresPagoEstudiante).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Cobrar" }));
 
@@ -333,7 +337,7 @@ describe("PagosAdmin - caracterización", () => {
     });
   });
 
-  it("conserva la edición visual de un valor personalizado", async () => {
+  it("valores personalizados muestra el precio del curso y guarda con la ruta de siempre", async () => {
     const user = userEvent.setup();
     pagosApi.obtenerValoresPersonalizados.mockResolvedValue([
       {
@@ -345,17 +349,53 @@ describe("PagosAdmin - caracterización", () => {
         motivo: "Acuerdo familiar",
       },
     ]);
+    pagosApi.obtenerValoresPagoEstudiante.mockResolvedValue({
+      conceptos: [
+        {
+          tipo_pago_id: 11,
+          nombre: "Pensión",
+          tipo_cobro: "mensual",
+          precio_curso: 100000,
+          valor_personalizado: 85000,
+          motivo: "Acuerdo familiar",
+          valor_a_pagar: 85000,
+        },
+      ],
+    });
+    pagosApi.guardarValorPersonalizado.mockResolvedValue({
+      valores: [{ id: 31, tipo_pago_id: 11, valor: 80000 }],
+    });
     renderPagos();
     await seleccionarEstudiante(user);
 
     await user.click(
       await screen.findByRole("button", { name: /1 concepto con valor personalizado/ })
     );
-    expect(screen.getByText("Acuerdo familiar", { exact: false })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Editar" }));
+    const pension = await screen.findByRole("listitem", { name: "Pensión" });
+    expect(pagosApi.obtenerValoresPagoEstudiante).toHaveBeenCalledWith(7);
+    expect(within(pension).getByText(/Precio del curso:/)).toHaveTextContent(/100\.000/);
+    expect(within(pension).getByText(/Paga .*85\.000 \(personalizado\)/)).toBeInTheDocument();
+    expect(within(pension).getByText("Motivo: Acuerdo familiar")).toBeInTheDocument();
 
-    expect(screen.getByPlaceholderText("Valor personalizado")).toHaveValue("85.000");
-    expect(screen.getByPlaceholderText("Motivo o acuerdo")).toHaveValue("Acuerdo familiar");
+    const campo = within(pension).getByRole("textbox", { name: "Valor personalizado de Pensión" });
+    await user.clear(campo);
+    await user.type(campo, "80000");
+    await user.click(within(pension).getByRole("button", { name: "Guardar el valor de Pensión" }));
+
+    await waitFor(() => {
+      expect(pagosApi.guardarValorPersonalizado).toHaveBeenCalledWith(7, 11, {
+        valor: 80000,
+        motivo: "Acuerdo familiar",
+        activo: true,
+      });
+    });
+    const recuadro = screen.getByRole("region", { name: "Valores de pago de Ana Pérez" });
+    expect(await within(recuadro).findByRole("status")).toHaveTextContent(
+      "Se guardó el valor de Pensión para Ana."
+    );
+    // Lo que debe y sus meses se vuelven a pedir, porque el valor cambia lo que se cobra.
+    await waitFor(() => expect(pagosApi.obtenerDeudasEstudiante).toHaveBeenCalledTimes(2));
+    expect(pagosApi.obtenerValoresPagoEstudiante).toHaveBeenCalledTimes(2);
   });
 
   it("conserva el historial, la apertura del comprobante y la anulación", async () => {

@@ -557,6 +557,7 @@ GET /pagos/{estudiante_id}
 GET /estudiantes/{estudiante_id}/deudas
 GET /api/ventas/pendientes/{estudiante_id}
 GET /estudiantes/{estudiante_id}/valores-pago-personalizados
+GET /estudiantes/{estudiante_id}/valores-pago
 PUT /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 DELETE /estudiantes/{estudiante_id}/valores-pago-personalizados/{tipo_pago_id}
 GET /tipos-pagos
@@ -577,9 +578,16 @@ Uso:
   estudiante aunque el concepto original este inactivo.
 - Permite ajustar un valor personalizado por estudiante y concepto sin cambiar
   el valor base del curso ni del tipo de pago.
+- Desde el 2026-11-03, al abrir "Valores personalizados" pide
+  `GET /estudiantes/{estudiante_id}/valores-pago` (con `anio_lectivo_id` solo
+  si el año del pago no es el activo) y lo muestra con el mismo recuadro de
+  matricular: solo los conceptos que se le cobran, con `precio_curso`. Guardar
+  y quitar siguen con el mismo `PUT` y `DELETE`; después vuelve a pedir esa
+  lista, las deudas y los meses vencidos. Al elegir el estudiante sigue
+  pidiendo `valores-pago-personalizados`, que da el conteo de la barra.
 - Las ventas pendientes pueden asociarse al registrar pagos.
-- El modo `Pago pendiente` conserva `POST /pagos` y su validacion contra la
-  deuda actual.
+- Pagar lo que debe (antes el modo `Pago pendiente`) conserva `POST /pagos` y
+  su validacion contra la deuda actual.
 - Para conceptos mensuales, `GET /pagos/vencidos/opciones/{estudiante_id}`
   devuelve los saldos por mes. El cliente preselecciona el mas antiguo y puede
   enviar una o varias `aplicaciones` dentro de `POST /pagos`.
