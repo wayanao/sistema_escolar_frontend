@@ -20,9 +20,16 @@ const detalleAlDia = (fila) =>
       } por adelantar`
     : "Al día · Sin meses por adelantar";
 
+// Celular: dos columnas (nombre | valor y botón, uno debajo del otro).
+// Computador: tres (nombre y detalle | valor de ancho fijo | botón), así los
+// valores quedan alineados como en una factura.
+const claseFila =
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-2 sm:grid-cols-[minmax(0,1fr)_7.5rem_auto] sm:py-1.5";
+
 // Verde lleno y con el ícono, para que se note: es la acción de la pantalla.
+// Bajito, para que varios seguidos no se vean pesados.
 const claseBotonCobro =
-  "inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-green-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-green-300";
+  "inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-green-300";
 
 // "Lo que debe": desde el 2026-11-04 es la única forma de elegir qué cobrar.
 // Cada deuda tiene su "Cobrar" y cada concepto mensual al día su "Adelantar";
@@ -76,22 +83,27 @@ export default function ResumenDeudaPago({
       {filas.length > 0 && (
         <ul className="mt-1 divide-y divide-gray-100">
           {filas.map((fila) => {
+            // En computador, una línea por fila, como una tabla: nombre y
+            // detalle, el valor en una columna alineada y el botón. En celular
+            // no cabe: el detalle baja debajo del nombre y el botón debajo del
+            // valor (capturas del usuario, 2026-11-04).
             if (fila.alDia) {
               return (
-                <li key={fila.clave} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900">
-                      <span>{fila.nombre}</span>
-                    </p>
-                    <p className="text-xs text-emerald-700">{detalleAlDia(fila)}</p>
-                  </div>
+                <li key={fila.clave} className={claseFila}>
+                  <p className="min-w-0 break-words text-sm sm:col-span-2">
+                    <span className="font-semibold text-slate-900">{fila.nombre}</span>
+                    <span className="block text-xs text-emerald-700 sm:ml-1.5 sm:inline">
+                      <span aria-hidden="true" className="hidden sm:inline">· </span>
+                      <span>{detalleAlDia(fila)}</span>
+                    </span>
+                  </p>
                   {fila.mesesPorAdelantar > 0 && (
                     <button
                       type="button"
                       onClick={() => onCobrar(fila)}
                       disabled={cargando}
                       aria-label={`Adelantar ${fila.nombre}`}
-                      className={claseBotonCobro}
+                      className={`${claseBotonCobro} justify-self-end`}
                     >
                       Adelantar
                     </button>
@@ -102,27 +114,30 @@ export default function ResumenDeudaPago({
 
             const detalles = detallesDe(fila);
             return (
-              <li key={fila.clave} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900">
-                    <span>{fila.nombre}</span>
-                    {fila.valorPersonalizado && (
-                      <span className="ml-2 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
-                        Valor personalizado
-                      </span>
-                    )}
-                  </p>
-                  {detalles.length > 0 && (
-                    <p className="text-xs text-slate-500">{detalles.join(" · ")}</p>
+              <li key={fila.clave} className={claseFila}>
+                <p className="row-span-2 min-w-0 break-words text-sm sm:row-span-1">
+                  <span className="font-semibold text-slate-900">{fila.nombre}</span>
+                  {fila.valorPersonalizado && (
+                    <span className="ml-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                      Valor personalizado
+                    </span>
                   )}
-                </div>
-                <strong className="text-sm text-slate-900">{formatearMoneda(fila.monto)}</strong>
+                  {detalles.length > 0 && (
+                    <span className="block text-xs text-slate-500 sm:ml-1.5 sm:inline">
+                      <span aria-hidden="true" className="hidden sm:inline">· </span>
+                      <span>{detalles.join(" · ")}</span>
+                    </span>
+                  )}
+                </p>
+                <strong className="whitespace-nowrap text-right text-sm tabular-nums text-slate-900">
+                  {formatearMoneda(fila.monto)}
+                </strong>
                 <button
                   type="button"
                   onClick={() => onCobrar(fila)}
                   disabled={cargando}
                   aria-label={`Cobrar ${fila.nombre}`}
-                  className={claseBotonCobro}
+                  className={`${claseBotonCobro} justify-self-end`}
                 >
                   <span aria-hidden="true">💰</span> Cobrar
                 </button>

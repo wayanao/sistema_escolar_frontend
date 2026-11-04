@@ -1,5 +1,29 @@
 # Cambios Frontend
 
+## 2026-11-04 - Gestión de Pagos: «Lo que debe» como tabla y año del pago sutil
+
+Pedido por el usuario con capturas. En celular el nombre de la deuda se
+montaba sobre el valor («matricu$250.000»); el primer arreglo (dos líneas por
+fila en todas las pantallas) no le gustó en computador: «se ven muchos
+espacios». Además pidió el selector de año «mejor diseñado y muy sutil, no
+tan grande».
+
+- **Computador:** una línea por deuda, como una tabla: nombre y detalle en
+  gris («mes · 7 meses pendientes»), el valor en una columna de ancho fijo
+  alineada a la derecha y el botón. **Celular:** el detalle baja debajo del
+  nombre y el botón debajo del valor; el nombre se parte si no cabe.
+- El «💰 Cobrar» sigue verde y lleno, pero más bajito.
+- «Año del pago» deja de ser un recuadro azul grande: es una fila de
+  pestañas pequeñas («2026 activo», «2027 en preparación») y la elegida
+  queda marcada. Hace lo mismo que antes.
+- Archivos: `ResumenDeudaPago.jsx`, `SelectorAnioPago.jsx` y su prueba nueva,
+  y la prueba de la página.
+- Verificación: pruebas de Pagos → **135 en 21 archivos**.
+  `pnpm run check:deploy`: 397 de 398 archivos pasaron; el que falló
+  (`CrearProfesor.test.jsx`, sin cambios desde agosto) pasa solo, así que fue
+  carga del equipo. Lint y build aparte, correctos. Sin probar todavía en el
+  navegador.
+
 ## 2026-11-04 - Gestión de Pagos: «Lo que debe» con borde de color
 
 Pedido por el usuario: «el cuadrito que muestra que debe, ¿se puede poner el

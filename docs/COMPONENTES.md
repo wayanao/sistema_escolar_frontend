@@ -1219,6 +1219,8 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   carga, estado vacío y selección con documento y curso.
 - `components/pagos/SelectorAnioPago.jsx` presenta el selector propio de la
   pantalla. Inicia en el activo y no usa el selector general del admin.
+  Desde el 2026-11-04 es una fila sutil de pestañas pequeñas, una por año,
+  en vez de un recuadro azul.
 - `components/anioLectivo/DeudasAniosAnterioresView.jsx` presenta por año el
   contrato ya calculado por el backend y se comparte con Pagos, Cartera y la
   ficha de Estudiantes.
@@ -1239,7 +1241,9 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
   cualquier pantalla. Compacto. Las filas salen de
   `utils/pagos/resumenDeuda.js`; las de al día no suman al total. No dice
   "Al día" mientras consulta ni si la consulta falló. Su borde es rojo si
-  debe, verde si está al día y gris mientras consulta (2026-11-04).
+  debe, verde si está al día y gris mientras consulta (2026-11-04). En
+  computador cada deuda va en una línea, como una tabla, con los valores
+  alineados; en celular, en dos.
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
   adelantos, distribución por monto y métodos combinados. Desde el
   2026-11-04 muestra el concepto elegido en "Lo que debe" como texto, sin

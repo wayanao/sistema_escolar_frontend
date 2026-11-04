@@ -378,6 +378,27 @@ debe. Borde rojo (`border-2 border-red-300`) y fondo rojo muy suave cuando
 hay deuda; borde verde cuando está al día; gris mientras consulta o si la
 consulta falló. Solo `ResumenDeudaPago.jsx`; Pagos pasa a **132** pruebas.
 
+## Ajuste (2026-11-04): «Lo que debe» como tabla y año del pago sutil
+
+Con una captura del celular, el usuario mostró que el nombre de la deuda se
+montaba sobre el valor y que los detalles se partían en varias líneas, y
+pidió el selector de año «mejor diseñado y muy sutil, no tan grande». El
+primer arreglo (dos líneas por fila siempre) no le gustó en computador («se
+ven muchos espacios») y pidió otra solución «como experto en diseño».
+
+- Las filas cambian según la pantalla (`claseFila`, CSS grid). En
+  computador (`sm` o más): tres columnas, nombre y detalle, valor de ancho
+  fijo (`7.5rem`, a la derecha, `tabular-nums`) y botón: una línea por
+  deuda y los valores alineados como en una factura. En celular: dos
+  columnas; el nombre y su detalle ocupan dos filas a la izquierda, y el
+  valor y el botón van uno debajo del otro a la derecha.
+- El nombre usa `break-words`, así que no se monta sobre el valor.
+- El «Cobrar» sigue verde y lleno, más bajito (`py-1`).
+- `SelectorAnioPago.jsx` pasó de recuadro azul a una fila de pestañas
+  pequeñas con `aria-pressed`. Recibe lo mismo y hace lo mismo; la página no
+  cambió.
+- Pagos pasa a **135** pruebas (3 nuevas del selector).
+
 ## Preguntas abiertas
 
 Se hacen justo antes del paso que las necesita.

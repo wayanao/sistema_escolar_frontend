@@ -641,10 +641,13 @@ describe("PagosAdmin - caracterización", () => {
     expect(screen.getByText("Año 2025")).toBeInTheDocument();
     // En el año activo, el cargo de inventario sí está para cobrar.
     expect(await screen.findByRole("button", { name: "Cobrar Uniforme" })).toBeInTheDocument();
-    const selector = screen.getByRole("combobox", { name: "Año del pago" });
-    expect(selector).toHaveValue("1");
+    const anios = screen.getByRole("group", { name: "Año del pago" });
+    expect(within(anios).getByRole("button", { name: /2026/ })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
 
-    await user.selectOptions(selector, "2");
+    await user.click(within(anios).getByRole("button", { name: /2027/ }));
 
     await waitFor(() => {
       expect(pagosApi.obtenerTiposPagos).toHaveBeenLastCalledWith(parametros2027);
