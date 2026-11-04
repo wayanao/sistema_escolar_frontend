@@ -107,6 +107,10 @@ el 2026-09-09, a petición del usuario.
 que nadie lo note: pasó con este entre el 2026-09-09 y esa misma tarde. Hay
 prueba que exige que aparezca en los dos.
 
+> **Ya no aplica desde el 2026-11-04:** el menú lateral arma PC, tablet y
+> celular con `PROFESOR_DESKTOP_ITEMS`, y `NavProfesorView.jsx` se borró. En el
+> celular el Observador va en la barra de abajo (`PROFESOR_BARRA_INFERIOR`).
+
 La pantalla lista **solo los nombres** de sus alumnos —una petición— y al pulsar
 uno abre su bitácora completa con **una sola petición más**.
 

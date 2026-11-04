@@ -511,7 +511,7 @@ backend.
 
 | Riesgo | Mitigación |
 |---|---|
-| Los dos archivos de menú (`navegacion.js` y `NavAdminView.jsx`) no se sincronizan solos | Tocar los dos explícitamente al implementar; ya es un problema conocido en otros módulos admin. |
+| Los dos archivos de menú (`navegacion.js` y `NavAdminView.jsx`) no se sincronizan solos | Tocar los dos explícitamente al implementar; ya es un problema conocido en otros módulos admin. **Resuelto el 2026-11-04:** el menú lateral usa solo `navegacion.js` y `NavAdminView.jsx` se borró. |
 | Guardar la nota en cada tecla generaría demasiadas peticiones | Se sigue el patrón de Asistencia: cambios en memoria + un solo guardado en lote con confirmación (ver "Decisiones ya tomadas"). |
 | Copiar de Asistencia también la regla de "no se puede guardar hasta marcar a todos" | No corresponde acá: en este módulo es normal que la mayoría de las celdas queden sin marcar. El botón de guardar debe habilitarse con al menos un cambio pendiente, no con la grilla completa. |
 

@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import auligoLogoNav from "../../assets/auligo-logo-nav.png";
 import { MODOS_MENU, obtenerIniciales } from "../../utils/autenticacion/menuLateral";
 import {
   esRutaNavegacionActiva,
   obtenerUbicacionNavegacion,
+  repartirBarraInferior,
 } from "../../utils/autenticacion/navegacion";
 import IconoMenu from "./IconoMenu";
 
 // El menú lateral con su marco. En celular: barra oscura arriba y un menú que
-// se desliza desde la izquierda. Desde tablet: el menú a la izquierda (riel o
-// abierto, según `modo`) y una barra blanca sobre el contenido. Solo presenta:
-// el modo lo decide useMenuLateral y los permisos, el backend.
+// se desliza desde la izquierda, o, si llega `barraInferior`, una barra abajo
+// con esas pantallas y «Más» para el resto. Desde tablet: el menú a la
+// izquierda (riel o abierto, según `modo`) y una barra blanca sobre el
+// contenido. Solo presenta: el modo lo decide useMenuLateral y los permisos,
+// el backend.
 //
 // El morado es el oscuro de la landing (#2a1150), elegido con el usuario el
 // 2026-11-04; el verde lima del logo marca la página actual.
@@ -28,6 +31,10 @@ const ALTO_HIJO = {
   [MODOS_MENU.ABIERTO]: "min-h-9 text-[13.5px]",
   [MODOS_MENU.CELULAR]: "min-h-11 text-[14.5px]",
 };
+// Alto de la barra de abajo del celular (`h-[4.5rem]`). La página deja ese
+// espacio al final (`pb-[4.5rem]`), y lo que se queda pegado abajo, como
+// «Guardar asistencia», lo lee de --alto-barra-inferior para quedar encima.
+const ALTO_BARRA_INFERIOR = "4.5rem";
 
 function useCerrarAlSalir(abierto, contenedorRef, cerrar) {
   useEffect(() => {
@@ -47,6 +54,24 @@ function useCerrarAlSalir(abierto, contenedorRef, cerrar) {
   }, [abierto, contenedorRef, cerrar]);
 }
 
+// Mientras un panel cubre la pantalla: el foco va a su botón de cerrar,
+// Escape lo cierra y la página de atrás no se mueve.
+function usePanelEncima(botonCerrarRef, onCerrar) {
+  useEffect(() => {
+    botonCerrarRef.current?.focus();
+    const cerrarEscape = (event) => {
+      if (event.key === "Escape") onCerrar();
+    };
+    const desbordeAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", cerrarEscape);
+    return () => {
+      document.body.style.overflow = desbordeAnterior;
+      document.removeEventListener("keydown", cerrarEscape);
+    };
+  }, [botonCerrarRef, onCerrar]);
+}
+
 function MenuLateralView({
   items,
   rutaInicio,
@@ -59,29 +84,42 @@ function MenuLateralView({
   onCerrarSesion,
   renderNotificaciones,
   renderSelectorAnio,
+  barraInferior,
   children,
 }) {
   const { pathname } = useLocation();
   const [menuCelularAbierto, setMenuCelularAbierto] = useState(false);
+  const [masAbierto, setMasAbierto] = useState(false);
   const botonMenuRef = useRef(null);
+  const botonMasRef = useRef(null);
   const enCelular = modo === MODOS_MENU.CELULAR;
   const enRiel = modo === MODOS_MENU.RIEL;
+  const conBarraInferior = enCelular && Boolean(barraInferior?.length);
   const ubicacion = obtenerUbicacionNavegacion(items, pathname);
+  // Sin grupos que abran un panel al lado, el riel puede desplazarse en una
+  // pantalla baja: el del profesor es más largo que el del admin.
+  const rielDesplazable = !items.some((item) => item.type === "group" && !item.siempreAbierto);
 
   const cerrarMenuCelular = useCallback(() => {
     setMenuCelularAbierto(false);
     botonMenuRef.current?.focus();
   }, []);
+  const cerrarMas = useCallback(() => {
+    setMasAbierto(false);
+    botonMasRef.current?.focus();
+  }, []);
+  const alNavegar = conBarraInferior ? cerrarMas : cerrarMenuCelular;
 
   return (
     <div className="md:flex md:min-h-screen">
       {enCelular ? (
         <BarraCelular
           rutaInicio={rutaInicio}
+          conMenu={!conBarraInferior}
           menuAbierto={menuCelularAbierto}
           botonMenuRef={botonMenuRef}
           onAbrirMenu={() => setMenuCelularAbierto(true)}
-          onNavegar={cerrarMenuCelular}
+          onNavegar={alNavegar}
           renderNotificaciones={renderNotificaciones}
           renderSelectorAnio={renderSelectorAnio}
         />
@@ -103,7 +141,10 @@ function MenuLateralView({
               className={enRiel ? "h-[34px] w-[26px] object-cover object-left" : "h-[34px] w-auto"}
             />
           </Link>
-          <nav aria-label={etiqueta} className="flex-1">
+          <nav
+            aria-label={etiqueta}
+            className={enRiel && rielDesplazable ? "min-h-0 flex-1 overflow-y-auto" : "flex-1"}
+          >
             <ListaMenu items={items} variante={modo} pathname={pathname} />
           </nav>
           <TarjetaUsuario
@@ -115,14 +156,17 @@ function MenuLateralView({
         </aside>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div
+        className={`flex min-w-0 flex-1 flex-col ${conBarraInferior ? "pb-[4.5rem]" : ""}`}
+        style={conBarraInferior ? { "--alto-barra-inferior": ALTO_BARRA_INFERIOR } : undefined}
+      >
         {!enCelular && (
           <BarraSuperior
             ubicacion={ubicacion}
             modo={modo}
             puedeAlternar={puedeAlternar}
             onAlternarMenu={onAlternarMenu}
-            onNavegar={cerrarMenuCelular}
+            onNavegar={alNavegar}
             renderNotificaciones={renderNotificaciones}
             renderSelectorAnio={renderSelectorAnio}
           />
@@ -130,7 +174,7 @@ function MenuLateralView({
         {children}
       </div>
 
-      {enCelular && menuCelularAbierto && (
+      {enCelular && !conBarraInferior && menuCelularAbierto && (
         <MenuCelular
           items={items}
           etiqueta={etiqueta}
@@ -141,7 +185,36 @@ function MenuLateralView({
           onCerrarSesion={onCerrarSesion}
         />
       )}
+      {conBarraInferior && (
+        <BarraInferior
+          items={items}
+          ids={barraInferior}
+          etiqueta={etiqueta}
+          pathname={pathname}
+          masAbierto={masAbierto}
+          botonMasRef={botonMasRef}
+          onAbrirMas={() => setMasAbierto(true)}
+        />
+      )}
+      {conBarraInferior && masAbierto && (
+        <HojaMas
+          items={items}
+          ids={barraInferior}
+          nombre={nombre}
+          rol={rol}
+          onCerrar={cerrarMas}
+          onCerrarSesion={onCerrarSesion}
+        />
+      )}
     </div>
+  );
+}
+
+function Separador() {
+  return (
+    <li aria-hidden="true">
+      <span className="mx-2 my-2 block h-px bg-white/10" />
+    </li>
   );
 }
 
@@ -163,11 +236,46 @@ function ListaMenu({ items, variante, pathname, onElegir }) {
 
   return (
     <ul ref={listaRef} className={`flex flex-col ${enRiel ? "gap-1" : "gap-0.5"}`}>
-      {items.map((item) => {
+      {items.map((item, indice) => {
         if (item.type !== "group") {
+          // Una línea separa lo suelto que viene después de los títulos.
+          const trasTitulos = Boolean(items[indice - 1]?.siempreAbierto);
+          return (
+            <Fragment key={item.id}>
+              {trasTitulos && <Separador />}
+              <li>
+                <EnlaceMenu item={item} variante={variante} onElegir={elegir} />
+              </li>
+            </Fragment>
+          );
+        }
+
+        if (item.siempreAbierto) {
+          // En el riel el título no cabe: una línea lo reemplaza.
+          const idTitulo = `menu-titulo-${variante}-${item.id}`;
           return (
             <li key={item.id}>
-              <EnlaceMenu item={item} variante={variante} onElegir={elegir} />
+              {enRiel ? (
+                <span aria-hidden="true" className="mx-2 my-2 block h-px bg-white/10" />
+              ) : (
+                <p
+                  id={idTitulo}
+                  className="mb-1 mt-3.5 px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#9d8fb8]"
+                >
+                  {item.label}
+                </p>
+              )}
+              <ul
+                aria-labelledby={enRiel ? undefined : idTitulo}
+                aria-label={enRiel ? item.label : undefined}
+                className={`flex flex-col ${enRiel ? "gap-1" : "gap-0.5"}`}
+              >
+                {item.children.map((hijo) => (
+                  <li key={hijo.id}>
+                    <EnlaceMenu item={hijo} variante={variante} onElegir={elegir} />
+                  </li>
+                ))}
+              </ul>
             </li>
           );
         }
@@ -453,6 +561,7 @@ function BarraSuperior({
 
 function BarraCelular({
   rutaInicio,
+  conMenu,
   menuAbierto,
   botonMenuRef,
   onAbrirMenu,
@@ -460,18 +569,26 @@ function BarraCelular({
   renderNotificaciones,
   renderSelectorAnio,
 }) {
+  // Va por encima de la barra de abajo para que la ventana de la campana,
+  // que baja hasta casi el final de la pantalla, no quede tapada.
   return (
-    <header className="relative z-30 flex h-[60px] items-center gap-1.5 bg-[#2a1150] pl-1 pr-1.5 text-white print:hidden">
-      <button
-        ref={botonMenuRef}
-        type="button"
-        onClick={onAbrirMenu}
-        aria-label="Abrir menú"
-        aria-expanded={menuAbierto}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition hover:bg-white/10"
-      >
-        <IconoMenu nombre="menu" className="h-[22px] w-[22px]" />
-      </button>
+    <header
+      className={`relative z-40 flex h-[60px] items-center gap-1.5 bg-[#2a1150] pr-1.5 text-white print:hidden ${
+        conMenu ? "pl-1" : "pl-4"
+      }`}
+    >
+      {conMenu && (
+        <button
+          ref={botonMenuRef}
+          type="button"
+          onClick={onAbrirMenu}
+          aria-label="Abrir menú"
+          aria-expanded={menuAbierto}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition hover:bg-white/10"
+        >
+          <IconoMenu nombre="menu" className="h-[22px] w-[22px]" />
+        </button>
+      )}
       <Link to={rutaInicio} aria-label="Ir al inicio de Auligo" className="flex shrink-0 items-center">
         <img src={auligoLogoNav} alt="Auligo" className="h-7 w-auto" />
       </Link>
@@ -485,21 +602,7 @@ function BarraCelular({
 
 function MenuCelular({ items, etiqueta, pathname, nombre, rol, onCerrar, onCerrarSesion }) {
   const cerrarRef = useRef(null);
-
-  // Al abrir: el foco va a la X, Escape cierra y la página de atrás no se mueve.
-  useEffect(() => {
-    cerrarRef.current?.focus();
-    const cerrarEscape = (event) => {
-      if (event.key === "Escape") onCerrar();
-    };
-    const desbordeAnterior = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", cerrarEscape);
-    return () => {
-      document.body.style.overflow = desbordeAnterior;
-      document.removeEventListener("keydown", cerrarEscape);
-    };
-  }, [onCerrar]);
+  usePanelEncima(cerrarRef, onCerrar);
 
   return (
     <div className="fixed inset-0 z-50 print:hidden">
@@ -542,6 +645,131 @@ function MenuCelular({ items, etiqueta, pathname, nombre, rol, onCerrar, onCerra
             Cerrar sesión
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PastillaBarra({ activa, icono }) {
+  return (
+    <span
+      className={`flex h-[30px] w-[52px] items-center justify-center rounded-full transition ${
+        activa ? "bg-purple-100" : ""
+      }`}
+    >
+      <IconoMenu nombre={icono} className="h-[22px] w-[22px] shrink-0" />
+    </span>
+  );
+}
+
+function BarraInferior({ items, ids, etiqueta, pathname, masAbierto, botonMasRef, onAbrirMas }) {
+  const { abajo, resto } = repartirBarraInferior(items, ids);
+  // «Más» se marca si está abierto o si la página actual vive ahí.
+  const enMas = masAbierto || resto.some((destino) => esRutaNavegacionActiva(destino, pathname));
+  const estiloBoton = (activo) =>
+    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] leading-none transition ${
+      activo ? "font-bold text-purple-700" : "font-medium text-slate-500 hover:text-slate-800"
+    }`;
+
+  return (
+    <nav
+      aria-label={etiqueta}
+      className="fixed inset-x-0 bottom-0 z-30 flex h-[4.5rem] items-stretch border-t border-slate-200 bg-white px-1 print:hidden"
+    >
+      {abajo.map((destino) => (
+        <NavLink
+          key={destino.id}
+          to={destino.to}
+          end={destino.end}
+          translate={destino.translate}
+          className={({ isActive }) => estiloBoton(isActive)}
+        >
+          {({ isActive }) => (
+            <>
+              <PastillaBarra activa={isActive} icono={destino.icono} />
+              <span className="max-w-full truncate px-0.5">{destino.label}</span>
+            </>
+          )}
+        </NavLink>
+      ))}
+      <button
+        ref={botonMasRef}
+        type="button"
+        onClick={onAbrirMas}
+        aria-expanded={masAbierto}
+        aria-haspopup="dialog"
+        className={estiloBoton(enMas)}
+      >
+        <PastillaBarra activa={enMas} icono="menu" />
+        <span>Más</span>
+      </button>
+    </nav>
+  );
+}
+
+function HojaMas({ items, ids, nombre, rol, onCerrar, onCerrarSesion }) {
+  const cerrarRef = useRef(null);
+  const { resto } = repartirBarraInferior(items, ids);
+  usePanelEncima(cerrarRef, onCerrar);
+
+  return (
+    <div className="fixed inset-0 z-50 print:hidden">
+      <div aria-hidden="true" onClick={onCerrar} className="absolute inset-0 bg-[rgba(10,4,25,0.45)]" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Más opciones"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-[20px] bg-white px-3 pb-5 pt-2 shadow-[0_-12px_40px_rgba(10,4,25,0.25)]"
+      >
+        <span aria-hidden="true" className="mx-auto mt-1 h-1 w-10 shrink-0 rounded-full bg-slate-300" />
+        <div className="flex shrink-0 items-center justify-between pl-3">
+          <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Más opciones</p>
+          <button
+            ref={cerrarRef}
+            type="button"
+            onClick={onCerrar}
+            aria-label="Cerrar más opciones"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            <IconoMenu nombre="cerrar" />
+          </button>
+        </div>
+        <ul className="min-h-0 flex-1 overflow-y-auto">
+          {resto.map((destino) => (
+            <li key={destino.id}>
+              <NavLink
+                to={destino.to}
+                end={destino.end}
+                translate={destino.translate}
+                onClick={onCerrar}
+                className={({ isActive }) =>
+                  `flex min-h-[52px] items-center gap-3.5 rounded-xl px-3 text-[15px] text-slate-900 transition ${
+                    isActive ? "bg-purple-100 font-bold" : "font-medium hover:bg-slate-50"
+                  }`
+                }
+              >
+                <IconoMenu nombre={destino.icono} className="h-[22px] w-[22px] shrink-0 text-purple-700" />
+                {destino.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+        <span aria-hidden="true" className="mx-3 my-2 block h-px shrink-0 bg-slate-200" />
+        <div className="flex shrink-0 items-center gap-2.5 px-3 py-1.5">
+          <Avatar nombre={nombre} rol={rol} />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate text-sm font-semibold text-slate-900">{nombre || rol}</span>
+            {nombre ? <span className="text-xs text-slate-500">{rol}</span> : null}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onCerrarSesion}
+          className="flex min-h-[52px] w-full shrink-0 items-center gap-3.5 rounded-xl px-3 text-left text-[15px] font-semibold text-rose-700 transition hover:bg-rose-50"
+        >
+          <IconoMenu nombre="salir" className="h-[22px] w-[22px] shrink-0" />
+          Cerrar sesión
+        </button>
       </div>
     </div>
   );

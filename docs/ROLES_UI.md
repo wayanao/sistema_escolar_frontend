@@ -87,18 +87,20 @@ acceso a nada; es solo informativa y lleva al login.
 
 `App.jsx` decide el menu principal:
 
-- `MenuLateralView` (dentro de `MarcoAdmin`) cuando existe `usuario` con rol
-  `admin`, desde el 2026-11-04. Antes era `NavAdminView`, que quedó sin uso.
-- `NavProfesorView` cuando no hay admin y existe profesor.
+- `MenuLateralView` dentro de `MarcoAdmin` cuando existe `usuario` con rol
+  `admin`, y dentro de `MarcoProfesor` cuando no hay admin y existe profesor.
+  Desde el 2026-11-04; antes eran `NavAdminView` y `NavProfesorView`, ya
+  borrados.
 - `NavSuperAdminView` en la ruta `/super-admin`.
 
 La entrada `Listas de Seguimiento`, del grupo Gestion Academica, se agrego el
-2026-09-22. Hasta el 2026-11-04 las entradas del menu admin vivian **en dos
-archivos** (`navegacion.js` para escritorio y `NavAdminView.jsx`, a mano, para
-movil). Desde el menú lateral, `ADMIN_DESKTOP_ITEMS` de
-`src/utils/autenticacion/navegacion.js` arma el menú del admin en PC, tablet y
-celular: una entrada nueva se agrega solo ahí. El menú del profesor sigue en
-dos archivos hasta que pase al menú lateral.
+2026-09-22. Hasta el 2026-11-04 las entradas de los menús vivían **en dos
+archivos** (`navegacion.js` para escritorio y la barra de cada rol, a mano,
+para móvil). Desde el menú lateral, `ADMIN_DESKTOP_ITEMS` y
+`PROFESOR_DESKTOP_ITEMS` de `src/utils/autenticacion/navegacion.js` arman el
+menú en PC, tablet y celular: una entrada nueva se agrega solo ahí. Qué
+pantallas del profesor van en la barra de abajo del celular lo dice
+`PROFESOR_BARRA_INFERIOR`; las demás quedan en «Más».
 
 Desde el 2026-10-06, el admin tiene además la entrada `Años lectivos` en los
 dos menús. Abre `/admin/anios-lectivos` bajo `AdminRoute`; profesor y

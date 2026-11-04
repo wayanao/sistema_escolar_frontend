@@ -113,9 +113,10 @@ eslint .
 
 Ajustes activos en produccion:
 
-- `NavAdminView` en movil no despliega todos los submenus al abrir. Los grupos se
-  abren bajo demanda y sus subpestanas se diferencian visualmente de los enlaces
-  principales.
+- El menú lateral del admin en movil no despliega todos los submenus al abrir:
+  solo viene abierto el grupo de la página actual, y sus páginas se
+  diferencian visualmente de las entradas principales (2026-11-04). El
+  profesor tiene una barra abajo con «Más».
 - `BrandingAdmin` y `PlantillasAdmin` tienen controles mas compactos en
   pantallas estrechas para administrar identidad y plantillas de impresos.
 - `DocumentoImprimible` soporta clases por documento para aplicar reglas
@@ -133,8 +134,10 @@ Ajustes activos en produccion:
 Prueba manual recomendada antes de liberar:
 
 - En movil, entrar como admin y abrir el menu principal.
-- Abrir grupos de `NavAdminView` y confirmar que los subenlaces no se confunden con
-  enlaces principales.
+- Abrir los grupos del menú lateral y confirmar que los subenlaces no se
+  confunden con enlaces principales.
+- En movil, entrar como profesor: la barra de abajo no tapa «Guardar
+  asistencia» y «Más» abre el resto.
 - Generar boletin, certificado de notas, certificado de matricula y estado de
   cuenta de cartera; confirmar scroll lateral y que el boton `Atras` no tape
   `Descargar PDF`.

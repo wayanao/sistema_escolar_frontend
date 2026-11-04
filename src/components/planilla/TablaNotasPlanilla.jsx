@@ -31,16 +31,19 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                 )}
             </div>
 
+            {/* En tablet (de md a xl) las columnas fijas -número, estudiante y
+                promedio- son más angostas y sin íconos: el menú lateral ya ocupa
+                su riel y las notas necesitan el espacio. Desde xl, como en PC. */}
             <div className="hidden w-full overflow-auto md:block">
                 <table className="w-full min-w-max border-separate border-spacing-0">
                     <thead className="shadow-sm">
                         <tr>
                             <th
-                                className="sticky left-0 top-0 z-40 w-16 min-w-16 max-w-16 rounded-tl-lg border-b border-r border-b-purple-300 border-r-purple-400 bg-purple-200 px-3 py-4 text-center text-purple-800"
+                                className="sticky left-0 top-0 z-40 w-10 min-w-10 max-w-10 rounded-tl-lg border-b border-r border-b-purple-300 border-r-purple-400 bg-purple-200 px-1 py-4 text-center text-purple-800 xl:w-16 xl:min-w-16 xl:max-w-16 xl:px-3"
                                 title="Número de estudiante"
                             >
                                 <svg
-                                    className="mx-auto h-6 w-6 drop-shadow-sm"
+                                    className="mx-auto h-5 w-5 drop-shadow-sm xl:h-6 xl:w-6"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -53,9 +56,9 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                 </svg>
                                 <span className="sr-only">Número</span>
                             </th>
-                            <th className="sticky left-16 top-0 z-30 border-b border-b-gray-200 bg-white px-6 py-4 text-left text-purple-950">
+                            <th className="sticky left-10 top-0 z-30 border-b border-b-gray-200 bg-white px-3 py-4 text-left text-purple-950 xl:left-16 xl:px-6">
                                 <span className="inline-flex min-h-8 items-center gap-3 align-middle">
-                                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-purple-400 bg-white/55 text-purple-700 shadow-sm ring-1 ring-purple-300/50">
+                                    <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-purple-400 bg-white/55 text-purple-700 shadow-sm ring-1 ring-purple-300/50 xl:inline-flex">
                                         <svg
                                             className="h-[18px] w-[18px]"
                                             viewBox="0 0 24 24"
@@ -67,7 +70,7 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.1a7.5 7.5 0 0 1 15 0A17.9 17.9 0 0 1 12 21.75 17.9 17.9 0 0 1 4.5 20.1Z" />
                                         </svg>
                                     </span>
-                                    <span className="text-base font-bold leading-none text-purple-700">
+                                    <span className="text-sm font-bold leading-none text-purple-700 xl:text-base">
                                         Estudiante
                                     </span>
                                 </span>
@@ -75,13 +78,13 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                             {columnas.map((col) => (
                                 <th
                                     key={col}
-                                    className="sticky top-0 z-20 min-w-[120px] border-b border-l border-b-gray-200 border-l-violet-300 bg-white px-4 py-4 text-center align-middle before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-violet-200/70 before:to-transparent before:content-['']"
+                                    className="sticky top-0 z-20 min-w-[104px] border-b border-l border-b-gray-200 border-l-violet-300 bg-white px-2 py-4 text-center align-middle before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-violet-200/70 before:to-transparent before:content-[''] xl:min-w-[120px] xl:px-4"
                                 >
                                     <div
-                                        className="inline-flex min-h-8 items-center justify-center gap-3 whitespace-nowrap text-purple-950 align-middle"
+                                        className="inline-flex min-h-8 items-center justify-center gap-2 whitespace-nowrap text-purple-950 align-middle xl:gap-3"
                                         title={formatearEtiquetaColumna(col)}
                                     >
-                                        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-violet-700 shadow-sm ring-1 ring-violet-300/70">
+                                        <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-violet-700 shadow-sm ring-1 ring-violet-300/70 xl:inline-flex">
                                             <svg
                                                 className="h-[18px] w-[18px]"
                                                 viewBox="0 0 24 24"
@@ -94,7 +97,7 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                             </svg>
                                         </span>
                                         <span
-                                            className="text-base font-bold leading-none text-purple-950"
+                                            className="text-sm font-bold leading-none text-purple-950 xl:text-base"
                                             translate="no"
                                         >
                                             {formatearEtiquetaColumna(col)}
@@ -108,9 +111,9 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                     </div>
                                 </th>
                             ))}
-                            <th className="sticky right-0 top-0 z-30 w-36 rounded-tr-lg border-b border-l border-b-gray-200 border-l-emerald-300 bg-white px-5 py-4 text-emerald-950 before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-emerald-200/70 before:to-transparent before:content-['']">
+                            <th className="sticky right-0 top-0 z-30 w-24 rounded-tr-lg border-b border-l border-b-gray-200 border-l-emerald-300 bg-white px-2 py-4 text-emerald-950 before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-4 before:bg-gradient-to-r before:from-emerald-200/70 before:to-transparent before:content-[''] xl:w-36 xl:px-5">
                                 <span className="inline-flex min-h-8 items-center justify-center gap-3">
-                                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-emerald-700 shadow-sm ring-1 ring-emerald-300/70">
+                                    <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/55 text-emerald-700 shadow-sm ring-1 ring-emerald-300/70 xl:inline-flex">
                                         <svg
                                             className="h-[18px] w-[18px]"
                                             viewBox="0 0 24 24"
@@ -122,7 +125,7 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5V12m5 7.5V8m5 11.5V4.5m5 15v-10" />
                                         </svg>
                                     </span>
-                                    <span className="text-base font-bold leading-none text-emerald-950">
+                                    <span className="text-sm font-bold leading-none text-emerald-950 xl:text-base">
                                         Promedio
                                     </span>
                                 </span>

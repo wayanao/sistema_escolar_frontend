@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -275,7 +275,10 @@ describe("ListasSeguimientoAdmin", () => {
   });
 });
 
-describe("la entrada de menú vive en los dos archivos", () => {
+// Hasta el 2026-11-04 la entrada vivía también, escrita a mano, en el menú
+// móvil de NavAdminView. El menú lateral arma PC, tablet y celular con esta
+// misma lista: basta con declararla aquí.
+describe("la entrada de menú vive en navegacion.js", () => {
   it("navegacion.js la declara en el grupo académico", async () => {
     const { ADMIN_DESKTOP_ITEMS } = await import("../utils/autenticacion/navegacion");
     const academica = ADMIN_DESKTOP_ITEMS.find((item) => item.id === "academica");
@@ -287,40 +290,6 @@ describe("la entrada de menú vive en los dos archivos", () => {
     });
   });
 
-  it("NavAdminView.jsx la repite a mano para el menú móvil", async () => {
-    // Ese archivo NO se genera a partir de navegacion.js. Si solo se toca uno,
-    // la entrada aparece en escritorio y no en móvil, y nada falla.
-    const { default: NavAdminView } = await import(
-      "../components/autenticacion/NavAdminView"
-    );
-    const { MemoryRouter } = await import("react-router-dom");
-    const user = userEvent.setup();
-
-    render(
-      <MemoryRouter>
-        <NavAdminView onCerrarSesion={vi.fn()} renderNotificaciones={vi.fn()} />
-      </MemoryRouter>,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Abrir menu de administrador" }));
-
-    // El menú móvil es el <nav> sin aria-label; el de escritorio sí lo tiene.
-    // Hay que acotar la búsqueda o "Gestión Académica" sale en los dos.
-    const movil = screen
-      .getAllByRole("navigation")
-      .find((nav) => !nav.getAttribute("aria-label"));
-    await user.click(within(movil).getByRole("button", { name: "Gestión Académica" }));
-
-    const escritorio = screen.getByRole("navigation", {
-      name: "Navegación principal de administrador",
-    });
-
-    for (const menu of [escritorio, movil]) {
-      expect(
-        within(menu).getByRole("link", { name: "Listas de Seguimiento" }),
-      ).toHaveAttribute("href", "/admin/listas-seguimiento");
-    }
-  });
 });
 
 describe("crear una columna en todos los cursos", () => {

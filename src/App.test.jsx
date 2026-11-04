@@ -38,14 +38,16 @@ vi.mock("./pages/Planilla", () => ({
 vi.mock("./pages/Observador", () => ({
   default: () => <div data-testid="pagina-observador">Observador</div>,
 }));
-vi.mock("./components/autenticacion/NavProfesorView", () => ({
-  default: () => <div data-testid="nav-profesor">Nav profesor</div>,
-}));
-// El admin trabaja dentro del menú lateral: el doble pinta también la página.
+// Admin y profesor trabajan dentro del menú lateral: el doble dice de quién es
+// el menú y pinta también la página.
 vi.mock("./components/autenticacion/MenuLateralView", () => ({
-  default: ({ children }) => (
+  default: ({ rol, children }) => (
     <>
-      <div data-testid="nav-admin">Nav admin</div>
+      {rol === "Administrador" ? (
+        <div data-testid="nav-admin">Nav admin</div>
+      ) : (
+        <div data-testid="nav-profesor">Nav profesor</div>
+      )}
       {children}
     </>
   ),

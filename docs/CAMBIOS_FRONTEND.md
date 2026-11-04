@@ -1,5 +1,65 @@
 # Cambios Frontend
 
+## 2026-11-04 - Planilla: más espacio para las notas en tablet
+
+Pedido por el usuario: en tablet, con el riel del menú lateral, «el espacio
+para ubicar las notas es pequeño». En PC estaba bien, así que el cambio va
+solo de 768 a 1279 px de ancho; desde 1280 px (`xl`) todo queda como antes y
+el celular sigue con sus tarjetas.
+
+- Columnas fijas más angostas: número de 64 a 40 px; estudiante con menos
+  relleno, sin ícono en el encabezado y el nombre largo en dos líneas (hasta
+  150 px) en vez de estirar la columna; promedio de 144 a 96 px.
+- Columnas de notas sin ícono en el encabezado y con la cajita de la nota de
+  70 a 56 px; el botón de subnotas no cambia.
+- La página de la planilla no suma su margen lateral al de la página.
+- Cálculo aproximado (no medido en pantalla) para una tablet vertical de
+  820 px: el espacio para las notas pasa de unos 160 px a unos 370 px; antes
+  del menú lateral eran unos 260.
+- Archivos: `Planilla.jsx`, `TablaNotasPlanilla.jsx`, `PlanillaRow.jsx` y la
+  prueba de la tabla.
+- Verificación: pruebas de la planilla → **78 en 8 archivos**.
+  `pnpm run check:deploy` → **3318 pruebas en 401 archivos**, lint y build
+  correctos, en una sola corrida. Sin probar todavía en el navegador.
+
+## 2026-11-04 - Menú lateral del profesor (paso 3) y borrado de las barras viejas
+
+Sigue al paso 2: el profesor pasa al mismo menú lateral que el admin. Rutas,
+permisos y backend no cambian.
+
+- **PC y tablet:** «Control Académico» y «Planeación Académica» son títulos
+  con sus páginas debajo, cada una con su ícono, sin abrir ni cerrar: las 7
+  pantallas quedan a un clic. En el riel, una línea reemplaza cada título; si
+  la pantalla es baja, el riel se desplaza (es más largo que el del admin).
+- **Celular:** pedido por el usuario, una barra abajo con Dashboard, Planilla,
+  Asistencia y Observador, y «Más», que abre una hoja con Plan de Clases,
+  Malla Curricular, Boletín Final, el nombre y «Cerrar sesión». «Más» se
+  marca cuando la página actual vive ahí. Arriba queda la barra oscura con el
+  logo y la campana, sin ☰. El admin sigue con el menú que se desliza.
+- La página deja libre el alto de la barra de abajo, y «Guardar asistencia»
+  (`BarraGuardadoAsistencia`, que se queda pegada abajo) sube lo justo para no
+  quedar tapada (`--alto-barra-inferior`).
+- **Borrado, aprobado por el usuario:** `NavAdminView.jsx`,
+  `NavProfesorView.jsx`, `DesktopAnimatedNav.jsx`, su CSS
+  `.desktop-animated-nav*` en `index.css` (`.nav-brand-logo` se queda: lo
+  usan login y super admin), sus pruebas viejas y el tono `morado` de la
+  campana y del selector de año, que ahora son blancos por defecto.
+- Archivos: `navegacion.js` (íconos del profesor, `siempreAbierto`,
+  `PROFESOR_BARRA_INFERIOR`, `listarDestinosNavegacion`,
+  `repartirBarraInferior`), `MenuLateralView.jsx`, `IconoMenu.jsx`,
+  `useSesion.js` (`useSesionProfesor`, solo lectura), `App.jsx`
+  (`MarcoProfesor`, `MENU_ADMIN`, `MENU_PROFESOR`), `BarraGuardadoAsistencia.jsx`,
+  `NotificacionesPlaneadoresVista.jsx`, `SelectorAnioLectivoView.jsx` y sus
+  pruebas; `NavegacionesView.test.jsx` queda solo con la del super admin.
+- Verificación: prueba de conteo escrita antes de tocar (7 pantallas del
+  profesor) y repetida sobre el menú nuevo: abierto, riel, la barra de abajo
+  más «Más», y el menú que se desliza. `pnpm run check:deploy`: en la primera
+  corrida pasaron las **3317 pruebas de 401 archivos** y el lint marcó una
+  importación sin uso (corregida); en la segunda, `CrearProfesor.test.jsx`
+  (sin cambios) agotó su tiempo y pasa sola, 4 de 4. Lint y build aparte,
+  correctos. Build: JS 374.466 → 373.664 bytes y CSS 122.016 → 119.474
+  respecto al paso 2. Sin probar todavía en el navegador.
+
 ## 2026-11-04 - Menú lateral del admin (paso 2)
 
 Pedido por el usuario: un menú «más moderno y no tan artesanal». Se diseñó

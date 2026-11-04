@@ -21,11 +21,14 @@ describe("SelectorAnioLectivoView", () => {
     ]);
   });
 
-  it("se pinta según la barra donde va", () => {
+  it("se pinta según la barra donde va: blanca por defecto, oscura en celular", () => {
     const { unmount } = render(
       <SelectorAnioLectivoView opciones={OPCIONES} anioSeleccionadoId={1} onCambiar={vi.fn()} />,
     );
-    expect(screen.getByRole("combobox", { name: "Año lectivo" })).toHaveClass("bg-purple-800");
+    expect(screen.getByRole("combobox", { name: "Año lectivo" })).toHaveClass(
+      "bg-white",
+      "text-slate-900",
+    );
     unmount();
 
     render(
@@ -33,12 +36,12 @@ describe("SelectorAnioLectivoView", () => {
         opciones={OPCIONES}
         anioSeleccionadoId={1}
         onCambiar={vi.fn()}
-        tono="claro"
+        tono="oscuro"
       />,
     );
-    const claro = screen.getByRole("combobox", { name: "Año lectivo" });
-    expect(claro).toHaveClass("bg-white", "text-slate-900");
-    expect(claro).not.toHaveClass("bg-purple-800");
+    const oscuro = screen.getByRole("combobox", { name: "Año lectivo" });
+    expect(oscuro).toHaveClass("bg-[#36195f]", "text-white");
+    expect(oscuro).not.toHaveClass("bg-white");
   });
 
   it("avisa el año elegido como número", async () => {

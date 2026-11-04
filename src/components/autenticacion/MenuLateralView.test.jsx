@@ -3,7 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import MenuLateralView from "./MenuLateralView";
-import { ADMIN_DESKTOP_ITEMS } from "../../utils/autenticacion/navegacion";
+import {
+  ADMIN_DESKTOP_ITEMS,
+  PROFESOR_BARRA_INFERIOR,
+  PROFESOR_DESKTOP_ITEMS,
+  listarDestinosNavegacion,
+} from "../../utils/autenticacion/navegacion";
 
 // Las 19 pantallas del admin, sacadas de la misma lista que arma el menú.
 const DESTINOS_ADMIN = ADMIN_DESKTOP_ITEMS.flatMap((item) =>
@@ -289,5 +294,174 @@ describe("MenuLateralView", () => {
       await user.click(screen.getByRole("button", { name: "Abrir menú" }));
       expect(screen.getByRole("dialog", { name: "Menú" }).parentElement).toHaveClass("print:hidden");
     });
+  });
+});
+
+// Las 7 pantallas del profesor, sacadas de la misma lista que arma el menú.
+const DESTINOS_PROFESOR = listarDestinosNavegacion(PROFESOR_DESKTOP_ITEMS)
+  .map((destino) => destino.to)
+  .sort();
+
+function renderMenuProfesor({ modo = "abierto", ruta = "/planilla", ...cambios } = {}) {
+  const props = {
+    items: PROFESOR_DESKTOP_ITEMS,
+    rutaInicio: "/",
+    etiqueta: "Navegación principal de profesor",
+    nombre: "Ana Ruiz",
+    rol: "Profesor",
+    modo,
+    puedeAlternar: true,
+    onAlternarMenu: vi.fn(),
+    onCerrarSesion: vi.fn(),
+    renderNotificaciones: vi.fn((onNavigate, opciones) => (
+      <button type="button" onClick={onNavigate}>
+        Campana {opciones?.tono}
+      </button>
+    )),
+    barraInferior: PROFESOR_BARRA_INFERIOR,
+    ...cambios,
+  };
+  render(
+    <MemoryRouter initialEntries={[ruta]}>
+      <MenuLateralView {...props}>
+        <p>Contenido de la página</p>
+      </MenuLateralView>
+    </MemoryRouter>,
+  );
+  return props;
+}
+
+const menuProfesor = (contenedor = screen) =>
+  contenedor.getByRole("navigation", { name: "Navegación principal de profesor" });
+
+describe("MenuLateralView del profesor", () => {
+  afterEach(() => {
+    document.body.style.overflow = "";
+  });
+
+  it("abierto: sus dos grupos son títulos y las 7 pantallas quedan a un clic", () => {
+    renderMenuProfesor({ modo: "abierto", ruta: "/planilla" });
+    const menu = menuProfesor();
+
+    expect(destinosVisibles(menu).sort()).toStrictEqual(DESTINOS_PROFESOR);
+    // Nada que abrir ni cerrar: los grupos son títulos.
+    expect(within(menu).queryAllByRole("button")).toHaveLength(0);
+    const control = within(menu).getByRole("list", { name: "Control Académico" });
+    expect(within(control).getAllByRole("link").map((enlace) => enlace.textContent)).toStrictEqual([
+      "Planilla",
+      "Asistencia",
+    ]);
+    expect(within(menu).getByRole("link", { name: "Planilla" })).toHaveAttribute("aria-current", "page");
+    // El Dashboard es «/»: no queda marcado en las demás páginas.
+    expect(within(menu).getByRole("link", { name: "Dashboard" })).not.toHaveAttribute("aria-current");
+
+    const ubicacion = screen.getByRole("navigation", { name: "Ubicación" });
+    expect(within(ubicacion).getByText("Control Académico")).toBeInTheDocument();
+    expect(within(ubicacion).getByText("Planilla")).toHaveAttribute("aria-current", "page");
+    // El profesor no tiene selector de año.
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("riel: las 7 pantallas a la vista, con líneas en lugar de títulos", () => {
+    renderMenuProfesor({ modo: "riel" });
+    const menu = menuProfesor();
+
+    expect(destinosVisibles(menu).sort()).toStrictEqual(DESTINOS_PROFESOR);
+    expect(within(menu).queryByText("Control Académico")).not.toBeInTheDocument();
+    expect(within(menu).getByRole("list", { name: "Planeación Académica" })).toBeInTheDocument();
+    // Más largo que el del admin y sin paneles al lado: en una pantalla baja se desplaza.
+    expect(menu).toHaveClass("overflow-y-auto");
+  });
+
+  it("celular: abajo las cuatro pantallas de todos los días y «Más», sin botón de menú arriba", () => {
+    const props = renderMenuProfesor({ modo: "celular", ruta: "/planilla" });
+    const barra = menuProfesor();
+
+    expect(screen.queryByRole("button", { name: "Abrir menú" })).not.toBeInTheDocument();
+    expect(destinosVisibles(barra)).toStrictEqual(["/", "/planilla", "/asistencia", "/observador"]);
+    expect(within(barra).getByRole("link", { name: "Planilla" })).toHaveAttribute("aria-current", "page");
+    expect(within(barra).getByRole("button", { name: "Más" })).toHaveAttribute("aria-expanded", "false");
+    expect(barra).toHaveClass("fixed", "bottom-0", "print:hidden");
+    expect(props.renderNotificaciones).toHaveBeenCalledWith(expect.any(Function), { tono: "oscuro" });
+
+    // La página deja libre el alto de la barra, y avisa ese alto a lo que se
+    // queda pegado abajo, como «Guardar asistencia».
+    const columna = screen.getByText("Contenido de la página").parentElement;
+    expect(columna).toHaveClass("pb-[4.5rem]");
+    expect(columna.style.getPropertyValue("--alto-barra-inferior")).toBe("4.5rem");
+  });
+
+  it("«Más» abre una hoja con las demás pantallas, el usuario y cerrar sesión", async () => {
+    const user = userEvent.setup();
+    const props = renderMenuProfesor({ modo: "celular" });
+
+    await user.click(screen.getByRole("button", { name: "Más" }));
+    const hoja = screen.getByRole("dialog", { name: "Más opciones" });
+
+    expect(within(hoja).getByRole("button", { name: "Cerrar más opciones" })).toHaveFocus();
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(destinosVisibles(hoja)).toStrictEqual(["/plan-de-clases", "/planeador-anual", "/ingreso-boletin"]);
+    expect(within(hoja).getByText("Ana Ruiz")).toBeInTheDocument();
+
+    await user.click(within(hoja).getByRole("button", { name: "Cerrar sesión" }));
+    expect(props.onCerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it("entre la barra y «Más» llega a las 7 pantallas", async () => {
+    const user = userEvent.setup();
+    renderMenuProfesor({ modo: "celular" });
+
+    const enLaBarra = destinosVisibles(menuProfesor());
+    await user.click(screen.getByRole("button", { name: "Más" }));
+    const enMas = destinosVisibles(screen.getByRole("dialog", { name: "Más opciones" }));
+
+    expect([...enLaBarra, ...enMas].sort()).toStrictEqual(DESTINOS_PROFESOR);
+  });
+
+  it("la hoja se cierra al elegir, con Escape, con la X y tocando fuera, y el foco vuelve a «Más»", async () => {
+    const user = userEvent.setup();
+    renderMenuProfesor({ modo: "celular" });
+    const mas = screen.getByRole("button", { name: "Más" });
+
+    await user.click(mas);
+    await user.click(
+      within(screen.getByRole("dialog", { name: "Más opciones" })).getByRole("link", {
+        name: "Plan de Clases",
+      }),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mas).toHaveFocus();
+    expect(document.body.style.overflow).toBe("");
+
+    await user.click(mas);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.click(mas);
+    await user.click(screen.getByRole("button", { name: "Cerrar más opciones" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.click(mas);
+    await user.click(screen.getByRole("dialog", { name: "Más opciones" }).previousElementSibling);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("«Más» se marca cuando la página actual vive ahí", () => {
+    renderMenuProfesor({ modo: "celular", ruta: "/plan-de-clases" });
+    const barra = menuProfesor();
+
+    expect(within(barra).getByRole("button", { name: "Más" })).toHaveClass("text-purple-700");
+    expect(within(barra).queryByRole("link", { current: "page" })).not.toBeInTheDocument();
+  });
+
+  it("sin barra de abajo, el celular usa el menú que se desliza, como el admin", async () => {
+    const user = userEvent.setup();
+    renderMenuProfesor({ modo: "celular", barraInferior: undefined });
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+
+    expect(
+      destinosVisibles(menuProfesor(within(screen.getByRole("dialog", { name: "Menú" })))).sort(),
+    ).toStrictEqual(DESTINOS_PROFESOR);
   });
 });

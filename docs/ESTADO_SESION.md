@@ -21,8 +21,8 @@ Claves observadas:
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
 - `ultimo_codigo_colegio`: ultimo codigo de colegio usado en un login exitoso,
   solo para precargar el campo visual del formulario.
-- `menuLateral`: si el admin dejó el menú lateral `abierto` o en `riel`
-  (encogido) desde portátil. Desde el 2026-11-04.
+- `menuLateral`: si el admin o el profesor dejó el menú lateral `abierto` o
+  en `riel` (encogido) desde portátil. Desde el 2026-11-04.
 
 Separacion importante:
 

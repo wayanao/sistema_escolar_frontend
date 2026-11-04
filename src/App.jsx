@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import NotificacionesPlaneadores from "./components/planeaciones/NotificacionesPlaneadores";
 import MenuLateralView from "./components/autenticacion/MenuLateralView";
-import NavProfesorView from "./components/autenticacion/NavProfesorView";
 import NavSuperAdminView from "./components/autenticacion/NavSuperAdminView";
 import TenantStatusBannerView from "./components/autenticacion/TenantStatusBannerView";
 import AvisoAnioLectivoView from "./components/anioLectivo/AvisoAnioLectivoView";
@@ -20,10 +19,15 @@ import {
   useRedireccionRutaAdmin,
   useRedireccionRutaProtegida,
   useRedireccionSuperAdmin,
+  useSesionProfesor,
   useSesionSuperAdmin,
   useSesionUsuario,
 } from "./hooks/autenticacion/useSesion";
-import { ADMIN_DESKTOP_ITEMS } from "./utils/autenticacion/navegacion";
+import {
+  ADMIN_DESKTOP_ITEMS,
+  PROFESOR_BARRA_INFERIOR,
+  PROFESOR_DESKTOP_ITEMS,
+} from "./utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "./utils/autenticacion/sesion";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
@@ -64,8 +68,8 @@ function renderNotificacionesAdmin(onNavigate, opciones) {
   return <NotificacionesPlaneadores rol="admin" onNavigate={onNavigate} tono={opciones?.tono} />;
 }
 
-function renderNotificacionesProfesor(onNavigate) {
-  return <NotificacionesPlaneadores rol="profesor" onNavigate={onNavigate} />;
+function renderNotificacionesProfesor(onNavigate, opciones) {
+  return <NotificacionesPlaneadores rol="profesor" onNavigate={onNavigate} tono={opciones?.tono} />;
 }
 
 function SelectorAnioLectivoAdmin({ tono }) {
@@ -121,40 +125,61 @@ function SuperAdminRoute({ children }) {
   return redireccion ? <Navigate to={redireccion} /> : children;
 }
 
-// El admin trabaja dentro del menú lateral: el menú a la izquierda (en celular,
-// una barra arriba) y la página a la derecha.
-function MarcoAdmin({ children }) {
+// Lo que cambia entre el menú del admin y el del profesor. Solo el profesor
+// tiene barra abajo en el celular; solo el admin, selector de año.
+const MENU_ADMIN = {
+  items: ADMIN_DESKTOP_ITEMS,
+  rutaInicio: RUTAS_SESION.INICIO_ADMIN,
+  etiqueta: "Navegación principal de administrador",
+  rol: "Administrador",
+  renderNotificaciones: renderNotificacionesAdmin,
+  renderSelectorAnio: renderSelectorAnioAdmin,
+};
+
+const MENU_PROFESOR = {
+  items: PROFESOR_DESKTOP_ITEMS,
+  rutaInicio: RUTAS_SESION.INICIO_PROFESOR,
+  etiqueta: "Navegación principal de profesor",
+  rol: "Profesor",
+  renderNotificaciones: renderNotificacionesProfesor,
+  barraInferior: PROFESOR_BARRA_INFERIOR,
+};
+
+// Admin y profesor trabajan dentro del menú lateral: el menú a la izquierda
+// (en celular, barras arriba y abajo) y la página a la derecha.
+function MarcoMenuLateral({ menu, nombre, children }) {
   const cerrarSesion = useCerrarSesion();
-  const usuario = useSesionUsuario();
   const { modo, puedeAlternar, alternarMenu } = useMenuLateral();
 
   return (
     <MenuLateralView
-      items={ADMIN_DESKTOP_ITEMS}
-      rutaInicio={RUTAS_SESION.INICIO_ADMIN}
-      etiqueta="Navegación principal de administrador"
-      nombre={usuario?.nombre}
-      rol="Administrador"
+      {...menu}
+      nombre={nombre}
       modo={modo}
       puedeAlternar={puedeAlternar}
       onAlternarMenu={alternarMenu}
       onCerrarSesion={cerrarSesion}
-      renderNotificaciones={renderNotificacionesAdmin}
-      renderSelectorAnio={renderSelectorAnioAdmin}
     >
       {children}
     </MenuLateralView>
   );
 }
 
-function NavegacionProfesor() {
-  const cerrarSesion = useCerrarSesion();
-
+function MarcoAdmin({ children }) {
+  const usuario = useSesionUsuario();
   return (
-    <NavProfesorView
-      onCerrarSesion={cerrarSesion}
-      renderNotificaciones={renderNotificacionesProfesor}
-    />
+    <MarcoMenuLateral menu={MENU_ADMIN} nombre={usuario?.nombre}>
+      {children}
+    </MarcoMenuLateral>
+  );
+}
+
+function MarcoProfesor({ children }) {
+  const profesor = useSesionProfesor();
+  return (
+    <MarcoMenuLateral menu={MENU_PROFESOR} nombre={profesor?.nombre}>
+      {children}
+    </MarcoMenuLateral>
   );
 }
 
@@ -279,14 +304,7 @@ function Layout() {
 
   const layout = (
     <div className="notranslate min-h-screen bg-slate-50" translate="no">
-      {esAdmin ? (
-        <MarcoAdmin>{contenido}</MarcoAdmin>
-      ) : (
-        <>
-          <NavegacionProfesor />
-          {contenido}
-        </>
-      )}
+      {esAdmin ? <MarcoAdmin>{contenido}</MarcoAdmin> : <MarcoProfesor>{contenido}</MarcoProfesor>}
     </div>
   );
 

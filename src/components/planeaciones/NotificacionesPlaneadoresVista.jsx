@@ -1,13 +1,9 @@
 import { formatearMomentoNotificacion } from "../../utils/planeaciones/notificacionesContratos";
 
-// La campana va sobre tres barras: la morada del profesor, la oscura del admin
-// en celular y la blanca del admin desde tablet. El borde del contador es del
-// color de la barra, para que el número se despegue de la campana.
+// La campana va en la barra del menú lateral: la oscura del celular o la
+// blanca desde tablet. El borde del contador es del color de la barra, para
+// que el número se despegue de la campana.
 const TONOS_CAMPANA = {
-  morado: {
-    boton: "border-white/25 bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
-    contador: "border-purple-700",
-  },
   oscuro: {
     boton: "border-white/25 bg-white/10 text-white hover:bg-white/20 focus:ring-white/50",
     contador: "border-[#2a1150]",
@@ -20,7 +16,7 @@ const TONOS_CAMPANA = {
 
 function NotificacionesPlaneadoresVista({
   rol,
-  tono = "morado",
+  tono = "claro",
   abierto,
   total,
   totalProfesores,
@@ -35,7 +31,7 @@ function NotificacionesPlaneadoresVista({
   onAbrirNotificacion,
   onVerTodos,
 }) {
-  const estilo = TONOS_CAMPANA[tono] ?? TONOS_CAMPANA.morado;
+  const estilo = TONOS_CAMPANA[tono] ?? TONOS_CAMPANA.claro;
 
   return (
     <div ref={contenedorRef} className="static shrink-0 lg:relative">

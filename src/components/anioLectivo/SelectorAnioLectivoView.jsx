@@ -1,13 +1,9 @@
 // La cajita para elegir el año, en la barra del admin. Solo presentación:
 // quien decide si aparece y qué hace al cambiar es `useAnioLectivoEnPantalla`.
 //
-// `tono` es el de la barra donde va: la morada de antes, la oscura del menú
-// en celular o la blanca desde tablet.
+// `tono` es el de la barra donde va: la oscura del menú en celular o la
+// blanca desde tablet.
 const TONOS_SELECTOR = {
-  morado: {
-    etiqueta: "text-white",
-    select: "border-white/40 bg-purple-800 text-white focus:ring-white/70",
-  },
   oscuro: {
     etiqueta: "text-white",
     select: "border-white/25 bg-[#36195f] text-white focus:ring-white/70",
@@ -18,8 +14,8 @@ const TONOS_SELECTOR = {
   },
 };
 
-function SelectorAnioLectivoView({ opciones, anioSeleccionadoId, onCambiar, tono = "morado" }) {
-  const estilo = TONOS_SELECTOR[tono] ?? TONOS_SELECTOR.morado;
+function SelectorAnioLectivoView({ opciones, anioSeleccionadoId, onCambiar, tono = "claro" }) {
+  const estilo = TONOS_SELECTOR[tono] ?? TONOS_SELECTOR.claro;
 
   return (
     <label className={`flex shrink-0 items-center gap-2 text-sm font-medium ${estilo.etiqueta}`}>

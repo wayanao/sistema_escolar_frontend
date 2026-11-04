@@ -140,8 +140,10 @@ function Planilla() {
         }
     }, [evaluacionForzada, tipoEvaluacion]);
 
+    // En tablet (de md a xl) la planilla no suma su margen lateral al de la
+    // página: con el riel del menú, ese ancho es para las notas.
     return (
-    <div className="p-3 sm:p-6">
+    <div className="p-3 sm:p-6 md:px-0 xl:px-6">
         <EncabezadoContextoCurso
             titulo="Planilla de notas"
             etiqueta="Evaluación académica"

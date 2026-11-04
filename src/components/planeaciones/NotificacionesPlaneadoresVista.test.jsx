@@ -40,18 +40,18 @@ describe("NotificacionesPlaneadoresVista", () => {
     expect(props.onAlternar).toHaveBeenCalledTimes(1);
   });
 
-  it("se pinta según la barra donde va: morada por defecto, blanca desde tablet", () => {
+  it("se pinta según la barra donde va: blanca por defecto, oscura en celular", () => {
     const { unmount } = renderVista({ abierto: false, total: 3 });
-    const morada = screen.getByRole("button", { name: "Notificaciones de planeadores: 3 sin leer" });
-    expect(morada).toHaveClass("bg-white/10", "text-white");
-    expect(screen.getByText("3")).toHaveClass("border-purple-700");
-    unmount();
-
-    renderVista({ abierto: false, total: 3, tono: "claro" });
     const blanca = screen.getByRole("button", { name: "Notificaciones de planeadores: 3 sin leer" });
     expect(blanca).toHaveClass("bg-white", "text-slate-600");
     expect(blanca).not.toHaveClass("text-white");
     expect(screen.getByText("3")).toHaveClass("border-white");
+    unmount();
+
+    renderVista({ abierto: false, total: 3, tono: "oscuro" });
+    const oscura = screen.getByRole("button", { name: "Notificaciones de planeadores: 3 sin leer" });
+    expect(oscura).toHaveClass("bg-white/10", "text-white");
+    expect(screen.getByText("3")).toHaveClass("border-[#2a1150]");
   });
 
   it("presenta grupos administrativos y delega ambas navegaciones", async () => {

@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_DESKTOP_ITEMS,
+  PROFESOR_BARRA_INFERIOR,
   PROFESOR_DESKTOP_ITEMS,
   esRutaNavegacionActiva,
+  listarDestinosNavegacion,
   obtenerIdItemNavegacionActivo,
   obtenerUbicacionNavegacion,
+  repartirBarraInferior,
 } from "./navegacion";
 
 function resumirItems(items) {
@@ -90,6 +93,23 @@ describe("contratos puros de navegacion", () => {
     expect(new Set(destinos).size).toBe(19);
   });
 
+  it("lleva al profesor a 7 pantallas distintas, cada una con su ruta", () => {
+    // Prueba de conteo escrita antes de pasar al profesor al menú lateral.
+    const destinos = PROFESOR_DESKTOP_ITEMS.flatMap((item) =>
+      item.type === "group" ? item.children : [item],
+    ).map((destino) => destino.to);
+
+    expect(destinos).toStrictEqual([
+      "/",
+      "/planilla",
+      "/asistencia",
+      "/plan-de-clases",
+      "/planeador-anual",
+      "/observador",
+      "/ingreso-boletin",
+    ]);
+  });
+
   it("conserva el arbol, orden, mayusculas y rutas de profesor", () => {
     expect(resumirItems(PROFESOR_DESKTOP_ITEMS)).toStrictEqual([
       { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
@@ -167,5 +187,58 @@ describe("contratos puros de navegacion", () => {
     ["/admin/desconocida", null],
   ])("ubica %s en la barra de arriba", (pathname, esperado) => {
     expect(obtenerUbicacionNavegacion(ADMIN_DESKTOP_ITEMS, pathname)).toStrictEqual(esperado);
+  });
+
+  it("da un ícono a cada pantalla del profesor y muestra sus dos grupos como títulos", () => {
+    expect(
+      listarDestinosNavegacion(PROFESOR_DESKTOP_ITEMS).map((destino) => [destino.id, destino.icono]),
+    ).toStrictEqual([
+      ["dashboard", "dashboard"],
+      ["planilla", "planilla"],
+      ["asistencia", "asistencia"],
+      ["plan-clases", "planClases"],
+      ["malla", "malla"],
+      ["observador", "observador"],
+      ["boletin", "boletin"],
+    ]);
+    PROFESOR_DESKTOP_ITEMS.filter((item) => item.type === "group").forEach((grupo) => {
+      expect(grupo.siempreAbierto).toBe(true);
+    });
+    // Los grupos del admin sí se abren y se cierran.
+    ADMIN_DESKTOP_ITEMS.filter((item) => item.type === "group").forEach((grupo) => {
+      expect(grupo).not.toHaveProperty("siempreAbierto");
+    });
+  });
+
+  it("pone abajo en el celular las cuatro pantallas de todos los días y lo demás en «Más»", () => {
+    const { abajo, resto } = repartirBarraInferior(PROFESOR_DESKTOP_ITEMS, PROFESOR_BARRA_INFERIOR);
+
+    expect(abajo.map((destino) => destino.to)).toStrictEqual([
+      "/",
+      "/planilla",
+      "/asistencia",
+      "/observador",
+    ]);
+    expect(resto.map((destino) => destino.to)).toStrictEqual([
+      "/plan-de-clases",
+      "/planeador-anual",
+      "/ingreso-boletin",
+    ]);
+  });
+
+  it("ignora en la barra de abajo un id que no está en el menú", () => {
+    const { abajo, resto } = repartirBarraInferior(PROFESOR_DESKTOP_ITEMS, ["planilla", "no-existe"]);
+
+    expect(abajo.map((destino) => destino.id)).toStrictEqual(["planilla"]);
+    expect(resto).toHaveLength(6);
+  });
+
+  it.each([
+    ["/planilla", { seccion: "Control Académico", pagina: "Planilla" }],
+    ["/", { seccion: null, pagina: "Dashboard" }],
+    ["/observador", { seccion: null, pagina: "Observador" }],
+    ["/planeador-anual", { seccion: "Planeación Académica", pagina: "Malla Curricular" }],
+  ])("ubica %s del profesor en la barra de arriba", (pathname, esperado) => {
+    expect(obtenerUbicacionNavegacion(PROFESOR_DESKTOP_ITEMS, pathname)).toStrictEqual(esperado);
   });
 });

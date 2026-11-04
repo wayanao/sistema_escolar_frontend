@@ -50,8 +50,12 @@ export function useSesionSuperAdmin() {
   return leerSesion(CLAVES_SESION.SUPER_ADMIN);
 }
 
-// Identidad visual del admin (nombre para la tarjeta del menú). Solo lee: los
-// permisos los decide el backend.
+// Identidad visual del admin y del profesor (el nombre para la tarjeta del
+// menú). Solo leen: los permisos los decide el backend.
 export function useSesionUsuario() {
   return leerSesion(CLAVES_SESION.USUARIO);
+}
+
+export function useSesionProfesor() {
+  return leerSesion(CLAVES_SESION.PROFESOR);
 }

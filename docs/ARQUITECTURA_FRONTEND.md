@@ -274,8 +274,10 @@ Los hooks de `hooks/autenticacion/useSesion.js` conservan las lecturas locales
 y decisiones de cada guard. El layout general lee `usuario` y después
 `profesor` desde `localStorage`.
 
-- Si existe `usuario` con rol `admin`, compone `NavAdminView`.
-- Si no, compone `NavProfesorView`.
+- Si existe `usuario` con rol `admin`, compone `MarcoAdmin`; si no,
+  `MarcoProfesor`. Los dos montan `MenuLateralView` con su lista de
+  `navegacion.js` (desde el 2026-11-04; antes, `NavAdminView` y
+  `NavProfesorView`).
 - Si no existe ningun usuario/profesor en sesion, redirige a `/login`.
 - Una sesión válida monta después `TenantStatusBannerView` con la consulta de
   `useEstadoTenant`; los guards internos de rol y password conservan su orden.
@@ -669,16 +671,15 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
     scroll horizontal en movil.
 - `DocumentoImprimible` es el punto de entrada para toolbar, branding,
   encabezado, firmas, pie de pagina y comportamiento especial por documento.
-- `NavAdminView` mantiene grupos colapsables en movil para reducir ruido visual y
-  diferenciar subpestanas de enlaces principales.
-- `NavAdminView` marca etiquetas sensibles como `Nómina` con `translate="no"` para
+- `MenuLateralView` (2026-11-04) es el menú de admin y profesor: abierto en
+  PC, riel en tablet o al encoger, y en celular un menú que se desliza (admin)
+  o una barra abajo con «Más» (profesor). Los grupos del admin se abren bajo
+  demanda; los del profesor son títulos. Una sola lista de `navegacion.js`
+  arma todos los modos.
+- El menú marca etiquetas sensibles como `Nómina` con `translate="no"` para
   evitar traducciones automaticas en Android/Chrome.
-- `NavAdminView` agrupa campana, selector de año y "Cerrar sesión" en un bloque
-  (`role="group"`, "Notificaciones, año lectivo y sesión"). Desde el
-  2026-10-12, en escritorio ese bloque queda separado de las pestañas por una
-  línea y más espacio (`lg:ml-3 lg:pl-4`, `xl:ml-5 xl:pl-6`); en móvil se ve
-  como antes.
-- `NavProfesorView` mantiene grupos moviles para control academico y planeacion.
+- La campana y el selector de año van en la barra de arriba (blanca desde
+  tablet, oscura en celular); «Cerrar sesión», en la tarjeta del usuario.
 - `Planilla` usa vista de tarjetas en movil y tabla en escritorio; las etiquetas
   tecnicas se formatean y se protegen con `translate="no"`.
 - `IngresoBoletinProfesor` reutiliza el criterio de planilla: oculta notas

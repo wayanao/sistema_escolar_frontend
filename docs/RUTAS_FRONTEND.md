@@ -97,7 +97,8 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 
 ## Navegacion de administrador
 
-`src/components/autenticacion/NavAdminView.jsx` muestra enlaces a:
+El menú lateral (`MenuLateralView`, con `ADMIN_DESKTOP_ITEMS` de
+`src/utils/autenticacion/navegacion.js`) muestra enlaces a:
 
 - Dashboard admin.
 - Estructura académica.
@@ -119,13 +120,12 @@ Esta ruta usa `SuperAdminRoute`, que revisa `localStorage.super_admin.rol === "s
 - Estudiantes.
 - Reportes.
 
-En movil, `NavAdminView` separa enlaces principales de grupos colapsables. Al abrir
-el menu no se despliegan todas las subpestanas: el usuario selecciona el grupo
-correspondiente, por ejemplo Gestión Académica, Cartera o Administración, y
-entonces se muestran sus subenlaces. Administración contiene Estructura
-académica (`/admin`) y Años lectivos (`/admin/anios-lectivos`). Los subenlaces
-usan estilo indentado/diferenciado para no confundirse con las pestañas
-principales. En escritorio se conserva la misma agrupación.
+Los grupos (Gestión Académica, Cartera, Administración) se abren con clic, y
+el de la página actual ya viene abierto; en el riel, sus páginas salen en un
+panel al lado. Administración contiene Estructura académica (`/admin`) y Años
+lectivos (`/admin/anios-lectivos`). Las páginas de un grupo van indentadas,
+sin ícono, para no confundirse con las entradas principales. En celular, el
+mismo menú se desliza desde la izquierda.
 
 La opcion `Nómina` esta marcada con `translate="no"` para evitar que navegadores
 moviles la traduzcan como `nombre`.
@@ -173,18 +173,23 @@ Notas de UX por ruta admin:
 
 ## Navegacion de profesor
 
-`src/components/autenticacion/NavProfesorView.jsx` muestra enlaces a:
+El menú lateral (`MenuLateralView`, con `PROFESOR_DESKTOP_ITEMS` de
+`src/utils/autenticacion/navegacion.js`) muestra enlaces a:
 
 - Dashboard.
-- Control Academico:
+- Control Academico (título, sin abrir ni cerrar):
   - Planilla.
   - Asistencia.
-- Observador (`/observador`), **pestana suelta**: es una pantalla por estudiante,
-  no una tarea de la clase elegida. Sale en escritorio y en movil.
-- Planeacion Academica:
+- Planeacion Academica (título):
   - Plan de clases.
   - Planeador anual / Malla Curricular.
+- Observador (`/observador`), **entrada suelta**: es una pantalla por
+  estudiante, no una tarea de la clase elegida.
 - Ingreso de boletin.
+
+En celular, abajo van Dashboard, Planilla, Asistencia y Observador
+(`PROFESOR_BARRA_INFERIOR`); «Más» abre Plan de clases, Malla Curricular,
+Boletín Final y «Cerrar sesión».
 
 Notas de UX por ruta profesor:
 

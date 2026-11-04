@@ -189,8 +189,9 @@ Ultima revision documental: 2026-09-10.
 - Problema: rutas en `App.jsx`, contratos desktop y vistas móviles se mantienen
   por separado.
 - Riesgo: una ruta puede existir sin enlace o un enlace puede quedar apuntando a una ruta removida.
-- Archivo afectado: `src/App.jsx`, `src/utils/autenticacion/navegacion.js`,
-  `src/components/autenticacion/NavAdminView.jsx` y `NavProfesorView.jsx`.
+- Archivo afectado: `src/App.jsx` y `src/utils/autenticacion/navegacion.js`.
+  Desde el 2026-11-04 el menú lateral arma PC, tablet y celular con esa lista,
+  así que el menú móvil ya no se mantiene aparte.
 - Que puede pasar en produccion: navegacion rota o pantallas inaccesibles desde el menu.
 - Prioridad: OPCIONAL.
 - Como probarlo: recorrer todos los enlaces del menu y refrescar cada ruta.
@@ -220,7 +221,8 @@ Ultima revision documental: 2026-09-10.
 
 Estado 2026-06-13: ajustado y validado con lint/build en cambios principales.
 
-[x] `NavAdminView` movil abre grupos bajo demanda y diferencia subpestanas.
+[x] El menú lateral del admin en movil abre grupos bajo demanda y diferencia
+subpestanas (antes `NavAdminView`, reemplazado el 2026-11-04).
 [x] Opcion `Nómina` marcada con `translate="no"` para evitar traduccion a
 `nombre` en Android.
 [x] Boletin imprimible conserva ancho A4 y tiene scroll lateral en movil.

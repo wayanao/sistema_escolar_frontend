@@ -55,15 +55,19 @@ export const ADMIN_DESKTOP_ITEMS = [
   { id: "reportes", type: "link", label: "Reportes", to: "/admin/reportes", icono: "reportes" },
 ];
 
+// `siempreAbierto`: en el menú lateral el grupo es un título con sus páginas
+// debajo, cada una con su ícono, sin abrir ni cerrar. Son pocas, y así el
+// profesor llega a todas con un clic.
 export const PROFESOR_DESKTOP_ITEMS = [
-  { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true },
+  { id: "dashboard", type: "link", label: "Dashboard", to: "/", end: true, icono: "dashboard" },
   {
     id: "control",
     type: "group",
     label: "Control Académico",
+    siempreAbierto: true,
     children: [
-      { id: "planilla", label: "Planilla", to: "/planilla" },
-      { id: "asistencia", label: "Asistencia", to: "/asistencia" },
+      { id: "planilla", label: "Planilla", to: "/planilla", icono: "planilla" },
+      { id: "asistencia", label: "Asistencia", to: "/asistencia", icono: "asistencia" },
       // «Observaciones» -el observador viejo, /Formulario- se quito el
       // 2026-09-10. Su codigo sigue entero y su direccion redirige al
       // observador nuevo; retirarlo del todo es la fase 4.
@@ -73,18 +77,23 @@ export const PROFESOR_DESKTOP_ITEMS = [
     id: "planeacion",
     type: "group",
     label: "Planeación Académica",
+    siempreAbierto: true,
     children: [
-      { id: "plan-clases", label: "Plan de Clases", to: "/plan-de-clases" },
-      { id: "malla", label: "Malla Curricular", to: "/planeador-anual" },
+      { id: "plan-clases", label: "Plan de Clases", to: "/plan-de-clases", icono: "planClases" },
+      { id: "malla", label: "Malla Curricular", to: "/planeador-anual", icono: "malla" },
     ],
   },
   // Suelto y no dentro de Control Académico: es una pantalla por estudiante,
   // no una tarea de la clase que el profesor tenga elegida. Decidido con el
   // usuario el 2026-09-09, el mismo día en que dejó de depender de la
   // asignación.
-  { id: "observador", type: "link", label: "Observador", to: "/observador" },
-  { id: "boletin", type: "link", label: "Boletín Final", to: "/ingreso-boletin" },
+  { id: "observador", type: "link", label: "Observador", to: "/observador", icono: "observador" },
+  { id: "boletin", type: "link", label: "Boletín Final", to: "/ingreso-boletin", icono: "boletin" },
 ];
+
+// En el celular el profesor tiene abajo las pantallas de todos los días; las
+// demás quedan en «Más». Decidido con el usuario el 2026-11-04.
+export const PROFESOR_BARRA_INFERIOR = ["dashboard", "planilla", "asistencia", "observador"];
 
 export function esRutaNavegacionActiva(item, pathname) {
   if (item.type === "group") {
@@ -100,6 +109,21 @@ export function esRutaNavegacionActiva(item, pathname) {
 
 export function obtenerIdItemNavegacionActivo(items, pathname) {
   return items.find((item) => esRutaNavegacionActiva(item, pathname))?.id || null;
+}
+
+// Las pantallas a las que lleva el menú, en su orden y sin los grupos.
+export function listarDestinosNavegacion(items) {
+  return items.flatMap((item) => (item.type === "group" ? item.children : [item]));
+}
+
+// Reparte las pantallas entre la barra de abajo (en el orden de `ids`) y la
+// hoja «Más» (el resto, en el orden del menú).
+export function repartirBarraInferior(items, ids) {
+  const destinos = listarDestinosNavegacion(items);
+  return {
+    abajo: ids.map((id) => destinos.find((destino) => destino.id === id)).filter(Boolean),
+    resto: destinos.filter((destino) => !ids.includes(destino.id)),
+  };
 }
 
 // Lo que dice la barra de arriba: «Cartera › Gestión de Pagos», o solo

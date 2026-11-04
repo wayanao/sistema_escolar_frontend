@@ -37,6 +37,35 @@ const TRAZOS = {
     </>
   ),
   reportes: <path d="M4 4v16h16M8 16v-4M12 16V8M16 16v-6" />,
+  // Profesor.
+  planilla: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15" />
+    </>
+  ),
+  asistencia: (
+    <>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M8 3v3M16 3v3M4 10h16M9 15l2 2 4-4" />
+    </>
+  ),
+  planClases: (
+    <path d="M12 6.5C10.5 5.2 8.4 4.5 6 4.5H3.5v13H6c2.4 0 4.5.7 6 2 1.5-1.3 3.6-2 6-2h2.5v-13H18c-2.4 0-4.5.7-6 2zM12 6.5v13" />
+  ),
+  malla: <path d="M12 3 3 7.5l9 4.5 9-4.5L12 3zM3 12l9 4.5 9-4.5M3 16.5l9 4.5 9-4.5" />,
+  observador: (
+    <>
+      <path d="M8 4.5H6.5a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V6.5a2 2 0 0 0-2-2H16" />
+      <path d="M9 3h6v3H9zM8.5 11h7M8.5 15h5" />
+    </>
+  ),
+  boletin: (
+    <>
+      <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+      <path d="M14 3v5h5M9 13h6M9 17h4" />
+    </>
+  ),
   // Los controles del propio menú.
   abajo: <path d="m6 9 6 6 6-6" />,
   derecha: <path d="m9 6 6 6-6 6" />,

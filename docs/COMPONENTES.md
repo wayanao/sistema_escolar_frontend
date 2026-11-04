@@ -18,28 +18,23 @@ Estado actual de componentes y paginas del frontend.
   presentacional del cambio obligatorio; recibe valores, cambios, submit y
   estado de guardado desde `pages/CambiarPassword.jsx`.
 - `components/autenticacion/MenuLateralView.jsx` (2026-11-04): menú lateral
-  del admin con su marco. Recibe `modo` de `useMenuLateral`: `abierto`
-  (264 px, grupos que se abren con clic), `riel` (92 px, ícono con su nombre
-  y las páginas de cada grupo en un panel al lado) o `celular` (barra oscura
-  arriba y menú que se desliza). Arriba del contenido, desde tablet, una barra
-  blanca con la ubicación, el año (`renderSelectorAnio`) y la campana
+  del admin y del profesor, con su marco. Recibe `modo` de `useMenuLateral`:
+  `abierto` (264 px), `riel` (92 px, ícono con su nombre) o `celular`. Los
+  grupos del admin se abren con clic (en el riel, en un panel al lado); los
+  del profesor (`siempreAbierto`) son títulos con sus páginas debajo, y en el
+  riel una línea los separa. En celular, el admin tiene barra oscura arriba y
+  un menú que se desliza; el profesor (`barraInferior`) tiene abajo Dashboard,
+  Planilla, Asistencia, Observador y «Más», que abre una hoja con el resto y
+  «Cerrar sesión». Arriba del contenido, desde tablet, una barra blanca con
+  la ubicación, el año (`renderSelectorAnio`, solo admin) y la campana
   (`renderNotificaciones`); los dos reciben `{ tono }` para pintarse según la
-  barra. El nombre del admin va en la tarjeta de abajo y «Cerrar sesión» en
-  su menú. Todo lleva `print:hidden`.
+  barra. El nombre va en la tarjeta de abajo y «Cerrar sesión» en su menú.
+  Todo lleva `print:hidden`.
 - `components/autenticacion/IconoMenu.jsx`: íconos de línea del menú lateral,
   dibujados a mano como los de la landing.
-- `components/autenticacion/NavAdminView.jsx`: **sin uso desde el
-  2026-11-04** (lo reemplazó `MenuLateralView`); se conserva con sus pruebas
-  hasta que el usuario decida borrarlo. Era el menu principal para usuario
-  admin; en movil agrupa secciones, usa etiquetas principales mas legibles,
-  muestra solo la marca mas visible en un encabezado compacto, protege etiquetas
-  como `Nómina` con `translate="no"` y mantiene visible la campana de planeaciones.
-  En escritorio, la campana, el selector de año y "Cerrar sesión" van en un
-  bloque aparte de las pestañas, separado por una línea (2026-10-12).
-- `components/autenticacion/NavProfesorView.jsx`: menu principal para profesor;
-  en movil separa control academico y planeacion, con etiquetas principales mas
-  legibles, encabezado compacto con solo la marca visible y campana para
-  observaciones nuevas.
+- `NavAdminView.jsx`, `NavProfesorView.jsx` y `DesktopAnimatedNav.jsx` (las
+  barras moradas de arriba) se borraron el 2026-11-04, con su CSS
+  `.desktop-animated-nav*`; las reemplazó `MenuLateralView`.
 - `components/planeaciones/TextoConEnlaces.jsx`: pinta el texto libre de una
   planeación reconociendo los enlaces `http`/`https`. Parte el texto con
   `utils/planeaciones/enlaces.js` y deja que React escape cada tramo; no inyecta
@@ -80,23 +75,18 @@ Estado actual de componentes y paginas del frontend.
   al desplazar la página; encabezado y acción inferior permanecen visibles
   mientras la lista central hace scroll. En escritorio continúa anclada
   directamente a la campana.
-- `components/autenticacion/DesktopAnimatedNav.jsx`: nav compartido de
-  escritorio para admin/profesor;
-  usa indicador animado medido por elemento activo/hover, sin depender de
-  `nth-child` ni de una cantidad fija de pestañas. Las pestañas principales de
-  escritorio usan `15px` para mejorar lectura.
 - En el menú admin, `Administración` agrupa `Estructura académica` (`/admin`) y
   `Años lectivos` (`/admin/anios-lectivos`). Desde el 2026-11-04 el menú
   lateral arma PC, tablet y celular con esa misma lista; sus pruebas recorren
   los 19 destinos en cada modo.
 - `components/autenticacion/NavSuperAdminView.jsx`: menu principal para super
   admin de plataforma.
-- Las tres vistas de navegación muestran el logotipo
+- Las vistas de navegación muestran el logotipo
   transparente de `Auligo` en lugar del texto `Scholarix`; la marca conserva su
-  enlace al inicio correspondiente de cada perfil. Sus elementos verdes usan
-  mayor brillo y saturacion para conservar contraste sobre el navbar. Una
-  sombra visible aplicada al contorno y un brillo discreto le dan profundidad
-  aun sin interaccion, sin agregar una tarjeta o fondo.
+  enlace al inicio correspondiente de cada perfil. En la barra del super admin
+  (`.nav-brand-logo`) sus elementos verdes usan mayor brillo y saturacion, con
+  una sombra al contorno y un brillo discreto. En el menú lateral va tal cual
+  sobre el morado oscuro, y en el riel solo se ve la «A» con el birrete.
 - `index.html` declara el favicon de Auligo en formatos ICO, PNG de `16x16` y
   `32x32`, ademas del icono Apple de `180x180`. Usa una `A` morada minimalista
   sobre tarjeta blanca redondeada, sin elementos adicionales ni contorno de
@@ -749,6 +739,10 @@ Estado actual de componentes y paginas del frontend.
   abierto; cada fila mide 44 px para el dedo. Se cierra al elegir, con
   Escape, con la X o tocando fuera, y «Cerrar sesión» va a la vista abajo.
   Un celular acostado (menos de 560 px de alto) también usa este menú.
+  El profesor, en cambio, tiene una barra abajo con Dashboard, Planilla,
+  Asistencia, Observador y «Más» (una hoja con Plan de Clases, Malla
+  Curricular, Boletín Final y «Cerrar sesión»). La página deja libre ese alto
+  y «Guardar asistencia» queda encima de la barra (`--alto-barra-inferior`).
 - `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
   necesitan comportamiento especial de pantalla. Los documentos marcados como
   boletin, certificado o cartera usan root con scroll lateral en movil.
@@ -786,8 +780,9 @@ Estado actual de componentes y paginas del frontend.
   navegación ("Estás viendo el año 2026 (cerrado). Solo consulta.", "Estás
   preparando el año 2027.") con el botón para volver al año activo. Mismo
   lugar y forma que el aviso del tenant, en azul.
-- `components/autenticacion/DesktopAnimatedNav.jsx`: presentación compartida
-  de escritorio para admin y profesor.
+- `components/autenticacion/MenuLateralView.jsx`: menú lateral compartido por
+  admin y profesor; `App.jsx` le pasa la lista y lo propio de cada uno
+  (`MENU_ADMIN`, `MENU_PROFESOR`).
 - `components/planeaciones/NotificacionesPlaneadores.jsx`: componente
   compartido del dominio de planeaciones integrado mediante rol y callback de
   navegación; consume `useNotificacionesPlaneadores` y delega el marcado en
@@ -810,7 +805,10 @@ Estado actual de componentes y paginas del frontend.
 - `components/planilla/PlanillaRow.jsx`
 - `components/planilla/SelectorTipoEvaluacion.jsx`
 - `components/planilla/GestionTiposEvaluacion.jsx`
-- `components/planilla/TablaNotasPlanilla.jsx`
+- `components/planilla/TablaNotasPlanilla.jsx`: en tablet (de `md` a `xl`)
+  las columnas fijas son más angostas (número de 40 px, nombre de hasta 150 px
+  en dos líneas, promedio de 96 px) y sin íconos en el encabezado, y la
+  página no suma su margen lateral; desde `xl`, como en PC (2026-11-04).
 - `components/planilla/BotonSubnotasPlanilla.jsx`
 - `components/planilla/CeldaCalculadaPlanilla.jsx`
 - `components/planilla/ModalSubnotasPlanilla.jsx`

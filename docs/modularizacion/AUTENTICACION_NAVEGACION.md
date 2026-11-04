@@ -890,10 +890,27 @@ aplica solo al admin; el profesor conserva `NavProfesorView` hasta el paso 3.
   `{ tono }`, para pintarse según la barra; sin él se ven como antes.
 - La entrada de menú ya no vive en dos archivos para el admin: la misma lista
   arma PC, tablet y celular.
-- `NavAdminView.jsx` quedó sin uso, con sus pruebas pasando; borrarlo queda a
-  decisión del usuario.
+- `NavAdminView.jsx` quedó sin uso, con sus pruebas pasando; se borró en el
+  paso 3, con la aprobación del usuario.
 - Pruebas: `menuLateral.test.js`, `useMenuLateral.test.js`,
   `MenuLateralView.test.jsx` (las 19 pantallas del admin en cada modo, Escape,
   foco, impresión) y la prueba de conteo de `navegacion.test.js`, escrita
   antes de tocar el código. Los dobles de `App*.test.jsx` imitan ahora
   `MenuLateralView` y pintan la página que va dentro.
+
+### Paso 3: el profesor y el borrado de las barras viejas (2026-11-04)
+
+- El profesor entra por `MarcoProfesor`: el mismo `MenuLateralView` con
+  `PROFESOR_DESKTOP_ITEMS`. Sus grupos llevan `siempreAbierto` (títulos con
+  las páginas debajo) y sus páginas, `icono`.
+- `barraInferior` (`PROFESOR_BARRA_INFERIOR`) cambia su celular: barra abajo
+  con cuatro pantallas y «Más» (`repartirBarraInferior` reparte el resto). La
+  vista publica `--alto-barra-inferior` para lo que se queda pegado abajo.
+- `App.jsx` describe cada menú en `MENU_ADMIN` y `MENU_PROFESOR`, y los dos
+  pasan por `MarcoMenuLateral`, que conecta `useCerrarSesion` y
+  `useMenuLateral`. `useSesionProfesor` lee solo `profesor`.
+- Se borraron `NavAdminView.jsx`, `NavProfesorView.jsx` y
+  `DesktopAnimatedNav.jsx` (con su CSS), aprobado por el usuario. Las
+  menciones de capas anteriores a estos archivos quedan como historia.
+- Los dobles de `App*.test.jsx` son ahora uno solo, `MenuLateralView`, que se
+  presenta como admin o profesor según `rol`.
