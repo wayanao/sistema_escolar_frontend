@@ -1,14 +1,14 @@
 import { useState } from "react";
-// Logo claro: el formulario va sobre el vidrio oscuro del login.
-import auligoLogoNav from "../../assets/auligo-logo-nav.png";
 
+// Diseño del usuario (2026-11-05): tarjeta blanca con campos lila. Sin la
+// casilla "Recordarme" del diseño: la sesión dura siempre lo mismo y el código
+// del colegio ya se recuerda solo (decisión del usuario).
 const inputClassName =
-  "login-field peer w-full rounded-2xl border border-white/15 bg-white/[0.07] py-3 pl-[3.25rem] pr-4 text-[15px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.18)] outline-none transition-all duration-200 placeholder:font-normal placeholder:text-purple-100/50 hover:border-white/25 hover:bg-white/[0.1] focus:border-lime-300/70 focus:bg-white/[0.12] focus:ring-4 focus:ring-lime-300/15 disabled:cursor-wait disabled:opacity-70";
+  "login-campo h-[52px] w-full min-w-0 rounded-[14px] border-2 border-[#cbb8ec] bg-[#faf7ff] px-4 text-[17px] text-[#1e1530] transition-[border-color,background-color,box-shadow] duration-150 placeholder:text-[#8a7fa3] hover:border-[#a78bfa] focus:border-[#562897] focus:bg-white focus:shadow-[0_0_0_6px_rgba(190,242,100,0.35)] focus:outline focus:outline-[3px] focus:outline-offset-1 focus:outline-[#bef264] disabled:cursor-wait disabled:opacity-70";
 
-const iconContainerClassName =
-  "pointer-events-none absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-purple-100/80 transition-all duration-200 peer-focus:border-lime-300/50 peer-focus:text-lime-200";
+const labelClassName = "text-[15px] font-extrabold";
 
-const labelClassName = "mb-1.5 block text-[13px] font-bold text-purple-50/90";
+const ID_AYUDA_OLVIDO = "ayuda-olvido-contrasena";
 
 function LoginFormView({
   email,
@@ -24,6 +24,9 @@ function LoginFormView({
   iniciarSesion,
 }) {
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  // No hay recuperación de contraseña: la cambia el administrador del colegio
+  // al editar al profesor. "¿La olvidaste?" solo dice a quién pedirla.
+  const [mostrarAyudaOlvido, setMostrarAyudaOlvido] = useState(false);
 
   return (
     <form
@@ -31,160 +34,156 @@ function LoginFormView({
         event.preventDefault();
         iniciarSesion();
       }}
-      className="w-full"
+      className="login-entrada flex w-full max-w-[420px] flex-col gap-5 rounded-[24px] border-2 border-[#e3d6f7] bg-white px-6 pb-8 pt-8 shadow-[0_10px_0_#e3d6f7] sm:px-9 sm:pt-10"
+      style={{ animationDelay: "150ms" }}
     >
-      <div className="mb-5 flex flex-col items-center text-center">
-        <img src={auligoLogoNav} alt="Auligo" className="nav-brand-logo h-10 w-auto object-contain" />
-        <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-purple-50/90">
-          <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,230,53,0.8)]" />
-          Acceso institucional
-        </div>
-        <h1 className="mt-4 text-2xl font-black leading-tight tracking-tight text-white">
-          Qué bueno tenerte <span className="text-lime-300">aquí</span>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="login-titulo m-0 text-[38px] font-extrabold leading-[1.05] text-[#36195f]">
+          ¡Hola de nuevo!
         </h1>
-        <p className="mt-1.5 text-sm leading-5 text-purple-100/75">
-          Ingresa con los datos asignados por tu institución para continuar.
+        <p className="m-0 text-base leading-normal text-[#4b4160]">
+          Ingresa con los datos que te asignó tu colegio.
         </p>
       </div>
 
       {formError && (
         <div
           role="alert"
-          className="mb-5 flex items-start gap-2 rounded-xl border border-amber-300/40 bg-amber-400/15 px-3.5 py-3 text-sm font-medium text-amber-100"
+          className="flex items-start gap-2 rounded-[14px] border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900"
         >
           <span aria-hidden="true">!</span>
           <span>{formError}</span>
         </div>
       )}
 
-      <div className="space-y-3.5">
-        <div>
-          <label htmlFor="codigo-colegio" className={labelClassName}>
-            Código del colegio
-          </label>
-          <div className="relative">
-            <input
-              id="codigo-colegio"
-              type="text"
-              placeholder="Ej. colegio123"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              className={inputClassName}
-              value={codigoColegio}
-              onChange={(event) => actualizarCodigoColegio(event.target.value)}
-              disabled={isSubmitting}
-            />
-            <span className={iconContainerClassName}>
-              <svg className="h-[19px] w-[19px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V9l7-4 7 4v12M9 13h2v2H9v-2Zm4 0h2v2h-2v-2Zm-4 4h2v2H9v-2Zm4 0h2v2h-2v-2Z" />
-              </svg>
-            </span>
-          </div>
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="codigo-colegio" className={labelClassName}>
+          Código del colegio
+        </label>
+        <input
+          id="codigo-colegio"
+          type="text"
+          placeholder="Ej. colegio123"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          className={`${inputClassName} tracking-[0.06em]`}
+          value={codigoColegio}
+          onChange={(event) => actualizarCodigoColegio(event.target.value)}
+          disabled={isSubmitting}
+        />
+      </div>
 
-        <div>
-          <label htmlFor="correo-login" className={labelClassName}>
-            Correo electrónico
-          </label>
-          <div className="relative">
-            <input
-              id="correo-login"
-              type="email"
-              placeholder="correo@colegio.edu"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              className={inputClassName}
-              value={email}
-              onChange={(event) => actualizarEmail(event.target.value)}
-              disabled={isSubmitting}
-            />
-            <span className={iconContainerClassName}>
-              <svg className="h-[19px] w-[19px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 12 13l9-5.5M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z" />
-              </svg>
-            </span>
-          </div>
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="correo-login" className={labelClassName}>
+          Correo electrónico
+        </label>
+        <input
+          id="correo-login"
+          type="email"
+          placeholder="nombre@colegio.edu.co"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          className={inputClassName}
+          value={email}
+          onChange={(event) => actualizarEmail(event.target.value)}
+          disabled={isSubmitting}
+        />
+      </div>
 
-        <div>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
           <label htmlFor="password-login" className={labelClassName}>
             Contraseña
           </label>
-          <div className="relative">
-            <input
-              id="password-login"
-              type={mostrarPassword ? "text" : "password"}
-              placeholder="Tu contraseña"
-              autoComplete="current-password"
-              className={`${inputClassName} pr-12`}
-              value={password}
-              onChange={(event) => actualizarPassword(event.target.value)}
-              disabled={isSubmitting}
-            />
-            <span className={iconContainerClassName}>
-              <svg className="h-[19px] w-[19px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 10V8a5 5 0 0 1 10 0v2m-10 0h10a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Zm5 4v2" />
+          <button
+            type="button"
+            onClick={() => setMostrarAyudaOlvido((actual) => !actual)}
+            aria-expanded={mostrarAyudaOlvido}
+            aria-controls={ID_AYUDA_OLVIDO}
+            className="rounded text-sm font-extrabold text-[#562897] underline underline-offset-2 transition hover:text-[#36195f] focus:outline-none focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#562897]"
+          >
+            ¿La olvidaste?
+          </button>
+        </div>
+        <div className="relative flex">
+          <input
+            id="password-login"
+            type={mostrarPassword ? "text" : "password"}
+            autoComplete="current-password"
+            className={`${inputClassName} flex-auto pr-14`}
+            value={password}
+            onChange={(event) => actualizarPassword(event.target.value)}
+            disabled={isSubmitting}
+          />
+          <button
+            type="button"
+            onClick={() => setMostrarPassword((actual) => !actual)}
+            disabled={isSubmitting}
+            className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-[10px] text-[#562897] transition hover:bg-[#f3edfc] focus:outline-none focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#562897] disabled:cursor-wait"
+            aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-pressed={mostrarPassword}
+          >
+            {mostrarPassword ? (
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.2 3.2" />
+                <path d="M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6" />
+                <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                <path d="m2 2 20 20" />
               </svg>
-            </span>
-            <button
-              type="button"
-              onClick={() => setMostrarPassword((actual) => !actual)}
-              disabled={isSubmitting}
-              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-purple-100/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-lime-300/50 disabled:cursor-wait"
-              aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              aria-pressed={mostrarPassword}
-            >
-              {mostrarPassword ? (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3 3 18 18M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 5.2A10.8 10.8 0 0 1 12 5c5.2 0 9 5 9 7a10.8 10.8 0 0 1-2.2 3.3M6.2 6.2C4.2 7.5 3 10.1 3 12c0 2 3.8 7 9 7 1 0 2-.2 2.9-.5" />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12c0-2 3.8-7 9-7s9 5 9 7-3.8 7-9 7-9-5-9-7Zm9 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                </svg>
-              )}
-            </button>
-          </div>
+            ) : (
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <p
+          id={ID_AYUDA_OLVIDO}
+          hidden={!mostrarAyudaOlvido}
+          className="m-0 rounded-xl bg-[#f3edfc] px-3 py-2 text-sm font-semibold text-[#36195f]"
+        >
+          Pídele al administrador de tu colegio que te asigne una nueva.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="login-titulo group flex h-14 items-center justify-center gap-2.5 rounded-2xl bg-[#562897] text-xl font-extrabold text-white shadow-[0_5px_0_#36195f] transition-[transform,box-shadow,background-color] duration-150 hover:-translate-y-0.5 hover:bg-[#36195f] hover:shadow-[0_7px_0_#241040] active:translate-y-[3px] active:shadow-[0_2px_0_#241040] focus:outline-none focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#562897] disabled:translate-y-0 disabled:cursor-wait disabled:bg-[#562897] disabled:opacity-80 disabled:shadow-[0_5px_0_#36195f]"
+        >
+          {isSubmitting && !loginSucceeded && (
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
+          )}
+          <span>
+            {loginSucceeded ? "Acceso correcto" : isSubmitting ? "Verificando acceso..." : "Entrar a Auligo"}
+          </span>
+          {!isSubmitting && !loginSucceeded && (
+            <svg aria-hidden="true" className="transition-transform duration-150 group-hover:translate-x-1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#bef264" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          )}
+        </button>
+
+        <div className="min-h-5 text-center text-sm font-semibold text-[#4b4160]" aria-live="polite">
+          {isTakingLong && !loginSucceeded
+            ? "Estamos conectando con el servidor. Puede tardar un momento."
+            : ""}
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        aria-busy={isSubmitting}
-        className="group relative mt-5 flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-gradient-to-b from-lime-200 to-lime-400 px-4 py-3.5 text-[15px] font-extrabold text-slate-950 shadow-[0_14px_34px_rgba(163,230,53,0.3),inset_0_1px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(77,124,15,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(163,230,53,0.42),inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-2px_0_rgba(77,124,15,0.25)] focus:outline-none focus:ring-4 focus:ring-lime-300/30 disabled:translate-y-0 disabled:cursor-wait disabled:opacity-80"
-      >
-        {/* Reflejo de gota en la mitad de arriba del botón. */}
-        <span className="pointer-events-none absolute inset-x-3 top-1 h-1/2 rounded-full bg-gradient-to-b from-white/60 to-transparent opacity-70" />
-        {isSubmitting && !loginSucceeded && (
-          <span className="relative h-5 w-5 animate-spin rounded-full border-2 border-slate-950/25 border-t-slate-950" aria-hidden="true" />
-        )}
-        <span className="relative">
-          {loginSucceeded ? "Acceso correcto" : isSubmitting ? "Verificando acceso..." : "Entrar a Auligo"}
-        </span>
-        {!isSubmitting && !loginSucceeded && (
-          <span className="relative flex h-7 w-7 items-center justify-center rounded-full border border-slate-950/15 bg-slate-950/10 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
-            </svg>
-          </span>
-        )}
-      </button>
-
-      <div className="mt-3 min-h-5 text-center text-sm font-medium text-purple-100/70" aria-live="polite">
-        {isTakingLong && !loginSucceeded
-          ? "Estamos conectando con el servidor. Puede tardar un momento."
-          : ""}
-      </div>
-
-      <div className="mt-2 flex items-center justify-center gap-2 border-t border-white/10 pt-4 text-center text-xs font-semibold text-purple-100/60">
-        <svg className="h-4 w-4 text-lime-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7 10V8a5 5 0 0 1 10 0v2m-10 0h10a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Z" />
+      <p className="m-0 flex items-center gap-2 text-[13px] text-[#4b4160]">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="11" width="16" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </svg>
-        Acceso exclusivo para personal autorizado
-      </div>
+        Acceso solo para personal autorizado
+      </p>
     </form>
   );
 }

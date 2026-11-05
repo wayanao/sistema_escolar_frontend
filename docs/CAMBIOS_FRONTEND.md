@@ -1,5 +1,41 @@
 # Cambios Frontend
 
+## 2026-11-05 - Login con el diseño del usuario
+
+El usuario trajo un diseño en HTML (`login-auligo-diseno.html`): panel morado
+con un dibujo de un aula y el formulario en una tarjeta blanca. Reemplaza el
+login de vidrio con gotas del 2026-10-26. Solo cambia cómo se ve: la sesión,
+el envío y las validaciones (`useComandoLogin`) no cambian.
+
+- `Login.jsx`: panel de bienvenida (logo, dibujo, lema) a la izquierda y
+  formulario a la derecha desde 1024 px. Más angosto (celular y tablet
+  vertical) el panel es una franja con logo y lema y el formulario va
+  enseguida: el usuario eligió "formulario primero" en el celular, y en la
+  tablet vertical el dibujo dejaba el botón abajo.
+- `IlustracionAulaLogin.jsx`: el dibujo del diseño pasado a React, con sus
+  animaciones (`login-*` en `index.css`, quietas con menos movimiento).
+- `LoginFormView.jsx`: "¡Hola de nuevo!", campos lila, botón morado con
+  flecha lima, "Acceso solo para personal autorizado". Se conservan los ids,
+  las etiquetas, el ojo de la contraseña, el aviso de error, "Verificando
+  acceso...", "Acceso correcto" y el aviso de que el servidor tarda.
+- Decisiones del usuario sobre lo que el diseño traía y el sistema no tiene:
+  - "¿La olvidaste?": no hay recuperación de contraseña. Al tocarlo muestra
+    "Pídele al administrador de tu colegio que te asigne una nueva." (el admin
+    la cambia al editar al profesor).
+  - "Recordarme en este equipo": quitada. La sesión dura siempre lo mismo y
+    el código del colegio ya se recuerda solo.
+- Cambios al diseño: el código del colegio sigue siendo texto (el diseño
+  pedía teclado numérico y hay códigos con letras, como "demo") y el ejemplo
+  sigue siendo "Ej. colegio123" (el del diseño era el código de un colegio
+  real).
+- `useFuentesLogin`: pide Baloo 2, Nunito y Caveat a Google Fonts solo al
+  abrir el login, no en el resto de la aplicación.
+- Ya no usa `FondoMarca` (lo sigue usando la landing). Quedan sin uso en
+  `index.css` las clases del login de vidrio (`login-field`, `vidrio-gota`,
+  `gota-agua`, `gota-flotar`, `burbuja-deriva`): no se borraron.
+- Revisado con capturas en 1440, 1180 (tablet acostada), 820 (tablet
+  vertical), 390 y 320 px, sin desborde horizontal.
+
 ## 2026-11-05 - Profesores, cursos y materias: "Guardando..." y sin doble clic
 
 Pedido del usuario: al crear un profesor, un curso o una materia el botón no

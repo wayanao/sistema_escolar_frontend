@@ -59,25 +59,32 @@ describe("Login", () => {
   it("conserva el shell visual de la pagina de acceso", () => {
     const { container } = renderLogin();
 
-    const main = container.querySelector("main");
-    expect(main).toHaveClass("notranslate", "min-h-[100svh]");
-    expect(main).toHaveAttribute("translate", "no");
-    // La foto de fondo se retiró el 2026-10-26: el fondo son degradados y una
-    // trama, decorativos, que los lectores de pantalla no anuncian.
+    const pagina = container.firstElementChild;
+    expect(pagina).toHaveClass("notranslate", "min-h-[100svh]");
+    expect(pagina).toHaveAttribute("translate", "no");
+    // Diseño del usuario (2026-11-05): panel de bienvenida con el dibujo del
+    // aula, que bajo 1024 px se oculta para que el formulario quede arriba.
+    const bienvenida = screen.getByRole("region", { name: "Bienvenida" });
+    expect(bienvenida).toHaveTextContent(/tu aula, tu camino,/i);
     expect(
-      screen.queryByAltText("Comunidad educativa reunida en una celebración escolar"),
-    ).not.toBeInTheDocument();
-    expect(container.querySelector(".fondo-marca-trama").parentElement).toHaveAttribute(
-      "aria-hidden",
-      "true",
+      screen.getByRole("img", { name: /Ilustración de un aula con tres niños/ }).closest("div.hidden"),
+    ).toHaveClass("lg:flex");
+    expect(screen.getByRole("main")).toContainElement(
+      screen.getByRole("heading", { level: 1, name: "¡Hola de nuevo!" }),
     );
-    // Desde el 2026-10-26 la tarjeta es compacta: el título de la página es el
-    // saludo del formulario, el lema queda debajo y hay vuelta a la landing.
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Qué bueno tenerte aquí" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/tu aula, tu camino,/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
+  });
+
+  it("pide las fuentes del diseño una sola vez", () => {
+    document.getElementById("fuentes-login")?.remove();
+    const { unmount } = renderLogin();
+    unmount();
+    renderLogin();
+
+    const enlaces = document.head.querySelectorAll("#fuentes-login");
+    expect(enlaces).toHaveLength(1);
+    expect(enlaces[0]).toHaveAttribute("rel", "stylesheet");
+    expect(enlaces[0].getAttribute("href")).toContain("family=Baloo+2");
   });
 
   it.each([

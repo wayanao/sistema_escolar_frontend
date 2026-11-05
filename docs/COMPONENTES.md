@@ -4,16 +4,24 @@ Estado actual de componentes y paginas del frontend.
 
 ## Componentes principales
 
-- `Login.jsx`: acceso inmersivo y responsive de Auligo. Usa la fotografia
-  institucional original como fondo y mejora su integracion mediante filtros y
-  capas CSS, sin alterar las personas de la imagen. Presenta el eslogan oficial
-  `Tu aula, tu camino, tu futuro.` y concentra el formulario en una tarjeta de
-  cristal translucido con desenfoque y contraste de lectura. Conecta
-  `useComandoLogin` con `LoginFormView` como raíz de composición.
+- `Login.jsx` (diseño del usuario, 2026-11-05): panel morado de bienvenida
+  (logo, `IlustracionAulaLogin` y el lema `Tu aula, tu camino, tu futuro.`) a
+  la izquierda y el formulario a la derecha desde 1024 px. Más angosto
+  (celular y tablet vertical) el panel es una franja con logo y lema, sin el
+  dibujo, y el formulario queda enseguida. Pide las fuentes del diseño con
+  `useFuentesLogin`. Conecta `useComandoLogin` con `LoginFormView` como raíz
+  de composición.
+- `components/autenticacion/IlustracionAulaLogin.jsx`: el dibujo del aula del
+  diseño (SVG) con las etiquetas Boletines, Horarios y Planeadores; animado
+  con las clases `login-*` de `index.css`, quieto si el equipo pide menos
+  movimiento.
 - `components/autenticacion/LoginFormView.jsx`: formulario presentacional de
-  acceso con identidad visual de Auligo. Recibe campos, estados y acciones desde
-  `pages/Login.jsx`; permite mostrar u ocultar la contraseña, muestra respuesta
-  inmediata al enviar y avisa cuando la conexión tarda más de lo esperado.
+  acceso en tarjeta blanca ("¡Hola de nuevo!"). Recibe campos, estados y
+  acciones desde `pages/Login.jsx`; permite mostrar u ocultar la contraseña,
+  muestra respuesta inmediata al enviar y avisa cuando la conexión tarda más
+  de lo esperado. "¿La olvidaste?" muestra a quién pedirla (no hay
+  recuperación de contraseña); sin la casilla "Recordarme" del diseño, porque
+  la sesión dura siempre lo mismo.
 - `components/autenticacion/CambiarPasswordView.jsx`: formulario
   presentacional del cambio obligatorio; recibe valores, cambios, submit y
   estado de guardado desde `pages/CambiarPassword.jsx`.

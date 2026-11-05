@@ -85,4 +85,30 @@ describe("LoginFormView", () => {
     expect(screen.getByRole("button", { name: "Acceso correcto" })).toBeDisabled();
     expect(screen.queryByText("Estamos conectando con el servidor. Puede tardar un momento.")).not.toBeInTheDocument();
   });
+
+  it("«¿La olvidaste?» dice a quién pedir la contraseña, sin salir del login", async () => {
+    const user = userEvent.setup();
+    render(<LoginFormView {...crearProps()} />);
+
+    const olvido = screen.getByRole("button", { name: "¿La olvidaste?" });
+    const ayuda = screen.getByText("Pídele al administrador de tu colegio que te asigne una nueva.");
+    expect(olvido).toHaveAttribute("aria-expanded", "false");
+    expect(olvido).toHaveAttribute("aria-controls", ayuda.id);
+    expect(ayuda).not.toBeVisible();
+
+    await user.click(olvido);
+    expect(olvido).toHaveAttribute("aria-expanded", "true");
+    expect(ayuda).toBeVisible();
+
+    await user.click(olvido);
+    expect(ayuda).not.toBeVisible();
+  });
+
+  it("no tiene la casilla «Recordarme»: la sesión dura siempre lo mismo", () => {
+    render(<LoginFormView {...crearProps()} />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "¡Hola de nuevo!" })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.getByText("Acceso solo para personal autorizado")).toBeInTheDocument();
+  });
 });
