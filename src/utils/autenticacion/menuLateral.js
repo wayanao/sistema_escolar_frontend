@@ -8,20 +8,14 @@ export const MODOS_MENU = Object.freeze({
   ABIERTO: "abierto",
 });
 
-// Tablet desde 600 px de ancho, el corte de Android y Material Design: muchas
-// tablets Android de 11" miden de 600 a 800 px en vertical, menos que un iPad,
-// y con 768 se veían como un celular (lo vio el usuario en una Tab 11 el
-// 2026-11-05). Portátil y PC usan los cortes lg y xl de Tailwind.
-//
-// Alto mínimo para el riel: el del admin no se desplaza (sus grupos abren un
-// panel al lado) y ocupa unos 560 px con su tarjeta de usuario; el del
-// profesor se desplaza, así que le basta con no ser un celular acostado.
+// Los mismos cortes de Tailwind: md (tablet), lg (portátil) y xl (PC). El alto
+// mínimo es lo que ocupa el riel del admin con su tarjeta de usuario: un
+// celular acostado pasa de 768 px de ancho, pero no le cabe.
 export const CONSULTAS_MENU = Object.freeze({
-  TABLET: "(min-width: 600px)",
+  TABLET: "(min-width: 768px)",
   PORTATIL: "(min-width: 1024px)",
   PC: "(min-width: 1280px)",
   ALTO: "(min-height: 560px)",
-  ALTO_DESPLAZABLE: "(min-height: 480px)",
 });
 
 // Preferencia de la pantalla, no dato de sesión: sobrevive al logout, como

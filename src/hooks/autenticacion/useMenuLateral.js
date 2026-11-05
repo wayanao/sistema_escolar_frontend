@@ -13,13 +13,13 @@ function hayMedicion() {
 
 // Sin matchMedia (las pruebas de JSDOM, navegadores muy viejos) se asume una
 // pantalla de PC: el menú abierto de siempre.
-function medirPantalla(rielDesplazable) {
+function medirPantalla() {
   const coincide = (consulta) => !hayMedicion() || window.matchMedia(consulta).matches;
   return {
     desdeTablet: coincide(CONSULTAS_MENU.TABLET),
     desdePortatil: coincide(CONSULTAS_MENU.PORTATIL),
     desdePc: coincide(CONSULTAS_MENU.PC),
-    conAlto: coincide(rielDesplazable ? CONSULTAS_MENU.ALTO_DESPLAZABLE : CONSULTAS_MENU.ALTO),
+    conAlto: coincide(CONSULTAS_MENU.ALTO),
   };
 }
 
@@ -31,19 +31,17 @@ function leerPreferenciaGuardada() {
   }
 }
 
-// `rielDesplazable`: el riel de este menú se desplaza si no cabe (no tiene
-// grupos que abran un panel al lado), así que pide menos alto de pantalla.
-export function useMenuLateral({ rielDesplazable = false } = {}) {
-  const [pantalla, setPantalla] = useState(() => medirPantalla(rielDesplazable));
+export function useMenuLateral() {
+  const [pantalla, setPantalla] = useState(medirPantalla);
   const [preferencia, setPreferencia] = useState(leerPreferenciaGuardada);
 
   useEffect(() => {
     if (!hayMedicion()) return undefined;
     const consultas = Object.values(CONSULTAS_MENU).map((consulta) => window.matchMedia(consulta));
-    const actualizar = () => setPantalla(medirPantalla(rielDesplazable));
+    const actualizar = () => setPantalla(medirPantalla());
     consultas.forEach((consulta) => consulta.addEventListener("change", actualizar));
     return () => consultas.forEach((consulta) => consulta.removeEventListener("change", actualizar));
-  }, [rielDesplazable]);
+  }, []);
 
   const modo = calcularModoMenu({ ...pantalla, preferencia });
 

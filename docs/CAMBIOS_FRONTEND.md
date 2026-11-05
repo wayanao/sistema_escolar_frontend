@@ -1,30 +1,5 @@
 # Cambios Frontend
 
-## 2026-11-05 - Menú lateral: las tablets Android ya no se ven como celular
-
-Visto por el usuario en una tablet Tab 11, perfil profesor: se veía con la
-barra de abajo, como un celular, en vez del riel de la maqueta.
-
-- Causa: el menú tomaba como tablet desde 768 px de ancho, la medida de un
-  iPad. Muchas tablets Android de 11" miden de 600 a 800 px en vertical.
-- Ahora la tablet empieza en **600 px**, el corte de Android y Material
-  Design. Los celulares en vertical miden menos de 500.
-- El marco pone el riel al lado de la página según el modo del menú, no con
-  `md:` de Tailwind: si no, entre 600 y 767 px el riel quedaba encima.
-- Alto mínimo para el riel: el del profesor se desplaza si no cabe, así que
-  le bastan **480 px** (una tablet acostada con la barra del navegador puede
-  quedar por debajo de 560). El del admin sigue en 560: sus grupos abren un
-  panel al lado y su riel no se desplaza. Un celular acostado (unos 390 px de
-  alto) sigue viéndose como celular para los dos.
-- Vale para los dos perfiles. Entre 600 y 767 px la planilla sigue en
-  tarjetas, como en el celular: la tabla empieza en 768.
-- Archivos: `utils/autenticacion/menuLateral.js`, `navegacion.js`
-  (`tienePanelesLaterales`), `useMenuLateral.js` (`rielDesplazable`),
-  `MenuLateralView.jsx`, `App.jsx` y sus pruebas.
-- Verificación: `pnpm run check:deploy` → **3325 pruebas en 401 archivos**,
-  lint y build correctos, en una sola corrida. Sin probar todavía en la
-  tablet.
-
 ## 2026-11-04 - Planilla: más espacio para las notas en tablet
 
 Pedido por el usuario: en tablet, con el riel del menú lateral, «el espacio

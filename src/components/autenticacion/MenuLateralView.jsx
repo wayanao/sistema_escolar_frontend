@@ -6,7 +6,6 @@ import {
   esRutaNavegacionActiva,
   obtenerUbicacionNavegacion,
   repartirBarraInferior,
-  tienePanelesLaterales,
 } from "../../utils/autenticacion/navegacion";
 import IconoMenu from "./IconoMenu";
 
@@ -99,7 +98,7 @@ function MenuLateralView({
   const ubicacion = obtenerUbicacionNavegacion(items, pathname);
   // Sin grupos que abran un panel al lado, el riel puede desplazarse en una
   // pantalla baja: el del profesor es más largo que el del admin.
-  const rielDesplazable = !tienePanelesLaterales(items);
+  const rielDesplazable = !items.some((item) => item.type === "group" && !item.siempreAbierto);
 
   const cerrarMenuCelular = useCallback(() => {
     setMenuCelularAbierto(false);
@@ -111,10 +110,8 @@ function MenuLateralView({
   }, []);
   const alNavegar = conBarraInferior ? cerrarMas : cerrarMenuCelular;
 
-  // El menú y la página van lado a lado según el modo, no según un corte de
-  // Tailwind: una tablet de 600 px ya usa el riel.
   return (
-    <div className={enCelular ? undefined : "flex min-h-screen"}>
+    <div className="md:flex md:min-h-screen">
       {enCelular ? (
         <BarraCelular
           rutaInicio={rutaInicio}

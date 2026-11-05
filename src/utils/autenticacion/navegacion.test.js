@@ -8,7 +8,6 @@ import {
   obtenerIdItemNavegacionActivo,
   obtenerUbicacionNavegacion,
   repartirBarraInferior,
-  tienePanelesLaterales,
 } from "./navegacion";
 
 function resumirItems(items) {
@@ -225,11 +224,6 @@ describe("contratos puros de navegacion", () => {
       "/planeador-anual",
       "/ingreso-boletin",
     ]);
-  });
-
-  it("sabe qué menú abre paneles al lado del riel: el del admin sí, el del profesor no", () => {
-    expect(tienePanelesLaterales(ADMIN_DESKTOP_ITEMS)).toBe(true);
-    expect(tienePanelesLaterales(PROFESOR_DESKTOP_ITEMS)).toBe(false);
   });
 
   it("ignora en la barra de abajo un id que no está en el menú", () => {

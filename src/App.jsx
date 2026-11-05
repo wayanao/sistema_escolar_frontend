@@ -27,7 +27,6 @@ import {
   ADMIN_DESKTOP_ITEMS,
   PROFESOR_BARRA_INFERIOR,
   PROFESOR_DESKTOP_ITEMS,
-  tienePanelesLaterales,
 } from "./utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "./utils/autenticacion/sesion";
 
@@ -150,9 +149,7 @@ const MENU_PROFESOR = {
 // (en celular, barras arriba y abajo) y la página a la derecha.
 function MarcoMenuLateral({ menu, nombre, children }) {
   const cerrarSesion = useCerrarSesion();
-  const { modo, puedeAlternar, alternarMenu } = useMenuLateral({
-    rielDesplazable: !tienePanelesLaterales(menu.items),
-  });
+  const { modo, puedeAlternar, alternarMenu } = useMenuLateral();
 
   return (
     <MenuLateralView

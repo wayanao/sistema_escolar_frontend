@@ -872,10 +872,8 @@ aplica solo al admin; el profesor conserva `NavProfesorView` hasta el paso 3.
 
 - Capas, como el resto del módulo:
   - `utils/autenticacion/menuLateral.js` (puro): modos `celular`, `riel` y
-    `abierto`, los cortes de pantalla (600, 1024 y 1280 px de ancho; de alto,
-    560 px para el riel del admin y 480 para el del profesor, que se
-    desplaza), la preferencia guardada y las iniciales de la tarjeta. La
-    tablet empezaba en 768 px hasta el 2026-11-05.
+    `abierto`, los cortes de pantalla (768, 1024 y 1280 px de ancho; 560 px
+    de alto), la preferencia guardada y las iniciales de la tarjeta.
   - `utils/autenticacion/navegacion.js`: `icono` en el primer nivel de
     `ADMIN_DESKTOP_ITEMS` y `obtenerUbicacionNavegacion` para la barra de
     arriba.
