@@ -62,16 +62,20 @@ describe("Login", () => {
     const pagina = container.firstElementChild;
     expect(pagina).toHaveClass("notranslate", "min-h-[100svh]");
     expect(pagina).toHaveAttribute("translate", "no");
-    // Diseño del usuario (2026-11-05): panel de bienvenida con el dibujo del
-    // aula, que bajo 1024 px se oculta para que el formulario quede arriba.
-    const bienvenida = screen.getByRole("region", { name: "Bienvenida" });
-    expect(bienvenida).toHaveTextContent(/tu aula, tu camino,/i);
+    // Diseño del usuario (2026-11-05): logo, lema y el dibujo del aula, que
+    // bajo 1024 px se oculta para que el formulario quede arriba.
+    expect(screen.getByAltText("Auligo")).toBeInTheDocument();
+    expect(screen.getByText(/tu aula, tu camino,/i)).toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: /Ilustración de un aula con tres niños/ }).closest("div.hidden"),
     ).toHaveClass("lg:flex");
     expect(screen.getByRole("main")).toContainElement(
       screen.getByRole("heading", { level: 1, name: "¡Hola de nuevo!" }),
     );
+    // Debajo de la burbuja del formulario, fuera de la tarjeta.
+    const aviso = screen.getByText("Acceso solo para personal autorizado");
+    expect(screen.getByRole("main")).toContainElement(aviso);
+    expect(container.querySelector("form")).not.toContainElement(aviso);
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
   });
 

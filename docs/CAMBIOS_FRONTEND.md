@@ -1,5 +1,48 @@
 # Cambios Frontend
 
+## 2026-11-05 - Login: aula grande y formulario burbuja, centrados
+
+Ajustes del usuario al login del mismo día, en cuatro pedidos: "en PC el
+espacio del aula quedó muy pequeño, quiero que el formulario sea más pequeño,
+y hazlo tipo vidrio"; "que el formulario esté al lado del aula y no tan
+pegado al borde"; y "centrado entre el borde de arriba del aula y el de
+abajo, un poquito más separado, que no se vea al mismo nivel; más moderno y
+tipo burbuja, realmente llamativo y hermoso"; y "en tablet se ve muy pequeño
+y quita las burbujas mejor".
+
+- `Login.jsx`: todo el fondo es el morado con puntos (`login-panel`). Desde
+  1024 px la página es una cuadrícula: arriba el logo y "Volver al inicio";
+  en medio el aula y el formulario (columna de 370 px), separados 80 px (48
+  hasta 1279 px) y centrados en la pantalla, con el formulario centrado en la
+  altura del aula; abajo el lema. Ya no hay una región "Bienvenida" aparte. El
+  aula crece hasta 880 px, hasta donde la deje el alto de la pantalla o hasta
+  donde quepa junto al formulario (en 1440 × 900 pasó de unos 465 px a unos
+  800 px de ancho; en la tablet acostada, con orillas y separación menores
+  hasta 1279 px, de unos 634 a 698 px en 1180 y de 478 a 542 px en 1024).
+  Detrás de la tarjeta, dos luces difuminadas (lima y rosada) para que se
+  note el vidrio. Se probaron cuatro burbujas de vidrio alrededor y el
+  usuario pidió quitarlas. "Acceso solo para personal autorizado" va debajo
+  de la tarjeta, fuera del flujo, para no correr el centrado.
+- Tablet vertical (768 a 1023 px): el formulario se agranda un 25 % (`zoom`)
+  y queda centrado en el espacio libre debajo de logo, lema y "Volver al
+  inicio"; el logo y el lema también crecen. A 370 px se veía muy pequeño.
+- `LoginFormView.jsx`: formulario "burbuja" (`burbuja-login`, nuevo en
+  `index.css`): esquinas de 40 px, un arco de luz arriba a la izquierda y un
+  borde tornasol (lima, celeste, rosado, lila) que gira despacio. Encima, una
+  burbuja lima con un birrete. Campos en forma de píldora con su ícono en una
+  burbujita que se pone lima al escribir; botón píldora lima brillante con la
+  flecha en un círculo. Más bajito que el aula: en 1630 × 880 quedan unos
+  115 px libres arriba y abajo, en 1366 × 768 unos 60 y en 1280 × 720 unos
+  35. Textos y comportamiento, sin cambios.
+- `index.css`: `burbuja-login` (con `@property --burbuja-giro` para el giro;
+  quieto si el navegador no lo soporta o si el equipo pide menos movimiento).
+  Se quitó `login-campo` (autocompletado claro), que ya no se usa. Del login
+  de vidrio de octubre siguen sin uso `gota-agua` y `burbuja-deriva`
+  (`gota-flotar` lo usa la burbuja del birrete).
+- Revisado con capturas en 1920 × 1080, 1630 × 880 (como la pantalla del
+  usuario), 1440 × 900, 1366 × 768, 1280 × 720, 1180 × 820, 1024 × 768,
+  820 × 1180, 768 × 1024 y 390 × 844.
+
 ## 2026-11-05 - Login con el diseño del usuario
 
 El usuario trajo un diseño en HTML (`login-auligo-diseno.html`): panel morado

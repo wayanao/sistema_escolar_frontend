@@ -68,7 +68,7 @@ function EtiquetaFlotante({ texto, posicion, colores, fondoIcono, trazo, retraso
 
 export default function IlustracionAulaLogin() {
   return (
-    <div className="login-entrada relative w-full max-w-[720px]">
+    <div className="login-entrada relative w-full">
       {ETIQUETAS.map((etiqueta) => (
         <EtiquetaFlotante key={etiqueta.texto} {...etiqueta} />
       ))}

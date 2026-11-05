@@ -4,11 +4,14 @@ Estado actual de componentes y paginas del frontend.
 
 ## Componentes principales
 
-- `Login.jsx` (diseño del usuario, 2026-11-05): panel morado de bienvenida
-  (logo, `IlustracionAulaLogin` y el lema `Tu aula, tu camino, tu futuro.`) a
-  la izquierda y el formulario a la derecha desde 1024 px. Más angosto
-  (celular y tablet vertical) el panel es una franja con logo y lema, sin el
-  dibujo, y el formulario queda enseguida. Pide las fuentes del diseño con
+- `Login.jsx` (diseño del usuario, 2026-11-05): fondo morado con puntos en
+  toda la pantalla; desde 1024 px, una cuadrícula con el logo y "Volver al
+  inicio" arriba, `IlustracionAulaLogin` grande y el formulario (columna de
+  370 px, centrado en la altura del aula) en medio, y el lema `Tu aula, tu
+  camino, tu futuro.` abajo. En la tablet vertical el formulario se agranda un
+  25 % (`zoom`) y queda centrado en el espacio libre. Más
+  angosto (celular y tablet vertical) arriba van solo el logo y el lema, sin
+  el dibujo, y el formulario queda enseguida. Pide las fuentes del diseño con
   `useFuentesLogin`. Conecta `useComandoLogin` con `LoginFormView` como raíz
   de composición.
 - `components/autenticacion/IlustracionAulaLogin.jsx`: el dibujo del aula del
@@ -16,7 +19,8 @@ Estado actual de componentes y paginas del frontend.
   con las clases `login-*` de `index.css`, quieto si el equipo pide menos
   movimiento.
 - `components/autenticacion/LoginFormView.jsx`: formulario presentacional de
-  acceso en tarjeta blanca ("¡Hola de nuevo!"). Recibe campos, estados y
+  acceso en una tarjeta "burbuja" (`burbuja-login`) de 370 px, con campos y
+  botón en forma de píldora ("¡Hola de nuevo!"). Recibe campos, estados y
   acciones desde `pages/Login.jsx`; permite mostrar u ocultar la contraseña,
   muestra respuesta inmediata al enviar y avisa cuando la conexión tarda más
   de lo esperado. "¿La olvidaste?" muestra a quién pedirla (no hay

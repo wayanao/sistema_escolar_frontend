@@ -109,6 +109,5 @@ describe("LoginFormView", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "¡Hola de nuevo!" })).toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.getByText("Acceso solo para personal autorizado")).toBeInTheDocument();
   });
 });
