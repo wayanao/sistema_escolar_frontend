@@ -3,7 +3,7 @@ import {
   formatoNota,
   normalizarTexto,
 } from "../../utils/certificadosImpresion/certificados";
-import BotonAtrasCertificado from "./BotonAtrasCertificado";
+import BarraCertificado from "./BarraCertificado";
 import DatoCertificado from "./DatoCertificado";
 
 export default function ReporteParcialPreview({ reporte, onBack }) {
@@ -23,7 +23,7 @@ export default function ReporteParcialPreview({ reporte, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <BotonAtrasCertificado onClick={onBack} />
+      <BarraCertificado onBack={onBack} />
 
       <DocumentoImprimible
         tipo="reporte_estudiante"

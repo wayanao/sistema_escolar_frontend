@@ -13,7 +13,17 @@ const TIPOS_DOCUMENTO = [
   { id: "notas", label: "Certificado de notas" },
   { id: "matricula", label: "Certificado de matrícula" },
   { id: "reporte-parcial", label: "Reporte académico parcial" },
+  { id: "conducta", label: "Certificado de conducta" },
+  { id: "aprobado", label: "Certificado de aprobado" },
 ];
+
+const TEXTO_BOTON = {
+  notas: "Generar notas",
+  matricula: "Generar matrícula",
+  "reporte-parcial": "Ver reporte",
+  conducta: "Generar conducta",
+  aprobado: "Generar aprobado",
+};
 
 export default function SeleccionCertificados({
   anioLectivo,
@@ -120,7 +130,7 @@ export default function SeleccionCertificados({
               placeholder="Año lectivo"
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
             />
-          ) : (
+          ) : tabActiva === "reporte-parcial" ? (
             <select
               value={periodoReporte}
               onChange={(event) => onCambiarPeriodoReporte(event.target.value)}
@@ -130,7 +140,7 @@ export default function SeleccionCertificados({
                 <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
-          )}
+          ) : null}
 
           <select
             value={estadoFiltro}
@@ -212,13 +222,7 @@ export default function SeleccionCertificados({
                           onClick={() => onGenerarEstudiante(estudiante.id)}
                           className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {cargando
-                            ? "Generando..."
-                            : tabActiva === "matricula"
-                              ? "Generar matrícula"
-                              : tabActiva === "reporte-parcial"
-                                ? "Ver reporte"
-                                : "Generar notas"}
+                          {cargando ? "Generando..." : TEXTO_BOTON[tabActiva]}
                         </button>
                       </td>
                     </tr>

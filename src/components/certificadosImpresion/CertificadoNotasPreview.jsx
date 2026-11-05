@@ -6,7 +6,8 @@ import {
   normalizarTexto,
   obtenerFilasMaterias,
 } from "../../utils/certificadosImpresion/certificados";
-import BotonAtrasCertificado from "./BotonAtrasCertificado";
+import { datosInstitucionalesCertificado } from "../../utils/certificadosImpresion/certificadosFormales";
+import BarraCertificado from "./BarraCertificado";
 import DatoCertificado from "./DatoCertificado";
 
 export default function CertificadoNotasPreview({ certificado, onBack }) {
@@ -35,15 +36,15 @@ export default function CertificadoNotasPreview({ certificado, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <BotonAtrasCertificado onClick={onBack} />
+      <BarraCertificado onBack={onBack} />
 
       <DocumentoImprimible
         tipo="reporte_estudiante"
         className="di-documento--certificado"
         titulo="Certificado de Notas"
         subtitulo={`${periodoTexto} · Año Lectivo ${new Date().getFullYear()}`}
-        firmas={[
-          { nombre: "", cargo: "Director(a)" },
+        firmas={(branding) => [
+          datosInstitucionalesCertificado(branding).firma,
           { nombre: "", cargo: "Secretaria academica" },
         ]}
       >

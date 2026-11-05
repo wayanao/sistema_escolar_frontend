@@ -1,11 +1,21 @@
 import { useState } from "react";
 
+import CertificadoAprobadoPreview from "../components/certificadosImpresion/CertificadoAprobadoPreview";
+import CertificadoConductaPreview from "../components/certificadosImpresion/CertificadoConductaPreview";
 import CertificadoMatriculaPreview from "../components/certificadosImpresion/CertificadoMatriculaPreview";
 import CertificadoNotasPreview from "../components/certificadosImpresion/CertificadoNotasPreview";
 import ReporteParcialPreview from "../components/certificadosImpresion/ReporteParcialPreview";
 import SeleccionCertificados from "../components/certificadosImpresion/SeleccionCertificados";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useConsultasCertificadosAdmin from "../hooks/certificadosImpresion/useConsultasCertificadosAdmin";
+import { ESTADO_CERRADO } from "../utils/anioLectivo";
+
+// Certificados con el formato de los modelos del colegio, por tipo.
+const VISTAS_CERTIFICADO_FORMAL = {
+  matricula: CertificadoMatriculaPreview,
+  conducta: CertificadoConductaPreview,
+  aprobado: CertificadoAprobadoPreview,
+};
 
 export default function CertificadosAdmin() {
   const [tabActiva, setTabActiva] = useState("notas");
@@ -15,6 +25,7 @@ export default function CertificadosAdmin() {
   const consultas = useConsultasCertificadosAdmin({
     parametrosAnio: parametros,
     anioLectivoPropuesto: anioSeleccionado?.anio,
+    anioCerrado: anioSeleccionado?.estado === ESTADO_CERRADO,
   });
 
   if (consultas.certificado) {
@@ -26,11 +37,12 @@ export default function CertificadosAdmin() {
     );
   }
 
-  if (consultas.certificadoMatricula) {
+  if (consultas.certificadoFormal) {
+    const VistaCertificado = VISTAS_CERTIFICADO_FORMAL[consultas.certificadoFormal.tipo];
     return (
-      <CertificadoMatriculaPreview
-        certificado={consultas.certificadoMatricula}
-        onBack={consultas.limpiarCertificadoMatricula}
+      <VistaCertificado
+        certificado={consultas.certificadoFormal}
+        onBack={consultas.limpiarCertificadoFormal}
       />
     );
   }

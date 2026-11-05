@@ -308,4 +308,25 @@ describe("DocumentoImprimible", () => {
       });
     },
   );
+
+  it("firma y contenido pueden leer el branding, y la firma lleva el documento", () => {
+    render(
+      <DocumentoImprimible
+        tipo="reporte_estudiante"
+        firmas={(branding) => [
+          { nombre: "Laura Gómez", documento: `C.C. 1 de ${branding.direccion}`, cargo: "Rectora" },
+        ]}
+      >
+        {(branding) => <p>Expedido por {branding.nombre_institucion}</p>}
+      </DocumentoImprimible>,
+    );
+
+    expect(screen.getByText("Expedido por Colegio Central")).toBeInTheDocument();
+    const firma = screen.getByText("Laura Gómez").closest(".di-firmas__linea");
+    expect([...firma.children].map((linea) => linea.textContent)).toEqual([
+      "Laura Gómez",
+      "C.C. 1 de Calle 1",
+      "Rectora",
+    ]);
+  });
 });

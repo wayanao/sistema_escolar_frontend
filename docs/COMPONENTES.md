@@ -867,9 +867,15 @@ Estado actual de componentes y paginas del frontend.
   controlada de estudiantes.
 - `CertificadoNotasPreview.jsx`, `CertificadoMatriculaPreview.jsx` y
   `ReporteParcialPreview.jsx`: vistas A4 de los tres documentos, conectadas al
-  wrapper compartido de impresión. Su botón "Atrás" es
-  `BotonAtrasCertificado.jsx`, arriba de la hoja y no fijo en la esquina
+  wrapper compartido de impresión. Su botón "Atrás" va en
+  `BarraCertificado.jsx`, arriba de la hoja y no fijo en la esquina
   (2026-11-05).
+- `CertificadoFormal.jsx` (2026-11-05): hoja con el formato de los modelos del
+  colegio (frase de quien firma, «CERTIFICA:», párrafo, expedición y firma) y
+  la opción "En el texto decir". La usan `CertificadoMatriculaPreview.jsx`,
+  `CertificadoConductaPreview.jsx` (con "Desempeño") y
+  `CertificadoAprobadoPreview.jsx`. Los textos salen de
+  `utils/certificadosImpresion/certificadosFormales.js`.
 - `components/certificadosImpresion/admin/IdentidadInstitucionalView.jsx` y
   `PlantillasAdminView.jsx`: formularios administrativos controlados por props.
   Identidad tiene, desde el 2026-11-05, el grupo "Certificados: firma y lugar"

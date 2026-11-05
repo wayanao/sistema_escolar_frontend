@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-11-05 - Certificados de conducta y aprobado; matrícula con el formato de los modelos
+
+Paso 3 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`),
+con las tres respuestas del usuario (siguió las recomendaciones).
+
+- Menú "Tipo de documento": dos opciones nuevas, "Certificado de conducta" y
+  "Certificado de aprobado". No piden periodo ni año: usan el año que se
+  mira.
+- `CertificadoFormal.jsx`: hoja con el formato de los modelos del colegio. La
+  usan conducta, aprobado y **matrícula**, que deja el recuadro (documento,
+  curso, jornada, estado) y el texto general de antes. Arriba, sin salir en
+  el papel: "En el texto decir" (el(la) estudiante, el niño, la niña…) y,
+  en conducta, "Desempeño" (Superior, Alto, Básico, Bajo; sin elegir, raya).
+- Textos en `utils/certificadosImpresion/certificadosFormales.js`: R.C./T.I.,
+  nivel del curso, día en letras, "cursa"/"cursó" (pasado con el año cerrado
+  o el estudiante retirado o egresado) y "se encuentra"/"estuvo matriculado".
+- Notas y matrícula firman con el nombre, documento y cargo de Identidad
+  institucional; sin configurar, la línea vacía con "Director(a)" de antes.
+- `DocumentoImprimible`: la firma puede llevar `documento`, y `firmas` y
+  `children` pueden ser funciones del branding. Los demás impresos no cambian.
+- Llamada nueva: `GET /estudiantes/{id}` al generar matrícula, conducta o
+  aprobado, por el tipo de documento (`API_CLIENT.md`). La matrícula antes no
+  hacía consultas.
+- Hook: `certificadoMatricula` pasa a `certificadoFormal` (con `tipo`), y
+  recibe `anioCerrado`.
+
 ## 2026-11-05 - Certificados: firma y lugar, y el botón Atrás dentro de la página
 
 Paso 2 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).
@@ -14,7 +40,7 @@ Paso 2 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).
   dibujo de cada campo en `CampoTexto` (`IdentidadInstitucionalView.jsx`).
 - Pedido del usuario: el botón "Atrás" de los certificados (notas, matrícula
   y reporte parcial) era fijo en la esquina y tapaba el menú lateral. Ahora va
-  arriba de la hoja, dentro de la página (`BotonAtrasCertificado.jsx`). Los
+  arriba de la hoja, dentro de la página (`BarraCertificado.jsx`). Los
   otros nueve impresos con el mismo botón fijo no cambian.
 - Pruebas nuevas en `IdentidadInstitucionalView.test.jsx`,
   `useIdentidadInstitucional.test.js` y `VistasImprimibles.test.jsx`.

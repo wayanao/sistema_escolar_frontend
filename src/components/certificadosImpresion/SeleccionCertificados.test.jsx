@@ -78,8 +78,22 @@ describe("SeleccionCertificados", () => {
       "notas",
       "matricula",
       "reporte-parcial",
+      "conducta",
+      "aprobado",
     ]);
     expect(screen.queryByRole("button", { name: "Certificado de notas" })).not.toBeInTheDocument();
+  });
+
+  it("conducta y aprobado no piden periodo ni año, y su botón dice qué genera", async () => {
+    const user = userEvent.setup();
+    const props = crearProps({ tabActiva: "conducta" });
+    render(<SeleccionCertificados {...props} />);
+
+    // Curso, tipo de documento y estado; sin periodo ni año.
+    expect(screen.getAllByRole("combobox")).toHaveLength(3);
+    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Generar conducta" }));
+    expect(props.onGenerarEstudiante).toHaveBeenCalledWith(8);
   });
 
   it("conserva estados de carga, error y lista vacía", () => {

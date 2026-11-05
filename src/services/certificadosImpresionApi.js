@@ -17,6 +17,15 @@ export async function listarEstudiantesCertificados({ signal, parametrosAnio } =
   return data;
 }
 
+// La ficha completa de un estudiante, por el tipo de documento (R.C., T.I.)
+// de los certificados: la lista de arriba no lo trae. Es la misma consulta de
+// la ficha en Estudiantes; no depende del año.
+export async function obtenerFichaEstudianteCertificado(estudianteId, { signal } = {}) {
+  const ruta = `/estudiantes/${estudianteId}`;
+  const { data } = signal ? await api.get(ruta, { signal }) : await api.get(ruta);
+  return data;
+}
+
 export {
   listarHistorialAsistencia as listarHistorialAsistenciaCertificados,
 } from "./asistenciaApi";

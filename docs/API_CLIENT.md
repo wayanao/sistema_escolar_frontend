@@ -1065,10 +1065,18 @@ GET /materias
 GET /boletines/admin/generar/{estudiante_id}/{periodo}
 GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}
 GET /asistencia/historial/{asignacion_id}/{periodo}
+GET /estudiantes/{estudiante_id}
 ```
 
 Uso:
 
+- `GET /estudiantes/{estudiante_id}` (desde el 2026-11-05,
+  `obtenerFichaEstudianteCertificado`): la ficha completa, solo por el
+  `tipo_documento` ("Registro Civil" → "R.C.", "Tarjeta de Identidad" →
+  "T.I."), que la lista no trae. Una consulta al generar matrícula, conducta
+  o aprobado, sin año (la ficha no depende del año). Es la misma consulta de
+  la ficha en Estudiantes. Si falla, la pantalla avisa y no abre el
+  certificado. Ver `docs/funcionalidades/CERTIFICADOS_NUEVOS.md`.
 - La pantalla permite filtrar estudiantes por curso, estado, busqueda y periodo.
 - Desde el paso 6.10 del año lectivo (decisión del 2026-10-08), pide los
   estudiantes de todos los estados (`estado=todos`, más `anio_lectivo_id` si

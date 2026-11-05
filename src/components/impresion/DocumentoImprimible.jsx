@@ -20,8 +20,14 @@ import "../../styles/print.css";
  *   - tipo (string, requerido)
  *   - titulo (string)         titulo del documento (ej. "Boletin de Notas")
  *   - subtitulo (string)
- *   - firmas (array)          [{nombre, cargo}, ...] - se ocultan si la plantilla las desactiva
+ *   - firmas (array)          [{nombre, documento, cargo}, ...] - se ocultan si la plantilla
+ *                             las desactiva; `documento` es opcional ("C.C. ... de ...")
  *   - children                contenido especifico del impreso
+ *
+ * `firmas` y `children` tambien pueden ser funciones que reciben el branding:
+ * asi un impreso usa datos de la identidad institucional (quien firma, la
+ * ciudad) sin pedirlos aparte. Las usan los certificados
+ * (docs/funcionalidades/CERTIFICADOS_NUEVOS.md).
  */
 export default function DocumentoImprimible({
   tipo,
@@ -111,7 +117,9 @@ export default function DocumentoImprimible({
   const mostrarAprobacionResolucion = config.mostrar_aprobacion_resolucion !== false
     && aprobacionResolucion.trim().length > 0;
   const mostrarPie = config.mostrar_pie !== false;
-  const mostrarFirmas = config.mostrar_firmas !== false && Array.isArray(firmas) && firmas.length > 0;
+  const listaFirmas = typeof firmas === "function" ? firmas(branding) : firmas;
+  const contenido = typeof children === "function" ? children(branding) : children;
+  const mostrarFirmas = config.mostrar_firmas !== false && Array.isArray(listaFirmas) && listaFirmas.length > 0;
   const bordeado = config.borde_documento === true;
   const abrirDialogoPDF = () => window.print();
   const identificadoresInstitucionales = [
@@ -218,14 +226,15 @@ export default function DocumentoImprimible({
           <tbody>
             <tr>
               <td>
-                <section className="di-cuerpo">{children}</section>
+                <section className="di-cuerpo">{contenido}</section>
 
                 {mostrarFirmas && (
                   <section className="di-firmas">
-                    {firmas.map((f, i) => (
+                    {listaFirmas.map((f, i) => (
                       <div key={i} className="di-firmas__bloque">
                         <div className="di-firmas__linea">
                           <strong>{f.nombre}</strong>
+                          {f.documento && <div>{f.documento}</div>}
                           {f.cargo && <div>{f.cargo}</div>}
                         </div>
                       </div>

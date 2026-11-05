@@ -17,6 +17,7 @@ import {
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
   listarMateriasCertificados,
+  obtenerFichaEstudianteCertificado,
 } from "./certificadosImpresionApi";
 
 beforeEach(() => {
@@ -45,6 +46,22 @@ describe("contrato HTTP de certificados", () => {
       params: { estado: "todos" },
     });
     expect(apiMock.get).toHaveBeenNthCalledWith(3, "/materias");
+  });
+
+  it("pide la ficha del estudiante sin año, con o sin señal", async () => {
+    const ficha = { id: 8, tipo_documento: "Registro Civil" };
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: ficha });
+
+    await expect(obtenerFichaEstudianteCertificado(8)).resolves.toBe(ficha);
+    await expect(
+      obtenerFichaEstudianteCertificado(8, { signal: controller.signal }),
+    ).resolves.toBe(ficha);
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/estudiantes/8");
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes/8", {
+      signal: controller.signal,
+    });
   });
 
   it("pide todos los estados también con señal (paso 6.10)", async () => {

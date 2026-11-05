@@ -9,6 +9,7 @@ const { apiMock } = vi.hoisted(() => ({
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
     listarMateriasCertificados: vi.fn(),
+    obtenerFichaEstudianteCertificado: vi.fn(),
   },
 }));
 
@@ -255,6 +256,75 @@ describe("useConsultasCertificadosAdmin", () => {
     unmount();
 
     expect(signal.aborted).toBe(true);
+  });
+});
+
+describe("useConsultasCertificadosAdmin: certificados con el formato de los modelos", () => {
+  it("arma conducta con la ficha y el año que se mira; con el año cerrado, en pasado", async () => {
+    apiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({
+      tipo_documento: "Tarjeta de Identidad",
+      documento_identidad: "TI-123",
+    });
+    const { result } = renderHook(() =>
+      useConsultasCertificadosAdmin({ anioLectivoPropuesto: 2025, anioCerrado: true }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // El año editable es solo de la matrícula: conducta usa el que se mira.
+    act(() => result.current.setAnioLectivo("2030"));
+    await act(async () => {
+      result.current.generarSegunTab("conducta", 8);
+    });
+
+    await waitFor(() => expect(result.current.certificadoFormal).not.toBeNull());
+    expect(apiMock.obtenerFichaEstudianteCertificado).toHaveBeenCalledWith(8, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(result.current.certificadoFormal).toMatchObject({
+      tipo: "conducta",
+      estudiante_nombre_completo: "Sara López",
+      tipo_documento: "Tarjeta de Identidad",
+      anio_lectivo: "2025",
+      en_pasado: true,
+    });
+    expect(result.current.generandoId).toBeNull();
+
+    act(() => result.current.limpiarCertificadoFormal());
+    expect(result.current.certificadoFormal).toBeNull();
+  });
+
+  it("la matrícula usa el año editado", async () => {
+    apiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({});
+    const { result } = renderHook(() =>
+      useConsultasCertificadosAdmin({ anioLectivoPropuesto: 2025 }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.setAnioLectivo("2027"));
+    await act(async () => {
+      await result.current.generarCertificadoFormal("matricula", 8);
+    });
+
+    expect(result.current.certificadoFormal).toMatchObject({
+      tipo: "matricula",
+      anio_lectivo: "2027",
+      en_pasado: false,
+    });
+  });
+
+  it("si falla la ficha, muestra el error y no abre el certificado", async () => {
+    apiMock.obtenerFichaEstudianteCertificado.mockRejectedValue({
+      response: { data: { detail: "Estudiante no encontrado" } },
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = renderHook(() => useConsultasCertificadosAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("aprobado", 8);
+    });
+
+    expect(result.current.certificadoFormal).toBeNull();
+    expect(result.current.error).toBe("Estudiante no encontrado");
+    expect(result.current.generandoId).toBeNull();
   });
 });
 

@@ -2,7 +2,7 @@
 
 ## Control
 
-- Estado: **pasos 1 y 2 construidos, sin commit** (2026-11-05). El botón
+- Estado: **pasos 1, 2 y 3 construidos, sin commit** (2026-11-05). El botón
   "Atrás" de las vistas de certificados también cambió de lugar (ver "Botón
   Atrás").
 - Tipo: función nueva de producto dentro del módulo `certificadosImpresion`
@@ -11,7 +11,9 @@
 - Backend: **no hace falta cambiarlo** con el plan de abajo. Todo sale de
   datos que ya existen o se guarda en `configuracion_extra` del branding, un
   campo libre que el backend guarda sin revisar (ahí ya viven el membrete y la
-  resolución de aprobación).
+  resolución de aprobación). El tipo de documento sale de la ficha
+  (`GET /estudiantes/{id}`, que ya existía): la lista de estudiantes no lo
+  trae.
 - Última actualización: 2026-11-05.
 
 ## Pedido
@@ -68,7 +70,8 @@ Falta, y cómo se resuelve:
    Mismas tres opciones de antes; las nuevas se agregan en sus pasos.
 2. **Firma, ciudad y frase de encabezado en Identidad institucional** —
    construido, sin commit.
-3. Conducta y aprobado, con el formato de los modelos.
+3. **Conducta y aprobado, con el formato de los modelos** — construido, sin
+   commit. La matrícula pasó también a ese formato.
 4. Paz y salvo.
 5. Costos educativos, editable antes de imprimir. Lo editado es solo para esa
    impresión: no cambia los precios de Tipos de pago.
@@ -104,11 +107,60 @@ Falta, y cómo se resuelve:
 - `IdentidadInstitucionalView.jsx`: el dibujo de cada campo pasó a
   `CampoTexto`, para usarlo en los dos grupos. Los campos de antes no
   cambian.
-- Todavía **ningún impreso usa estos datos**: los leen los certificados
-  nuevos desde el paso 3.
+- Desde el paso 3 los usan matrícula, conducta, aprobado y la firma de
+  dirección del certificado de notas.
 - Pruebas: `IdentidadInstitucionalView.test.jsx` (los cinco campos se ven y
   avisan el cambio) y `useIdentidadInstitucional.test.js` (se guardan en
   `configuracion_extra` sin borrar lo que ya había).
+
+## Decisiones del paso 3
+
+Tomadas el 2026-11-05; el usuario siguió las tres recomendaciones.
+
+1. El certificado de matrícula pasa también al formato de los modelos. Deja
+   el recuadro (documento, curso, jornada, estado), la jornada y el texto
+   general de antes ("…para los fines que estime convenientes…").
+2. "cursa" si el año sigue abierto y "cursó" si ya cerró **o** el estudiante
+   está retirado o egresado. En la matrícula: "se encuentra matriculado(a)" o
+   "estuvo matriculado(a)". El aprobado dice siempre "cursó y aprobó".
+3. Los certificados de notas y matrícula firman con el nombre, el documento y
+   el cargo configurados. Sin configurar, la línea vacía con "Director(a)" de
+   antes. La segunda firma de notas ("Secretaria academica") no cambia.
+
+## Avance del paso 3
+
+- Menú: "Certificado de conducta" y "Certificado de aprobado". No piden
+  periodo ni año (usan el que se mira); el botón dice "Generar conducta" o
+  "Generar aprobado".
+- Al generar (matrícula, conducta o aprobado) se pide la ficha
+  (`obtenerFichaEstudianteCertificado`, con cancelación). Si falla: "No se
+  pudo cargar la ficha del estudiante." y no se abre el certificado. El curso
+  y el estado salen de la lista del año, no de la ficha.
+- El año: la matrícula usa el campo editable de siempre; conducta y aprobado,
+  el año que se mira.
+- `CertificadoFormal.jsx`, la hoja común:
+  1. La frase antes de «CERTIFICA:» (si está configurada; si no, la hoja
+     empieza en «CERTIFICA:»).
+  2. «CERTIFICA:» espaciado.
+  3. El párrafo, con nombre, grado y desempeño en negrita y en mayúsculas.
+  4. "Se expide la presente certificación a solicitud del interesado en
+     CIUDAD, a los veinte (20) días del mes de enero de 2026." Sin ciudad, sin
+     "en CIUDAD". El día 1 dice "al primer (01) día".
+  5. "Atentamente," y la firma de `DocumentoImprimible`.
+- Opciones arriba de la hoja, que no se imprimen:
+  - **"En el texto decir"**: el(la) estudiante (al abrir), el niño, la niña,
+    el estudiante, la estudiante. Cambia "identificado/a" y "matriculado/a".
+    Vuelve a neutro con cada estudiante.
+  - **"Desempeño"** (solo conducta): Superior, Alto, Básico o Bajo. Sin
+    elegir, "DESEMPEÑO ________", para llenarlo a mano.
+- Lo que falta en la ficha también sale en raya (sin número de documento,
+  sin curso).
+- Textos: `utils/certificadosImpresion/certificadosFormales.js`, con pruebas
+  en `certificadosFormales.test.js`.
+- `DocumentoImprimible`: la firma acepta `documento` (entre nombre y cargo),
+  y `firmas` y `children` pueden ser funciones que reciben el branding. Así
+  los certificados leen quién firma y la ciudad sin pedirlos aparte. Los
+  demás impresos no cambian.
 
 ## Botón Atrás
 
@@ -118,8 +170,8 @@ con el menú lateral nuevo, quedaba encima del menú (computador) y de la barra
 de arriba (celular).
 
 - Ahora va arriba de la hoja, dentro de la página, alineado con el borde
-  izquierdo del papel: `BotonAtrasCertificado.jsx`, usado por las vistas de
-  notas, matrícula y reporte parcial (y por los certificados nuevos).
+  izquierdo del papel: `BarraCertificado.jsx`, usado por todas las vistas de
+  certificados. A su derecha van las opciones de impresión.
 - Al bajar por un documento largo, el botón ya no acompaña: hay que subir.
 - **Otros nueve impresos** tienen el mismo botón fijo en la esquina y no se
   tocaron: boletín, cartera vencida, entrevista de admisión, observaciones,
@@ -131,11 +183,6 @@ de arriba (celular).
 
 Se hacen justo antes del paso que las necesita.
 
-- **Paso 3**: ¿el certificado de matrícula actual pasa también al formato de
-  los modelos? ¿"cursa" si el año está abierto y "cursó" si ya terminó, o
-  siempre "cursó" como en los modelos? ¿Los certificados de notas y matrícula
-  también ponen el nombre de quien firma? Hoy sacan la línea vacía con
-  "Director(a)".
 - **Paso 4**: si piden un paz y salvo y el estudiante debe, ¿se bloquea o se
   deja imprimir con aviso? Ojo: la cartera cuenta solo lo vencido; los meses
   que aún no llegan no cuentan como deuda.

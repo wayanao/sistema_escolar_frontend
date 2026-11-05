@@ -15,7 +15,11 @@ vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
   default: () => mocks.anioLectivo,
 }));
 vi.mock("../components/impresion/DocumentoImprimible", () => ({
-  default: ({ children }) => <div data-testid="documento-imprimible">{children}</div>,
+  default: ({ children }) => (
+    <div data-testid="documento-imprimible">
+      {typeof children === "function" ? children(null) : children}
+    </div>
+  ),
 }));
 
 import CertificadosAdmin from "./CertificadosAdmin";
@@ -83,6 +87,9 @@ beforeEach(() => {
       });
     }
     if (url === "/materias") return Promise.resolve({ data: [{ id: 12, nombre: "Historia" }] });
+    if (url === "/estudiantes/8") {
+      return Promise.resolve({ data: { id: 8, tipo_documento: "Registro Civil", documento_identidad: "TI-123" } });
+    }
     if (url === "/boletines/admin/generar/8/1") return Promise.resolve({ data: boletin(1) });
     if (url === "/boletines/admin/reporte-parcial/8/1") {
       return Promise.resolve({ data: reportePlanilla(1) });
@@ -191,5 +198,30 @@ describe("Certificados con todos los estados (paso 6.10)", () => {
 
     expect(await screen.findByText("TI-999")).toBeInTheDocument();
     expect(screen.queryByText("TI-123")).not.toBeInTheDocument();
+  });
+
+  it("con el año cerrado, la conducta dice «cursó» y la matrícula «estuvo matriculado»; la ficha va sin año", async () => {
+    mocks.anioLectivo = CERRADO;
+    const user = userEvent.setup();
+    const parrafo = () => screen.getByText((_, elemento) =>
+      elemento?.tagName === "P" && elemento.textContent.startsWith("Que ")).textContent;
+
+    render(<CertificadosAdmin />);
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    const tipo = () => screen.getByRole("combobox", { name: "Tipo de documento" });
+
+    await user.selectOptions(tipo(), "conducta");
+    await user.click(screen.getByRole("button", { name: "Generar conducta" }));
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    expect(parrafo()).toContain(
+      "identificado(a) con R.C. No. TI-123, cursó en esta institución el grado PRIMERO A del año lectivo 2025",
+    );
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes/8", SIN_ANIO);
+
+    await user.click(screen.getByRole("button", { name: "← Atrás" }));
+    await user.selectOptions(tipo(), "matricula");
+    await user.click(screen.getByRole("button", { name: "Generar matrícula" }));
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    expect(parrafo()).toContain("estuvo matriculado(a) en esta institución en el grado PRIMERO A");
   });
 });

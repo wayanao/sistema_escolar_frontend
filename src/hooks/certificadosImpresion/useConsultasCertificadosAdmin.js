@@ -7,8 +7,10 @@ import {
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
   listarMateriasCertificados,
+  obtenerFichaEstudianteCertificado,
 } from "../../services/certificadosImpresionApi";
 import { opcionesConAnio } from "../../utils/anioLectivo";
+import { construirCertificadoFormal } from "../../utils/certificadosImpresion/certificadosFormales";
 import {
   MATERIA_TODAS,
   PERIODOS_NUMERICOS,
@@ -17,12 +19,13 @@ import {
   construirEstudiantesReporte,
   construirResumenReporteParcial,
   crearMapaCursos,
-  documentoEstudiante,
   filtrarEstudiantesCertificados,
   filtrarEstudiantesCurso,
-  nombreEstudiante,
   obtenerAsignacionIds,
 } from "../../utils/certificadosImpresion/certificados";
+
+// Los que usan el formato de los modelos del colegio (CertificadoFormal).
+const TIPOS_CERTIFICADO_FORMAL = ["matricula", "conducta", "aprobado"];
 
 function esCancelacion(error, signal) {
   return signal.aborted || error?.name === "AbortError" || error?.code === "ERR_CANCELED";
@@ -31,9 +34,11 @@ function esCancelacion(error, signal) {
 // `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
 // Cursos, estudiantes, boletines y reportes parciales son los de ese año; las
 // materias son un catálogo y el historial de asistencia parte de una clase.
+// `anioCerrado`: si el año que mira ya cerró, los certificados dicen "cursó".
 export default function useConsultasCertificadosAdmin({
   parametrosAnio,
   anioLectivoPropuesto,
+  anioCerrado = false,
 } = {}) {
   const anioLectivoSugerido = String(
     anioLectivoPropuesto ?? new Date().getFullYear(),
@@ -52,7 +57,7 @@ export default function useConsultasCertificadosAdmin({
   const [generandoId, setGenerandoId] = useState(null);
   const [generandoCurso, setGenerandoCurso] = useState(false);
   const [certificado, setCertificado] = useState(null);
-  const [certificadoMatricula, setCertificadoMatricula] = useState(null);
+  const [certificadoFormal, setCertificadoFormal] = useState(null);
   const [reporteParcial, setReporteParcial] = useState(null);
   const [error, setError] = useState("");
   const consultaRef = useRef(null);
@@ -168,33 +173,55 @@ export default function useConsultasCertificadosAdmin({
     }
   }, [cursosPorId, estudiantes, finalizarConsulta, iniciarConsulta, parametrosAnio, periodo]);
 
-  const generarCertificadoMatricula = useCallback((estudianteId) => {
-    consultaRef.current?.abort();
-    consultaRef.current = null;
-    setGenerandoId(estudianteId);
-    setGenerandoCurso(false);
-    setError("");
+  // Matrícula, conducta y aprobado: piden la ficha por el tipo de documento.
+  // El año de la matrícula es el que se puede editar en la pantalla; el de
+  // los demás, el que mira el admin.
+  const generarCertificadoFormal = useCallback(async (tipo, estudianteId) => {
+    const controller = iniciarConsulta({ estudianteId });
     try {
       const estudiante = estudiantes.find((item) => item.id === estudianteId);
       if (!estudiante) {
         setError("No se encontro el estudiante seleccionado.");
-        return;
+        return { error: new Error("Estudiante no encontrado") };
       }
 
-      const curso = cursosPorId.get(estudiante.curso_id);
-      setCertificadoMatricula({
-        estudiante_nombre_completo: nombreEstudiante(estudiante),
-        documento_identidad: documentoEstudiante(estudiante),
-        curso: curso?.nombre || estudiante.curso_nombre || "Sin asignar",
-        jornada: curso?.jornada || estudiante.jornada || "",
-        estado: estudiante.estado || "activo",
-        anio_lectivo: anioLectivo || anioLectivoSugerido,
+      const ficha = await obtenerFichaEstudianteCertificado(estudianteId, {
+        signal: controller.signal,
       });
+      if (controller.signal.aborted) return { cancelado: true };
+      const data = construirCertificadoFormal({
+        tipo,
+        estudiante,
+        ficha,
+        curso: cursosPorId.get(estudiante.curso_id),
+        anioLectivo: tipo === "matricula"
+          ? anioLectivo || anioLectivoSugerido
+          : anioLectivoSugerido,
+        anioCerrado,
+      });
+      setCertificadoFormal(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      return { data };
+    } catch (requestError) {
+      if (esCancelacion(requestError, controller.signal)) return { cancelado: true };
+      console.error("Error generando certificado", requestError);
+      setError(
+        requestError?.response?.data?.detail
+          || "No se pudo cargar la ficha del estudiante.",
+      );
+      return { error: requestError };
     } finally {
-      setGenerandoId(null);
+      finalizarConsulta(controller);
     }
-  }, [anioLectivo, anioLectivoSugerido, cursosPorId, estudiantes]);
+  }, [
+    anioCerrado,
+    anioLectivo,
+    anioLectivoSugerido,
+    cursosPorId,
+    estudiantes,
+    finalizarConsulta,
+    iniciarConsulta,
+  ]);
 
   const construirReporteParcialRemoto = useCallback(async (
     estudiantesObjetivo,
@@ -360,8 +387,8 @@ export default function useConsultasCertificadosAdmin({
   ]);
 
   const generarSegunTab = useCallback((tabActiva, estudianteId) => {
-    if (tabActiva === "matricula") {
-      generarCertificadoMatricula(estudianteId);
+    if (TIPOS_CERTIFICADO_FORMAL.includes(tabActiva)) {
+      void generarCertificadoFormal(tabActiva, estudianteId);
       return;
     }
     if (tabActiva === "reporte-parcial") {
@@ -371,7 +398,7 @@ export default function useConsultasCertificadosAdmin({
     void generarCertificado(estudianteId);
   }, [
     generarCertificado,
-    generarCertificadoMatricula,
+    generarCertificadoFormal,
     generarReporteParcialEstudiante,
   ]);
 
@@ -379,7 +406,7 @@ export default function useConsultasCertificadosAdmin({
     anioLectivo,
     busqueda,
     certificado,
-    certificadoMatricula,
+    certificadoFormal,
     cursoSeleccionado,
     cursos,
     cursosPorId,
@@ -395,12 +422,12 @@ export default function useConsultasCertificadosAdmin({
     periodoReporte,
     reporteParcial,
     generarCertificado,
-    generarCertificadoMatricula,
+    generarCertificadoFormal,
     generarReporteParcialCurso,
     generarReporteParcialEstudiante,
     generarSegunTab,
     limpiarCertificado: () => setCertificado(null),
-    limpiarCertificadoMatricula: () => setCertificadoMatricula(null),
+    limpiarCertificadoFormal: () => setCertificadoFormal(null),
     limpiarError: () => setError(""),
     limpiarReporteParcial: () => setReporteParcial(null),
     setAnioLectivo,

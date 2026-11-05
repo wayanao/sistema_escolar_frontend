@@ -10,11 +10,14 @@ const { certificadosApiMock } = vi.hoisted(() => ({
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
     listarMateriasCertificados: vi.fn(),
+    obtenerFichaEstudianteCertificado: vi.fn(),
   },
 }));
 
 vi.mock("../services/certificadosImpresionApi", () => certificadosApiMock);
 
+// `children` puede ser una función del branding (certificados con el formato
+// de los modelos); aquí, sin branding.
 vi.mock("../components/impresion/DocumentoImprimible", () => ({
   default: ({ children, tipo, className, titulo, subtitulo }) => (
     <div
@@ -24,12 +27,17 @@ vi.mock("../components/impresion/DocumentoImprimible", () => ({
       data-titulo={titulo}
       data-subtitulo={subtitulo}
     >
-      {children}
+      {typeof children === "function" ? children(null) : children}
     </div>
   ),
 }));
 
 import CertificadosAdmin from "./CertificadosAdmin";
+
+function parrafoCertificado() {
+  return screen.getByText((_, elemento) =>
+    elemento?.tagName === "P" && elemento.textContent.startsWith("Que ")).textContent;
+}
 
 const estudiante = {
   id: 8,
@@ -98,8 +106,12 @@ describe("CertificadosAdmin", () => {
 
     vi.clearAllMocks();
     certificadosApiMock.listarCursosCertificados.mockResolvedValue([
-      { id: 3, nombre: "Quinto", jornada: "Mañana" },
+      { id: 3, nombre: "Quinto", jornada: "Mañana", nivel: "primaria" },
     ]);
+    certificadosApiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({
+      ...estudiante,
+      tipo_documento: "Tarjeta de Identidad",
+    });
     certificadosApiMock.listarEstudiantesCertificados.mockResolvedValue([
       estudiante,
     ]);
@@ -194,7 +206,7 @@ describe("CertificadosAdmin", () => {
     expect(screen.getByText("Alto")).toBeInTheDocument();
   });
 
-  it("conserva el certificado de matrícula local sin consultas académicas adicionales", async () => {
+  it("arma la matrícula con el formato de los modelos: pide solo la ficha, por el tipo de documento", async () => {
     const user = userEvent.setup();
     render(<CertificadosAdmin />);
 
@@ -208,17 +220,61 @@ describe("CertificadosAdmin", () => {
     await user.type(anio, "2027");
     await user.click(screen.getByRole("button", { name: "Generar matrícula" }));
 
-    const documento = screen.getByTestId("documento-imprimible");
-    expect(documento).toHaveAttribute("data-titulo", "Certificado de Matrícula");
-    expect(documento).toHaveAttribute("data-subtitulo", "Año Lectivo 2027");
-    expect(screen.getByText("Sara López")).toBeInTheDocument();
-    expect(screen.getAllByText("Mañana")).toHaveLength(2);
-    expect(screen.getByText("2027")).toBeInTheDocument();
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    expect(parrafoCertificado()).toBe(
+      "Que el(la) estudiante SARA LÓPEZ, identificado(a) con T.I. No. TI-123, se encuentra "
+        + "matriculado(a) en esta institución en el grado QUINTO del nivel de Educación Básica "
+        + "Primaria del año lectivo 2027.",
+    );
+    expect(
+      certificadosApiMock.obtenerFichaEstudianteCertificado,
+    ).toHaveBeenCalledWith(8, { signal: expect.any(AbortSignal) });
     expect(certificadosApiMock.listarCursosCertificados).toHaveBeenCalledTimes(1);
     expect(
       certificadosApiMock.listarEstudiantesCertificados,
     ).toHaveBeenCalledTimes(1);
     expect(certificadosApiMock.listarMateriasCertificados).toHaveBeenCalledTimes(1);
     expect(certificadosApiMock.generarBoletinCertificado).not.toHaveBeenCalled();
+  });
+
+  it("genera la conducta con el año que se mira, elige el desempeño y vuelve a la lista", async () => {
+    const user = userEvent.setup();
+    render(<CertificadosAdmin />);
+
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "conducta",
+    );
+    await user.click(screen.getByRole("button", { name: "Generar conducta" }));
+
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole("combobox", { name: "En el texto decir" }), "nina");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Desempeño" }), "SUPERIOR");
+    expect(parrafoCertificado()).toBe(
+      "Que la niña SARA LÓPEZ, identificada con T.I. No. TI-123, cursa en esta institución "
+        + `el grado QUINTO del nivel de Educación Básica Primaria del año lectivo ${new Date().getFullYear()}, `
+        + "con una conducta descriptiva en DESEMPEÑO SUPERIOR.",
+    );
+
+    await user.click(screen.getByRole("button", { name: "← Atrás" }));
+    expect(screen.getByRole("combobox", { name: "Tipo de documento" })).toHaveValue("conducta");
+  });
+
+  it("si no carga la ficha, avisa y no abre el certificado", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    certificadosApiMock.obtenerFichaEstudianteCertificado.mockRejectedValue(new Error("red"));
+    const user = userEvent.setup();
+    render(<CertificadosAdmin />);
+
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "aprobado",
+    );
+    await user.click(screen.getByRole("button", { name: "Generar aprobado" }));
+
+    expect(await screen.findByText("No se pudo cargar la ficha del estudiante.")).toBeInTheDocument();
+    expect(screen.queryByText("CERTIFICA:")).not.toBeInTheDocument();
   });
 });
