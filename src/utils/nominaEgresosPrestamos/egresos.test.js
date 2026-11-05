@@ -122,6 +122,13 @@ describe("utilidades de egresos", () => {
         ).toBe("Pago EPM de agosto");
     });
 
+    it("guarda las notas con la primera letra en mayúscula", () => {
+        // Paso 4 del pedido del 2026-11-05.
+        expect(
+            normalizarEgreso({ ...formulario, notas: "  factura 12 de EPM " }, "2026-08-07").notas,
+        ).toBe("Factura 12 de EPM");
+    });
+
     it("sustituye una fecha vacía por la fecha por defecto", () => {
         expect(normalizarEgreso({ ...formulario, fecha: "" }, "2026-08-07").fecha).toBe(
             "2026-08-07"

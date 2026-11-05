@@ -248,6 +248,28 @@ describe("lo que se envía", () => {
     ]);
   });
 
+  it("los textos escritos van con la primera letra en mayúscula; las opciones, tal cual", () => {
+    // Paso 4 del pedido del 2026-11-05.
+    const bloque = construirCuestionario(
+      {
+        como_lo_llaman: "juancho",
+        numero_hermanos: "2",
+        tipo_vivienda: { opcion: "otro", otro: "finca de los abuelos" },
+        situaciones_familia: { marcadas: ["violencia", "otro"], otro: "separación" },
+        dificultad_motora: { respuesta: "si", detalle: "camina con apoyo" },
+      },
+      SECCIONES_DE_PRUEBA,
+    );
+
+    expect(bloque).toEqual({
+      como_lo_llaman: "Juancho",
+      numero_hermanos: 2,
+      situaciones_familia: { marcadas: ["violencia", "otro"], otro: "Separación" },
+      tipo_vivienda: { opcion: "otro", otro: "Finca de los abuelos" },
+      dificultad_motora: { respuesta: "si", detalle: "Camina con apoyo" },
+    });
+  });
+
   it("un texto en blanco no se envía", () => {
     expect(construirCuestionario({ como_lo_llaman: "   " }, SECCIONES_DE_PRUEBA)).toEqual({});
   });

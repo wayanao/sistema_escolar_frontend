@@ -1,6 +1,8 @@
 // Contrato puro de las celdas. Sin HTTP, sin React, sin DOM.
 // Ver docs/funcionalidades/LISTAS_SEGUIMIENTO.md.
 
+import { primeraMayuscula } from "../nombres";
+
 // El CHECK chk_listas_seguimiento_marcas_nota_longitud de la tabla. El backend
 // lo repite en MarcaSeguimientoItem y responde 422 si se pasa; aqui sirve para
 // poner el maxLength del campo y avisar antes de gastar una peticion.
@@ -97,7 +99,9 @@ export function claveCelda(estudianteId, columnaId) {
  * formas porque un hook puede guardar el estado de cualquiera de ellas.
  *
  * La nota se manda recortada, que es como la guarda el backend: asi lo que se
- * envia y lo que queda escrito son lo mismo. No se recorta a 240 caracteres a
+ * envia y lo que queda escrito son lo mismo. Va con la primera letra en
+ * mayuscula (pedido del 2026-11-05); despues de guardar la grilla se recarga
+ * del backend y se ve como quedo. No se recorta a 240 caracteres a
  * la fuerza -cortar texto sin avisar es peor que el 422-; de avisar se encarga
  * la pantalla con LIMITE_NOTA_SEGUIMIENTO.
  *
@@ -113,7 +117,7 @@ export function construirPayloadMarcas(cambios) {
       columna_id: numeroONulo(cambio?.columnaId),
       estudiante_id: numeroONulo(cambio?.estudianteId),
       marcado: Boolean(cambio?.marcado),
-      nota: String(cambio?.nota ?? "").trim(),
+      nota: primeraMayuscula(cambio?.nota),
     }))
     .filter((celda) => celda.columna_id !== null && celda.estudiante_id !== null);
 }

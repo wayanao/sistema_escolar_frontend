@@ -1,5 +1,48 @@
 # Cambios Frontend
 
+## 2026-11-05 - Mayúsculas en los textos (paso 4: textos libres)
+
+Sigue al paso 3. Los textos libres que escribe el admin se guardan con la
+**primera letra en mayúscula** y el resto como se escribió (`primeraMayuscula`).
+Ahora también cuenta la letra que va tras un signo de apertura («¿llegó
+tarde?» → «¿Llegó tarde?»). Si el texto empieza por un número, no se toca.
+
+- Tipos de pago: la descripción.
+- Egresos, préstamos y nómina: las notas.
+- Admisiones: parentesco, quiénes asistieron, estudios anteriores (año,
+  preescolar, EBP, motivo del retiro), ocupaciones, con quién vive,
+  expectativas, observaciones y el motivo del resultado. También lo escrito
+  en el anexo (respuestas de texto, el «¿Cuál?» y el «Otro»).
+- Estudiantes: datos médicos, punto de referencia y lo que llega de la
+  entrevista (ocupaciones, motivo del retiro...).
+- Listas de seguimiento: la nota de cada celda.
+- Planeadores de clases: el comentario del admin al profesor.
+- Nombres propios que faltaban, con mayúscula en cada palabra
+  (`capitalizarPalabras`): colegio anterior, EPS y contacto de emergencia.
+- No cambian:
+  - Gestión de Pagos: la descripción del pago, porque el backend la usa para
+    saber a qué cobro pertenece y para hallar el número de la venta.
+  - Los motivos de anulación de pagos y ventas, y los de valores
+    personalizados (área de pagos): se dejan para un paso aparte.
+  - Diseño de impresos: son los textos oficiales del colegio, que muchos
+    escriben en MAYÚSCULAS a propósito.
+  - El observador: el backend ya corrige sus mayúsculas.
+  - Opciones de listas (paz y salvo «SI»/«NO», tipo de documento),
+    documentos, teléfonos, correos y direcciones.
+- Lo ya guardado no cambia en la base: se corrige al volver a guardar.
+- Pruebas ajustadas:
+  - Las de los pasos 2 y 3 que esperaban estos textos tal como se escribieron.
+  - Tres de las listas de seguimiento que escribían la nota en minúscula.
+    Solo comprueban que una celda no se mande dos veces.
+- Archivos: `src/utils/nombres.js`, `carteraTiposPago/tiposPago.js`,
+  `nominaEgresosPrestamos/{egresos,prestamos,nomina}.js`,
+  `admisiones/{formularios,cuestionario}.js`,
+  `estudiantesObservador/estudiantes.js`, `listasSeguimiento/marcas.js`,
+  `hooks/planeaciones/useDetallePlaneacionAdmin.js` y sus pruebas.
+- Verificación: pruebas de esos módulos → **588 en 59 archivos** (573 antes
+  del cambio). `pnpm run check:deploy`: 3365 de 3365 pruebas, lint y build
+  correctos. Sin probar todavía en el navegador.
+
 ## 2026-11-05 - Mayúsculas en los nombres (paso 3: nombres de cosas y lugares)
 
 Sigue al paso 2. Se guardan con su mayúscula:

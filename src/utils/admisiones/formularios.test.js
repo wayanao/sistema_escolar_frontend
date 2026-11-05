@@ -82,7 +82,7 @@ describe("cuerpos que viajan al backend", () => {
     expect(construirCuerpoAspirante(lleno()).curso_id).toBeNull();
   });
 
-  it("guarda los nombres de personas con mayúscula inicial, y lo demás como se escribió", () => {
+  it("guarda los nombres de personas con mayúscula inicial en cada palabra", () => {
     // Pedido del usuario el 2026-11-05: que los nombres lleven las mayúsculas.
     const cuerpo = construirCuerpoAdmision(
       lleno({
@@ -91,10 +91,7 @@ describe("cuerpos que viajan al backend", () => {
         acudiente_nombre: "carlos gómez",
         autoriza_nombre: "marta díaz",
         entrevistador: "psicóloga ruiz",
-        acudiente_parentesco: "papá",
         documento_identidad: "abc-123",
-        asistentes: "mamá y abuela",
-        observaciones: "llegó tarde",
       }),
     );
 
@@ -103,11 +100,47 @@ describe("cuerpos que viajan al backend", () => {
     expect(cuerpo.acudiente_nombre).toBe("Carlos Gómez");
     expect(cuerpo.autoriza_nombre).toBe("Marta Díaz");
     expect(cuerpo.entrevistador).toBe("Psicóloga Ruiz");
-    expect(cuerpo.acudiente_parentesco).toBe("papá");
     expect(cuerpo.documento_identidad).toBe("abc-123");
-    expect(cuerpo.asistentes).toBe("mamá y abuela");
-    expect(cuerpo.observaciones).toBe("llegó tarde");
     expect(construirCuerpoAspirante(lleno({ acudiente_nombre: "   " })).acudiente_nombre).toBeNull();
+  });
+
+  it("los textos libres van con la primera letra en mayúscula y el colegio anterior en cada palabra", () => {
+    // Paso 4 del mismo pedido. El paz y salvo ("SI"/"NO") y el teléfono no se tocan.
+    const cuerpo = construirCuerpoAdmision(
+      lleno({
+        acudiente_parentesco: "papá",
+        asistentes: "mamá y abuela",
+        colegio_anterior: "colegio san josé",
+        anio_cursado_anterior: "quinto",
+        pre_escolar_anterior: "jardín mis pequeños",
+        ebp_anterior: "sí",
+        motivo_retiro_anterior: "cambio de ciudad",
+        ocupacion_padre: "conductor",
+        ocupacion_madre: "docente",
+        vive_con: "los papás",
+        expectativas: "  que aprenda inglés ",
+        observaciones: "¿llegó tarde? sí",
+        paz_salvo_anterior: "NO",
+        acudiente_telefono: "300 123 4567",
+      }),
+    );
+
+    expect(cuerpo).toMatchObject({
+      acudiente_parentesco: "Papá",
+      asistentes: "Mamá y abuela",
+      colegio_anterior: "Colegio San José",
+      anio_cursado_anterior: "Quinto",
+      pre_escolar_anterior: "Jardín mis pequeños",
+      ebp_anterior: "Sí",
+      motivo_retiro_anterior: "Cambio de ciudad",
+      ocupacion_padre: "Conductor",
+      ocupacion_madre: "Docente",
+      vive_con: "Los papás",
+      expectativas: "Que aprenda inglés",
+      observaciones: "¿Llegó tarde? sí",
+      paz_salvo_anterior: "NO",
+      acudiente_telefono: "300 123 4567",
+    });
   });
 
   it("editar manda el aspirante y la entrevista", () => {
@@ -131,6 +164,13 @@ describe("cuerpos que viajan al backend", () => {
       resultado: "aprobado",
       motivo_resultado: null,
     });
+  });
+
+  it("el motivo del resultado va con la primera letra en mayúscula", () => {
+    expect(
+      construirCuerpoResultado({ resultado: "no_aprobado", motivo_resultado: " no hay cupo " })
+        .motivo_resultado,
+    ).toBe("No hay cupo");
   });
 
   it("el resultado se llena desde la admisión", () => {

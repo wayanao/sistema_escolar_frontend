@@ -135,6 +135,14 @@ describe("utilidades de nómina", () => {
         });
     });
 
+    it("guarda las notas recortadas y con la primera letra en mayúscula", () => {
+        // Paso 4 del pedido del 2026-11-05.
+        expect(construirPayloadNomina({ empleado, ...formulario, notas: "  pago de marzo " }).notas).toBe(
+            "Pago de marzo",
+        );
+        expect(construirPayloadNomina({ empleado, ...formulario, notas: "" }).notas).toBe("");
+    });
+
     it("conserva que solo el salario base viaja sin respaldo numérico", () => {
         const payload = construirPayloadNomina({
             empleado,

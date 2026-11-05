@@ -11,6 +11,8 @@
 // números, que se guardan como el texto de su cuadro ("2") y se convierten al
 // enviar.
 
+import { primeraMayuscula } from "../nombres";
+
 const esObjeto = (valor) => valor !== null && typeof valor === "object" && !Array.isArray(valor);
 
 const valoresDe = (pregunta) => (pregunta.opciones ?? []).map((opcion) => opcion.valor);
@@ -118,26 +120,30 @@ export function contarRespondidas(seccion, respuestas) {
 
 const textoLimpio = (valor) => (typeof valor === "string" ? valor.trim() : "");
 
+// Lo escrito (un detalle, un "Otro", una respuesta de texto) va con la primera
+// letra en mayúscula. Pedido del usuario el 2026-11-05.
+const textoEscrito = (valor) => (typeof valor === "string" ? primeraMayuscula(valor) : "");
+
 function paraEnviar(pregunta, valor) {
   switch (pregunta.tipo) {
     case "si_no": {
       if (!valor?.respuesta) return undefined;
       const limpia = { respuesta: valor.respuesta };
-      const detalle = textoLimpio(valor.detalle);
+      const detalle = textoEscrito(valor.detalle);
       if (detalle && pregunta.detalle?.con === valor.respuesta) limpia.detalle = detalle;
       return limpia;
     }
     case "una": {
       if (!valor?.opcion) return undefined;
       const limpia = { opcion: valor.opcion };
-      const otro = textoLimpio(valor.otro);
+      const otro = textoEscrito(valor.otro);
       if (otro && pregunta.otro && valor.opcion === "otro") limpia.otro = otro;
       return limpia;
     }
     case "varias": {
       if (!valor?.marcadas?.length) return undefined;
       const limpia = { marcadas: valor.marcadas };
-      const otro = textoLimpio(valor.otro);
+      const otro = textoEscrito(valor.otro);
       if (otro && pregunta.otro && valor.marcadas.includes("otro")) limpia.otro = otro;
       return limpia;
     }
@@ -146,7 +152,7 @@ function paraEnviar(pregunta, valor) {
       return texto === "" ? undefined : Number(texto);
     }
     default: {
-      const texto = textoLimpio(valor);
+      const texto = textoEscrito(valor);
       return texto === "" ? undefined : texto;
     }
   }

@@ -44,12 +44,13 @@ export const normalizarEgreso = (
     { concepto, monto, fecha, categoria, notas },
     fechaPorDefecto
 ) => ({
-    // Con la primera letra en mayúscula; la categoría es de una lista fija.
+    // Concepto y notas con la primera letra en mayúscula; la categoría es de
+    // una lista fija.
     concepto: primeraMayuscula(concepto),
     monto: Number(monto),
     fecha: fecha || fechaPorDefecto,
     categoria: categoria.trim(),
-    notas: notas.trim(),
+    notas: primeraMayuscula(notas),
 });
 
 export const validarEgreso = ({ concepto, monto, categoria }) => {

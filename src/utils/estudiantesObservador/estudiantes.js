@@ -1,6 +1,6 @@
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
 import { SUBGRUPOS_SISBEN } from "../../constants/sisben";
-import { capitalizarNombreVisible, capitalizarPalabras } from "../nombres";
+import { capitalizarNombreVisible, capitalizarPalabras, primeraMayuscula } from "../nombres";
 import { obtenerValoracion } from "../valoracionesDesarrollo";
 
 export const ESTADOS_ESTUDIANTE = [
@@ -99,12 +99,35 @@ export function obtenerEtiquetaEstadoEstudiante(estado) {
 // inicio de cada palabra y el resto como se escribió («bogotá D.C.» →
 // «Bogotá D.C.»). Direcciones, documentos y lo demás van como se escriben.
 const CAMPOS_NOMBRE_PERSONA = new Set(["nombre", "apellido", "nombre_padre", "nombre_madre"]);
-const CAMPOS_LUGAR = new Set(["lugar_expedicion", "municipio", "barrio"]);
+// Lugares y nombres propios: mayúscula en cada palabra, el resto como se
+// escribió. El contacto de emergencia es un nombre con su teléfono.
+const CAMPOS_CADA_PALABRA = new Set([
+  "lugar_expedicion",
+  "municipio",
+  "barrio",
+  "colegio_anterior",
+  "eps",
+  "contacto_emergencia",
+]);
+// Textos libres, con la primera letra en mayúscula. Incluye lo que llega de la
+// entrevista de admisión (motivo del retiro, ocupaciones...), que se escribe
+// allá con la misma regla. El paz y salvo es "SI" o "NO" y no se toca.
+const CAMPOS_TEXTO_LIBRE = new Set([
+  "datos_medicos",
+  "punto_referencia",
+  "anio_cursado_anterior",
+  "pre_escolar_anterior",
+  "ebp_anterior",
+  "motivo_retiro_anterior",
+  "ocupacion_padre",
+  "ocupacion_madre",
+]);
 
 function textoParaGuardar(campo, valor) {
   if (typeof valor !== "string") return valor;
   if (CAMPOS_NOMBRE_PERSONA.has(campo)) return capitalizarNombreVisible(valor);
-  if (CAMPOS_LUGAR.has(campo)) return capitalizarPalabras(valor);
+  if (CAMPOS_CADA_PALABRA.has(campo)) return capitalizarPalabras(valor);
+  if (CAMPOS_TEXTO_LIBRE.has(campo)) return primeraMayuscula(valor);
   return valor;
 }
 

@@ -86,7 +86,8 @@ describe("useDetallePlaneacionAdmin", () => {
     });
     const { result, props } = await abrirDetalle();
 
-    act(() => result.current.setObservacion("  Muy buen trabajo  "));
+    // Paso 4 del pedido del 2026-11-05: primera letra en mayúscula.
+    act(() => result.current.setObservacion("  muy buen trabajo  "));
     await act(async () => {
       await result.current.marcarRevisado();
     });
@@ -116,7 +117,7 @@ describe("useDetallePlaneacionAdmin", () => {
     });
     const { result } = await abrirDetalle();
 
-    act(() => result.current.setObservacion("Amplía la actividad"));
+    act(() => result.current.setObservacion("amplía la actividad"));
     await act(async () => {
       await result.current.guardarObservacion();
     });

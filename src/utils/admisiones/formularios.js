@@ -6,7 +6,7 @@
 // manda). Los límites de texto son los `VARCHAR` de la tabla `admisiones`.
 
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
-import { capitalizarNombreVisible } from "../nombres";
+import { capitalizarNombreVisible, capitalizarPalabras, primeraMayuscula } from "../nombres";
 import { RESULTADO_NO_APROBADO, RESULTADO_PENDIENTE } from "./admisiones";
 
 // Lo que se pide al registrar (mismo orden que el backend).
@@ -118,15 +118,35 @@ const textoONulo = (valor) => {
   return texto === "" ? null : texto;
 };
 
-// Nombres de personas: se guardan con mayúscula inicial en cada palabra, como
-// se ven en las listas. Pedido del usuario el 2026-11-05. Lo demás (asistentes,
-// ocupaciones, observaciones) va como se escribe.
+// Pedido del usuario el 2026-11-05: que lo escrito lleve sus mayúsculas.
+// Nombres de personas, con mayúscula inicial en cada palabra, como se ven en
+// las listas.
 const CAMPOS_NOMBRE_PERSONA = new Set([
   "nombre",
   "apellido",
   "acudiente_nombre",
   "autoriza_nombre",
   "entrevistador",
+]);
+
+// El colegio anterior es un nombre propio: mayúscula en cada palabra y el resto
+// como se escribió.
+const CAMPOS_CADA_PALABRA = new Set(["colegio_anterior"]);
+
+// Textos libres: primera letra en mayúscula. Lo demás (documento, teléfono,
+// fechas y el paz y salvo, que es "SI" o "NO") va como se escribe.
+const CAMPOS_TEXTO_LIBRE = new Set([
+  "acudiente_parentesco",
+  "asistentes",
+  "anio_cursado_anterior",
+  "pre_escolar_anterior",
+  "ebp_anterior",
+  "motivo_retiro_anterior",
+  "ocupacion_padre",
+  "ocupacion_madre",
+  "vive_con",
+  "expectativas",
+  "observaciones",
 ]);
 
 function valorDeCampo(formulario, campo) {
@@ -138,6 +158,8 @@ function valorDeCampo(formulario, campo) {
   if (CAMPOS_NOMBRE_PERSONA.has(campo)) {
     return textoONulo(capitalizarNombreVisible(formulario[campo]));
   }
+  if (CAMPOS_CADA_PALABRA.has(campo)) return textoONulo(capitalizarPalabras(formulario[campo]));
+  if (CAMPOS_TEXTO_LIBRE.has(campo)) return textoONulo(primeraMayuscula(formulario[campo]));
   return textoONulo(formulario[campo]);
 }
 
@@ -168,10 +190,10 @@ export function resultadoDesdeAdmision(admision) {
   };
 }
 
-// `PUT /admisiones/{id}/resultado`.
+// `PUT /admisiones/{id}/resultado`. El motivo, con la primera letra en mayúscula.
 export const construirCuerpoResultado = ({ resultado, motivo_resultado }) => ({
   resultado,
-  motivo_resultado: textoONulo(motivo_resultado),
+  motivo_resultado: textoONulo(primeraMayuscula(motivo_resultado)),
 });
 
 // "No aprobado" exige el motivo, como la base (no discriminación).

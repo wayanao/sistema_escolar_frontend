@@ -154,15 +154,15 @@ describe("guardar el lote", () => {
   it("manda una sola celda por cruce, aunque se toque varias veces", async () => {
     const { result } = montar();
     act(() => result.current.alternarMarca(102, 5));
-    act(() => result.current.escribirNota(102, 5, "una"));
-    act(() => result.current.escribirNota(102, 5, "otra"));
+    act(() => result.current.escribirNota(102, 5, "Una"));
+    act(() => result.current.escribirNota(102, 5, "Otra"));
 
     await act(async () => {
       await result.current.guardarCambios();
     });
 
     expect(guardarMarcasMock).toHaveBeenCalledWith(12, [
-      { columna_id: 5, estudiante_id: 102, marcado: true, nota: "otra" },
+      { columna_id: 5, estudiante_id: 102, marcado: true, nota: "Otra" },
     ]);
   });
 

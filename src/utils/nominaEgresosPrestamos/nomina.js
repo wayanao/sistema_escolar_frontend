@@ -1,3 +1,4 @@
+import { primeraMayuscula } from "../nombres";
 import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje as pesos } from "./avisos";
 
 const aNumero = (valor) => parseFloat(valor) || 0;
@@ -77,7 +78,7 @@ export const construirPayloadNomina = ({
     deduccion_prestamos: aNumero(abonoPrestamo),
     otros_descuentos: aNumero(otrosDescuentos),
     bonificaciones: aNumero(bonificaciones),
-    notas,
+    notas: primeraMayuscula(notas),
 });
 
 // La tabla y el modal pintan la misma regla con dos paletas distintas.

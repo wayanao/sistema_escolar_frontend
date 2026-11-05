@@ -17,20 +17,22 @@ export function capitalizarNombreVisible(valor) {
     .join(" ");
 }
 
+// La primera letra, aunque vaya tras un signo de apertura («¿llegó?» →
+// «¿Llegó?»). Si empieza por un número no se toca: «2 cuadernos».
 const subirInicial = (texto) =>
-  texto.replace(/^\p{L}/u, (letra) => letra.toLocaleUpperCase("es-CO"));
+  texto.replace(/^([¿¡«“"'(]*)(\p{L})/u, (_, signos, letra) => signos + letra.toLocaleUpperCase("es-CO"));
 
 // Nombres de cosas (un tipo de pago, un producto, el concepto de un egreso, una
-// columna): primera letra en mayúscula y el resto como se escribió, para no
-// dañar siglas («uniforme ICFES» → «Uniforme ICFES»). Pedido del usuario el
-// 2026-11-05.
+// columna) y textos libres (notas, descripciones, observaciones): primera letra
+// en mayúscula y el resto como se escribió, para no dañar siglas («uniforme
+// ICFES» → «Uniforme ICFES»). Pedido del usuario el 2026-11-05.
 export function primeraMayuscula(valor) {
   return subirInicial(String(valor ?? "").trim());
 }
 
-// Lugares (barrio, municipio, lugar de expedición): mayúscula al inicio de cada
-// palabra y el resto como se escribió («villa del rosario» → «Villa Del
-// Rosario», «bogotá D.C.» → «Bogotá D.C.»).
+// Lugares y nombres propios (barrio, municipio, colegio anterior, EPS):
+// mayúscula al inicio de cada palabra y el resto como se escribió («villa del
+// rosario» → «Villa Del Rosario», «bogotá D.C.» → «Bogotá D.C.»).
 export function capitalizarPalabras(valor) {
   return String(valor ?? "")
     .trim()

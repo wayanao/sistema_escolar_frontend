@@ -95,6 +95,18 @@ describe("utilidades de préstamos", () => {
         });
     });
 
+    it("guarda las notas con la primera letra en mayúscula", () => {
+        // Paso 4 del pedido del 2026-11-05.
+        expect(
+            construirPayloadPrestamo({
+                profesorId: "3",
+                monto: 500000,
+                fecha: "2026-08-01",
+                notas: "  quincena de agosto ",
+            }).notas,
+        ).toBe("Quincena de agosto");
+    });
+
     it("advierte en la confirmación que el préstamo no se puede eliminar", () => {
         expect(
             mensajeConfirmacionPrestamo({

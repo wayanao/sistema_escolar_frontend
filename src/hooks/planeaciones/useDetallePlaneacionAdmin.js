@@ -5,6 +5,7 @@ import {
   listarObservacionesPlan,
   obtenerPlaneacionAdmin,
 } from "../../services/planeacionesApi";
+import { primeraMayuscula } from "../../utils/nombres";
 import { detalleError } from "../../utils/planeaciones/admin";
 import { actualizarNotificacionesPlaneadores } from "./notificacionesPlaneadoresSync";
 import useEliminacionImagenPlaneacionAdmin from "./useEliminacionImagenPlaneacionAdmin";
@@ -75,7 +76,8 @@ export default function useDetallePlaneacionAdmin({
   );
 
   const marcarRevisado = useCallback(async () => {
-    const texto = observacion.trim();
+    // El comentario al profesor va con la primera letra en mayúscula.
+    const texto = primeraMayuscula(observacion);
     if (!plan || accionRevision) return;
     const yaEstabaRevisada = plan.estado_revision === "revisado";
     setAccionRevision("aprobar");
@@ -139,7 +141,7 @@ export default function useDetallePlaneacionAdmin({
   ]);
 
   const guardarObservacion = useCallback(async () => {
-    const texto = observacion.trim();
+    const texto = primeraMayuscula(observacion);
     if (!plan || !texto || accionRevision) return;
     setAccionRevision("ajuste");
     setMensaje(null);

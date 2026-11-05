@@ -1,4 +1,5 @@
 import { fechaIsoColombia } from "../fechaColombia";
+import { primeraMayuscula } from "../nombres";
 import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje } from "./avisos";
 
 export const ESTADO_PRESTAMO_PENDIENTE = "Pendiente";
@@ -43,7 +44,7 @@ export const construirPayloadPrestamo = ({ profesorId, monto, fecha, notas }) =>
     monto,
     fecha,
     estado: ESTADO_PRESTAMO_PENDIENTE,
-    notas: notas.trim(),
+    notas: primeraMayuscula(notas),
 });
 
 // La pregunta va en el título de la ventana; este es el cuerpo.

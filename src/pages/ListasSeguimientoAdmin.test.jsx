@@ -134,14 +134,14 @@ describe("ListasSeguimientoAdmin", () => {
     await user.click(check);
     await user.type(
       screen.getAllByLabelText("Nota de Asistió a la cumbre para Pérez Juan")[0],
-      "ok",
+      "Ok",
     );
     await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
 
     await waitFor(() => expect(guardarMarcasMock).toHaveBeenCalled());
     const [, payload] = guardarMarcasMock.mock.calls[0];
     expect(payload).toHaveLength(1);
-    expect(payload[0]).toMatchObject({ estudiante_id: 101, nota: "ok" });
+    expect(payload[0]).toMatchObject({ estudiante_id: 101, nota: "Ok" });
   });
 
   it("marcar y desmarcar deja el botón apagado otra vez", async () => {

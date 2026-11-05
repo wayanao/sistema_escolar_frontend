@@ -117,13 +117,13 @@ describe("construirPayloadMarcas", () => {
     // rechaza el lote entero con 422 si una celda viene repetida, porque
     // escribe todo en una sentencia y PostgreSQL la aborta.
     const cambios = new Map();
-    cambios.set(claveCelda(101, 5), cambio(5, 101, true, "primera"));
-    cambios.set(claveCelda(101, 5), cambio(5, 101, false, "segunda"));
+    cambios.set(claveCelda(101, 5), cambio(5, 101, true, "Primera"));
+    cambios.set(claveCelda(101, 5), cambio(5, 101, false, "Segunda"));
 
     const payload = construirPayloadMarcas(cambios);
 
     expect(payload).toHaveLength(1);
-    expect(payload[0]).toMatchObject({ marcado: false, nota: "segunda" });
+    expect(payload[0]).toMatchObject({ marcado: false, nota: "Segunda" });
   });
 
   it("el mismo alumno en otra columna sí son dos celdas", () => {
@@ -141,6 +141,16 @@ describe("construirPayloadMarcas", () => {
     ]);
 
     expect(construirPayloadMarcas(cambios)[0].nota).toBe("Llegó tarde");
+  });
+
+  it("manda la nota con la primera letra en mayúscula", () => {
+    // Paso 4 del pedido del 2026-11-05. Después de guardar, la grilla se
+    // recarga del backend, así que se ve igual a como quedó.
+    const cambios = new Map([
+      [claveCelda(101, 5), cambio(5, 101, true, " pagó el 50% ")],
+    ]);
+
+    expect(construirPayloadMarcas(cambios)[0].nota).toBe("Pagó el 50%");
   });
 
   it("no corta la nota larga a la fuerza: de avisar se encarga la pantalla", () => {

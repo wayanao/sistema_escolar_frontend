@@ -100,6 +100,16 @@ describe("utilidades puras de tipos de pago", () => {
         expect(crearPayloadTipoPago("derechos ICFES", "100").nombre).toBe("Derechos ICFES");
     });
 
+    it("guarda la descripción con la primera letra en mayúscula, o null si está vacía", () => {
+        // Paso 4 del pedido del 2026-11-05. El backend solo la guarda y la muestra.
+        expect(
+            crearPayloadConfiguracion({ ...CONFIG_DEFAULT, descripcion: "  se cobra el día 5 " })
+                .descripcion,
+        ).toBe("Se cobra el día 5");
+        expect(crearPayloadConfiguracion({ ...CONFIG_DEFAULT, descripcion: "   " }).descripcion).toBeNull();
+        expect(crearPayloadConfiguracion({ ...CONFIG_DEFAULT, descripcion: null }).descripcion).toBeNull();
+    });
+
     it("construye los payloads existentes sin reinterpretar el backend", () => {
         expect(crearPayloadTipoPago("  Transporte  ", "125000.50")).toEqual({
             nombre: "Transporte",

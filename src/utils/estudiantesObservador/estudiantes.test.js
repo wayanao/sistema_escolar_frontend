@@ -49,7 +49,7 @@ describe("contratos puros de estudiantes", () => {
     expect(origen.email).toBe("");
   });
 
-  it("guarda nombres y lugares con sus mayúsculas, y lo demás como se escribió", () => {
+  it("guarda nombres y lugares con sus mayúsculas, sin tocar dirección, correo ni documento", () => {
     // Pedido del usuario el 2026-11-05: que los textos lleven las mayúsculas.
     const payload = limpiarPayloadEstudiante({
       nombre: "  maría   del pilar ",
@@ -62,7 +62,6 @@ describe("contratos puros de estudiantes", () => {
       direccion: "calle 10 # 5-20",
       email: "Ana.Gomez@Correo.com",
       documento_identidad: "abc-123",
-      ocupacion_padre: "conductor",
     });
 
     expect(payload).toMatchObject({
@@ -76,7 +75,37 @@ describe("contratos puros de estudiantes", () => {
       direccion: "calle 10 # 5-20",
       email: "Ana.Gomez@Correo.com",
       documento_identidad: "abc-123",
+    });
+  });
+
+  it("los textos libres van con la primera letra en mayúscula; EPS, colegio y contacto, en cada palabra", () => {
+    // Paso 4 del mismo pedido. El paz y salvo ("SI"/"NO") y el teléfono no se tocan.
+    const payload = limpiarPayloadEstudiante({
+      datos_medicos: "  alérgico a la penicilina ",
+      punto_referencia: "frente al parque",
       ocupacion_padre: "conductor",
+      ocupacion_madre: "",
+      motivo_retiro_anterior: "cambio de ciudad",
+      anio_cursado_anterior: "quinto",
+      eps: "nueva EPS",
+      colegio_anterior: "colegio san josé",
+      contacto_emergencia: "maría (tía) 300 123 4567",
+      paz_salvo_anterior: "SI",
+      telefono: "300 123 4567",
+    });
+
+    expect(payload).toMatchObject({
+      datos_medicos: "Alérgico a la penicilina",
+      punto_referencia: "Frente al parque",
+      ocupacion_padre: "Conductor",
+      ocupacion_madre: null,
+      motivo_retiro_anterior: "Cambio de ciudad",
+      anio_cursado_anterior: "Quinto",
+      eps: "Nueva EPS",
+      colegio_anterior: "Colegio San José",
+      contacto_emergencia: "María (Tía) 300 123 4567",
+      paz_salvo_anterior: "SI",
+      telefono: "300 123 4567",
     });
   });
 

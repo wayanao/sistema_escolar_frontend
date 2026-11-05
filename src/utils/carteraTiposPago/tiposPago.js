@@ -105,8 +105,10 @@ export const crearPayloadTipoPago = (nombre, valor) => ({
     valor: parseFloat(valor) || 0,
 });
 
+// La descripción, con la primera letra en mayúscula: el backend solo la guarda
+// y la muestra.
 export const crearPayloadConfiguracion = (config) => ({
-    descripcion: config.descripcion?.trim() || null,
+    descripcion: primeraMayuscula(config.descripcion) || null,
     tipo_cobro: config.tipo_cobro,
     fecha_limite: config.fecha_limite || null,
     dia_limite_mes: config.dia_limite_mes === "" ? null : Number(config.dia_limite_mes),
