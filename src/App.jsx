@@ -314,8 +314,9 @@ function Layout() {
     </>
   );
 
+  // Fondo "aula" (index.css): el del login, sutil, para admin y profesor.
   const layout = (
-    <div className="notranslate min-h-screen bg-slate-50" translate="no">
+    <div className="notranslate fondo-aula min-h-screen" translate="no">
       {esAdmin ? <MarcoAdmin>{contenido}</MarcoAdmin> : <MarcoProfesor>{contenido}</MarcoProfesor>}
     </div>
   );

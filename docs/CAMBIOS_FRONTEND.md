@@ -1,5 +1,32 @@
 # Cambios Frontend
 
+## 2026-11-05 - Admin y profesor: fondo "aula", al estilo del login
+
+Pedido del usuario: a las páginas blancas del admin y del profesor, "algún
+fondo estilo login, algo sutil pero que dé el ambiente de niños y ese
+ecosistema".
+
+- `index.css`, clase nueva `fondo-aula`: lila muy claro (#f6f3fb), la trama
+  de puntos del login en morado tenue, dibujos escolares de línea fina casi
+  transparentes (estrella, lápiz, avión de papel, A+, corazón, libro,
+  manzana, regla, nube y destellos; algunos con un toque lima o rosado) en
+  una baldosa de 600 px, y dos luces suaves en las esquinas que no se mueven
+  al bajar. Es solo CSS: un SVG dentro de la hoja de estilos, sin imágenes
+  nuevas ni peticiones. No se imprime (`@media print`).
+- `App.jsx`: el marco de admin y profesor usa `fondo-aula` en vez de
+  `bg-slate-50`. Super admin, landing y login no cambian.
+- Siete páginas pintaban encima su propio fondo de pantalla completa y lo
+  tapaban; ahora son transparentes: `DashboardProfesor`, `PlaneadorAnual`,
+  `ReportesAdmin`, `Admin` (estructura académica), `PlaneadoresClasesAdmin`,
+  `DetallePlaneacionAdmin` y `PlanDeClases` (tenía un degradado lila, blanco y
+  ámbar). Sus tarjetas blancas no cambian.
+- Las vistas para imprimir (certificados, boletín, listas) conservan su fondo
+  gris de pantalla.
+- Revisado con capturas del panel del admin, estructura académica y panel
+  del profesor (1440 × 900 y celular), con sesión simulada y sin backend. Se
+  bajó la intensidad de los dibujos después de la primera prueba, para que
+  sea sutil.
+
 ## 2026-11-05 - Login: aula grande y formulario burbuja, centrados
 
 Ajustes del usuario al login del mismo día, en cuatro pedidos: "en PC el

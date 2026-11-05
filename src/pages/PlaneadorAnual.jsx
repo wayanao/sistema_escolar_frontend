@@ -86,7 +86,7 @@ function PlaneadorAnual() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+    <div className="min-h-screen p-3 sm:p-6">
       <EncabezadoMallaCurricular
         asignacion={asignacion}
         estadoVisual={estadoVisual}

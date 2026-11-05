@@ -86,7 +86,7 @@ function DashboardProfesor() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Panel del Profesor

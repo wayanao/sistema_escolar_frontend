@@ -70,7 +70,7 @@ function DetallePlaneacionAdmin({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-1 sm:py-3">
+    <div className="min-h-screen py-1 sm:py-3">
       <div className="space-y-5">
         <div>
           <button

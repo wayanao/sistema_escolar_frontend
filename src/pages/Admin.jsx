@@ -57,7 +57,7 @@ function Admin() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 px-3 py-4 sm:px-5 sm:py-6">
+        <div className="min-h-screen px-3 py-4 sm:px-5 sm:py-6">
             <div className="mx-auto w-full max-w-[1500px]">
                 <header className="mb-4">
                     <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">

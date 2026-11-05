@@ -71,7 +71,7 @@ function ReportesAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Reportes y Estadísticas</h1>

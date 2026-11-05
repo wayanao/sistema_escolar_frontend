@@ -215,7 +215,7 @@ function PlanDeClases() {
   const estadoVisual = obtenerEstadoGuardadoVisual(estadoGuardado, cargando);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-amber-50/50 p-2 sm:p-6">
+    <div className="min-h-screen p-2 sm:p-6">
       <div className="space-y-6">
         <EncabezadoPlanProfesor
           estadoVisual={estadoVisual}
