@@ -204,6 +204,16 @@ describe("MenuLateralView", () => {
       expect(cartera).toHaveAttribute("aria-expanded", "false");
     });
 
+    it("pone el riel al lado de la página por el modo, no por un ancho de Tailwind", () => {
+      // Una tablet Android de 600 a 767 px ya usa el riel; si el marco
+      // dependiera de `md:` (768), el riel quedaría encima de la página.
+      renderMenu({ modo: "riel" });
+
+      const marco = menuPrincipal().closest("aside").parentElement;
+      expect(marco).toHaveClass("flex", "min-h-screen");
+      expect(marco.className).not.toMatch(/\bmd:/);
+    });
+
     it("en tablet vertical no ofrece abrir el menú completo", () => {
       renderMenu({ modo: "riel", puedeAlternar: false });
 

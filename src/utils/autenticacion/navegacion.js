@@ -111,6 +111,12 @@ export function obtenerIdItemNavegacionActivo(items, pathname) {
   return items.find((item) => esRutaNavegacionActiva(item, pathname))?.id || null;
 }
 
+// Si algún grupo se abre en un panel al lado del riel (los del admin). Sin
+// ellos, el riel puede desplazarse cuando la pantalla es baja.
+export function tienePanelesLaterales(items) {
+  return items.some((item) => item.type === "group" && !item.siempreAbierto);
+}
+
 // Las pantallas a las que lleva el menú, en su orden y sin los grupos.
 export function listarDestinosNavegacion(items) {
   return items.flatMap((item) => (item.type === "group" ? item.children : [item]));

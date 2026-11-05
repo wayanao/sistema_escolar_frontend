@@ -41,6 +41,10 @@ describe("useMenuLateral", () => {
   it.each([
     [390, 844, "celular", false],
     [844, 390, "celular", false],
+    [599, 960, "celular", false],
+    // Tablets Android en vertical: miden menos que un iPad (2026-11-05).
+    [600, 960, "riel", false],
+    [720, 1152, "riel", false],
     [820, 1180, "riel", false],
     [1180, 820, "riel", true],
     [1440, 900, "abierto", true],
@@ -51,6 +55,24 @@ describe("useMenuLateral", () => {
 
     expect(result.current.modo).toBe(modo);
     expect(result.current.puedeAlternar).toBe(puedeAlternar);
+  });
+
+  it("el riel que se desplaza (el del profesor) pide menos alto: una tablet acostada baja lo usa", () => {
+    simularPantalla(1000, 510);
+
+    const admin = renderHook(() => useMenuLateral());
+    const profesor = renderHook(() => useMenuLateral({ rielDesplazable: true }));
+
+    expect(admin.result.current.modo).toBe("celular");
+    expect(profesor.result.current.modo).toBe("riel");
+  });
+
+  it("un celular acostado sigue siendo celular, también para el profesor", () => {
+    simularPantalla(844, 390);
+
+    const { result } = renderHook(() => useMenuLateral({ rielDesplazable: true }));
+
+    expect(result.current.modo).toBe("celular");
   });
 
   it("sin matchMedia se comporta como en un PC", () => {
