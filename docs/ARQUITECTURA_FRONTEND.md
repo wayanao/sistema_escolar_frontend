@@ -680,8 +680,9 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   evitar traducciones automaticas en Android/Chrome.
 - La campana y el selector de año van en la barra de arriba (blanca desde
   tablet, oscura en celular); «Cerrar sesión», en la tarjeta del usuario.
-- `Planilla` usa vista de tarjetas en movil y tabla en escritorio; las etiquetas
-  tecnicas se formatean y se protegen con `translate="no"`.
+- `Planilla` usa vista de tarjetas en movil y tabla desde 600 px (tablets y
+  escritorio); las etiquetas tecnicas se formatean y se protegen con
+  `translate="no"`.
 - `IngresoBoletinProfesor` reutiliza el criterio de planilla: oculta notas
   internas y evita traduccion automatica de tipos de nota.
 - `Asistencia` muestra estados de carga/reintento para historial y aviso cuando

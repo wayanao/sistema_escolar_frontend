@@ -8,7 +8,10 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Notas de Estudiantes</h2>
             </div>
 
-            <div className="md:hidden">
+            {/* Tarjetas solo en el celular. Desde 600 px, la tabla: muchas
+                tablets Android miden de 600 a 767 px en vertical, y el usuario
+                pidió que ahí la planilla se vea como en el PC (2026-11-05). */}
+            <div className="min-[600px]:hidden">
                 {estudiantes.length > 0 ? (
                     estudiantes.map((est, index) => (
                         <PlanillaMobileCard
@@ -31,10 +34,10 @@ function TablaNotasPlanilla({ estudiantes, columnas, guardarNota, tipoEvaluacion
                 )}
             </div>
 
-            {/* En tablet (de md a xl) las columnas fijas -número, estudiante y
-                promedio- son más angostas y sin íconos: el menú lateral ya ocupa
-                su riel y las notas necesitan el espacio. Desde xl, como en PC. */}
-            <div className="hidden w-full overflow-auto md:block">
+            {/* En tablet (de 600 px a xl) las columnas fijas -número, estudiante
+                y promedio- son más angostas y sin íconos: las notas necesitan el
+                espacio. Desde xl, como en PC. */}
+            <div className="hidden w-full overflow-auto min-[600px]:block">
                 <table className="w-full min-w-max border-separate border-spacing-0">
                     <thead className="shadow-sm">
                         <tr>

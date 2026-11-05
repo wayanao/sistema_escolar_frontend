@@ -805,10 +805,13 @@ Estado actual de componentes y paginas del frontend.
 - `components/planilla/PlanillaRow.jsx`
 - `components/planilla/SelectorTipoEvaluacion.jsx`
 - `components/planilla/GestionTiposEvaluacion.jsx`
-- `components/planilla/TablaNotasPlanilla.jsx`: en tablet (de `md` a `xl`)
-  las columnas fijas son más angostas (número de 40 px, nombre de hasta 150 px
-  en dos líneas, promedio de 96 px) y sin íconos en el encabezado, y la
-  página no suma su margen lateral; desde `xl`, como en PC (2026-11-04).
+- `components/planilla/TablaNotasPlanilla.jsx`: tarjetas solo por debajo de
+  600 px; desde ahí, la tabla, también en tablets Android pequeñas (de 600 a
+  767 px en vertical, pedido el 2026-11-05; antes la tabla empezaba en `md`).
+  En tablet (de 600 px a `xl`) las columnas fijas son más angostas (número de
+  40 px, nombre de hasta 150 px en dos líneas, promedio de 96 px) y sin
+  íconos en el encabezado, y la página no suma su margen lateral; desde
+  `xl`, como en PC (2026-11-04).
 - `components/planilla/BotonSubnotasPlanilla.jsx`
 - `components/planilla/CeldaCalculadaPlanilla.jsx`
 - `components/planilla/ModalSubnotasPlanilla.jsx`

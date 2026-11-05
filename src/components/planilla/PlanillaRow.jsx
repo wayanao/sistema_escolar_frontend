@@ -41,8 +41,9 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
 
     return (
         <tr className="hover:bg-gray-50">
-            {/* En tablet (de md a xl) las columnas fijas son más angostas y el
-                nombre largo baja a dos líneas: así queda espacio para las notas. */}
+            {/* En tablet (de 600 px a xl) las columnas fijas son más angostas y
+                el nombre largo baja a dos líneas: así queda espacio para las notas.
+                La fila solo se ve en la tabla, desde 600 px. */}
             <td className="sticky left-0 z-20 w-10 min-w-10 max-w-10 border-b border-r border-b-gray-100/70 border-r-purple-300 bg-purple-200 px-1 py-4 text-center xl:w-16 xl:min-w-16 xl:max-w-16 xl:px-3">
                 <span className="text-sm font-semibold tabular-nums text-purple-700">
                     {numero}
@@ -162,7 +163,7 @@ function PlanillaRow({ est, numero, columnas, guardarNota, tipoEvaluacion, forma
                     );
                 })}
 
-            <td className="border-b border-l border-b-gray-100/70 border-l-emerald-100/50 bg-white px-2 py-4 text-center md:sticky md:right-0 md:z-10 xl:px-6">
+            <td className="sticky right-0 z-10 border-b border-l border-b-gray-100/70 border-l-emerald-100/50 bg-white px-2 py-4 text-center xl:px-6">
                 <span className={`text-sm font-semibold ${promedioClass}`}>
                     {tipoEvaluacion === "desarrollo" ? (
                         <span

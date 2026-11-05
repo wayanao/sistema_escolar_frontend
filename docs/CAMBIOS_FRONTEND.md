@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-11-05 - Planilla: tabla como en el PC en tablets pequeñas
+
+Pedido por el usuario: en una tablet Android pequeña (Tab 11) la planilla del
+profesor salía en tarjetas, como en el celular, y la quiere «así como en el
+PC». El menú no cambia: esa tablet sigue con la barra de abajo del celular
+(se probó bajar el corte del menú a 600 px y el usuario prefirió dejarlo).
+
+- La planilla pasa de tarjetas a tabla desde **600 px** de ancho, en vez de
+  768. Muchas tablets Android miden de 600 a 767 px en vertical; los
+  celulares en vertical, menos de 500.
+- De 600 px a `xl` la tabla usa las columnas angostas de tablet del
+  2026-11-04, y la página no suma su margen lateral.
+- La columna del promedio queda fija al desplazar de lado en cualquier ancho
+  de la tabla (antes, solo desde 768).
+- Archivos: `TablaNotasPlanilla.jsx`, `PlanillaRow.jsx`, `Planilla.jsx` y la
+  prueba de la tabla.
+- Verificación: pruebas de la planilla → **79 en 8 archivos**.
+  `pnpm run check:deploy` → **3319 pruebas en 401 archivos**, lint y build
+  correctos, en una sola corrida. En el CSS generado, la regla de 600 px va
+  antes que la de `xl`: en PC la planilla conserva su margen. Sin probar
+  todavía en la tablet.
+
 ## 2026-11-04 - Planilla: más espacio para las notas en tablet
 
 Pedido por el usuario: en tablet, con el riel del menú lateral, «el espacio

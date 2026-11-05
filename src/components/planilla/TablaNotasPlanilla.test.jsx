@@ -88,6 +88,31 @@ describe("TablaNotasPlanilla", () => {
         expect(within(tabla).getByRole("spinbutton")).toHaveClass("max-w-[56px]", "xl:max-w-[70px]");
     });
 
+    it("desde 600 px muestra la tabla, como en el PC: las tarjetas quedan para el celular", () => {
+        // Pedido del usuario el 2026-11-05: en tablets Android pequeñas (de 600
+        // a 767 px en vertical) la planilla salía en tarjetas, como un celular.
+        const estudiantes = [
+            { estudiante_id: 501, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4 }, promedio: "4.00" },
+        ];
+        render(
+            <TablaNotasPlanilla
+                estudiantes={estudiantes}
+                columnas={["quiz"]}
+                guardarNota={vi.fn()}
+                tipoEvaluacion="numerica"
+                formatearEtiquetaColumna={formatearEtiquetaColumna}
+            />,
+        );
+        const tabla = screen.getByRole("table");
+        const [tarjeta] = screen.getAllByText("Ruiz Ana").filter((nombre) => !tabla.contains(nombre));
+
+        expect(tabla.parentElement).toHaveClass("hidden", "min-[600px]:block");
+        expect(tabla.parentElement.className).not.toMatch(/\bmd:/);
+        expect(tarjeta.closest(".min-\\[600px\\]\\:hidden")).not.toBeNull();
+        // El promedio queda fijo al desplazar de lado en cualquier ancho de la tabla.
+        expect(within(tabla).getByText("4.00").closest("td")).toHaveClass("sticky", "right-0");
+    });
+
     it("muestra el estado vacío cuando no hay estudiantes", () => {
         render(
             <TablaNotasPlanilla

@@ -193,8 +193,9 @@ Boletín Final y «Cerrar sesión».
 
 Notas de UX por ruta profesor:
 
-- `/planilla`: en movil usa tarjetas por estudiante; en escritorio conserva
-  tabla. El promedio se colorea verde/rojo segun umbral `3.0`.
+- `/planilla`: en movil usa tarjetas por estudiante; desde 600 px de ancho
+  (tablets y escritorio) conserva tabla. El promedio se colorea verde/rojo
+  segun umbral `3.0`.
 - `/asistencia`: muestra carga/reintento del historial y aviso si la asistencia
   del dia ya fue tomada.
 - `/Formulario`: **oculta desde el 2026-09-10**. Salio del menu -escritorio y
