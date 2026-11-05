@@ -61,4 +61,16 @@ describe("FormularioMateria", () => {
 
         expect(onCancelarEdicion).toHaveBeenCalledTimes(1);
     });
+
+    it("mientras guarda, el botón dice «Guardando...» y no se puede pulsar", async () => {
+        const onGuardar = vi.fn();
+        const user = userEvent.setup();
+        render(<FormularioMateria {...PROPS_BASE} guardando onGuardar={onGuardar} />);
+
+        expect(screen.queryByRole("button", { name: "Crear Materia" })).not.toBeInTheDocument();
+        const boton = screen.getByRole("button", { name: "Guardando..." });
+        expect(boton).toBeDisabled();
+        await user.click(boton);
+        expect(onGuardar).not.toHaveBeenCalled();
+    });
 });

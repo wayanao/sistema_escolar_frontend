@@ -113,6 +113,10 @@ Estado actual de componentes y paginas del frontend.
   "Cambiar igual" o "Crear una materia nueva".
 - `components/administracionAcademica/profesores/CrearProfesor.jsx`: contenedor
   de creación, edición, búsqueda, estado y listado de profesores.
+- Profesores, cursos y materias (2026-11-05): mientras guardan, el botón de
+  crear o actualizar (y "Cambiar igual" de materias) se desactiva y dice
+  "Guardando...". El hook de comandos de cada uno (`guardando`, `enCursoRef`)
+  frena un segundo clic: antes, el doble clic creaba el registro dos veces.
 - `pages/OrdenBoletin.jsx`: raíz de composición del orden responsive de
   materias por curso para impresión de boletines.
 - `components/administracionAcademica/horarios/HorariosProfesores.jsx` y

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     actualizarMateria,
     cambiarEstadoMateria,
@@ -24,6 +24,12 @@ export default function useComandosMaterias({
     const [editId, setEditId] = useState(null);
     const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
     const [cambioNombrePendiente, setCambioNombrePendiente] = useState(null);
+    // Un solo guardado a la vez: con doble clic se creaba la misma materia dos veces
+    // (pedido del usuario, 2026-11-05). El ref frena el segundo clic aunque el
+    // botón todavía no se haya desactivado; `guardando` lo desactiva y muestra
+    // "Guardando...". También vale para "Cambiar igual" del aviso.
+    const [guardando, setGuardando] = useState(false);
+    const enCursoRef = useRef(false);
 
     const actualizarCampo = (campo, valor) => {
         setFormulario((actual) => ({ ...actual, [campo]: valor }));
@@ -42,6 +48,7 @@ export default function useComandosMaterias({
     };
 
     const guardarMateria = async () => {
+        if (enCursoRef.current) return;
         const { nombre, estado } = formulario;
         if (!nombre) {
             window.alert("Falta nombre");
@@ -50,6 +57,8 @@ export default function useComandosMaterias({
 
         const payload = construirPayloadMateria({ nombre, estado });
 
+        enCursoRef.current = true;
+        setGuardando(true);
         try {
             if (editId) {
                 await actualizarMateria(editId, payload);
@@ -73,13 +82,18 @@ export default function useComandosMaterias({
 
             console.error(error);
             window.alert(obtenerMensajeErrorMateria(error, "No se pudo guardar la materia"));
+        } finally {
+            enCursoRef.current = false;
+            setGuardando(false);
         }
     };
 
     const confirmarCambioNombre = async () => {
-        if (!cambioNombrePendiente) return;
+        if (!cambioNombrePendiente || enCursoRef.current) return;
 
         const { materiaId, payload } = cambioNombrePendiente;
+        enCursoRef.current = true;
+        setGuardando(true);
         try {
             await actualizarMateria(materiaId, {
                 ...payload,
@@ -89,6 +103,9 @@ export default function useComandosMaterias({
         } catch (error) {
             console.error(error);
             window.alert(obtenerMensajeErrorMateria(error, "No se pudo guardar la materia"));
+        } finally {
+            enCursoRef.current = false;
+            setGuardando(false);
         }
     };
 
@@ -143,6 +160,7 @@ export default function useComandosMaterias({
     return {
         ...formulario,
         editId,
+        guardando,
         avisoCambioNombre: cambioNombrePendiente
             ? { mensaje: cambioNombrePendiente.mensaje }
             : null,

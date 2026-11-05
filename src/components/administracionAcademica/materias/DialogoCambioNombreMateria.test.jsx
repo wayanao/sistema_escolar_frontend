@@ -29,4 +29,27 @@ describe("DialogoCambioNombreMateria", () => {
         expect(onCambiarIgual).toHaveBeenCalledTimes(1);
         expect(onCrearNueva).toHaveBeenCalledTimes(1);
     });
+
+    it("mientras guarda, «Cambiar igual» dice «Guardando...» y nada se puede pulsar", async () => {
+        const onCambiarIgual = vi.fn();
+        const onCrearNueva = vi.fn();
+        const user = userEvent.setup();
+        render(
+            <DialogoCambioNombreMateria
+                mensaje="Esta materia se usa en 2026."
+                guardando
+                onCambiarIgual={onCambiarIgual}
+                onCrearNueva={onCrearNueva}
+            />,
+        );
+
+        const guardando = screen.getByRole("button", { name: "Guardando..." });
+        const crearNueva = screen.getByRole("button", { name: "Crear una materia nueva" });
+        expect(guardando).toBeDisabled();
+        expect(crearNueva).toBeDisabled();
+        await user.click(guardando);
+        await user.click(crearNueva);
+        expect(onCambiarIgual).not.toHaveBeenCalled();
+        expect(onCrearNueva).not.toHaveBeenCalled();
+    });
 });

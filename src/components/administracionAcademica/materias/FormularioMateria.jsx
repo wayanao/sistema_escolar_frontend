@@ -4,6 +4,7 @@ export default function FormularioMateria({
     editId,
     nombre,
     estado,
+    guardando = false,
     onActualizarCampo,
     onCancelarEdicion,
     onGuardar,
@@ -43,9 +44,10 @@ export default function FormularioMateria({
             <div className="flex gap-2">
                 <button
                     onClick={onGuardar}
-                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition"
+                    disabled={guardando}
+                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {editId ? "Actualizar Materia" : "Crear Materia"}
+                    {guardando ? "Guardando..." : editId ? "Actualizar Materia" : "Crear Materia"}
                 </button>
                 {editId && (
                     <button

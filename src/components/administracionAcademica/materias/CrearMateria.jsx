@@ -16,6 +16,7 @@ function CrearMateria() {
     editId,
     nombre,
     estado,
+    guardando,
     avisoCambioNombre,
     actualizarCampo,
     guardarMateria,
@@ -32,6 +33,7 @@ function CrearMateria() {
         editId={editId}
         nombre={nombre}
         estado={estado}
+        guardando={guardando}
         onActualizarCampo={actualizarCampo}
         onCancelarEdicion={cancelarEdicion}
         onGuardar={guardarMateria}
@@ -46,6 +48,7 @@ function CrearMateria() {
       {avisoCambioNombre && (
         <DialogoCambioNombreMateria
           mensaje={avisoCambioNombre.mensaje}
+          guardando={guardando}
           onCambiarIgual={confirmarCambioNombre}
           onCrearNueva={crearMateriaNuevaDesdeAviso}
         />

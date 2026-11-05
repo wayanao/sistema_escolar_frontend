@@ -21,6 +21,7 @@ function CrearProfesor() {
         password,
         sueldo,
         estado,
+        guardando,
         actualizarCampo,
         guardarProfesor,
         iniciarEdicion,
@@ -40,6 +41,7 @@ function CrearProfesor() {
                 password={password}
                 sueldo={sueldo}
                 estado={estado}
+                guardando={guardando}
                 onActualizarCampo={actualizarCampo}
                 onCancelarEdicion={cancelarEdicion}
                 onGuardar={guardarProfesor}

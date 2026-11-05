@@ -127,4 +127,16 @@ describe("FormularioCurso", () => {
 
         expect(screen.getByDisplayValue("Ana Gómez")).toBeInTheDocument();
     });
+
+    it("mientras guarda, el botón dice «Guardando...» y no se puede pulsar", async () => {
+        const onGuardar = vi.fn();
+        const user = userEvent.setup();
+        render(<FormularioCurso {...PROPS_BASE}  guardando onGuardar={onGuardar} />);
+
+        expect(screen.queryByRole("button", { name: "Crear Curso" })).not.toBeInTheDocument();
+        const boton = screen.getByRole("button", { name: "Guardando..." });
+        expect(boton).toBeDisabled();
+        await user.click(boton);
+        expect(onGuardar).not.toHaveBeenCalled();
+    });
 });

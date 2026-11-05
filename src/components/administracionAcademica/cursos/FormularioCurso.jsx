@@ -14,6 +14,7 @@ export default function FormularioCurso({
     nivel,
     director_grupo_id: directorGrupoId,
     profesores = [],
+    guardando = false,
     onActualizarCampo,
     onCancelarEdicion,
     onGuardar,
@@ -96,9 +97,10 @@ export default function FormularioCurso({
             <div className="flex gap-2">
                 <button
                     onClick={onGuardar}
-                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
+                    disabled={guardando}
+                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {editId ? "Actualizar Curso" : "Crear Curso"}
+                    {guardando ? "Guardando..." : editId ? "Actualizar Curso" : "Crear Curso"}
                 </button>
                 {editId && (
                     <button

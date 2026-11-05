@@ -1,5 +1,6 @@
 export default function DialogoCambioNombreMateria({
     mensaje,
+    guardando = false,
     onCambiarIgual,
     onCrearNueva,
 }) {
@@ -27,16 +28,18 @@ export default function DialogoCambioNombreMateria({
                     <button
                         type="button"
                         onClick={onCrearNueva}
-                        className="rounded-lg border border-purple-600 px-4 py-2 font-semibold text-purple-700 hover:bg-purple-50"
+                        disabled={guardando}
+                        className="rounded-lg border border-purple-600 px-4 py-2 font-semibold text-purple-700 hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Crear una materia nueva
                     </button>
                     <button
                         type="button"
                         onClick={onCambiarIgual}
-                        className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-800"
+                        disabled={guardando}
+                        className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        Cambiar igual
+                        {guardando ? "Guardando..." : "Cambiar igual"}
                     </button>
                 </div>
             </div>

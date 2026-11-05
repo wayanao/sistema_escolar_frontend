@@ -128,6 +128,43 @@ describe("useComandosProfesores", () => {
         expect(result.current.editId).toBeNull();
     });
 
+    it("con doble clic crea el profesor una sola vez y avisa que está guardando", async () => {
+        let terminar;
+        crearMock.mockImplementationOnce(() => new Promise((resolve) => {
+            terminar = resolve;
+        }));
+        const { result } = crearHook();
+        completarFormulario(result);
+        expect(result.current.guardando).toBe(false);
+
+        let primero;
+        act(() => {
+            primero = result.current.guardarProfesor();
+            void result.current.guardarProfesor();
+        });
+
+        expect(crearMock).toHaveBeenCalledTimes(1);
+        expect(result.current.guardando).toBe(true);
+
+        await act(async () => {
+            terminar({});
+            await primero;
+        });
+        expect(result.current.guardando).toBe(false);
+        expect(window.alert).toHaveBeenCalledTimes(1);
+    });
+
+    it("si falta un dato no frena el siguiente intento", async () => {
+        const { result } = crearHook();
+
+        await act(async () => result.current.guardarProfesor());
+        completarFormulario(result);
+        await act(async () => result.current.guardarProfesor());
+
+        expect(crearMock).toHaveBeenCalledTimes(1);
+        expect(result.current.guardando).toBe(false);
+    });
+
     it("actualiza permitiendo contraseña vacía durante la edición", async () => {
         const { result, recargar } = crearHook();
         act(() => result.current.iniciarEdicion(PROFESOR));

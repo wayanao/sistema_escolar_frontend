@@ -10,6 +10,7 @@ export default function FormularioProfesor({
     password,
     sueldo,
     estado,
+    guardando = false,
     onActualizarCampo,
     onCancelarEdicion,
     onGuardar,
@@ -119,9 +120,10 @@ export default function FormularioProfesor({
                 <div className="flex gap-2">
                     <button
                         type="submit"
-                        className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition"
+                        disabled={guardando}
+                        className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {editId ? "Actualizar Profesor" : "Crear Profesor"}
+                        {guardando ? "Guardando..." : editId ? "Actualizar Profesor" : "Crear Profesor"}
                     </button>
                     {editId && (
                         <button

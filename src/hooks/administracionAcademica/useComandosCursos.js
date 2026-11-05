@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     actualizarCurso,
     cambiarEstadoCurso,
@@ -29,6 +29,12 @@ export default function useComandosCursos({
 }) {
     const [editId, setEditId] = useState(null);
     const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
+    // Un solo guardado a la vez: con doble clic se creaba el mismo curso dos veces
+    // (pedido del usuario, 2026-11-05). El ref frena el segundo clic aunque el
+    // botón todavía no se haya desactivado; `guardando` lo desactiva y muestra
+    // "Guardando...".
+    const [guardando, setGuardando] = useState(false);
+    const enCursoRef = useRef(false);
 
     const actualizarCampo = (campo, valor) => {
         setFormulario((actual) => ({ ...actual, [campo]: valor }));
@@ -40,12 +46,15 @@ export default function useComandosCursos({
     };
 
     const guardarCurso = async () => {
+        if (enCursoRef.current) return;
         const { nombre, jornada, estado, nivel, director_grupo_id: directorGrupoId } = formulario;
         if (!nombre) {
             window.alert("Falta nombre");
             return;
         }
 
+        enCursoRef.current = true;
+        setGuardando(true);
         try {
             const payload = construirPayloadCurso({ nombre, jornada, estado, nivel, directorGrupoId });
 
@@ -65,6 +74,9 @@ export default function useComandosCursos({
         } catch (error) {
             console.error(error);
             window.alert(obtenerMensajeErrorCurso(error, "No se pudo guardar el curso"));
+        } finally {
+            enCursoRef.current = false;
+            setGuardando(false);
         }
     };
 
@@ -115,6 +127,7 @@ export default function useComandosCursos({
     return {
         ...formulario,
         editId,
+        guardando,
         actualizarCampo,
         guardarCurso,
         iniciarEdicion,

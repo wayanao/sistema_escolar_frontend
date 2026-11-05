@@ -24,6 +24,7 @@ function CrearCurso() {
         estado,
         nivel,
         director_grupo_id: directorGrupoId,
+        guardando,
         actualizarCampo,
         guardarCurso,
         iniciarEdicion,
@@ -52,6 +53,7 @@ function CrearCurso() {
                     nivel={nivel}
                     director_grupo_id={directorGrupoId}
                     profesores={profesores}
+                    guardando={guardando}
                     onActualizarCampo={actualizarCampo}
                     onCancelarEdicion={cancelarEdicion}
                     onGuardar={guardarCurso}

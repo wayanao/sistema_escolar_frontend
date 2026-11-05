@@ -132,6 +132,48 @@ describe("useComandosCursos", () => {
         expect(result.current.jornada).toBe("Mañana");
     });
 
+    it("con doble clic crea el curso una sola vez y avisa que está guardando", async () => {
+        let terminar;
+        crearMock.mockImplementationOnce(() => new Promise((resolve) => {
+            terminar = resolve;
+        }));
+        const { result } = crearHook();
+        act(() => {
+            result.current.actualizarCampo("nombre", "6A");
+        });
+        expect(result.current.guardando).toBe(false);
+
+        let primero;
+        act(() => {
+            primero = result.current.guardarCurso();
+            void result.current.guardarCurso();
+        });
+
+        expect(crearMock).toHaveBeenCalledTimes(1);
+        expect(result.current.guardando).toBe(true);
+
+        await act(async () => {
+            terminar({});
+            await primero;
+        });
+        expect(result.current.guardando).toBe(false);
+        expect(window.alert).toHaveBeenCalledTimes(1);
+    });
+
+    it("si falla, vuelve a dejar guardar", async () => {
+        crearMock.mockRejectedValueOnce(new Error("red"));
+        const { result } = crearHook();
+        act(() => {
+            result.current.actualizarCampo("nombre", "6A");
+        });
+
+        await act(async () => result.current.guardarCurso());
+        expect(result.current.guardando).toBe(false);
+        await act(async () => result.current.guardarCurso());
+
+        expect(crearMock).toHaveBeenCalledTimes(2);
+    });
+
     it("crea con el nivel seleccionado", async () => {
         const { result } = crearHook();
         act(() => {

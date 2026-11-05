@@ -93,6 +93,34 @@ describe("useComandosMaterias", () => {
         expect(result.current.nombre).toBe("");
     });
 
+    it("con doble clic crea la materia una sola vez y avisa que está guardando", async () => {
+        let terminar;
+        crearMock.mockImplementationOnce(() => new Promise((resolve) => {
+            terminar = resolve;
+        }));
+        const { result } = crearHook();
+        act(() => {
+            result.current.actualizarCampo("nombre", "Química");
+        });
+        expect(result.current.guardando).toBe(false);
+
+        let primero;
+        act(() => {
+            primero = result.current.guardarMateria();
+            void result.current.guardarMateria();
+        });
+
+        expect(crearMock).toHaveBeenCalledTimes(1);
+        expect(result.current.guardando).toBe(true);
+
+        await act(async () => {
+            terminar({});
+            await primero;
+        });
+        expect(result.current.guardando).toBe(false);
+        expect(window.alert).toHaveBeenCalledTimes(1);
+    });
+
     it("actualiza la materia en edición con el mismo contrato", async () => {
         const { result, recargar } = crearHook();
         act(() => result.current.iniciarEdicion(MATERIA));
@@ -175,6 +203,44 @@ describe("useComandosMaterias", () => {
         expect(recargar).toHaveBeenCalledTimes(1);
         expect(result.current.avisoCambioNombre).toBeNull();
         expect(result.current.editId).toBeNull();
+    });
+
+    it("con doble clic en «Cambiar igual» envía el cambio una sola vez", async () => {
+        actualizarMock.mockRejectedValueOnce({
+            response: {
+                status: 409,
+                data: {
+                    detail: {
+                        codigo: "materia_usada_en_otro_anio",
+                        mensaje: "Esta materia se usa en 2026.",
+                    },
+                },
+            },
+        });
+        const { result } = crearHook();
+        act(() => {
+            result.current.iniciarEdicion(MATERIA);
+            result.current.actualizarCampo("nombre", "Física");
+        });
+        await act(async () => result.current.guardarMateria());
+
+        let terminar;
+        actualizarMock.mockImplementationOnce(() => new Promise((resolve) => {
+            terminar = resolve;
+        }));
+        let primero;
+        act(() => {
+            primero = result.current.confirmarCambioNombre();
+            void result.current.confirmarCambioNombre();
+        });
+
+        expect(actualizarMock).toHaveBeenCalledTimes(2);
+        expect(result.current.guardando).toBe(true);
+        await act(async () => {
+            terminar({});
+            await primero;
+        });
+        expect(result.current.guardando).toBe(false);
     });
 
     it("pasa a creación con el nombre propuesto sin crear hasta que el usuario guarde", async () => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     actualizarProfesor,
     cambiarEstadoProfesor,
@@ -28,6 +28,12 @@ export default function useComandosProfesores({
 }) {
     const [editId, setEditId] = useState(null);
     const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
+    // Un solo guardado a la vez: con doble clic se creaba el mismo profesor dos veces
+    // (pedido del usuario, 2026-11-05). El ref frena el segundo clic aunque el
+    // botón todavía no se haya desactivado; `guardando` lo desactiva y muestra
+    // "Guardando...".
+    const [guardando, setGuardando] = useState(false);
+    const enCursoRef = useRef(false);
 
     const actualizarCampo = (campo, valor) => {
         setFormulario((actual) => ({ ...actual, [campo]: valor }));
@@ -39,6 +45,7 @@ export default function useComandosProfesores({
     };
 
     const guardarProfesor = async () => {
+        if (enCursoRef.current) return;
         const {
             nombre,
             apellido,
@@ -55,6 +62,8 @@ export default function useComandosProfesores({
             return;
         }
 
+        enCursoRef.current = true;
+        setGuardando(true);
         try {
             const payload = construirPayloadProfesor({
                 nombre,
@@ -79,6 +88,9 @@ export default function useComandosProfesores({
         } catch (error) {
             console.error("FETCH ERROR:", error);
             window.alert(obtenerMensajeErrorApi(error, "No se pudo guardar el profesor"));
+        } finally {
+            enCursoRef.current = false;
+            setGuardando(false);
         }
     };
 
@@ -130,6 +142,7 @@ export default function useComandosProfesores({
     return {
         ...formulario,
         editId,
+        guardando,
         actualizarCampo,
         guardarProfesor,
         iniciarEdicion,

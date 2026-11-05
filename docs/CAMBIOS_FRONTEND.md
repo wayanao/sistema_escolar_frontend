@@ -1,5 +1,25 @@
 # Cambios Frontend
 
+## 2026-11-05 - Profesores, cursos y materias: "Guardando..." y sin doble clic
+
+Pedido del usuario: al crear un profesor, un curso o una materia el botón no
+mostraba que estaba guardando, y con doble clic se mandaba dos veces (podía
+quedar el curso o la materia repetidos).
+
+- `useComandosProfesores`, `useComandosCursos` y `useComandosMaterias`:
+  `guardando` (lo devuelven) y un `enCursoRef` que ignora un segundo guardado
+  mientras el primero no termina, aunque el botón aún no se haya desactivado.
+  Se enciende después de revisar los campos obligatorios, así que el aviso
+  "Falta nombre" sale igual que antes. Se apaga al terminar, bien o con error.
+  En materias cubre también "Cambiar igual" del aviso de otro año.
+- `FormularioProfesor`, `FormularioCurso`, `FormularioMateria`: el botón de
+  crear o actualizar se desactiva y dice "Guardando...".
+  `DialogoCambioNombreMateria`: "Cambiar igual" dice "Guardando..." y los dos
+  botones se desactivan.
+- Mismo patrón que Asignaciones (`guardando`) y Planilla (`enCursoRef`).
+- Pruebas nuevas: doble clic con una sola petición en los tres hooks y en
+  "Cambiar igual", y el botón desactivado en los tres formularios y el aviso.
+
 ## 2026-11-05 - Certificados: costos educativos editables sobre la hoja
 
 Paso 5, el último, de los certificados nuevos
