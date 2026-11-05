@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import NotificacionesPlaneadores from "./components/planeaciones/NotificacionesPlaneadores";
@@ -176,6 +176,15 @@ function MarcoAdmin({ children }) {
 
 function MarcoProfesor({ children }) {
   const profesor = useSesionProfesor();
+
+  // Una sola tonalidad de morados en el perfil profesor (ver index.css). Va en
+  // el body para alcanzar también lo que se abre por portal, como la
+  // presentación de clase; al salir del perfil se quita.
+  useEffect(() => {
+    document.body.classList.add("tema-profesor");
+    return () => document.body.classList.remove("tema-profesor");
+  }, []);
+
   return (
     <MarcoMenuLateral menu={MENU_PROFESOR} nombre={profesor?.nombre}>
       {children}

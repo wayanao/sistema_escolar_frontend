@@ -2,6 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Morados de la app: tailwind.config.js los lee de aquí (canales R G B, para
+   que funcionen las opacidades como bg-purple-500/25). En :root valen lo mismo
+   que en Tailwind. En el perfil profesor (body.tema-profesor), purple y violet
+   son una sola paleta con el tono del menú lateral: la de violet, con sus dos
+   tonos más oscuros iguales a los del menú (#36195f y #2a1150). Pedido del
+   usuario el 2026-11-05: antes se mezclaban dos morados distintos. */
+@layer base {
+  :root {
+    --purple-50: 250 245 255;
+    --purple-100: 243 232 255;
+    --purple-200: 233 213 255;
+    --purple-300: 216 180 254;
+    --purple-400: 192 132 252;
+    --purple-500: 168 85 247;
+    --purple-600: 147 51 234;
+    --purple-700: 126 34 206;
+    --purple-800: 107 33 168;
+    --purple-900: 88 28 135;
+    --purple-950: 59 7 100;
+    --violet-50: 245 243 255;
+    --violet-100: 237 233 254;
+    --violet-200: 221 214 254;
+    --violet-300: 196 181 253;
+    --violet-400: 167 139 250;
+    --violet-500: 139 92 246;
+    --violet-600: 124 58 237;
+    --violet-700: 109 40 217;
+    --violet-800: 91 33 182;
+    --violet-900: 76 29 149;
+    --violet-950: 46 16 101;
+  }
+
+  .tema-profesor {
+    --purple-50: 245 243 255;
+    --purple-100: 237 233 254;
+    --purple-200: 221 214 254;
+    --purple-300: 196 181 253;
+    --purple-400: 167 139 250;
+    --purple-500: 139 92 246;
+    --purple-600: 124 58 237;
+    --purple-700: 109 40 217;
+    --purple-800: 91 33 182;
+    --purple-900: 54 25 95;
+    --purple-950: 42 17 80;
+    --violet-900: 54 25 95;
+    --violet-950: 42 17 80;
+  }
+}
+
 /* El autocompletado del navegador pinta su propio fondo claro: aquí se iguala
    al vidrio oscuro del login para que el texto siga siendo blanco. */
 .login-field:-webkit-autofill,

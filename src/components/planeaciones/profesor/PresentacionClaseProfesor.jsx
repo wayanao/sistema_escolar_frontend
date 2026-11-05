@@ -234,13 +234,13 @@ function EncabezadoPresentacion({ hayCambios, onCerrar }) {
 
 function PortadaPresentacion({ asignacion, periodo, fecha, tema }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-950 via-violet-800 to-indigo-700 px-5 py-8 text-white shadow-xl shadow-violet-200/60 sm:px-9 sm:py-10">
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-950 via-violet-800 to-violet-600 px-5 py-8 text-white shadow-xl shadow-violet-200/60 sm:px-9 sm:py-10">
       <span
         className="absolute -right-16 -top-20 h-56 w-56 rounded-full border-[36px] border-white/5"
         aria-hidden="true"
       ></span>
       <span
-        className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-fuchsia-400/10 blur-2xl"
+        className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-violet-400/10 blur-2xl"
         aria-hidden="true"
       ></span>
       <div className="relative max-w-4xl">

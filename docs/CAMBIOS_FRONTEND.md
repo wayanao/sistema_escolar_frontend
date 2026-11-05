@@ -1,5 +1,34 @@
 # Cambios Frontend
 
+## 2026-11-05 - Perfil profesor: una sola tonalidad de morados
+
+Pedido por el usuario: en el perfil profesor, letras moradas, botones,
+encabezados y fondos con la misma tonalidad del menú lateral.
+
+- Causa de que se vieran varios morados: las pantallas del profesor mezclaban
+  `purple-*` (222 usos, tira a magenta) y `violet-*` (216 usos, tira a azul,
+  como el menú #2a1150).
+- Ahora `tailwind.config.js` lee los morados de variables CSS de
+  `src/index.css`. En el perfil profesor (`body.tema-profesor`, que pone
+  `MarcoProfesor` y quita al salir) `purple` y `violet` son la misma paleta:
+  la de violet, con sus dos tonos más oscuros iguales a los del menú
+  (#36195f y #2a1150). Va en el `body` para alcanzar también lo que se abre
+  por portal, como la presentación de clase.
+- El admin, la landing, el login y el super admin no cambian: fuera del
+  perfil profesor las variables valen lo mismo que los colores de Tailwind.
+- Tres usos sueltos del profesor pasan a la paleta: la etiqueta «Tipo de
+  calificación» (`fuchsia-700` → `purple-700`) y el degradado de la portada
+  de la presentación de clase (`indigo-700` y `fuchsia-400` → `violet`). Los
+  botones de las alertas ya usaban #6d28d9, el 700 de la paleta.
+- Archivos: `tailwind.config.js`, `src/index.css`, `App.jsx`
+  (`MarcoProfesor`), `SelectorTipoEvaluacion.jsx`,
+  `PresentacionClaseProfesor.jsx` y `App.composicion.test.jsx`.
+- Verificación: `pnpm run check:deploy` → **3320 pruebas en 401 archivos**,
+  lint y build correctos, en una sola corrida. En el CSS generado, cada clase
+  morada lee su variable (también las transparentes, como `bg-purple-500/25`,
+  y los degradados). CSS: 120,38 → 123,70 kB (comprimido, 19,92 → 20,02 kB).
+  Sin probar todavía en el navegador.
+
 ## 2026-11-05 - Planilla: tabla como en el PC en tablets pequeñas
 
 Pedido por el usuario: en una tablet Android pequeña (Tab 11) la planilla del

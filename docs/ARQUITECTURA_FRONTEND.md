@@ -671,6 +671,13 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
     scroll horizontal en movil.
 - `DocumentoImprimible` es el punto de entrada para toolbar, branding,
   encabezado, firmas, pie de pagina y comportamiento especial por documento.
+- Los morados de Tailwind (`purple-*` y `violet-*`) salen de variables CSS
+  (`--purple-700`, etc.) definidas en `src/index.css` y leídas en
+  `tailwind.config.js`. En `:root` valen lo de siempre; en el perfil profesor
+  (`body.tema-profesor`, que pone `MarcoProfesor`) son una sola paleta con el
+  tono del menú lateral: la de violet, con 900 = #36195f y 950 = #2a1150
+  (2026-11-05). Para cambiar ese tono se tocan solo esas variables. Un color
+  morado escrito a mano (`#...` o `fuchsia-*`, `indigo-*`) no sigue la paleta.
 - `MenuLateralView` (2026-11-04) es el menú de admin y profesor: abierto en
   PC, riel en tablet o al encoger, y en celular un menú que se desliza (admin)
   o una barra abajo con «Más» (profesor). Los grupos del admin se abren bajo

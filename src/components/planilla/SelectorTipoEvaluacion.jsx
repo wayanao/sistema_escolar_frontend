@@ -1,7 +1,7 @@
 function SelectorTipoEvaluacion({ value, onChange }) {
     return (
         <div className="min-w-0 py-1 sm:col-span-2 xl:col-span-1">
-            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-fuchsia-700">
+            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-purple-700">
                 Tipo de calificación
             </label>
             <select

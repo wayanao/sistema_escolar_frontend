@@ -131,6 +131,8 @@ describe("composicion de autenticacion y navegacion", () => {
     expect(propsNavegacion.renderNotificaciones).toEqual(expect.any(Function));
     expect(propsNavegacion.renderSelectorAnio).toEqual(expect.any(Function));
     expect(mocks.navProfesor).not.toHaveBeenCalled();
+    // La paleta única de morados es solo del profesor.
+    expect(document.body).not.toHaveClass("tema-profesor");
     expect(mocks.notificaciones).toHaveBeenCalledWith({
       rol: "admin",
       onNavigate: mocks.onNavigate,
@@ -183,9 +185,24 @@ describe("composicion de autenticacion y navegacion", () => {
     });
     // El profesor no tiene selector ni pide la lista de años.
     expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
+    // Una sola tonalidad de morados: la clase va en el body para alcanzar
+    // también lo que se abre por portal.
+    expect(document.body).toHaveClass("tema-profesor");
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión profesor" }));
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it("quita la paleta del profesor al salir de su perfil", async () => {
+    guardarSesion("profesor", { id: 7, rol: "profesor" });
+
+    const { unmount } = renderApp("/");
+    expect(await screen.findByTestId("dashboard-profesor")).toBeInTheDocument();
+    expect(document.body).toHaveClass("tema-profesor");
+
+    unmount();
+
+    expect(document.body).not.toHaveClass("tema-profesor");
   });
 
   it("conecta identidad y logout solo dentro del layout super admin autorizado", async () => {
