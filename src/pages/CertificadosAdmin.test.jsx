@@ -13,6 +13,7 @@ const { certificadosApiMock } = vi.hoisted(() => ({
     listarVentasPendientesCertificado: vi.fn(),
     obtenerDeudasCertificado: vi.fn(),
     obtenerFichaEstudianteCertificado: vi.fn(),
+    obtenerValoresPagoCertificado: vi.fn(),
   },
 }));
 
@@ -311,5 +312,31 @@ describe("CertificadosAdmin", () => {
     await user.click(screen.getByRole("button", { name: "Generar paz y salvo" }));
     expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
     expect(parrafoCertificado()).toContain("se encuentra a paz y salvo con nuestra institución.");
+  });
+
+  it("abre los costos educativos llenos con lo que paga el estudiante, para editarlos", async () => {
+    certificadosApiMock.obtenerValoresPagoCertificado.mockResolvedValue({
+      conceptos: [
+        { tipo_pago_id: 1, nombre: "Matrícula", valor_a_pagar: 280000 },
+        { tipo_pago_id: 2, nombre: "Pensión", valor_a_pagar: 130000 },
+      ],
+    });
+    const user = userEvent.setup();
+    render(<CertificadosAdmin />);
+
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "costos",
+    );
+    await user.click(screen.getByRole("button", { name: "Generar costos" }));
+
+    expect(await screen.findByText("Con los siguientes costos educativos:")).toBeInTheDocument();
+    expect(parrafoCertificado()).toContain("se encuentra matriculado(a) en esta institución");
+    expect(screen.getByRole("textbox", { name: "Concepto 1" })).toHaveValue("Matrícula");
+    expect(screen.getByRole("textbox", { name: "Valor 2" })).toHaveValue("130.000");
+    expect(certificadosApiMock.obtenerValoresPagoCertificado).toHaveBeenCalledWith(8, {
+      signal: expect.any(AbortSignal),
+    });
   });
 });

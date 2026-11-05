@@ -10,10 +10,12 @@ import {
   listarVentasPendientesCertificado,
   obtenerDeudasCertificado,
   obtenerFichaEstudianteCertificado,
+  obtenerValoresPagoCertificado,
 } from "../../services/certificadosImpresionApi";
 import { opcionesConAnio } from "../../utils/anioLectivo";
 import {
   construirCertificadoFormal,
+  costosDesdeValoresPago,
   resumirDeudaPazSalvo,
 } from "../../utils/certificadosImpresion/certificadosFormales";
 import {
@@ -31,7 +33,13 @@ import {
 } from "../../utils/certificadosImpresion/certificados";
 
 // Los que usan el formato de los modelos del colegio (CertificadoFormal).
-const TIPOS_CERTIFICADO_FORMAL = ["matricula", "conducta", "aprobado", "paz-salvo"];
+const TIPOS_CERTIFICADO_FORMAL = ["matricula", "conducta", "aprobado", "paz-salvo", "costos"];
+
+// Si el backend no dice por qué falló; los demás, "No se pudo cargar la ficha".
+const MENSAJE_ERROR_CERTIFICADO = {
+  "paz-salvo": "No se pudo revisar si el estudiante está a paz y salvo.",
+  costos: "No se pudieron cargar los costos del estudiante.",
+};
 
 function esCancelacion(error, signal) {
   return signal.aborted || error?.name === "AbortError" || error?.code === "ERR_CANCELED";
@@ -200,10 +208,11 @@ export default function useConsultasCertificadosAdmin({
     return resumirDeudaPazSalvo({ deudas, ventas });
   }, [parametrosAnio]);
 
-  // Matrícula, conducta, aprobado y paz y salvo: piden la ficha por el tipo
-  // de documento. El año de la matrícula es el que se puede editar en la
+  // Matrícula, conducta, aprobado, paz y salvo y costos: piden la ficha por el
+  // tipo de documento. El año de la matrícula es el que se puede editar en la
   // pantalla; el de los demás, el que mira el admin. Si debe algo, el paz y
-  // salvo no se abre: queda `deudaPazSalvo` con lo que debe.
+  // salvo no se abre: queda `deudaPazSalvo` con lo que debe. Costos trae lo
+  // que paga en el año que se mira, para editarlo sobre la hoja.
   const generarCertificadoFormal = useCallback(async (tipo, estudianteId) => {
     const controller = iniciarConsulta({ estudianteId });
     setDeudaPazSalvo(null);
@@ -214,10 +223,16 @@ export default function useConsultasCertificadosAdmin({
         return { error: new Error("Estudiante no encontrado") };
       }
 
-      const [ficha, deuda] = await Promise.all([
+      const [ficha, deuda, valoresPago] = await Promise.all([
         obtenerFichaEstudianteCertificado(estudianteId, { signal: controller.signal }),
         tipo === "paz-salvo"
           ? consultarDeudaPazSalvo(estudianteId, controller.signal)
+          : null,
+        tipo === "costos"
+          ? obtenerValoresPagoCertificado(
+            estudianteId,
+            opcionesConAnio({ signal: controller.signal }, parametrosAnio),
+          )
           : null,
       ]);
       if (controller.signal.aborted) return { cancelado: true };
@@ -235,6 +250,7 @@ export default function useConsultasCertificadosAdmin({
           : anioLectivoSugerido,
         anioCerrado,
       });
+      if (tipo === "costos") data.costos = costosDesdeValoresPago(valoresPago);
       setCertificadoFormal(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return { data };
@@ -243,9 +259,8 @@ export default function useConsultasCertificadosAdmin({
       console.error("Error generando certificado", requestError);
       setError(
         requestError?.response?.data?.detail
-          || (tipo === "paz-salvo"
-            ? "No se pudo revisar si el estudiante está a paz y salvo."
-            : "No se pudo cargar la ficha del estudiante."),
+          || MENSAJE_ERROR_CERTIFICADO[tipo]
+          || "No se pudo cargar la ficha del estudiante.",
       );
       return { error: requestError };
     } finally {
@@ -260,6 +275,7 @@ export default function useConsultasCertificadosAdmin({
     estudiantes,
     finalizarConsulta,
     iniciarConsulta,
+    parametrosAnio,
   ]);
 
   const construirReporteParcialRemoto = useCallback(async (

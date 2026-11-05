@@ -25,6 +25,7 @@ vi.mock("../impresion/DocumentoImprimible", () => ({
 
 import CertificadoAprobadoPreview from "./CertificadoAprobadoPreview";
 import CertificadoConductaPreview from "./CertificadoConductaPreview";
+import CertificadoCostosPreview from "./CertificadoCostosPreview";
 import CertificadoMatriculaPreview from "./CertificadoMatriculaPreview";
 import CertificadoNotasPreview from "./CertificadoNotasPreview";
 import ReporteParcialPreview from "./ReporteParcialPreview";
@@ -155,6 +156,56 @@ describe("vistas imprimibles de certificados", () => {
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Desempeño" }), "ALTO");
     expect(textoParrafo()).toContain("con una conducta descriptiva en DESEMPEÑO ALTO.");
+  });
+
+  it("edita los costos sobre la hoja: en el papel solo sale el texto", async () => {
+    const user = userEvent.setup();
+    render(
+      <CertificadoCostosPreview
+        certificado={{
+          ...CERTIFICADO,
+          costos: [
+            { id: "concepto-1", concepto: "Matrícula", valor: "280000" },
+            { id: "concepto-2", concepto: "Pensión", valor: "130000" },
+          ],
+        }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Con los siguientes costos educativos:")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Valor 1" })).toHaveValue("280.000");
+    // Lo que se imprime: el texto; los campos llevan `print:hidden`.
+    const impreso = () => [...document.querySelectorAll("li > span.print\\:inline")]
+      .map((span) => span.textContent);
+    expect(impreso()).toEqual(["Matrícula: $\u00a0280.000", "Pensión: $\u00a0130.000"]);
+    expect(screen.getByRole("textbox", { name: "Concepto 1" }).closest("span")).toHaveClass("print:hidden");
+
+    await user.clear(screen.getByRole("textbox", { name: "Valor 2" }));
+    await user.type(screen.getByRole("textbox", { name: "Valor 2" }), "150000");
+    await user.click(screen.getByRole("button", { name: "Quitar costo 1" }));
+    await user.click(screen.getByRole("button", { name: "+ Agregar costo" }));
+    expect(impreso()).toEqual(["Pensión: $\u00a0150.000", ""]);
+    // La fila nueva, vacía, no se imprime.
+    expect(screen.getByRole("textbox", { name: "Concepto 2" }).closest("li")).toHaveClass("print:hidden");
+
+    await user.type(screen.getByRole("textbox", { name: "Concepto 2" }), "Uniforme");
+    await user.type(screen.getByRole("textbox", { name: "Valor 2" }), "45000");
+    expect(impreso()).toEqual(["Pensión: $\u00a0150.000", "Uniforme: $\u00a045.000"]);
+  });
+
+  it("sin ningún costo, la lista no se imprime", async () => {
+    const user = userEvent.setup();
+    render(
+      <CertificadoCostosPreview
+        certificado={{ ...CERTIFICADO, costos: [{ id: "c", concepto: "Matrícula", valor: "1" }] }}
+        onBack={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Quitar costo 1" }));
+    expect(screen.getByText("Con los siguientes costos educativos:").parentElement)
+      .toHaveClass("print:hidden");
   });
 
   it("presenta el estado vacío del reporte parcial individual", () => {

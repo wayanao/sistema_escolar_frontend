@@ -1068,6 +1068,7 @@ GET /asistencia/historial/{asignacion_id}/{periodo}
 GET /estudiantes/{estudiante_id}
 GET /estudiantes/{estudiante_id}/deudas
 GET /api/ventas/pendientes/{estudiante_id}
+GET /estudiantes/{estudiante_id}/valores-pago
 ```
 
 Uso:
@@ -1083,6 +1084,11 @@ Uso:
   y `ventas[].total`. Con algo mayor que 0, no expide el certificado y
   muestra lo que debe. No se usa `GET /cartera/mora`: en el año activo solo
   trae estudiantes activos, y un retirado saldría a paz y salvo debiendo.
+- Costos educativos (desde el 2026-11-05): `obtenerValoresPagoCertificado`,
+  la misma consulta de matricular en Año lectivo, con `anio_lectivo_id` si se
+  mira otro año. Usa `conceptos[].nombre` y `conceptos[].valor_a_pagar` para
+  llenar la lista, que se edita sobre la hoja solo para esa impresión (no se
+  envía nada al backend).
 
 - `GET /estudiantes/{estudiante_id}` (desde el 2026-11-05,
   `obtenerFichaEstudianteCertificado`): la ficha completa, solo por el

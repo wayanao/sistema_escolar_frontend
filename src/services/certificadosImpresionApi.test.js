@@ -20,6 +20,7 @@ import {
   listarVentasPendientesCertificado,
   obtenerDeudasCertificado,
   obtenerFichaEstudianteCertificado,
+  obtenerValoresPagoCertificado,
 } from "./certificadosImpresionApi";
 
 beforeEach(() => {
@@ -90,6 +91,24 @@ describe("contrato HTTP de certificados", () => {
       signal: controller.signal,
     });
     expect(apiMock.get).toHaveBeenNthCalledWith(3, "/api/ventas/pendientes/8", {
+      signal: controller.signal,
+    });
+  });
+
+  it("pide los costos del estudiante, con año solo si llega", async () => {
+    const valores = { conceptos: [] };
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: valores });
+
+    await expect(obtenerValoresPagoCertificado(8)).resolves.toBe(valores);
+    await expect(obtenerValoresPagoCertificado(8, {
+      signal: controller.signal,
+      parametrosAnio: { anio_lectivo_id: 3 },
+    })).resolves.toBe(valores);
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/estudiantes/8/valores-pago");
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes/8/valores-pago", {
+      params: { anio_lectivo_id: 3 },
       signal: controller.signal,
     });
   });

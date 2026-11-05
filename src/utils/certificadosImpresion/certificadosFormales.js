@@ -1,8 +1,9 @@
+import { formatearPesos } from "../formatoPesos";
 import { nombreEstudiante } from "./certificados";
 
 // Certificados con el formato de los modelos del colegio (matrícula, conducta,
-// aprobado y paz y salvo): frase de quien firma, «CERTIFICA:», un párrafo,
-// dónde y cuándo se expide, y la firma.
+// aprobado, paz y salvo y costos educativos): frase de quien firma,
+// «CERTIFICA:», un párrafo, dónde y cuándo se expide, y la firma.
 // Ver docs/funcionalidades/CERTIFICADOS_NUEVOS.md.
 
 // Cómo se nombra al estudiante en el texto. La ficha no guarda si es niño o
@@ -159,6 +160,25 @@ export function resumirDeudaPazSalvo({ deudas, ventas }) {
   };
 }
 
+// Costos educativos: lo que paga el estudiante en el año, ya con su valor
+// personalizado, como filas que se editan sobre la hoja antes de imprimir.
+// El valor va en dígitos ("280000"), como lo maneja `CampoPesos`.
+export function costosDesdeValoresPago(valoresPago) {
+  return (valoresPago?.conceptos || []).map((concepto, indice) => ({
+    id: `concepto-${concepto.tipo_pago_id ?? indice}`,
+    concepto: concepto.nombre || "",
+    valor: String(Math.max(0, Math.round(Number(concepto.valor_a_pagar) || 0))),
+  }));
+}
+
+// Lo que sale en el papel: "Matrícula: $ 280.000". Una fila sin concepto no
+// se imprime; una sin valor, solo con el concepto.
+export function textoCosto({ concepto, valor }) {
+  const nombre = String(concepto ?? "").trim();
+  if (!nombre) return "";
+  return String(valor ?? "").trim() === "" ? nombre : `${nombre}: ${formatearPesos(valor)}`;
+}
+
 const texto = (contenido) => ({ texto: contenido, negrita: false });
 const negrita = (contenido) => ({ texto: contenido, negrita: true });
 
@@ -202,7 +222,7 @@ export function parrafoCertificado({ tipo, certificado, tratamiento, desempeno }
       texto(", se encuentra a paz y salvo con nuestra institución."),
     ];
   }
-  // Matrícula.
+  // Matrícula y costos educativos (los costos van después, en una lista).
   return [
     ...inicio,
     texto(`${certificado.en_pasado ? "estuvo" : "se encuentra"} ${concordar("matriculad", genero)} en esta institución en`),

@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   concordar,
   construirCertificadoFormal,
+  costosDesdeValoresPago,
   datosInstitucionalesCertificado,
   fraseExpedicion,
   hablaEnPasado,
   parrafoCertificado,
   resumirDeudaPazSalvo,
+  textoCosto,
   textoDocumento,
   textoNivel,
 } from "./certificadosFormales";
@@ -174,5 +176,30 @@ describe("certificados con el formato de los modelos", () => {
     });
     expect(resumirDeudaPazSalvo({ deudas: { deudas: [], deuda_anios_anteriores: [] }, ventas: [] }))
       .toEqual({ items: [], total: 0 });
+  });
+
+  it("llena los costos con lo que paga el estudiante y los escribe como el modelo", () => {
+    expect(costosDesdeValoresPago({
+      conceptos: [
+        { tipo_pago_id: 1, nombre: "Matrícula", valor_a_pagar: 280000 },
+        { tipo_pago_id: 2, nombre: "Pensión", valor_a_pagar: 130000.4 },
+      ],
+    })).toEqual([
+      { id: "concepto-1", concepto: "Matrícula", valor: "280000" },
+      { id: "concepto-2", concepto: "Pensión", valor: "130000" },
+    ]);
+    expect(costosDesdeValoresPago(null)).toEqual([]);
+
+    expect(textoCosto({ concepto: "Matrícula", valor: "280000" })).toBe("Matrícula: $\u00a0280.000");
+    expect(textoCosto({ concepto: "Uniforme", valor: "" })).toBe("Uniforme");
+    expect(textoCosto({ concepto: "  ", valor: "5000" })).toBe("");
+  });
+
+  it("la carta de costos dice que está matriculado, como el modelo", () => {
+    expect(unir(parrafoCertificado({
+      tipo: "costos",
+      certificado: { ...CERTIFICADO, en_pasado: false },
+      tratamiento: "nina",
+    }))).toContain("se encuentra matriculada en esta institución en el grado JARDÍN");
   });
 });

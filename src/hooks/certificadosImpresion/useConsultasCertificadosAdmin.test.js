@@ -12,6 +12,7 @@ const { apiMock } = vi.hoisted(() => ({
     listarVentasPendientesCertificado: vi.fn(),
     obtenerDeudasCertificado: vi.fn(),
     obtenerFichaEstudianteCertificado: vi.fn(),
+    obtenerValoresPagoCertificado: vi.fn(),
   },
 }));
 
@@ -424,6 +425,50 @@ describe("useConsultasCertificadosAdmin: paz y salvo", () => {
 
     expect(result.current.certificadoFormal).toBeNull();
     expect(result.current.error).toBe("No se pudo revisar si el estudiante está a paz y salvo.");
+  });
+});
+
+describe("useConsultasCertificadosAdmin: costos educativos", () => {
+  it("trae lo que paga en el año que se mira y lo deja listo para editar", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({ tipo_documento: "Registro Civil" });
+    apiMock.obtenerValoresPagoCertificado.mockResolvedValue({
+      conceptos: [{ tipo_pago_id: 1, nombre: "Matrícula", valor_a_pagar: 280000 }],
+    });
+    const { result } = renderHook(() =>
+      useConsultasCertificadosAdmin({ parametrosAnio, anioLectivoPropuesto: 2025 }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("costos", 8);
+    });
+
+    expect(apiMock.obtenerValoresPagoCertificado).toHaveBeenCalledWith(8, {
+      signal: expect.any(AbortSignal),
+      parametrosAnio,
+    });
+    expect(result.current.certificadoFormal).toMatchObject({
+      tipo: "costos",
+      anio_lectivo: "2025",
+      costos: [{ id: "concepto-1", concepto: "Matrícula", valor: "280000" }],
+    });
+  });
+
+  it("si no hay costos de ese año, avisa con el mensaje del backend", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    apiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({});
+    apiMock.obtenerValoresPagoCertificado.mockRejectedValue({
+      response: { status: 404, data: { detail: "El estudiante no tiene matrícula en ese año." } },
+    });
+    const { result } = renderHook(() => useConsultasCertificadosAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("costos", 8);
+    });
+
+    expect(result.current.certificadoFormal).toBeNull();
+    expect(result.current.error).toBe("El estudiante no tiene matrícula en ese año.");
   });
 });
 

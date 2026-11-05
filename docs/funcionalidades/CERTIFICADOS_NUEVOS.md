@@ -2,7 +2,8 @@
 
 ## Control
 
-- Estado: **pasos 1 a 4 construidos, sin commit** (2026-11-05). El botón
+- Estado: **los cinco pasos construidos, sin commit** (2026-11-05). Falta
+  la prueba del usuario en local. El botón
   "Atrás" de las vistas de certificados también cambió de lugar (ver "Botón
   Atrás").
 - Tipo: función nueva de producto dentro del módulo `certificadosImpresion`
@@ -15,6 +16,8 @@
   (`GET /estudiantes/{id}`, que ya existía): la lista de estudiantes no lo
   trae. Lo que debe, para el paz y salvo, de `GET /estudiantes/{id}/deudas` y
   `GET /api/ventas/pendientes/{id}`, que también existían (las usa Pagos).
+  Los costos, de `GET /estudiantes/{id}/valores-pago` (la usa Año lectivo al
+  matricular).
 - Última actualización: 2026-11-05.
 
 ## Pedido
@@ -74,8 +77,9 @@ Falta, y cómo se resuelve:
 3. **Conducta y aprobado, con el formato de los modelos** — construido, sin
    commit. La matrícula pasó también a ese formato.
 4. **Paz y salvo, solo si no debe nada** — construido, sin commit.
-5. Costos educativos, editable antes de imprimir. Lo editado es solo para esa
-   impresión: no cambia los precios de Tipos de pago.
+5. **Costos educativos, editable sobre la hoja** — construido, sin commit.
+   Lo editado es solo para esa impresión: no cambia los precios de Tipos de
+   pago.
 
 ## Avance del paso 1
 
@@ -203,6 +207,37 @@ En la pantalla:
   grado … del año lectivo …, se encuentra a paz y salvo con nuestra
   institución."
 
+## Paso 5: costos educativos
+
+Pedido del usuario el 2026-11-05: "los costos son editables desde la
+impresión". Se editan **sobre la misma hoja**, donde se imprimen; al abrir
+salen llenos con lo que paga el estudiante (la recomendación).
+
+- Menú: "Certificado de costos educativos"; botón "Generar costos".
+- Al generar pide, junto con la ficha, `GET /estudiantes/{id}/valores-pago`
+  del año que se mira: cada concepto con `valor_a_pagar`, que ya trae el
+  precio del curso o el valor personalizado del estudiante. El backend deja
+  fuera los opcionales y los inactivos. Sin matrícula en ese año responde 404,
+  y se muestra su mensaje.
+- El texto es el de la matrícula ("se encuentra / estuvo matriculado(a) en
+  esta institución en el grado …") y debajo "Con los siguientes costos
+  educativos:" con una viñeta por costo, como el modelo.
+- En pantalla cada viñeta es un campo de concepto y uno de pesos
+  (`CampoPesos`, con puntos de miles), con una ✕ para quitarla; debajo,
+  "+ Agregar costo". Arriba de la hoja, un aviso: "Los costos se cambian sobre
+  la hoja. Es solo para esta impresión: no cambia los precios de Tipos de
+  pago."
+- En el papel solo sale el texto: "Matrícula: $ 280.000". Los campos y
+  botones llevan `print:hidden` y el texto `hidden print:inline` (revisado en
+  el CSS del build). Una fila sin concepto no se imprime; sin valor, solo el
+  concepto. Sin ningún costo, no se imprime la lista ni "Con los siguientes…".
+- Lo editado vive en `useCostosCertificado` mientras la hoja está abierta y
+  vuelve a lo del estudiante al generar otro. No se guarda.
+- Archivos: `CertificadoCostosPreview.jsx`, `useCostosCertificado.js`,
+  `costosDesdeValoresPago` y `textoCosto` en `certificadosFormales.js`,
+  `obtenerValoresPagoCertificado` en el servicio. `CertificadoFormal` recibe
+  `despuesDelParrafo` para la lista.
+
 ## Botón Atrás
 
 Pedido del usuario el 2026-11-05 ("ubica mejor el botón de echar para
@@ -224,9 +259,8 @@ de arriba (celular).
 
 Se hacen justo antes del paso que las necesita.
 
-- **Paso 5**: ninguna por ahora. Plan: costos del estudiante desde
-  `GET /estudiantes/{id}/valores-pago` (`valor_a_pagar`), editables solo
-  para esa impresión.
+- Ninguna. Pendiente solo la prueba del usuario en local y, si la quiere, la
+  imagen de la firma (abajo).
 
 ## Fuera por ahora
 

@@ -1,5 +1,23 @@
 # Cambios Frontend
 
+## 2026-11-05 - Certificados: costos educativos editables sobre la hoja
+
+Paso 5, el último, de los certificados nuevos
+(`funcionalidades/CERTIFICADOS_NUEVOS.md`). Pedido del usuario: "los costos
+son editables desde la impresión".
+
+- Menú: "Certificado de costos educativos". Texto de la matrícula y "Con los
+  siguientes costos educativos:", una viñeta por costo, como el modelo.
+- Al abrir, los costos son lo que paga el estudiante en el año que se mira
+  (`GET /estudiantes/{id}/valores-pago`, `valor_a_pagar`).
+- Se editan sobre la hoja: concepto, valor en pesos, ✕ para quitar y
+  "+ Agregar costo". En el papel solo sale "Matrícula: $ 280.000"
+  (`print:hidden` y `hidden print:inline`). Solo para esa impresión: no se
+  guarda ni cambia Tipos de pago.
+- Nuevos: `CertificadoCostosPreview.jsx`, `useCostosCertificado.js`;
+  `CertificadoFormal` recibe `despuesDelParrafo`. En el servicio, las
+  consultas con año y señal comparten `obtenerConAnio`.
+
 ## 2026-11-05 - Certificados: paz y salvo, solo si no debe nada
 
 Paso 4 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).

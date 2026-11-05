@@ -26,11 +26,9 @@ export async function obtenerFichaEstudianteCertificado(estudianteId, { signal }
   return data;
 }
 
-// Paz y salvo: lo que debe el estudiante a la fecha (lo vencido; la cuenta la
-// hace el backend) en un año, más `deuda_anios_anteriores`. Sin
-// `parametrosAnio`, el año activo. Es la misma consulta de Pagos.
-export async function obtenerDeudasCertificado(estudianteId, { signal, parametrosAnio } = {}) {
-  const ruta = `/estudiantes/${estudianteId}/deudas`;
+// GET con el año (`params`) y la señal solo si llegan; sin ninguno, la
+// petición de siempre.
+async function obtenerConAnio(ruta, { signal, parametrosAnio } = {}) {
   const opciones = {};
   if (parametrosAnio) opciones.params = parametrosAnio;
   if (signal) opciones.signal = signal;
@@ -38,6 +36,21 @@ export async function obtenerDeudasCertificado(estudianteId, { signal, parametro
     ? await api.get(ruta, opciones)
     : await api.get(ruta);
   return data;
+}
+
+// Paz y salvo: lo que debe el estudiante a la fecha (lo vencido; la cuenta la
+// hace el backend) en un año, más `deuda_anios_anteriores`. Sin
+// `parametrosAnio`, el año activo. Es la misma consulta de Pagos.
+export function obtenerDeudasCertificado(estudianteId, opciones) {
+  return obtenerConAnio(`/estudiantes/${estudianteId}/deudas`, opciones);
+}
+
+// Costos educativos: lo que se le cobra al estudiante en un año, con el precio
+// de su curso y su valor personalizado (`conceptos[].valor_a_pagar`). Sin
+// `parametrosAnio`, el activo. Es la misma consulta de matricular en Año
+// lectivo; un estudiante sin matrícula en ese año responde 404.
+export function obtenerValoresPagoCertificado(estudianteId, opciones) {
+  return obtenerConAnio(`/estudiantes/${estudianteId}/valores-pago`, opciones);
 }
 
 // Paz y salvo: las ventas fiadas (cargos de inventario) con saldo. No son de

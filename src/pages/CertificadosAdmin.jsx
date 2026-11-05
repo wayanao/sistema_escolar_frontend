@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import CertificadoAprobadoPreview from "../components/certificadosImpresion/CertificadoAprobadoPreview";
 import CertificadoConductaPreview from "../components/certificadosImpresion/CertificadoConductaPreview";
+import CertificadoCostosPreview from "../components/certificadosImpresion/CertificadoCostosPreview";
 import CertificadoMatriculaPreview from "../components/certificadosImpresion/CertificadoMatriculaPreview";
 import CertificadoNotasPreview from "../components/certificadosImpresion/CertificadoNotasPreview";
 import CertificadoPazSalvoPreview from "../components/certificadosImpresion/CertificadoPazSalvoPreview";
@@ -17,6 +18,7 @@ const VISTAS_CERTIFICADO_FORMAL = {
   conducta: CertificadoConductaPreview,
   aprobado: CertificadoAprobadoPreview,
   "paz-salvo": CertificadoPazSalvoPreview,
+  costos: CertificadoCostosPreview,
 };
 
 export default function CertificadosAdmin() {

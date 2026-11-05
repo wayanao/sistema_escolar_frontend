@@ -17,6 +17,7 @@ const TIPOS_DOCUMENTO = [
   { id: "conducta", label: "Certificado de conducta" },
   { id: "aprobado", label: "Certificado de aprobado" },
   { id: "paz-salvo", label: "Certificado de paz y salvo" },
+  { id: "costos", label: "Certificado de costos educativos" },
 ];
 
 const TEXTO_BOTON = {
@@ -26,6 +27,7 @@ const TEXTO_BOTON = {
   conducta: "Generar conducta",
   aprobado: "Generar aprobado",
   "paz-salvo": "Generar paz y salvo",
+  costos: "Generar costos",
 };
 
 export default function SeleccionCertificados({

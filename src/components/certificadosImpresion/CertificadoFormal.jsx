@@ -34,11 +34,17 @@ export function OpcionCertificado({ etiqueta, valor, opciones, onCambiar }) {
 }
 
 // Hoja con el formato de los modelos del colegio (matrícula, conducta,
-// aprobado). `construirParrafo(tratamiento)` da el párrafo de cada uno; quién
-// firma, la frase de arriba y la ciudad salen de la identidad institucional.
-// "En el texto decir" vive aquí y no en un hook: es solo para esta impresión
-// y vuelve a "el(la) estudiante" con cada estudiante.
-export default function CertificadoFormal({ construirParrafo, opciones, onBack }) {
+// aprobado, paz y salvo, costos). `construirParrafo(tratamiento)` da el
+// párrafo de cada uno y `despuesDelParrafo`, lo que va debajo (la lista de
+// costos); quién firma, la frase de arriba y la ciudad salen de la identidad
+// institucional. "En el texto decir" vive aquí y no en un hook: es solo para
+// esta impresión y vuelve a "el(la) estudiante" con cada estudiante.
+export default function CertificadoFormal({
+  construirParrafo,
+  despuesDelParrafo,
+  opciones,
+  onBack,
+}) {
   const [tratamiento, setTratamiento] = useState(TRATAMIENTO_INICIAL);
   const parrafo = construirParrafo(tratamiento);
   const fecha = new Date();
@@ -73,6 +79,7 @@ export default function CertificadoFormal({ construirParrafo, opciones, onBack }
                   ? <strong key={indice}>{parte.texto}</strong>
                   : <span key={indice}>{parte.texto}</span>))}
               </p>
+              {despuesDelParrafo}
               <p className="text-justify">{fraseExpedicion({ ciudad, fecha })}</p>
               <p>Atentamente,</p>
             </section>

@@ -81,6 +81,7 @@ describe("SeleccionCertificados", () => {
       "conducta",
       "aprobado",
       "paz-salvo",
+      "costos",
     ]);
     expect(screen.queryByRole("button", { name: "Certificado de notas" })).not.toBeInTheDocument();
   });

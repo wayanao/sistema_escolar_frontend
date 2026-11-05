@@ -874,8 +874,10 @@ Estado actual de componentes y paginas del frontend.
   colegio (frase de quien firma, «CERTIFICA:», párrafo, expedición y firma) y
   la opción "En el texto decir". La usan `CertificadoMatriculaPreview.jsx`,
   `CertificadoConductaPreview.jsx` (con "Desempeño"),
-  `CertificadoAprobadoPreview.jsx` y `CertificadoPazSalvoPreview.jsx`. Los
-  textos salen de `utils/certificadosImpresion/certificadosFormales.js`.
+  `CertificadoAprobadoPreview.jsx`, `CertificadoPazSalvoPreview.jsx` y
+  `CertificadoCostosPreview.jsx` (costos editables sobre la hoja, con
+  `useCostosCertificado`). Los textos salen de
+  `utils/certificadosImpresion/certificadosFormales.js`.
 - `AvisoDeudaPazSalvo.jsx` (2026-11-05): en la selección, en vez del paz y
   salvo, lo que debe el estudiante (concepto y valor) y el total.
 - `components/certificadosImpresion/admin/IdentidadInstitucionalView.jsx` y
