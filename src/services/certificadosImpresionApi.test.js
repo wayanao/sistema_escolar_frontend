@@ -17,6 +17,8 @@ import {
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
   listarMateriasCertificados,
+  listarVentasPendientesCertificado,
+  obtenerDeudasCertificado,
   obtenerFichaEstudianteCertificado,
 } from "./certificadosImpresionApi";
 
@@ -60,6 +62,34 @@ describe("contrato HTTP de certificados", () => {
 
     expect(apiMock.get).toHaveBeenNthCalledWith(1, "/estudiantes/8");
     expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes/8", {
+      signal: controller.signal,
+    });
+  });
+
+  it("pide deudas y ventas pendientes del paz y salvo; las deudas, con año solo si llega", async () => {
+    const deudas = { total_deuda: 0, deudas: [] };
+    const ventas = [];
+    const controller = new AbortController();
+    apiMock.get
+      .mockResolvedValueOnce({ data: deudas })
+      .mockResolvedValueOnce({ data: deudas })
+      .mockResolvedValueOnce({ data: ventas });
+
+    await expect(obtenerDeudasCertificado(8)).resolves.toBe(deudas);
+    await expect(obtenerDeudasCertificado(8, {
+      signal: controller.signal,
+      parametrosAnio: { anio_lectivo_id: 3 },
+    })).resolves.toBe(deudas);
+    await expect(
+      listarVentasPendientesCertificado(8, { signal: controller.signal }),
+    ).resolves.toBe(ventas);
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/estudiantes/8/deudas");
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/estudiantes/8/deudas", {
+      params: { anio_lectivo_id: 3 },
+      signal: controller.signal,
+    });
+    expect(apiMock.get).toHaveBeenNthCalledWith(3, "/api/ventas/pendientes/8", {
       signal: controller.signal,
     });
   });

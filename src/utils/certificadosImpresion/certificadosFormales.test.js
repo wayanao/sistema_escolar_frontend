@@ -7,6 +7,7 @@ import {
   fraseExpedicion,
   hablaEnPasado,
   parrafoCertificado,
+  resumirDeudaPazSalvo,
   textoDocumento,
   textoNivel,
 } from "./certificadosFormales";
@@ -135,5 +136,43 @@ describe("certificados con el formato de los modelos", () => {
       certificado: { ...CERTIFICADO, en_pasado: false },
       tratamiento: "nina",
     }))).toContain("identificada con R.C. No. 1,041,853,132, se encuentra matriculada en esta institución en el grado JARDÍN");
+  });
+
+  it("escribe el paz y salvo como el modelo", () => {
+    expect(unir(parrafoCertificado({ tipo: "paz-salvo", certificado: CERTIFICADO, tratamiento: "nino" }))).toBe(
+      "Que el niño WILKIS JUNIOR ACOSTA, identificado con R.C. No. 1,041,853,132, quien cursó el "
+        + "grado JARDÍN del nivel de Educación Preescolar del año lectivo 2025, se encuentra a paz y "
+        + "salvo con nuestra institución.",
+    );
+    expect(unir(parrafoCertificado({
+      tipo: "paz-salvo",
+      certificado: { ...CERTIFICADO, en_pasado: false },
+    }))).toContain("quien cursa el grado JARDÍN");
+  });
+
+  it("lista y suma lo que impide el paz y salvo: el año, los anteriores y las ventas", () => {
+    expect(resumirDeudaPazSalvo({
+      deudas: {
+        deudas: [
+          { concepto: "Pensión", deuda: 260000 },
+          { concepto: "Matrícula", deuda: 0 },
+        ],
+        total_deuda: 260000,
+        deuda_anios_anteriores: [{ anio: 2025, total_deuda: 130000 }, { anio: 2024, total_deuda: 0 }],
+      },
+      ventas: [
+        { id: 4, total: 45000, descripcion: "Cargo de Inventario #4: 1x Camiseta" },
+        { id: 5, total: 0, descripcion: "Pagada" },
+      ],
+    })).toEqual({
+      items: [
+        { etiqueta: "Pensión", valor: 260000 },
+        { etiqueta: "Año 2025", valor: 130000 },
+        { etiqueta: "Cargo de Inventario #4: 1x Camiseta", valor: 45000 },
+      ],
+      total: 435000,
+    });
+    expect(resumirDeudaPazSalvo({ deudas: { deudas: [], deuda_anios_anteriores: [] }, ventas: [] }))
+      .toEqual({ items: [], total: 0 });
   });
 });

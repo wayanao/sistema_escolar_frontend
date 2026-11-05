@@ -6,6 +6,7 @@ import {
   documentoEstudiante,
   nombreEstudiante,
 } from "../../utils/certificadosImpresion/certificados";
+import AvisoDeudaPazSalvo from "./AvisoDeudaPazSalvo";
 
 // Un menú en vez de pestañas: con los certificados nuevos (paz y salvo,
 // conducta, aprobado y costos educativos) ya no caben en una fila.
@@ -15,6 +16,7 @@ const TIPOS_DOCUMENTO = [
   { id: "reporte-parcial", label: "Reporte académico parcial" },
   { id: "conducta", label: "Certificado de conducta" },
   { id: "aprobado", label: "Certificado de aprobado" },
+  { id: "paz-salvo", label: "Certificado de paz y salvo" },
 ];
 
 const TEXTO_BOTON = {
@@ -23,6 +25,7 @@ const TEXTO_BOTON = {
   "reporte-parcial": "Ver reporte",
   conducta: "Generar conducta",
   aprobado: "Generar aprobado",
+  "paz-salvo": "Generar paz y salvo",
 };
 
 export default function SeleccionCertificados({
@@ -31,6 +34,7 @@ export default function SeleccionCertificados({
   cursoSeleccionado,
   cursos,
   cursosPorId,
+  deudaPazSalvo,
   error,
   estadoFiltro,
   estudiantes,
@@ -50,6 +54,7 @@ export default function SeleccionCertificados({
   onCambiarPeriodo,
   onCambiarPeriodoReporte,
   onCambiarTab,
+  onCerrarDeudaPazSalvo,
   onGenerarCurso,
   onGenerarEstudiante,
 }) {
@@ -85,6 +90,10 @@ export default function SeleccionCertificados({
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {error}
         </div>
+      )}
+
+      {deudaPazSalvo && (
+        <AvisoDeudaPazSalvo deuda={deudaPazSalvo} onCerrar={onCerrarDeudaPazSalvo} />
       )}
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

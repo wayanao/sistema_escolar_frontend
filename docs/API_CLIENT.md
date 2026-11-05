@@ -1066,9 +1066,23 @@ GET /boletines/admin/generar/{estudiante_id}/{periodo}
 GET /boletines/admin/reporte-parcial/{estudiante_id}/{periodo}
 GET /asistencia/historial/{asignacion_id}/{periodo}
 GET /estudiantes/{estudiante_id}
+GET /estudiantes/{estudiante_id}/deudas
+GET /api/ventas/pendientes/{estudiante_id}
 ```
 
 Uso:
+
+- Paz y salvo (desde el 2026-11-05): `obtenerDeudasCertificado` y
+  `listarVentasPendientesCertificado`, las mismas consultas de Pagos. Se
+  piden juntas con la ficha. Las deudas van primero **sin año** (el activo,
+  que trae también `deuda_anios_anteriores`), aunque se mire un año pasado;
+  si responde 404 (no está matriculado en el activo, como un egresado) y se
+  mira otro año, se piden con `anio_lectivo_id`. Las ventas no son de ningún
+  año. El backend hace la cuenta (solo lo vencido a la fecha, con mora); la
+  pantalla solo suma `deudas[].deuda`, `deuda_anios_anteriores[].total_deuda`
+  y `ventas[].total`. Con algo mayor que 0, no expide el certificado y
+  muestra lo que debe. No se usa `GET /cartera/mora`: en el año activo solo
+  trae estudiantes activos, y un retirado saldría a paz y salvo debiendo.
 
 - `GET /estudiantes/{estudiante_id}` (desde el 2026-11-05,
   `obtenerFichaEstudianteCertificado`): la ficha completa, solo por el

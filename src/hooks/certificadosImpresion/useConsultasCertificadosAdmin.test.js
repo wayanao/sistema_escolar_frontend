@@ -9,6 +9,8 @@ const { apiMock } = vi.hoisted(() => ({
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
     listarMateriasCertificados: vi.fn(),
+    listarVentasPendientesCertificado: vi.fn(),
+    obtenerDeudasCertificado: vi.fn(),
     obtenerFichaEstudianteCertificado: vi.fn(),
   },
 }));
@@ -325,6 +327,103 @@ describe("useConsultasCertificadosAdmin: certificados con el formato de los mode
     expect(result.current.certificadoFormal).toBeNull();
     expect(result.current.error).toBe("Estudiante no encontrado");
     expect(result.current.generandoId).toBeNull();
+  });
+});
+
+describe("useConsultasCertificadosAdmin: paz y salvo", () => {
+  const SIN_DEUDA = { deudas: [], total_deuda: 0, deuda_anios_anteriores: [] };
+
+  beforeEach(() => {
+    apiMock.obtenerFichaEstudianteCertificado.mockResolvedValue({ tipo_documento: "Registro Civil" });
+    apiMock.obtenerDeudasCertificado.mockResolvedValue(SIN_DEUDA);
+    apiMock.listarVentasPendientesCertificado.mockResolvedValue([]);
+  });
+
+  it("si no debe nada, abre el paz y salvo", async () => {
+    const { result } = renderHook(() => useConsultasCertificadosAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("paz-salvo", 8);
+    });
+
+    expect(apiMock.obtenerDeudasCertificado).toHaveBeenCalledWith(8, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(apiMock.listarVentasPendientesCertificado).toHaveBeenCalledWith(8, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(result.current.certificadoFormal).toMatchObject({ tipo: "paz-salvo" });
+    expect(result.current.deudaPazSalvo).toBeNull();
+  });
+
+  it("si debe, no lo abre y deja lo que debe, también por ventas", async () => {
+    apiMock.obtenerDeudasCertificado.mockResolvedValue({
+      ...SIN_DEUDA,
+      deudas: [{ concepto: "Pensión", deuda: 130000 }],
+      total_deuda: 130000,
+    });
+    apiMock.listarVentasPendientesCertificado.mockResolvedValue([
+      { id: 4, total: 45000, descripcion: "Cargo de Inventario #4: 1x Camiseta" },
+    ]);
+    const { result } = renderHook(() => useConsultasCertificadosAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let respuesta;
+    await act(async () => {
+      respuesta = await result.current.generarCertificadoFormal("paz-salvo", 8);
+    });
+
+    expect(respuesta.bloqueado).toBe(true);
+    expect(result.current.certificadoFormal).toBeNull();
+    expect(result.current.deudaPazSalvo).toEqual({
+      estudiante: "Sara López",
+      items: [
+        { etiqueta: "Pensión", valor: 130000 },
+        { etiqueta: "Cargo de Inventario #4: 1x Camiseta", valor: 45000 },
+      ],
+      total: 175000,
+    });
+    expect(result.current.generandoId).toBeNull();
+
+    act(() => result.current.limpiarDeudaPazSalvo());
+    expect(result.current.deudaPazSalvo).toBeNull();
+  });
+
+  it("mirando otro año, revisa primero el activo; sin matrícula en el activo, el que se mira", async () => {
+    const parametrosAnio = { anio_lectivo_id: 2 };
+    apiMock.obtenerDeudasCertificado
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockResolvedValueOnce(SIN_DEUDA);
+    const { result } = renderHook(() => useConsultasCertificadosAdmin({ parametrosAnio }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("paz-salvo", 8);
+    });
+
+    expect(apiMock.obtenerDeudasCertificado).toHaveBeenNthCalledWith(1, 8, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(apiMock.obtenerDeudasCertificado).toHaveBeenNthCalledWith(2, 8, {
+      signal: expect.any(AbortSignal),
+      parametrosAnio,
+    });
+    expect(result.current.certificadoFormal).toMatchObject({ tipo: "paz-salvo" });
+  });
+
+  it("si no puede revisar la deuda, no lo abre", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    apiMock.obtenerDeudasCertificado.mockRejectedValue(new Error("red"));
+    const { result } = renderHook(() => useConsultasCertificadosAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.generarCertificadoFormal("paz-salvo", 8);
+    });
+
+    expect(result.current.certificadoFormal).toBeNull();
+    expect(result.current.error).toBe("No se pudo revisar si el estudiante está a paz y salvo.");
   });
 });
 

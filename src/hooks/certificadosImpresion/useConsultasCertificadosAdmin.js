@@ -7,10 +7,15 @@ import {
   listarEstudiantesCertificados,
   listarHistorialAsistenciaCertificados,
   listarMateriasCertificados,
+  listarVentasPendientesCertificado,
+  obtenerDeudasCertificado,
   obtenerFichaEstudianteCertificado,
 } from "../../services/certificadosImpresionApi";
 import { opcionesConAnio } from "../../utils/anioLectivo";
-import { construirCertificadoFormal } from "../../utils/certificadosImpresion/certificadosFormales";
+import {
+  construirCertificadoFormal,
+  resumirDeudaPazSalvo,
+} from "../../utils/certificadosImpresion/certificadosFormales";
 import {
   MATERIA_TODAS,
   PERIODOS_NUMERICOS,
@@ -21,11 +26,12 @@ import {
   crearMapaCursos,
   filtrarEstudiantesCertificados,
   filtrarEstudiantesCurso,
+  nombreEstudiante,
   obtenerAsignacionIds,
 } from "../../utils/certificadosImpresion/certificados";
 
 // Los que usan el formato de los modelos del colegio (CertificadoFormal).
-const TIPOS_CERTIFICADO_FORMAL = ["matricula", "conducta", "aprobado"];
+const TIPOS_CERTIFICADO_FORMAL = ["matricula", "conducta", "aprobado", "paz-salvo"];
 
 function esCancelacion(error, signal) {
   return signal.aborted || error?.name === "AbortError" || error?.code === "ERR_CANCELED";
@@ -58,6 +64,7 @@ export default function useConsultasCertificadosAdmin({
   const [generandoCurso, setGenerandoCurso] = useState(false);
   const [certificado, setCertificado] = useState(null);
   const [certificadoFormal, setCertificadoFormal] = useState(null);
+  const [deudaPazSalvo, setDeudaPazSalvo] = useState(null);
   const [reporteParcial, setReporteParcial] = useState(null);
   const [error, setError] = useState("");
   const consultaRef = useRef(null);
@@ -173,11 +180,33 @@ export default function useConsultasCertificadosAdmin({
     }
   }, [cursosPorId, estudiantes, finalizarConsulta, iniciarConsulta, parametrosAnio, periodo]);
 
-  // Matrícula, conducta y aprobado: piden la ficha por el tipo de documento.
-  // El año de la matrícula es el que se puede editar en la pantalla; el de
-  // los demás, el que mira el admin.
+  // Paz y salvo: lo que debe hoy. La deuda del año activo trae también la de
+  // los años anteriores, así que se pide esa aunque se mire un año pasado: no
+  // se expide a quien debe meses de este año. Si no está matriculado en el
+  // activo (404, como un egresado), la del año que se mira.
+  const consultarDeudaPazSalvo = useCallback(async (estudianteId, signal) => {
+    const [deudas, ventas] = await Promise.all([
+      obtenerDeudasCertificado(estudianteId, { signal }).catch((requestError) => {
+        if (requestError?.response?.status === 404 && parametrosAnio?.anio_lectivo_id) {
+          return obtenerDeudasCertificado(
+            estudianteId,
+            opcionesConAnio({ signal }, parametrosAnio),
+          );
+        }
+        throw requestError;
+      }),
+      listarVentasPendientesCertificado(estudianteId, { signal }),
+    ]);
+    return resumirDeudaPazSalvo({ deudas, ventas });
+  }, [parametrosAnio]);
+
+  // Matrícula, conducta, aprobado y paz y salvo: piden la ficha por el tipo
+  // de documento. El año de la matrícula es el que se puede editar en la
+  // pantalla; el de los demás, el que mira el admin. Si debe algo, el paz y
+  // salvo no se abre: queda `deudaPazSalvo` con lo que debe.
   const generarCertificadoFormal = useCallback(async (tipo, estudianteId) => {
     const controller = iniciarConsulta({ estudianteId });
+    setDeudaPazSalvo(null);
     try {
       const estudiante = estudiantes.find((item) => item.id === estudianteId);
       if (!estudiante) {
@@ -185,10 +214,17 @@ export default function useConsultasCertificadosAdmin({
         return { error: new Error("Estudiante no encontrado") };
       }
 
-      const ficha = await obtenerFichaEstudianteCertificado(estudianteId, {
-        signal: controller.signal,
-      });
+      const [ficha, deuda] = await Promise.all([
+        obtenerFichaEstudianteCertificado(estudianteId, { signal: controller.signal }),
+        tipo === "paz-salvo"
+          ? consultarDeudaPazSalvo(estudianteId, controller.signal)
+          : null,
+      ]);
       if (controller.signal.aborted) return { cancelado: true };
+      if (deuda && deuda.total > 0) {
+        setDeudaPazSalvo({ estudiante: nombreEstudiante(estudiante), ...deuda });
+        return { bloqueado: true, deuda };
+      }
       const data = construirCertificadoFormal({
         tipo,
         estudiante,
@@ -207,7 +243,9 @@ export default function useConsultasCertificadosAdmin({
       console.error("Error generando certificado", requestError);
       setError(
         requestError?.response?.data?.detail
-          || "No se pudo cargar la ficha del estudiante.",
+          || (tipo === "paz-salvo"
+            ? "No se pudo revisar si el estudiante está a paz y salvo."
+            : "No se pudo cargar la ficha del estudiante."),
       );
       return { error: requestError };
     } finally {
@@ -217,6 +255,7 @@ export default function useConsultasCertificadosAdmin({
     anioCerrado,
     anioLectivo,
     anioLectivoSugerido,
+    consultarDeudaPazSalvo,
     cursosPorId,
     estudiantes,
     finalizarConsulta,
@@ -408,6 +447,7 @@ export default function useConsultasCertificadosAdmin({
     certificado,
     certificadoFormal,
     cursoSeleccionado,
+    deudaPazSalvo,
     cursos,
     cursosPorId,
     error,
@@ -428,6 +468,7 @@ export default function useConsultasCertificadosAdmin({
     generarSegunTab,
     limpiarCertificado: () => setCertificado(null),
     limpiarCertificadoFormal: () => setCertificadoFormal(null),
+    limpiarDeudaPazSalvo: () => setDeudaPazSalvo(null),
     limpiarError: () => setError(""),
     limpiarReporteParcial: () => setReporteParcial(null),
     setAnioLectivo,

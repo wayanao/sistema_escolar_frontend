@@ -2,7 +2,7 @@
 
 ## Control
 
-- Estado: **pasos 1, 2 y 3 construidos, sin commit** (2026-11-05). El botón
+- Estado: **pasos 1 a 4 construidos, sin commit** (2026-11-05). El botón
   "Atrás" de las vistas de certificados también cambió de lugar (ver "Botón
   Atrás").
 - Tipo: función nueva de producto dentro del módulo `certificadosImpresion`
@@ -13,7 +13,8 @@
   campo libre que el backend guarda sin revisar (ahí ya viven el membrete y la
   resolución de aprobación). El tipo de documento sale de la ficha
   (`GET /estudiantes/{id}`, que ya existía): la lista de estudiantes no lo
-  trae.
+  trae. Lo que debe, para el paz y salvo, de `GET /estudiantes/{id}/deudas` y
+  `GET /api/ventas/pendientes/{id}`, que también existían (las usa Pagos).
 - Última actualización: 2026-11-05.
 
 ## Pedido
@@ -72,7 +73,7 @@ Falta, y cómo se resuelve:
    construido, sin commit.
 3. **Conducta y aprobado, con el formato de los modelos** — construido, sin
    commit. La matrícula pasó también a ese formato.
-4. Paz y salvo.
+4. **Paz y salvo, solo si no debe nada** — construido, sin commit.
 5. Costos educativos, editable antes de imprimir. Lo editado es solo para esa
    impresión: no cambia los precios de Tipos de pago.
 
@@ -162,6 +163,46 @@ Tomadas el 2026-11-05; el usuario siguió las tres recomendaciones.
   los certificados leen quién firma y la ciudad sin pedirlos aparte. Los
   demás impresos no cambian.
 
+## Paso 4: paz y salvo
+
+Decisión del 2026-11-05 (el usuario siguió la recomendación): **si debe algo,
+no se expide**, y se muestra qué debe para que se registre el pago primero.
+Un paz y salvo firmado con deuda deja al colegio sin cómo cobrarla.
+
+Qué cuenta como deuda (todo lo calcula el backend; la pantalla solo suma):
+
+- Lo del año **vencido a hoy**, con su mora (`GET /estudiantes/{id}/deudas`).
+  Las mensualidades que todavía no llegan no cuentan.
+- Lo de **años anteriores** (`deuda_anios_anteriores`, en la misma respuesta).
+- Las **ventas fiadas** con saldo, como uniformes (`GET
+  /api/ventas/pendientes/{id}`): "a paz y salvo con nuestra institución"
+  incluye lo que se le vendió.
+
+De qué año:
+
+- Las deudas se piden **sin año** (el activo), aunque se mire un año pasado:
+  esa respuesta trae también los años anteriores, y así no se expide a quien
+  debe meses de este año.
+- Si responde 404 (no está matriculado en el año activo, como un egresado) y
+  se mira otro año, se piden las de ese año.
+- No se usa `GET /cartera/mora`: en el año activo solo trae estudiantes
+  activos, y un retirado (quien más pide paz y salvo) saldría a paz y salvo
+  debiendo.
+
+En la pantalla:
+
+- Menú: "Certificado de paz y salvo"; botón "Generar paz y salvo".
+- Si debe: no abre la hoja y sale un aviso arriba de la tabla
+  (`AvisoDeudaPazSalvo.jsx`): "No se puede expedir el paz y salvo: NOMBRE
+  debe $ X.", "Registra el pago en Pagos y vuelve a generarlo. Solo cuenta lo
+  vencido a hoy.", la lista (concepto, "Año 2025" o la venta, y su valor) y
+  "Cerrar". Se quita también al cambiar de documento o al generar otro.
+- Si no puede revisar la deuda (falla la consulta): "No se pudo revisar si el
+  estudiante está a paz y salvo." y no lo abre.
+- Si no debe: la hoja con el formato de los modelos, "quien cursa/cursó el
+  grado … del año lectivo …, se encuentra a paz y salvo con nuestra
+  institución."
+
 ## Botón Atrás
 
 Pedido del usuario el 2026-11-05 ("ubica mejor el botón de echar para
@@ -183,9 +224,9 @@ de arriba (celular).
 
 Se hacen justo antes del paso que las necesita.
 
-- **Paso 4**: si piden un paz y salvo y el estudiante debe, ¿se bloquea o se
-  deja imprimir con aviso? Ojo: la cartera cuenta solo lo vencido; los meses
-  que aún no llegan no cuentan como deuda.
+- **Paso 5**: ninguna por ahora. Plan: costos del estudiante desde
+  `GET /estudiantes/{id}/valores-pago` (`valor_a_pagar`), editables solo
+  para esa impresión.
 
 ## Fuera por ahora
 

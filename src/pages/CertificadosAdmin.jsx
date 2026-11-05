@@ -4,6 +4,7 @@ import CertificadoAprobadoPreview from "../components/certificadosImpresion/Cert
 import CertificadoConductaPreview from "../components/certificadosImpresion/CertificadoConductaPreview";
 import CertificadoMatriculaPreview from "../components/certificadosImpresion/CertificadoMatriculaPreview";
 import CertificadoNotasPreview from "../components/certificadosImpresion/CertificadoNotasPreview";
+import CertificadoPazSalvoPreview from "../components/certificadosImpresion/CertificadoPazSalvoPreview";
 import ReporteParcialPreview from "../components/certificadosImpresion/ReporteParcialPreview";
 import SeleccionCertificados from "../components/certificadosImpresion/SeleccionCertificados";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
@@ -15,6 +16,7 @@ const VISTAS_CERTIFICADO_FORMAL = {
   matricula: CertificadoMatriculaPreview,
   conducta: CertificadoConductaPreview,
   aprobado: CertificadoAprobadoPreview,
+  "paz-salvo": CertificadoPazSalvoPreview,
 };
 
 export default function CertificadosAdmin() {
@@ -63,6 +65,7 @@ export default function CertificadosAdmin() {
       cursoSeleccionado={consultas.cursoSeleccionado}
       cursos={consultas.cursos}
       cursosPorId={consultas.cursosPorId}
+      deudaPazSalvo={consultas.deudaPazSalvo}
       error={consultas.error}
       estadoFiltro={consultas.estadoFiltro}
       estudiantes={consultas.estudiantesFiltrados}
@@ -84,7 +87,9 @@ export default function CertificadosAdmin() {
       onCambiarTab={(tab) => {
         setTabActiva(tab);
         consultas.limpiarError();
+        consultas.limpiarDeudaPazSalvo();
       }}
+      onCerrarDeudaPazSalvo={consultas.limpiarDeudaPazSalvo}
       onGenerarCurso={consultas.generarReporteParcialCurso}
       onGenerarEstudiante={(estudianteId) =>
         consultas.generarSegunTab(tabActiva, estudianteId)}

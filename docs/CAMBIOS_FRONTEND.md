@@ -1,5 +1,23 @@
 # Cambios Frontend
 
+## 2026-11-05 - Certificados: paz y salvo, solo si no debe nada
+
+Paso 4 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).
+Decisión del usuario (siguió la recomendación): si debe, no se expide.
+
+- Menú: "Certificado de paz y salvo", con el formato de los modelos ("quien
+  cursa/cursó el grado … se encuentra a paz y salvo con nuestra
+  institución").
+- Antes de abrirlo pide, junto con la ficha, `GET /estudiantes/{id}/deudas`
+  y `GET /api/ventas/pendientes/{id}` (las mismas de Pagos). Deudas del año
+  activo, que traen las de años anteriores, aunque se mire un año pasado; si
+  no está matriculado en el activo (404), las del año que se mira.
+- Si debe algo (lo vencido a hoy del año, años anteriores o ventas fiadas),
+  no abre el certificado: `AvisoDeudaPazSalvo` muestra cada concepto, el
+  total y "Registra el pago en Pagos y vuelve a generarlo". Si no puede
+  revisar la deuda, tampoco lo abre.
+- La cuenta la hace el backend; la pantalla solo suma lo que llega.
+
 ## 2026-11-05 - Certificados de conducta y aprobado; matrícula con el formato de los modelos
 
 Paso 3 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`),

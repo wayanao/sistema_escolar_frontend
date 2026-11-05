@@ -10,6 +10,8 @@ const { certificadosApiMock } = vi.hoisted(() => ({
     listarEstudiantesCertificados: vi.fn(),
     listarHistorialAsistenciaCertificados: vi.fn(),
     listarMateriasCertificados: vi.fn(),
+    listarVentasPendientesCertificado: vi.fn(),
+    obtenerDeudasCertificado: vi.fn(),
     obtenerFichaEstudianteCertificado: vi.fn(),
   },
 }));
@@ -112,6 +114,12 @@ describe("CertificadosAdmin", () => {
       ...estudiante,
       tipo_documento: "Tarjeta de Identidad",
     });
+    certificadosApiMock.obtenerDeudasCertificado.mockResolvedValue({
+      deudas: [],
+      total_deuda: 0,
+      deuda_anios_anteriores: [],
+    });
+    certificadosApiMock.listarVentasPendientesCertificado.mockResolvedValue([]);
     certificadosApiMock.listarEstudiantesCertificados.mockResolvedValue([
       estudiante,
     ]);
@@ -276,5 +284,32 @@ describe("CertificadosAdmin", () => {
 
     expect(await screen.findByText("No se pudo cargar la ficha del estudiante.")).toBeInTheDocument();
     expect(screen.queryByText("CERTIFICA:")).not.toBeInTheDocument();
+  });
+
+  it("no expide el paz y salvo a quien debe: muestra lo que debe; pagado, lo expide", async () => {
+    certificadosApiMock.obtenerDeudasCertificado.mockResolvedValueOnce({
+      deudas: [{ concepto: "Pensión", deuda: 130000 }],
+      total_deuda: 130000,
+      deuda_anios_anteriores: [],
+    });
+    const user = userEvent.setup();
+    render(<CertificadosAdmin />);
+
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "paz-salvo",
+    );
+    await user.click(screen.getByRole("button", { name: "Generar paz y salvo" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No se puede expedir el paz y salvo: Sara López debe $ 130.000.",
+    );
+    expect(screen.queryByText("CERTIFICA:")).not.toBeInTheDocument();
+
+    // Ya pagó: la segunda vez el backend no trae deuda.
+    await user.click(screen.getByRole("button", { name: "Generar paz y salvo" }));
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    expect(parrafoCertificado()).toContain("se encuentra a paz y salvo con nuestra institución.");
   });
 });

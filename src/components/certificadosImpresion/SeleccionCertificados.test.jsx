@@ -80,6 +80,7 @@ describe("SeleccionCertificados", () => {
       "reporte-parcial",
       "conducta",
       "aprobado",
+      "paz-salvo",
     ]);
     expect(screen.queryByRole("button", { name: "Certificado de notas" })).not.toBeInTheDocument();
   });
@@ -94,6 +95,32 @@ describe("SeleccionCertificados", () => {
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Generar conducta" }));
     expect(props.onGenerarEstudiante).toHaveBeenCalledWith(8);
+  });
+
+  it("muestra lo que debe en vez del paz y salvo, y se puede cerrar", async () => {
+    const user = userEvent.setup();
+    const onCerrarDeudaPazSalvo = vi.fn();
+    render(
+      <SeleccionCertificados
+        {...crearProps({
+          tabActiva: "paz-salvo",
+          deudaPazSalvo: {
+            estudiante: "Sara López",
+            items: [{ etiqueta: "Pensión", valor: 130000 }],
+            total: 130000,
+          },
+          onCerrarDeudaPazSalvo,
+        })}
+      />,
+    );
+
+    const aviso = screen.getByRole("alert");
+    expect(aviso).toHaveTextContent("No se puede expedir el paz y salvo: Sara López debe $ 130.000.");
+    expect(aviso).toHaveTextContent("Solo cuenta lo vencido a hoy.");
+    expect(aviso).toHaveTextContent("Pensión");
+    await user.click(within(aviso).getByRole("button", { name: "Cerrar" }));
+    expect(onCerrarDeudaPazSalvo).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Generar paz y salvo" })).toBeInTheDocument();
   });
 
   it("conserva estados de carga, error y lista vacía", () => {

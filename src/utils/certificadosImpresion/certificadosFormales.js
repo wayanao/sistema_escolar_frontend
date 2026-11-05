@@ -1,7 +1,8 @@
 import { nombreEstudiante } from "./certificados";
 
-// Certificados con el formato de los modelos del colegio: frase de quien
-// firma, «CERTIFICA:», un párrafo, dónde y cuándo se expide, y la firma.
+// Certificados con el formato de los modelos del colegio (matrícula, conducta,
+// aprobado y paz y salvo): frase de quien firma, «CERTIFICA:», un párrafo,
+// dónde y cuándo se expide, y la firma.
 // Ver docs/funcionalidades/CERTIFICADOS_NUEVOS.md.
 
 // Cómo se nombra al estudiante en el texto. La ficha no guarda si es niño o
@@ -135,6 +136,29 @@ export function construirCertificadoFormal({
   };
 }
 
+// Lo que impide el paz y salvo. Todo viene calculado del backend: la deuda
+// del año a la fecha (solo lo vencido, con su mora), la de años anteriores y
+// las ventas fiadas con saldo. Aquí solo se listan y se suman.
+export function resumirDeudaPazSalvo({ deudas, ventas }) {
+  const items = [];
+  for (const deuda of deudas?.deudas || []) {
+    const valor = Number(deuda.deuda);
+    if (valor > 0) items.push({ etiqueta: deuda.concepto, valor });
+  }
+  for (const anterior of deudas?.deuda_anios_anteriores || []) {
+    const valor = Number(anterior.total_deuda);
+    if (valor > 0) items.push({ etiqueta: `Año ${anterior.anio}`, valor });
+  }
+  for (const venta of ventas || []) {
+    const valor = Number(venta.total);
+    if (valor > 0) items.push({ etiqueta: venta.descripcion || `Venta #${venta.id}`, valor });
+  }
+  return {
+    items,
+    total: items.reduce((suma, item) => suma + item.valor, 0),
+  };
+}
+
 const texto = (contenido) => ({ texto: contenido, negrita: false });
 const negrita = (contenido) => ({ texto: contenido, negrita: true });
 
@@ -169,6 +193,14 @@ export function parrafoCertificado({ tipo, certificado, tratamiento, desempeno }
   }
   if (tipo === "aprobado") {
     return [...inicio, texto("cursó y aprobó en esta institución"), ...delGrado, texto(".")];
+  }
+  if (tipo === "paz-salvo") {
+    return [
+      ...inicio,
+      texto(`quien ${certificado.en_pasado ? "cursó" : "cursa"}`),
+      ...delGrado,
+      texto(", se encuentra a paz y salvo con nuestra institución."),
+    ];
   }
   // Matrícula.
   return [

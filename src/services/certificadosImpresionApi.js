@@ -26,6 +26,28 @@ export async function obtenerFichaEstudianteCertificado(estudianteId, { signal }
   return data;
 }
 
+// Paz y salvo: lo que debe el estudiante a la fecha (lo vencido; la cuenta la
+// hace el backend) en un año, más `deuda_anios_anteriores`. Sin
+// `parametrosAnio`, el año activo. Es la misma consulta de Pagos.
+export async function obtenerDeudasCertificado(estudianteId, { signal, parametrosAnio } = {}) {
+  const ruta = `/estudiantes/${estudianteId}/deudas`;
+  const opciones = {};
+  if (parametrosAnio) opciones.params = parametrosAnio;
+  if (signal) opciones.signal = signal;
+  const { data } = Object.keys(opciones).length > 0
+    ? await api.get(ruta, opciones)
+    : await api.get(ruta);
+  return data;
+}
+
+// Paz y salvo: las ventas fiadas (cargos de inventario) con saldo. No son de
+// ningún año. Es la misma consulta de Pagos.
+export async function listarVentasPendientesCertificado(estudianteId, { signal } = {}) {
+  const ruta = `/api/ventas/pendientes/${estudianteId}`;
+  const { data } = signal ? await api.get(ruta, { signal }) : await api.get(ruta);
+  return data;
+}
+
 export {
   listarHistorialAsistencia as listarHistorialAsistenciaCertificados,
 } from "./asistenciaApi";

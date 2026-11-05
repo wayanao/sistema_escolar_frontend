@@ -873,9 +873,11 @@ Estado actual de componentes y paginas del frontend.
 - `CertificadoFormal.jsx` (2026-11-05): hoja con el formato de los modelos del
   colegio (frase de quien firma, «CERTIFICA:», párrafo, expedición y firma) y
   la opción "En el texto decir". La usan `CertificadoMatriculaPreview.jsx`,
-  `CertificadoConductaPreview.jsx` (con "Desempeño") y
-  `CertificadoAprobadoPreview.jsx`. Los textos salen de
-  `utils/certificadosImpresion/certificadosFormales.js`.
+  `CertificadoConductaPreview.jsx` (con "Desempeño"),
+  `CertificadoAprobadoPreview.jsx` y `CertificadoPazSalvoPreview.jsx`. Los
+  textos salen de `utils/certificadosImpresion/certificadosFormales.js`.
+- `AvisoDeudaPazSalvo.jsx` (2026-11-05): en la selección, en vez del paz y
+  salvo, lo que debe el estudiante (concepto y valor) y el total.
 - `components/certificadosImpresion/admin/IdentidadInstitucionalView.jsx` y
   `PlantillasAdminView.jsx`: formularios administrativos controlados por props.
   Identidad tiene, desde el 2026-11-05, el grupo "Certificados: firma y lugar"

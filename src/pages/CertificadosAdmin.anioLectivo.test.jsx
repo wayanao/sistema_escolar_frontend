@@ -224,4 +224,35 @@ describe("Certificados con todos los estados (paso 6.10)", () => {
     expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
     expect(parrafo()).toContain("estuvo matriculado(a) en esta institución en el grado PRIMERO A");
   });
+
+  it("paz y salvo de un año pasado: revisa el año activo y, sin matrícula en él, el que se mira", async () => {
+    mocks.anioLectivo = CERRADO;
+    const rutasBase = apiMock.get.getMockImplementation();
+    apiMock.get.mockImplementation((url, opciones) => {
+      if (url === "/estudiantes/8/deudas") {
+        // Sin año (el activo): no está matriculado, como un egresado.
+        if (!opciones?.params) return Promise.reject({ response: { status: 404 } });
+        return Promise.resolve({ data: { deudas: [], total_deuda: 0, deuda_anios_anteriores: [] } });
+      }
+      if (url === "/api/ventas/pendientes/8") return Promise.resolve({ data: [] });
+      return rutasBase(url, opciones);
+    });
+    const user = userEvent.setup();
+
+    render(<CertificadosAdmin />);
+    expect(await screen.findByText("TI-123")).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "paz-salvo",
+    );
+    await user.click(screen.getByRole("button", { name: "Generar paz y salvo" }));
+
+    expect(await screen.findByText("CERTIFICA:")).toBeInTheDocument();
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes/8/deudas", SIN_ANIO);
+    expect(apiMock.get).toHaveBeenCalledWith("/estudiantes/8/deudas", CON_ANIO);
+    expect(apiMock.get).toHaveBeenCalledWith("/api/ventas/pendientes/8", SIN_ANIO);
+    expect(screen.getByText((_, elemento) =>
+      elemento?.tagName === "P" && elemento.textContent.startsWith("Que ")))
+      .toHaveTextContent("quien cursó el grado PRIMERO A del año lectivo 2025, se encuentra a paz y salvo");
+  });
 });
