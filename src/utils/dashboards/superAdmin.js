@@ -3,6 +3,7 @@
 // lectura de los campos del diálogo sí permanece fuera, porque toca el DOM.
 
 import { fechaIsoColombia } from "../fechaColombia";
+import { capitalizarNombreVisible } from "../nombres";
 
 export const ESTADOS_TENANT = ["activo", "en_mora", "suspendido", "cancelado"];
 
@@ -88,11 +89,12 @@ export const construirPayloadEstado = (estado, motivo) => ({
 });
 
 // Recibe los valores crudos del diálogo y devuelve exactamente el cuerpo que
-// acepta `POST /super-admin/tenants`.
+// acepta `POST /super-admin/tenants`. El nombre del admin se guarda con
+// mayúscula inicial: es el que verá en su menú (2026-11-05).
 export const normalizarPayloadTenant = (valores = {}) => ({
     nombre: valores.nombre?.trim(),
     codigo: valores.codigo?.trim().toLowerCase(),
-    admin_nombre: valores.admin_nombre?.trim(),
+    admin_nombre: valores.admin_nombre && capitalizarNombreVisible(valores.admin_nombre),
     admin_email: valores.admin_email?.trim().toLowerCase(),
     admin_password: valores.admin_password,
     fecha_inicio: valores.fecha_inicio,

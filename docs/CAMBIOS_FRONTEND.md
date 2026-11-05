@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-11-05 - Mayúsculas en los nombres (paso 1: el nombre del menú)
+
+Pedido por el usuario: en el perfil admin, el nombre del admin en el menú
+lateral salía en minúscula («se ve feo»), y quiere que los textos que se
+escriben lleven las mayúsculas donde van. Este paso arregla el nombre; los
+formularios van en pasos siguientes.
+
+- El menú lateral muestra el nombre del admin y del profesor con mayúscula
+  inicial en cada palabra aunque se haya guardado en minúscula («david
+  rodriguez» → «David Rodriguez»). Es la regla de `capitalize` que ya usan
+  las listas y el «Bienvenido» del login.
+- De dónde venía: el alta de colegio del super admin guardaba el nombre del
+  admin tal como se escribía. Ahora lo guarda con mayúscula inicial.
+- `capitalizarNombreVisible` pasa de `utils/autenticacion/login.js` a
+  `src/utils/nombres.js` para que la usen varios módulos; el login la sigue
+  exportando con el mismo contrato.
+- Archivos: `src/utils/nombres.js` y su prueba, `utils/autenticacion/login.js`,
+  `App.jsx` (`MarcoAdmin`, `MarcoProfesor`), `utils/dashboards/superAdmin.js`
+  y las pruebas de App y del super admin.
+- Verificación: `pnpm run check:deploy` → **3330 pruebas en 402 archivos**,
+  lint y build correctos, en una sola corrida. Sin probar todavía en el
+  navegador.
+
 ## 2026-11-05 - Perfil profesor: una sola tonalidad de morados
 
 Pedido por el usuario: en el perfil profesor, letras moradas, botones,

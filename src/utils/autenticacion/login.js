@@ -27,18 +27,9 @@ export function construirPayloadLogin({ email, password, codigoColegio }) {
   };
 }
 
-export function capitalizarNombreVisible(valor) {
-  return String(valor || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(
-      (palabra) =>
-        palabra.charAt(0).toLocaleUpperCase("es-CO") +
-        palabra.slice(1).toLocaleLowerCase("es-CO"),
-    )
-    .join(" ");
-}
+// Vive en src/utils/nombres.js porque la usan varios módulos; se reexporta
+// aquí para conservar el contrato del login.
+export { capitalizarNombreVisible } from "../nombres";
 
 export function obtenerRutaDespuesDeLogin(data) {
   if (data.rol === ROL_SUPER_ADMIN) return RUTAS_SESION.INICIO_SUPER_ADMIN;

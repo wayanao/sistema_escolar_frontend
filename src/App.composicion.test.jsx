@@ -193,6 +193,21 @@ describe("composicion de autenticacion y navegacion", () => {
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ["usuario", { id: 3, rol: "admin", nombre: "david rodriguez", debe_cambiar_password: false }, "/dashboard-admin", "dashboard-admin", "navAdmin", "David Rodriguez"],
+    ["profesor", { id: 7, rol: "profesor", nombre: "ANA MARÍA ruiz" }, "/", "dashboard-profesor", "navProfesor", "Ana María Ruiz"],
+  ])(
+    "el menú de %s muestra el nombre con mayúscula inicial aunque se haya guardado distinto",
+    async (clave, sesion, ruta, pantalla, menu, esperado) => {
+      guardarSesion(clave, sesion);
+
+      renderApp(ruta);
+
+      expect(await screen.findByTestId(pantalla)).toBeInTheDocument();
+      expect(mocks[menu].mock.calls.at(-1)[0].nombre).toBe(esperado);
+    },
+  );
+
   it("quita la paleta del profesor al salir de su perfil", async () => {
     guardarSesion("profesor", { id: 7, rol: "profesor" });
 

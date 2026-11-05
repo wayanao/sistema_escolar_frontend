@@ -29,6 +29,7 @@ import {
   PROFESOR_DESKTOP_ITEMS,
 } from "./utils/autenticacion/navegacion";
 import { RUTAS_SESION } from "./utils/autenticacion/sesion";
+import { capitalizarNombreVisible } from "./utils/nombres";
 
 const Planilla = lazy(() => import("./pages/Planilla"));
 const Asistencia = lazy(() => import("./pages/Asistencia"));
@@ -165,10 +166,12 @@ function MarcoMenuLateral({ menu, nombre, children }) {
   );
 }
 
+// El nombre se muestra con mayúscula inicial aunque se haya guardado en
+// minúscula («david rodriguez» → «David Rodriguez»).
 function MarcoAdmin({ children }) {
   const usuario = useSesionUsuario();
   return (
-    <MarcoMenuLateral menu={MENU_ADMIN} nombre={usuario?.nombre}>
+    <MarcoMenuLateral menu={MENU_ADMIN} nombre={capitalizarNombreVisible(usuario?.nombre) || undefined}>
       {children}
     </MarcoMenuLateral>
   );
@@ -186,7 +189,7 @@ function MarcoProfesor({ children }) {
   }, []);
 
   return (
-    <MarcoMenuLateral menu={MENU_PROFESOR} nombre={profesor?.nombre}>
+    <MarcoMenuLateral menu={MENU_PROFESOR} nombre={capitalizarNombreVisible(profesor?.nombre) || undefined}>
       {children}
     </MarcoMenuLateral>
   );

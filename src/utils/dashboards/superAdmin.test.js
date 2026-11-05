@@ -185,6 +185,13 @@ describe("normalizarPayloadTenant", () => {
         });
     });
 
+    it("guarda el nombre del admin con mayúscula inicial, como se verá en su menú", () => {
+        expect(normalizarPayloadTenant({ admin_nombre: "  david   rodriguez " }).admin_nombre).toBe(
+            "David Rodriguez",
+        );
+        expect(normalizarPayloadTenant({}).admin_nombre).toBeUndefined();
+    });
+
     it("no recorta la contraseña", () => {
         expect(normalizarPayloadTenant({ admin_password: "  Password123  " }).admin_password).toBe(
             "  Password123  ",
