@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 import { guardarAsistenciaProfesor } from "../../services/asistenciaApi";
 import {
   construirPayloadAsistencia,
@@ -121,7 +122,7 @@ export default function useComandosAsistenciaProfesor({
           title: "Falta seleccionar la fecha",
           text: "Regresa al dashboard, selecciona la fecha y vuelve a Asistencia.",
           confirmButtonText: "Entendido",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: MORADO_BOTON,
         });
         return;
       }
@@ -131,7 +132,7 @@ export default function useComandosAsistenciaProfesor({
           title: "Asistencia incompleta",
           text: `Falta marcar ${resumenAsistencia.pendientes} estudiante${resumenAsistencia.pendientes === 1 ? "" : "s"}.`,
           confirmButtonText: "Seguir revisando",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: MORADO_BOTON,
         });
         return;
       }
@@ -161,7 +162,7 @@ export default function useComandosAsistenciaProfesor({
         showCancelButton: true,
         confirmButtonText: asistenciaDelDiaTomada ? "Sí, guardar cambios" : "Sí, guardar asistencia",
         cancelButtonText: "Seguir revisando",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
         cancelButtonColor: "#64748b",
         reverseButtons: true,
         focusCancel: true,
@@ -193,7 +194,7 @@ export default function useComandosAsistenciaProfesor({
             title: "No se pudo guardar",
             text: respuesta.error,
             confirmButtonText: "Entendido",
-            confirmButtonColor: "#6d28d9",
+            confirmButtonColor: MORADO_BOTON,
           });
           return;
         }
@@ -204,7 +205,7 @@ export default function useComandosAsistenciaProfesor({
           title: asistenciaDelDiaTomada ? "Asistencia actualizada" : "Asistencia guardada",
           text: `${resumenAsistencia.presentes} presentes y ${resumenAsistencia.ausentes} ausentes quedaron registrados correctamente.`,
           confirmButtonText: "Entendido",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: MORADO_BOTON,
         });
       } catch (error) {
         console.error("Error guardando asistencia", error);
@@ -214,7 +215,7 @@ export default function useComandosAsistenciaProfesor({
           title: "No se pudo guardar",
           text: typeof detalle === "string" ? detalle : "Revisa la conexión e intenta nuevamente.",
           confirmButtonText: "Entendido",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: MORADO_BOTON,
         });
       } finally {
         setGuardando(false);

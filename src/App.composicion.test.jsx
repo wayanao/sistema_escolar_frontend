@@ -131,8 +131,8 @@ describe("composicion de autenticacion y navegacion", () => {
     expect(propsNavegacion.renderNotificaciones).toEqual(expect.any(Function));
     expect(propsNavegacion.renderSelectorAnio).toEqual(expect.any(Function));
     expect(mocks.navProfesor).not.toHaveBeenCalled();
-    // La paleta única de morados es solo del profesor.
-    expect(document.body).not.toHaveClass("tema-profesor");
+    // Las páginas del admin usan los morados del menú lateral (2026-11-05).
+    expect(document.body).toHaveClass("tema-menu-lateral");
     expect(mocks.notificaciones).toHaveBeenCalledWith({
       rol: "admin",
       onNavigate: mocks.onNavigate,
@@ -185,9 +185,9 @@ describe("composicion de autenticacion y navegacion", () => {
     });
     // El profesor no tiene selector ni pide la lista de años.
     expect(mocks.listarAniosLectivos).not.toHaveBeenCalled();
-    // Una sola tonalidad de morados: la clase va en el body para alcanzar
+    // Los morados del menú lateral: la clase va en el body para alcanzar
     // también lo que se abre por portal.
-    expect(document.body).toHaveClass("tema-profesor");
+    expect(document.body).toHaveClass("tema-menu-lateral");
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión profesor" }));
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
@@ -208,16 +208,16 @@ describe("composicion de autenticacion y navegacion", () => {
     },
   );
 
-  it("quita la paleta del profesor al salir de su perfil", async () => {
+  it("quita los morados del menú al salir del perfil", async () => {
     guardarSesion("profesor", { id: 7, rol: "profesor" });
 
     const { unmount } = renderApp("/");
     expect(await screen.findByTestId("dashboard-profesor")).toBeInTheDocument();
-    expect(document.body).toHaveClass("tema-profesor");
+    expect(document.body).toHaveClass("tema-menu-lateral");
 
     unmount();
 
-    expect(document.body).not.toHaveClass("tema-profesor");
+    expect(document.body).not.toHaveClass("tema-menu-lateral");
   });
 
   it("conecta identidad y logout solo dentro del layout super admin autorizado", async () => {

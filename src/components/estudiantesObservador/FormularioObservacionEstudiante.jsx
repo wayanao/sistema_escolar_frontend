@@ -109,7 +109,7 @@ export default function FormularioObservacionEstudiante({
           type="button"
           onClick={onGuardar}
           disabled={bloqueado}
-          className="inline-flex min-w-44 items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+          className="inline-flex min-w-44 items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-purple-800 disabled:cursor-not-allowed disabled:bg-purple-300"
         >
           {guardando && (
             <span

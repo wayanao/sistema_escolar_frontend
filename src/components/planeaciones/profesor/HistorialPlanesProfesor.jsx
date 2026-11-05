@@ -210,7 +210,7 @@ function TarjetaPlanHistorial({ plan, activo, onAbrirPlan }) {
           onClick={() => {
             if (!activo) onAbrirPlan(plan.fecha);
           }}
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-default disabled:bg-emerald-600"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-violet-800 disabled:cursor-default disabled:bg-emerald-600"
         >
           {activo ? "En edición" : "Abrir plan"}
         </button>

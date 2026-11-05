@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 import {
   crearColumnaEnTodosLosCursos,
   crearColumnaSeguimiento,
@@ -17,7 +18,7 @@ import {
   obtenerMarcaCelda,
 } from "../../utils/listasSeguimiento/marcas";
 
-const COLOR_BOTON = "#6d28d9";
+const COLOR_BOTON = MORADO_BOTON;
 
 const mensajeDeError = (error, porDefecto) => {
   const detalle = error?.response?.data?.detail;

@@ -30,7 +30,7 @@ function VistaInventario({
         </div>
         <button
           onClick={onAlternarFormulario}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow transition font-medium"
+          className="bg-purple-600 hover:bg-purple-800 text-white px-4 py-2 rounded shadow transition font-medium"
         >
           {showForm ? "Cancelar" : "+ Nuevo Producto"}
         </button>

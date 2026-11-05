@@ -81,7 +81,7 @@ function ReportesAdmin() {
           <button
             type="button"
             onClick={cargarDatosIniciales}
-            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-800"
           >
             Actualizar
           </button>

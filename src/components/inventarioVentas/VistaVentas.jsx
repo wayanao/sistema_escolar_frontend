@@ -35,7 +35,7 @@ return (
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Caja / Cargar Productos al Estudiante</h1>
             {ultimaVenta && (
-                <button onClick={onAbrirVolante} className="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
+                <button onClick={onAbrirVolante} className="bg-purple-600 hover:bg-purple-800 text-white font-semibold py-2 px-4 rounded shadow-sm flex items-center gap-2 transition-all">
                     🖨️ Imprimir Volante de Pago #{ultimaVenta.id}
                 </button>
             )}
@@ -135,7 +135,7 @@ return (
                             <button
                                 onClick={onProcesarVenta}
                                 disabled={registrandoVenta}
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-purple-600 hover:bg-purple-800 text-white font-medium py-2.5 px-4 rounded-md mt-4 transition duration-200 shadow-sm flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <span>➕</span> {registrandoVenta ? "Cargando..." : "Cargar al Estudiante"}
                             </button>

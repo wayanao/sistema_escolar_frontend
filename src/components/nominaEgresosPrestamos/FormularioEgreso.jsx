@@ -81,7 +81,7 @@ const FormularioEgreso = ({
                         <button
                             type="submit"
                             disabled={guardando}
-                            className="inline-flex items-center gap-2 bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 transition disabled:cursor-wait disabled:opacity-75"
+                            className="inline-flex items-center gap-2 bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-800 transition disabled:cursor-wait disabled:opacity-75"
                         >
                             {guardando ? (
                                 <>

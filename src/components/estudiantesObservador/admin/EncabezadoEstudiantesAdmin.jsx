@@ -45,7 +45,7 @@ export default function EncabezadoEstudiantesAdmin({
         {puedeCrear && (
           <button
             onClick={onAlternarFormulario}
-            className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-800 transition-colors"
           >
             {showForm ? "Cancelar" : "Nuevo Estudiante"}
           </button>

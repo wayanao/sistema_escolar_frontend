@@ -103,7 +103,7 @@ export default function VistaObservadorEstudiante({
             <button
               type="button"
               onClick={onNuevaAnotacion}
-              className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700"
+              className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-800"
             >
               Nueva anotación
             </button>

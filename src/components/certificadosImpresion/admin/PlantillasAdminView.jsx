@@ -169,7 +169,7 @@ function PlantillaCard({ plantilla, seleccionada, onSelect, onActivar, onDuplica
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDuplicar(); }}
-          className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2.5 py-1 rounded"
+          className="bg-purple-600 hover:bg-purple-800 text-white text-xs px-2.5 py-1 rounded"
         >
           Duplicar
         </button>
@@ -416,7 +416,7 @@ function EditorPlantilla({ plantilla, config, onChange, onSave }) {
           <button
             onClick={onSave}
             disabled={bloqueado}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow sm:w-auto"
+            className="w-full bg-purple-600 hover:bg-purple-800 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow sm:w-auto"
           >
             Guardar cambios
           </button>

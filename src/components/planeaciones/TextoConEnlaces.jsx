@@ -66,7 +66,7 @@ function BotonReproducirVideo({ onReproducir }) {
     <button
       type="button"
       onClick={onReproducir}
-      className="mx-0.5 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1.5 align-middle text-sm font-bold text-white shadow-sm transition hover:bg-violet-700"
+      className="mx-0.5 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1.5 align-middle text-sm font-bold text-white shadow-sm transition hover:bg-violet-800"
     >
       <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden="true">
         <path d="M6 4.5v11l9-5.5-9-5.5Z" />

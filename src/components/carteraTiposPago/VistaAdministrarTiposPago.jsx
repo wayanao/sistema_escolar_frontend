@@ -219,7 +219,7 @@ function VistaAdministrarTiposPago({
                                     <button
                                         type="submit"
                                         disabled={guardandoConcepto}
-                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:cursor-wait disabled:opacity-75"
+                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-800 font-medium disabled:cursor-wait disabled:opacity-75"
                                     >
                                         {guardandoConcepto ? (
                                             <>
@@ -652,7 +652,7 @@ function VistaAdministrarTiposPago({
                                     <button
                                         onClick={guardarConfiguracion}
                                         disabled={guardandoConfig || !rangoMesesValido}
-                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-800 font-medium disabled:opacity-50"
                                     >
                                         {guardandoConfig ? (
                                             <>
@@ -754,7 +754,7 @@ function VistaAdministrarTiposPago({
                                     <button
                                         onClick={agregarCursoLocal}
                                         disabled={!cursoAAgregar}
-                                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm font-medium disabled:opacity-50"
+                                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-800 text-sm font-medium disabled:opacity-50"
                                     >
                                         Agregar
                                     </button>

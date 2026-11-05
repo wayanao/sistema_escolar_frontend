@@ -206,7 +206,7 @@ export default function SeleccionCertificados({
                           type="button"
                           disabled={!!generandoId || generandoCurso}
                           onClick={() => onGenerarEstudiante(estudiante.id)}
-                          className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {cargando
                             ? "Generando..."

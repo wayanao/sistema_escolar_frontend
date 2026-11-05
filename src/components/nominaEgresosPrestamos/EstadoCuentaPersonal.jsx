@@ -74,7 +74,7 @@ const EstadoCuentaPersonal = ({
                                             onClick={() => onPagar(emp)}
                                             disabled={actualizando}
                                             title={actualizando ? "Espera a que se actualicen los saldos" : undefined}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded text-sm transition disabled:cursor-wait disabled:opacity-50"
+                                            className="bg-purple-600 hover:bg-purple-800 text-white font-bold py-1 px-3 rounded text-sm transition disabled:cursor-wait disabled:opacity-50"
                                         >
                                             Realizar Pago
                                         </button>

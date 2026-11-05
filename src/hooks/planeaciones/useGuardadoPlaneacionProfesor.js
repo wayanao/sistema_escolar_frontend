@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 import { guardarPlanProfesor } from "../../services/planeacionesApi";
 import { crearFormDataPlanProfesor } from "../../utils/planeaciones/profesor";
 
@@ -77,7 +78,7 @@ export default function useGuardadoPlaneacionProfesor({
             detail?.mensaje ||
             "Otra pestaña o dispositivo guardó una versión más reciente. Tus cambios no se sobrescribieron.",
           confirmButtonText: "Cargar versión reciente",
-          confirmButtonColor: "#7c3aed",
+          confirmButtonColor: MORADO_BOTON,
           showCancelButton: true,
           cancelButtonText: "Seguir viendo mis cambios",
           reverseButtons: true,
@@ -109,7 +110,7 @@ export default function useGuardadoPlaneacionProfesor({
             ? "El plan no pudo guardarse. Tus textos e imágenes continúan en pantalla."
             : "Revisa tu conexión e inténtalo nuevamente. Tus cambios no se han perdido.",
           confirmButtonText: "Intentar de nuevo",
-          confirmButtonColor: "#7c3aed",
+          confirmButtonColor: MORADO_BOTON,
           showCancelButton: true,
           cancelButtonText: "Seguir editando",
           reverseButtons: true,

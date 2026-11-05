@@ -4,10 +4,17 @@
 
 /* Morados de la app: tailwind.config.js los lee de aquí (canales R G B, para
    que funcionen las opacidades como bg-purple-500/25). En :root valen lo mismo
-   que en Tailwind. En el perfil profesor (body.tema-profesor), purple y violet
-   son una sola paleta con el tono del menú lateral: la de violet, con sus dos
-   tonos más oscuros iguales a los del menú (#36195f y #2a1150). Pedido del
-   usuario el 2026-11-05: antes se mezclaban dos morados distintos. */
+   que en Tailwind (landing, login y super admin).
+
+   Dentro del menú lateral (body.tema-menu-lateral: admin y profesor), purple y
+   violet son una sola paleta. Pedido del usuario el 2026-11-05: todas las
+   páginas con el morado del botón «Nuevo Estudiante», el que eligió.
+   - 500, 600 y 700 = #603b9b: botones, encabezados, letras moradas y anillos.
+   - 800 = un poco más oscuro: los botones al pasar el mouse (por eso un botón
+     de 500, 600 o 700 va con hover:bg-800).
+   - 900 y 950: más oscuros, para títulos; 950 = #2a1150, el fondo del menú.
+   - 50 a 400: tonos claros del mismo morado, para fondos y bordes.
+   src/paletaMorados.test.js avisa si el menú y esta paleta se separan. */
 @layer base {
   :root {
     --purple-50: 250 245 255;
@@ -34,19 +41,28 @@
     --violet-950: 46 16 101;
   }
 
-  .tema-profesor {
-    --purple-50: 245 243 255;
-    --purple-100: 237 233 254;
-    --purple-200: 221 214 254;
-    --purple-300: 196 181 253;
-    --purple-400: 167 139 250;
-    --purple-500: 139 92 246;
-    --purple-600: 124 58 237;
-    --purple-700: 109 40 217;
-    --purple-800: 91 33 182;
-    --purple-900: 54 25 95;
+  .tema-menu-lateral {
+    --purple-50: 245 242 250;
+    --purple-100: 234 227 245;
+    --purple-200: 213 201 233;
+    --purple-300: 179 157 215;
+    --purple-400: 137 100 196;
+    --purple-500: 96 59 155;
+    --purple-600: 96 59 155;
+    --purple-700: 96 59 155;
+    --purple-800: 78 48 126;
+    --purple-900: 59 33 99;
     --purple-950: 42 17 80;
-    --violet-900: 54 25 95;
+    --violet-50: 245 242 250;
+    --violet-100: 234 227 245;
+    --violet-200: 213 201 233;
+    --violet-300: 179 157 215;
+    --violet-400: 137 100 196;
+    --violet-500: 96 59 155;
+    --violet-600: 96 59 155;
+    --violet-700: 96 59 155;
+    --violet-800: 78 48 126;
+    --violet-900: 59 33 99;
     --violet-950: 42 17 80;
   }
 }

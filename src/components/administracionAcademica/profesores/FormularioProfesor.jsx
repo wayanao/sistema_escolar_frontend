@@ -119,7 +119,7 @@ export default function FormularioProfesor({
                 <div className="flex gap-2">
                     <button
                         type="submit"
-                        className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition"
+                        className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition"
                     >
                         {editId ? "Actualizar Profesor" : "Crear Profesor"}
                     </button>

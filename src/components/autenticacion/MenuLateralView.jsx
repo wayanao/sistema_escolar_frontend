@@ -17,8 +17,11 @@ import IconoMenu from "./IconoMenu";
 // el backend.
 //
 // El morado es el oscuro de la landing (#2a1150), elegido con el usuario el
-// 2026-11-04; el verde lima del logo marca la página actual.
-const ACTIVO = "bg-purple-500/25 font-semibold text-white";
+// 2026-11-04; el verde lima del logo marca la página actual. Las páginas usan
+// estos mismos morados (index.css). El resalte de la página actual va escrito a
+// mano: con los morados de la página, más oscuros, casi no se vería.
+const RESALTE = "bg-[#8b5cf6]/25";
+const ACTIVO = `${RESALTE} font-semibold text-white`;
 const INACTIVO = "text-[#cbc3dd] hover:bg-white/5 hover:text-white";
 const PANEL_FLOTANTE =
   "absolute z-40 min-w-[228px] rounded-xl border border-white/10 bg-[#36195f] p-1.5 shadow-[0_18px_40px_rgba(10,4,25,0.35)]";
@@ -298,7 +301,7 @@ function ListaMenu({ items, variante, pathname, onElegir }) {
               >
                 <span
                   className={`flex h-[30px] w-[52px] items-center justify-center rounded-full transition ${
-                    contieneActivo ? "bg-purple-500/25" : abierto ? "bg-white/5" : "group-hover:bg-white/5"
+                    contieneActivo ? RESALTE : abierto ? "bg-white/5" : "group-hover:bg-white/5"
                   }`}
                 >
                   <IconoMenu nombre={item.icono} />
@@ -414,7 +417,7 @@ function EnlaceMenu({ item, variante, onElegir }) {
           <>
             <span
               className={`flex h-[30px] w-[52px] items-center justify-center rounded-full transition ${
-                isActive ? "bg-purple-500/25" : "group-hover:bg-white/5"
+                isActive ? RESALTE : "group-hover:bg-white/5"
               }`}
             >
               <IconoMenu nombre={item.icono} />

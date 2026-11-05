@@ -152,6 +152,14 @@ function MarcoMenuLateral({ menu, nombre, children }) {
   const cerrarSesion = useCerrarSesion();
   const { modo, puedeAlternar, alternarMenu } = useMenuLateral();
 
+  // Las páginas usan el morado del menú (ver index.css). Va en el body para
+  // alcanzar también lo que se abre por portal, como las ventanas de
+  // confirmar o la presentación de clase; al salir del perfil se quita.
+  useEffect(() => {
+    document.body.classList.add("tema-menu-lateral");
+    return () => document.body.classList.remove("tema-menu-lateral");
+  }, []);
+
   return (
     <MenuLateralView
       {...menu}
@@ -179,14 +187,6 @@ function MarcoAdmin({ children }) {
 
 function MarcoProfesor({ children }) {
   const profesor = useSesionProfesor();
-
-  // Una sola tonalidad de morados en el perfil profesor (ver index.css). Va en
-  // el body para alcanzar también lo que se abre por portal, como la
-  // presentación de clase; al salir del perfil se quita.
-  useEffect(() => {
-    document.body.classList.add("tema-profesor");
-    return () => document.body.classList.remove("tema-profesor");
-  }, []);
 
   return (
     <MarcoMenuLateral menu={MENU_PROFESOR} nombre={capitalizarNombreVisible(profesor?.nombre) || undefined}>

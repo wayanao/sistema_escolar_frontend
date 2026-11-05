@@ -163,7 +163,7 @@ export default function VentanaCuadrosPlanAdmin({
             type="button"
             onClick={onGuardar}
             disabled={!disponible || guardando}
-            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {guardando ? "Guardando..." : "Guardar"}
           </button>

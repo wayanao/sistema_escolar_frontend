@@ -163,7 +163,7 @@ export default function IdentidadInstitucionalView({
           <button
             onClick={onGuardar}
             disabled={guardando}
-            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow"
+            className="bg-purple-600 hover:bg-purple-800 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded shadow"
           >
             {guardando ? "Guardando..." : "Guardar cambios"}
           </button>
@@ -199,7 +199,7 @@ function LogoSlot({ label, url, inputRef, onUpload, onDelete }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded"
+          className="bg-purple-600 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded"
         >
           {url ? "Cambiar" : "Subir"}
         </button>

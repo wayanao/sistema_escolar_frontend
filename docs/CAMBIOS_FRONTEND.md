@@ -1,5 +1,64 @@
 # Cambios Frontend
 
+## 2026-11-05 - Admin y profesor: las páginas con el morado del menú
+
+Pedido del usuario: un solo morado en las páginas, en admin y en profesor.
+Reemplaza la paleta suave que tenía solo el profesor (`.tema-profesor`): las
+páginas seguían en un morado vivo.
+
+Se probaron dos versiones antes de la final:
+- Botones #36195f y letras #2a1150 (los del menú). El usuario pidió «el
+  mismo color del sidebar, el mismo».
+- Todo en #2a1150. El usuario respondió que la única página con el color que
+  quería era Estudiantes. Ahí el botón «Nuevo Estudiante» y los círculos con
+  las iniciales usaban el tono 500 (#603b9b), y el resto, #2a1150.
+
+Final:
+- La paleta vive en un solo lugar, `src/index.css` (`.tema-menu-lateral`):
+  - 500, 600 y 700 = #603b9b, el de Estudiantes: botones, encabezados,
+    letras moradas y anillos de foco.
+  - 800 = #4e307e, un poco más oscuro: los botones al pasar el mouse.
+  - 900 = #3b2163 y 950 = #2a1150 (el fondo del menú): títulos más oscuros.
+  - 50 a 400: tonos claros del mismo morado, para fondos y bordes (antes un
+    lila vivo).
+  - `purple` y `violet` valen lo mismo: ya no se mezclan dos morados.
+- Como 500, 600 y 700 quedaron iguales, los botones que pasaban de uno a otro
+  al pasar el mouse ya no cambiaban de color: ahora van a `hover:bg-*-800`
+  (41 líneas en 33 archivos de admin y profesor).
+- La clase la pone `MarcoMenuLateral` (admin y profesor) en el body, así
+  alcanza también las ventanas que se abren por encima. Landing, login,
+  cambio de contraseña y super admin no cambian.
+- Morados escritos a mano que ahora siguen la paleta:
+  - Los botones de confirmar de las ventanas (`MORADO_BOTON`, nuevo
+    `src/constants/colores.js`): asistencia, boletín, Malla Curricular, plan
+    de clases y listas de seguimiento.
+  - El encabezado y los campos de la Malla Curricular (`mallaCurricular.css`).
+    El encabezado era un degradado y ahora es del morado del menú, sin
+    degradado.
+  - La tarjeta «Reportes» del dashboard del admin.
+  - La tarjeta morada de Cartera Vencida, que terminaba en azul índigo: ahora
+    es del morado del menú, sin degradado.
+- El menú no cambia: su resalte de la página actual queda escrito a mano
+  (`#8b5cf6` al 25 %), porque con la paleta nueva casi no se vería. Ahora es
+  igual en admin y profesor.
+- Sin cambiar: los colores que distinguen profesores en el observador, las
+  sombras y los impresos (`print.css`).
+- Pruebas:
+  - Nueva `src/paletaMorados.test.js`. Comprueba que:
+    - 500, 600 y 700 sean el morado de Estudiantes y 800 sea más oscuro;
+    - 950 sea el fondo del menú;
+    - ningún botón morado se quede igual al pasar el mouse;
+    - purple y violet sean iguales;
+    - fuera del menú sigan los de Tailwind.
+  - `App.composicion.test.jsx`: el admin también recibe la clase.
+- Verificación, con la versión final:
+  - `pnpm run check:deploy`: 3366 de 3371 pruebas pasaron. Las 5 que
+    fallaron agotaron su tiempo por carga del equipo (entre ellas
+    `CrearProfesor`); solas pasan, 84 de 84.
+  - Lint y build, aparte: correctos.
+  - En el CSS generado están los valores nuevos de la paleta.
+  - Sin probar todavía en el navegador.
+
 ## 2026-11-05 - Mayúsculas en los textos (paso 4: textos libres)
 
 Sigue al paso 3. Los textos libres que escribe el admin se guardan con la

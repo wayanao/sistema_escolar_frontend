@@ -23,7 +23,7 @@ export default function TraerPlaneadorAnioAnteriorView({ onTraer, trayendo }) {
         type="button"
         onClick={onTraer}
         disabled={trayendo}
-        className="w-full shrink-0 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-purple-300 sm:w-auto"
+        className="w-full shrink-0 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-purple-800 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-purple-300 sm:w-auto"
       >
         {trayendo ? "Trayendo..." : "Traer el planeador del año pasado"}
       </button>

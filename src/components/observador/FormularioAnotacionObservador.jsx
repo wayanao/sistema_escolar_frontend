@@ -64,7 +64,7 @@ export default function FormularioAnotacionObservador({
         <button
           type="submit"
           disabled={guardando || !puedeGuardar}
-          className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:bg-slate-300"
+          className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-800 disabled:bg-slate-300"
         >
           {guardando ? "Guardando..." : "Guardar"}
         </button>

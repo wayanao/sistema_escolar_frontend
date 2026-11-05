@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 import { guardarPlaneadoresAnuales } from "../../services/mallaCurricularApi";
 import {
   construirPayloadPlaneadores,
@@ -66,7 +67,7 @@ export function useComandosMallaCurricular({ asignacionId }) {
         title: `Falta la fecha en la fila ${filaSinFecha + 1}`,
         text: "Cada fila con contenido debe tener una fecha límite antes de guardarse.",
         confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
       });
       return;
     }
@@ -77,7 +78,7 @@ export function useComandosMallaCurricular({ asignacionId }) {
         title: `Falta contenido en la fila ${filaSoloConFecha + 1}`,
         text: "Escribe al menos un campo de contenido para conservar esa fecha límite.",
         confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
       });
       return;
     }
@@ -101,7 +102,7 @@ export function useComandosMallaCurricular({ asignacionId }) {
           title: "Malla curricular guardada",
           text: `${filasDiligenciadas} fila${filasDiligenciadas === 1 ? "" : "s"} quedaron guardadas con su fecha límite.`,
           confirmButtonText: "Entendido",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: MORADO_BOTON,
         });
       } else {
         throw new Error("El servidor no confirmó el guardado.");
@@ -114,7 +115,7 @@ export function useComandosMallaCurricular({ asignacionId }) {
         title: "No se pudo guardar la malla",
         text: typeof detalle === "string" ? detalle : "Revisa las filas e intenta nuevamente.",
         confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
       });
     } finally {
       setGuardando(false);

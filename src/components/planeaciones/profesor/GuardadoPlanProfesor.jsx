@@ -35,7 +35,7 @@ export default function GuardadoPlanProfesor({
               onClick={onGuardar}
               disabled={guardando || cargando}
               aria-busy={guardando}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-violet-200 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-purple-700 hover:shadow-lg disabled:cursor-not-allowed disabled:from-violet-300 disabled:to-purple-300 disabled:shadow-none lg:w-auto lg:min-w-48"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-violet-200 transition hover:-translate-y-0.5 hover:from-violet-800 hover:to-purple-800 hover:shadow-lg disabled:cursor-not-allowed disabled:from-violet-300 disabled:to-purple-300 disabled:shadow-none lg:w-auto lg:min-w-48"
             >
               {guardando ? <SpinnerGuardado /> : <IconoBotonGuardado />}
               {guardando ? "Guardando..." : buttonText}

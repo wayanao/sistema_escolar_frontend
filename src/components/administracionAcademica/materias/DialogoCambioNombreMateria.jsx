@@ -34,7 +34,7 @@ export default function DialogoCambioNombreMateria({
                     <button
                         type="button"
                         onClick={onCambiarIgual}
-                        className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-700"
+                        className="rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-800"
                     >
                         Cambiar igual
                     </button>

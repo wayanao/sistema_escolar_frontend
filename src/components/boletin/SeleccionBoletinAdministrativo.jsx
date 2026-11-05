@@ -98,7 +98,7 @@ export default function SeleccionBoletinAdministrativo({
                         <button
                           disabled={cargandoBoletin}
                           onClick={() => onGenerarBoletin(estudiante.id)}
-                          className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-md transition transform hover:-translate-y-1 disabled:opacity-50"
+                          className="bg-purple-600 hover:bg-purple-800 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-md transition transform hover:-translate-y-1 disabled:opacity-50"
                         >
                           {cargandoBoletin
                             ? "⏳ Generando..."

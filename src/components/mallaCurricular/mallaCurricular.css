@@ -1,5 +1,7 @@
+/* Los morados salen de la paleta de src/index.css: dentro del menú lateral son
+   el del menú (pedido del usuario el 2026-11-05). */
 .planeador-header {
-  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
+  background: rgb(var(--purple-700));
   color: white;
   padding: 2rem;
   border-radius: 12px;
@@ -62,7 +64,7 @@
 }
 
 .planeador-textarea:focus {
-  background-color: rgba(126, 34, 206, 0.06);
+  background-color: rgb(var(--purple-700) / 0.06);
   border-radius: 4px;
 }
 
@@ -76,8 +78,8 @@
 }
 
 .planeador-input:focus {
-  border-color: #7e22ce;
-  box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.12);
+  border-color: rgb(var(--purple-700));
+  box-shadow: 0 0 0 3px rgb(var(--purple-700) / 0.12);
 }
 
 @media screen and (max-width: 640px) {
@@ -120,8 +122,8 @@
   .no-print { display: none !important; }
 
   .planeador-header {
-    background: #faf5ff !important;
-    color: #581c87 !important;
+    background: rgb(var(--purple-50)) !important;
+    color: rgb(var(--purple-900)) !important;
     -webkit-print-color-adjust: exact;
     margin-bottom: 1rem;
     padding: 1rem;

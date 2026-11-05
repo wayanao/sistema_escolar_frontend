@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 import {
   consultarPlaneadorAnioAnterior,
   traerPlaneadorAnioAnterior,
@@ -63,7 +64,7 @@ export function usePlaneadorAnioAnterior({ asignacionId }) {
         title: "Planeador traído",
         text: respuesta?.message || "Se trajo el planeador del año pasado.",
         confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
       });
     } catch (error) {
       console.error("Error trayendo el planeador del año pasado", error);
@@ -79,7 +80,7 @@ export function usePlaneadorAnioAnterior({ asignacionId }) {
           error?.response ? "Intenta nuevamente." : "No se pudo conectar. Intenta nuevamente."
         ),
         confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
+        confirmButtonColor: MORADO_BOTON,
       });
     } finally {
       setTrayendo(false);

@@ -47,11 +47,12 @@ export const ACCESOS_ADMIN = [
         description: "Ver reportes y estadísticas del sistema",
         icon: "📊",
         path: "/admin/reportes",
-        surface: "#f5f3ff",
-        hover: "#ede9fe",
-        border: "#ddd6fe",
-        accent: "#7c3aed",
-        accentSoft: "rgba(124, 58, 237, 0.14)",
+        // Los morados de la paleta (src/index.css): los del menú lateral.
+        surface: "rgb(var(--purple-50))",
+        hover: "rgb(var(--purple-100))",
+        border: "rgb(var(--purple-200))",
+        accent: "rgb(var(--purple-600))",
+        accentSoft: "rgb(var(--purple-600) / 0.14)",
     },
 ];
 

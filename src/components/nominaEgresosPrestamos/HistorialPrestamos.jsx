@@ -63,7 +63,7 @@ const HistorialPrestamos = ({
                 <button
                     type="button"
                     onClick={onBuscar}
-                    className="self-end rounded bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700"
+                    className="self-end rounded bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-800"
                 >
                     Buscar
                 </button>

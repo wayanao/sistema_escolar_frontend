@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { MORADO_BOTON } from "../../constants/colores";
 
 import { guardarBoletinProfesor } from "../../services/boletinesApi";
 import {
@@ -41,7 +42,7 @@ export default function useComandosIngresoBoletinProfesor({
       showCancelButton: true,
       confirmButtonText: "Guardar igual",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#7c3aed",
+      confirmButtonColor: MORADO_BOTON,
     });
     if (!respuesta?.isConfirmed) return false;
     avisoAceptadoRef.current = true;
@@ -98,7 +99,7 @@ export default function useComandosIngresoBoletinProfesor({
       confirmButtonText: "Solo campos vacíos",
       denyButtonText: "Sobrescribir todos",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#7c3aed",
+      confirmButtonColor: MORADO_BOTON,
       denyButtonColor: "#475569",
     });
 
@@ -255,7 +256,7 @@ export default function useComandosIngresoBoletinProfesor({
       showCancelButton: true,
       confirmButtonText: "Sí, guardar todo",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#7c3aed",
+      confirmButtonColor: MORADO_BOTON,
     });
 
     if (!result.isConfirmed) return;

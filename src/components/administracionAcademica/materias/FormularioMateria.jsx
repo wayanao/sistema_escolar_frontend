@@ -43,7 +43,7 @@ export default function FormularioMateria({
             <div className="flex gap-2">
                 <button
                     onClick={onGuardar}
-                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition"
+                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-800 transition"
                 >
                     {editId ? "Actualizar Materia" : "Crear Materia"}
                 </button>

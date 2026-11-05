@@ -673,11 +673,20 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   encabezado, firmas, pie de pagina y comportamiento especial por documento.
 - Los morados de Tailwind (`purple-*` y `violet-*`) salen de variables CSS
   (`--purple-700`, etc.) definidas en `src/index.css` y leídas en
-  `tailwind.config.js`. En `:root` valen lo de siempre; en el perfil profesor
-  (`body.tema-profesor`, que pone `MarcoProfesor`) son una sola paleta con el
-  tono del menú lateral: la de violet, con 900 = #36195f y 950 = #2a1150
-  (2026-11-05). Para cambiar ese tono se tocan solo esas variables. Un color
-  morado escrito a mano (`#...` o `fuchsia-*`, `indigo-*`) no sigue la paleta.
+  `tailwind.config.js`. En `:root` valen lo de siempre (landing, login y super
+  admin). Dentro del menú lateral (`body.tema-menu-lateral`, que pone
+  `MarcoMenuLateral` para admin y profesor) son una sola paleta con el morado
+  que eligió el usuario, el del botón «Nuevo Estudiante»: 500, 600 y 700 =
+  #603b9b, 800 un poco más oscuro, 950 = #2a1150 (el fondo del menú) y tonos
+  claros del mismo morado (2026-11-05). Como 500, 600 y 700 son iguales, un
+  botón de esos tonos lleva `hover:bg-*-800`. Para cambiar el tono se tocan
+  solo esas variables; `src/paletaMorados.test.js` avisa si el menú y la
+  paleta se separan o si un botón se queda sin cambio al pasar el mouse.
+- Lo que no es una clase de Tailwind también sale de esas variables: los
+  botones de confirmar de SweetAlert (`MORADO_BOTON` en
+  `src/constants/colores.js`), la Malla Curricular (`mallaCurricular.css`) y
+  la tarjeta morada del dashboard del admin. Un morado escrito a mano (`#...`,
+  `fuchsia-*`, `indigo-*`) no sigue la paleta.
 - `MenuLateralView` (2026-11-04) es el menú de admin y profesor: abierto en
   PC, riel en tablet o al encoger, y en celular un menú que se desliza (admin)
   o una barra abajo con «Más» (profesor). Los grupos del admin se abren bajo

@@ -44,7 +44,7 @@ export default function GuiaDidacticaProfesor({
               type="button"
               onClick={onAbrirPresentacion}
               disabled={!asignacion || cargando}
-              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-200 bg-violet-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-violet-700 hover:shadow-md disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-200 bg-violet-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-violet-800 hover:shadow-md disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
             >
               <svg
                 viewBox="0 0 24 24"

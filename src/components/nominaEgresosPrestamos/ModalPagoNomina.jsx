@@ -144,7 +144,7 @@ const ModalPagoNomina = ({
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={registrando || hayProblemas}
-                                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded transition shadow-md disabled:cursor-not-allowed disabled:opacity-60">
+                                    className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-6 rounded transition shadow-md disabled:cursor-not-allowed disabled:opacity-60">
                                     {registrando ? (
                                         <>
                                             <SpinnerView />

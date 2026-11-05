@@ -141,7 +141,7 @@ function AccionesGrupo({ guardandoTodos, onAplicarLogros, onGuardarTodos }) {
             type="button"
             onClick={onGuardarTodos}
             disabled={guardandoTodos}
-            className="rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-300"
+            className="rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 disabled:cursor-not-allowed disabled:bg-purple-300"
           >
             {guardandoTodos ? "Guardando grupo..." : "Guardar todo"}
           </button>
@@ -217,7 +217,7 @@ function TarjetaEstudiante({
             )}
             <button
               onClick={onGuardar}
-              className="w-full rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-700 sm:w-auto"
+              className="w-full rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 sm:w-auto"
             >
               {estadoVisual.buttonText}
             </button>

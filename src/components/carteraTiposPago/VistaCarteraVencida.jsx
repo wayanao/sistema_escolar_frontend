@@ -253,7 +253,7 @@ function ReporteCarteraVencida({ reporte }) {
 
 function KpiCard({ icon, label, value, accent = "purple", subtitle }) {
     const palette = {
-        purple: "from-purple-600 to-indigo-600",
+        purple: "from-purple-600 to-purple-700",
         red: "from-rose-600 to-red-600",
         amber: "from-amber-500 to-orange-500",
         emerald: "from-emerald-600 to-teal-600",
@@ -398,7 +398,7 @@ function VistaCarteraVencida({
                     <button
                         onClick={onExportar}
                         disabled={itemsFiltrados.length === 0}
-                        className="px-3 py-2 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 font-medium disabled:opacity-50"
+                        className="px-3 py-2 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-800 font-medium disabled:opacity-50"
                     >
                         ⬇ Exportar CSV
                     </button>
