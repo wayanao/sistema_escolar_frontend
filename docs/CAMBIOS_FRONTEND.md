@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-11-05 - Mayúsculas en los nombres (paso 2: estudiantes y admisiones)
+
+Sigue al paso 1. Los nombres de personas que escribe el admin se guardan con
+mayúscula inicial en cada palabra, como ya se ven en las listas («maría del
+pilar» → «María Del Pilar»).
+
+- **Estudiantes** (crear y editar): nombre, apellido, nombre del padre y de la
+  madre.
+- **Admisiones** (registrar y editar): nombre y apellido del aspirante,
+  acudiente, quien autoriza y entrevistador.
+- No cambian lugares, barrios, direcciones, documentos, correos, teléfonos,
+  ocupaciones, asistentes ni observaciones. Los profesores siguen en
+  MAYÚSCULAS, como hasta ahora (decidido con el usuario). El cliente de
+  ventas no se escribe: se elige un estudiante.
+- `capitalizarNombreVisible` pone también mayúscula después de guion o
+  apóstrofo («María-José», «O'Neil»).
+- Lo ya guardado no cambia en la base: se corrige al volver a guardar ese
+  estudiante o esa admisión.
+- Archivos: `src/utils/nombres.js`, `utils/estudiantesObservador/estudiantes.js`
+  (`limpiarPayloadEstudiante`), `utils/admisiones/formularios.js` y sus
+  pruebas.
+- Verificación: pruebas de estudiantes y admisiones → **392 en 32 archivos**
+  (388 antes del cambio). `pnpm run check:deploy` → **3334 pruebas en 402
+  archivos**, lint y build correctos, en una sola corrida. Sin probar todavía
+  en el navegador.
+
 ## 2026-11-05 - Mayúsculas en los nombres (paso 1: el nombre del menú)
 
 Pedido por el usuario: en el perfil admin, el nombre del admin en el menú

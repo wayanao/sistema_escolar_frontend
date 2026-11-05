@@ -1,5 +1,6 @@
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
 import { SUBGRUPOS_SISBEN } from "../../constants/sisben";
+import { capitalizarNombreVisible } from "../nombres";
 import { obtenerValoracion } from "../valoracionesDesarrollo";
 
 export const ESTADOS_ESTUDIANTE = [
@@ -92,12 +93,21 @@ export function obtenerEtiquetaEstadoEstudiante(estado) {
   );
 }
 
+// Nombres de personas: se guardan con mayúscula inicial en cada palabra, como
+// se ven en las listas («maría del pilar» → «María Del Pilar»). Pedido del
+// usuario el 2026-11-05. Lugares, direcciones y documentos van como se
+// escriben.
+const CAMPOS_NOMBRE_PERSONA = new Set(["nombre", "apellido", "nombre_padre", "nombre_madre"]);
+
 export function limpiarPayloadEstudiante(estudiante) {
   const payload = Object.fromEntries(
-    Object.entries(estudiante).map(([campo, valor]) => [
-      campo,
-      valor === "" ? null : valor,
-    ]),
+    Object.entries(estudiante).map(([campo, valor]) => {
+      const limpio =
+        CAMPOS_NOMBRE_PERSONA.has(campo) && typeof valor === "string"
+          ? capitalizarNombreVisible(valor)
+          : valor;
+      return [campo, limpio === "" ? null : limpio];
+    }),
   );
 
   if ("sisben" in payload && typeof payload.sisben !== "boolean") {

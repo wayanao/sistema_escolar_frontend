@@ -82,6 +82,34 @@ describe("cuerpos que viajan al backend", () => {
     expect(construirCuerpoAspirante(lleno()).curso_id).toBeNull();
   });
 
+  it("guarda los nombres de personas con mayúscula inicial, y lo demás como se escribió", () => {
+    // Pedido del usuario el 2026-11-05: que los nombres lleven las mayúsculas.
+    const cuerpo = construirCuerpoAdmision(
+      lleno({
+        nombre: "  maría   josé ",
+        apellido: "GÓMEZ ruiz",
+        acudiente_nombre: "carlos gómez",
+        autoriza_nombre: "marta díaz",
+        entrevistador: "psicóloga ruiz",
+        acudiente_parentesco: "papá",
+        documento_identidad: "abc-123",
+        asistentes: "mamá y abuela",
+        observaciones: "llegó tarde",
+      }),
+    );
+
+    expect(cuerpo.nombre).toBe("María José");
+    expect(cuerpo.apellido).toBe("Gómez Ruiz");
+    expect(cuerpo.acudiente_nombre).toBe("Carlos Gómez");
+    expect(cuerpo.autoriza_nombre).toBe("Marta Díaz");
+    expect(cuerpo.entrevistador).toBe("Psicóloga Ruiz");
+    expect(cuerpo.acudiente_parentesco).toBe("papá");
+    expect(cuerpo.documento_identidad).toBe("abc-123");
+    expect(cuerpo.asistentes).toBe("mamá y abuela");
+    expect(cuerpo.observaciones).toBe("llegó tarde");
+    expect(construirCuerpoAspirante(lleno({ acudiente_nombre: "   " })).acudiente_nombre).toBeNull();
+  });
+
   it("editar manda el aspirante y la entrevista", () => {
     const cuerpo = construirCuerpoAdmision(
       lleno({ entrevistador: " Psicóloga Ruiz ", expectativas: "", paz_salvo_anterior: "SI" }),

@@ -7,6 +7,8 @@ describe("capitalizarNombreVisible", () => {
     ["  mARÍA   DEL pILAR ", "María Del Pilar"],
     ["ÁNGEL", "Ángel"],
     ["óscar núñez", "Óscar Núñez"],
+    ["maría-josé pérez", "María-José Pérez"],
+    ["o'neil", "O'Neil"],
     ["", ""],
     [null, ""],
     [undefined, ""],

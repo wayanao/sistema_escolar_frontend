@@ -6,6 +6,7 @@
 // manda). Los límites de texto son los `VARCHAR` de la tabla `admisiones`.
 
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
+import { capitalizarNombreVisible } from "../nombres";
 import { RESULTADO_NO_APROBADO, RESULTADO_PENDIENTE } from "./admisiones";
 
 // Lo que se pide al registrar (mismo orden que el backend).
@@ -117,11 +118,25 @@ const textoONulo = (valor) => {
   return texto === "" ? null : texto;
 };
 
+// Nombres de personas: se guardan con mayúscula inicial en cada palabra, como
+// se ven en las listas. Pedido del usuario el 2026-11-05. Lo demás (asistentes,
+// ocupaciones, observaciones) va como se escribe.
+const CAMPOS_NOMBRE_PERSONA = new Set([
+  "nombre",
+  "apellido",
+  "acudiente_nombre",
+  "autoriza_nombre",
+  "entrevistador",
+]);
+
 function valorDeCampo(formulario, campo) {
   if (campo === "autoriza_datos") return formulario.autoriza_datos === true;
   if (campo === "curso_id") {
     const curso = Number(formulario.curso_id);
     return Number.isInteger(curso) && curso > 0 ? curso : null;
+  }
+  if (CAMPOS_NOMBRE_PERSONA.has(campo)) {
+    return textoONulo(capitalizarNombreVisible(formulario[campo]));
   }
   return textoONulo(formulario[campo]);
 }

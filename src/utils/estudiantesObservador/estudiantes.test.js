@@ -49,6 +49,33 @@ describe("contratos puros de estudiantes", () => {
     expect(origen.email).toBe("");
   });
 
+  it("guarda los nombres de personas con mayúscula inicial, y lo demás como se escribió", () => {
+    // Pedido del usuario el 2026-11-05: que los nombres lleven las mayúsculas.
+    const payload = limpiarPayloadEstudiante({
+      nombre: "  maría   del pilar ",
+      apellido: "GÓMEZ ruiz",
+      nombre_padre: "carlos gómez",
+      nombre_madre: "",
+      lugar_expedicion: "bogotá D.C.",
+      direccion: "calle 10 # 5-20",
+      email: "Ana.Gomez@Correo.com",
+      documento_identidad: "abc-123",
+      ocupacion_padre: "conductor",
+    });
+
+    expect(payload).toMatchObject({
+      nombre: "María Del Pilar",
+      apellido: "Gómez Ruiz",
+      nombre_padre: "Carlos Gómez",
+      nombre_madre: null,
+      lugar_expedicion: "bogotá D.C.",
+      direccion: "calle 10 # 5-20",
+      email: "Ana.Gomez@Correo.com",
+      documento_identidad: "abc-123",
+      ocupacion_padre: "conductor",
+    });
+  });
+
   it("adapta la respuesta de edición sin campos propios de base de datos", () => {
     expect(
       normalizarEstudianteParaEdicion({
