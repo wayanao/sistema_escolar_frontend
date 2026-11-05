@@ -3,6 +3,7 @@ import {
   formatoNota,
   normalizarTexto,
 } from "../../utils/certificadosImpresion/certificados";
+import BotonAtrasCertificado from "./BotonAtrasCertificado";
 import DatoCertificado from "./DatoCertificado";
 
 export default function ReporteParcialPreview({ reporte, onBack }) {
@@ -22,16 +23,7 @@ export default function ReporteParcialPreview({ reporte, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <div className="fixed left-4 top-4 z-50 no-print md:left-6 md:top-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-xl transition hover:bg-slate-800"
-          title="Atras"
-        >
-          ← Atrás
-        </button>
-      </div>
+      <BotonAtrasCertificado onClick={onBack} />
 
       <DocumentoImprimible
         tipo="reporte_estudiante"

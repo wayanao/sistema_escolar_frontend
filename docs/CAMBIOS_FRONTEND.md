@@ -1,5 +1,40 @@
 # Cambios Frontend
 
+## 2026-11-05 - Certificados: firma y lugar, y el botón Atrás dentro de la página
+
+Paso 2 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).
+
+- *Diseño de impresos → Identidad institucional*: grupo nuevo
+  "Certificados: firma y lugar", con la frase antes de «CERTIFICA:», el
+  nombre, el cargo y el documento de quien firma, y la ciudad donde se
+  expiden. Se guardan en `configuracion_extra`, como el membrete; el backend
+  no cambia. Todavía ningún impreso los usa.
+- La lista de claves de `configuracion_extra` quedó en
+  `CAMPOS_IDENTIDAD_EXTRA` (`utils/certificadosImpresion/impresion.js`), y el
+  dibujo de cada campo en `CampoTexto` (`IdentidadInstitucionalView.jsx`).
+- Pedido del usuario: el botón "Atrás" de los certificados (notas, matrícula
+  y reporte parcial) era fijo en la esquina y tapaba el menú lateral. Ahora va
+  arriba de la hoja, dentro de la página (`BotonAtrasCertificado.jsx`). Los
+  otros nueve impresos con el mismo botón fijo no cambian.
+- Pruebas nuevas en `IdentidadInstitucionalView.test.jsx`,
+  `useIdentidadInstitucional.test.js` y `VistasImprimibles.test.jsx`.
+
+## 2026-11-05 - Certificados: menú "Tipo de documento" en vez de pestañas
+
+Paso 1 de los certificados nuevos (`funcionalidades/CERTIFICADOS_NUEVOS.md`).
+Con paz y salvo, conducta, aprobado y costos educativos ya no caben las
+pestañas en una fila; el documento se elige en un menú desplegable.
+
+- `SeleccionCertificados.jsx`: las tres pestañas pasan a un `<select>` con
+  etiqueta "Tipo de documento", con las mismas tres opciones. Ancho completo
+  en el celular y hasta `max-w-sm` desde `md`. Filtros, tabla y botones no
+  cambian.
+- Pruebas: una nueva en `SeleccionCertificados.test.jsx`; las de la página
+  (`CertificadosAdmin.test.jsx`, `CertificadosAdmin.anioLectivo.test.jsx`)
+  eligen en el menú en vez de hacer clic en la pestaña.
+- Verificación: `pnpm run check:deploy` completo (403 archivos, 3372
+  pruebas, lint y build).
+
 ## 2026-11-05 - Admin y profesor: las páginas con el morado del menú
 
 Pedido del usuario: un solo morado en las páginas, en admin y en profesor.

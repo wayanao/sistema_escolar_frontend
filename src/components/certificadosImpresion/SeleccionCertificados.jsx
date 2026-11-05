@@ -7,7 +7,9 @@ import {
   nombreEstudiante,
 } from "../../utils/certificadosImpresion/certificados";
 
-const TABS = [
+// Un menú en vez de pestañas: con los certificados nuevos (paz y salvo,
+// conducta, aprobado y costos educativos) ya no caben en una fila.
+const TIPOS_DOCUMENTO = [
   { id: "notas", label: "Certificado de notas" },
   { id: "matricula", label: "Certificado de matrícula" },
   { id: "reporte-parcial", label: "Reporte académico parcial" },
@@ -50,21 +52,23 @@ export default function SeleccionCertificados({
         </p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto border-b border-slate-200">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onCambiarTab(tab.id)}
-            className={`border-b-2 px-4 py-2 text-sm font-bold transition ${
-              tabActiva === tab.id
-                ? "border-purple-600 text-purple-700"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="w-full md:max-w-sm">
+        <label
+          htmlFor="tipo-documento-certificados"
+          className="mb-1 block text-sm font-semibold text-slate-700"
+        >
+          Tipo de documento
+        </label>
+        <select
+          id="tipo-documento-certificados"
+          value={tabActiva}
+          onChange={(event) => onCambiarTab(event.target.value)}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-100"
+        >
+          {TIPOS_DOCUMENTO.map((tipo) => (
+            <option key={tipo.id} value={tipo.id}>{tipo.label}</option>
+          ))}
+        </select>
       </div>
 
       {error && (

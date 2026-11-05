@@ -124,7 +124,10 @@ describe("Certificados mirando otro año", () => {
 
     render(<CertificadosAdmin />);
     expect(await screen.findByText("TI-123")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Reporte académico parcial" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "reporte-parcial",
+    );
     await user.click(screen.getByRole("button", { name: "Ver reporte" }));
 
     expect(await screen.findByText("Evaluación oral")).toBeInTheDocument();
@@ -138,7 +141,10 @@ describe("Certificados mirando otro año", () => {
 
     render(<CertificadosAdmin />);
     expect(await screen.findByText("TI-123")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Certificado de matrícula" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+      "matricula",
+    );
 
     const anio = screen.getByRole("spinbutton");
     expect(anio).toHaveValue(2025);

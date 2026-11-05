@@ -6,7 +6,10 @@ import {
   updateBranding,
   uploadLogo,
 } from "../../services/printingService";
-import { normalizarCampoIdentidad } from "../../utils/certificadosImpresion/impresion";
+import {
+  CAMPOS_IDENTIDAD_EXTRA,
+  normalizarCampoIdentidad,
+} from "../../utils/certificadosImpresion/impresion";
 import { invalidatePrintCache } from "./usePrintConfig";
 
 export default function useIdentidadInstitucional() {
@@ -39,7 +42,7 @@ export default function useIdentidadInstitucional() {
 
   const cambiarCampo = useCallback((campo, valor) => {
     const valorNormalizado = normalizarCampoIdentidad(campo, valor);
-    setBranding((actual) => ["membrete", "aprobacion_resolucion", "color_texto"].includes(campo)
+    setBranding((actual) => CAMPOS_IDENTIDAD_EXTRA.includes(campo)
       ? {
           ...actual,
           configuracion_extra: {

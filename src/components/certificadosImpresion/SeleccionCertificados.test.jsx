@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -51,11 +51,13 @@ describe("SeleccionCertificados", () => {
 
     expect(screen.getByText("TI-123")).toBeInTheDocument();
     expect(screen.getByText("Sara López")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Certificado de notas" }));
+    const tipoDocumento = screen.getByRole("combobox", { name: "Tipo de documento" });
+    expect(tipoDocumento).toHaveValue("reporte-parcial");
+    await user.selectOptions(tipoDocumento, "notas");
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "Sara" },
     });
-    await user.selectOptions(screen.getAllByRole("combobox")[3], "12");
+    await user.selectOptions(screen.getAllByRole("combobox")[4], "12");
     await user.click(screen.getByRole("button", { name: "Generar reporte del curso" }));
     await user.click(screen.getByRole("button", { name: "Ver reporte" }));
 
@@ -64,6 +66,20 @@ describe("SeleccionCertificados", () => {
     expect(props.onCambiarMateriaReporte).toHaveBeenCalledWith("12");
     expect(props.onGenerarCurso).toHaveBeenCalledTimes(1);
     expect(props.onGenerarEstudiante).toHaveBeenCalledWith(8);
+  });
+
+  it("elige el documento en un menú y no en pestañas", () => {
+    render(<SeleccionCertificados {...crearProps()} />);
+
+    const opciones = within(
+      screen.getByRole("combobox", { name: "Tipo de documento" }),
+    ).getAllByRole("option");
+    expect(opciones.map((opcion) => opcion.value)).toEqual([
+      "notas",
+      "matricula",
+      "reporte-parcial",
+    ]);
+    expect(screen.queryByRole("button", { name: "Certificado de notas" })).not.toBeInTheDocument();
   });
 
   it("conserva estados de carga, error y lista vacía", () => {

@@ -36,7 +36,10 @@ describe("vistas imprimibles de certificados", () => {
 
     expect(screen.getByTestId("documento")).toHaveAttribute("data-titulo", "Certificado de Notas");
     expect(screen.getByText("No hay notas registradas para la seleccion actual.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "← Atrás" }));
+    const atras = screen.getByRole("button", { name: "← Atrás" });
+    // Dentro de la página y no fijo en la esquina, donde tapaba el menú.
+    expect(atras.parentElement).not.toHaveClass("fixed");
+    await user.click(atras);
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 

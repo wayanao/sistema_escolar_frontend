@@ -862,12 +862,18 @@ Estado actual de componentes y paginas del frontend.
 ### Certificados e impresión
 
 - `components/certificadosImpresion/SeleccionCertificados.jsx`: encabezado,
-  pestañas, filtros, estados y tabla controlada de estudiantes.
+  menú "Tipo de documento" (antes pestañas, cambiado el 2026-11-05; ver
+  `funcionalidades/CERTIFICADOS_NUEVOS.md`), filtros, estados y tabla
+  controlada de estudiantes.
 - `CertificadoNotasPreview.jsx`, `CertificadoMatriculaPreview.jsx` y
   `ReporteParcialPreview.jsx`: vistas A4 de los tres documentos, conectadas al
-  wrapper compartido de impresión.
+  wrapper compartido de impresión. Su botón "Atrás" es
+  `BotonAtrasCertificado.jsx`, arriba de la hoja y no fijo en la esquina
+  (2026-11-05).
 - `components/certificadosImpresion/admin/IdentidadInstitucionalView.jsx` y
   `PlantillasAdminView.jsx`: formularios administrativos controlados por props.
+  Identidad tiene, desde el 2026-11-05, el grupo "Certificados: firma y lugar"
+  (claves de `configuracion_extra` en `CAMPOS_IDENTIDAD_EXTRA`).
 - `pages/CertificadosAdmin.jsx` y `pages/BrandingAdmin.jsx`: raíces de
   composición para generación y diseño de impresos. Branding conserva el
   montaje condicional de cada pestaña.

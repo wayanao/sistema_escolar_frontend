@@ -77,6 +77,33 @@ describe("useIdentidadInstitucional", () => {
     });
   });
 
+  it("guarda la firma y la ciudad de los certificados en configuracion_extra", async () => {
+    const { result } = renderHook(() => useIdentidadInstitucional());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.cambiarCampo("certificado_encabezado", "LA SUSCRITA DIRECTORA\n\"COLEGIO CENTRAL\""));
+    act(() => result.current.cambiarCampo("firmante_nombre", "María Pérez"));
+    act(() => result.current.cambiarCampo("firmante_cargo", "Directora"));
+    act(() => result.current.cambiarCampo("firmante_documento", "C.C. 123 de Galapa"));
+    act(() => result.current.cambiarCampo("ciudad_expedicion", "Galapa"));
+
+    await act(async () => {
+      await result.current.guardar();
+    });
+
+    expect(serviceMock.updateBranding).toHaveBeenCalledWith({
+      ...branding,
+      configuracion_extra: {
+        otra_opcion: "conservar",
+        certificado_encabezado: "LA SUSCRITA DIRECTORA\n\"COLEGIO CENTRAL\"",
+        firmante_nombre: "María Pérez",
+        firmante_cargo: "Directora",
+        firmante_documento: "C.C. 123 de Galapa",
+        ciudad_expedicion: "Galapa",
+      },
+    });
+  });
+
   it("conserva el detalle del backend cuando falla el guardado", async () => {
     const error = { response: { data: { detail: "Nombre requerido" } } };
     serviceMock.updateBranding.mockRejectedValue(error);
