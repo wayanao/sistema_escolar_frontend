@@ -16,3 +16,26 @@ export function capitalizarNombreVisible(valor) {
     )
     .join(" ");
 }
+
+const subirInicial = (texto) =>
+  texto.replace(/^\p{L}/u, (letra) => letra.toLocaleUpperCase("es-CO"));
+
+// Nombres de cosas (un tipo de pago, un producto, el concepto de un egreso, una
+// columna): primera letra en mayúscula y el resto como se escribió, para no
+// dañar siglas («uniforme ICFES» → «Uniforme ICFES»). Pedido del usuario el
+// 2026-11-05.
+export function primeraMayuscula(valor) {
+  return subirInicial(String(valor ?? "").trim());
+}
+
+// Lugares (barrio, municipio, lugar de expedición): mayúscula al inicio de cada
+// palabra y el resto como se escribió («villa del rosario» → «Villa Del
+// Rosario», «bogotá D.C.» → «Bogotá D.C.»).
+export function capitalizarPalabras(valor) {
+  return String(valor ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(subirInicial)
+    .join(" ");
+}

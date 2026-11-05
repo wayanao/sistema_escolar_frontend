@@ -114,6 +114,14 @@ describe("utilidades de egresos", () => {
         });
     });
 
+    it("guarda el concepto con la primera letra en mayúscula, sin tocar las siglas", () => {
+        // Pedido del usuario el 2026-11-05.
+        expect(
+            normalizarEgreso({ ...formulario, concepto: "  pago EPM de agosto " }, "2026-08-07")
+                .concepto,
+        ).toBe("Pago EPM de agosto");
+    });
+
     it("sustituye una fecha vacía por la fecha por defecto", () => {
         expect(normalizarEgreso({ ...formulario, fecha: "" }, "2026-08-07").fecha).toBe(
             "2026-08-07"

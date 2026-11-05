@@ -1,3 +1,5 @@
+import { primeraMayuscula } from "../nombres";
+
 export const TIPOS_COBRO = [
     { value: "unico", label: "Único", badge: "bg-blue-100 text-blue-800 border-blue-200" },
     { value: "mensual", label: "Mensual", badge: "bg-emerald-100 text-emerald-800 border-emerald-200" },
@@ -95,8 +97,11 @@ export const crearCursosAsignadosDesdeDetalle = (data) =>
         activo: curso.activo !== false,
     }));
 
+// El nombre se guarda con la primera letra en mayúscula («Pensión mensual»).
+// El backend compara los nombres en minúscula, así que no cambia cómo
+// clasifica los cobros.
 export const crearPayloadTipoPago = (nombre, valor) => ({
-    nombre: nombre.trim(),
+    nombre: primeraMayuscula(nombre),
     valor: parseFloat(valor) || 0,
 });
 

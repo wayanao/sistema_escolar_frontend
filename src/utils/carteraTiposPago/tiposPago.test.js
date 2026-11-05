@@ -94,6 +94,12 @@ describe("utilidades puras de tipos de pago", () => {
         ]);
     });
 
+    it("guarda el nombre del tipo de pago con la primera letra en mayúscula", () => {
+        // Pedido del usuario el 2026-11-05. El resto queda como se escribió.
+        expect(crearPayloadTipoPago("  pensión mensual ", "100").nombre).toBe("Pensión mensual");
+        expect(crearPayloadTipoPago("derechos ICFES", "100").nombre).toBe("Derechos ICFES");
+    });
+
     it("construye los payloads existentes sin reinterpretar el backend", () => {
         expect(crearPayloadTipoPago("  Transporte  ", "125000.50")).toEqual({
             nombre: "Transporte",

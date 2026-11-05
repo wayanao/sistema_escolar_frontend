@@ -1,3 +1,4 @@
+import { primeraMayuscula } from "../nombres";
 import { esRespuestaIncierta, explicacionDelRechazo, pesosEnMensaje } from "./avisos";
 
 export const CATEGORIAS_EGRESO = [
@@ -43,7 +44,8 @@ export const normalizarEgreso = (
     { concepto, monto, fecha, categoria, notas },
     fechaPorDefecto
 ) => ({
-    concepto: concepto.trim(),
+    // Con la primera letra en mayúscula; la categoría es de una lista fija.
+    concepto: primeraMayuscula(concepto),
     monto: Number(monto),
     fecha: fecha || fechaPorDefecto,
     categoria: categoria.trim(),

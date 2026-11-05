@@ -1,6 +1,6 @@
 import { DATOS_DE_ADMISION_EN_LA_FICHA } from "../../constants/documentosEstudiante";
 import { SUBGRUPOS_SISBEN } from "../../constants/sisben";
-import { capitalizarNombreVisible } from "../nombres";
+import { capitalizarNombreVisible, capitalizarPalabras } from "../nombres";
 import { obtenerValoracion } from "../valoracionesDesarrollo";
 
 export const ESTADOS_ESTUDIANTE = [
@@ -93,19 +93,25 @@ export function obtenerEtiquetaEstadoEstudiante(estado) {
   );
 }
 
-// Nombres de personas: se guardan con mayúscula inicial en cada palabra, como
-// se ven en las listas («maría del pilar» → «María Del Pilar»). Pedido del
-// usuario el 2026-11-05. Lugares, direcciones y documentos van como se
-// escriben.
+// Mayúsculas al guardar (pedido del usuario el 2026-11-05). Los nombres de
+// personas, con mayúscula inicial en cada palabra, como se ven en las listas
+// («maría del pilar» → «María Del Pilar»). Los lugares, con mayúscula al
+// inicio de cada palabra y el resto como se escribió («bogotá D.C.» →
+// «Bogotá D.C.»). Direcciones, documentos y lo demás van como se escriben.
 const CAMPOS_NOMBRE_PERSONA = new Set(["nombre", "apellido", "nombre_padre", "nombre_madre"]);
+const CAMPOS_LUGAR = new Set(["lugar_expedicion", "municipio", "barrio"]);
+
+function textoParaGuardar(campo, valor) {
+  if (typeof valor !== "string") return valor;
+  if (CAMPOS_NOMBRE_PERSONA.has(campo)) return capitalizarNombreVisible(valor);
+  if (CAMPOS_LUGAR.has(campo)) return capitalizarPalabras(valor);
+  return valor;
+}
 
 export function limpiarPayloadEstudiante(estudiante) {
   const payload = Object.fromEntries(
     Object.entries(estudiante).map(([campo, valor]) => {
-      const limpio =
-        CAMPOS_NOMBRE_PERSONA.has(campo) && typeof valor === "string"
-          ? capitalizarNombreVisible(valor)
-          : valor;
+      const limpio = textoParaGuardar(campo, valor);
       return [campo, limpio === "" ? null : limpio];
     }),
   );

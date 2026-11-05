@@ -1,3 +1,5 @@
+import { primeraMayuscula } from "../nombres";
+
 export const ESTADO_PRODUCTO_POR_DEFECTO = "activo";
 
 export const ESTADOS_PRODUCTO = [
@@ -56,8 +58,9 @@ export const formularioDesdeProducto = (producto) => ({
     estado: producto.estado || ESTADO_PRODUCTO_POR_DEFECTO,
 });
 
+// El nombre se guarda recortado y con la primera letra en mayúscula.
 export const construirPayloadProducto = (formData) => ({
-    nombre: formData.nombre,
+    nombre: primeraMayuscula(formData.nombre),
     costo: parseFloat(formData.costo),
     precio_venta: parseFloat(formData.precio_venta),
     stock_actual: parseInt(formData.stock_actual, 10),

@@ -1,6 +1,8 @@
 // Contrato puro del nombre de una columna. Sin HTTP, sin React, sin DOM.
 // Ver docs/funcionalidades/LISTAS_SEGUIMIENTO.md.
 
+import { primeraMayuscula } from "../nombres";
+
 // El VARCHAR(100) de listas_seguimiento_columnas. El backend lo repite en
 // ColumnaSeguimientoCreate y responde 422 si se pasa; aqui se comprueba antes
 // para avisar sin gastar una peticion.
@@ -58,8 +60,8 @@ export function mensajeAltaMasiva({ creadas = 0, omitidas = 0, total = 0 } = {})
  * Valida el nombre antes de pedirle nada al servidor.
  *
  * Devuelve `{ valido, nombre, error }`, donde `nombre` es el texto ya
- * recortado: es lo que hay que enviar, y coincide con lo que el backend
- * guardaria.
+ * recortado y con la primera letra en mayúscula: es lo que hay que enviar, y
+ * coincide con lo que el backend guardaria.
  *
  * **Esto es comodidad, no la regla.** La verdad la tiene el backend: entre
  * este chequeo y la peticion otra pestaña puede crear la misma columna, y ahi
@@ -88,5 +90,7 @@ export function validarNombreColumna(nombre, columnasExistentes = []) {
     return { valido: false, nombre: recortado, error: ERRORES_NOMBRE_COLUMNA.DUPLICADO };
   }
 
-  return { valido: true, nombre: recortado, error: null };
+  // Se guarda con la primera letra en mayúscula (pedido del usuario el
+  // 2026-11-05). El duplicado ya se comparó en mayúsculas, así que no cambia.
+  return { valido: true, nombre: primeraMayuscula(recortado), error: null };
 }

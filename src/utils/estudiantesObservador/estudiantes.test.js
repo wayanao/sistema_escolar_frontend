@@ -49,14 +49,16 @@ describe("contratos puros de estudiantes", () => {
     expect(origen.email).toBe("");
   });
 
-  it("guarda los nombres de personas con mayúscula inicial, y lo demás como se escribió", () => {
-    // Pedido del usuario el 2026-11-05: que los nombres lleven las mayúsculas.
+  it("guarda nombres y lugares con sus mayúsculas, y lo demás como se escribió", () => {
+    // Pedido del usuario el 2026-11-05: que los textos lleven las mayúsculas.
     const payload = limpiarPayloadEstudiante({
       nombre: "  maría   del pilar ",
       apellido: "GÓMEZ ruiz",
       nombre_padre: "carlos gómez",
       nombre_madre: "",
       lugar_expedicion: "bogotá D.C.",
+      municipio: "villa del rosario",
+      barrio: "  el SENA ",
       direccion: "calle 10 # 5-20",
       email: "Ana.Gomez@Correo.com",
       documento_identidad: "abc-123",
@@ -68,7 +70,9 @@ describe("contratos puros de estudiantes", () => {
       apellido: "Gómez Ruiz",
       nombre_padre: "Carlos Gómez",
       nombre_madre: null,
-      lugar_expedicion: "bogotá D.C.",
+      lugar_expedicion: "Bogotá D.C.",
+      municipio: "Villa Del Rosario",
+      barrio: "El SENA",
       direccion: "calle 10 # 5-20",
       email: "Ana.Gomez@Correo.com",
       documento_identidad: "abc-123",

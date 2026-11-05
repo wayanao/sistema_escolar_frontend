@@ -40,6 +40,18 @@ describe("validarNombreColumna", () => {
     });
   });
 
+  it("devuelve el nombre con la primera letra en mayúscula, y el duplicado sigue detectándose", () => {
+    // Pedido del usuario el 2026-11-05.
+    expect(validarNombreColumna("  llevó el libro de ICFES ", columnas)).toMatchObject({
+      valido: true,
+      nombre: "Llevó el libro de ICFES",
+    });
+    expect(validarNombreColumna("compró el libro", columnas)).toMatchObject({
+      valido: false,
+      error: ERRORES_NOMBRE_COLUMNA.DUPLICADO,
+    });
+  });
+
   it("rechaza el vacío y el que solo tiene espacios", () => {
     for (const vacio of ["", "   ", "\t\n"]) {
       expect(validarNombreColumna(vacio, columnas)).toMatchObject({

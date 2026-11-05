@@ -1,5 +1,37 @@
 # Cambios Frontend
 
+## 2026-11-05 - Mayúsculas en los nombres (paso 3: nombres de cosas y lugares)
+
+Sigue al paso 2. Se guardan con su mayúscula:
+
+- **Primera letra en mayúscula y el resto como se escribió**, para no dañar
+  siglas («derechos ICFES» → «Derechos ICFES»): nombre del tipo de pago,
+  nombre del producto de inventario, concepto del egreso y nombre de las
+  columnas de las listas de seguimiento (`primeraMayuscula`).
+- **Mayúscula al inicio de cada palabra y el resto como se escribió**, para
+  los lugares del estudiante: lugar de expedición, municipio y barrio
+  («bogotá D.C.» → «Bogotá D.C.», `capitalizarPalabras`).
+- No cambian: la categoría del egreso (es de una lista fija), la descripción
+  del tipo de pago y las notas (textos libres, paso 4), direcciones,
+  documentos y correos.
+- Tipos de pago es del módulo de pagos: solo cambia cómo se escribe el
+  nombre. El backend compara esos nombres en minúscula (`cobros.py`,
+  `reportes_financieros.py`) y la única comparación del frontend usa nombres
+  que vienen de la misma lista, así que no cambia cómo se clasifican ni se
+  cobran.
+- Columnas de seguimiento: el duplicado se sigue comparando en mayúsculas,
+  como el índice único del backend.
+- Lo ya guardado no cambia en la base: se corrige al volver a guardar.
+- Archivos: `src/utils/nombres.js`, `carteraTiposPago/tiposPago.js`,
+  `inventarioVentas/inventario.js`, `nominaEgresosPrestamos/egresos.js`,
+  `listasSeguimiento/columnas.js`, `estudiantesObservador/estudiantes.js` y
+  sus pruebas.
+- Verificación: pruebas de esos módulos → **446 en 38 archivos** (430 antes
+  del cambio). `pnpm run check:deploy`: 3349 de 3350 pruebas pasaron; la que
+  falló (`CrearProfesor.test.jsx`, sin cambios) agotó su tiempo por carga y
+  pasa sola, 4 de 4. Lint y build aparte, correctos. Sin probar todavía en el
+  navegador.
+
 ## 2026-11-05 - Mayúsculas en los nombres (paso 2: estudiantes y admisiones)
 
 Sigue al paso 1. Los nombres de personas que escribe el admin se guardan con

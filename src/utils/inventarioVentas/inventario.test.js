@@ -131,6 +131,19 @@ describe("formulario de producto", () => {
             estado: "inactivo",
         });
     });
+
+    it("guarda el nombre recortado y con la primera letra en mayúscula", () => {
+        // Pedido del usuario el 2026-11-05. Las siglas quedan como se escribieron.
+        expect(
+            construirPayloadProducto({
+                nombre: "  cuaderno ICFES ",
+                costo: "1",
+                precio_venta: "2",
+                stock_actual: "3",
+                estado: "activo",
+            }).nombre,
+        ).toBe("Cuaderno ICFES");
+    });
 });
 
 describe("respuesta HTTP", () => {
