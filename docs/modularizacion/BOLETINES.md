@@ -498,3 +498,23 @@ fuera de ambos módulos.
 
 Verificación: `pnpm run check:deploy` correcto, 283 archivos y 1564 pruebas.
 Sin commit ni publicación.
+
+## Cambio posterior fuera del plan, 2026-11-06
+
+El módulo sigue **cerrado**. A pedido del usuario se agregó "Ver cómo queda"
+en el ingreso del profesor: una vista previa del boletín con solo su materia y
+lo que tiene en pantalla. Detalle en `docs/CAMBIOS_FRONTEND.md`.
+
+Respeta los límites del módulo: el contrato nuevo (`construirMateriaVistaPrevia`)
+vive en `src/utils/boletines/`, la coordinación (estudiante abierto, Escape,
+bloqueo del fondo) en `hooks/boletines/useVistaPreviaBoletinProfesor.js` y los
+componentes siguen sin hooks ni HTTP. `BoletinImprimible.jsx` solo exporta
+piezas que ya tenía (`Escala`, `MateriaBoletin` y la ficha, extraída como
+`FichaEstudianteBoletin`); el impreso del admin no cambia. Formato A4 de
+`210mm` y scroll lateral en celular, igual que el impreso.
+
+El mismo día la vista previa pasó a mostrar también las otras materias del
+profesor en ese curso. La consulta vive en un hook de consulta propio
+(`useConsultaOtrasMateriasBoletin`, cancelable y una vez por clase y periodo)
+y usa el `obtenerReferenciaBoletin` que ya existía: no hay rutas nuevas en
+`services/boletinesApi.js`.

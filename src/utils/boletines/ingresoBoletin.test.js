@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   aplicarLogrosEnGrupo,
+  clasesDelMismoCurso,
+  construirMateriaVistaPrevia,
+  construirOtraMateriaVistaPrevia,
   construirPayloadBoletin,
   correspondeFormularioAEstudiante,
   crearDatosBoletinInicial,
@@ -318,5 +321,183 @@ describe("utilidades de ingreso docente a boletines", () => {
     expect(MENSAJE_PORCENTAJES_INCOMPLETOS).toBe(
       "Los porcentajes de esta clase están incompletos: la definitiva es el promedio simple. ¿Guardar igual?",
     );
+  });
+
+  describe("vista previa de la materia del profesor", () => {
+    it("arma la materia numérica con lo escrito, sin guardar, en el periodo actual", () => {
+      const materia = construirMateriaVistaPrevia({
+        datosBoletin: {
+          7: {
+            definitiva: "4.25",
+            observaciones: [
+              { nota: 4.5, observacion: "Lee con fluidez", referencia: "lectura", tipo_evaluacion: "numerica", valoracion: "" },
+              { nota: 0, observacion: "", referencia: "taller", tipo_evaluacion: "numerica", valoracion: "" },
+            ],
+          },
+        },
+        estudianteId: 7,
+        asignacionId: "55",
+        periodo: "2",
+        materia: "LENGUAJE",
+        docente: "Ana Ruiz",
+      });
+
+      expect(materia).toEqual({
+        materia_id: 55,
+        materia: "LENGUAJE",
+        profesor_nombre: "Ana Ruiz",
+        profesor_apellido: "",
+        definitiva: 4.25,
+        detalles: [
+          {
+            observacion: "Lee con fluidez",
+            tipo_evaluacion: "numerica",
+            notas_por_periodo: { 2: 4.5 },
+            valoraciones_por_periodo: {},
+          },
+          // La nota en cero no se imprime, igual que en el boletín del admin.
+          {
+            observacion: "",
+            tipo_evaluacion: "numerica",
+            notas_por_periodo: {},
+            valoraciones_por_periodo: {},
+          },
+        ],
+      });
+    });
+
+    it("en desarrollo pone la carita del periodo y deja la definitiva sin calificar si no hay ninguna", () => {
+      const conCarita = construirMateriaVistaPrevia({
+        datosBoletin: {
+          8: {
+            definitiva: 0,
+            observaciones: [
+              { nota: null, observacion: "Comparte", referencia: "social", tipo_evaluacion: "desarrollo", valoracion: "logrado" },
+            ],
+          },
+        },
+        estudianteId: 8,
+        asignacionId: 9,
+        periodo: 1,
+        materia: "DIMENSIÓN SOCIAL",
+        docente: "Lina",
+      });
+      const sinCarita = construirMateriaVistaPrevia({
+        datosBoletin: {
+          8: {
+            definitiva: 0,
+            observaciones: [
+              { nota: null, observacion: "", referencia: "social", tipo_evaluacion: "desarrollo", valoracion: "" },
+            ],
+          },
+        },
+        estudianteId: 8,
+        asignacionId: 9,
+        periodo: 1,
+      });
+
+      expect(conCarita.detalles[0]).toEqual({
+        observacion: "Comparte",
+        tipo_evaluacion: "desarrollo",
+        notas_por_periodo: {},
+        valoraciones_por_periodo: { 1: "logrado" },
+      });
+      expect(conCarita.definitiva).toEqual(expect.any(Number));
+      expect(sinCarita.definitiva).toBeNull();
+      expect(sinCarita.materia).toBe("");
+      expect(sinCarita.profesor_nombre).toBe("");
+    });
+
+    it("sin formulario del estudiante no arma nada", () => {
+      expect(
+        construirMateriaVistaPrevia({ datosBoletin: {}, estudianteId: 1, asignacionId: 2, periodo: 1 }),
+      ).toBeNull();
+    });
+  });
+
+  describe("otras materias del profesor en el mismo curso", () => {
+    it("toma las del mismo curso, sin la actual, en orden alfabético", () => {
+      const clases = [
+        { id: 55, curso: "QUINTO A", curso_id: 5, materia: "LENGUAJE" },
+        { id: 58, curso: "QUINTO A", curso_id: 5, materia: "INGLÉS" },
+        { id: 60, curso: "SEXTO A", curso_id: 6, materia: "CIENCIAS" },
+        { id: 56, curso: "QUINTO A", curso_id: 5, materia: "CIENCIAS" },
+      ];
+
+      expect(clasesDelMismoCurso(clases, "55").map((clase) => clase.id)).toEqual([56, 58]);
+      expect(clasesDelMismoCurso(clases, 60)).toEqual([]);
+      expect(clasesDelMismoCurso(clases, 999)).toEqual([]);
+      expect(clasesDelMismoCurso(undefined, 55)).toEqual([]);
+    });
+
+    it("sin curso_id compara por el nombre del curso", () => {
+      const clases = [
+        { id: 1, curso: "QUINTO A", materia: "LENGUAJE" },
+        { id: 2, curso: "QUINTO A", materia: "ARTES" },
+        { id: 3, curso: "QUINTO B", materia: "ARTES" },
+      ];
+      expect(clasesDelMismoCurso(clases, 1).map((clase) => clase.id)).toEqual([2]);
+    });
+
+    it("arma la otra materia con lo guardado y dice si está guardada", () => {
+      const clase = { id: 56, curso: "QUINTO A", materia: "CIENCIAS" };
+      const estudiantes = [
+        {
+          estudiante_id: 7,
+          definitiva: 3.6,
+          notas: [
+            { tipo_nota: "experimento", tipo_evaluacion: "numerica", valor: 3.6, observacion_guardada: "Formula hipótesis" },
+          ],
+        },
+        {
+          estudiante_id: 8,
+          notas: [
+            { tipo_nota: "experimento", tipo_evaluacion: "numerica", valor: 4, observacion_guardada: "" },
+          ],
+        },
+      ];
+
+      const guardada = construirOtraMateriaVistaPrevia({
+        clase, estudiantes, estudianteId: 7, periodo: "2", docente: "Lina",
+      });
+      expect(guardada.guardada).toBe(true);
+      expect(guardada.materia).toMatchObject({
+        materia_id: 56,
+        materia: "CIENCIAS",
+        profesor_nombre: "Lina",
+        definitiva: 3.6,
+        detalles: [
+          { observacion: "Formula hipótesis", notas_por_periodo: { 2: 3.6 } },
+        ],
+      });
+
+      const sinGuardar = construirOtraMateriaVistaPrevia({
+        clase, estudiantes, estudianteId: "8", periodo: "2", docente: "Lina",
+      });
+      expect(sinGuardar.guardada).toBe(false);
+      expect(sinGuardar.materia.detalles[0].observacion).toBe("");
+    });
+
+    it("si el estudiante no está en esa clase, la materia queda pendiente", () => {
+      expect(
+        construirOtraMateriaVistaPrevia({
+          clase: { id: "56", materia: "CIENCIAS" },
+          estudiantes: [],
+          estudianteId: 7,
+          periodo: 2,
+          docente: "Lina",
+        }),
+      ).toEqual({
+        guardada: false,
+        materia: {
+          materia_id: 56,
+          materia: "CIENCIAS",
+          profesor_nombre: "Lina",
+          profesor_apellido: "",
+          definitiva: null,
+          detalles: [],
+        },
+      });
+    });
   });
 });

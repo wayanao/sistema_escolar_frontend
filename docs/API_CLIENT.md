@@ -1053,6 +1053,11 @@ Uso:
   porcentajes pero no están activos, antes de guardar pregunta "¿Guardar
   igual?" una vez por clase y periodo. Si esa lectura falla, no avisa y el
   boletín funciona igual.
+- **"Ver cómo queda"** (2026-11-06): la vista previa usa `GET /branding` y
+  `GET /plantillas/activa/boletin` (en caché, `usePrintConfig`) y, al abrirla,
+  un `GET /boletines/referencia/{asignacion_id}/{periodo}` por cada otra
+  materia del profesor en el mismo curso (`curso_id` de `/mis-clases`), una
+  vez por clase y periodo. No guarda nada. Sin rutas nuevas.
 
 ## Certificados
 

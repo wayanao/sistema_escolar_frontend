@@ -329,4 +329,23 @@ describe("DocumentoImprimible", () => {
       "Rectora",
     ]);
   });
+
+  it("oculta Descargar PDF e Imprimir solo cuando se pide (vista previa del profesor)", () => {
+    const { rerender } = render(
+      <DocumentoImprimible tipo="boletin">
+        <p>Contenido</p>
+      </DocumentoImprimible>,
+    );
+    expect(screen.getByRole("button", { name: "Descargar PDF" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Imprimir" })).toBeInTheDocument();
+
+    rerender(
+      <DocumentoImprimible tipo="boletin" mostrarBarra={false}>
+        <p>Contenido</p>
+      </DocumentoImprimible>,
+    );
+    expect(screen.getByText("Contenido")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Descargar PDF" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Imprimir" })).not.toBeInTheDocument();
+  });
 });

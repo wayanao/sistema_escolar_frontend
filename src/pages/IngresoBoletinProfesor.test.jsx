@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -222,5 +222,98 @@ describe("IngresoBoletinProfesor", () => {
       expect(screen.getByDisplayValue("Suma correctamente")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Resta correctamente")).toBeInTheDocument();
     });
+  });
+
+  it("Ver cómo queda muestra la materia con lo escrito sin guardar y pasa al siguiente", async () => {
+    const user = userEvent.setup();
+    const getOriginal = api.get.getMockImplementation();
+    api.get.mockImplementation((url) => {
+      if (url === "/branding") {
+        return Promise.resolve({ data: { nombre_institucion: "Colegio Prueba" } });
+      }
+      if (url === "/plantillas/activa/boletin") {
+        return Promise.resolve({ data: { config_json: {} } });
+      }
+      return getOriginal(url);
+    });
+    localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Lina Torres" }));
+
+    render(<IngresoBoletinProfesor />);
+    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+
+    const [primerLogroDeAna] = screen.getAllByRole("textbox");
+    await user.clear(primerLogroDeAna);
+    await user.type(primerLogroDeAna, "Expresa sus ideas con claridad");
+
+    const [verAna] = screen.getAllByRole("button", { name: "Ver cómo queda" });
+    await user.click(verAna);
+
+    const ventana = await screen.findByRole("dialog", { name: "Vista previa del boletín de Ana" });
+    expect(await within(ventana).findByText("Colegio Prueba")).toBeInTheDocument();
+    expect(within(ventana).getByText("Lengua Castellana")).toBeInTheDocument();
+    expect(within(ventana).getByText(/Docente: Lina Torres/)).toBeInTheDocument();
+    expect(within(ventana).getByText("Expresa sus ideas con claridad")).toBeInTheDocument();
+    expect(within(ventana).getByText("Cambios sin guardar")).toBeInTheDocument();
+    expect(within(ventana).queryByRole("button", { name: "Imprimir" })).not.toBeInTheDocument();
+    // Ver la vista previa no guarda nada.
+    expect(api.post).not.toHaveBeenCalled();
+
+    await user.click(within(ventana).getByRole("button", { name: "Siguiente →" }));
+    const ventanaBruno = screen.getByRole("dialog", {
+      name: "Vista previa del boletín de Bruno",
+    });
+    expect(within(ventanaBruno).getByText("Caso individual")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cerrar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("la vista previa trae sus otras materias del mismo curso y no las de otro curso", async () => {
+    const user = userEvent.setup();
+    const getOriginal = api.get.getMockImplementation();
+    api.get.mockImplementation((url) => {
+      if (url === "/mis-clases/7") {
+        return Promise.resolve({
+          data: [
+            { id: 55, curso: "Quinto", curso_id: 5, materia: "Lengua Castellana" },
+            { id: 56, curso: "Quinto", curso_id: 5, materia: "Ciencias Naturales" },
+            { id: 90, curso: "Sexto", curso_id: 6, materia: "Ciencias Naturales" },
+          ],
+        });
+      }
+      if (url === "/boletines/referencia/56/1") {
+        return Promise.resolve({
+          data: [
+            {
+              estudiante_id: 101,
+              nombre: "Ana",
+              notas: [
+                { tipo_nota: "experimento", tipo_evaluacion: "numerica", valor: 4.2, observacion_guardada: "Formula hipótesis sencillas" },
+              ],
+            },
+          ],
+        });
+      }
+      if (url === "/branding") return Promise.resolve({ data: { nombre_institucion: "Colegio Prueba" } });
+      if (url === "/plantillas/activa/boletin") return Promise.resolve({ data: { config_json: {} } });
+      return getOriginal(url);
+    });
+
+    render(<IngresoBoletinProfesor />);
+    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    const [verAna] = screen.getAllByRole("button", { name: "Ver cómo queda" });
+    await user.click(verAna);
+
+    const ventana = await screen.findByRole("dialog", { name: "Vista previa del boletín de Ana" });
+    expect(await within(ventana).findByText("Formula hipótesis sencillas")).toBeInTheDocument();
+    expect(within(ventana).getByText("Vista previa · tus materias de este curso")).toBeInTheDocument();
+    expect(
+      within(ventana).getAllByRole("heading", { level: 3 }).map((titulo) => titulo.textContent),
+    ).toEqual(["Lengua Castellana", "Ciencias Naturales"]);
+
+    const pedidas = api.get.mock.calls.map(([url]) => url);
+    expect(pedidas).toContain("/boletines/referencia/56/1");
+    expect(pedidas.some((url) => url.startsWith("/boletines/referencia/90/"))).toBe(false);
+    expect(api.post).not.toHaveBeenCalled();
   });
 });

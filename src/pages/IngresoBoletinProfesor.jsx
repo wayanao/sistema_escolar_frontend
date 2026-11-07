@@ -1,5 +1,6 @@
 import useComandosIngresoBoletinProfesor from "../hooks/boletines/useComandosIngresoBoletinProfesor";
 import useConsultaIngresoBoletinProfesor from "../hooks/boletines/useConsultaIngresoBoletinProfesor";
+import useVistaPreviaBoletinProfesor from "../hooks/boletines/useVistaPreviaBoletinProfesor";
 import VistaIngresoBoletinProfesor from "../components/boletin/VistaIngresoBoletinProfesor";
 
 export default function IngresoBoletinProfesor() {
@@ -17,6 +18,7 @@ export default function IngresoBoletinProfesor() {
   } = useConsultaIngresoBoletinProfesor();
   const {
     datosBoletin,
+    estadoGuardado,
     guardandoTodos,
     aplicarLogrosDelPrimerEstudiante,
     actualizarObservacion,
@@ -30,6 +32,20 @@ export default function IngresoBoletinProfesor() {
     datosIniciales,
     estadoGuardadoInicial,
     porcentajesIncompletos,
+  });
+  const {
+    vistaPrevia,
+    abrirVistaPrevia,
+    cerrarVistaPrevia,
+    verAnterior,
+    verSiguiente,
+  } = useVistaPreviaBoletinProfesor({
+    asignacionId,
+    periodo,
+    clases: clasesUnicas,
+    estudiantes,
+    datosBoletin,
+    estadoGuardado,
   });
 
   return (
@@ -48,6 +64,11 @@ export default function IngresoBoletinProfesor() {
       onGuardarTodos={guardarTodosBoletines}
       onObservacionChange={actualizarObservacion}
       obtenerEstadoVisual={obtenerEstadoVisual}
+      vistaPrevia={vistaPrevia}
+      onVerVistaPrevia={abrirVistaPrevia}
+      onCerrarVistaPrevia={cerrarVistaPrevia}
+      onVistaPreviaAnterior={verAnterior}
+      onVistaPreviaSiguiente={verSiguiente}
     />
   );
 }

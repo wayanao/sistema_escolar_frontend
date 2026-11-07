@@ -23,6 +23,9 @@ import "../../styles/print.css";
  *   - firmas (array)          [{nombre, documento, cargo}, ...] - se ocultan si la plantilla
  *                             las desactiva; `documento` es opcional ("C.C. ... de ...")
  *   - children                contenido especifico del impreso
+ *   - mostrarBarra (bool)     botones Descargar PDF / Imprimir; por defecto si.
+ *                             La vista previa del profesor los oculta: alli el
+ *                             documento solo tiene su materia y no es para imprimir.
  *
  * `firmas` y `children` tambien pueden ser funciones que reciben el branding:
  * asi un impreso usa datos de la identidad institucional (quien firma, la
@@ -36,6 +39,7 @@ export default function DocumentoImprimible({
   firmas,
   children,
   className = "",
+  mostrarBarra = true,
 }) {
   const { branding, plantilla, loading, error } = usePrintConfig(tipo);
 
@@ -253,24 +257,26 @@ export default function DocumentoImprimible({
         </table>
       </article>
 
-      <div className="di-toolbar no-print">
-        <button
-          type="button"
-          onClick={abrirDialogoPDF}
-          className="di-toolbar__button di-toolbar__button--primary"
-          title="Descargar o guardar como PDF"
-        >
-          Descargar PDF
-        </button>
-        <button
-          type="button"
-          onClick={abrirDialogoPDF}
-          className="di-toolbar__button di-toolbar__button--secondary"
-          title="Imprimir documento"
-        >
-          Imprimir
-        </button>
-      </div>
+      {mostrarBarra && (
+        <div className="di-toolbar no-print">
+          <button
+            type="button"
+            onClick={abrirDialogoPDF}
+            className="di-toolbar__button di-toolbar__button--primary"
+            title="Descargar o guardar como PDF"
+          >
+            Descargar PDF
+          </button>
+          <button
+            type="button"
+            onClick={abrirDialogoPDF}
+            className="di-toolbar__button di-toolbar__button--secondary"
+            title="Imprimir documento"
+          >
+            Imprimir
+          </button>
+        </div>
+      )}
     </div>
   );
 }

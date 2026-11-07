@@ -241,3 +241,122 @@ export const construirPayloadBoletin = ({
     })),
   };
 };
+
+/**
+ * Las otras clases del profesor en el mismo curso que `asignacionId`, para la
+ * vista previa del boletín. Van en orden alfabético: el orden del boletín real
+ * lo configura el admin y el profesor no puede leerlo.
+ */
+export const clasesDelMismoCurso = (clases, asignacionId) => {
+  const lista = Array.isArray(clases) ? clases : [];
+  const actual = lista.find((clase) => String(clase.id) === String(asignacionId));
+  if (!actual) return [];
+
+  const mismoCurso = (clase) =>
+    actual.curso_id != null && clase.curso_id != null
+      ? String(clase.curso_id) === String(actual.curso_id)
+      : clase.curso === actual.curso;
+
+  return lista
+    .filter(
+      (clase) =>
+        String(clase.id) !== String(asignacionId)
+        && clase.materia !== actual.materia
+        && mismoCurso(clase),
+    )
+    .sort((a, b) => String(a.materia || "").localeCompare(String(b.materia || ""), "es"));
+};
+
+/**
+ * La materia del profesor con la forma con que el boletín del colegio la
+ * imprime (`MateriaBoletin`), armada con lo que el profesor tiene en pantalla,
+ * aunque no esté guardado. Sale del mismo payload que se guarda, para que la
+ * vista previa muestre exactamente la definitiva y los logros que van a llegar.
+ *
+ * Solo trae el periodo que se está llenando: los otros periodos viven en el
+ * boletín del admin, que el profesor no puede leer.
+ */
+export const construirMateriaVistaPrevia = ({
+  datosBoletin,
+  estudianteId,
+  asignacionId,
+  periodo,
+  materia,
+  docente,
+}) => {
+  const payload = construirPayloadBoletin({
+    datosBoletin,
+    estudianteId,
+    asignacionId,
+    periodo,
+  });
+  if (!payload) return null;
+
+  const clavePeriodo = String(periodo);
+  return {
+    materia_id: payload.asignacion_id,
+    materia: materia || "",
+    profesor_nombre: docente || "",
+    profesor_apellido: "",
+    definitiva: Number.isFinite(payload.definitiva) ? payload.definitiva : null,
+    // Igual que el boletín del admin: una nota en cero no se imprime.
+    detalles: payload.detalles.map((detalle) => ({
+      observacion: detalle.observacion || "",
+      tipo_evaluacion: detalle.tipo_evaluacion,
+      notas_por_periodo:
+        Number.isFinite(detalle.nota) && detalle.nota > 0
+          ? { [clavePeriodo]: detalle.nota }
+          : {},
+      valoraciones_por_periodo: detalle.valoracion
+        ? { [clavePeriodo]: detalle.valoracion }
+        : {},
+    })),
+  };
+};
+
+/**
+ * Otra materia del profesor en el mismo curso, para la vista previa: sale de
+ * su consulta de referencia (`estudiantes`, ya normalizados), o sea con lo
+ * último que guardó y las notas actuales de la planilla. `guardada` es `false`
+ * si el estudiante no tiene ningún logro guardado en esa materia.
+ *
+ * Si el estudiante no aparece en esa clase, la materia queda sin detalles y el
+ * boletín la muestra como pendiente, igual que el del admin.
+ */
+export const construirOtraMateriaVistaPrevia = ({
+  clase,
+  estudiantes,
+  estudianteId,
+  periodo,
+  docente,
+}) => {
+  const estudiante = (estudiantes || []).find(
+    (item) => String(item.estudiante_id) === String(estudianteId),
+  );
+  if (!estudiante) {
+    return {
+      guardada: false,
+      materia: {
+        materia_id: parseInt(clase.id),
+        materia: clase.materia || "",
+        profesor_nombre: docente || "",
+        profesor_apellido: "",
+        definitiva: null,
+        detalles: [],
+      },
+    };
+  }
+
+  const id = estudiante.estudiante_id;
+  return {
+    guardada: crearEstadoGuardadoInicial([estudiante])[id].guardado,
+    materia: construirMateriaVistaPrevia({
+      datosBoletin: crearDatosBoletinInicial([estudiante]),
+      estudianteId: id,
+      asignacionId: clase.id,
+      periodo,
+      materia: clase.materia,
+      docente,
+    }),
+  };
+};

@@ -8,6 +8,7 @@ import {
   esEvaluacionDesarrollo,
   valoracionDesdePromedio,
 } from "../../utils/valoracionesDesarrollo";
+import VistaPreviaBoletinProfesor from "./VistaPreviaBoletinProfesor";
 
 export default function VistaIngresoBoletinProfesor({
   asignacionId,
@@ -24,6 +25,11 @@ export default function VistaIngresoBoletinProfesor({
   onGuardarTodos,
   onObservacionChange,
   obtenerEstadoVisual,
+  vistaPrevia = null,
+  onVerVistaPrevia,
+  onCerrarVistaPrevia,
+  onVistaPreviaAnterior,
+  onVistaPreviaSiguiente,
 }) {
   return (
     <div className="p-6 max-w-7xl mx-auto min-h-screen">
@@ -96,6 +102,11 @@ export default function VistaIngresoBoletinProfesor({
                 form={form}
                 estadoVisual={obtenerEstadoVisual(estudiante.estudiante_id)}
                 onGuardar={() => onGuardarEstudiante(estudiante.estudiante_id)}
+                onVerVistaPrevia={
+                  onVerVistaPrevia
+                    ? () => onVerVistaPrevia(estudiante.estudiante_id)
+                    : undefined
+                }
                 onObservacionChange={(index, texto) =>
                   onObservacionChange(estudiante.estudiante_id, index, texto)
                 }
@@ -109,6 +120,16 @@ export default function VistaIngresoBoletinProfesor({
             No hay estudiantes en este curso o no han cargado información.
           </p>
         )
+      )}
+
+      {vistaPrevia && (
+        <VistaPreviaBoletinProfesor
+          vistaPrevia={vistaPrevia}
+          estadoVisual={obtenerEstadoVisual(vistaPrevia.estudianteId)}
+          onAnterior={onVistaPreviaAnterior}
+          onSiguiente={onVistaPreviaSiguiente}
+          onCerrar={onCerrarVistaPrevia}
+        />
       )}
     </div>
   );
@@ -156,6 +177,7 @@ function TarjetaEstudiante({
   estadoVisual,
   form,
   onGuardar,
+  onVerVistaPrevia,
   onObservacionChange,
 }) {
   const notasVisibles = estudiante.notas || [];
@@ -214,6 +236,15 @@ function TarjetaEstudiante({
                   {Number(form.definitiva || 0).toFixed(1)}
                 </span>
               </div>
+            )}
+            {onVerVistaPrevia && (
+              <button
+                type="button"
+                onClick={onVerVistaPrevia}
+                className="w-full rounded-md border border-purple-200 bg-white px-4 py-2.5 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-50 sm:w-auto"
+              >
+                Ver cómo queda
+              </button>
             )}
             <button
               onClick={onGuardar}

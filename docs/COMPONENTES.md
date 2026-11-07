@@ -860,7 +860,17 @@ Estado actual de componentes y paginas del frontend.
   observaciones del boletín final; oculta notas técnicas como `mas_alto` y
   protege etiquetas humanas con `translate="no"`. Durante un cambio de clase,
   espera que notas y observaciones pertenezcan a la misma consulta antes de
-  mostrar cada tarjeta.
+  mostrar cada tarjeta. Cada estudiante tiene "Ver cómo queda" (2026-11-06).
+- `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo
+  queda" del profesor. Usa el membrete real (`DocumentoImprimible` con
+  `mostrarBarra={false}`, sin Descargar PDF ni Imprimir) y las piezas del
+  impreso del admin (`FichaEstudianteBoletin`, `Escala`, `MateriaBoletin`),
+  pero solo con las materias del profesor en ese curso: la que llena, con lo
+  que tiene en pantalla aunque no esté guardado, y las otras (en orden
+  alfabético, consultadas al abrir por `useConsultaOtrasMateriasBoletin`) con
+  lo último guardado y un aviso si falta guardar. Anterior, Siguiente y
+  Cerrar; Escape y el bloqueo del fondo los pone
+  `hooks/boletines/useVistaPreviaBoletinProfesor.js`.
 - `components/boletin/VistaOrdenBoletin.jsx`: controles y lista presentacional
   del orden de materias por curso.
 - `pages/Boletin.jsx`, `pages/IngresoBoletinProfesor.jsx` y

@@ -1,5 +1,73 @@
 # Cambios Frontend
 
+## 2026-11-06 - "Ver cómo queda": también sus otras materias del curso
+
+Pedido del usuario, enseguida del anterior: que en la vista previa el
+profesor vea "no solo la que está modificando sino las demás de ese curso
+en las que da clase".
+
+- La vista previa muestra todas las materias del profesor en ese curso, una
+  debajo de otra. La que está llenando va primero (marcada "La que estás
+  llenando") con lo que tiene en pantalla; las otras, en orden alfabético,
+  con lo último guardado y las notas actuales de la planilla. Si el
+  estudiante no tiene nada guardado en alguna, sale el aviso "aún no la
+  guardas para este estudiante"; si no está en esa clase, la materia sale
+  pendiente, como en el boletín del admin. Las materias de otros profesores
+  siguen sin salir.
+- Peticiones: al abrir la vista previa, un `GET /boletines/referencia/{id}/{periodo}`
+  por cada otra materia del profesor en ese curso, una sola vez por clase y
+  periodo (al pasar de estudiante no se repiten). Nada al cargar la página.
+  Si una falla, se avisa en la hoja y se reintenta al volver a abrir. El
+  profesor ya podía leerlas (`require_asignacion_access`).
+- Orden: el del boletín real lo configura el admin y el profesor no puede
+  leerlo (`/cursos/{id}/orden-boletin` es solo admin). Para el mismo orden
+  haría falta que `/mis-clases` traiga `orden_boletin` (cambio de backend,
+  no hecho).
+- Al pasar de estudiante, la hoja vuelve arriba.
+- Archivos: `utils/boletines/ingresoBoletin.js` (`clasesDelMismoCurso`,
+  `construirOtraMateriaVistaPrevia`), hook nuevo
+  `hooks/boletines/useConsultaOtrasMateriasBoletin.js`,
+  `useVistaPreviaBoletinProfesor.js` y `VistaPreviaBoletinProfesor.jsx`.
+- Verificación: pruebas nuevas de utilidades, de los dos hooks, de la
+  ventana y de la página (consulta las del mismo curso y no las de otro).
+  Capturas en PC y celular con servidor simulado: solo se pidieron las
+  referencias del mismo curso y no hubo errores en la consola.
+
+## 2026-11-06 - Boletín final del profesor: "Ver cómo queda"
+
+Pedido del usuario: "alguna opción donde el profesor pueda ver cómo va
+quedando el boletín". Eligió la vista previa de **solo su materia**: el
+boletín completo lo arma el admin (`/boletines/admin/generar` es solo admin) y
+mostrar las materias de otros profesores exigiría backend y decidir quién las
+ve.
+
+- Botón "Ver cómo queda" en cada estudiante de `/ingreso-boletin`. Abre una
+  ventana con el boletín tal como sale impreso: membrete del colegio, ficha
+  (estudiante, grado, fecha), escala y la materia con su definitiva y sus
+  logros. Muestra lo escrito aunque no esté guardado y avisa si falta
+  guardar. Anterior y Siguiente recorren a los mismos estudiantes de la
+  pantalla, en el mismo orden; Escape o Cerrar la cierran; al cambiar de
+  clase o periodo se cierra sola.
+- No muestra promedio general, puesto ni otras materias, y solo la columna
+  del periodo que se llena (el profesor no puede leer los otros periodos).
+- Sin peticiones nuevas al backend: el membrete usa `/branding` y
+  `/plantillas/activa/boletin`, que el profesor ya podía leer y que quedan en
+  caché del navegador (`usePrintConfig`).
+- Archivos: `utils/boletines/ingresoBoletin.js` (`construirMateriaVistaPrevia`,
+  que sale del mismo payload que se guarda),
+  `hooks/boletines/useVistaPreviaBoletinProfesor.js`,
+  `components/boletin/VistaPreviaBoletinProfesor.jsx`, la vista y la página
+  del ingreso. `BoletinImprimible.jsx` exporta `FichaEstudianteBoletin`,
+  `Escala` y `MateriaBoletin` sin cambiar el impreso del admin.
+  `DocumentoImprimible.jsx` acepta `mostrarBarra` (por defecto `true`: los
+  demás impresos no cambian).
+- Verificación: `pnpm run check:deploy` correcto (407 archivos, 3442
+  pruebas, lint y build). Tras pasar Escape y el bloqueo del fondo al hook,
+  la segunda corrida completa tuvo un fallo por tiempo en `Planilla.test.jsx`
+  (no tocada), que sola pasa 20/20; lint y build volvieron a pasar. Capturas en PC (1440 × 900) y celular (390 × 844)
+  con sesión y servidor simulados: la hoja conserva el ancho A4 y en celular
+  se desliza de lado, como el boletín del admin.
+
 ## 2026-11-05 - Admin y profesor: fondo "aula", al estilo del login
 
 Pedido del usuario: a las páginas blancas del admin y del profesor, "algún

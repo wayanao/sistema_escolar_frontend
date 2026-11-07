@@ -61,32 +61,15 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           { nombre: "Director de Grupo" },
         ]}
       >
-        {/* Ficha: estudiante y sus datos a la izquierda, promedio y puesto a la
-            derecha, en un solo recuadro. */}
-        <div className="rounded-lg border mb-2 flex items-stretch overflow-hidden" style={FONDO_SUAVE}>
-          <div className="flex-1 min-w-0 px-3 py-2">
-            <p className="text-[9px] uppercase tracking-widest font-bold text-slate-500 leading-none">
-              Estudiante
-            </p>
-            <p className="text-[15px] font-bold uppercase tracking-wide text-slate-800 leading-tight mt-1 break-words">
-              {boletinData.estudiante_apellido} {boletinData.estudiante_nombre}
-            </p>
-            {/* Una columna por dato: si no caben, no queda una raya suelta al
-                comienzo de un renglón. */}
-            <div
-              className="mt-1.5 grid gap-y-1"
-              style={{ gridTemplateColumns: `repeat(${datos.length}, auto)`, justifyContent: "start" }}
-            >
-              {datos.map(([label, value]) => (
-                <Dato key={label} label={label} value={value} />
-              ))}
-            </div>
-          </div>
+        <FichaEstudianteBoletin
+          nombre={<>{boletinData.estudiante_apellido} {boletinData.estudiante_nombre}</>}
+          datos={datos}
+        >
           <Indicadores
             boletinData={boletinData}
             usaDesarrolloInfantil={usaDesarrolloInfantil}
           />
-        </div>
+        </FichaEstudianteBoletin>
 
         <Escala usaDesarrolloInfantil={usaDesarrolloInfantil} />
 
@@ -127,6 +110,37 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           />
         </section>
       </DocumentoImprimible>
+    </div>
+  );
+}
+
+/**
+ * Ficha: estudiante y sus datos a la izquierda y, como `children`, lo que va a
+ * la derecha (promedio y puesto), en un solo recuadro. La comparte la vista
+ * previa del profesor, que no tiene promedio ni puesto.
+ */
+export function FichaEstudianteBoletin({ nombre, datos, children }) {
+  return (
+    <div className="rounded-lg border mb-2 flex items-stretch overflow-hidden" style={FONDO_SUAVE}>
+      <div className="flex-1 min-w-0 px-3 py-2">
+        <p className="text-[9px] uppercase tracking-widest font-bold text-slate-500 leading-none">
+          Estudiante
+        </p>
+        <p className="text-[15px] font-bold uppercase tracking-wide text-slate-800 leading-tight mt-1 break-words">
+          {nombre}
+        </p>
+        {/* Una columna por dato: si no caben, no queda una raya suelta al
+            comienzo de un renglón. */}
+        <div
+          className="mt-1.5 grid gap-y-1"
+          style={{ gridTemplateColumns: `repeat(${datos.length}, auto)`, justifyContent: "start" }}
+        >
+          {datos.map(([label, value]) => (
+            <Dato key={label} label={label} value={value} />
+          ))}
+        </div>
+      </div>
+      {children}
     </div>
   );
 }
@@ -189,7 +203,7 @@ function Indicador({ titulo, detalle, conSeparador = false, children }) {
 // color primario igual a la del membrete. Entre la escala y la primera materia
 // quedan los mismos 40 px que ocupaba el título "Resumen de evaluaciones"
 // (pb-2 + línea + mb-8), para que las materias no queden pegadas.
-function Escala({ usaDesarrolloInfantil }) {
+export function Escala({ usaDesarrolloInfantil }) {
   return (
     <div
       className="flex flex-wrap items-center gap-x-3 gap-y-1 pb-2 mb-8 px-1 border-b text-[10.5px] text-slate-700"
@@ -220,7 +234,7 @@ function Escala({ usaDesarrolloInfantil }) {
   );
 }
 
-function MateriaBoletin({ materia }) {
+export function MateriaBoletin({ materia }) {
   const tipoMateria = materia.detalles?.some(
     (detalle) => detalle.tipo_evaluacion === "desarrollo",
   )
