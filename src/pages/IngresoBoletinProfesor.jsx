@@ -1,5 +1,6 @@
 import useComandosIngresoBoletinProfesor from "../hooks/boletines/useComandosIngresoBoletinProfesor";
 import useConsultaIngresoBoletinProfesor from "../hooks/boletines/useConsultaIngresoBoletinProfesor";
+import useConsultaMiCursoDirector from "../hooks/boletines/useConsultaMiCursoDirector";
 import useVistaPreviaBoletinProfesor from "../hooks/boletines/useVistaPreviaBoletinProfesor";
 import VistaIngresoBoletinProfesor from "../components/boletin/VistaIngresoBoletinProfesor";
 
@@ -58,6 +59,9 @@ export default function IngresoBoletinProfesor() {
     estadoGuardado,
   });
 
+  // «Mi curso»: solo para quien dirige un curso; usa el mismo periodo.
+  const miCurso = useConsultaMiCursoDirector({ periodo });
+
   // Cambiar de clase o de periodo: si el navegador no puede guardar el
   // borrador, lo no guardado se pierde y antes se pregunta.
   const cambiarAsignacionConAviso = async (valor) => {
@@ -77,6 +81,19 @@ export default function IngresoBoletinProfesor() {
       estudiantes={estudiantes}
       guardandoTodos={guardandoTodos}
       idPrimerEstudiante={primerEstudianteConFormulario?.estudiante_id ?? null}
+      miCurso={{
+        disponible: miCurso.disponible,
+        vistaMiCurso: miCurso.vistaMiCurso,
+        cursos: miCurso.cursos,
+        cursoId: miCurso.cursoId,
+        datos: miCurso.datos,
+        cargando: miCurso.cargando,
+        error: miCurso.error,
+        onCambiarCurso: miCurso.cambiarCurso,
+        onMostrarMiCurso: miCurso.mostrarMiCurso,
+        onMostrarMisMaterias: miCurso.mostrarMisMaterias,
+        onReintentar: miCurso.reintentar,
+      }}
       periodo={periodo}
       progresoGrupo={progresoGrupo}
       onCopiarLogrosYGuardar={copiarLogrosYGuardar}

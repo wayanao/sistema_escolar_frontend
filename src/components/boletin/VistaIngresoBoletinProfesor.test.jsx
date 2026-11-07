@@ -486,5 +486,70 @@ describe("VistaIngresoBoletinProfesor", () => {
     // Una nota sutil aclara que ese botón guarda solo a ese estudiante.
     expect(guardar).toHaveAccessibleDescription("Solo guarda a Ana");
   });
-});
 
+  describe("pestañas de Mis materias y Mi curso", () => {
+    const base = {
+      asignacionId: "55",
+      cargando: false,
+      clases: [{ id: 55, curso: "Quinto", materia: "Lenguaje" }],
+      datosBoletin: {
+        101: { definitiva: "4.00", observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }] },
+      },
+      estudiantes: [
+        { estudiante_id: 101, nombre: "Ana", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 4 }] },
+      ],
+      guardandoTodos: false,
+      periodo: "1",
+      onCambiarAsignacion: vi.fn(),
+      onCambiarPeriodo: vi.fn(),
+      onGuardarEstudiante: vi.fn(),
+      onObservacionChange: vi.fn(),
+      obtenerEstadoVisual: () => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar resumen" }),
+    };
+    const miCurso = (cambios = {}) => ({
+      disponible: true,
+      vistaMiCurso: false,
+      cursos: [{ id: 5, nombre: "QUINTO A" }],
+      cursoId: 5,
+      datos: null,
+      cargando: false,
+      error: null,
+      onCambiarCurso: vi.fn(),
+      onMostrarMiCurso: vi.fn(),
+      onMostrarMisMaterias: vi.fn(),
+      onReintentar: vi.fn(),
+      ...cambios,
+    });
+
+    it("quien no dirige un curso no ve pestañas", () => {
+      render(<VistaIngresoBoletinProfesor {...base} miCurso={miCurso({ disponible: false })} />);
+      expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    });
+
+    it("el director ve las dos pestañas y puede cambiar", async () => {
+      const user = userEvent.setup();
+      const valores = miCurso();
+      render(<VistaIngresoBoletinProfesor {...base} miCurso={valores} />);
+
+      expect(screen.getByRole("tab", { name: "Mis materias" })).toHaveAttribute("aria-selected", "true");
+      await user.click(screen.getByRole("tab", { name: "Mi curso (director de grupo)" }));
+      expect(valores.onMostrarMiCurso).toHaveBeenCalledTimes(1);
+    });
+
+    it("en Mi curso se ve el ranking, sin el selector de clase ni las tarjetas de sus materias", () => {
+      render(
+        <VistaIngresoBoletinProfesor
+          {...base}
+          miCurso={miCurso({ vistaMiCurso: true, cargando: true })}
+        />,
+      );
+
+      expect(screen.getByRole("tab", { name: "Mi curso (director de grupo)" })).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByText("Cargando tu curso…")).toBeInTheDocument();
+      expect(screen.queryByText("Clase (Curso / Materia)")).not.toBeInTheDocument();
+      expect(screen.getByText("Periodo")).toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Ana" })).not.toBeInTheDocument();
+    });
+  });
+});

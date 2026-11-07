@@ -8,6 +8,7 @@ import {
   esEvaluacionDesarrollo,
   valoracionDesdePromedio,
 } from "../../utils/valoracionesDesarrollo";
+import MiCursoDirector from "./MiCursoDirector";
 import VistaPreviaBoletinProfesor from "./VistaPreviaBoletinProfesor";
 
 export default function VistaIngresoBoletinProfesor({
@@ -21,6 +22,7 @@ export default function VistaIngresoBoletinProfesor({
   estudiantes,
   guardandoTodos,
   idPrimerEstudiante = null,
+  miCurso = null,
   periodo,
   progresoGrupo = null,
   onCopiarLogrosYGuardar,
@@ -49,24 +51,34 @@ export default function VistaIngresoBoletinProfesor({
         </p>
       </div>
 
+      {miCurso?.disponible && (
+        <PestanasBoletin
+          vistaMiCurso={miCurso.vistaMiCurso}
+          onMisMaterias={miCurso.onMostrarMisMaterias}
+          onMiCurso={miCurso.onMostrarMiCurso}
+        />
+      )}
+
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-end">
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Clase (Curso / Materia)
-          </label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-            value={asignacionId}
-            onChange={(event) => onCambiarAsignacion(event.target.value)}
-          >
-            <option value="">Seleccione una clase...</option>
-            {clases.map((clase) => (
-              <option key={clase.id} value={clase.id}>
-                {clase.curso} - {clase.materia}
-              </option>
-            ))}
-          </select>
-        </div>
+        {!miCurso?.vistaMiCurso && (
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Clase (Curso / Materia)
+            </label>
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+              value={asignacionId}
+              onChange={(event) => onCambiarAsignacion(event.target.value)}
+            >
+              <option value="">Seleccione una clase...</option>
+              {clases.map((clase) => (
+                <option key={clase.id} value={clase.id}>
+                  {clase.curso} - {clase.materia}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Periodo
@@ -84,72 +96,87 @@ export default function VistaIngresoBoletinProfesor({
         </div>
       </div>
 
-      {errorClases && (
-        <AvisoError
-          texto="No se pudieron cargar tus clases. Revisa la conexión e intenta de nuevo."
-          onReintentar={onReintentarClases}
+      {miCurso?.vistaMiCurso ? (
+        <MiCursoDirector
+          cursos={miCurso.cursos}
+          cursoId={miCurso.cursoId}
+          datos={miCurso.datos}
+          cargando={miCurso.cargando}
+          error={miCurso.error}
+          periodo={periodo}
+          onCambiarCurso={miCurso.onCambiarCurso}
+          onReintentar={miCurso.onReintentar}
         />
-      )}
-
-      {cargando ? (
-        <p className="text-gray-500 text-center py-10">
-          Cargando información del curso...
-        </p>
-      ) : errorAlumnos ? (
-        <AvisoError
-          texto="No se pudieron cargar los estudiantes de esta clase. Revisa la conexión e intenta de nuevo."
-          onReintentar={onReintentarAlumnos}
-        />
-      ) : estudiantes.length > 0 ? (
-        <div className="space-y-6">
-          {borradorRecuperado && (
-            <AvisoBorrador
-              borrador={borradorRecuperado}
-              onDescartar={onDescartarBorrador}
+      ) : (
+        <>
+          {errorClases && (
+            <AvisoError
+              texto="No se pudieron cargar tus clases. Revisa la conexión e intenta de nuevo."
+              onReintentar={onReintentarClases}
             />
           )}
-          {estudiantes.map((estudiante) => {
-            const form = datosBoletin[estudiante.estudiante_id];
-            if (!correspondeFormularioAEstudiante(form, estudiante)) {
-              return null;
-            }
 
-            // El primer estudiante es la plantilla del grupo: ahí se escriben
-            // los logros que se copian a los demás.
-            const esPlantilla =
-              onCopiarLogrosYGuardar
-              && String(estudiante.estudiante_id) === String(idPrimerEstudiante);
+          {cargando ? (
+            <p className="text-gray-500 text-center py-10">
+              Cargando información del curso...
+            </p>
+          ) : errorAlumnos ? (
+            <AvisoError
+              texto="No se pudieron cargar los estudiantes de esta clase. Revisa la conexión e intenta de nuevo."
+              onReintentar={onReintentarAlumnos}
+            />
+          ) : estudiantes.length > 0 ? (
+            <div className="space-y-6">
+              {borradorRecuperado && (
+                <AvisoBorrador
+                  borrador={borradorRecuperado}
+                  onDescartar={onDescartarBorrador}
+                />
+              )}
+              {estudiantes.map((estudiante) => {
+                const form = datosBoletin[estudiante.estudiante_id];
+                if (!correspondeFormularioAEstudiante(form, estudiante)) {
+                  return null;
+                }
 
-            return (
-              <TarjetaEstudiante
-                key={estudiante.estudiante_id}
-                estudiante={estudiante}
-                form={form}
-                plantilla={
-                  esPlantilla
-                    ? { guardandoTodos, onCopiar: onCopiarLogrosYGuardar }
-                    : null
-                }
-                estadoVisual={obtenerEstadoVisual(estudiante.estudiante_id)}
-                onGuardar={() => onGuardarEstudiante(estudiante.estudiante_id)}
-                onVerVistaPrevia={
-                  onVerVistaPrevia
-                    ? () => onVerVistaPrevia(estudiante.estudiante_id)
-                    : undefined
-                }
-                onObservacionChange={(index, texto) =>
-                  onObservacionChange(estudiante.estudiante_id, index, texto)
-                }
-              />
-            );
-          })}
-        </div>
-      ) : (
-        asignacionId && (
-          <p className="text-gray-500 text-center py-10 bg-white rounded-lg shadow border border-gray-200">
-            No hay estudiantes en este curso o no han cargado información.
-          </p>
-        )
+                // El primer estudiante es la plantilla del grupo: ahí se escriben
+                // los logros que se copian a los demás.
+                const esPlantilla =
+                  onCopiarLogrosYGuardar
+                  && String(estudiante.estudiante_id) === String(idPrimerEstudiante);
+
+                return (
+                  <TarjetaEstudiante
+                    key={estudiante.estudiante_id}
+                    estudiante={estudiante}
+                    form={form}
+                    plantilla={
+                      esPlantilla
+                        ? { guardandoTodos, onCopiar: onCopiarLogrosYGuardar }
+                        : null
+                    }
+                    estadoVisual={obtenerEstadoVisual(estudiante.estudiante_id)}
+                    onGuardar={() => onGuardarEstudiante(estudiante.estudiante_id)}
+                    onVerVistaPrevia={
+                      onVerVistaPrevia
+                        ? () => onVerVistaPrevia(estudiante.estudiante_id)
+                        : undefined
+                    }
+                    onObservacionChange={(index, texto) =>
+                      onObservacionChange(estudiante.estudiante_id, index, texto)
+                    }
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            asignacionId && (
+              <p className="text-gray-500 text-center py-10 bg-white rounded-lg shadow border border-gray-200">
+                No hay estudiantes en este curso o no han cargado información.
+              </p>
+            )
+          )}
+        </>
       )}
 
       {progresoGrupo && <ProgresoGuardadoGrupo progreso={progresoGrupo} />}
@@ -163,6 +190,43 @@ export default function VistaIngresoBoletinProfesor({
           onCerrar={onCerrarVistaPrevia}
         />
       )}
+    </div>
+  );
+}
+
+// Solo para el director de grupo: sus materias (lo de siempre) o su curso.
+function PestanasBoletin({ vistaMiCurso, onMisMaterias, onMiCurso }) {
+  const pestana = (activa) =>
+    `flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-none ${
+      activa
+        ? "bg-purple-600 text-white shadow-sm"
+        : "text-purple-700 hover:bg-purple-50"
+    }`;
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Qué quieres ver"
+      className="mb-4 flex gap-1 rounded-lg border border-purple-200 bg-white p-1 shadow-sm sm:inline-flex"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={!vistaMiCurso}
+        onClick={onMisMaterias}
+        className={pestana(!vistaMiCurso)}
+      >
+        Mis materias
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={vistaMiCurso}
+        onClick={onMiCurso}
+        className={pestana(vistaMiCurso)}
+      >
+        Mi curso (director de grupo)
+      </button>
     </div>
   );
 }

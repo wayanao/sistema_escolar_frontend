@@ -870,6 +870,11 @@ Estado actual de componentes y paginas del frontend.
   guardar" (2026-11-07), que vive en la tarjeta del primer estudiante
   ("Plantilla del grupo", con los pasos del proceso y un enlace "Guardar solo
   a …"). Mientras guarda el grupo, `ProgresoGuardadoGrupo` muestra cuántos van.
+  Para el director de grupo, pestañas "Mis materias" / "Mi curso (director de
+  grupo)" (2026-11-07).
+- `components/boletin/MiCursoDirector.jsx`: ranking del curso del director
+  (tabla en PC, tarjetas en celular), aviso de materias sin guardar y notas
+  sin guardar en gris. Lo alimenta `hooks/boletines/useConsultaMiCursoDirector.js`.
 - `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo
   queda" del profesor. Usa el membrete real (`DocumentoImprimible` con
   `mostrarBarra={false}`, sin Descargar PDF ni Imprimir) y las piezas del

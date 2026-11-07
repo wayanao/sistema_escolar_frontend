@@ -77,6 +77,10 @@ continuacion para retomarla en otro chat u otro LLM.
   sin publicar (el 4, `c066dfc`: solo «Lo que debe»). Paso 5 (historial
   cerrado, con el pago recién registrado) construido el 2026-11-04, sin
   commit.**
+- `funcionalidades/MI_CURSO_DIRECTOR.md`: pestaña "Mi curso (director de
+  grupo)" en Boletín Final, con el ranking del curso y la observación general
+  de cada estudiante. El documento principal está en el backend. **Paso 2
+  (pestaña y ranking) construido el 2026-11-07; falta el paso 4.**
 
 ## Control SaaS
 

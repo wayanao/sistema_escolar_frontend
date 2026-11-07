@@ -55,6 +55,21 @@ export async function obtenerReferenciaBoletin(
   return data;
 }
 
+// «Mi curso» del director de grupo (docs/funcionalidades/MI_CURSO_DIRECTOR.md).
+// Solo leen. El servidor decide quién puede: el director de ese curso o el admin.
+export async function listarCursosDirigidos({ signal } = {}) {
+  const { data } = await getConSignal("/director-grupo/cursos", signal);
+  return data;
+}
+
+export async function obtenerMiCursoDirector(cursoId, periodo, { signal } = {}) {
+  const { data } = await getConSignal(
+    `/director-grupo/cursos/${cursoId}/${periodo}`,
+    signal,
+  );
+  return data;
+}
+
 export async function guardarBoletinProfesor(payload) {
   const { data } = await api.post("/boletines/guardar", payload);
   return data;

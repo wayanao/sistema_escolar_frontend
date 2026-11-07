@@ -445,4 +445,51 @@ describe("IngresoBoletinProfesor", () => {
       }
     });
   });
+
+  describe("Mi curso del director de grupo", () => {
+    it("el director abre Mi curso y ve el ranking de su curso en el periodo de la pantalla", async () => {
+      const user = userEvent.setup();
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) => {
+        if (url === "/director-grupo/cursos") {
+          return Promise.resolve({ data: [{ id: 5, nombre: "QUINTO A" }] });
+        }
+        if (url === "/director-grupo/cursos/5/1") {
+          return Promise.resolve({
+            data: {
+              curso: { id: 5, nombre: "QUINTO A" },
+              periodo: 1,
+              total_rankeados: 1,
+              materias: [{ asignacion_id: 55, materia: "LENGUA CASTELLANA", profesor: "Lina Torres", tipo_evaluacion: "numerica", guardados: 1, total: 1 }],
+              estudiantes: [{ estudiante_id: 101, nombre: "Ana", apellido: "Pérez", puesto: 1, promedio: 4.2, notas: { 55: { definitiva: 4.2, guardada: true } }, inasistencias: { periodo: 2, anio: 4 } }],
+            },
+          });
+        }
+        return getOriginal(url);
+      });
+
+      render(<IngresoBoletinProfesor />);
+      await user.click(await screen.findByRole("tab", { name: "Mi curso (director de grupo)" }, PRIMERA_CARGA));
+
+      expect(await screen.findByRole("heading", { name: "QUINTO A · Periodo 1" })).toBeInTheDocument();
+      expect(screen.getByRole("rowheader", { name: "Pérez Ana" })).toBeInTheDocument();
+      expect(screen.getByText(/Todas las materias están guardadas/)).toBeInTheDocument();
+      expect(api.get).toHaveBeenCalledWith("/director-grupo/cursos/5/1", expect.anything());
+
+      await user.click(screen.getByRole("tab", { name: "Mis materias" }));
+      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    });
+
+    it("quien no dirige ningún curso no ve la pestaña", async () => {
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) =>
+        url === "/director-grupo/cursos" ? Promise.resolve({ data: [] }) : getOriginal(url),
+      );
+
+      render(<IngresoBoletinProfesor />);
+      expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
+      await waitFor(() => expect(api.get).toHaveBeenCalledWith("/director-grupo/cursos", expect.anything()));
+      expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    });
+  });
 });

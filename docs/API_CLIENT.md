@@ -1058,6 +1058,12 @@ Uso:
   un `GET /boletines/referencia/{asignacion_id}/{periodo}` por cada otra
   materia del profesor en el mismo curso (`curso_id` de `/mis-clases`), una
   vez por clase y periodo. No guarda nada. Sin rutas nuevas.
+- **"Mi curso" del director de grupo** (2026-11-07,
+  `docs/funcionalidades/MI_CURSO_DIRECTOR.md`): al abrir la pantalla,
+  `GET /director-grupo/cursos` (si viene vacío o falla, no hay pestaña); con
+  la pestaña abierta, `GET /director-grupo/cursos/{curso_id}/{periodo}`
+  (cancelable). Solo leen; el permiso lo decide el servidor (director de ese
+  curso o admin).
 
 ## Certificados
 

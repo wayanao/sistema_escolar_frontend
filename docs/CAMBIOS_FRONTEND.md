@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-11-07 - Boletín Final: pestaña "Mi curso (director de grupo)" (paso 2)
+
+Paso 2 de `docs/funcionalidades/MI_CURSO_DIRECTOR.md` (el principal está en el
+backend). Usa las dos lecturas del paso 1 del backend.
+
+- Si el profesor dirige algún curso (`GET /director-grupo/cursos`), Boletín
+  Final muestra dos pestañas: "Mis materias" (lo de siempre) y "Mi curso
+  (director de grupo)". Quien no dirige no ve cambios.
+- "Mi curso" pide `GET /director-grupo/cursos/{curso}/{periodo}` solo con la
+  pestaña abierta, con el mismo selector de periodo (el de la clase se esconde).
+  Con más de un curso dirigido, un selector "Curso que diriges".
+- PC: tabla Puesto · Estudiante (apellidos primero) · Promedio · una columna
+  por materia · Inasistencias del periodo (y del año, en pequeño); puesto y
+  estudiante quedan fijos al desplazar de lado. Celular: una tarjeta por
+  estudiante con sus materias en una columna.
+- Colores del boletín (verde desde 4.0, morado desde 3.0, rojo debajo); en
+  preescolar, caritas. Las notas que aún no están guardadas en el boletín
+  salen en gris y cursiva, con la explicación debajo de la tabla.
+- Aviso arriba: "Hay materias sin guardar: el puesto todavía puede cambiar",
+  con «LENGUAJE: faltan 2 por guardar (Lina Torres)»; o, si todo está
+  guardado, que el puesto ya es el definitivo.
+- Archivos: `services/boletinesApi.js` (`listarCursosDirigidos`,
+  `obtenerMiCursoDirector`), `utils/boletines/miCurso.js` (nuevo),
+  `hooks/boletines/useConsultaMiCursoDirector.js` (nuevo),
+  `components/boletin/MiCursoDirector.jsx` (nuevo), la vista (pestañas) y la
+  página.
+- Verificación: pruebas nuevas de servicio, utilidades, hook, componente,
+  pestañas y página; 159 pruebas del boletín y lint correctos. En el
+  navegador, con servidor simulado (8 estudiantes, 6 materias, dos sin
+  guardar), en PC y celular, sin errores en la página.
+
 ## 2026-11-07 - Boletín final del profesor: plantilla del grupo y avance al guardar
 
 Pedido del usuario: que la caja de "copiar a todos y guardar" sea una con el

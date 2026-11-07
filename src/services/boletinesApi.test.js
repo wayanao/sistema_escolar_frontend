@@ -18,8 +18,10 @@ import {
   guardarOrdenBoletin,
   listarClasesProfesorBoletines,
   listarCursosBoletines,
+  listarCursosDirigidos,
   listarEstudiantesBoletines,
   obtenerEstadoPorcentajesBoletin,
+  obtenerMiCursoDirector,
   obtenerOrdenBoletin,
   obtenerReferenciaBoletin,
 } from "./boletinesApi";
@@ -202,6 +204,28 @@ describe("estado de los porcentajes de la clase (paso B4c)", () => {
     });
     expect(apiMock.get).toHaveBeenCalledWith("/planilla-excel/55/1", {
       params: { con_porcentajes: true },
+    });
+  });
+});
+
+describe("contrato HTTP de «Mi curso» del director de grupo", () => {
+  it("lista los cursos que dirige y pide el ranking de uno, cancelable", async () => {
+    const cursos = [{ id: 5 }];
+    const ranking = { curso: { id: 5 } };
+    apiMock.get
+      .mockResolvedValueOnce({ data: cursos })
+      .mockResolvedValueOnce({ data: ranking })
+      .mockResolvedValueOnce({ data: ranking });
+    const controller = new AbortController();
+
+    await expect(listarCursosDirigidos()).resolves.toBe(cursos);
+    await expect(obtenerMiCursoDirector(5, 2)).resolves.toBe(ranking);
+    await obtenerMiCursoDirector(5, 3, { signal: controller.signal });
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/director-grupo/cursos");
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/director-grupo/cursos/5/2");
+    expect(apiMock.get).toHaveBeenNthCalledWith(3, "/director-grupo/cursos/5/3", {
+      signal: controller.signal,
     });
   });
 });
