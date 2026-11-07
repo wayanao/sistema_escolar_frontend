@@ -116,4 +116,38 @@ describe("useConsultaIngresoBoletinProfesor", () => {
     expect(result.current.errorAlumnos).toBeNull();
     expect(result.current.estudiantes).toHaveLength(1);
   });
+
+  it("si falla la carga de estudiantes, quita los anteriores y Reintentar vuelve a pedir", async () => {
+    const { result } = renderHook(() => useConsultaIngresoBoletinProfesor());
+    await waitFor(() => expect(result.current.estudiantes).toHaveLength(1));
+
+    obtenerReferenciaMock.mockRejectedValueOnce(new Error("sin red"));
+    act(() => result.current.cambiarPeriodo("2"));
+
+    await waitFor(() => expect(result.current.errorAlumnos).toBeInstanceOf(Error));
+    expect(result.current.cargando).toBe(false);
+    // Los del periodo 1 ya no quedan en pantalla para guardarlos en el 2.
+    expect(result.current.estudiantes).toEqual([]);
+    expect(result.current.datosIniciales).toEqual({});
+
+    act(() => result.current.recargarAlumnos());
+    await waitFor(() => expect(result.current.estudiantes).toHaveLength(1));
+    expect(result.current.errorAlumnos).toBeNull();
+    expect(obtenerReferenciaMock).toHaveBeenLastCalledWith("55", "2", {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("si fallan las clases lo dice, y Reintentar las vuelve a pedir", async () => {
+    listarClasesMock.mockRejectedValueOnce(new Error("sin red"));
+    const { result } = renderHook(() => useConsultaIngresoBoletinProfesor());
+
+    await waitFor(() => expect(result.current.errorClases).toBeInstanceOf(Error));
+    expect(result.current.clasesUnicas).toEqual([]);
+
+    act(() => result.current.recargarClases());
+    await waitFor(() => expect(result.current.clasesUnicas).toHaveLength(1));
+    expect(result.current.errorClases).toBeNull();
+    expect(listarClasesMock).toHaveBeenCalledTimes(2);
+  });
 });

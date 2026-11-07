@@ -316,4 +316,138 @@ describe("IngresoBoletinProfesor", () => {
     expect(pedidas.some((url) => url.startsWith("/boletines/referencia/90/"))).toBe(false);
     expect(api.post).not.toHaveBeenCalled();
   });
+
+  describe("que no se pierda ni se cruce lo escrito", () => {
+    it("si falla la carga al cambiar de periodo, no deja los textos del periodo anterior para guardarlos en el nuevo", async () => {
+      const user = userEvent.setup();
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const getOriginal = api.get.getMockImplementation();
+      let periodoDosFalla = true;
+      api.get.mockImplementation((url) => {
+        if (url === "/boletines/referencia/55/2") {
+          return periodoDosFalla
+            ? Promise.reject(new Error("sin red"))
+            : Promise.resolve({
+                data: [{ estudiante_id: 101, nombre: "Ana", notas: notasDe("Logro del periodo 2", "") }],
+              });
+        }
+        return getOriginal(url);
+      });
+
+      render(<IngresoBoletinProfesor />);
+      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+
+      const selectorPeriodo = screen.getAllByRole("combobox")[1];
+      await user.selectOptions(selectorPeriodo, "2");
+
+      expect(
+        await screen.findByText(/No se pudieron cargar los estudiantes de esta clase/),
+      ).toBeInTheDocument();
+      // Las tarjetas del periodo 1 ya no están: no hay nada que guardar en el 2.
+      expect(screen.queryByRole("heading", { name: "Ana" })).not.toBeInTheDocument();
+      expect(screen.queryByDisplayValue("Logro común")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Guardar todo" })).not.toBeInTheDocument();
+      expect(api.post).not.toHaveBeenCalled();
+
+      periodoDosFalla = false;
+      await user.click(screen.getByRole("button", { name: "Reintentar" }));
+      expect(await screen.findByDisplayValue("Logro del periodo 2")).toBeInTheDocument();
+      expect(screen.queryByText(/No se pudieron cargar los estudiantes/)).not.toBeInTheDocument();
+    });
+
+    it("si sale de la pantalla sin guardar y vuelve, encuentra lo que escribió", async () => {
+      const user = userEvent.setup();
+      const primera = render(<IngresoBoletinProfesor />);
+      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+      const [primerLogro] = screen.getAllByRole("textbox");
+      await user.clear(primerLogro);
+      await user.type(primerLogro, "Texto sin guardar");
+
+      // Se va a otra parte del perfil (la pantalla se cierra) y vuelve.
+      primera.unmount();
+      render(<IngresoBoletinProfesor />);
+
+      expect(await screen.findByDisplayValue("Texto sin guardar")).toBeInTheDocument();
+      expect(screen.getByText("Recuperamos lo que no habías guardado")).toBeInTheDocument();
+      expect(screen.getAllByText("Cambios sin guardar").length).toBeGreaterThan(0);
+      expect(api.post).not.toHaveBeenCalled();
+    });
+
+    it("cambia de periodo sin preguntar y, al volver, lo escrito sigue ahí", async () => {
+      const user = userEvent.setup();
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) =>
+        url === "/boletines/referencia/55/2"
+          ? Promise.resolve({ data: [{ estudiante_id: 101, nombre: "Ana", notas: notasDe("Del periodo 2", "") }] })
+          : getOriginal(url),
+      );
+
+      render(<IngresoBoletinProfesor />);
+      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+      const [primerLogro] = screen.getAllByRole("textbox");
+      await user.clear(primerLogro);
+      await user.type(primerLogro, "Texto del periodo 1");
+
+      const selectorPeriodo = screen.getAllByRole("combobox")[1];
+      await user.selectOptions(selectorPeriodo, "2");
+      expect(await screen.findByDisplayValue("Del periodo 2")).toBeInTheDocument();
+      expect(Swal.fire).not.toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Tienes cambios sin guardar" }),
+      );
+      // Lo del periodo 1 no se mezcla con el 2.
+      expect(screen.queryByDisplayValue("Texto del periodo 1")).not.toBeInTheDocument();
+
+      await user.selectOptions(selectorPeriodo, "1");
+      expect(await screen.findByDisplayValue("Texto del periodo 1")).toBeInTheDocument();
+      expect(screen.getByText("Recuperamos lo que no habías guardado")).toBeInTheDocument();
+    });
+
+    it("si el navegador no deja guardar borradores, pregunta antes; Quedarme conserva lo escrito", async () => {
+      const user = userEvent.setup();
+      const original = Storage.prototype.setItem;
+      const espia = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (clave, valor) {
+        if (String(clave).includes("borrador")) throw new Error("QuotaExceededError");
+        return original.call(this, clave, valor);
+      });
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) =>
+        url === "/boletines/referencia/55/2"
+          ? Promise.resolve({ data: [{ estudiante_id: 101, nombre: "Ana", notas: notasDe("Del periodo 2", "") }] })
+          : getOriginal(url),
+      );
+      let respuestaAlCambiar = { isConfirmed: false };
+      Swal.fire.mockImplementation((opciones) =>
+        Promise.resolve(opciones?.title === "Tienes cambios sin guardar" ? respuestaAlCambiar : {}),
+      );
+
+      try {
+        render(<IngresoBoletinProfesor />);
+        expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+        const [primerLogro] = screen.getAllByRole("textbox");
+        await user.clear(primerLogro);
+        await user.type(primerLogro, "Texto sin guardar");
+
+        const selectorPeriodo = screen.getAllByRole("combobox")[1];
+        await user.selectOptions(selectorPeriodo, "2");
+
+        await waitFor(() =>
+          expect(Swal.fire).toHaveBeenCalledWith(
+            expect.objectContaining({
+              title: "Tienes cambios sin guardar",
+              text: "Un estudiante tiene cambios sin guardar. Si cambias de clase o de periodo, se pierden.",
+            }),
+          ),
+        );
+        expect(selectorPeriodo).toHaveValue("1");
+        expect(screen.getByDisplayValue("Texto sin guardar")).toBeInTheDocument();
+
+        respuestaAlCambiar = { isConfirmed: true };
+        await user.selectOptions(selectorPeriodo, "2");
+        expect(await screen.findByDisplayValue("Del periodo 2")).toBeInTheDocument();
+        expect(selectorPeriodo).toHaveValue("2");
+      } finally {
+        espia.mockRestore();
+      }
+    });
+  });
 });

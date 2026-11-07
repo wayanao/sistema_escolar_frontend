@@ -861,6 +861,10 @@ Estado actual de componentes y paginas del frontend.
   protege etiquetas humanas con `translate="no"`. Durante un cambio de clase,
   espera que notas y observaciones pertenezcan a la misma consulta antes de
   mostrar cada tarjeta. Cada estudiante tiene "Ver cómo queda" (2026-11-06).
+  Si falla la carga de clases o de estudiantes, muestra el aviso con
+  "Reintentar" en vez de las tarjetas (2026-11-07). Si al entrar hay un
+  borrador sin guardar, avisa "Recuperamos lo que no habías guardado" con
+  "Descartar" (2026-11-07; ver `useBorradorBoletinProfesor`).
 - `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo
   queda" del profesor. Usa el membrete real (`DocumentoImprimible` con
   `mostrarBarra={false}`, sin Descargar PDF ni Imprimir) y las piezas del

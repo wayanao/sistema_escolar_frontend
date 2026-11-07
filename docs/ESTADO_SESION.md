@@ -23,6 +23,10 @@ Claves observadas:
   solo para precargar el campo visual del formulario.
 - `menuLateral`: si el admin o el profesor dejó el menú lateral `abierto` o
   en `riel` (encogido) desde portátil. Desde el 2026-11-04.
+- `borrador_boletin:<tenant>:<profesor>:<asignacion>:<periodo>`: lo que el
+  profesor escribió en el boletín final y no ha guardado (solo los textos de
+  los estudiantes con cambios). Desde el 2026-11-07. Se borra al guardar, al
+  "Descartar" y en logout. Prefijo en `src/constants/borradores.js`.
 
 Separacion importante:
 
@@ -36,6 +40,10 @@ Separacion importante:
   no define tenant y no reemplaza el codigo enviado al backend.
 - `menuLateral` es una preferencia de la pantalla, no de la sesión: no se
   limpia en logout ni ante `401`, como `ultimo_codigo_colegio`.
+- `borrador_boletin:*` es trabajo sin guardar, con texto sobre estudiantes
+  (dato personal): nunca autoriza nada, no lo ve el colegio hasta que el
+  profesor guarda, y lleva tenant y profesor en la clave para que en un
+  navegador compartido cada uno vea solo el suyo.
 
 Tambien se usa cookie:
 
@@ -77,6 +85,9 @@ navegacion, elimina:
 - `tenant` como limpieza legacy
 - `asignacionId`
 - `periodo`
+- todas las claves que empiezan con `borrador_boletin:` (prefijos en
+  `PREFIJOS_LIMPIEZA_LOGOUT`, desde el 2026-11-07): en un computador
+  compartido, quien entra después no debe encontrar textos de otro profesor.
 
 Tambien llaman `POST /logout`, intentan expirar la cookie `token` como
 compatibilidad para desarrollo y redirigen a `/login`.
@@ -103,6 +114,9 @@ Nota operativa:
 - `tenant` como limpieza legacy.
 
 Luego redirige a `/login`.
+
+No borra `borrador_boletin:*` a propósito: si la sesión vence mientras el
+profesor escribe, al volver a entrar encuentra lo que no alcanzó a guardar.
 
 ## Uso de sesion en rutas
 

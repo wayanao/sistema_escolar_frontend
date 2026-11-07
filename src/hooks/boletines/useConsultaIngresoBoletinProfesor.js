@@ -24,16 +24,23 @@ export default function useConsultaIngresoBoletinProfesor() {
   const [clases, setClases] = useState([]);
   const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
   const [estudiantes, setEstudiantes] = useState([]);
+  // La clase y el periodo de los estudiantes que están en pantalla. El
+  // selector cambia antes de que llegue la consulta; esto, junto con ella.
+  const [cargadoPara, setCargadoPara] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [errorClases, setErrorClases] = useState(null);
   const [errorAlumnos, setErrorAlumnos] = useState(null);
   // Porcentajes por tipo de nota, paso B4c (PB11): para avisar al guardar.
   const [porcentajesIncompletos, setPorcentajesIncompletos] = useState(false);
+  // Cada "Reintentar" sube su contador y vuelve a correr la carga.
+  const [intentoClases, setIntentoClases] = useState(0);
+  const [intentoAlumnos, setIntentoAlumnos] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
 
     const cargarClases = async () => {
+      setErrorClases(null);
       try {
         const profesor = JSON.parse(localStorage.getItem("profesor"));
         if (!profesor) return;
@@ -51,7 +58,7 @@ export default function useConsultaIngresoBoletinProfesor() {
 
     void cargarClases();
     return () => controller.abort();
-  }, []);
+  }, [intentoClases]);
 
   useEffect(() => {
     if (!asignacionId || !periodo) {
@@ -86,10 +93,15 @@ export default function useConsultaIngresoBoletinProfesor() {
         if (controller.signal.aborted) return;
         const estudiantesVisibles = normalizarEstudiantesReferencia(data);
         setEstudiantes(estudiantesVisibles);
+        setCargadoPara({ asignacionId, periodo });
         setPorcentajesIncompletos(hayPorcentajesIncompletos(estadoPorcentajes));
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error("Error al cargar alumnos", error);
+          // Sin esto quedaban en pantalla los estudiantes de la clase o el
+          // periodo anterior, y al guardar sus textos se iban al nuevo.
+          setEstudiantes([]);
+          setCargadoPara(null);
           setErrorAlumnos(error);
         }
       } finally {
@@ -99,7 +111,7 @@ export default function useConsultaIngresoBoletinProfesor() {
 
     void cargarAlumnos();
     return () => controller.abort();
-  }, [asignacionId, periodo]);
+  }, [asignacionId, periodo, intentoAlumnos]);
 
   const clasesUnicas = useMemo(
     () => deduplicarClases(clases, asignacionId),
@@ -121,8 +133,12 @@ export default function useConsultaIngresoBoletinProfesor() {
     guardarPeriodoProfesor(valor);
   }, []);
 
+  const recargarClases = useCallback(() => setIntentoClases((n) => n + 1), []);
+  const recargarAlumnos = useCallback(() => setIntentoAlumnos((n) => n + 1), []);
+
   return {
     asignacionId,
+    cargadoPara,
     cargando,
     clasesUnicas,
     datosIniciales,
@@ -134,5 +150,7 @@ export default function useConsultaIngresoBoletinProfesor() {
     porcentajesIncompletos,
     cambiarAsignacion: setAsignacionId,
     cambiarPeriodo,
+    recargarClases,
+    recargarAlumnos,
   };
 }

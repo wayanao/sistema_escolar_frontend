@@ -269,4 +269,84 @@ describe("VistaIngresoBoletinProfesor", () => {
     );
     expect(screen.queryByRole("button", { name: "Ver cómo queda" })).not.toBeInTheDocument();
   });
+
+  it("si falla la carga lo dice con Reintentar, en vez de decir que no hay estudiantes", async () => {
+    const user = userEvent.setup();
+    const onReintentarAlumnos = vi.fn();
+    const onReintentarClases = vi.fn();
+    render(
+      <VistaIngresoBoletinProfesor
+        asignacionId="55"
+        cargando={false}
+        clases={[]}
+        datosBoletin={{}}
+        errorAlumnos={new Error("sin red")}
+        errorClases={new Error("sin red")}
+        estudiantes={[]}
+        guardandoTodos={false}
+        periodo="1"
+        onAplicarLogros={vi.fn()}
+        onCambiarAsignacion={vi.fn()}
+        onCambiarPeriodo={vi.fn()}
+        onGuardarEstudiante={vi.fn()}
+        onGuardarTodos={vi.fn()}
+        onObservacionChange={vi.fn()}
+        onReintentarAlumnos={onReintentarAlumnos}
+        onReintentarClases={onReintentarClases}
+        obtenerEstadoVisual={() => ({})}
+      />,
+    );
+
+    const avisos = screen.getAllByRole("alert");
+    expect(avisos.map((aviso) => aviso.textContent)).toEqual([
+      expect.stringContaining("No se pudieron cargar tus clases"),
+      expect.stringContaining("No se pudieron cargar los estudiantes de esta clase"),
+    ]);
+    expect(screen.queryByText(/No hay estudiantes en este curso/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guardar todo" })).not.toBeInTheDocument();
+
+    const [reintentarClases, reintentarAlumnos] = screen.getAllByRole("button", { name: "Reintentar" });
+    await user.click(reintentarClases);
+    await user.click(reintentarAlumnos);
+    expect(onReintentarClases).toHaveBeenCalledTimes(1);
+    expect(onReintentarAlumnos).toHaveBeenCalledTimes(1);
+  });
+
+  it("avisa del borrador recuperado y deja descartarlo", async () => {
+    const user = userEvent.setup();
+    const onDescartarBorrador = vi.fn();
+    render(
+      <VistaIngresoBoletinProfesor
+        asignacionId="55"
+        borradorRecuperado={{ cantidad: 2, actualizado: "2026-11-07T15:30:00.000Z" }}
+        cargando={false}
+        clases={[]}
+        datosBoletin={{
+          101: {
+            definitiva: "4.00",
+            observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }],
+          },
+        }}
+        estudiantes={[
+          { estudiante_id: 101, nombre: "Ana", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 4 }] },
+        ]}
+        guardandoTodos={false}
+        periodo="1"
+        onAplicarLogros={vi.fn()}
+        onCambiarAsignacion={vi.fn()}
+        onCambiarPeriodo={vi.fn()}
+        onDescartarBorrador={onDescartarBorrador}
+        onGuardarEstudiante={vi.fn()}
+        onGuardarTodos={vi.fn()}
+        onObservacionChange={vi.fn()}
+        obtenerEstadoVisual={() => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar" })}
+      />,
+    );
+
+    const aviso = screen.getByRole("status");
+    expect(aviso).toHaveTextContent("Recuperamos lo que no habías guardado de 2 estudiantes");
+    expect(aviso).toHaveTextContent(/escrito el \d{1,2}\/\d{1,2}\/2026 a las/);
+    await user.click(screen.getByRole("button", { name: "Descartar" }));
+    expect(onDescartarBorrador).toHaveBeenCalledTimes(1);
+  });
 });

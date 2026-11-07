@@ -1,3 +1,5 @@
+import { PREFIJOS_BORRADORES } from "../../constants/borradores";
+
 export const ROL_ADMIN = "admin";
 export const ROL_SUPER_ADMIN = "super_admin";
 
@@ -35,6 +37,10 @@ export const CLAVES_LIMPIEZA_LOGOUT = Object.freeze([
   CLAVES_SESION.ASIGNACION_ID,
   CLAVES_SESION.PERIODO,
 ]);
+
+// Además de las claves exactas, al cerrar sesión se borran las que empiezan
+// así: los borradores de texto (ver src/constants/borradores.js). Un 401 no.
+export const PREFIJOS_LIMPIEZA_LOGOUT = PREFIJOS_BORRADORES;
 
 export const CLAVES_LIMPIEZA_401 = Object.freeze([
   CLAVES_SESION.SUPER_ADMIN,

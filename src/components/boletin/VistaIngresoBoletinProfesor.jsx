@@ -12,15 +12,21 @@ import VistaPreviaBoletinProfesor from "./VistaPreviaBoletinProfesor";
 
 export default function VistaIngresoBoletinProfesor({
   asignacionId,
+  borradorRecuperado = null,
   cargando,
   clases,
   datosBoletin,
+  errorAlumnos = null,
+  errorClases = null,
   estudiantes,
   guardandoTodos,
   periodo,
   onAplicarLogros,
   onCambiarAsignacion,
   onCambiarPeriodo,
+  onDescartarBorrador,
+  onReintentarAlumnos,
+  onReintentarClases,
   onGuardarEstudiante,
   onGuardarTodos,
   onObservacionChange,
@@ -77,12 +83,30 @@ export default function VistaIngresoBoletinProfesor({
         </div>
       </div>
 
+      {errorClases && (
+        <AvisoError
+          texto="No se pudieron cargar tus clases. Revisa la conexión e intenta de nuevo."
+          onReintentar={onReintentarClases}
+        />
+      )}
+
       {cargando ? (
         <p className="text-gray-500 text-center py-10">
           Cargando información del curso...
         </p>
+      ) : errorAlumnos ? (
+        <AvisoError
+          texto="No se pudieron cargar los estudiantes de esta clase. Revisa la conexión e intenta de nuevo."
+          onReintentar={onReintentarAlumnos}
+        />
       ) : estudiantes.length > 0 ? (
         <div className="space-y-6">
+          {borradorRecuperado && (
+            <AvisoBorrador
+              borrador={borradorRecuperado}
+              onDescartar={onDescartarBorrador}
+            />
+          )}
           <AccionesGrupo
             guardandoTodos={guardandoTodos}
             onAplicarLogros={onAplicarLogros}
@@ -130,6 +154,55 @@ export default function VistaIngresoBoletinProfesor({
           onSiguiente={onVistaPreviaSiguiente}
           onCerrar={onCerrarVistaPrevia}
         />
+      )}
+    </div>
+  );
+}
+
+function AvisoBorrador({ borrador, onDescartar }) {
+  const fecha = borrador.actualizado ? new Date(borrador.actualizado) : null;
+  const cuando = fecha && !Number.isNaN(fecha.getTime())
+    ? ` (escrito el ${fecha.toLocaleDateString("es-CO")} a las ${fecha.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })})`
+    : "";
+  const quienes = borrador.cantidad === 1 ? "un estudiante" : `${borrador.cantidad} estudiantes`;
+
+  return (
+    <div
+      role="status"
+      className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="text-sm text-amber-900">
+        <span className="font-bold">Recuperamos lo que no habías guardado</span>{" "}
+        de {quienes}{cuando}. Revísalo y guárdalo para que le llegue al colegio.
+      </p>
+      {onDescartar && (
+        <button
+          type="button"
+          onClick={onDescartar}
+          className="shrink-0 rounded-md border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+        >
+          Descartar
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AvisoError({ texto, onReintentar }) {
+  return (
+    <div
+      role="alert"
+      className="mb-6 flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="text-sm font-medium text-red-800">{texto}</p>
+      {onReintentar && (
+        <button
+          type="button"
+          onClick={onReintentar}
+          className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
+        >
+          Reintentar
+        </button>
       )}
     </div>
   );

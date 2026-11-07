@@ -1,5 +1,80 @@
 # Cambios Frontend
 
+## 2026-11-07 - Boletín final del profesor: borrador automático
+
+Pregunta del usuario: "yo creí que si uno se salía para algún otro lado del
+perfil profesor no se borraba nada de lo escrito". Lo guardado nunca se
+borraba; lo escrito sin guardar sí se perdía al salir (vivía solo en la
+pantalla). Pidió que el borrador "se guarde sin preguntar".
+
+- Mientras el profesor escribe, lo no guardado se copia en el navegador
+  (`localStorage`, clave `borrador_boletin:<tenant>:<profesor>:<asignacion>:<periodo>`).
+  Solo textos de estudiantes con cambios; notas y definitiva vienen siempre
+  de la planilla. Al volver a esa clase y periodo (por el menú, al recargar o
+  al abrir otra vez el navegador) el texto reaparece marcado "Cambios sin
+  guardar", con el aviso "Recuperamos lo que no habías guardado de N
+  estudiantes (escrito el …)" y el botón **Descartar** (pregunta antes).
+- Se borra del borrador lo que se guarda (uno a uno o con "Guardar todo";
+  si se detiene a la mitad, quedan solo los que faltan).
+- El borrador se escribe con la clase y el periodo de los estudiantes que
+  están en pantalla (`cargadoPara` de la consulta), no con los del selector,
+  que cambia antes de que llegue la consulta: así nunca se mezcla con otra
+  clase o periodo. Si la carga falla, no se toca ningún borrador.
+- Si un tipo de nota ya no está en la planilla, su texto del borrador se
+  descarta; los demás se recuperan.
+- Como nada se pierde, ya **no se pregunta** al cambiar de clase o de periodo
+  ni al cerrar la pestaña. Esa pregunta (del paso 2) queda solo para cuando
+  el navegador no deja guardar (ventana privada o almacenamiento lleno).
+- Privacidad: "Cerrar sesión" borra todos los `borrador_boletin:*`
+  (`PREFIJOS_LIMPIEZA_LOGOUT`); un `401` no, para no perder lo escrito si la
+  sesión vence. Ver `ESTADO_SESION.md`.
+- Archivos: `constants/borradores.js` (nuevo), `utils/autenticacion/sesion.js`
+  y `hooks/autenticacion/useCerrarSesion.js` (limpieza por prefijo),
+  `utils/boletines/ingresoBoletin.js` (`crearClaveBorradorBoletin`,
+  `construirBorrador`, `aplicarBorrador`), `hooks/boletines/useBorradorBoletinProfesor.js`
+  (nuevo), la consulta (`cargadoPara`), los comandos, la vista (aviso) y la
+  página. Sin backend.
+- Verificación: `pnpm run check:deploy` correcto (408 archivos, 3485
+  pruebas, lint y build). En el navegador, con servidor simulado: escribir,
+  ir a Planilla por el menú y volver a Boletín Final deja el texto y el
+  aviso; no se envió nada al servidor; "Cerrar sesión" borró el borrador.
+
+## 2026-11-07 - Boletín final del profesor: que no se pierda ni se cruce lo escrito
+
+Paso 2 de la mejora del boletín del profesor, aprobado por el usuario
+("continua").
+
+- **Periodos cruzados (el más grave).** Si la carga de estudiantes fallaba
+  al cambiar de clase o de periodo, quedaban en pantalla las tarjetas
+  anteriores, y "Guardar todo" enviaba esos textos con el periodo nuevo. Se
+  comprobó con una prueba antes de arreglarlo: tras fallar el periodo 2, el
+  POST salía con `periodo: 2` y el logro del periodo 1. Ahora, si la carga
+  falla, se quitan las tarjetas y sale "No se pudieron cargar los
+  estudiantes de esta clase" con **Reintentar**. Lo mismo para las clases.
+- **Cambiar de clase o de periodo con cambios sin guardar** pregunta antes:
+  "N estudiantes tienen cambios sin guardar. Si cambias de clase o de
+  periodo, se pierden." con "Cambiar sin guardar" y "Quedarme" (resaltado).
+  Recargar o cerrar la pestaña con cambios sin guardar hace que el navegador
+  pregunte (`beforeunload`).
+- **Límite:** salir por el menú lateral no se puede frenar: la app usa
+  `BrowserRouter` y `useBlocker` solo funciona con los enrutadores de datos
+  de React Router. Cambiarlo toca toda la app; no se hizo.
+- **"Guardar todo" que se detiene a la mitad** marca como guardados a los que
+  sí se guardaron y dice cuántos faltan y desde quién ("Se guardaron 14 de 30
+  estudiantes. Faltan 16, desde Ana Pérez…"). Si el servidor explica el
+  motivo (por ejemplo, el año cerrado), se muestra ese motivo. Volver a
+  oprimir "Guardar todo" es seguro: el backend reemplaza el boletín del
+  estudiante, no lo duplica (`guardar_cabecera` + borrar e insertar detalles).
+- Archivos: `useConsultaIngresoBoletinProfesor.js` (quita estudiantes al
+  fallar, `recargarClases`, `recargarAlumnos`),
+  `useComandosIngresoBoletinProfesor.js` (`confirmarDescartarCambios`,
+  `beforeunload`, guardado a medias), `utils/boletines/ingresoBoletin.js`
+  (conteo y mensajes), la vista (aviso con Reintentar) y la página.
+- Verificación: `pnpm run check:deploy` correcto (408 archivos, 3471
+  pruebas, lint y build). En el navegador, con servidor simulado: "Quedarme"
+  conserva periodo y texto; con la carga fallida no queda ninguna tarjeta;
+  "Reintentar" trae el periodo nuevo; sin errores en la página.
+
 ## 2026-11-06 - "Ver cómo queda": también sus otras materias del curso
 
 Pedido del usuario, enseguida del anterior: que en la vista previa el

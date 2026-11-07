@@ -6,10 +6,16 @@ import { guardarBoletinProfesor } from "../../services/boletinesApi";
 import {
   AVISO_PORCENTAJES_INCOMPLETOS,
   MENSAJE_PORCENTAJES_INCOMPLETOS,
+  aplicarBorrador,
   aplicarLogrosEnGrupo,
+  construirBorrador,
   construirPayloadBoletin,
+  estudiantesConCambiosSinGuardar,
+  mensajeCambiosSinGuardar,
+  mensajeGuardadoGrupoIncompleto,
   obtenerTextoLimpio,
 } from "../../utils/boletines/ingresoBoletin";
+import useBorradorBoletinProfesor from "./useBorradorBoletinProfesor";
 
 export default function useComandosIngresoBoletinProfesor({
   asignacionId,
@@ -18,6 +24,7 @@ export default function useComandosIngresoBoletinProfesor({
   datosIniciales,
   estadoGuardadoInicial,
   porcentajesIncompletos = false,
+  cargadoPara = null,
 }) {
   const [datosBoletin, setDatosBoletin] = useState(datosIniciales);
   const [estadoGuardado, setEstadoGuardado] = useState(estadoGuardadoInicial);
@@ -26,11 +33,43 @@ export default function useComandosIngresoBoletinProfesor({
   // periodo; al cambiar de clase o periodo, vuelve a preguntar.
   const avisoAceptadoRef = useRef(false);
 
+  // Borrador: lo escrito y no guardado se va copiando en el navegador, para
+  // encontrarlo al volver a esta clase y periodo aunque se haya salido.
+  const {
+    clave: claveBorrador,
+    activo: borradorActivo,
+    leerBorrador,
+    escribirBorrador,
+  } = useBorradorBoletinProfesor({ cargadoPara });
+  const [borradorRecuperado, setBorradorRecuperado] = useState(null);
+  // Solo lo que hace el profesor va al borrador; lo que llega del servidor no.
+  const cambioDelProfesorRef = useRef(false);
+
   useEffect(() => {
-    setDatosBoletin(datosIniciales);
-    setEstadoGuardado(estadoGuardadoInicial);
+    const borrador = leerBorrador(claveBorrador);
+    const conBorrador = aplicarBorrador({
+      datosBoletin: datosIniciales,
+      estadoGuardado: estadoGuardadoInicial,
+      borrador,
+    });
+    cambioDelProfesorRef.current = false;
+    setDatosBoletin(conBorrador.datosBoletin);
+    setEstadoGuardado(conBorrador.estadoGuardado);
+    setBorradorRecuperado(
+      conBorrador.recuperados.length > 0
+        ? { cantidad: conBorrador.recuperados.length, actualizado: borrador?.actualizado || null }
+        : null,
+    );
     avisoAceptadoRef.current = false;
-  }, [datosIniciales, estadoGuardadoInicial]);
+  }, [claveBorrador, datosIniciales, estadoGuardadoInicial, leerBorrador]);
+
+  useEffect(() => {
+    if (!cambioDelProfesorRef.current) return;
+    escribirBorrador(
+      claveBorrador,
+      construirBorrador(datosBoletin, estadoGuardado, new Date().toISOString()),
+    );
+  }, [claveBorrador, datosBoletin, escribirBorrador, estadoGuardado]);
 
   /** `true` si se puede guardar: sin porcentajes incompletos, o si el profesor aceptó. */
   const confirmarPorcentajesIncompletos = async () => {
@@ -49,12 +88,73 @@ export default function useComandosIngresoBoletinProfesor({
     return true;
   };
 
+  const cantidadConCambios = estudiantesConCambiosSinGuardar(estadoGuardado).length;
+
+  // Sin borrador (el navegador no deja guardar), recargar o cerrar la pestaña
+  // con cambios sin guardar hace que el navegador pregunte. Con borrador no
+  // hace falta: lo escrito sigue ahí al volver. (Salir por el menú no se puede
+  // frenar: la app usa BrowserRouter, sin useBlocker.)
+  useEffect(() => {
+    if (cantidadConCambios === 0 || borradorActivo) return undefined;
+    const alSalir = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", alSalir);
+    return () => window.removeEventListener("beforeunload", alSalir);
+  }, [borradorActivo, cantidadConCambios]);
+
+  /**
+   * `true` si se puede cambiar de clase o de periodo: sin cambios pendientes,
+   * con borrador (no se pierden), o si el profesor acepta perderlos.
+   */
+  const confirmarDescartarCambios = async () => {
+    if (cantidadConCambios === 0 || borradorActivo) return true;
+    const respuesta = await Swal.fire({
+      icon: "warning",
+      title: "Tienes cambios sin guardar",
+      text: mensajeCambiosSinGuardar(cantidadConCambios),
+      showCancelButton: true,
+      confirmButtonText: "Cambiar sin guardar",
+      cancelButtonText: "Quedarme",
+      confirmButtonColor: "#475569",
+      cancelButtonColor: MORADO_BOTON,
+      focusCancel: true,
+    });
+    return Boolean(respuesta?.isConfirmed);
+  };
+
+  /** Borra lo que no se ha guardado y vuelve a lo último guardado. */
+  const descartarBorrador = async () => {
+    const respuesta = await Swal.fire({
+      icon: "warning",
+      title: "Descartar lo que no has guardado",
+      text: `Se borra lo que no has guardado ${
+        cantidadConCambios === 1 ? "de un estudiante" : `de ${cantidadConCambios} estudiantes`
+      } y vuelve lo último guardado.`,
+      showCancelButton: true,
+      confirmButtonText: "Descartar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#475569",
+      cancelButtonColor: MORADO_BOTON,
+      focusCancel: true,
+    });
+    if (!respuesta?.isConfirmed) return;
+
+    cambioDelProfesorRef.current = false;
+    escribirBorrador(claveBorrador, null);
+    setDatosBoletin(datosIniciales);
+    setEstadoGuardado(estadoGuardadoInicial);
+    setBorradorRecuperado(null);
+  };
+
   const primerEstudianteConFormulario = useMemo(
     () => estudiantes.find((estudiante) => datosBoletin[estudiante.estudiante_id]),
     [datosBoletin, estudiantes],
   );
 
   const actualizarObservacion = (estudianteId, index, texto) => {
+    cambioDelProfesorRef.current = true;
     setDatosBoletin((actual) => {
       const nuevo = { ...actual };
       const datosEstudiante = { ...nuevo[estudianteId] };
@@ -122,6 +222,7 @@ export default function useComandosIngresoBoletinProfesor({
       return;
     }
 
+    cambioDelProfesorRef.current = true;
     setDatosBoletin(nuevosDatosBoletin);
     setEstadoGuardado((actual) => {
       const nuevo = { ...actual };
@@ -202,6 +303,8 @@ export default function useComandosIngresoBoletinProfesor({
 
     try {
       await guardarBoletinProfesor(payload);
+      // Guardado: sale del borrador.
+      cambioDelProfesorRef.current = true;
       setEstadoGuardado((actual) => ({
         ...actual,
         [estudianteId]: {
@@ -264,9 +367,31 @@ export default function useComandosIngresoBoletinProfesor({
 
     setGuardandoTodos(true);
 
-    try {
-      let guardados = 0;
+    // Los que ya quedaron guardados se marcan aunque el grupo se detenga a
+    // la mitad: así el profesor sabe cuáles faltan.
+    const guardadosIds = [];
+    const marcarGuardados = () => {
+      if (guardadosIds.length === 0) return;
+      cambioDelProfesorRef.current = true;
+      const guardadoEn = new Date().toLocaleTimeString("es-CO", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      setEstadoGuardado((actual) => {
+        const nuevo = { ...actual };
+        guardadosIds.forEach((estudianteId) => {
+          nuevo[estudianteId] = {
+            guardado: true,
+            modificado: false,
+            guardadoEn,
+          };
+        });
+        return nuevo;
+      });
+    };
 
+    let estudianteEnCurso = null;
+    try {
       for (const estudiante of estudiantesConDatos) {
         const payload = construirPayloadBoletin({
           datosBoletin,
@@ -276,54 +401,50 @@ export default function useComandosIngresoBoletinProfesor({
         });
         if (!payload) continue;
 
+        estudianteEnCurso = estudiante;
         await guardarBoletinProfesor(payload);
-        guardados += 1;
+        guardadosIds.push(estudiante.estudiante_id);
       }
 
-      const guardadoEn = new Date().toLocaleTimeString("es-CO", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      setEstadoGuardado((actual) => {
-        const nuevo = { ...actual };
-        estudiantesConDatos.forEach((estudiante) => {
-          nuevo[estudiante.estudiante_id] = {
-            guardado: true,
-            modificado: false,
-            guardadoEn,
-          };
-        });
-        return nuevo;
-      });
-
+      marcarGuardados();
       Swal.fire({
         icon: "success",
         title: "Grupo guardado",
-        text: `Se guardaron ${guardados} estudiante(s).`,
+        text: `Se guardaron ${guardadosIds.length} estudiante(s).`,
         timer: 2200,
         showConfirmButton: false,
       });
     } catch (error) {
       console.error(error);
-      Swal.fire(
-        "Error",
-        "No se pudo guardar todo el grupo. Revisa la conexión e intenta nuevamente.",
-        "error",
-      );
+      marcarGuardados();
+      Swal.fire({
+        icon: "error",
+        title: guardadosIds.length > 0 ? "Grupo guardado a medias" : "Error",
+        text: mensajeGuardadoGrupoIncompleto({
+          guardados: guardadosIds.length,
+          total: estudiantesConDatos.length,
+          nombreFallido: estudianteEnCurso?.nombre || "un estudiante",
+          error,
+        }),
+        confirmButtonColor: MORADO_BOTON,
+      });
     } finally {
       setGuardandoTodos(false);
     }
   };
 
   return {
+    // Se avisa mientras quede algo recuperado sin guardar.
+    borradorRecuperado: cantidadConCambios > 0 ? borradorRecuperado : null,
     datosBoletin,
+    descartarBorrador,
     estadoGuardado,
     guardandoTodos,
     primerEstudianteConFormulario,
     actualizarObservacion,
     aplicarLogrosATodos,
     aplicarLogrosDelPrimerEstudiante,
+    confirmarDescartarCambios,
     guardarBoletinEstudiante,
     guardarTodosBoletines,
     obtenerEstadoVisual,

@@ -1,3 +1,4 @@
+import { PREFIJO_BORRADOR_BOLETIN } from "../../constants/borradores";
 import {
   esEvaluacionDesarrollo,
   promedioDeValoraciones,
@@ -45,6 +46,120 @@ export const formatearEtiquetaNota = (valor) =>
     .replace(/\b\w/g, (letra) => letra.toUpperCase());
 
 export const obtenerTextoLimpio = (valor) => String(valor || "").trim();
+
+/**
+ * Borrador del boletín: lo que el profesor escribió y no ha guardado, para
+ * encontrarlo al volver. Uno por colegio, profesor, clase y periodo; sin
+ * profesor o sin clase no hay borrador (`null`).
+ */
+export const crearClaveBorradorBoletin = ({ tenant, profesorId, asignacionId, periodo }) => {
+  if (profesorId == null || profesorId === "" || !asignacionId || !periodo) return null;
+  return `${PREFIJO_BORRADOR_BOLETIN}${tenant ?? ""}:${profesorId}:${asignacionId}:${periodo}`;
+};
+
+/**
+ * Lo que va al borrador: solo los textos de los estudiantes con cambios sin
+ * guardar. Las notas y la definitiva no, porque vienen de la planilla. Sin
+ * cambios pendientes devuelve `null` (no queda borrador).
+ */
+export const construirBorrador = (datosBoletin, estadoGuardado, actualizado) => {
+  const estudiantes = {};
+  estudiantesConCambiosSinGuardar(estadoGuardado).forEach((estudianteId) => {
+    const form = datosBoletin?.[estudianteId];
+    if (!form?.observaciones) return;
+    estudiantes[estudianteId] = {
+      observaciones: form.observaciones.map((observacion) => ({
+        referencia: observacion.referencia || "",
+        tipo_evaluacion: observacion.tipo_evaluacion || "numerica",
+        observacion: observacion.observacion || "",
+      })),
+    };
+  });
+  return Object.keys(estudiantes).length > 0 ? { actualizado, estudiantes } : null;
+};
+
+/**
+ * Pone el borrador encima de lo que trajo el servidor. Cada texto se busca por
+ * su tipo de nota: si la planilla cambió y ese tipo ya no está, ese texto se
+ * descarta. Los estudiantes con algún texto distinto al guardado quedan con
+ * "Cambios sin guardar" y salen en `recuperados`.
+ */
+export const aplicarBorrador = ({ datosBoletin, estadoGuardado, borrador }) => {
+  const sinCambios = { datosBoletin, estadoGuardado, recuperados: [] };
+  const estudiantes = borrador?.estudiantes;
+  if (!estudiantes || typeof estudiantes !== "object") return sinCambios;
+
+  const nuevosDatos = { ...datosBoletin };
+  const nuevoEstado = { ...estadoGuardado };
+  const recuperados = [];
+
+  Object.entries(estudiantes).forEach(([estudianteId, delBorrador]) => {
+    const form = datosBoletin?.[estudianteId];
+    const observacionesBorrador = Array.isArray(delBorrador?.observaciones)
+      ? delBorrador.observaciones
+      : [];
+    if (!form?.observaciones || observacionesBorrador.length === 0) return;
+
+    const porClave = new Map(
+      observacionesBorrador.map((item) => [crearClaveObservacion(item), item]),
+    );
+    let huboCambio = false;
+    const observaciones = form.observaciones.map((observacion, indice) => {
+      const clave = crearClaveObservacion(observacion);
+      // Primero la misma posición (por si hay dos del mismo tipo); si no, por tipo.
+      const mismaPosicion = observacionesBorrador[indice];
+      const item = mismaPosicion && crearClaveObservacion(mismaPosicion) === clave
+        ? mismaPosicion
+        : porClave.get(clave);
+      if (!item) return observacion;
+
+      const texto = String(item.observacion ?? "");
+      if (texto === (observacion.observacion || "")) return observacion;
+      huboCambio = true;
+      return { ...observacion, observacion: texto };
+    });
+
+    if (!huboCambio) return;
+    nuevosDatos[estudianteId] = { ...form, observaciones };
+    nuevoEstado[estudianteId] = { ...(estadoGuardado?.[estudianteId] || {}), modificado: true };
+    recuperados.push(estudianteId);
+  });
+
+  return recuperados.length > 0
+    ? { datosBoletin: nuevosDatos, estadoGuardado: nuevoEstado, recuperados }
+    : sinCambios;
+};
+
+/** Ids de los estudiantes con cambios sin guardar. */
+export const estudiantesConCambiosSinGuardar = (estadoGuardado) =>
+  Object.entries(estadoGuardado || {})
+    .filter(([, estado]) => estado?.modificado)
+    .map(([estudianteId]) => estudianteId);
+
+/** Qué decirle al profesor antes de cambiar de clase o de periodo con cambios sin guardar. */
+export const mensajeCambiosSinGuardar = (cantidad) =>
+  `${cantidad === 1 ? "Un estudiante tiene" : `${cantidad} estudiantes tienen`} cambios sin guardar. Si cambias de clase o de periodo, se pierden.`;
+
+/**
+ * Qué decirle al profesor cuando "Guardar todo" se detiene en un estudiante.
+ * Si el servidor explica por qué (por ejemplo, el año está cerrado), se usa
+ * su explicación; si no respondió, lo más probable es la conexión.
+ */
+export const mensajeGuardadoGrupoIncompleto = ({ guardados, total, nombreFallido, error }) => {
+  const detalle = error?.response?.data?.detail;
+  const causa = typeof detalle === "string" && detalle.trim() ? ` ${detalle.trim()}` : "";
+
+  if (guardados === 0) {
+    return `No se pudo guardar el grupo.${causa || " Revisa la conexión e intenta nuevamente."}`;
+  }
+  const faltan = total - guardados;
+  return (
+    `Se guardaron ${guardados} de ${total} estudiantes. `
+    + `${faltan === 1 ? "Falta" : `Faltan ${faltan}, desde`} ${nombreFallido}: `
+    + `${faltan === 1 ? "sigue marcado" : "siguen marcados"} como no guardado${faltan === 1 ? "" : "s"}.`
+    + (causa || " Revisa la conexión y oprime «Guardar todo» otra vez.")
+  );
+};
 
 export const crearClaveObservacion = (observacion) =>
   `${String(observacion?.referencia || "").trim().toLowerCase()}|${observacion?.tipo_evaluacion || "numerica"}`;

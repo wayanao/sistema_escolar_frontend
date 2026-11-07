@@ -230,4 +230,227 @@ describe("useComandosIngresoBoletinProfesor", () => {
       expect(titulos()).not.toContain(AVISO);
     });
   });
+
+  describe("que no se pierda lo escrito", () => {
+    const titulos = () => swalFireMock.mock.calls.map(([opciones]) => opciones?.title);
+
+    it("sin cambios pendientes deja cambiar de clase o periodo sin preguntar", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+
+      let puede;
+      await act(async () => {
+        puede = await result.current.confirmarDescartarCambios();
+      });
+
+      expect(puede).toBe(true);
+      expect(swalFireMock).not.toHaveBeenCalled();
+    });
+
+    it("con cambios pendientes pregunta cuántos se pierden y respeta Quedarme", async () => {
+      swalFireMock.mockResolvedValue({ isConfirmed: false });
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo texto"));
+      act(() => result.current.actualizarObservacion(102, 0, "Otro texto"));
+
+      let puede;
+      await act(async () => {
+        puede = await result.current.confirmarDescartarCambios();
+      });
+
+      expect(puede).toBe(false);
+      const [opciones] = swalFireMock.mock.calls.at(-1);
+      expect(opciones).toMatchObject({
+        title: "Tienes cambios sin guardar",
+        text: "2 estudiantes tienen cambios sin guardar. Si cambias de clase o de periodo, se pierden.",
+        confirmButtonText: "Cambiar sin guardar",
+        cancelButtonText: "Quedarme",
+        focusCancel: true,
+      });
+
+      swalFireMock.mockResolvedValue({ isConfirmed: true });
+      await act(async () => {
+        puede = await result.current.confirmarDescartarCambios();
+      });
+      expect(puede).toBe(true);
+    });
+
+    it("después de guardar ya no pregunta", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo texto"));
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+      swalFireMock.mockClear();
+
+      let puede;
+      await act(async () => {
+        puede = await result.current.confirmarDescartarCambios();
+      });
+      expect(puede).toBe(true);
+      expect(titulos()).not.toContain("Tienes cambios sin guardar");
+    });
+
+    it("con cambios pendientes, recargar o cerrar la pestaña pide confirmación al navegador", async () => {
+      const { result, unmount } = renderHook(() =>
+        useComandosIngresoBoletinProfesor(crearPropiedades()),
+      );
+      const intentarSalir = () => {
+        const evento = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(evento);
+        return evento.defaultPrevented;
+      };
+
+      expect(intentarSalir()).toBe(false);
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo texto"));
+      expect(intentarSalir()).toBe(true);
+
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(101);
+      });
+      expect(intentarSalir()).toBe(false);
+
+      act(() => result.current.actualizarObservacion(101, 0, "Otra vez"));
+      unmount();
+      expect(intentarSalir()).toBe(false);
+    });
+
+    it("si Guardar todo se detiene a la mitad, marca a los guardados y dice cuántos faltan", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      guardarBoletinMock
+        .mockResolvedValueOnce({})
+        .mockRejectedValueOnce(new Error("sin red"));
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo texto"));
+      act(() => result.current.actualizarObservacion(102, 0, "Otro texto"));
+
+      await act(async () => {
+        await result.current.guardarTodosBoletines();
+      });
+
+      expect(result.current.estadoGuardado[101]).toMatchObject({ guardado: true, modificado: false });
+      expect(result.current.estadoGuardado[102].modificado).toBe(true);
+      expect(result.current.guardandoTodos).toBe(false);
+      const [aviso] = swalFireMock.mock.calls.at(-1);
+      expect(aviso).toMatchObject({
+        icon: "error",
+        title: "Grupo guardado a medias",
+        text: "Se guardaron 1 de 2 estudiantes. Falta Bruno: sigue marcado como no guardado. Revisa la conexión y oprime «Guardar todo» otra vez.",
+      });
+    });
+  });
+
+  describe("con borrador", () => {
+    const CLAVE = "borrador_boletin:tenant_demo:7:55:1";
+    const conBorrador = () => ({ ...crearPropiedades(), cargadoPara: { asignacionId: "55", periodo: "1" } });
+    const leerBorrador = () => JSON.parse(localStorage.getItem(CLAVE) || "null");
+
+    beforeEach(() => {
+      localStorage.clear();
+      localStorage.setItem("profesor", JSON.stringify({ id: 7, tenant: "tenant_demo" }));
+    });
+
+    it("lo escrito va al borrador y al guardar sale de él", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conBorrador()));
+      expect(leerBorrador()).toBeNull();
+
+      act(() => result.current.actualizarObservacion(102, 0, "Escrito sin guardar"));
+      expect(leerBorrador()).toMatchObject({
+        actualizado: expect.any(String),
+        estudiantes: {
+          102: { observaciones: [{ referencia: "logro_1", observacion: "Escrito sin guardar" }] },
+        },
+      });
+
+      await act(async () => {
+        await result.current.guardarBoletinEstudiante(102);
+      });
+      expect(leerBorrador()).toBeNull();
+    });
+
+    it("al volver, encuentra el borrador y lo marca como no guardado", () => {
+      localStorage.setItem(
+        CLAVE,
+        JSON.stringify({
+          actualizado: "2026-11-07T15:30:00.000Z",
+          estudiantes: {
+            102: { observaciones: [{ referencia: "logro_1", tipo_evaluacion: "numerica", observacion: "Lo de antes" }] },
+          },
+        }),
+      );
+
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conBorrador()));
+
+      expect(result.current.datosBoletin[102].observaciones[0].observacion).toBe("Lo de antes");
+      expect(result.current.estadoGuardado[102].modificado).toBe(true);
+      expect(result.current.borradorRecuperado).toEqual({
+        cantidad: 1,
+        actualizado: "2026-11-07T15:30:00.000Z",
+      });
+      // Cargar el borrador no lo reescribe.
+      expect(leerBorrador().actualizado).toBe("2026-11-07T15:30:00.000Z");
+    });
+
+    it("no se pierde nada: no pregunta al cambiar de clase ni al cerrar la pestaña", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conBorrador()));
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo"));
+
+      let puede;
+      await act(async () => {
+        puede = await result.current.confirmarDescartarCambios();
+      });
+      expect(puede).toBe(true);
+      expect(swalFireMock).not.toHaveBeenCalled();
+
+      const evento = new Event("beforeunload", { cancelable: true });
+      window.dispatchEvent(evento);
+      expect(evento.defaultPrevented).toBe(false);
+    });
+
+    it("Descartar pregunta, borra el borrador y vuelve a lo guardado", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conBorrador()));
+      act(() => result.current.actualizarObservacion(101, 0, "Nuevo"));
+
+      swalFireMock.mockResolvedValueOnce({ isConfirmed: false });
+      await act(async () => {
+        await result.current.descartarBorrador();
+      });
+      expect(result.current.datosBoletin[101].observaciones[0].observacion).toBe("Nuevo");
+      expect(leerBorrador()).not.toBeNull();
+
+      swalFireMock.mockResolvedValueOnce({ isConfirmed: true });
+      await act(async () => {
+        await result.current.descartarBorrador();
+      });
+      expect(swalFireMock.mock.calls.at(-1)[0]).toMatchObject({
+        title: "Descartar lo que no has guardado",
+        text: "Se borra lo que no has guardado de un estudiante y vuelve lo último guardado.",
+      });
+      expect(result.current.datosBoletin[101].observaciones[0].observacion).toBe("Logro común");
+      expect(result.current.estadoGuardado[101].modificado).toBe(false);
+      expect(result.current.borradorRecuperado).toBeNull();
+      expect(leerBorrador()).toBeNull();
+    });
+
+    it("si el navegador no deja guardar, vuelve a preguntar antes de perder lo escrito", async () => {
+      const original = Storage.prototype.setItem;
+      const espia = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (clave, valor) {
+        if (String(clave).includes("borrador")) throw new Error("QuotaExceededError");
+        return original.call(this, clave, valor);
+      });
+      try {
+        swalFireMock.mockResolvedValue({ isConfirmed: false });
+        const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conBorrador()));
+        act(() => result.current.actualizarObservacion(101, 0, "Nuevo"));
+
+        let puede;
+        await act(async () => {
+          puede = await result.current.confirmarDescartarCambios();
+        });
+        expect(puede).toBe(false);
+        expect(swalFireMock.mock.calls.at(-1)[0].title).toBe("Tienes cambios sin guardar");
+      } finally {
+        espia.mockRestore();
+      }
+    });
+  });
 });

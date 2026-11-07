@@ -116,4 +116,20 @@ describe("useCerrarSesion", () => {
 
     esperarLimpieza();
   });
+
+  it("borra los borradores de texto, de todos los profesores, y nada más", async () => {
+    prepararAlmacenamiento();
+    localStorage.setItem("borrador_boletin:tenant_2005:7:55:1", "{}");
+    localStorage.setItem("borrador_boletin:tenant_2005:8:60:2", "{}");
+    mocks.cerrarSesion.mockResolvedValue({ ok: true });
+    const { result } = renderHook(() => useCerrarSesion());
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(localStorage.getItem("borrador_boletin:tenant_2005:7:55:1")).toBeNull();
+    expect(localStorage.getItem("borrador_boletin:tenant_2005:8:60:2")).toBeNull();
+    esperarLimpieza();
+  });
 });

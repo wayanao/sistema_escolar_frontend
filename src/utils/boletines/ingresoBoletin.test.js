@@ -1,18 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  aplicarBorrador,
   aplicarLogrosEnGrupo,
   clasesDelMismoCurso,
+  construirBorrador,
   construirMateriaVistaPrevia,
   construirOtraMateriaVistaPrevia,
   construirPayloadBoletin,
   correspondeFormularioAEstudiante,
+  crearClaveBorradorBoletin,
   crearDatosBoletinInicial,
   crearEstadoGuardadoInicial,
   deduplicarClases,
+  estudiantesConCambiosSinGuardar,
   formatearEtiquetaNota,
   hayPorcentajesIncompletos,
   MENSAJE_PORCENTAJES_INCOMPLETOS,
+  mensajeCambiosSinGuardar,
+  mensajeGuardadoGrupoIncompleto,
   normalizarEstudiantesReferencia,
 } from "./ingresoBoletin";
 
@@ -498,6 +504,158 @@ describe("utilidades de ingreso docente a boletines", () => {
           detalles: [],
         },
       });
+    });
+  });
+
+  describe("avisos para no perder lo escrito", () => {
+    it("cuenta solo los estudiantes con cambios sin guardar", () => {
+      expect(
+        estudiantesConCambiosSinGuardar({
+          101: { guardado: true, modificado: false },
+          102: { guardado: false, modificado: true },
+          103: { modificado: true },
+        }),
+      ).toEqual(["102", "103"]);
+      expect(estudiantesConCambiosSinGuardar(undefined)).toEqual([]);
+    });
+
+    it("dice cuántos estudiantes pierden sus cambios", () => {
+      expect(mensajeCambiosSinGuardar(1)).toBe(
+        "Un estudiante tiene cambios sin guardar. Si cambias de clase o de periodo, se pierden.",
+      );
+      expect(mensajeCambiosSinGuardar(3)).toBe(
+        "3 estudiantes tienen cambios sin guardar. Si cambias de clase o de periodo, se pierden.",
+      );
+    });
+
+    it("explica un Guardar todo incompleto, con la razón del servidor si la da", () => {
+      expect(
+        mensajeGuardadoGrupoIncompleto({ guardados: 0, total: 30, nombreFallido: "Ana", error: new Error("x") }),
+      ).toBe("No se pudo guardar el grupo. Revisa la conexión e intenta nuevamente.");
+      expect(
+        mensajeGuardadoGrupoIncompleto({ guardados: 14, total: 30, nombreFallido: "Ana Pérez" }),
+      ).toBe(
+        "Se guardaron 14 de 30 estudiantes. Faltan 16, desde Ana Pérez: siguen marcados como no guardados. Revisa la conexión y oprime «Guardar todo» otra vez.",
+      );
+      expect(
+        mensajeGuardadoGrupoIncompleto({
+          guardados: 2,
+          total: 3,
+          nombreFallido: "Carla",
+          error: { response: { data: { detail: "El año lectivo está cerrado." } } },
+        }),
+      ).toBe("Se guardaron 2 de 3 estudiantes. Falta Carla: sigue marcado como no guardado. El año lectivo está cerrado.");
+      expect(
+        mensajeGuardadoGrupoIncompleto({
+          guardados: 0,
+          total: 3,
+          nombreFallido: "Ana",
+          error: { response: { data: { detail: "El año lectivo está cerrado." } } },
+        }),
+      ).toBe("No se pudo guardar el grupo. El año lectivo está cerrado.");
+    });
+  });
+
+  describe("borrador del boletín", () => {
+    const form = (textos) => ({
+      definitiva: "4.00",
+      observaciones: textos.map(([referencia, observacion]) => ({
+        nota: 4,
+        observacion,
+        referencia,
+        tipo_evaluacion: "numerica",
+        valoracion: "",
+      })),
+    });
+
+    it("tiene un nombre por colegio, profesor, clase y periodo", () => {
+      expect(
+        crearClaveBorradorBoletin({ tenant: "tenant_2005", profesorId: 7, asignacionId: "55", periodo: "2" }),
+      ).toBe("borrador_boletin:tenant_2005:7:55:2");
+      expect(crearClaveBorradorBoletin({ profesorId: 7, asignacionId: 55, periodo: 1 })).toBe(
+        "borrador_boletin::7:55:1",
+      );
+      expect(crearClaveBorradorBoletin({ tenant: "t", profesorId: null, asignacionId: 55, periodo: 1 })).toBeNull();
+      expect(crearClaveBorradorBoletin({ tenant: "t", profesorId: 7, asignacionId: "", periodo: 1 })).toBeNull();
+    });
+
+    it("guarda solo los textos de quienes tienen cambios sin guardar", () => {
+      const datos = { 101: form([["lectura", "Nuevo"]]), 102: form([["lectura", "Guardado"]]) };
+      const estado = { 101: { modificado: true }, 102: { guardado: true, modificado: false } };
+
+      expect(construirBorrador(datos, estado, "2026-11-07T10:00:00.000Z")).toEqual({
+        actualizado: "2026-11-07T10:00:00.000Z",
+        estudiantes: {
+          101: {
+            observaciones: [{ referencia: "lectura", tipo_evaluacion: "numerica", observacion: "Nuevo" }],
+          },
+        },
+      });
+      expect(construirBorrador(datos, { 101: { modificado: false } }, "x")).toBeNull();
+    });
+
+    it("pone el borrador encima de lo guardado y marca a quien recupera", () => {
+      const datos = {
+        101: form([["lectura", "Del servidor"], ["escritura", ""]]),
+        102: form([["lectura", "Igual"]]),
+      };
+      const estado = { 101: { guardado: true, modificado: false }, 102: { guardado: true, modificado: false } };
+      const borrador = {
+        actualizado: "2026-11-07T10:00:00.000Z",
+        estudiantes: {
+          101: {
+            observaciones: [
+              { referencia: "lectura", tipo_evaluacion: "numerica", observacion: "Del borrador" },
+              { referencia: "escritura", tipo_evaluacion: "numerica", observacion: "Escribe bien" },
+            ],
+          },
+          // Igual a lo guardado: no cuenta como recuperado.
+          102: { observaciones: [{ referencia: "lectura", tipo_evaluacion: "numerica", observacion: "Igual" }] },
+          // Ya no está en la clase: se ignora.
+          999: { observaciones: [{ referencia: "lectura", tipo_evaluacion: "numerica", observacion: "X" }] },
+        },
+      };
+
+      const resultado = aplicarBorrador({ datosBoletin: datos, estadoGuardado: estado, borrador });
+
+      expect(resultado.recuperados).toEqual(["101"]);
+      expect(resultado.datosBoletin[101].observaciones.map((o) => o.observacion)).toEqual([
+        "Del borrador",
+        "Escribe bien",
+      ]);
+      expect(resultado.datosBoletin[101].observaciones[0].nota).toBe(4);
+      expect(resultado.estadoGuardado[101]).toEqual({ guardado: true, modificado: true });
+      expect(resultado.datosBoletin[102]).toBe(datos[102]);
+      expect(resultado.estadoGuardado[102]).toBe(estado[102]);
+    });
+
+    it("si la planilla cambió, solo recupera los tipos de nota que siguen", () => {
+      const datos = { 101: form([["exposicion", ""], ["lectura", ""]]) };
+      const borrador = {
+        estudiantes: {
+          101: {
+            observaciones: [
+              { referencia: "lectura", tipo_evaluacion: "numerica", observacion: "Lee" },
+              { referencia: "quiz_borrado", tipo_evaluacion: "numerica", observacion: "Ya no existe" },
+            ],
+          },
+        },
+      };
+
+      const resultado = aplicarBorrador({ datosBoletin: datos, estadoGuardado: {}, borrador });
+      expect(resultado.datosBoletin[101].observaciones.map((o) => o.observacion)).toEqual(["", "Lee"]);
+      expect(resultado.recuperados).toEqual(["101"]);
+    });
+
+    it("sin borrador, o con uno dañado, deja todo como llegó", () => {
+      const datos = { 101: form([["lectura", "A"]]) };
+      const estado = { 101: { guardado: true } };
+      for (const borrador of [null, undefined, {}, { estudiantes: "x" }, { estudiantes: { 101: { observaciones: "x" } } }]) {
+        const resultado = aplicarBorrador({ datosBoletin: datos, estadoGuardado: estado, borrador });
+        expect(resultado.datosBoletin).toBe(datos);
+        expect(resultado.estadoGuardado).toBe(estado);
+        expect(resultado.recuperados).toEqual([]);
+      }
     });
   });
 });
