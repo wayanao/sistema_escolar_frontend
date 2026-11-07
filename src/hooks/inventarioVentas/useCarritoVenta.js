@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { registrarVenta } from "../../services/inventarioVentasApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     agregarProductoAlCarrito,
     calcularTotalVenta,
@@ -105,7 +106,10 @@ const useCarritoVenta = ({ inventario, estudiantes, ventasAnteriores, cargarDato
                 fecha: new Date().toLocaleDateString()
             }));
 
-            Swal.fire("Éxito", "Productos cargados a la cuenta del estudiante exitosamente", "success");
+            mostrarExito({
+                title: "Éxito",
+                text: "Productos cargados a la cuenta del estudiante exitosamente",
+            });
             setEstudianteFiltroId(parseInt(estudianteId));
             setCarrito([]);
             setEstudianteId("");

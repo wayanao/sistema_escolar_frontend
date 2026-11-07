@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useFormularioProducto from "./useFormularioProducto";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: {
@@ -77,7 +78,7 @@ describe("useFormularioProducto", () => {
             stock_actual: 20,
             estado: "activo",
         });
-        expect(swalFireMock).toHaveBeenCalledWith("Éxito", "Producto creado", "success");
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Producto creado" }));
         expect(cargarInventario).toHaveBeenCalled();
         expect(result.current.showForm).toBe(false);
         expect(result.current.editingId).toBeNull();
@@ -104,7 +105,7 @@ describe("useFormularioProducto", () => {
             stock_actual: 12,
             estado: "activo",
         });
-        expect(swalFireMock).toHaveBeenCalledWith("Éxito", "Producto actualizado", "success");
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Producto actualizado" }));
     });
 
     it("cambia el estado tras confirmar y actualiza la lista en memoria", async () => {
@@ -122,7 +123,7 @@ describe("useFormularioProducto", () => {
         );
         expect(serviceMock.actualizarEstadoProductoInventario).toHaveBeenCalledWith(1, "inactivo");
         expect(aplicarEstadoLocal).toHaveBeenCalledWith(1, "inactivo");
-        expect(swalFireMock).toHaveBeenCalledWith("Listo", "Producto inactivo", "success");
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Listo", text: "Producto inactivo" }));
     });
 
     it("no consulta al backend si el estado destino es el actual", async () => {

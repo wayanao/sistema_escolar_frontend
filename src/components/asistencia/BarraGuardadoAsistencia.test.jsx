@@ -11,7 +11,6 @@ describe("BarraGuardadoAsistencia", () => {
         hayCambiosSinGuardar
         asistenciaDelDiaTomada={false}
         puedeGuardar={false}
-        guardando={false}
         onGuardar={vi.fn()}
       />,
     );
@@ -30,7 +29,6 @@ describe("BarraGuardadoAsistencia", () => {
         hayCambiosSinGuardar
         asistenciaDelDiaTomada
         puedeGuardar
-        guardando={false}
         onGuardar={onGuardar}
       />,
     );

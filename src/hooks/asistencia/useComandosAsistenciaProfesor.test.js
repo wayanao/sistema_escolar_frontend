@@ -1,24 +1,36 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { guardarMock, swalFireMock, swalShowLoadingMock } = vi.hoisted(() => ({
+const { guardarMock, swalFireMock, swalUpdateMock } = vi.hoisted(() => ({
   guardarMock: vi.fn(),
   swalFireMock: vi.fn(),
-  swalShowLoadingMock: vi.fn(),
+  swalUpdateMock: vi.fn(),
 }));
 
 vi.mock("../../services/asistenciaApi", () => ({
   guardarAsistenciaProfesor: guardarMock,
 }));
 
+// La espera pasa a éxito en la misma ventana y la cierra un reloj
+// (ventanaExito.js): por eso hacen falta más partes de SweetAlert.
 vi.mock("sweetalert2", () => ({
   default: {
     fire: swalFireMock,
-    showLoading: swalShowLoadingMock,
+    update: swalUpdateMock,
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
   },
 }));
 
 import useComandosAsistenciaProfesor from "./useComandosAsistenciaProfesor";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../ventanaExito";
+
+const EXITO_DOS_PRESENTES = {
+  title: "Asistencia guardada",
+  text: "2 presentes y 0 ausentes quedaron registrados correctamente.",
+};
 
 const estudiantes = [
   { estudiante_id: 101, nombre: "Ana" },
@@ -146,10 +158,60 @@ describe("useComandosAsistenciaProfesor", () => {
       },
     ]);
     expect(recargarHistorial).toHaveBeenCalledTimes(1);
-    expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
-      title: "Asistencia guardada",
-      text: "2 presentes y 0 ausentes quedaron registrados correctamente.",
+    expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera(EXITO_DOS_PRESENTES));
+    expect(result.current.guardando).toBe(false);
+  });
+
+  it("guarda enseguida: sin confirmar, la tarjeta sale al oprimir y el éxito no espera la recarga", async () => {
+    const guardado = diferido();
+    guardarMock.mockImplementation(() => guardado.promise);
+    const recarga = diferido();
+    const recargarHistorial = vi.fn(() => recarga.promise);
+    const { result } = renderHook(() => useComandosAsistenciaProfesor({
+      ...parametrosBase,
+      recargarHistorial,
     }));
+    await act(async () => result.current.marcarTodosPresentes());
+
+    let comando;
+    await act(async () => {
+      comando = result.current.guardarAsistencia();
+      await vi.waitFor(() => expect(guardarMock).toHaveBeenCalled());
+    });
+    // Lo primero que sale es la tarjeta de espera: ya no hay ventana de confirmar.
+    expect(swalFireMock).toHaveBeenCalledTimes(1);
+    expect(swalFireMock).toHaveBeenCalledWith(
+      opcionesVentanaEspera({ title: "Guardando asistencia…" }),
+    );
+
+    await act(async () => {
+      guardado.resolve({});
+      await vi.waitFor(() => expect(recargarHistorial).toHaveBeenCalled());
+    });
+    // El éxito ya salió aunque la recarga siga en curso.
+    expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera(EXITO_DOS_PRESENTES));
+
+    await act(async () => {
+      recarga.resolve();
+      await comando;
+    });
+    expect(result.current.guardando).toBe(false);
+  });
+
+  it("si falla recargar el historial, no dice que no se guardó", async () => {
+    const recargarHistorial = vi.fn().mockRejectedValue(new Error("sin red"));
+    const { result } = renderHook(() => useComandosAsistenciaProfesor({
+      ...parametrosBase,
+      recargarHistorial,
+    }));
+
+    await act(async () => result.current.marcarTodosPresentes());
+    await act(async () => result.current.guardarAsistencia());
+
+    expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera(EXITO_DOS_PRESENTES));
+    expect(swalFireMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ title: "No se pudo guardar" }),
+    );
     expect(result.current.guardando).toBe(false);
   });
 

@@ -83,6 +83,14 @@ describe("FormularioPago", () => {
     expect(props.onCerrar).toHaveBeenCalledTimes(1);
   });
 
+  it("mientras registra, el botón solo se bloquea: la espera va en la tarjeta", () => {
+    render(<FormularioPago {...crearProps({ registrandoPago: true })} />);
+
+    // Una sola espera (2026-11-07): ni «Registrando...» ni círculo en el botón.
+    expect(screen.getByRole("button", { name: "Registrar Pago" })).toBeDisabled();
+    expect(screen.queryByText("Registrando...")).not.toBeInTheDocument();
+  });
+
   it("conserva la distribución visual de un adelanto por monto", () => {
     const opcionAdelanto = {
       tipo_pago_id: 11,

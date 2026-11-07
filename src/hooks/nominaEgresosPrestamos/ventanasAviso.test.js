@@ -1,19 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
 import Swal from "sweetalert2";
-import { avisarYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { avisarExitoYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { TIEMPO_PARA_LEER } from "../ventanaExito";
 
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 describe("ventanasAviso", () => {
-    it("abre la ventana respetando los saltos de línea del texto", () => {
-        avisarYEsperarCierre({ icon: "success", title: "Listo", text: "Uno\nDos" });
+    it("abre la ventana de éxito común respetando los saltos de línea del texto", () => {
+        avisarExitoYEsperarCierre({ title: "Listo", text: "Uno\nDos" });
 
         expect(Swal.fire).toHaveBeenCalledWith(
             expect.objectContaining({
                 icon: "success",
                 title: "Listo",
                 text: "Uno\nDos",
-                customClass: TEXTO_CON_SALTOS,
+                // Se cierra sola, como todas las de éxito.
+                timer: TIEMPO_PARA_LEER,
+                showConfirmButton: false,
+                customClass: expect.objectContaining({
+                    popup: "ventana-exito",
+                    ...TEXTO_CON_SALTOS,
+                }),
             })
         );
         expect(TEXTO_CON_SALTOS).toEqual({ htmlContainer: "whitespace-pre-line" });
@@ -21,7 +28,7 @@ describe("ventanasAviso", () => {
 
     it("cumple la promesa solo cuando la ventana terminó de cerrarse", async () => {
         let cerrada = false;
-        const promesa = avisarYEsperarCierre({ title: "Listo" }).then(() => {
+        const promesa = avisarExitoYEsperarCierre({ title: "Listo" }).then(() => {
             cerrada = true;
         });
 

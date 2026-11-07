@@ -80,7 +80,10 @@ describe("BoletinImprimible", () => {
       "data-class-name",
       "di-documento--boletin",
     );
-    await user.click(screen.getByRole("button", { name: "← Atrás" }));
+    const atras = screen.getByRole("button", { name: "← Atrás" });
+    // Dentro de la página y no fijo en la esquina, donde tapaba el menú lateral.
+    expect(atras.parentElement).not.toHaveClass("fixed");
+    await user.click(atras);
     expect(onVolver).toHaveBeenCalledTimes(1);
   });
 

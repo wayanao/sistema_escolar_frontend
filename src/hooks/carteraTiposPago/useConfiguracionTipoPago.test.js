@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useConfiguracionTipoPago from "./useConfiguracionTipoPago";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { actualizarConfiguracionMock, swalFireMock } = vi.hoisted(() => ({
     actualizarConfiguracionMock: vi.fn(),
@@ -69,11 +70,7 @@ describe("useConfiguracionTipoPago", () => {
         expect(actualizarConfiguracionMock).toHaveBeenCalledWith(1, payload);
         expect(actualizarDetalle).toHaveBeenCalledWith(payload);
         expect(cargarTiposPagos).toHaveBeenCalledTimes(1);
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Guardado",
-            "Configuración actualizada",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Guardado", text: "Configuración actualizada" }));
         expect(result.current.guardandoConfig).toBe(false);
     });
 

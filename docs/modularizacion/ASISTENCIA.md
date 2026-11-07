@@ -382,3 +382,21 @@ hooks y componentes, conservando marcación, edición, historial y validaciones.
 - Siguiente acción exacta: no queda commit ni publicación pendiente; conservar
   la verificación manual de producción como seguimiento operativo si todavía
   no fue registrada.
+
+## 2026-11-07 - Guardar enseguida, con una sola espera
+
+Pedido del usuario: que guardar la asistencia sea "enseguida" y sin "muchos
+pasos" de ventanas. Antes eran tres: confirmar con el resumen, "Guardando
+asistencia" (con otro aspecto) y el éxito, que además esperaba la recarga
+del historial.
+
+- Se quitó la ventana de confirmar (el usuario: «lo que recomiendas»). El
+  éxito ya dice cuántos presentes y ausentes quedaron, y la asistencia se
+  puede corregir y volver a guardar. Siguen los avisos de fecha faltante y de
+  estudiantes sin marcar.
+- Al oprimir sale la tarjeta «Guardando asistencia…» (o «Actualizando…»), que
+  pasa a éxito sin cerrarse apenas el servidor responde (`mostrarEspera` de
+  `src/hooks/ventanaExito.js`). El historial se recarga después; si esa
+  recarga falla, ya no sale "No se pudo guardar", porque sí se guardó.
+- `BarraGuardadoAsistencia` ya no recibe `guardando` ni dice "Guardando...":
+  el botón queda bloqueado por `puedeGuardar`, que ya incluía `!guardando`.

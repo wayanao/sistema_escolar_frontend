@@ -2,27 +2,34 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { apiMock, swalFireMock, swalShowLoadingMock } = vi.hoisted(() => ({
+const { apiMock, swalFireMock, swalUpdateMock } = vi.hoisted(() => ({
   apiMock: {
     get: vi.fn(),
     post: vi.fn(),
   },
   swalFireMock: vi.fn(),
-  swalShowLoadingMock: vi.fn(),
+  swalUpdateMock: vi.fn(),
 }));
 
 vi.mock("../utils/api", () => ({
   default: apiMock,
 }));
 
+// La espera pasa a éxito en la misma ventana y la cierra un reloj
+// (ventanaExito.js).
 vi.mock("sweetalert2", () => ({
   default: {
     fire: swalFireMock,
-    showLoading: swalShowLoadingMock,
+    update: swalUpdateMock,
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
   },
 }));
 
 import Asistencia from "./Asistencia";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../hooks/ventanaExito";
 
 const ASIGNACION_ID = 44;
 const PERIODO = 2;
@@ -75,7 +82,7 @@ beforeEach(() => {
   apiMock.get.mockReset();
   apiMock.post.mockReset();
   swalFireMock.mockReset();
-  swalShowLoadingMock.mockReset();
+  swalUpdateMock.mockReset();
   swalFireMock.mockResolvedValue({ isConfirmed: true });
   window.alert = vi.fn();
 });
@@ -162,17 +169,19 @@ describe("flujo de asistencia del profesor", () => {
         periodo: PERIODO,
       },
     ]);
+    // Guarda enseguida: sin ventana de confirmar, solo la tarjeta de espera,
+    // que pasa a éxito sin cerrarse.
+    expect(swalFireMock).toHaveBeenCalledTimes(1);
     expect(swalFireMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Guardar asistencia",
-        confirmButtonText: "Sí, guardar asistencia",
-      }),
+      opcionesVentanaEspera({ title: "Guardando asistencia…" }),
     );
-    expect(swalFireMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Asistencia guardada",
-        text: "2 presentes y 0 ausentes quedaron registrados correctamente.",
-      }),
+    await waitFor(() =>
+      expect(swalUpdateMock).toHaveBeenCalledWith(
+        opcionesExitoTrasEspera({
+          title: "Asistencia guardada",
+          text: "2 presentes y 0 ausentes quedaron registrados correctamente.",
+        }),
+      ),
     );
   });
 

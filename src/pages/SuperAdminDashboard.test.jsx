@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SuperAdminDashboard from "./SuperAdminDashboard";
+import { opcionesVentanaExito } from "../hooks/ventanaExito";
 
 const { apiMock, swalFireMock, showValidationMessageMock } = vi.hoisted(() => ({
     apiMock: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
@@ -281,11 +282,7 @@ describe("SuperAdminDashboard", () => {
         expect(
             within(filaDe("Colegio Tres")).getByText("activo", { selector: "span" }),
         ).toBeInTheDocument();
-        expect(swalFireMock).toHaveBeenLastCalledWith({
-            icon: "success",
-            title: "Pago registrado",
-            text: "Colegio Tres quedó activo. Próximo pago: 2099-01-15.",
-        });
+        expect(swalFireMock).toHaveBeenLastCalledWith(opcionesVentanaExito({ title: "Pago registrado", text: "Colegio Tres quedó activo. Próximo pago: 2099-01-15." }));
     });
 
     it("avisa sin guardar cuando el cambio de estado falla", async () => {
@@ -481,11 +478,7 @@ describe("SuperAdminDashboard", () => {
             expect(apiMock.post).toHaveBeenCalledWith("/super-admin/tenants", payload);
         });
         expect(await screen.findByRole("cell", { name: "Colegio Demo" })).toBeInTheDocument();
-        expect(swalFireMock).toHaveBeenLastCalledWith({
-            icon: "success",
-            title: "Colegio creado",
-            text: "Colegio Demo ya puede iniciar sesion.",
-        });
+        expect(swalFireMock).toHaveBeenLastCalledWith(opcionesVentanaExito({ title: "Colegio creado", text: "Colegio Demo ya puede iniciar sesion." }));
     });
 
     it("muestra el detalle del backend cuando la creación falla", async () => {

@@ -358,7 +358,9 @@ Estado actual de componentes y paginas del frontend.
 - `components/asistencia/PanelAsistenciaProfesor.jsx` presenta carga/error,
   reintento, marcación rápida, resumen, filas y estado vacío.
 - `components/asistencia/BarraGuardadoAsistencia.jsx` presenta el resumen
-  inferior y delega el comando de guardado.
+  inferior y delega el comando de guardado. Desde el 2026-11-07 no recibe
+  `guardando` ni dice "Guardando...": la espera va en la tarjeta que sale al
+  oprimir, y el botón queda bloqueado por `puedeGuardar`.
 - `components/asistencia/AsistenciaRow.jsx` conserva los controles accesibles y
   el contador histórico por estudiante.
 - Si existe registro para la fecha seleccionada, muestra aviso
@@ -763,8 +765,9 @@ Estado actual de componentes y paginas del frontend.
   necesitan comportamiento especial de pantalla. Los documentos marcados como
   boletin, certificado o cartera usan root con scroll lateral en movil.
 - `components/boletin/BoletinImprimible.jsx`: el impreso final conserva ancho
-  A4 en movil y se desplaza a los lados. El boton `Atras` queda arriba a la
-  izquierda.
+  A4 en movil y se desplaza a los lados. El botón "Atrás" va arriba de la
+  hoja, dentro de la página, con `certificadosImpresion/BarraCertificado.jsx`
+  (2026-11-07): fijo en la esquina quedaba metido en el menú lateral.
 - Las vistas imprimibles de `components/certificadosImpresion/` conservan ancho
   A4 en movil, scroll lateral y boton `Atras` arriba. El reporte parcial permite
   imprimir curso completo o estudiante individual por periodo y materia,
@@ -984,7 +987,11 @@ Estado actual de componentes y paginas del frontend.
   Desde el 2026-10-13 (paso E6) tiene "Datos de admisión", de solo lectura:
   los ocho datos que pasaron a la entrevista, pedidos con un botón solo si
   se usan (`useDetalleEstudianteAdmin.verDatosAdmision`). Sin
-  `onVerDatosAdmision`, la sección no aparece.
+  `onVerDatosAdmision`, la sección no aparece. Desde el 2026-11-07, mientras
+  carga no se pinta (antes, un círculo adentro): `useDetalleEstudianteAdmin`
+  abre la tarjeta de espera «Cargando el resumen…» con el nombre y la
+  barrita, y la quita al llegar los datos. Como solo lee, se puede cerrar
+  con Esc o con un clic afuera; entonces la ficha no se abre.
 - `components/estudiantesObservador/admin/RendimientoEstudianteAdmin.jsx`
   (2026-10-31, `docs/funcionalidades/NOTAS_RESUMEN_ESTUDIANTE.md`): la
   tarjeta "Rendimiento" de la ficha.
@@ -1074,7 +1081,11 @@ pantalla vieja (`/Formulario`), esta no se va con ella. Ver
 - `hooks/observador/useFormularioAnotacion.js`: estado editable, con la cuenta
   de qué campos tocó la profesora —la corrección solo se aplica a esos—.
 - `hooks/observador/useComandosObservador.js`: crear y corregir. **No hay
-  comando de borrado, y no debe añadirse.**
+  comando de borrado, y no debe añadirse.** Desde el 2026-11-07 abre la
+  tarjeta de espera al guardar y la pasa a «Anotación guardada» (o
+  «corregida»); si falla, la quita y el error sale en el formulario, que
+  conserva lo escrito. Por eso el botón del formulario ya no dice
+  "Guardando...", solo se bloquea.
 - `utils/observador/anotaciones.js`: agrupación por dimensión, periodo, fecha
   corta y título con nivel, como contratos puros.
 - `utils/observador/formulario.js`: estado inicial, validación y cuerpos de las
@@ -1325,7 +1336,9 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - `components/pagos/FormularioPago.jsx` presenta pago pendiente, cuotas,
   adelantos, distribución por monto y métodos combinados. Desde el
   2026-11-04 muestra el concepto elegido en "Lo que debe" como texto, sin
-  lista para cambiarlo.
+  lista para cambiarlo. Desde el 2026-11-07, mientras registra, el botón
+  solo queda bloqueado: ya no dice «Registrando...» ni lleva círculo, porque
+  la espera va en la tarjeta que sale al oprimirlo (una sola espera).
 - `components/pagos/HistorialPagos.jsx` presenta pagos vigentes o anulados y
   delega impresión y anulación. Desde el 2026-11-04 empieza cerrado, con el
   botón `🧾 Ver historial de pagos` y el conteo; después de registrar muestra

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Login from "./Login";
+import { opcionesVentanaExito } from "../hooks/ventanaExito";
 
 // El login tiene un enlace de vuelta a la landing: necesita el enrutador.
 const renderLogin = () => render(<Login />, { wrapper: MemoryRouter });
@@ -196,13 +197,13 @@ describe("Login", () => {
     });
     eliminadas.forEach((item) => expect(localStorage.getItem(item)).toBeNull());
     expect(localStorage.getItem("ultimo_codigo_colegio")).toBe("colegio-norte");
-    expect(mocks.fire).toHaveBeenCalledWith({
-      icon: "success",
-      title: "¡Éxito!",
-      text: `Bienvenido ${bienvenida}`,
-      timer: 1000,
-      showConfirmButton: false,
-    });
+    expect(mocks.fire).toHaveBeenCalledWith(
+      opcionesVentanaExito({
+        title: "¡Éxito!",
+        text: `Bienvenido ${bienvenida}`,
+        timer: 1000,
+      }),
+    );
   });
 
   it.each([

@@ -14,6 +14,7 @@ import {
   PERIODOS_RESUMEN,
   ultimoPeriodoConNotas,
 } from "../../utils/estudiantesObservador/estudiantes";
+import { mostrarEspera } from "../ventanaExito";
 
 // `parametrosAnio`: el año que mira el admin (`useAnioLectivo().parametros`).
 // El resumen y las deudas de la ficha son los de ese año.
@@ -39,13 +40,30 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
   // primera vez que hace falta y se reusa mientras la página esté abierta.
   const catalogoRef = useRef(null);
   const solicitudRef = useRef(0);
+  // La tarjeta de espera de la ficha que se está cargando, para quitarla si
+  // se sale de la página antes de que llegue.
+  const esperaRef = useRef(null);
 
   useEffect(
     () => () => {
       solicitudRef.current += 1;
+      esperaRef.current?.cerrar();
     },
     [],
   );
+
+  const cerrarModal = useCallback(() => {
+    solicitudRef.current += 1;
+    setSelectedEstudiante(null);
+    setDetallesEstudiante(null);
+    setLoadingDetalles(false);
+    setErrorDetalle(null);
+    setDatosAdmision(null);
+    setCargandoDatosAdmision(false);
+    setErrorDatosAdmision(null);
+    setRespuestasAdmision(null);
+    setErrorRespuestasAdmision(null);
+  }, []);
 
   const verDetalles = useCallback(async (estudiante) => {
     const solicitudId = ++solicitudRef.current;
@@ -58,6 +76,18 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
     setErrorDatosAdmision(null);
     setRespuestasAdmision(null);
     setErrorRespuestasAdmision(null);
+
+    // Mientras llega, la tarjeta de espera con la barrita (pedido del usuario
+    // el 2026-11-07); la ficha se pinta cuando ya hay datos. Como solo lee, se
+    // puede cerrar con Esc o con un clic afuera, y entonces la ficha no se abre.
+    const espera = mostrarEspera({
+      title: "Cargando el resumen…",
+      text: `${estudiante.apellido ?? ""} ${estudiante.nombre ?? ""}`.trim(),
+      alCancelar: () => {
+        if (solicitudRef.current === solicitudId) cerrarModal();
+      },
+    });
+    esperaRef.current = espera;
 
     try {
       const opciones = opcionesConAnio({}, parametrosAnio);
@@ -93,22 +123,12 @@ export default function useDetalleEstudianteAdmin({ parametrosAnio } = {}) {
       console.error("Error al cargar detalles", requestError);
       setErrorDetalle(requestError);
     } finally {
-      if (solicitudRef.current === solicitudId) setLoadingDetalles(false);
+      if (solicitudRef.current === solicitudId) {
+        setLoadingDetalles(false);
+        espera.cerrar();
+      }
     }
-  }, [parametrosAnio]);
-
-  const cerrarModal = useCallback(() => {
-    solicitudRef.current += 1;
-    setSelectedEstudiante(null);
-    setDetallesEstudiante(null);
-    setLoadingDetalles(false);
-    setErrorDetalle(null);
-    setDatosAdmision(null);
-    setCargandoDatosAdmision(false);
-    setErrorDatosAdmision(null);
-    setRespuestasAdmision(null);
-    setErrorRespuestasAdmision(null);
-  }, []);
+  }, [cerrarModal, parametrosAnio]);
 
   // Las respuestas de la entrevista, en texto. La lista de preguntas solo se
   // pide si hay respuestas (los estudiantes de antes no tienen) y una vez.

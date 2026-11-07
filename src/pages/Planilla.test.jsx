@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { apiMock, swalFireMock } = vi.hoisted(() => ({
+const { apiMock, swalFireMock, swalUpdateMock } = vi.hoisted(() => ({
   apiMock: {
     get: vi.fn(),
     post: vi.fn(),
@@ -10,19 +10,28 @@ const { apiMock, swalFireMock } = vi.hoisted(() => ({
     delete: vi.fn(),
   },
   swalFireMock: vi.fn(),
+  swalUpdateMock: vi.fn(),
 }));
 
 vi.mock("../utils/api", () => ({
   default: apiMock,
 }));
 
+// Agregar y eliminar tipos usan la espera que pasa a éxito en la misma
+// ventana (ventanaExito.js).
 vi.mock("sweetalert2", () => ({
   default: {
     fire: swalFireMock,
+    update: swalUpdateMock,
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
   },
 }));
 
 import Planilla from "./Planilla";
+import { opcionesExitoTrasEspera } from "../hooks/ventanaExito";
 
 const PROFESOR_ID = 12;
 const ASIGNACION_ID = 88;
@@ -305,9 +314,8 @@ describe("flujo de planilla del profesor", () => {
       }),
     );
     await waitFor(() =>
-      expect(swalFireMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          icon: "success",
+      expect(swalUpdateMock).toHaveBeenCalledWith(
+        opcionesExitoTrasEspera({
           title: "Guardado",
           text: 'El tipo de evaluación "Cuaderno" fue agregado correctamente.',
         }),
@@ -340,7 +348,7 @@ describe("flujo de planilla del profesor", () => {
       ),
     );
     await waitFor(() =>
-      expect(swalFireMock).toHaveBeenCalledWith(
+      expect(swalUpdateMock).toHaveBeenCalledWith(
         expect.objectContaining({ icon: "success", title: "Eliminado" }),
       ),
     );

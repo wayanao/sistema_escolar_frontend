@@ -10,6 +10,7 @@ import {
     textoPagoRegistrado,
     validarFechaPago,
 } from "../../utils/dashboards/superAdmin";
+import { mostrarExito } from "../ventanaExito";
 
 // Registrar el pago de un colegio mueve su fecha de próximo pago, que es lo que
 // lo reactiva. Los campos los pinta SweetAlert, así que se leen del DOM.
@@ -50,11 +51,14 @@ const usePagoTenant = (reemplazarTenant) => {
             try {
                 const actualizado = await registrarPagoTenant(tenant.id, result.value);
                 reemplazarTenant(tenant.id, actualizado);
-                Swal.fire({
-                    icon: actualizado.estado === "activo" ? "success" : "warning",
-                    title: "Pago registrado",
-                    text: textoPagoRegistrado(actualizado),
-                });
+                const aviso = { title: "Pago registrado", text: textoPagoRegistrado(actualizado) };
+                // Si quedó activo, la ventana de éxito común; si no, el aviso
+                // amarillo de siempre (el pago no alcanzó para reactivarlo).
+                if (actualizado.estado === "activo") {
+                    mostrarExito(aviso);
+                } else {
+                    Swal.fire({ icon: "warning", ...aviso });
+                }
             } catch (err) {
                 console.error("Error registrando pago", err);
                 Swal.fire({

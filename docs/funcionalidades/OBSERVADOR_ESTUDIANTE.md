@@ -718,6 +718,18 @@ duplicar nada, que es justo para lo que se hizo idempotente.
    `src/components/estudiantesObservador/` que queden sin uso, incluido
    `useCargaObservacionVisible`, que existe únicamente para disimular el N+1).
 
+## Guardar con una sola espera (2026-11-07)
+
+Pedido del usuario: que guardar en el observador sea "enseguida" y sin
+"muchos pasos", como en Gestión de Pagos. Al oprimir "Guardar" sale la
+tarjeta «Guardando anotación…» (o «Guardando corrección…») y pasa a
+«Anotación guardada» (o «corregida») sin cerrarse; el formulario se cierra y
+la bitácora se recarga como antes. Si falla, la tarjeta se quita y el error
+sale en el formulario, que conserva lo escrito. El botón ya no dice
+"Guardando...", solo se bloquea. Lo hace `useComandosObservador.js` con
+`mostrarEspera` (`src/hooks/ventanaExito.js`). La pantalla vieja
+(`Observaciones.jsx`, oculta desde el 2026-09-10) no se tocó para esto.
+
 ## Preguntas abiertas
 
 1. ~~**¿Desde dónde se entra a la página?**~~ **Resuelta el 2026-09-08**, ver

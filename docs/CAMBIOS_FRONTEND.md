@@ -1,5 +1,133 @@
 # Cambios Frontend
 
+## 2026-11-07 - Resumen del estudiante: carga con la tarjeta de espera
+
+- Pedido del usuario: que al abrir el resumen del estudiante (ficha de
+  Estudiantes del admin) salga la tarjeta de cargando con la barrita que se
+  llena, la misma de guardar.
+- Antes se abría de una vez la ventana «Resumen de …» con un círculo
+  girando adentro. Ahora sale «Cargando el resumen…» con el nombre del
+  estudiante; al llegar los datos se quita y aparece la ficha ya llena.
+  `DetalleEstudianteAdmin` no se pinta mientras carga.
+- Como solo lee, la tarjeta se puede cerrar con Esc o con un clic afuera
+  (las peticiones no tienen tiempo máximo: nadie queda atrapado si el
+  servidor tarda); entonces la ficha no se abre y lo que llegue después se
+  descarta. Si se sale de la página mientras carga, la tarjeta también se
+  quita. Para eso `mostrarEspera` recibe `alCancelar`.
+- Si falla, la ficha sale con "No se pudo cargar la información.", como
+  antes.
+- Pruebas: el hook revisa la tarjeta, que se quita al llegar, el Esc y la
+  salida de la página; `ventanaExito.test.js`, que solo Esc o clic afuera
+  cuentan como cancelar.
+
+## 2026-11-07 - Guardar enseguida: asistencia, observador y tipos de nota
+
+Pedido del usuario: que guardar la asistencia, el observador del estudiante y
+agregar o eliminar un tipo de nota sea "enseguida" y sin "muchos pasos" de
+ventanas, como en Gestión de Pagos. Los cuatro usan la tarjeta de espera
+(`mostrarEspera`), que sale al oprimir y pasa a éxito sin cerrarse; el éxito
+sale apenas el servidor responde y lo que se recarga después (historial,
+bitácora, planilla) se recarga mientras tanto.
+
+- **Asistencia**: se quitó la ventana de confirmar con el resumen (el
+  usuario: «lo que recomiendas»): el éxito ya dice cuántos presentes y
+  ausentes quedaron y se puede corregir. Antes eran tres ventanas (confirmar,
+  "Guardando asistencia" con otro aspecto y el éxito). Si la recarga del
+  historial falla, ya no dice "No se pudo guardar".
+- **Observador** (el de anotaciones, el que se usa hoy): «Guardando
+  anotación…» → «Anotación guardada» (o «corregida»). Si falla, la tarjeta se
+  quita y el error sale en el formulario, que conserva lo escrito. El
+  observador viejo (`Observaciones.jsx`) está oculto desde el 2026-09-10.
+- **Agregar tipo de nota**: «Agregando el tipo de evaluación…» → «Guardado».
+  Si el porcentaje no se guarda, el aviso amarillo ocupa el lugar de la
+  tarjeta.
+- **Eliminar tipo de nota**: se queda «¿Estás seguro?» (el usuario: «si
+  confirmar»), porque borra las notas de todos y no se deshace; después,
+  «Eliminando el tipo de evaluación…» → «Eliminado».
+- Los botones ya no dicen «Guardando...», «Agregando...» ni «Eliminando...»:
+  solo se bloquean mientras tanto (una sola espera, como en pagos).
+- `ventanaExito.js`: `TEXTO_ESPERA` («No cierres ni cambies de página hasta
+  que termine») es el texto por defecto de la espera, y `cerrar()` quita la
+  tarjeta cuando el error se muestra en la misma pantalla.
+- Pruebas: las de los cuatro hooks y sus páginas revisan la tarjeta y su
+  paso a éxito; asistencia revisa además que ya no sale la confirmación, que
+  la tarjeta aparece antes de que responda el servidor y que el éxito no
+  espera la recarga.
+
+## 2026-11-07 - Ventana de éxito con el aspecto de «Guardando el grupo…» en toda la app
+
+- Pedido del usuario: que la ventana de éxito al entrar a la plataforma y al
+  guardar algo sea "así como la de guardar todos los logros" del Boletín
+  Final. Entre las dos que salen ahí eligió la tarjeta blanca de «Guardando
+  el grupo…» (no la de «Grupo guardado», el chulito verde grande).
+- Ventana común `mostrarExito` (`src/hooks/ventanaExito.js`): sigue siendo
+  SweetAlert, así que se espera y se prueba igual. Tarjeta blanca de 28rem,
+  chulito verde pequeño a la izquierda del título, texto gris debajo y una
+  barrita morada que se va llenando hasta que la ventana se cierra sola.
+  Aspecto en `.ventana-exito` (`src/index.css`).
+- **Todas se cierran solas**, sin botón (decidido con el usuario: «Que todas
+  se cierren solas»). Todas duran lo mismo, `TIEMPO_PARA_LEER` = 1,2 s,
+  menos la de entrar (1 s): la planilla (1,5 s), el estado del colegio
+  (1,4 s) y el Boletín Final (2 y 2,2 s) ya no tienen tiempo propio. Se
+  probó con 4 s y con 2 s, y las dos veces el usuario dijo que el llenado
+  tardaba mucho: una barrita que se llena parece algo que todavía carga. Se
+  pueden cerrar antes con un clic afuera o con Esc.
+- La barrita se llena de izquierda a derecha (el usuario: «no se llena sino
+  que se vacía»). Ya no es la de SweetAlert (`timerProgressBar`, que solo se
+  vacía): es una barra propia en el pie de la ventana, con una animación que
+  dura lo mismo que el tiempo de la ventana (`--duracion`).
+- La usan las 28 ventanas de éxito de la app: inicio de sesión, cambio de
+  password, Boletín Final, Gestión de Pagos (registrar y anular), asistencia,
+  planilla, observador, malla curricular, listas de seguimiento, nómina,
+  préstamos, egresos, tipos de pago, inventario y ventas, y super admin
+  (colegio creado, estado y pago; si el pago no lo reactiva, sigue el aviso
+  amarillo). Mismos textos. En nómina, `avisarExitoYEsperarCierre`
+  (`ventanasAviso.js`) reemplaza a `avisarYEsperarCierre`, que solo se usaba
+  para el éxito: sigue esperando a que la ventana se cierre para bajar al
+  historial. Lo que hace cada pantalla después (recargar, resaltar, bajar)
+  no cambió.
+- Una sola espera al registrar un pago (pedido del usuario: «que sea una
+  sola espera y no la del botón y además el modal»). Al oprimir «Registrar
+  Pago» (o al confirmar los meses) sale de una vez la tarjeta «Registrando
+  el pago…» con el círculo que gira y la barrita llenándose. Cuando el pago
+  queda, esa misma tarjeta pasa a «¡Éxito!» sin cerrarse (`mostrarEspera` y
+  `Swal.update`): su barrita sigue desde donde iba, termina en 0,4 s y la
+  ventana se cierra sola a los 1,2 s (un reloj, porque SweetAlert no deja
+  ponerle tiempo a una ventana abierta; solo cierra si sigue abierta esa
+  misma ventana). Si
+  falla, la ventana de error ocupa su lugar. El botón ya no dice
+  «Registrando...» ni lleva círculo: solo queda bloqueado, para no registrar
+  dos veces. La barrita de la espera no mide nada (es una sola petición):
+  va por la mitad a medio segundo y casi por las tres cuartas partes al
+  segundo, sin llegar al final. No se usa `Swal.fire` para el cambio: al abrir una
+  ventana encima de otra, SweetAlert la deja invisible un instante y
+  parpadea. Lo que se envía al servidor no cambió.
+- Pruebas: `src/hooks/ventanaExito.test.js` (nueva) y las de cada pantalla
+  comparan la ventana completa con `opcionesVentanaExito` (17 se cambiaron
+  con un script, solo en esas aserciones). El registro de pagos revisa la
+  espera con `opcionesVentanaEspera` y `opcionesExitoTrasEspera`, y que la
+  tarjeta sale antes de que responda el servidor; el formulario, que el
+  botón solo se bloquea.
+- Revisado con fotos de una página de prueba (Edge sin pantalla) con la
+  librería y el CSS reales, junto a la tarjeta del grupo: PC, celular de 390
+  y 360 px, el fondo morado del login, la barrita llenándose, la espera y su
+  paso a éxito (comprobado que es la misma ventana y que la barrita sigue
+  desde donde iba).
+
+## 2026-11-07 - Boletín del admin: el botón "Atrás" arriba de la hoja
+
+- Pedido del usuario: en Gestión de boletines, al abrir un boletín para
+  imprimir, en PC no se veía el botón "Atrás": era fijo en la esquina de la
+  pantalla y quedaba metido en el menú lateral.
+- Ahora va arriba de la hoja, dentro de la página, con la misma barra de los
+  certificados (`certificadosImpresion/BarraCertificado.jsx`, cambio del
+  2026-11-05). Al bajar por el boletín el botón ya no acompaña: hay que subir.
+- Archivos: `components/boletin/BoletinImprimible.jsx` y su prueba, que ahora
+  revisa que el botón no sea fijo.
+- Siguen con el botón fijo en la esquina (sin tocar): cartera vencida,
+  entrevista de admisión, observaciones, volante de venta, listas de
+  seguimiento, malla curricular, observador y comprobante de pago.
+
 ## 2026-11-07 - "Mi curso": observación general de cada estudiante (paso 4)
 
 Paso 4 de `docs/funcionalidades/MI_CURSO_DIRECTOR.md`. Usa el `PUT` del paso 3

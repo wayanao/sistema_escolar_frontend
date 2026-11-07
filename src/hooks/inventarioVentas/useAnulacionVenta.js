@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import { anularVenta as anularVentaRemota } from "../../services/inventarioVentasApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     construirPayloadAnulacion,
     mensajeErrorAnulacion,
@@ -32,7 +33,10 @@ const useAnulacionVenta = (cargarDatos) => {
 
         try {
             await anularVentaRemota(venta.id, construirPayloadAnulacion(result.value));
-            Swal.fire("Venta anulada", "El stock, la cartera y los pagos asociados fueron actualizados.", "success");
+            mostrarExito({
+                title: "Venta anulada",
+                text: "El stock, la cartera y los pagos asociados fueron actualizados.",
+            });
             cargarDatos();
         } catch (error) {
             console.error("Error anulando venta:", error);

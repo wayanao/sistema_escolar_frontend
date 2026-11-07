@@ -12,6 +12,7 @@ import {
     validarPagoNomina,
 } from "../../utils/nominaEgresosPrestamos/nomina";
 import { TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { mostrarExito } from "../ventanaExito";
 
 // Estado de arranque del formulario. No es observable: el modal no se pinta
 // hasta que se elige un empleado y entonces se precarga con su sueldo.
@@ -97,8 +98,7 @@ const usePagoNomina = ({ cargarDatos, revisarHistorialDe }) => {
                 [empleadoSeleccionado.id]: nominaId,
             }));
             setUltimoPagadoId(empleadoSeleccionado.id);
-            Swal.fire({
-                icon: "success",
+            mostrarExito({
                 title: "Pago registrado",
                 text: mensajeExitoPagoNomina({ ...datosPago, nominaId }),
                 customClass: TEXTO_CON_SALTOS,

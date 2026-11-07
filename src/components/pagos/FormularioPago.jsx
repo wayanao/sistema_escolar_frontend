@@ -559,17 +559,10 @@ export default function FormularioPago({
           }
           className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-green-300"
         >
-          {registrandoPago && (
-            <span
-              className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-              aria-hidden="true"
-            />
-          )}
-          {registrandoPago
-            ? "Registrando..."
-            : modoPago === "adelantado"
-              ? "Registrar adelanto"
-              : "Registrar Pago"}
+          {/* La espera la muestra la tarjeta que sale al oprimirlo (una sola
+              espera, pedido del usuario el 2026-11-07). Mientras tanto el
+              botón solo queda bloqueado, para no registrar dos veces. */}
+          {modoPago === "adelantado" ? "Registrar adelanto" : "Registrar Pago"}
         </button>
         <button
           type="button"

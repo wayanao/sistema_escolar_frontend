@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useCarritoVenta from "./useCarritoVenta";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: { registrarVenta: vi.fn() },
@@ -143,11 +144,7 @@ describe("useCarritoVenta", () => {
         expect(result.current.carrito).toEqual([]);
         expect(result.current.busquedaEstudiante).toBe("");
         expect(cargarDatos).toHaveBeenCalled();
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Éxito",
-            "Productos cargados a la cuenta del estudiante exitosamente",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Productos cargados a la cuenta del estudiante exitosamente" }));
     });
 
     it("conserva el historial del último estudiante cargado tras limpiar la búsqueda", async () => {

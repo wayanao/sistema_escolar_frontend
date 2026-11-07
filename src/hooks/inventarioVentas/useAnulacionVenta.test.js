@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useAnulacionVenta from "./useAnulacionVenta";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: { anularVenta: vi.fn() },
@@ -40,11 +41,7 @@ describe("useAnulacionVenta", () => {
         expect(serviceMock.anularVenta).toHaveBeenCalledWith(501, {
             motivo: "Cargo equivocado",
         });
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Venta anulada",
-            "El stock, la cartera y los pagos asociados fueron actualizados.",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Venta anulada", text: "El stock, la cartera y los pagos asociados fueron actualizados." }));
         expect(cargarDatos).toHaveBeenCalled();
     });
 

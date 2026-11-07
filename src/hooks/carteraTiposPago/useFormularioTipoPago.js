@@ -6,6 +6,7 @@ import {
 } from "../../services/carteraTiposPagoApi";
 import { esAvisoAnioCerrado } from "../../utils/anioLectivo";
 import { crearPayloadTipoPago } from "../../utils/carteraTiposPago/tiposPago";
+import { mostrarExito } from "../ventanaExito";
 
 // Un concepto nuevo queda en Borrador: el aviso dice qué falta para que cobre.
 const mensajeExitoConcepto = (nombre, editando) =>
@@ -54,8 +55,7 @@ export default function useFormularioTipoPago({
                 const avisoCerrado = new Promise((resolve) => {
                     avisarCierre = resolve;
                 });
-                Swal.fire({
-                    icon: "success",
+                mostrarExito({
                     title: isEditing ? "Concepto actualizado" : "Concepto creado",
                     text: mensajeExitoConcepto(payloadBase.nombre, isEditing),
                     didClose: () => avisarCierre(),

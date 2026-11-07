@@ -52,12 +52,14 @@ describe("GestionTiposEvaluacion", () => {
         expect(props.onEliminarTipo).toHaveBeenCalledTimes(1);
     });
 
-    it("deshabilita ambos controles y muestra el progreso mientras una acción está en curso", () => {
+    it("deshabilita ambos controles mientras una acción está en curso; la espera va en la tarjeta", () => {
         renderComponente({ accionTipoEnCurso: "agregar" });
 
+        // Una sola espera (2026-11-07): el botón ya no dice «Agregando...».
         expect(screen.getByPlaceholderText("Ej: Quiz, Taller...")).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Agregando..." })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Agregando..." })).toHaveAttribute("aria-busy", "true");
+        expect(screen.getByRole("button", { name: "Agregar Tipo" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "Agregar Tipo" })).toHaveAttribute("aria-busy", "true");
+        expect(screen.queryByText("Agregando...")).not.toBeInTheDocument();
         expect(screen.getByRole("combobox")).toBeDisabled();
         expect(screen.getByRole("button", { name: "Eliminar Tipo" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Eliminar Tipo" })).toHaveAttribute("aria-busy", "false");

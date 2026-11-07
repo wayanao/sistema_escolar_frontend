@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { actualizarConfiguracionTipoPago } from "../../services/carteraTiposPagoApi";
+import { mostrarExito } from "../ventanaExito";
 import { esAvisoAnioCerrado } from "../../utils/anioLectivo";
 import {
     CONFIG_DEFAULT,
@@ -66,15 +67,14 @@ export default function useConfiguracionTipoPago({
             await actualizarConfiguracionTipoPago(selectedTipoId, payload);
             setConfigSinGuardar(false);
             actualizarDetalle(payload);
-            Swal.fire(
-                "Guardado",
-                seReactiva
+            mostrarExito({
+                title: "Guardado",
+                text: seReactiva
                     ? "Concepto reactivado. Queda disponible sin generar cobros retroactivos."
                     : seDesactiva
                         ? "Concepto desactivado. Las deudas existentes siguen pendientes."
                         : "Configuración actualizada",
-                "success"
-            );
+            });
             await cargarTiposPagos();
         } catch (error) {
             console.error(error);

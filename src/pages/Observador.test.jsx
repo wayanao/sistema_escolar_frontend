@@ -35,6 +35,19 @@ vi.mock("../utils/periodoProfesor", () => ({
   obtenerPeriodoProfesor: () => "3",
 }));
 
+// Guardar una anotación abre la tarjeta de espera y la pasa a éxito
+// (ventanaExito.js): aquí no se pinta, solo se simula.
+vi.mock("sweetalert2", () => ({
+  default: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
+}));
+
 import Observador from "./Observador";
 import { IMAGEN_FALSA, instalarLienzoFalso } from "../test/lienzoFalso";
 

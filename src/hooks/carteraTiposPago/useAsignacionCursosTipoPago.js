@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import { actualizarCursosTipoPago } from "../../services/carteraTiposPagoApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     actualizarValorCursoAsignado,
     agregarCursosFaltantes,
@@ -88,7 +89,7 @@ export default function useAsignacionCursosTipoPago({
             const payload = crearPayloadCursos(cursosAsignados);
             await actualizarCursosTipoPago(selectedTipoId, payload);
             setCursosAsignadosDirty(false);
-            Swal.fire("Guardado", "Cursos asignados correctamente", "success");
+            mostrarExito({ title: "Guardado", text: "Cursos asignados correctamente" });
             await cargarTiposPagos();
         } catch (error) {
             console.error(error);

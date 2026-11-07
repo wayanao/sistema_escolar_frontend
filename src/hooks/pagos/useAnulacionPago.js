@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import pagosApi from "../../services/pagosApi";
+import { mostrarExito } from "../ventanaExito";
 
 export default function useAnulacionPago({
   selectedEstudiante,
@@ -33,7 +34,10 @@ export default function useAnulacionPago({
 
     try {
       await pagosApi.anularPago(pago.pago_id, { motivo: result.value.trim() });
-      Swal.fire("Pago anulado", "La deuda y los reportes se actualizarán con este cambio.", "success");
+      mostrarExito({
+        title: "Pago anulado",
+        text: "La deuda y los reportes se actualizarán con este cambio.",
+      });
       cargarHistorialPagos(selectedEstudiante.id);
       cargarVentasPendientes(selectedEstudiante.id);
       cargarDeudasEstudiante(selectedEstudiante.id);

@@ -1,9 +1,17 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { crearAnotacionMock, editarAnotacionMock } = vi.hoisted(() => ({
+const { crearAnotacionMock, editarAnotacionMock, sweet } = vi.hoisted(() => ({
   crearAnotacionMock: vi.fn(),
   editarAnotacionMock: vi.fn(),
+  sweet: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
 }));
 
 vi.mock("../../services/observadorApi", () => ({
@@ -11,7 +19,14 @@ vi.mock("../../services/observadorApi", () => ({
   editarAnotacion: editarAnotacionMock,
 }));
 
-import useComandosObservador from "./useComandosObservador";
+// La tarjeta de espera y la de éxito (ventanaExito.js).
+vi.mock("sweetalert2", () => ({ default: sweet }));
+
+import useComandosObservador, {
+  TITULOS_CORRECCION,
+  TITULOS_NUEVA,
+} from "./useComandosObservador";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../ventanaExito";
 
 const COMPLETO = {
   conductual: "se para mucho",
@@ -22,6 +37,7 @@ const COMPLETO = {
 beforeEach(() => {
   crearAnotacionMock.mockReset().mockResolvedValue({ id: 31 });
   editarAnotacionMock.mockReset().mockResolvedValue({ id: 31 });
+  Object.values(sweet).forEach((simulada) => simulada.mockReset());
 });
 
 describe("useComandosObservador", () => {
@@ -44,6 +60,44 @@ describe("useComandosObservador", () => {
       cognitivo: "",
       lenguaje: "",
     });
+  });
+
+  it("una sola espera: la tarjeta sale al guardar y pasa a éxito sin cerrarse", async () => {
+    const { result } = renderHook(() => useComandosObservador());
+
+    await act(async () => {
+      await result.current.guardarNueva(COMPLETO, { estudianteId: 42, periodo: 3 });
+    });
+    expect(sweet.fire).toHaveBeenCalledWith(opcionesVentanaEspera({ title: "Guardando anotación…" }));
+    expect(sweet.update).toHaveBeenCalledWith(opcionesExitoTrasEspera({ title: "Anotación guardada" }));
+
+    await act(async () => {
+      await result.current.guardarCorreccion(COMPLETO, 31);
+    });
+    expect(sweet.fire).toHaveBeenLastCalledWith(
+      opcionesVentanaEspera({ title: TITULOS_CORRECCION.espera }),
+    );
+    expect(sweet.update).toHaveBeenLastCalledWith(
+      opcionesExitoTrasEspera({ title: TITULOS_CORRECCION.exito }),
+    );
+    expect(TITULOS_NUEVA.exito).toBe("Anotación guardada");
+  });
+
+  it("si falla, quita la tarjeta y el error queda para el formulario", async () => {
+    const tarjeta = { la: "tarjeta" };
+    sweet.getPopup.mockReturnValue(tarjeta);
+    sweet.isVisible.mockReturnValue(true);
+    crearAnotacionMock.mockRejectedValue(new Error("sin red"));
+    const { result } = renderHook(() => useComandosObservador());
+
+    let resultado;
+    await act(async () => {
+      resultado = await result.current.guardarNueva(COMPLETO, { estudianteId: 42, periodo: 3 });
+    });
+
+    expect(resultado.estado).toBe("error");
+    expect(sweet.close).toHaveBeenCalledTimes(1);
+    expect(sweet.update).not.toHaveBeenCalled();
   });
 
   it("corrige una anotación sin mandar periodo ni estudiante", async () => {
@@ -73,6 +127,8 @@ describe("useComandosObservador", () => {
 
     expect(sinTexto.estado).toBe("incompleta");
     expect(crearAnotacionMock).not.toHaveBeenCalled();
+    // Sin nada escrito no sale la tarjeta: el aviso va en el formulario.
+    expect(sweet.fire).not.toHaveBeenCalled();
   });
 
   it("sí viaja aunque no lleve marca de positiva o negativa", async () => {

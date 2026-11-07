@@ -71,10 +71,11 @@ describe("FormularioAnotacionObservador", () => {
     expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
   });
 
-  it("bloquea todo y lo dice mientras guarda", () => {
+  it("bloquea todo mientras guarda; la espera la muestra la tarjeta", () => {
     pintar({ guardando: true });
 
-    expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
+    // Una sola espera (2026-11-07): el botón ya no dice «Guardando...».
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
     expect(screen.getByLabelText("Conductual")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
   });

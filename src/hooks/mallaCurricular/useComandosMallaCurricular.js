@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import Swal from "sweetalert2";
 import { MORADO_BOTON } from "../../constants/colores";
 import { guardarPlaneadoresAnuales } from "../../services/mallaCurricularApi";
+import { mostrarExito } from "../ventanaExito";
 import {
   construirPayloadPlaneadores,
   crearFilasVacias,
@@ -97,12 +98,9 @@ export function useComandosMallaCurricular({ asignacionId }) {
             minute: "2-digit",
           }),
         });
-        await Swal.fire({
-          icon: "success",
+        await mostrarExito({
           title: "Malla curricular guardada",
           text: `${filasDiligenciadas} fila${filasDiligenciadas === 1 ? "" : "s"} quedaron guardadas con su fecha límite.`,
-          confirmButtonText: "Entendido",
-          confirmButtonColor: MORADO_BOTON,
         });
       } else {
         throw new Error("El servidor no confirmó el guardado.");

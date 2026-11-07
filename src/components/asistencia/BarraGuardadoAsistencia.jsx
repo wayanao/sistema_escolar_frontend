@@ -3,7 +3,6 @@ function BarraGuardadoAsistencia({
   hayCambiosSinGuardar,
   asistenciaDelDiaTomada,
   puedeGuardar,
-  guardando,
   onGuardar,
 }) {
   // En el celular del profesor queda encima de la barra de abajo del menú
@@ -25,11 +24,9 @@ function BarraGuardadoAsistencia({
         className="rounded-lg bg-purple-700 px-5 py-3 text-base font-bold text-white transition hover:bg-purple-800 disabled:cursor-not-allowed disabled:bg-gray-300 sm:min-w-52"
         onClick={onGuardar}
       >
-        {guardando
-          ? "Guardando..."
-          : asistenciaDelDiaTomada
-            ? "Guardar cambios"
-            : "Guardar asistencia"}
+        {/* La espera va en la tarjeta que sale al oprimirlo (una sola espera,
+            2026-11-07); mientras guarda, el botón solo queda bloqueado. */}
+        {asistenciaDelDiaTomada ? "Guardar cambios" : "Guardar asistencia"}
       </button>
     </div>
   );

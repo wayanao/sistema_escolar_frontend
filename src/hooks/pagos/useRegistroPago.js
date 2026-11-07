@@ -7,6 +7,7 @@ import {
   idsDelPagoRegistrado,
 } from "../../utils/pagos/contratos";
 import { formatearMoneda, formatearPeriodo } from "../../utils/pagos/formatos";
+import { mostrarEspera } from "../ventanaExito";
 
 export default function useRegistroPago({
   selectedEstudiante,
@@ -128,6 +129,12 @@ export default function useRegistroPago({
     }
 
     setRegistrandoPago(true);
+    // Una sola espera (pedido del usuario el 2026-11-07): la tarjeta sale ya,
+    // con la barrita llenándose, y cuando el pago queda pasa a «¡Éxito!» sin
+    // cerrarse. Si falla, la ventana de error ocupa su lugar.
+    const espera = mostrarEspera({
+      title: modoPago === "adelantado" ? "Registrando el adelanto…" : "Registrando el pago…",
+    });
     try {
       const estudianteId = selectedEstudiante.id;
       let resultado;
@@ -148,17 +155,18 @@ export default function useRegistroPago({
       reiniciarFormularioTrasRegistro(estudianteId);
       // El historial muestra solo el pago recién hecho (todas sus filas).
       alRegistrar?.(idsDelPagoRegistrado(resultado));
-      Swal.fire(
-        '¡Éxito!',
-        esDistribucionAdelanto
+      // Dice a qué meses se aplicó y se cierra sola cuando la barrita llega
+      // al final (TIEMPO_PARA_LEER, para que dé tiempo de leer).
+      espera.exito({
+        title: '¡Éxito!',
+        text: esDistribucionAdelanto
           ? `El monto quedó distribuido en ${resultado.periodos?.length || 0} meses.`
           : modoPago === "adelantado"
           ? `${resultado.periodos?.length || 0} meses adelantados quedaron registrados correctamente.`
           : pagoData.aplicaciones.length > 0
             ? `Pago aplicado a ${pagoData.aplicaciones.map((item) => formatearPeriodo(item.periodo)).join(", ")}.`
           : 'Pago registrado correctamente',
-        'success'
-      );
+      });
       // Un pago también cambia los meses que quedan por adelantar, que se ven
       // en lo que debe.
       Promise.all([

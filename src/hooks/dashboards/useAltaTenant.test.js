@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useAltaTenant from "./useAltaTenant";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { serviceMock, swalFireMock, showValidationMessageMock } = vi.hoisted(() => ({
     serviceMock: { crearTenant: vi.fn() },
@@ -130,11 +131,7 @@ describe("useAltaTenant", () => {
 
         expect(serviceMock.crearTenant).toHaveBeenCalledWith(payload);
         expect(agregarTenant).toHaveBeenCalledWith(creado);
-        expect(swalFireMock).toHaveBeenLastCalledWith({
-            icon: "success",
-            title: "Colegio creado",
-            text: "Colegio Demo ya puede iniciar sesion.",
-        });
+        expect(swalFireMock).toHaveBeenLastCalledWith(opcionesVentanaExito({ title: "Colegio creado", text: "Colegio Demo ya puede iniciar sesion." }));
     });
 
     it("muestra el detalle del backend y no toca la lista cuando falla", async () => {

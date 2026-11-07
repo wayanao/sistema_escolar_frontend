@@ -70,10 +70,12 @@ su propia forma de consumo; `asistenciaApi.js` no se movió ni se modificó.
 - Estado vacío: "No hay estudiantes para mostrar." (ambas vistas) y "No hay
   tipos de evaluación registrados." (solo tarjeta móvil, cuando
   `columnas.length === 0`).
-- Gestión de tipos: los botones "Agregar Tipo"/"Eliminar Tipo" muestran
-  spinner y texto "Agregando..."/"Eliminando..." mientras
-  `accionTipoEnCurso` está activo; ambos controles se deshabilitan durante la
-  acción.
+- Gestión de tipos: ambos controles se deshabilitan mientras
+  `accionTipoEnCurso` está activo (con `aria-busy`). Desde el 2026-11-07 los
+  botones ya no muestran spinner ni "Agregando..."/"Eliminando...": la espera
+  va en la tarjeta (`mostrarEspera`), que pasa a éxito apenas se agrega o se
+  elimina, y la planilla se recarga mientras tanto. Eliminar conserva
+  «¿Estás seguro?», porque borra las notas de todos los estudiantes.
 - Notas numéricas: `input[type=number]` con `min=1 max=5 step=0.1`; fuera de
   rango dispara SweetAlert "Nota inválida" y restaura el valor anterior con
   foco y selección.

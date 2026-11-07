@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import Swal from "sweetalert2";
 import { crearTenant } from "../../services/dashboardsApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     fechaIsoDeHoy,
     htmlFormularioTenant,
@@ -52,8 +53,7 @@ const useAltaTenant = (agregarTenant) => {
         try {
             const creado = await crearTenant(result.value);
             agregarTenant(creado);
-            Swal.fire({
-                icon: "success",
+            mostrarExito({
                 title: "Colegio creado",
                 text: `${creado.nombre} ya puede iniciar sesion.`,
             });

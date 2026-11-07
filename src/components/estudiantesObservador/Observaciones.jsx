@@ -5,6 +5,7 @@ import useObservacionEstudiante from "../../hooks/estudiantesObservador/useObser
 import FormularioObservacionEstudiante from "./FormularioObservacionEstudiante";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import { obtenerPeriodoProfesor } from "../../utils/periodoProfesor";
+import { mostrarExito } from "../../hooks/ventanaExito";
 
 function Observaciones({ estudiante, asignacionId, periodo }) {
   const [vistaImpresion, setVistaImpresion] = useState(false);
@@ -105,12 +106,9 @@ function Observaciones({ estudiante, asignacionId, periodo }) {
     }
 
     if (resultado.estado === "exito") {
-      await Swal.fire({
-        icon: "success",
+      await mostrarExito({
         title: "Observación guardada",
         text: `Se guardaron ${resultado.dimensionesDiligenciadas} de 3 dimensiones para ${estudiante.nombre} ${estudiante.apellido}.`,
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#6d28d9",
       });
       return;
     }

@@ -5,6 +5,7 @@ import {
     guardarNotaPlanilla,
     guardarPorcentajeTipo,
 } from "../../services/planillaApi";
+import { mostrarEspera } from "../ventanaExito";
 import {
     calcularPromedioNotas,
     calcularPromedioValoraciones,
@@ -225,6 +226,10 @@ export default function useComandosPlanillaProfesor({
         }
 
         setAccionTipoEnCurso("agregar");
+        // Una sola espera (pedido del usuario el 2026-11-07): la tarjeta sale
+        // al oprimir y pasa a éxito apenas se guarda; la planilla se recarga
+        // mientras tanto.
+        const espera = mostrarEspera({ title: "Agregando el tipo de evaluación…" });
         try {
             await guardarNotaPlanilla(construirPayloadNota({
                 estudianteId: estudiantes[0]?.estudiante_id,
@@ -254,22 +259,22 @@ export default function useComandosPlanillaProfesor({
 
             setNuevoTipo("");
             setNuevoPorcentaje("");
-            await cargarPlanilla();
             if (porcentajeFallido) {
-                await Swal.fire({
+                // El aviso ocupa el lugar de la tarjeta de espera.
+                Swal.fire({
                     icon: 'warning',
                     title: 'Tipo agregado sin porcentaje',
                     text: `El tipo de evaluación "${formatearEtiquetaColumna(tipoLimpio)}" se agregó, pero su porcentaje no se guardó: ${porcentajeFallido} Puedes ponerlo desde su columna.`,
                 });
-                return;
+            } else {
+                espera.exito({
+                    title: 'Guardado',
+                    text: `El tipo de evaluación "${formatearEtiquetaColumna(tipoLimpio)}" fue agregado correctamente.`,
+                });
             }
-            await Swal.fire({
-                icon: 'success',
-                title: 'Guardado',
-                text: `El tipo de evaluación "${formatearEtiquetaColumna(tipoLimpio)}" fue agregado correctamente.`,
-                timer: 1500,
-                showConfirmButton: false
-            });
+            // La columna nueva aparece al recargar; si falla, la consulta lo
+            // muestra en la planilla (no lanza).
+            await cargarPlanilla();
         } catch (error) {
             console.error("Error agregando tipo de evaluación", error);
             Swal.fire({
@@ -308,6 +313,9 @@ export default function useComandosPlanillaProfesor({
 
         const tipoAEliminar = tipoEliminar;
         setAccionTipoEnCurso("eliminar");
+        // Tras confirmar (se queda: borra las notas de todos y no se deshace),
+        // una sola espera que pasa a éxito apenas se elimina.
+        const espera = mostrarEspera({ title: "Eliminando el tipo de evaluación…" });
         try {
             await eliminarTipoEvaluacionPlanilla({ asignacionId, descripcion: tipoAEliminar, periodo });
             const columnasActualizadas = columnas.filter((col) => col !== tipoAEliminar);
@@ -325,14 +333,13 @@ export default function useComandosPlanillaProfesor({
                 })
             );
             setTipoEliminar("");
-            await cargarPlanilla();
-            await Swal.fire({
-                icon: 'success',
+            // La planilla ya no lo muestra: el éxito sale enseguida y se
+            // recarga mientras tanto.
+            espera.exito({
                 title: 'Eliminado',
                 text: 'El tipo de evaluación fue eliminado',
-                timer: 1500,
-                showConfirmButton: false
             });
+            await cargarPlanilla();
         } catch (error) {
             console.error("Error eliminando tipo de evaluación", error);
             Swal.fire({

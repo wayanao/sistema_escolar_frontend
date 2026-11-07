@@ -5,6 +5,7 @@ import {
     actualizarProductoInventario,
     crearProductoInventario,
 } from "../../services/inventarioVentasApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     accionCambioEstado,
     construirPayloadProducto,
@@ -61,7 +62,7 @@ const useFormularioProducto = ({ cargarInventario, aplicarEstadoLocal }) => {
                 : await crearProductoInventario(payload);
 
             if (esRespuestaExitosa(res.status)) {
-                Swal.fire("Éxito", isEditing ? "Producto actualizado" : "Producto creado", "success");
+                mostrarExito({ title: "Éxito", text: isEditing ? "Producto actualizado" : "Producto creado" });
                 limpiarFormulario();
                 cargarInventario();
             } else {
@@ -96,7 +97,10 @@ const useFormularioProducto = ({ cargarInventario, aplicarEstadoLocal }) => {
                     if (editingId === producto.id) {
                         setFormData((actual) => ({ ...actual, estado: estadoActualizado }));
                     }
-                    Swal.fire("Listo", `Producto ${estadoLabel(estadoActualizado).toLowerCase()}`, "success");
+                    mostrarExito({
+                        title: "Listo",
+                        text: `Producto ${estadoLabel(estadoActualizado).toLowerCase()}`,
+                    });
                 }
             } catch {
                 Swal.fire("Error", "No se pudo cambiar el estado del producto", "error");

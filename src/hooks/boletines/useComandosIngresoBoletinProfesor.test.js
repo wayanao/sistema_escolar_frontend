@@ -15,6 +15,7 @@ vi.mock("sweetalert2", () => ({
 }));
 
 import useComandosIngresoBoletinProfesor from "./useComandosIngresoBoletinProfesor";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const estudiantes = [
   { estudiante_id: 101, nombre: "Ana" },
@@ -216,6 +217,13 @@ describe("useComandosIngresoBoletinProfesor", () => {
       modificado: false,
       guardadoEn: expect.any(String),
     });
+    // La ventana de éxito común: la tarjeta blanca, que se cierra sola.
+    expect(swalFireMock).toHaveBeenCalledWith(
+      opcionesVentanaExito({
+        title: "Boletín guardado",
+        text: "Datos enviados al Admin correctamente.",
+      }),
+    );
   });
 
   it("Copiar a todos y guardar guarda el grupo uno por uno, en orden", async () => {
@@ -237,6 +245,12 @@ describe("useComandosIngresoBoletinProfesor", () => {
     await waitFor(() => expect(result.current.guardandoTodos).toBe(false));
     expect(result.current.estadoGuardado[101].guardado).toBe(true);
     expect(result.current.estadoGuardado[102].guardado).toBe(true);
+    expect(swalFireMock).toHaveBeenCalledWith(
+      opcionesVentanaExito({
+        title: "Grupo guardado",
+        text: "Se guardaron 2 estudiante(s).",
+      }),
+    );
   });
 
   // Porcentajes por tipo de nota, paso B4c (PB11 de

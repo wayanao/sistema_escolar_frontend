@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useComandoLogin } from "./useComandoLogin";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const mocks = vi.hoisted(() => ({
   iniciarSesion: vi.fn(),
@@ -187,13 +188,14 @@ describe("useComandoLogin", () => {
     });
     alternas.forEach((item) => expect(localStorage.getItem(item)).toBeNull());
     expect(localStorage.getItem("ultimo_codigo_colegio")).toBe("colegio-norte");
-    expect(mocks.fire).toHaveBeenCalledWith({
-      icon: "success",
-      title: "¡Éxito!",
-      text: `Bienvenido ${bienvenida}`,
-      timer: 1000,
-      showConfirmButton: false,
-    });
+    // La ventana de éxito común (tarjeta blanca), que se cierra sola.
+    expect(mocks.fire).toHaveBeenCalledWith(
+      opcionesVentanaExito({
+        title: "¡Éxito!",
+        text: `Bienvenido ${bienvenida}`,
+        timer: 1000,
+      }),
+    );
     expect(result.current.isSubmitting).toBe(true);
     expect(result.current.loginSucceeded).toBe(true);
     expect(result.current.isTakingLong).toBe(false);

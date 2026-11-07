@@ -13,6 +13,7 @@ import {
   marcarPasswordComoCambiada,
   parsearSesionAlmacenada,
 } from "../../utils/autenticacion/sesion";
+import { mostrarExito } from "../ventanaExito";
 
 export function useCambiarPassword() {
   const navigate = useNavigate();
@@ -58,12 +59,9 @@ export function useCambiarPassword() {
         localStorage.setItem(CLAVES_SESION.USUARIO, JSON.stringify(usuarioActualizado));
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Password actualizada",
-        timer: 1200,
-        showConfirmButton: false,
-      }).then(() => navigate(RUTAS_SESION.INICIO_ADMIN, { replace: true }));
+      mostrarExito({ title: "Password actualizada" }).then(() =>
+        navigate(RUTAS_SESION.INICIO_ADMIN, { replace: true }),
+      );
     } catch (err) {
       const detail = err.response?.data?.detail;
       Swal.fire({

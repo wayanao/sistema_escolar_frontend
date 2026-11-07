@@ -78,7 +78,7 @@ describe("DetalleEstudianteAdmin", () => {
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it("conserva estados de carga y fallo total", () => {
+  it("mientras carga no se pinta (la espera va en la tarjeta) y avisa el fallo total", () => {
     const { rerender, container } = render(
       <DetalleEstudianteAdmin
         estudiante={estudiante}
@@ -88,7 +88,8 @@ describe("DetalleEstudianteAdmin", () => {
         onCerrar={vi.fn()}
       />,
     );
-    expect(container.querySelector(".animate-spin")).toBeInTheDocument();
+    // Desde el 2026-11-07 la espera es la tarjeta con la barrita, no un círculo aquí.
+    expect(container).toBeEmptyDOMElement();
 
     rerender(
       <DetalleEstudianteAdmin

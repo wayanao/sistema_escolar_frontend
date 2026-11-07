@@ -17,6 +17,7 @@ import {
   construirPayloadMarcas,
   obtenerMarcaCelda,
 } from "../../utils/listasSeguimiento/marcas";
+import { mostrarExito } from "../ventanaExito";
 
 const COLOR_BOTON = MORADO_BOTON;
 
@@ -170,12 +171,7 @@ export default function useComandosListasSeguimiento({
       // el usuario los mandaria dos veces.
       setCambios(new Map());
       await recargar();
-      await Swal.fire({
-        icon: "success",
-        title: "Cambios guardados",
-        confirmButtonText: "Entendido",
-        confirmButtonColor: COLOR_BOTON,
-      });
+      await mostrarExito({ title: "Cambios guardados" });
     } catch (error) {
       console.error("Error guardando las marcas", error);
       await Swal.fire({
@@ -229,13 +225,7 @@ export default function useComandosListasSeguimiento({
           // la respuesta son conteos, no la columna de este curso, asi que no
           // hay nada que agregar a mano a la grilla.
           await recargar();
-          await Swal.fire({
-            icon: "success",
-            title: "Listo",
-            text: mensajeAltaMasiva(resumen),
-            confirmButtonText: "Entendido",
-            confirmButtonColor: COLOR_BOTON,
-          });
+          await mostrarExito({ title: "Listo", text: mensajeAltaMasiva(resumen) });
           return true;
         }
 

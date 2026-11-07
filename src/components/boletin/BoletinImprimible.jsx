@@ -9,6 +9,7 @@ import {
   VALORACIONES_DESARROLLO,
 } from "../../utils/boletines/generacionBoletin";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
+import BarraCertificado from "../certificadosImpresion/BarraCertificado";
 
 // Fondos grises derivados del color secundario de la identidad institucional,
 // en vez de un gris fijo: así se ven coherentes con el resto del boletín sin
@@ -41,15 +42,9 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
 
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
-      <div className="fixed left-4 top-4 no-print z-50 md:left-6 md:top-6">
-        <button
-          onClick={onVolver}
-          className="bg-slate-800 text-white px-4 py-2.5 rounded-full text-sm font-bold shadow-xl hover:bg-slate-900 transition"
-          title="Atras"
-        >
-          ← Atrás
-        </button>
-      </div>
+      {/* "Atrás" va arriba de la hoja, como en los certificados: fijo en la
+          esquina de la pantalla quedaba encima del menú lateral (2026-11-07). */}
+      <BarraCertificado onBack={onVolver} />
 
       <DocumentoImprimible
         tipo="boletin"

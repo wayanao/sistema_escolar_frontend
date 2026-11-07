@@ -4,6 +4,7 @@ import {
     actualizarEstadoTenant,
     obtenerAuditoriaEstadoTenant,
 } from "../../services/dashboardsApi";
+import { mostrarExito } from "../ventanaExito";
 import {
     construirPayloadEstado,
     estadoManualDe,
@@ -50,12 +51,9 @@ const useEstadoTenant = (reemplazarTenant) => {
                     construirPayloadEstado(estado, result.value),
                 );
                 reemplazarTenant(tenant.id, actualizado);
-                Swal.fire({
-                    icon: "success",
+                mostrarExito({
                     title: "Estado actualizado",
                     text: `${tenant.nombre} quedó en ${estado}.`,
-                    timer: 1400,
-                    showConfirmButton: false,
                 });
             } catch (err) {
                 console.error("Error actualizando tenant", err);

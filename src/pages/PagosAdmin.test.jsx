@@ -30,6 +30,13 @@ vi.mock("../services/pagosApi", () => ({
 vi.mock("sweetalert2", () => ({
   default: {
     fire: vi.fn(),
+    // La espera del pago pasa a éxito en la misma ventana y la cierra un
+    // reloj (ventanaExito.js).
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
   },
 }));
 

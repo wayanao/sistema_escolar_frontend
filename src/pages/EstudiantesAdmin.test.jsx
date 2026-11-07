@@ -15,6 +15,18 @@ const { apiMock, navigateMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../utils/api", () => ({ default: apiMock }));
+// La tarjeta de espera mientras carga el resumen (ventanaExito.js): aquí no
+// se pinta, solo se simula.
+vi.mock("sweetalert2", () => ({
+  default: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
+}));
 vi.mock("react-router-dom", async (importOriginal) => ({
   ...(await importOriginal()),
   useNavigate: () => navigateMock,

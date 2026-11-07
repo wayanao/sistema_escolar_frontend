@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CambiarPassword from "./CambiarPassword";
+import { opcionesVentanaExito } from "../hooks/ventanaExito";
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -118,12 +119,9 @@ describe("CambiarPassword", () => {
       tenant: { id: 5 },
       debe_cambiar_password: false,
     });
-    expect(mocks.fire).toHaveBeenCalledWith({
-      icon: "success",
-      title: "Password actualizada",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+    expect(mocks.fire).toHaveBeenCalledWith(
+      opcionesVentanaExito({ title: "Password actualizada" }),
+    );
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith("/dashboard-admin", { replace: true });
     });

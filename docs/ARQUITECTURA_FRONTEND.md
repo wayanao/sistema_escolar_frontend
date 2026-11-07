@@ -687,6 +687,21 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   `src/constants/colores.js`), la Malla Curricular (`mallaCurricular.css`) y
   la tarjeta morada del dashboard del admin. Un morado escrito a mano (`#...`,
   `fuchsia-*`, `indigo-*`) no sigue la paleta.
+- Ventana de éxito común (2026-11-07): `mostrarExito` en
+  `src/hooks/ventanaExito.js`, con el aspecto de la tarjeta «Guardando el
+  grupo…» del Boletín Final (elegida por el usuario). Sigue siendo SweetAlert
+  y recibe sus opciones de siempre (`title`, `text`, `timer`, `didClose`…).
+  Todas se cierran solas, sin botón, a los `TIEMPO_PARA_LEER` (1,2 s; solo
+  la de entrar pasa su `timer`, 1 s). La barrita que se llena es propia (pie de la
+  ventana, `--duracion`), no la de SweetAlert, que se vacía. El aspecto vive
+  en `.ventana-exito` de `src/index.css`, con los morados de las variables.
+  La usan todas las ventanas de éxito de la app: una nueva va con
+  `mostrarExito`, no con `Swal.fire({ icon: "success" })`.
+  `mostrarEspera` (mismo archivo) abre la tarjeta de espera al oprimir
+  guardar (círculo que gira y barrita que se va llenando) y su `exito()` la
+  convierte en la de éxito sin cerrarla (`Swal.update`, y un reloj que la
+  cierra): una sola espera, en vez de la del botón y después la ventana. Lo
+  usa el registro de pagos.
 - `MenuLateralView` (2026-11-04) es el menú de admin y profesor: abierto en
   PC, riel en tablet o al encoger, y en celular un menú que se desliza (admin)
   o una barra abajo con «Más» (profesor). Los grupos del admin se abren bajo

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { MORADO_BOTON } from "../../constants/colores";
 import { guardarAsistenciaProfesor } from "../../services/asistenciaApi";
+import { mostrarEspera } from "../ventanaExito";
 import {
   construirPayloadAsistencia,
   crearMarcacionTodosPresentes,
@@ -138,37 +139,6 @@ export default function useComandosAsistenciaProfesor({
       }
       if (!hayCambiosSinGuardar) return;
 
-      const confirmacion = await Swal.fire({
-        icon: "question",
-        title: asistenciaDelDiaTomada ? "Guardar cambios de asistencia" : "Guardar asistencia",
-        html: `
-          <p class="mb-4 text-sm text-slate-600">Revisa el resumen antes de confirmar.</p>
-          <div class="grid grid-cols-2 gap-3 text-center">
-            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-              <strong class="block text-2xl text-emerald-700">${resumenAsistencia.presentes}</strong>
-              <span class="text-xs font-bold uppercase tracking-wide text-emerald-700">Presentes</span>
-            </div>
-            <div class="rounded-lg border border-red-200 bg-red-50 p-3">
-              <strong class="block text-2xl text-red-700">${resumenAsistencia.ausentes}</strong>
-              <span class="text-xs font-bold uppercase tracking-wide text-red-700">Ausentes</span>
-            </div>
-          </div>
-          <p class="mt-4 text-sm text-slate-600">
-            ${asistenciaDelDiaTomada
-              ? "Se reemplazará la marcación guardada de los estudiantes modificados."
-              : "La asistencia quedará registrada para la fecha seleccionada en el dashboard."}
-          </p>
-        `,
-        showCancelButton: true,
-        confirmButtonText: asistenciaDelDiaTomada ? "Sí, guardar cambios" : "Sí, guardar asistencia",
-        cancelButtonText: "Seguir revisando",
-        confirmButtonColor: MORADO_BOTON,
-        cancelButtonColor: "#64748b",
-        reverseButtons: true,
-        focusCancel: true,
-      });
-      if (!confirmacion.isConfirmed) return;
-
       const data = construirPayloadAsistencia({
         estudiantes,
         asistencia,
@@ -178,15 +148,14 @@ export default function useComandosAsistenciaProfesor({
       });
 
       setGuardando(true);
+      // Una sola espera (pedido del usuario el 2026-11-07): sin ventana de
+      // confirmar, la tarjeta sale al oprimir y pasa a éxito sin cerrarse. El
+      // éxito dice cuántos presentes y ausentes quedaron, y la asistencia se
+      // puede corregir y volver a guardar.
+      const espera = mostrarEspera({
+        title: asistenciaDelDiaTomada ? "Actualizando asistencia…" : "Guardando asistencia…",
+      });
       try {
-        Swal.fire({
-          title: asistenciaDelDiaTomada ? "Actualizando asistencia" : "Guardando asistencia",
-          text: "Espera un momento mientras confirmamos el registro.",
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showConfirmButton: false,
-          didOpen: () => Swal.showLoading(),
-        });
         const respuesta = await guardarAsistenciaProfesor(data);
         if (respuesta?.error) {
           await Swal.fire({
@@ -199,14 +168,17 @@ export default function useComandosAsistenciaProfesor({
           return;
         }
 
-        await recargarHistorial();
-        await Swal.fire({
-          icon: "success",
+        // El éxito sale enseguida; el historial se recarga mientras tanto.
+        espera.exito({
           title: asistenciaDelDiaTomada ? "Asistencia actualizada" : "Asistencia guardada",
           text: `${resumenAsistencia.presentes} presentes y ${resumenAsistencia.ausentes} ausentes quedaron registrados correctamente.`,
-          confirmButtonText: "Entendido",
-          confirmButtonColor: MORADO_BOTON,
         });
+        try {
+          await recargarHistorial();
+        } catch (errorRecarga) {
+          // Ya quedó guardada: un fallo al recargar no es un fallo al guardar.
+          console.error("Error recargando el historial de asistencia", errorRecarga);
+        }
       } catch (error) {
         console.error("Error guardando asistencia", error);
         const detalle = error.response?.data?.detail;

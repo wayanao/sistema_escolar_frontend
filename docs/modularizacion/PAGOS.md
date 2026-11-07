@@ -340,6 +340,12 @@ hooks de `src/hooks/pagos/`:
   conserva los payloads de la capa 1 y coordina las cuatro recargas posteriores.
 - `useAnulacionPago.js`: confirma el motivo, anula el pago y coordina las mismas
   recargas de historial, ventas, deudas y cuotas vencidas.
+- Desde el 2026-11-07 los dos avisan el éxito con la ventana común de
+  `src/hooks/ventanaExito.js`, que se cierra sola a los 1,2 s. El registro,
+  además, abre la tarjeta de espera apenas se oprime (`mostrarEspera`:
+  «Registrando el pago…» con la barrita llenándose) y, cuando el pago queda,
+  la convierte en la de éxito sin cerrarla, con la barrita siguiendo desde
+  donde iba; si falla, la ventana de error ocupa su lugar.
 
 `PagosAdmin.jsx` dejó de duplicar esos estados, cálculos derivados, validaciones,
 confirmaciones y llamadas de comandos. Conserva la composición de ruta, búsqueda

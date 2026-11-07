@@ -15,6 +15,7 @@ import {
   obtenerClaveIdentidadPorRol,
   obtenerClavesIdentidadAlternas,
 } from "../../utils/autenticacion/sesion";
+import { mostrarExito } from "../ventanaExito";
 
 function leerUltimoCodigoColegio() {
   return normalizarCodigoColegioRecordado(
@@ -89,12 +90,10 @@ export function useComandoLogin() {
       setLoginSucceeded(true);
       setIsTakingLong(false);
 
-      await Swal.fire({
-        icon: "success",
+      await mostrarExito({
         title: "¡Éxito!",
         text: `Bienvenido ${capitalizarNombreVisible(data.nombre)}`,
         timer: 1000,
-        showConfirmButton: false,
       });
 
       window.location.href = obtenerRutaDespuesDeLogin(data);

@@ -247,12 +247,13 @@ de arriba (celular).
 
 - Ahora va arriba de la hoja, dentro de la página, alineado con el borde
   izquierdo del papel: `BarraCertificado.jsx`, usado por todas las vistas de
-  certificados. A su derecha van las opciones de impresión.
+  certificados y, desde el 2026-11-07, por el boletín del admin. A su derecha
+  van las opciones de impresión.
 - Al bajar por un documento largo, el botón ya no acompaña: hay que subir.
-- **Otros nueve impresos** tienen el mismo botón fijo en la esquina y no se
-  tocaron: boletín, cartera vencida, entrevista de admisión, observaciones,
-  volante de venta, listas de seguimiento, malla curricular, observador y
-  comprobante de pago.
+- **Otros ocho impresos** tienen el mismo botón fijo en la esquina y no se
+  tocaron: cartera vencida, entrevista de admisión, observaciones, volante de
+  venta, listas de seguimiento, malla curricular, observador y comprobante de
+  pago. El boletín estaba en esta lista; el usuario lo pidió el 2026-11-07.
 - Prueba: `VistasImprimibles.test.jsx` revisa que el botón no sea fijo.
 
 ## Preguntas abiertas

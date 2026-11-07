@@ -6,11 +6,13 @@ const {
     eliminarTipoEvaluacionPlanillaMock,
     guardarPorcentajeTipoMock,
     swalFireMock,
+    swalUpdateMock,
 } = vi.hoisted(() => ({
     guardarNotaPlanillaMock: vi.fn(),
     eliminarTipoEvaluacionPlanillaMock: vi.fn(),
     guardarPorcentajeTipoMock: vi.fn(),
     swalFireMock: vi.fn(),
+    swalUpdateMock: vi.fn(),
 }));
 
 vi.mock("../../services/planillaApi", () => ({
@@ -19,13 +21,21 @@ vi.mock("../../services/planillaApi", () => ({
     guardarPorcentajeTipo: guardarPorcentajeTipoMock,
 }));
 
+// Agregar y eliminar tipos usan la espera que pasa a éxito en la misma ventana
+// (ventanaExito.js): por eso hacen falta más partes de SweetAlert.
 vi.mock("sweetalert2", () => ({
     default: {
         fire: swalFireMock,
+        update: swalUpdateMock,
+        getFooter: vi.fn(),
+        getPopup: vi.fn(),
+        isVisible: vi.fn(),
+        close: vi.fn(),
     },
 }));
 
 import useComandosPlanillaProfesor from "./useComandosPlanillaProfesor";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../ventanaExito";
 
 const ESTUDIANTES = [
     { estudiante_id: 501, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4 } },
@@ -293,8 +303,11 @@ describe("useComandosPlanillaProfesor", () => {
         });
         expect(result.current.nuevoTipo).toBe("");
         expect(params.cargarPlanilla).toHaveBeenCalledTimes(1);
-        expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({
-            icon: "success",
+        // Una sola espera: la tarjeta sale al oprimir y pasa a éxito sin cerrarse.
+        expect(swalFireMock).toHaveBeenCalledWith(
+            opcionesVentanaEspera({ title: "Agregando el tipo de evaluación…" }),
+        );
+        expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera({
             title: "Guardado",
             text: 'El tipo de evaluación "Cuaderno" fue agregado correctamente.',
         }));
@@ -327,6 +340,15 @@ describe("useComandosPlanillaProfesor", () => {
         expect(actualizado.find((e) => e.estudiante_id === 502).notas).toEqual({ quiz: 2 });
         expect(result.current.tipoEliminar).toBe("");
         expect(params.cargarPlanilla).toHaveBeenCalledTimes(1);
+        // La confirmación se queda; después, una sola espera que pasa a éxito.
+        expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({ title: "¿Estás seguro?" }));
+        expect(swalFireMock).toHaveBeenLastCalledWith(
+            opcionesVentanaEspera({ title: "Eliminando el tipo de evaluación…" }),
+        );
+        expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera({
+            title: "Eliminado",
+            text: "El tipo de evaluación fue eliminado",
+        }));
     });
 
     it("bloquea una segunda acción de tipo mientras la primera sigue en curso", async () => {
@@ -464,7 +486,8 @@ describe("useComandosPlanillaProfesor", () => {
                 porcentaje: 40,
             });
             expect(result.current.nuevoPorcentaje).toBe("");
-            expect(swalFireMock).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+            // El éxito sale en la misma tarjeta de espera (ventanaExito.js).
+            expect(swalUpdateMock).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
         });
 
         it.each([

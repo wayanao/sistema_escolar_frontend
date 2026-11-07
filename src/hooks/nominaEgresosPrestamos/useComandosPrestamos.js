@@ -17,7 +17,8 @@ import {
     obtenerNombreProfesor,
     validarPrestamo,
 } from "../../utils/nominaEgresosPrestamos/prestamos";
-import { avisarYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { avisarExitoYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { mostrarExito } from "../ventanaExito";
 
 const FORMULARIO_VACIO = {
     profesorId: "",
@@ -101,8 +102,7 @@ const useComandosPrestamos = ({
             setFormulario(FORMULARIO_VACIO);
             setPrestamoResaltadoId(prestamoId);
             const historial = mostrarHistorialDe(profesorRegistrado);
-            const avisoCerrado = avisarYEsperarCierre({
-                icon: "success",
+            const avisoCerrado = avisarExitoYEsperarCierre({
                 title: "Préstamo registrado",
                 text: mensajeExitoPrestamo(datosPrestamo),
             });
@@ -175,8 +175,7 @@ const useComandosPrestamos = ({
             setSaldandoId(prestamo.id);
             await actualizarEstadoPrestamo(prestamo.id, ESTADO_PRESTAMO_PAGADO);
             setPrestamoResaltadoId(prestamo.id);
-            Swal.fire({
-                icon: "success",
+            mostrarExito({
                 title: "Préstamo saldado",
                 text: mensajeExitoSaldar(prestamo),
             });

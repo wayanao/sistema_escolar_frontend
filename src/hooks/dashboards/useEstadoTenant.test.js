@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import useEstadoTenant from "./useEstadoTenant";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const { serviceMock, swalFireMock } = vi.hoisted(() => ({
     serviceMock: {
@@ -79,13 +80,7 @@ describe("useEstadoTenant", () => {
             motivo: "Pago vencido",
         });
         expect(reemplazarTenant).toHaveBeenCalledWith(1, actualizado);
-        expect(swalFireMock).toHaveBeenLastCalledWith({
-            icon: "success",
-            title: "Estado actualizado",
-            text: "Colegio Uno quedó en suspendido.",
-            timer: 1400,
-            showConfirmButton: false,
-        });
+        expect(swalFireMock).toHaveBeenLastCalledWith(opcionesVentanaExito({ title: "Estado actualizado", text: "Colegio Uno quedó en suspendido." }));
         await waitFor(() => expect(result.current.savingId).toBeNull());
     });
 

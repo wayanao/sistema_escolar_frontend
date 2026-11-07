@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Swal from "sweetalert2";
 import pagosApi from "../../services/pagosApi";
 import useAnulacionPago from "./useAnulacionPago";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 vi.mock("../../services/pagosApi", () => ({
   default: { anularPago: vi.fn() },
@@ -54,10 +55,12 @@ describe("useAnulacionPago", () => {
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
     // Anular un adelanto libera esos meses, que se ven en lo que debe.
     expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
+    // La ventana de éxito común (tarjeta blanca), con botón «Entendido».
     expect(Swal.fire).toHaveBeenLastCalledWith(
-      "Pago anulado",
-      "La deuda y los reportes se actualizarán con este cambio.",
-      "success"
+      opcionesVentanaExito({
+        title: "Pago anulado",
+        text: "La deuda y los reportes se actualizarán con este cambio.",
+      }),
     );
   });
 

@@ -6,6 +6,7 @@ import {
   traerPlaneadorAnioAnterior,
 } from "../../services/mallaCurricularApi";
 import { puedeTraerPlaneadorAnterior } from "../../utils/mallaCurricular/planeadorAnual";
+import { mostrarExito } from "../ventanaExito";
 import { mensajeDeErrorAnio } from "../../utils/anioLectivo";
 
 /**
@@ -59,12 +60,9 @@ export function usePlaneadorAnioAnterior({ asignacionId }) {
       const respuesta = await traerPlaneadorAnioAnterior(asignacionId);
       setPuedeTraer(false);
       await recargarPlaneadores();
-      await Swal.fire({
-        icon: "success",
+      await mostrarExito({
         title: "Planeador traído",
         text: respuesta?.message || "Se trajo el planeador del año pasado.",
-        confirmButtonText: "Entendido",
-        confirmButtonColor: MORADO_BOTON,
       });
     } catch (error) {
       console.error("Error trayendo el planeador del año pasado", error);

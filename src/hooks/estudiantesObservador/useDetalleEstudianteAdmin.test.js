@@ -7,13 +7,25 @@ const {
   obtenerDetalleMock,
   obtenerDeudasMock,
   obtenerEstudianteMock,
+  sweet,
 } = vi.hoisted(() => ({
   obtenerAdmisionMock: vi.fn(),
   obtenerCuestionarioMock: vi.fn(),
   obtenerDetalleMock: vi.fn(),
   obtenerDeudasMock: vi.fn(),
   obtenerEstudianteMock: vi.fn(),
+  sweet: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
 }));
+
+// La tarjeta de espera mientras carga la ficha (ventanaExito.js).
+vi.mock("sweetalert2", () => ({ default: sweet }));
 
 vi.mock("../../services/estudiantesObservadorApi", () => ({
   obtenerAdmisionDeEstudiante: obtenerAdmisionMock,
@@ -26,6 +38,7 @@ vi.mock("../../services/admisionesApi", () => ({
 }));
 
 import useDetalleEstudianteAdmin from "./useDetalleEstudianteAdmin";
+import { opcionesVentanaEspera } from "../ventanaExito";
 
 function crearPendiente() {
   let resolve;
@@ -41,6 +54,76 @@ beforeEach(() => {
 });
 
 describe("useDetalleEstudianteAdmin", () => {
+  describe("tarjeta de espera mientras carga (2026-11-07)", () => {
+    const tarjeta = { la: "tarjeta" };
+
+    beforeEach(() => {
+      sweet.getPopup.mockReturnValue(tarjeta);
+      sweet.isVisible.mockReturnValue(true);
+      obtenerDetalleMock.mockResolvedValue({});
+      obtenerDeudasMock.mockResolvedValue({});
+    });
+
+    it("sale con el nombre del estudiante, se puede cerrar y se quita al llegar los datos", async () => {
+      const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+      await act(async () => {
+        await result.current.verDetalles({ id: 11, nombre: "Ana", apellido: "Rojas" });
+      });
+
+      expect(sweet.fire).toHaveBeenCalledWith(
+        opcionesVentanaEspera({ title: "Cargando el resumen…", text: "Rojas Ana", cancelable: true }),
+      );
+      expect(sweet.close).toHaveBeenCalledTimes(1);
+      expect(result.current.loadingDetalles).toBe(false);
+      expect(result.current.selectedEstudiante).toMatchObject({ id: 11 });
+    });
+
+    it("si la cierran con Esc, la ficha no se abre aunque lleguen los datos", async () => {
+      let cerrarConEsc;
+      sweet.fire.mockReturnValueOnce(new Promise((resolve) => {
+        cerrarConEsc = () => resolve({ isDismissed: true, dismiss: "esc" });
+      }));
+      const detalle = crearPendiente();
+      const deudas = crearPendiente();
+      obtenerDetalleMock.mockImplementationOnce(() => detalle.promise);
+      obtenerDeudasMock.mockImplementationOnce(() => deudas.promise);
+      const { result } = renderHook(() => useDetalleEstudianteAdmin());
+
+      act(() => {
+        void result.current.verDetalles({ id: 11, nombre: "Ana" });
+      });
+      expect(result.current.selectedEstudiante).toMatchObject({ id: 11 });
+
+      await act(async () => {
+        cerrarConEsc();
+      });
+      await waitFor(() => expect(result.current.selectedEstudiante).toBeNull());
+
+      await act(async () => {
+        detalle.resolve({ promedio_general: 4 });
+        deudas.resolve({});
+        await Promise.all([detalle.promise, deudas.promise]);
+      });
+      expect(result.current.selectedEstudiante).toBeNull();
+      expect(result.current.detallesEstudiante).toBeNull();
+    });
+
+    it("si se sale de la página mientras carga, la tarjeta se quita", () => {
+      obtenerDetalleMock.mockImplementationOnce(() => crearPendiente().promise);
+      obtenerDeudasMock.mockImplementationOnce(() => crearPendiente().promise);
+      const { result, unmount } = renderHook(() => useDetalleEstudianteAdmin());
+
+      act(() => {
+        void result.current.verDetalles({ id: 11, nombre: "Ana" });
+      });
+      expect(sweet.close).not.toHaveBeenCalled();
+
+      unmount();
+      expect(sweet.close).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("conserva el detalle cuando solo responde el endpoint financiero", async () => {
     obtenerDetalleMock.mockRejectedValue(new Error("Sin resumen"));
     obtenerDeudasMock.mockResolvedValue({

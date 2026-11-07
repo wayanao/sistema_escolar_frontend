@@ -74,7 +74,6 @@ function Asistencia() {
     hayCambiosSinGuardar,
     puedeInteractuar,
     puedeGuardar,
-    guardando,
     marcar,
     marcarTodosPresentes,
     restaurarSeleccion,
@@ -153,7 +152,6 @@ function Asistencia() {
         hayCambiosSinGuardar={hayCambiosSinGuardar}
         asistenciaDelDiaTomada={asistenciaDelDiaTomada}
         puedeGuardar={puedeGuardar}
-        guardando={guardando}
         onGuardar={guardarAsistencia}
       />
     </div>

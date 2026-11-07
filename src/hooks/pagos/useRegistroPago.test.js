@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Swal from "sweetalert2";
 import pagosApi from "../../services/pagosApi";
 import useRegistroPago from "./useRegistroPago";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../ventanaExito";
 
 vi.mock("../../services/pagosApi", () => ({
   default: {
@@ -11,9 +12,23 @@ vi.mock("../../services/pagosApi", () => ({
   },
 }));
 
+// La espera del pago pasa a éxito en la misma ventana y la cierra un reloj
+// (ventanaExito.js): por eso hacen falta más partes de SweetAlert.
 vi.mock("sweetalert2", () => ({
-  default: { fire: vi.fn() },
+  default: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
 }));
+
+const ESPERA_PAGO = {
+  title: "Registrando el pago…",
+  text: "No cierres ni cambies de página hasta que termine.",
+};
 
 function crearPago(sobrescrituras = {}) {
   return {
@@ -61,6 +76,7 @@ describe("useRegistroPago", () => {
     pagosApi.registrarPago.mockReset();
     pagosApi.registrarPagoAdelantado.mockReset();
     Swal.fire.mockReset();
+    Swal.update.mockReset();
   });
 
   it("rechaza métodos cuya suma no coincide con el total", async () => {
@@ -105,6 +121,41 @@ describe("useRegistroPago", () => {
     expect(props.cargarOpcionesVencidas).toHaveBeenCalledWith(7);
     // Los meses para adelantar se ven en lo que debe: se vuelven a pedir.
     expect(props.cargarOpcionesAdelanto).toHaveBeenCalledWith(7);
+    // Una sola espera: la tarjeta de espera pasa a éxito sin cerrarse, con
+    // «Entendido» y los meses a los que se aplicó.
+    expect(Swal.fire).toHaveBeenLastCalledWith(opcionesVentanaEspera(ESPERA_PAGO));
+    expect(Swal.update).toHaveBeenCalledWith(
+      opcionesExitoTrasEspera({ title: "¡Éxito!", text: "Pago aplicado a Junio de 2026." }),
+    );
+  });
+
+  it("la tarjeta de espera sale apenas se confirma, antes de que responda el servidor", async () => {
+    const props = crearProps();
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+    let responder;
+    pagosApi.registrarPago.mockReturnValue(new Promise((resolve) => { responder = resolve; }));
+    const { result } = renderHook(() => useRegistroPago(props));
+
+    let registro;
+    await act(async () => {
+      registro = result.current.registrarPago({ preventDefault: vi.fn() });
+      // Pasa la confirmación: el pago queda esperando al servidor.
+      await vi.waitFor(() => expect(pagosApi.registrarPago).toHaveBeenCalled());
+    });
+
+    expect(Swal.fire).toHaveBeenLastCalledWith(opcionesVentanaEspera(ESPERA_PAGO));
+    expect(Swal.update).not.toHaveBeenCalled();
+    expect(result.current.registrandoPago).toBe(true);
+
+    await act(async () => {
+      responder({ pago_id: 42 });
+      await registro;
+    });
+
+    expect(Swal.update).toHaveBeenCalledWith(
+      opcionesExitoTrasEspera({ title: "¡Éxito!", text: "Pago aplicado a Junio de 2026." }),
+    );
+    expect(result.current.registrandoPago).toBe(false);
   });
 
   it("avisa qué pagos creó, para mostrarlos en el historial", async () => {
@@ -132,7 +183,10 @@ describe("useRegistroPago", () => {
 
     await act(async () => result.current.registrarPago({ preventDefault: vi.fn() }));
 
-    expect(Swal.fire).toHaveBeenCalledWith("Error", "Pago duplicado", "error");
+    // Primero la tarjeta de espera; el error ocupa su lugar y nunca pasa a éxito.
+    expect(Swal.fire).toHaveBeenNthCalledWith(1, opcionesVentanaEspera(ESPERA_PAGO));
+    expect(Swal.fire).toHaveBeenLastCalledWith("Error", "Pago duplicado", "error");
+    expect(Swal.update).not.toHaveBeenCalled();
     expect(result.current.registrandoPago).toBe(false);
     consoleError.mockRestore();
   });

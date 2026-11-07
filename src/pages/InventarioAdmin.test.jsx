@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import InventarioAdmin from "./InventarioAdmin";
+import { opcionesVentanaExito } from "../hooks/ventanaExito";
 
 const { apiMock, swalFireMock } = vi.hoisted(() => ({
     apiMock: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn() },
@@ -110,7 +111,7 @@ describe("InventarioAdmin", () => {
                 estado: "activo",
             });
         });
-        expect(swalFireMock).toHaveBeenCalledWith("Éxito", "Producto creado", "success");
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Producto creado" }));
         await waitFor(() => {
             expect(
                 screen.queryByRole("button", { name: "Guardar Producto" })
@@ -139,11 +140,7 @@ describe("InventarioAdmin", () => {
                 estado: "activo",
             });
         });
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Éxito",
-            "Producto actualizado",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Producto actualizado" }));
     });
 
     it("cambia el estado de un producto y lo retira de la lista filtrada sin recargar", async () => {
@@ -165,10 +162,6 @@ describe("InventarioAdmin", () => {
         });
         expect(screen.getByText("Cuaderno")).toBeInTheDocument();
         expect(apiMock.get).toHaveBeenCalledTimes(1);
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Listo",
-            "Producto inactivo",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Listo", text: "Producto inactivo" }));
     });
 });

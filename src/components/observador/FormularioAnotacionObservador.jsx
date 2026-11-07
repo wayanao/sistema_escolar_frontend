@@ -66,7 +66,9 @@ export default function FormularioAnotacionObservador({
           disabled={guardando || !puedeGuardar}
           className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-800 disabled:bg-slate-300"
         >
-          {guardando ? "Guardando..." : "Guardar"}
+          {/* La espera va en la tarjeta que sale al oprimirlo (una sola
+              espera, 2026-11-07); mientras guarda, el botón solo se bloquea. */}
+          Guardar
         </button>
         <button
           type="button"

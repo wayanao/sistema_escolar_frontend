@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCambiarPassword } from "./useCambiarPassword";
+import { opcionesVentanaExito } from "../ventanaExito";
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -158,12 +159,9 @@ describe("useCambiarPassword", () => {
       tenant: { id: 5 },
       debe_cambiar_password: false,
     });
-    expect(mocks.fire).toHaveBeenCalledWith({
-      icon: "success",
-      title: "Password actualizada",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+    expect(mocks.fire).toHaveBeenCalledWith(
+      opcionesVentanaExito({ title: "Password actualizada" }),
+    );
     expect(result.current.saving).toBe(false);
     expect(mocks.navigate).not.toHaveBeenCalled();
 

@@ -17,6 +17,7 @@ import {
   obtenerTextoLimpio,
 } from "../../utils/boletines/ingresoBoletin";
 import useBorradorBoletinProfesor from "./useBorradorBoletinProfesor";
+import { mostrarExito } from "../ventanaExito";
 
 export default function useComandosIngresoBoletinProfesor({
   asignacionId,
@@ -244,12 +245,9 @@ export default function useComandosIngresoBoletinProfesor({
           }),
         },
       }));
-      Swal.fire({
-        icon: "success",
+      mostrarExito({
         title: "Boletín guardado",
         text: "Datos enviados al Admin correctamente.",
-        timer: 2000,
-        showConfirmButton: false,
       });
     } catch (error) {
       Swal.fire(
@@ -324,12 +322,9 @@ export default function useComandosIngresoBoletinProfesor({
       }
 
       marcarGuardados();
-      Swal.fire({
-        icon: "success",
+      mostrarExito({
         title: "Grupo guardado",
         text: `Se guardaron ${guardadosIds.length} estudiante(s).`,
-        timer: 2200,
-        showConfirmButton: false,
       });
     } catch (error) {
       console.error(error);

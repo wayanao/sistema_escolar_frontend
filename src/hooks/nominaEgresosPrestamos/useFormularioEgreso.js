@@ -12,7 +12,7 @@ import {
     puedeEditarEgreso,
     validarEgreso,
 } from "../../utils/nominaEgresosPrestamos/egresos";
-import { avisarYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
+import { avisarExitoYEsperarCierre, TEXTO_CON_SALTOS } from "./ventanasAviso";
 
 const FORMULARIO_VACIO = {
     concepto: "",
@@ -106,8 +106,7 @@ const useFormularioEgreso = ({ recargarRangoVigente, mostrarRangoDeUnDia, irAlHi
 
             limpiarFormulario();
             setEgresoResaltadoId(egresoId);
-            const avisoCerrado = avisarYEsperarCierre({
-                icon: "success",
+            const avisoCerrado = avisarExitoYEsperarCierre({
                 title: editando ? "Egreso actualizado" : "Egreso registrado",
                 text: mensajeExitoEgreso(egreso, editando),
             });

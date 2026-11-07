@@ -28,7 +28,9 @@ export default function DetalleEstudianteAdmin({
   periodoResumen = "1",
   onCambiarPeriodoResumen,
 }) {
-  if (!estudiante) return null;
+  // Mientras carga, la espera va en la tarjeta con la barrita (2026-11-07):
+  // la ficha se pinta cuando ya hay datos.
+  if (!estudiante || cargando) return null;
 
   const hayDeudasAnteriores = (detalles?.deuda_anios_anteriores || []).some(
     (item) => Number(item?.total_deuda || 0) > 0,
@@ -56,11 +58,7 @@ export default function DetalleEstudianteAdmin({
         </div>
 
         <div className="p-3 sm:p-6 overflow-y-auto flex-1">
-          {cargando ? (
-            <div className="flex justify-center p-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
-            </div>
-          ) : detalles ? (
+          {detalles ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <RendimientoEstudianteAdmin
                 detalles={detalles}

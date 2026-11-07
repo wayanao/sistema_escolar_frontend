@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import VentasAdmin from "./VentasAdmin";
+import { opcionesVentanaExito } from "../hooks/ventanaExito";
 
 const { apiMock, swalFireMock } = vi.hoisted(() => ({
     apiMock: { get: vi.fn(), post: vi.fn() },
@@ -146,11 +147,7 @@ describe("VentasAdmin", () => {
                 ],
             });
         });
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Éxito",
-            "Productos cargados a la cuenta del estudiante exitosamente",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Éxito", text: "Productos cargados a la cuenta del estudiante exitosamente" }));
         await waitFor(() => {
             expect(apiMock.get).toHaveBeenCalledTimes(6);
         });
@@ -180,11 +177,7 @@ describe("VentasAdmin", () => {
                 motivo: "Cargo equivocado",
             });
         });
-        expect(swalFireMock).toHaveBeenCalledWith(
-            "Venta anulada",
-            "El stock, la cartera y los pagos asociados fueron actualizados.",
-            "success"
-        );
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaExito({ title: "Venta anulada", text: "El stock, la cartera y los pagos asociados fueron actualizados." }));
     });
 
     it("presenta el volante imprimible de la última venta con el documento compartido", async () => {
