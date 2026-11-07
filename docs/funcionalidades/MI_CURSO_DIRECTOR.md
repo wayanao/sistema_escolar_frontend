@@ -2,8 +2,8 @@
 
 ## Control
 
-- Estado: **paso 2 construido el 2026-11-07, sin commit.** Falta el paso 4
-  (después del 3 del backend).
+- Estado: **pasos 2 y 4 construidos el 2026-11-07.** El paso 2 tiene commit;
+  el 4, no todavía.
 - El documento principal (datos, permisos, migración y preguntas abiertas) es
   `sistema_escolar_api/docs/funcionalidades/MI_CURSO_DIRECTOR.md`.
 - Tipo: función nueva de producto en la pantalla Boletín Final del profesor
@@ -50,6 +50,15 @@ el boletín.
   Colegio Demo (Cursos → Editar → Director de grupo): hoy ninguno lo tiene.
 
 ## Paso 4 — Observación general en cada fila, e impreso
+
+### Avance del paso 4 (2026-11-07)
+
+- Construido: caja por estudiante (debajo de su fila en PC, al final de la
+  tarjeta en celular), contador de 500, un botón «Guardar observación de …»
+  que, ya guardada, pasa a gris «Observación guardada», y borrador automático
+  con aviso al recuperar. El impreso del admin sale con la guardada y se puede
+  retocar solo para esa impresión (decisión del usuario: «Igual que hoy»).
+- Probado con pruebas y en el navegador con servidor simulado.
 
 - En cada fila (o tarjeta), la caja "Observación general" con su botón
   «Guardar observación de …», y el mismo borrador automático del boletín

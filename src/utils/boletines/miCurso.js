@@ -6,6 +6,7 @@
  * definitiva con respaldo en la planilla); aquí solo se normaliza y se decide
  * cómo se ve cada dato.
  */
+import { PREFIJO_BORRADOR_BOLETIN } from "../../constants/borradores";
 import { capitalizarNombreVisible } from "../nombres";
 import { valoracionDesdePromedio } from "../valoracionesDesarrollo";
 
@@ -53,6 +54,7 @@ export const normalizarMiCurso = (data) => {
       periodo: Number(estudiante.inasistencias?.periodo) || 0,
       anio: Number(estudiante.inasistencias?.anio) || 0,
     },
+    observacionGeneral: String(estudiante.observacion_general ?? ""),
   }));
 
   return {
@@ -105,3 +107,53 @@ export const materiasPendientes = (materias) =>
 /** «Inglés: faltan 12 por guardar», «Arte: falta 1 por guardar». */
 export const textoMateriaPendiente = (materia) =>
   `${materia.materia}: ${materia.faltan === 1 ? "falta 1" : `faltan ${materia.faltan}`} por guardar`;
+
+// ---------------------------------------------------------------------------
+// Observación general del boletín (paso 4)
+// ---------------------------------------------------------------------------
+
+/** El mismo límite del servidor y de la tabla: los tres renglones del impreso. */
+export const LARGO_MAXIMO_OBSERVACION = 500;
+
+/** Como la guarda el servidor: fin de línea de Windows a uno solo, sin bordes. */
+export const limpiarObservacion = (texto) =>
+  String(texto ?? "").replace(/\r\n/g, "\n").trim();
+
+/**
+ * Borrador de las observaciones de un curso y periodo. Usa el prefijo de los
+ * borradores del boletín, así "Cerrar sesión" también lo borra.
+ */
+export const crearClaveBorradorObservaciones = ({ tenant, profesorId, cursoId, periodo }) => {
+  if (profesorId == null || profesorId === "" || cursoId == null || !periodo) return null;
+  return `${PREFIJO_BORRADOR_BOLETIN}observaciones:${tenant ?? ""}:${profesorId}:${cursoId}:${periodo}`;
+};
+
+/** Solo las observaciones que cambiaron frente a lo guardado; `null` si ninguna. */
+export const construirBorradorObservaciones = (textos, guardadas, actualizado) => {
+  const cambiadas = Object.fromEntries(
+    Object.entries(textos || {}).filter(
+      ([estudianteId, texto]) => texto !== (guardadas?.[estudianteId] ?? ""),
+    ),
+  );
+  return Object.keys(cambiadas).length > 0 ? { actualizado, textos: cambiadas } : null;
+};
+
+/**
+ * Pone el borrador encima de lo guardado, solo para estudiantes que siguen en
+ * el curso. Devuelve los textos y cuántos se recuperaron.
+ */
+export const aplicarBorradorObservaciones = (guardadas, borrador) => {
+  const textos = { ...(guardadas || {}) };
+  let recuperadas = 0;
+  const delBorrador = borrador?.textos;
+  if (delBorrador && typeof delBorrador === "object") {
+    Object.entries(delBorrador).forEach(([estudianteId, texto]) => {
+      if (!(estudianteId in textos) || typeof texto !== "string") return;
+      const recortado = texto.slice(0, LARGO_MAXIMO_OBSERVACION);
+      if (recortado === textos[estudianteId]) return;
+      textos[estudianteId] = recortado;
+      recuperadas += 1;
+    });
+  }
+  return { textos, recuperadas };
+};

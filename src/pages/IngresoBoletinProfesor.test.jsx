@@ -480,6 +480,56 @@ describe("IngresoBoletinProfesor", () => {
       expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
     });
 
+    it("el director escribe la observación general, la guarda y, si sale sin guardar otra, la encuentra al volver", async () => {
+      const user = userEvent.setup();
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) => {
+        if (url === "/director-grupo/cursos") {
+          return Promise.resolve({ data: [{ id: 5, nombre: "QUINTO A" }] });
+        }
+        if (url === "/director-grupo/cursos/5/1") {
+          return Promise.resolve({
+            data: {
+              curso: { id: 5, nombre: "QUINTO A" },
+              periodo: 1,
+              total_rankeados: 2,
+              materias: [],
+              estudiantes: [
+                { estudiante_id: 101, nombre: "Ana", apellido: "Pérez", puesto: 1, promedio: 4.2, notas: {}, inasistencias: {}, observacion_general: "" },
+                { estudiante_id: 102, nombre: "Bruno", apellido: "Gil", puesto: 2, promedio: 3.9, notas: {}, inasistencias: {}, observacion_general: "" },
+              ],
+            },
+          });
+        }
+        return getOriginal(url);
+      });
+      api.put = vi.fn((url, cuerpo) => Promise.resolve({ data: { texto: cuerpo.texto } }));
+
+      const primera = render(<IngresoBoletinProfesor />);
+      await user.click(await screen.findByRole("tab", { name: "Mi curso (director de grupo)" }, PRIMERA_CARGA));
+      const [cajaAna] = await screen.findAllByLabelText("Observación general del boletín · Pérez Ana");
+      await user.type(cajaAna, "Excelente periodo.");
+      await user.click(screen.getAllByRole("button", { name: "Guardar observación de Pérez Ana" })[0]);
+
+      await waitFor(() =>
+        expect(api.put).toHaveBeenCalledWith("/director-grupo/cursos/5/1/observaciones/101", {
+          texto: "Excelente periodo.",
+        }),
+      );
+
+      const [cajaBruno] = screen.getAllByLabelText("Observación general del boletín · Gil Bruno");
+      await user.type(cajaBruno, "Sin guardar todavía.");
+
+      // Sale a otra parte del perfil y vuelve.
+      primera.unmount();
+      render(<IngresoBoletinProfesor />);
+      await user.click(await screen.findByRole("tab", { name: "Mi curso (director de grupo)" }, PRIMERA_CARGA));
+
+      const [cajaBrunoOtraVez] = await screen.findAllByLabelText("Observación general del boletín · Gil Bruno");
+      expect(cajaBrunoOtraVez).toHaveValue("Sin guardar todavía.");
+      expect(screen.getByText("Recuperamos observaciones que no habías guardado")).toBeInTheDocument();
+    });
+
     it("quien no dirige ningún curso no ve la pestaña", async () => {
       const getOriginal = api.get.getMockImplementation();
       api.get.mockImplementation((url) =>

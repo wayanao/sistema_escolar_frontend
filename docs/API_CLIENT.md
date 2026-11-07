@@ -1064,6 +1064,9 @@ Uso:
   la pestaña abierta, `GET /director-grupo/cursos/{curso_id}/{periodo}`
   (cancelable). Solo leen; el permiso lo decide el servidor (director de ese
   curso o admin).
+- Paso 4: `PUT /director-grupo/cursos/{curso_id}/{periodo}/observaciones/{estudiante_id}`
+  con `{texto}` (limpio y de máximo 500; vacío la borra), uno por estudiante.
+  El boletín del admin (`/boletines/admin/generar`) trae `observacion_general`.
 
 ## Certificados
 

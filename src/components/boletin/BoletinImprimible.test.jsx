@@ -121,4 +121,36 @@ describe("BoletinImprimible", () => {
     expect(screen.getByText("Jornada")).toBeInTheDocument();
     expect(screen.getByText("Tarde")).toBeInTheDocument();
   });
+
+  it("la observación general sale con la que guardó el director, y avisa que retocarla no se guarda", () => {
+    const { container } = render(
+      <BoletinImprimible
+        boletinData={{
+          estudiante_id: 7,
+          estudiante_nombre: "Sara",
+          estudiante_apellido: "López",
+          curso: "Quinto",
+          periodo: 2,
+          observacion_general: "Muy buen periodo.",
+          materias: [],
+        }}
+        onVolver={vi.fn()}
+      />,
+    );
+
+    const caja = container.querySelector(".di-observacion-editable");
+    expect(caja).toHaveTextContent("Muy buen periodo.");
+    expect(caja).toHaveAttribute("contenteditable", "true");
+    expect(screen.getByText(/el cambio sale solo en esta impresión y no se guarda/)).toHaveClass("no-print");
+  });
+
+  it("sin observación guardada la caja queda vacía, como antes", () => {
+    const { container } = render(
+      <BoletinImprimible
+        boletinData={{ estudiante_nombre: "Sara", estudiante_apellido: "López", curso: "Quinto", periodo: 1, materias: [] }}
+        onVolver={vi.fn()}
+      />,
+    );
+    expect(container.querySelector(".di-observacion-editable")).toBeEmptyDOMElement();
+  });
 });

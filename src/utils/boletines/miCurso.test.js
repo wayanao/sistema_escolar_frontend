@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  aplicarBorradorObservaciones,
+  construirBorradorObservaciones,
+  crearClaveBorradorObservaciones,
+  LARGO_MAXIMO_OBSERVACION,
+  limpiarObservacion,
   materiasPendientes,
   nombreDelEstudiante,
   normalizarCursosDirigidos,
@@ -92,5 +97,44 @@ describe("«Mi curso» del director de grupo", () => {
   it("arma el nombre aunque falte una parte", () => {
     expect(nombreDelEstudiante({ nombre: "ana" })).toBe("Ana");
     expect(nombreDelEstudiante({})).toBe("");
+  });
+});
+
+describe("observación general del boletín", () => {
+  it("cada estudiante trae su observación, vacía si no hay", () => {
+    const datos = normalizarMiCurso({
+      ...RESPUESTA,
+      estudiantes: [
+        { ...RESPUESTA.estudiantes[0], observacion_general: "Muy bien." },
+        RESPUESTA.estudiantes[1],
+      ],
+    });
+    expect(datos.estudiantes.map((e) => e.observacionGeneral)).toEqual(["Muy bien.", ""]);
+  });
+
+  it("limpia como el servidor y el límite es 500", () => {
+    expect(limpiarObservacion("  Hola\r\nmundo  ")).toBe("Hola\nmundo");
+    expect(limpiarObservacion(null)).toBe("");
+    expect(LARGO_MAXIMO_OBSERVACION).toBe(500);
+  });
+
+  it("el borrador lleva el prefijo que borra Cerrar sesión", () => {
+    expect(
+      crearClaveBorradorObservaciones({ tenant: "t", profesorId: 7, cursoId: 5, periodo: 2 }),
+    ).toBe("borrador_boletin:observaciones:t:7:5:2");
+    expect(crearClaveBorradorObservaciones({ tenant: "t", profesorId: null, cursoId: 5, periodo: 2 })).toBeNull();
+  });
+
+  it("el borrador guarda solo lo que cambió y se recupera solo para quien sigue en el curso", () => {
+    expect(construirBorradorObservaciones({ 1: "a", 2: "b" }, { 1: "a", 2: "" }, "x")).toEqual({
+      actualizado: "x",
+      textos: { 2: "b" },
+    });
+    expect(construirBorradorObservaciones({ 1: "a" }, { 1: "a" }, "x")).toBeNull();
+
+    expect(
+      aplicarBorradorObservaciones({ 1: "", 2: "guardada" }, { textos: { 1: "nueva", 2: "guardada", 9: "otro curso" } }),
+    ).toEqual({ textos: { 1: "nueva", 2: "guardada" }, recuperadas: 1 });
+    expect(aplicarBorradorObservaciones({ 1: "" }, null)).toEqual({ textos: { 1: "" }, recuperadas: 0 });
   });
 });

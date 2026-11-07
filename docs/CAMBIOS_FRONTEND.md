@@ -1,5 +1,36 @@
 # Cambios Frontend
 
+## 2026-11-07 - "Mi curso": observación general de cada estudiante (paso 4)
+
+Paso 4 de `docs/funcionalidades/MI_CURSO_DIRECTOR.md`. Usa el `PUT` del paso 3
+del backend (ya publicado, con la migración aplicada en producción).
+
+- En "Mi curso (director de grupo)", cada estudiante tiene su caja
+  "Observación general del boletín · <nombre>": en PC, debajo de su fila (fija
+  a la izquierda al desplazar la tabla); en celular, al final de su tarjeta.
+  Máximo 500 caracteres con contador, y un solo botón: «Guardar observación de
+  <nombre>»; ya guardada y sin cambios, el botón gris dice «Observación
+  guardada». Estados: Sin guardar, Guardando…, Guardada a las …, o el error.
+- Borrador automático como el del boletín: lo escrito y no guardado reaparece
+  al volver, con el aviso «Recuperamos observaciones que no habías guardado».
+  La clave usa el prefijo `borrador_boletin:` (Cerrar sesión la borra) y el
+  curso y periodo de los datos en pantalla.
+- Boletín impreso del admin (`BoletinImprimible`): la caja "Observación
+  general" sale llena con la guardada; se puede retocar solo para esa
+  impresión, con el aviso (no se imprime) de que eso no se guarda. Decidido
+  con el usuario: «Igual que hoy».
+- Cada caja tiene un id distinto en la tabla y en la tarjeta: las dos existen
+  a la vez y cada etiqueta debe apuntar a la suya (se vio en la prueba con el
+  navegador).
+- Archivos: `services/boletinesApi.js` (`guardarObservacionGeneral`),
+  `utils/boletines/miCurso.js`, `hooks/boletines/useComandosObservacionesDirector.js`
+  (nuevo), `components/boletin/MiCursoDirector.jsx`,
+  `components/boletin/BoletinImprimible.jsx`, la vista y la página.
+- Verificación: 179 pruebas del boletín (servicio, utilidades, hook,
+  componente, impreso y página: escribir, guardar, salir y recuperar) y lint.
+  En el navegador con servidor simulado, en PC y celular: escribir y guardar
+  envía el `PUT`, sin errores en la página.
+
 ## 2026-11-07 - Boletín Final: pestaña "Mi curso (director de grupo)" (paso 2)
 
 Paso 2 de `docs/funcionalidades/MI_CURSO_DIRECTOR.md` (el principal está en el

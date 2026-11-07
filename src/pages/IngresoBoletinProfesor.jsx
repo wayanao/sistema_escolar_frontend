@@ -1,5 +1,6 @@
 import useComandosIngresoBoletinProfesor from "../hooks/boletines/useComandosIngresoBoletinProfesor";
 import useConsultaIngresoBoletinProfesor from "../hooks/boletines/useConsultaIngresoBoletinProfesor";
+import useComandosObservacionesDirector from "../hooks/boletines/useComandosObservacionesDirector";
 import useConsultaMiCursoDirector from "../hooks/boletines/useConsultaMiCursoDirector";
 import useVistaPreviaBoletinProfesor from "../hooks/boletines/useVistaPreviaBoletinProfesor";
 import VistaIngresoBoletinProfesor from "../components/boletin/VistaIngresoBoletinProfesor";
@@ -61,6 +62,7 @@ export default function IngresoBoletinProfesor() {
 
   // «Mi curso»: solo para quien dirige un curso; usa el mismo periodo.
   const miCurso = useConsultaMiCursoDirector({ periodo });
+  const observaciones = useComandosObservacionesDirector({ datos: miCurso.datos });
 
   // Cambiar de clase o de periodo: si el navegador no puede guardar el
   // borrador, lo no guardado se pierde y antes se pregunta.
@@ -93,6 +95,12 @@ export default function IngresoBoletinProfesor() {
         onMostrarMiCurso: miCurso.mostrarMiCurso,
         onMostrarMisMaterias: miCurso.mostrarMisMaterias,
         onReintentar: miCurso.reintentar,
+        observaciones: {
+          estadoDe: observaciones.estadoDe,
+          onCambiar: observaciones.cambiarObservacion,
+          onGuardar: observaciones.guardarObservacion,
+          recuperadas: observaciones.recuperadas,
+        },
       }}
       periodo={periodo}
       progresoGrupo={progresoGrupo}

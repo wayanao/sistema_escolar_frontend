@@ -70,6 +70,16 @@ export async function obtenerMiCursoDirector(cursoId, periodo, { signal } = {}) 
   return data;
 }
 
+// Paso 4: la observación general del boletín. Vacía la borra; máximo 500
+// caracteres (lo revisa el servidor).
+export async function guardarObservacionGeneral(cursoId, periodo, estudianteId, texto) {
+  const { data } = await api.put(
+    `/director-grupo/cursos/${cursoId}/${periodo}/observaciones/${estudianteId}`,
+    { texto },
+  );
+  return data;
+}
+
 export async function guardarBoletinProfesor(payload) {
   const { data } = await api.post("/boletines/guardar", payload);
   return data;

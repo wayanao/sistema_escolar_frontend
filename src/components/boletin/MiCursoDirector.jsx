@@ -1,4 +1,5 @@
 import {
+  LARGO_MAXIMO_OBSERVACION,
   materiasPendientes,
   presentarNota,
   textoMateriaPendiente,
@@ -19,6 +20,7 @@ export default function MiCursoDirector({
   periodo,
   onCambiarCurso,
   onReintentar,
+  observaciones = null,
 }) {
   return (
     <div className="space-y-4">
@@ -61,13 +63,13 @@ export default function MiCursoDirector({
           </button>
         </div>
       ) : datos ? (
-        <RankingDelCurso datos={datos} periodo={periodo} />
+        <RankingDelCurso datos={datos} periodo={periodo} observaciones={observaciones} />
       ) : null}
     </div>
   );
 }
 
-function RankingDelCurso({ datos, periodo }) {
+function RankingDelCurso({ datos, periodo, observaciones }) {
   const pendientes = materiasPendientes(datos.materias);
 
   return (
@@ -86,6 +88,13 @@ function RankingDelCurso({ datos, periodo }) {
       </div>
 
       <AvisoPendientes pendientes={pendientes} hayMaterias={datos.materias.length > 0} />
+      {observaciones?.recuperadas > 0 && (
+        <p role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:px-5">
+          <span className="font-bold">Recuperamos observaciones que no habías guardado</span>{" "}
+          ({observaciones.recuperadas === 1 ? "1 estudiante" : `${observaciones.recuperadas} estudiantes`}).
+          Revísalas y guárdalas para que salgan en el boletín.
+        </p>
+      )}
 
       {datos.estudiantes.length === 0 ? (
         <p className="px-4 py-10 text-center text-gray-500">
@@ -93,8 +102,8 @@ function RankingDelCurso({ datos, periodo }) {
         </p>
       ) : (
         <>
-          <TablaRanking datos={datos} />
-          <TarjetasRanking datos={datos} />
+          <TablaRanking datos={datos} observaciones={observaciones} />
+          <TarjetasRanking datos={datos} observaciones={observaciones} />
           <p className="border-t border-gray-100 px-4 py-3 text-xs text-gray-500 sm:px-5">
             Las notas en gris y cursiva todavía no están guardadas en el boletín: salen de
             la planilla y no cuentan para el puesto. «—» quiere decir sin nota.
@@ -174,7 +183,8 @@ function Puesto({ puesto }) {
   );
 }
 
-function TablaRanking({ datos }) {
+function TablaRanking({ datos, observaciones }) {
+  const columnas = datos.materias.length + 4;
   return (
     <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full border-collapse text-sm">
@@ -198,32 +208,39 @@ function TablaRanking({ datos }) {
         </thead>
         <tbody>
           {datos.estudiantes.map((estudiante) => (
-            <tr key={estudiante.estudianteId} className="border-t border-gray-100 hover:bg-purple-50/40">
-              <td className="sticky left-0 z-10 bg-white px-3 py-2">
-                <Puesto puesto={estudiante.puesto} />
-              </td>
-              <th scope="row" className="sticky left-16 z-10 bg-white px-3 py-2 text-left font-semibold text-gray-900">
-                {estudiante.nombre}
-              </th>
-              <td className="px-3 py-2 text-center">
-                <Nota definitiva={estudiante.promedio} caritas={datos.usaCaritas} grande />
-              </td>
-              {datos.materias.map((materia) => {
-                const celda = estudiante.notas[materia.asignacionId];
-                return (
-                  <td key={materia.asignacionId} className="px-2 py-2 text-center">
-                    <Nota
-                      definitiva={celda.definitiva}
-                      guardada={celda.guardada}
-                      caritas={materia.tipoEvaluacion === "desarrollo"}
-                    />
-                  </td>
-                );
-              })}
-              <td className="px-3 py-2 text-center">
-                <Inasistencias inasistencias={estudiante.inasistencias} />
-              </td>
-            </tr>
+            <FilasEstudiante
+              key={estudiante.estudianteId}
+              columnas={columnas}
+              observaciones={observaciones}
+              estudiante={estudiante}
+            >
+              <tr className="border-t border-gray-100 hover:bg-purple-50/40">
+                <td className="sticky left-0 z-10 bg-white px-3 py-2">
+                  <Puesto puesto={estudiante.puesto} />
+                </td>
+                <th scope="row" className="sticky left-16 z-10 bg-white px-3 py-2 text-left font-semibold text-gray-900">
+                  {estudiante.nombre}
+                </th>
+                <td className="px-3 py-2 text-center">
+                  <Nota definitiva={estudiante.promedio} caritas={datos.usaCaritas} grande />
+                </td>
+                {datos.materias.map((materia) => {
+                  const celda = estudiante.notas[materia.asignacionId];
+                  return (
+                    <td key={materia.asignacionId} className="px-2 py-2 text-center">
+                      <Nota
+                        definitiva={celda.definitiva}
+                        guardada={celda.guardada}
+                        caritas={materia.tipoEvaluacion === "desarrollo"}
+                      />
+                    </td>
+                  );
+                })}
+                <td className="px-3 py-2 text-center">
+                  <Inasistencias inasistencias={estudiante.inasistencias} />
+                </td>
+              </tr>
+            </FilasEstudiante>
           ))}
         </tbody>
       </table>
@@ -242,7 +259,7 @@ function Inasistencias({ inasistencias }) {
   );
 }
 
-function TarjetasRanking({ datos }) {
+function TarjetasRanking({ datos, observaciones }) {
   return (
     <ul className="divide-y divide-gray-100 md:hidden">
       {datos.estudiantes.map((estudiante) => (
@@ -286,8 +303,99 @@ function TarjetasRanking({ datos }) {
               })}
             </dl>
           )}
+          {observaciones && (
+            <div className="mt-3">
+              <CajaObservacion estudiante={estudiante} observaciones={observaciones} variante="tarjeta" />
+            </div>
+          )}
         </li>
       ))}
     </ul>
   );
 }
+
+// La fila del estudiante y, debajo, su observación general (si hay
+// observaciones). La caja queda fija a la izquierda al desplazar la tabla.
+function FilasEstudiante({ children, columnas, estudiante, observaciones }) {
+  if (!observaciones) return children;
+  return (
+    <>
+      {children}
+      <tr className="bg-gray-50/60">
+        <td colSpan={columnas} className="px-3 pb-4 pt-1">
+          <div className="sticky left-3 max-w-3xl">
+            <CajaObservacion estudiante={estudiante} observaciones={observaciones} variante="tabla" />
+          </div>
+        </td>
+      </tr>
+    </>
+  );
+}
+
+// La observación general del boletín de un estudiante: un solo botón, que dice
+// exactamente qué guarda.
+// `variante` separa la caja de la tabla (PC) de la de la tarjeta (celular):
+// las dos existen a la vez y cada etiqueta debe apuntar a la suya.
+function CajaObservacion({ estudiante, observaciones, variante }) {
+  const estado = observaciones.estadoDe(estudiante.estudianteId);
+  const idCaja = `observacion-${variante}-${estudiante.estudianteId}`;
+
+  return (
+    <div className="rounded-md border border-gray-200 bg-white p-3">
+      <label htmlFor={idCaja} className="block text-xs font-semibold uppercase tracking-wide text-gray-600">
+        Observación general del boletín · {estudiante.nombre}
+      </label>
+      <textarea
+        id={idCaja}
+        rows={3}
+        maxLength={LARGO_MAXIMO_OBSERVACION}
+        value={estado.texto}
+        onChange={(event) => observaciones.onCambiar(estudiante.estudianteId, event.target.value)}
+        placeholder="Escribe aquí la observación que saldrá en el boletín de este estudiante…"
+        className="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm focus:border-purple-500 focus:ring-purple-500"
+      />
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-gray-500">
+          <span className={estado.texto.length >= LARGO_MAXIMO_OBSERVACION ? "font-semibold text-red-700" : ""}>
+            {estado.texto.length} / {LARGO_MAXIMO_OBSERVACION}
+          </span>
+          {" · "}
+          {estado.error ? (
+            <span className="font-semibold text-red-700">
+              No se pudo guardar. Revisa la conexión e intenta de nuevo.
+            </span>
+          ) : estado.guardando ? (
+            <span>Guardando…</span>
+          ) : estado.sinGuardar ? (
+            <span className="font-semibold text-amber-700">Sin guardar</span>
+          ) : estado.guardadaEn ? (
+            <span className="font-semibold text-emerald-700">Guardada a las {estado.guardadaEn}</span>
+          ) : estado.texto ? (
+            <span className="text-emerald-700">Guardada</span>
+          ) : (
+            <span>Vacía</span>
+          )}
+        </p>
+        {/* Ya guardada y sin cambios: un botón gris que lo dice, en vez de un
+            morado apagado que parece dañado. */}
+        <button
+          type="button"
+          onClick={() => observaciones.onGuardar(estudiante.estudianteId)}
+          disabled={estado.guardando || !estado.sinGuardar}
+          className={`w-full rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed sm:w-auto ${
+            estado.sinGuardar || estado.guardando
+              ? "bg-purple-600 text-white shadow-sm hover:bg-purple-800 disabled:bg-purple-300"
+              : "border border-gray-200 bg-gray-50 text-gray-500"
+          }`}
+        >
+          {estado.guardando
+            ? "Guardando…"
+            : !estado.sinGuardar && estado.texto
+              ? "Observación guardada"
+              : `Guardar observación de ${estudiante.nombre}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+

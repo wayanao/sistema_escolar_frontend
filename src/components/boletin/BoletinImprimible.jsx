@@ -93,7 +93,12 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           >
             Observación general
           </p>
+          {/* Sale con la que guardó el director de grupo en Boletín Final
+              («Mi curso», paso 4). Se puede retocar aquí solo para esta
+              impresión: no se guarda (decidido con el usuario el 2026-11-07).
+              La `key` la vuelve a llenar al cambiar de estudiante o periodo. */}
           <div
+            key={`${boletinData.estudiante_id ?? ""}-${boletinData.periodo ?? ""}`}
             contentEditable
             suppressContentEditableWarning
             spellCheck={false}
@@ -107,7 +112,13 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
               outline: "none",
               whiteSpace: "pre-wrap",
             }}
-          />
+          >
+            {boletinData.observacion_general || ""}
+          </div>
+          <p className="no-print mt-1 text-[11px] text-slate-500">
+            La observación guardada la escribe el director de grupo en Boletín Final. Si la
+            cambias aquí, el cambio sale solo en esta impresión y no se guarda.
+          </p>
         </section>
       </DocumentoImprimible>
     </div>

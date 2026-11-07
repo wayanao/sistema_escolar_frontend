@@ -15,6 +15,7 @@ vi.mock("../utils/api", () => ({
 import {
   generarBoletinAdministrativo,
   guardarBoletinProfesor,
+  guardarObservacionGeneral,
   guardarOrdenBoletin,
   listarClasesProfesorBoletines,
   listarCursosBoletines,
@@ -227,5 +228,18 @@ describe("contrato HTTP de «Mi curso» del director de grupo", () => {
     expect(apiMock.get).toHaveBeenNthCalledWith(3, "/director-grupo/cursos/5/3", {
       signal: controller.signal,
     });
+  });
+});
+
+describe("contrato HTTP de la observación general del director", () => {
+  it("guarda con PUT por curso, periodo y estudiante", async () => {
+    const respuesta = { estudiante_id: 101, texto: "Bien" };
+    apiMock.put.mockResolvedValueOnce({ data: respuesta });
+
+    await expect(guardarObservacionGeneral(5, 2, 101, "Bien")).resolves.toBe(respuesta);
+    expect(apiMock.put).toHaveBeenCalledWith(
+      "/director-grupo/cursos/5/2/observaciones/101",
+      { texto: "Bien" },
+    );
   });
 });

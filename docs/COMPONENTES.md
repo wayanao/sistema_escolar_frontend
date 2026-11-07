@@ -855,7 +855,9 @@ Estado actual de componentes y paginas del frontend.
 - `components/boletin/SeleccionBoletinAdministrativo.jsx`: filtros, tabla de
   estudiantes y acción para generar el boletín administrativo.
 - `components/boletin/BoletinImprimible.jsx`: documento A4 con escalas,
-  promedio, materias, observaciones y contrato de `DocumentoImprimible`.
+  promedio, materias, observaciones y contrato de `DocumentoImprimible`. La
+  observación general sale con la que guardó el director (2026-11-07); se
+  puede retocar solo para esa impresión.
 - `components/boletin/VistaIngresoBoletinProfesor.jsx`: ingreso de
   observaciones del boletín final; oculta notas técnicas como `mas_alto` y
   protege etiquetas humanas con `translate="no"`. Durante un cambio de clase,
@@ -875,6 +877,8 @@ Estado actual de componentes y paginas del frontend.
 - `components/boletin/MiCursoDirector.jsx`: ranking del curso del director
   (tabla en PC, tarjetas en celular), aviso de materias sin guardar y notas
   sin guardar en gris. Lo alimenta `hooks/boletines/useConsultaMiCursoDirector.js`.
+  Desde el paso 4, cada estudiante tiene su caja de observación general con su
+  botón (`hooks/boletines/useComandosObservacionesDirector.js`, con borrador).
 - `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo
   queda" del profesor. Usa el membrete real (`DocumentoImprimible` con
   `mostrarBarra={false}`, sin Descargar PDF ni Imprimir) y las piezas del

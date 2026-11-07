@@ -112,4 +112,68 @@ describe("MiCursoDirector", () => {
     expect(screen.getByText("Este curso no tiene estudiantes activos.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
+
+  describe("observación general", () => {
+    const observaciones = (estados = {}, extra = {}) => ({
+      estadoDe: (id) => ({
+        texto: "",
+        sinGuardar: false,
+        guardando: false,
+        error: false,
+        guardadaEn: null,
+        ...(estados[id] || {}),
+      }),
+      onCambiar: vi.fn(),
+      onGuardar: vi.fn(),
+      recuperadas: 0,
+      ...extra,
+    });
+
+    it("cada estudiante tiene su caja con un solo botón que dice a quién guarda", async () => {
+      const user = userEvent.setup();
+      const valores = observaciones({ 101: { texto: "Hola", sinGuardar: true } });
+      renderizar({ observaciones: valores });
+
+      const caja = screen.getAllByLabelText("Observación general del boletín · Pérez Ana")[0];
+      expect(caja).toHaveValue("Hola");
+      expect(caja).toHaveAttribute("maxLength", "500");
+      expect(screen.getAllByText("4 / 500").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Sin guardar").length).toBeGreaterThan(0);
+
+      await user.type(caja, "!");
+      expect(valores.onCambiar).toHaveBeenLastCalledWith(101, "Hola!");
+
+      await user.click(screen.getAllByRole("button", { name: "Guardar observación de Pérez Ana" })[0]);
+      expect(valores.onGuardar).toHaveBeenCalledWith(101);
+    });
+
+    it("sin cambios el botón no se puede oprimir, y muestra el estado de cada una", () => {
+      renderizar({
+        observaciones: observaciones({
+          101: { texto: "Guardada antes" },
+          103: { texto: "x", sinGuardar: true, error: true },
+        }),
+      });
+
+      // Ya guardada: lo dice, en gris, y no se oprime.
+      for (const boton of screen.getAllByRole("button", { name: "Observación guardada" })) {
+        expect(boton).toBeDisabled();
+      }
+      expect(screen.queryByRole("button", { name: "Guardar observación de Pérez Ana" })).not.toBeInTheDocument();
+      expect(screen.getAllByText("Guardada").length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/No se pudo guardar/).length).toBeGreaterThan(0);
+    });
+
+    it("avisa si recuperó observaciones sin guardar", () => {
+      renderizar({ observaciones: observaciones({}, { recuperadas: 2 }) });
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Recuperamos observaciones que no habías guardado (2 estudiantes)",
+      );
+    });
+
+    it("sin observaciones conectadas no hay cajas", () => {
+      renderizar();
+      expect(screen.queryByLabelText(/Observación general del boletín/)).not.toBeInTheDocument();
+    });
+  });
 });

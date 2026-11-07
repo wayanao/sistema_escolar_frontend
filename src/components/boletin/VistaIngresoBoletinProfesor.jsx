@@ -106,6 +106,7 @@ export default function VistaIngresoBoletinProfesor({
           periodo={periodo}
           onCambiarCurso={miCurso.onCambiarCurso}
           onReintentar={miCurso.onReintentar}
+          observaciones={miCurso.observaciones}
         />
       ) : (
         <>

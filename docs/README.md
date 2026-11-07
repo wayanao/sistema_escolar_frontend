@@ -79,8 +79,8 @@ continuacion para retomarla en otro chat u otro LLM.
   commit.**
 - `funcionalidades/MI_CURSO_DIRECTOR.md`: pestaña "Mi curso (director de
   grupo)" en Boletín Final, con el ranking del curso y la observación general
-  de cada estudiante. El documento principal está en el backend. **Paso 2
-  (pestaña y ranking) construido el 2026-11-07; falta el paso 4.**
+  de cada estudiante. El documento principal está en el backend. **Pasos 2
+  (pestaña y ranking) y 4 (observación general) construidos el 2026-11-07.**
 
 ## Control SaaS
 
