@@ -10,46 +10,84 @@ import {
  * puesto, el promedio, la nota de cada materia y las inasistencias. En PC es
  * una tabla; en celular, una tarjeta por estudiante. Solo muestra: los datos
  * y las acciones llegan por props.
+ *
+ * El curso y el periodo se escogen en el encabezado, que se ve siempre (también
+ * mientras carga o si hubo un error), para que nunca falte cómo cambiarlos.
  */
 export default function MiCursoDirector({
-  cursos,
-  cursoId,
+  cursos = [],
+  cursoId = null,
   datos,
   cargando,
   error,
   periodo,
   onCambiarCurso,
+  onCambiarPeriodo,
   onReintentar,
   observaciones = null,
 }) {
+  const nombreCurso =
+    datos?.curso?.nombre
+    || cursos.find((curso) => String(curso.id) === String(cursoId))?.nombre
+    || "";
+
   return (
-    <div className="space-y-4">
-      {cursos.length > 1 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <label htmlFor="curso-dirigido" className="mb-1 block text-sm font-medium text-gray-700">
-            Curso que diriges
-          </label>
-          <select
-            id="curso-dirigido"
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:ring-purple-500 sm:w-auto"
-            value={cursoId ?? ""}
-            onChange={(event) => onCambiarCurso(event.target.value)}
-          >
-            {cursos.map((curso) => (
-              <option key={curso.id} value={curso.id}>
-                {curso.nombre}
-              </option>
-            ))}
-          </select>
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+      <div className="flex flex-col gap-3 border-b border-gray-200 bg-slate-50/70 px-4 py-4 sm:px-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wide text-purple-700">
+            Director de grupo
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-gray-900">
+            {nombreCurso} · Periodo {periodo}
+          </h2>
+          {datos && !cargando && !error && (
+            <p className="mt-1 text-sm text-gray-600">
+              {datos.estudiantes.length === 1 ? "1 estudiante" : `${datos.estudiantes.length} estudiantes`}.
+              El puesto y el promedio salen de las notas que cada profesor ya guardó en el boletín.
+            </p>
+          )}
         </div>
-      )}
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:shrink-0 lg:justify-end">
+          {cursos.length > 1 && (
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              Curso
+              <select
+                className="rounded-md border border-gray-300 bg-white py-1.5 pl-2 pr-8 text-sm focus:border-purple-500 focus:ring-purple-500"
+                value={cursoId ?? ""}
+                onChange={(event) => onCambiarCurso(event.target.value)}
+              >
+                {cursos.map((curso) => (
+                  <option key={curso.id} value={curso.id}>
+                    {curso.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            Periodo
+            <select
+              className="rounded-md border border-gray-300 bg-white py-1.5 pl-2 pr-8 text-sm focus:border-purple-500 focus:ring-purple-500"
+              value={periodo}
+              onChange={(event) => onCambiarPeriodo(event.target.value)}
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+        </div>
+      </div>
 
       {cargando ? (
-        <p className="py-10 text-center text-gray-500">Cargando tu curso…</p>
+        <p className="px-4 py-10 text-center text-gray-500">Cargando tu curso…</p>
       ) : error ? (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+          className="m-4 flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="text-sm font-medium text-red-800">
             No se pudo cargar el ranking de tu curso. Revisa la conexión e intenta de nuevo.
@@ -63,31 +101,21 @@ export default function MiCursoDirector({
           </button>
         </div>
       ) : datos ? (
-        <RankingDelCurso datos={datos} periodo={periodo} observaciones={observaciones} />
+        <RankingDelCurso datos={datos} observaciones={observaciones} />
       ) : null}
     </div>
   );
 }
 
-function RankingDelCurso({ datos, periodo, observaciones }) {
+function RankingDelCurso({ datos, observaciones }) {
   const pendientes = materiasPendientes(datos.materias);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
-      <div className="border-b border-gray-200 bg-slate-50/70 px-4 py-4 sm:px-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-purple-700">
-          Director de grupo
-        </p>
-        <h2 className="mt-1 text-xl font-bold text-gray-900">
-          {datos.curso.nombre} · Periodo {periodo}
-        </h2>
-        <p className="mt-1 text-sm text-gray-600">
-          {datos.estudiantes.length === 1 ? "1 estudiante" : `${datos.estudiantes.length} estudiantes`}.
-          El puesto y el promedio salen de las notas que cada profesor ya guardó en el boletín.
-        </p>
-      </div>
-
+    <>
       <AvisoPendientes pendientes={pendientes} hayMaterias={datos.materias.length > 0} />
+      {observaciones && datos.estudiantes.length > 0 && (
+        <ConteoObservaciones estudiantes={datos.estudiantes} observaciones={observaciones} />
+      )}
       {observaciones?.recuperadas > 0 && (
         <p role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:px-5">
           <span className="font-bold">Recuperamos observaciones que no habías guardado</span>{" "}
@@ -110,7 +138,7 @@ function RankingDelCurso({ datos, periodo, observaciones }) {
           </p>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -339,12 +367,18 @@ function FilasEstudiante({ children, columnas, estudiante, observaciones }) {
 function CajaObservacion({ estudiante, observaciones, variante }) {
   const estado = observaciones.estadoDe(estudiante.estudianteId);
   const idCaja = `observacion-${variante}-${estudiante.estudianteId}`;
+  const aspecto = ASPECTO_CAJA[estadoDeLaCaja(estado)];
 
   return (
-    <div className="rounded-md border border-gray-200 bg-white p-3">
-      <label htmlFor={idCaja} className="block text-xs font-semibold uppercase tracking-wide text-gray-600">
-        Observación general del boletín · {estudiante.nombre}
-      </label>
+    <div className={`rounded-md border-2 p-3 ${aspecto.caja}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label htmlFor={idCaja} className="block text-xs font-semibold uppercase tracking-wide text-gray-600">
+          Observación general del boletín · {estudiante.nombre}
+        </label>
+        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${aspecto.etiqueta}`}>
+          {aspecto.texto}
+        </span>
+      </div>
       <textarea
         id={idCaja}
         rows={3}
@@ -396,6 +430,58 @@ function CajaObservacion({ estudiante, observaciones, variante }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// Lista (verde), falta (amarillo), sin guardar (naranja), no se guardó (rojo).
+// Color y palabra a la vez: la diferencia se ve aunque no se distingan colores.
+const ASPECTO_CAJA = {
+  lista: {
+    caja: "border-emerald-300 bg-emerald-50/60",
+    etiqueta: "bg-emerald-100 text-emerald-800",
+    texto: "✓ Lista",
+  },
+  falta: {
+    caja: "border-amber-300 bg-amber-50/70",
+    etiqueta: "bg-amber-100 text-amber-800",
+    texto: "Falta",
+  },
+  sinGuardar: {
+    caja: "border-orange-400 bg-orange-50/70",
+    etiqueta: "bg-orange-100 text-orange-800",
+    texto: "Sin guardar",
+  },
+  error: {
+    caja: "border-red-400 bg-red-50/70",
+    etiqueta: "bg-red-100 text-red-800",
+    texto: "No se guardó",
+  },
+};
+
+function estadoDeLaCaja(estado) {
+  if (estado.error) return "error";
+  if (estado.sinGuardar || estado.guardando) return "sinGuardar";
+  return estado.texto ? "lista" : "falta";
+}
+
+function ConteoObservaciones({ estudiantes, observaciones }) {
+  const listas = estudiantes.filter(
+    (estudiante) => estadoDeLaCaja(observaciones.estadoDe(estudiante.estudianteId)) === "lista",
+  ).length;
+  const total = estudiantes.length;
+  const completas = listas === total;
+
+  return (
+    <p
+      className={`border-b px-4 py-3 text-sm font-semibold sm:px-5 ${
+        completas
+          ? "border-emerald-100 bg-emerald-50 text-emerald-800"
+          : "border-gray-100 bg-white text-gray-700"
+      }`}
+    >
+      Observaciones del boletín listas: {listas} de {total}
+      {completas ? " ✓" : ` · faltan ${total - listas}`}
+    </p>
   );
 }
 

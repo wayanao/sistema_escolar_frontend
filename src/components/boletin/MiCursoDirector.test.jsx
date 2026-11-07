@@ -30,13 +30,10 @@ const datos = normalizarMiCurso({
 const renderizar = (props = {}) =>
   render(
     <MiCursoDirector
-      cursos={[{ id: 5, nombre: "QUINTO A" }]}
-      cursoId={5}
       datos={datos}
       cargando={false}
       error={null}
       periodo="2"
-      onCambiarCurso={vi.fn()}
       onReintentar={vi.fn()}
       {...props}
     />,
@@ -77,21 +74,6 @@ describe("MiCursoDirector", () => {
       datos: { ...datos, materias: datos.materias.map((m) => ({ ...m, guardados: m.total })) },
     });
     expect(screen.getByText(/Todas las materias están guardadas/)).toBeInTheDocument();
-  });
-
-  it("con más de un curso deja escoger; con uno solo, no", async () => {
-    const user = userEvent.setup();
-    const onCambiarCurso = vi.fn();
-    const { unmount } = renderizar({
-      cursos: [{ id: 5, nombre: "QUINTO A" }, { id: 8, nombre: "SEXTO B" }],
-      onCambiarCurso,
-    });
-    await user.selectOptions(screen.getByLabelText("Curso que diriges"), "8");
-    expect(onCambiarCurso).toHaveBeenCalledWith("8");
-    unmount();
-
-    renderizar();
-    expect(screen.queryByLabelText("Curso que diriges")).not.toBeInTheDocument();
   });
 
   it("mientras carga lo dice, y si falla deja reintentar", async () => {
@@ -162,6 +144,47 @@ describe("MiCursoDirector", () => {
       expect(screen.queryByRole("button", { name: "Guardar observación de Pérez Ana" })).not.toBeInTheDocument();
       expect(screen.getAllByText("Guardada").length).toBeGreaterThan(0);
       expect(screen.getAllByText(/No se pudo guardar/).length).toBeGreaterThan(0);
+    });
+
+    it("cada caja se ve distinta: lista, falta, sin guardar o no se guardó", () => {
+      const { container } = renderizar({
+        observaciones: observaciones({
+          101: { texto: "Guardada antes" },
+          103: { texto: "", sinGuardar: false },
+        }),
+      });
+      const etiquetaDe = (nombre) =>
+        within(screen.getAllByLabelText(`Observación general del boletín · ${nombre}`)[0].closest(".border-2"));
+      expect(etiquetaDe("Pérez Ana").getByText("✓ Lista")).toBeInTheDocument();
+      expect(etiquetaDe("Ruiz Carla").getByText("Falta")).toBeInTheDocument();
+      expect(container.querySelectorAll(".border-emerald-300").length).toBeGreaterThan(0);
+      expect(container.querySelectorAll(".border-amber-300").length).toBeGreaterThan(0);
+    });
+
+    it("sin guardar y con error también se distinguen", () => {
+      const { unmount } = renderizar({
+        observaciones: observaciones({ 101: { texto: "Nueva", sinGuardar: true } }),
+      });
+      expect(screen.getAllByText("Sin guardar", { selector: "span.rounded-full" }).length).toBeGreaterThan(0);
+      unmount();
+
+      renderizar({
+        observaciones: observaciones({ 101: { texto: "Nueva", sinGuardar: true, error: true } }),
+      });
+      expect(screen.getAllByText("No se guardó").length).toBeGreaterThan(0);
+    });
+
+    it("arriba cuenta cuántas observaciones están listas", () => {
+      const { unmount } = renderizar({
+        observaciones: observaciones({ 101: { texto: "Lista" } }),
+      });
+      expect(screen.getByText("Observaciones del boletín listas: 1 de 2 · faltan 1")).toBeInTheDocument();
+      unmount();
+
+      renderizar({
+        observaciones: observaciones({ 101: { texto: "Lista" }, 103: { texto: "También" } }),
+      });
+      expect(screen.getByText("Observaciones del boletín listas: 2 de 2 ✓")).toBeInTheDocument();
     });
 
     it("avisa si recuperó observaciones sin guardar", () => {

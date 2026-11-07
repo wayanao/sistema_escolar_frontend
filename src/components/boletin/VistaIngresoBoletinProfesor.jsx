@@ -59,8 +59,10 @@ export default function VistaIngresoBoletinProfesor({
         />
       )}
 
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-end">
-        {!miCurso?.vistaMiCurso && (
+      {/* Clase y periodo de «Mis materias». En «Mi curso», el curso y el
+          periodo van en el encabezado del curso (lo pidió el usuario). */}
+      {!miCurso?.vistaMiCurso && (
+        <div className="mb-6 flex flex-wrap items-end gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Clase (Curso / Materia)
@@ -78,23 +80,23 @@ export default function VistaIngresoBoletinProfesor({
               ))}
             </select>
           </div>
-        )}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Periodo
-          </label>
-          <select
-            className="p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-            value={periodo}
-            onChange={(event) => onCambiarPeriodo(event.target.value)}
-          >
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Periodo
+            </label>
+            <select
+              className="p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+              value={periodo}
+              onChange={(event) => onCambiarPeriodo(event.target.value)}
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
       {miCurso?.vistaMiCurso ? (
         <MiCursoDirector
@@ -105,6 +107,7 @@ export default function VistaIngresoBoletinProfesor({
           error={miCurso.error}
           periodo={periodo}
           onCambiarCurso={miCurso.onCambiarCurso}
+          onCambiarPeriodo={onCambiarPeriodo}
           onReintentar={miCurso.onReintentar}
           observaciones={miCurso.observaciones}
         />

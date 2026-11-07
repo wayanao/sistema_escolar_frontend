@@ -537,6 +537,33 @@ describe("VistaIngresoBoletinProfesor", () => {
       expect(valores.onMostrarMiCurso).toHaveBeenCalledTimes(1);
     });
 
+    it("en Mi curso, el curso y el periodo van en el encabezado del curso, aun mientras carga", async () => {
+      const user = userEvent.setup();
+      const valores = miCurso({
+        vistaMiCurso: true,
+        cargando: true,
+        cursos: [{ id: 5, nombre: "QUINTO A" }, { id: 8, nombre: "SEXTO B" }],
+      });
+      const onCambiarPeriodo = vi.fn();
+      render(<VistaIngresoBoletinProfesor {...base} onCambiarPeriodo={onCambiarPeriodo} miCurso={valores} />);
+
+      const encabezado = screen.getByRole("heading", { name: "QUINTO A · Periodo 1" }).closest(".border-b");
+      const curso = within(encabezado).getByLabelText("Curso");
+      const periodo = within(encabezado).getByLabelText("Periodo");
+      expect(screen.getAllByLabelText("Periodo")).toHaveLength(1);
+
+      await user.selectOptions(curso, "8");
+      await user.selectOptions(periodo, "3");
+      expect(valores.onCambiarCurso).toHaveBeenCalledWith("8");
+      expect(onCambiarPeriodo).toHaveBeenCalledWith("3");
+    });
+
+    it("con un solo curso no hay selector de curso, pero sí de periodo", () => {
+      render(<VistaIngresoBoletinProfesor {...base} miCurso={miCurso({ vistaMiCurso: true, cargando: true })} />);
+      expect(screen.queryByLabelText("Curso")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Periodo")).toBeInTheDocument();
+    });
+
     it("en Mi curso se ve el ranking, sin el selector de clase ni las tarjetas de sus materias", () => {
       render(
         <VistaIngresoBoletinProfesor
@@ -548,7 +575,7 @@ describe("VistaIngresoBoletinProfesor", () => {
       expect(screen.getByRole("tab", { name: "Mi curso (director de grupo)" })).toHaveAttribute("aria-selected", "true");
       expect(screen.getByText("Cargando tu curso…")).toBeInTheDocument();
       expect(screen.queryByText("Clase (Curso / Materia)")).not.toBeInTheDocument();
-      expect(screen.getByText("Periodo")).toBeInTheDocument();
+      expect(screen.getByLabelText("Periodo")).toBeInTheDocument();
       expect(screen.queryByRole("heading", { name: "Ana" })).not.toBeInTheDocument();
     });
   });

@@ -19,6 +19,14 @@ del backend (ya publicado, con la migración aplicada en producción).
   general" sale llena con la guardada; se puede retocar solo para esa
   impresión, con el aviso (no se imprime) de que eso no se guarda. Decidido
   con el usuario: «Igual que hoy».
+- Pedidos del usuario al probarlo: (1) el cuadro de periodo y curso ocupaba
+  mucho; escogió entre dos maquetas «Listas en el encabezado»: en «Mi curso»
+  ya no hay cuadro aparte, "Curso" (si dirige más de uno) y "Periodo" son dos
+  listas pequeñas a la derecha del título del curso, visibles también mientras
+  carga o si hubo error. (2) Que se vea la diferencia entre la caja llena y la
+  que falta: cada caja lleva borde y etiqueta de su estado (verde «✓ Lista»,
+  amarillo «Falta», naranja «Sin guardar», rojo «No se guardó») y arriba un
+  conteo «Observaciones del boletín listas: X de N».
 - Cada caja tiene un id distinto en la tabla y en la tarjeta: las dos existen
   a la vez y cada etiqueta debe apuntar a la suya (se vio en la prueba con el
   navegador).
