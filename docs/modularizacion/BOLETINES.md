@@ -102,9 +102,13 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
 - `Aplicar logros a todos` relaciona campos por referencia y tipo de
   evaluación, con respaldo por índice. El modo `Solo campos vacíos` conserva
   observaciones individuales; `Sobrescribir todos` mantiene el comportamiento
-  explícito actual.
+  explícito actual. *(Reemplazado el 2026-11-07 por "Copiar a todos y
+  guardar", sin `Sobrescribir todos`, por decisión del usuario: ver "Cambio
+  posterior fuera del plan, 2026-11-07" al final.)*
 - `Guardar todo` conserva las modificaciones individuales y envía un POST por
-  estudiante en orden secuencial.
+  estudiante en orden secuencial. *(Quitado el 2026-11-07 a pedido del
+  usuario; "Copiar a todos y guardar" guarda el grupo igual: un POST por
+  estudiante, en orden.)*
 - El orden inicial usa `orden_boletin`, con respaldo `100` y desempate
   alfabético. El guardado transmite únicamente `materia_id` en el orden
   visible.
@@ -116,9 +120,11 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
   `di-documento--boletin` y `di-print-root--scroll-mobile`.
 - Orden configurable de materias por curso.
 - Ingreso de observaciones y logros por estudiante.
-- `Aplicar logros a todos` y `Guardar todo`.
+- `Aplicar logros a todos` y `Guardar todo`. *(Desde el 2026-11-07, por
+  decisión del usuario: solo "Copiar a todos y guardar"; cada estudiante se
+  guarda con su botón.)*
 - Preservación de observaciones individuales en el modo de copia a campos
-  vacíos.
+  vacíos. *(Se mantiene: la copia nueva nunca toca lo escrito a mano.)*
 - Ocultamiento de campos técnicos como `mas_alto`.
 - Etiquetas humanas con `translate="no"` en ingreso docente y orden.
 - Contratos y payloads del backend descritos en este documento.
@@ -518,3 +524,23 @@ profesor en ese curso. La consulta vive en un hook de consulta propio
 (`useConsultaOtrasMateriasBoletin`, cancelable y una vez por clase y periodo)
 y usa el `obtenerReferenciaBoletin` que ya existía: no hay rutas nuevas en
 `services/boletinesApi.js`.
+
+## Cambio posterior fuera del plan, 2026-11-07
+
+El módulo sigue **cerrado**. Por pedido del usuario ("los profesores se
+embolatan"), "Aplicar logros del primer estudiante", que abría una ventana con
+"Solo campos vacíos" y "Sobrescribir todos", y luego obligaba a oprimir
+"Guardar todo", se cambió por un solo botón: **"Copiar a todos y guardar"**,
+con una sola confirmación que dice con números qué pasará.
+
+Regla de copia (`aplicarLogrosEnGrupo`, en `src/utils/boletines/`): en cada
+campo de los demás estudiantes, si está vacío se llena; si tiene lo último que
+se guardó del primero (una copia que nadie tocó) se actualiza, para que una
+corrección llegue a todos; si tiene otra cosa, se respeta. El usuario aprobó
+quitar "Sobrescribir todos" (era la única opción que podía borrar lo escrito a
+mano para un estudiante), con lo que el riesgo abierto "Sobrescribir
+observaciones individuales durante acciones masivas" queda cerrado.
+El mismo día el usuario pidió quitar también "Guardar todo": el grupo se
+guarda con "Copiar a todos y guardar" y cada cambio individual con el botón
+de su estudiante. Detalle en `docs/CAMBIOS_FRONTEND.md`.
+

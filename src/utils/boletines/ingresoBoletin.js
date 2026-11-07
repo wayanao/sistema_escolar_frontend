@@ -141,7 +141,8 @@ export const mensajeCambiosSinGuardar = (cantidad) =>
   `${cantidad === 1 ? "Un estudiante tiene" : `${cantidad} estudiantes tienen`} cambios sin guardar. Si cambias de clase o de periodo, se pierden.`;
 
 /**
- * Qué decirle al profesor cuando "Guardar todo" se detiene en un estudiante.
+ * Qué decirle al profesor cuando guardar el grupo ("Copiar a todos y
+ * guardar") se detiene en un estudiante.
  * Si el servidor explica por qué (por ejemplo, el año está cerrado), se usa
  * su explicación; si no respondió, lo más probable es la conexión.
  */
@@ -157,7 +158,7 @@ export const mensajeGuardadoGrupoIncompleto = ({ guardados, total, nombreFallido
     `Se guardaron ${guardados} de ${total} estudiantes. `
     + `${faltan === 1 ? "Falta" : `Faltan ${faltan}, desde`} ${nombreFallido}: `
     + `${faltan === 1 ? "sigue marcado" : "siguen marcados"} como no guardado${faltan === 1 ? "" : "s"}.`
-    + (causa || " Revisa la conexión y oprime «Guardar todo» otra vez.")
+    + (causa || " Revisa la conexión y vuelve a oprimir «Copiar a todos y guardar».")
   );
 };
 
@@ -275,33 +276,60 @@ export const correspondeFormularioAEstudiante = (form, estudiante) => {
   });
 };
 
-export const aplicarLogrosEnGrupo = (datosBoletin, estudianteIdOrigen, soloVacios) => {
-  const origen = datosBoletin[estudianteIdOrigen];
-  const logrosPorClave = new Map();
-  const logrosPorIndice = new Map();
-
-  (origen?.observaciones || []).forEach((observacion, index) => {
-    const texto = obtenerTextoLimpio(observacion.observacion);
+// Textos de una lista de observaciones, por tipo de nota y por posición.
+const textosPorCampo = (observaciones) => {
+  const porClave = new Map();
+  const porIndice = new Map();
+  (observaciones || []).forEach((observacion, index) => {
+    const texto = obtenerTextoLimpio(observacion?.observacion);
     if (!texto) return;
-    logrosPorClave.set(crearClaveObservacion(observacion), texto);
-    logrosPorIndice.set(index, texto);
+    porClave.set(crearClaveObservacion(observacion), texto);
+    porIndice.set(index, texto);
   });
+  return (observacion, index) =>
+    porClave.get(crearClaveObservacion(observacion)) || porIndice.get(index) || "";
+};
+
+/**
+ * "Copiar a todos y guardar": los logros del primer estudiante pasan a los
+ * demás. En cada campo del destino:
+ * - vacío: se llena;
+ * - con lo último que se guardó del primero (`guardadoOrigen`): era una copia
+ *   que nadie tocó, y se actualiza (así una corrección llega a todos);
+ * - con otra cosa: el profesor lo escribió a mano para ese estudiante, y no se
+ *   toca.
+ * Un campo vacío en el primero no borra nada. Los campos se relacionan por tipo
+ * de nota, con respaldo por posición.
+ */
+export const aplicarLogrosEnGrupo = (datosBoletin, estudianteIdOrigen, guardadoOrigen = []) => {
+  const textoDelOrigen = textosPorCampo(datosBoletin?.[estudianteIdOrigen]?.observaciones);
+  const guardadoDelOrigen = textosPorCampo(guardadoOrigen);
 
   const nuevosDatosBoletin = {};
   const estudiantesModificados = [];
+  const estudiantesConTextoPropio = [];
 
-  Object.entries(datosBoletin).forEach(([estudianteId, data]) => {
+  Object.entries(datosBoletin || {}).forEach(([estudianteId, data]) => {
+    if (String(estudianteId) === String(estudianteIdOrigen)) {
+      nuevosDatosBoletin[estudianteId] = data;
+      return;
+    }
+
     let tuvoCambios = false;
+    let conservoTextoPropio = false;
     const observaciones = (data.observaciones || []).map((observacion, index) => {
-      const textoOrigen =
-        logrosPorClave.get(crearClaveObservacion(observacion)) ||
-        logrosPorIndice.get(index) ||
-        "";
+      const textoOrigen = textoDelOrigen(observacion, index);
       if (!textoOrigen) return observacion;
 
       const textoActual = obtenerTextoLimpio(observacion.observacion);
-      if (soloVacios && textoActual) return observacion;
-      if (observacion.observacion === textoOrigen) return observacion;
+      if (textoActual === textoOrigen) return observacion;
+
+      const textoAnterior = guardadoDelOrigen(observacion, index);
+      const eraCopia = textoActual === "" || (textoAnterior !== "" && textoActual === textoAnterior);
+      if (!eraCopia) {
+        conservoTextoPropio = true;
+        return observacion;
+      }
 
       tuvoCambios = true;
       return { ...observacion, observacion: textoOrigen };
@@ -311,9 +339,31 @@ export const aplicarLogrosEnGrupo = (datosBoletin, estudianteIdOrigen, soloVacio
       ? { ...data, observaciones }
       : data;
     if (tuvoCambios) estudiantesModificados.push(estudianteId);
+    if (conservoTextoPropio) estudiantesConTextoPropio.push(estudianteId);
   });
 
-  return { datosBoletin: nuevosDatosBoletin, estudiantesModificados };
+  return { datosBoletin: nuevosDatosBoletin, estudiantesModificados, estudiantesConTextoPropio };
+};
+
+const unoOVarios = (cantidad) => (cantidad === 1 ? "un estudiante" : `${cantidad} estudiantes`);
+
+/** Qué pasará al oprimir "Copiar a todos y guardar", con números. */
+export const mensajeCopiarLogros = ({ nombreOrigen, copiados, conTextoPropio, total }) => {
+  const grupo = ` Después se guarda todo el grupo (${unoOVarios(total)}).`;
+  if (copiados === 0) {
+    return (
+      `Los demás ya tienen los logros de ${nombreOrigen}`
+      + (conTextoPropio > 0 ? " o los escribiste a mano." : ".")
+      + grupo
+    );
+  }
+  return (
+    `Los logros de ${nombreOrigen} se copiarán a ${unoOVarios(copiados)}.`
+    + (conTextoPropio > 0
+      ? ` Lo que escribiste a mano para ${unoOVarios(conTextoPropio)} no se toca.`
+      : "")
+    + grupo
+  );
 };
 
 export const construirPayloadBoletin = ({

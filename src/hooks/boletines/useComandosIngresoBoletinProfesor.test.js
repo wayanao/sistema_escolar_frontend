@@ -63,10 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   guardarBoletinMock.mockResolvedValue({});
   swalFireMock.mockImplementation((opciones) => {
-    if (opciones?.title === "Aplicar logros al grupo") {
-      return Promise.resolve({ isConfirmed: true, isDenied: false });
-    }
-    if (opciones?.title === "Guardar todo el grupo") {
+    if (opciones?.title === "Copiar a todos y guardar") {
       return Promise.resolve({ isConfirmed: true });
     }
     return Promise.resolve({});
@@ -90,20 +87,105 @@ describe("useComandosIngresoBoletinProfesor", () => {
     );
   });
 
-  it("aplica logros solo a vacíos y marca únicamente estudiantes modificados", async () => {
-    const { result } = renderHook(() =>
-      useComandosIngresoBoletinProfesor(crearPropiedades()),
-    );
+  describe("Copiar a todos y guardar", () => {
+    const textos = (result) =>
+      Object.fromEntries(
+        Object.entries(result.current.datosBoletin).map(([id, form]) => [id, form.observaciones[0].observacion]),
+      );
+    const enviados = () =>
+      guardarBoletinMock.mock.calls.map(([payload]) => [payload.estudiante_id, payload.detalles[0].observacion]);
 
-    await act(async () => {
-      await result.current.aplicarLogrosDelPrimerEstudiante();
+    it("llena los vacíos con los logros del primero y guarda todo el grupo con una sola confirmación", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+
+      await act(async () => {
+        await result.current.copiarLogrosYGuardar();
+      });
+
+      const confirmaciones = swalFireMock.mock.calls.filter(([o]) => o?.showCancelButton);
+      expect(confirmaciones).toHaveLength(1);
+      expect(confirmaciones[0][0]).toMatchObject({
+        title: "Copiar a todos y guardar",
+        text: "Los logros de Ana se copiarán a un estudiante. Después se guarda todo el grupo (2 estudiantes).",
+        confirmButtonText: "Copiar y guardar",
+      });
+      expect(textos(result)).toEqual({ 101: "Logro común", 102: "Logro común" });
+      expect(enviados()).toEqual([[101, "Logro común"], [102, "Logro común"]]);
+      await waitFor(() => expect(result.current.guardandoTodos).toBe(false));
+      expect(result.current.estadoGuardado[102]).toMatchObject({ guardado: true, modificado: false });
     });
 
-    expect(result.current.datosBoletin[102].observaciones[0].observacion).toBe(
-      "Logro común",
-    );
-    expect(result.current.estadoGuardado[101].modificado).toBe(false);
-    expect(result.current.estadoGuardado[102].modificado).toBe(true);
+    it("una corrección en el primero llega a las copias y respeta lo escrito a mano", async () => {
+      const tres = {
+        ...crearPropiedades(),
+        estudiantes: [...estudiantes, { estudiante_id: 103, nombre: "Carla" }],
+        datosIniciales: {
+          ...datosIniciales,
+          102: { ...datosIniciales[102], observaciones: [{ ...datosIniciales[102].observaciones[0], observacion: "Logro común" }] },
+          103: { ...datosIniciales[102], observaciones: [{ ...datosIniciales[102].observaciones[0], observacion: "Propio de Carla" }] },
+        },
+        estadoGuardadoInicial: {
+          ...estadoGuardadoInicial,
+          102: { guardado: true, modificado: false, guardadoEn: null },
+          103: { guardado: true, modificado: false, guardadoEn: null },
+        },
+      };
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(tres));
+
+      act(() => result.current.actualizarObservacion(101, 0, "Logro común corregido"));
+      await act(async () => {
+        await result.current.copiarLogrosYGuardar();
+      });
+
+      expect(swalFireMock.mock.calls.find(([o]) => o?.title === "Copiar a todos y guardar")[0].text).toBe(
+        "Los logros de Ana se copiarán a un estudiante. Lo que escribiste a mano para un estudiante no se toca. Después se guarda todo el grupo (3 estudiantes).",
+      );
+      expect(textos(result)).toEqual({
+        101: "Logro común corregido",
+        102: "Logro común corregido",
+        103: "Propio de Carla",
+      });
+
+      // Ya guardado, una segunda corrección también llega a la copia.
+      guardarBoletinMock.mockClear();
+      act(() => result.current.actualizarObservacion(101, 0, "Tercera versión"));
+      await act(async () => {
+        await result.current.copiarLogrosYGuardar();
+      });
+      expect(enviados()).toEqual([
+        [101, "Tercera versión"],
+        [102, "Tercera versión"],
+        [103, "Propio de Carla"],
+      ]);
+    });
+
+    it("si cancela, no copia ni guarda", async () => {
+      swalFireMock.mockResolvedValue({ isConfirmed: false });
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+
+      await act(async () => {
+        await result.current.copiarLogrosYGuardar();
+      });
+
+      expect(textos(result)[102]).toBe("");
+      expect(guardarBoletinMock).not.toHaveBeenCalled();
+      expect(result.current.estadoGuardado[102].modificado).toBe(false);
+    });
+
+    it("sin logros en el primero lo dice y no guarda", async () => {
+      const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+      act(() => result.current.actualizarObservacion(101, 0, "   "));
+
+      await act(async () => {
+        await result.current.copiarLogrosYGuardar();
+      });
+
+      expect(swalFireMock.mock.calls.at(-1)[0]).toMatchObject({
+        title: "Sin logros para copiar",
+        text: "Escribe al menos un logro en Ana para copiarlo a los demás.",
+      });
+      expect(guardarBoletinMock).not.toHaveBeenCalled();
+    });
   });
 
   it("guarda un estudiante con el payload actual y actualiza su estado", async () => {
@@ -136,7 +218,7 @@ describe("useComandosIngresoBoletinProfesor", () => {
     });
   });
 
-  it("guarda el grupo secuencialmente y conserva estados individuales", async () => {
+  it("Copiar a todos y guardar guarda el grupo uno por uno, en orden", async () => {
     const orden = [];
     guardarBoletinMock.mockImplementation(async (payload) => {
       orden.push(payload.estudiante_id);
@@ -147,7 +229,7 @@ describe("useComandosIngresoBoletinProfesor", () => {
     );
 
     await act(async () => {
-      await result.current.guardarTodosBoletines();
+      await result.current.copiarLogrosYGuardar();
     });
 
     expect(orden).toEqual([101, 102]);
@@ -211,15 +293,16 @@ describe("useComandosIngresoBoletinProfesor", () => {
       expect(titulos().filter((titulo) => titulo === AVISO)).toHaveLength(1);
     });
 
-    it("al guardar todo el grupo, el aviso va en la misma confirmación", async () => {
+    it("al copiar a todos y guardar, el aviso va en la misma confirmación", async () => {
       const { result } = renderHook(() => useComandosIngresoBoletinProfesor(conIncompletos()));
 
       await act(async () => {
-        await result.current.guardarTodosBoletines();
+        await result.current.copiarLogrosYGuardar();
       });
 
-      const confirmacion = swalFireMock.mock.calls.find(([opciones]) => opciones?.title === "Guardar todo el grupo")[0];
+      const confirmacion = swalFireMock.mock.calls.find(([opciones]) => opciones?.title === "Copiar a todos y guardar")[0];
       expect(confirmacion.text).toContain("la definitiva es el promedio simple");
+      expect(confirmacion.icon).toBe("warning");
       expect(titulos()).not.toContain(AVISO);
       expect(guardarBoletinMock).toHaveBeenCalledTimes(2);
 
@@ -314,7 +397,7 @@ describe("useComandosIngresoBoletinProfesor", () => {
       expect(intentarSalir()).toBe(false);
     });
 
-    it("si Guardar todo se detiene a la mitad, marca a los guardados y dice cuántos faltan", async () => {
+    it("si guardar el grupo se detiene a la mitad, marca a los guardados y dice cuántos faltan", async () => {
       vi.spyOn(console, "error").mockImplementation(() => {});
       guardarBoletinMock
         .mockResolvedValueOnce({})
@@ -324,7 +407,7 @@ describe("useComandosIngresoBoletinProfesor", () => {
       act(() => result.current.actualizarObservacion(102, 0, "Otro texto"));
 
       await act(async () => {
-        await result.current.guardarTodosBoletines();
+        await result.current.copiarLogrosYGuardar();
       });
 
       expect(result.current.estadoGuardado[101]).toMatchObject({ guardado: true, modificado: false });
@@ -334,7 +417,7 @@ describe("useComandosIngresoBoletinProfesor", () => {
       expect(aviso).toMatchObject({
         icon: "error",
         title: "Grupo guardado a medias",
-        text: "Se guardaron 1 de 2 estudiantes. Falta Bruno: sigue marcado como no guardado. Revisa la conexión y oprime «Guardar todo» otra vez.",
+        text: "Se guardaron 1 de 2 estudiantes. Falta Bruno: sigue marcado como no guardado. Revisa la conexión y vuelve a oprimir «Copiar a todos y guardar».",
       });
     });
   });
@@ -452,5 +535,30 @@ describe("useComandosIngresoBoletinProfesor", () => {
         espia.mockRestore();
       }
     });
+  });
+
+  it("al guardar el grupo cuenta cuántos van, y al terminar se quita el avance", async () => {
+    const pendientes = [];
+    guardarBoletinMock.mockImplementation(() => new Promise((resolve) => pendientes.push(resolve)));
+    const { result } = renderHook(() => useComandosIngresoBoletinProfesor(crearPropiedades()));
+    expect(result.current.progresoGrupo).toBeNull();
+
+    let guardado;
+    await act(async () => {
+      guardado = result.current.copiarLogrosYGuardar();
+    });
+    await waitFor(() => expect(result.current.progresoGrupo).toEqual({ guardados: 0, total: 2 }));
+
+    await act(async () => {
+      pendientes[0]({});
+    });
+    await waitFor(() => expect(result.current.progresoGrupo).toEqual({ guardados: 1, total: 2 }));
+
+    await act(async () => {
+      pendientes[1]({});
+      await guardado;
+    });
+    expect(result.current.progresoGrupo).toBeNull();
+    expect(result.current.guardandoTodos).toBe(false);
   });
 });

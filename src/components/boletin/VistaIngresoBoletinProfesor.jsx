@@ -20,15 +20,16 @@ export default function VistaIngresoBoletinProfesor({
   errorClases = null,
   estudiantes,
   guardandoTodos,
+  idPrimerEstudiante = null,
   periodo,
-  onAplicarLogros,
+  progresoGrupo = null,
+  onCopiarLogrosYGuardar,
   onCambiarAsignacion,
   onCambiarPeriodo,
   onDescartarBorrador,
   onReintentarAlumnos,
   onReintentarClases,
   onGuardarEstudiante,
-  onGuardarTodos,
   onObservacionChange,
   obtenerEstadoVisual,
   vistaPrevia = null,
@@ -107,23 +108,28 @@ export default function VistaIngresoBoletinProfesor({
               onDescartar={onDescartarBorrador}
             />
           )}
-          <AccionesGrupo
-            guardandoTodos={guardandoTodos}
-            onAplicarLogros={onAplicarLogros}
-            onGuardarTodos={onGuardarTodos}
-          />
-
           {estudiantes.map((estudiante) => {
             const form = datosBoletin[estudiante.estudiante_id];
             if (!correspondeFormularioAEstudiante(form, estudiante)) {
               return null;
             }
 
+            // El primer estudiante es la plantilla del grupo: ahí se escriben
+            // los logros que se copian a los demás.
+            const esPlantilla =
+              onCopiarLogrosYGuardar
+              && String(estudiante.estudiante_id) === String(idPrimerEstudiante);
+
             return (
               <TarjetaEstudiante
                 key={estudiante.estudiante_id}
                 estudiante={estudiante}
                 form={form}
+                plantilla={
+                  esPlantilla
+                    ? { guardandoTodos, onCopiar: onCopiarLogrosYGuardar }
+                    : null
+                }
                 estadoVisual={obtenerEstadoVisual(estudiante.estudiante_id)}
                 onGuardar={() => onGuardarEstudiante(estudiante.estudiante_id)}
                 onVerVistaPrevia={
@@ -145,6 +151,8 @@ export default function VistaIngresoBoletinProfesor({
           </p>
         )
       )}
+
+      {progresoGrupo && <ProgresoGuardadoGrupo progreso={progresoGrupo} />}
 
       {vistaPrevia && (
         <VistaPreviaBoletinProfesor
@@ -208,38 +216,52 @@ function AvisoError({ texto, onReintentar }) {
   );
 }
 
-function AccionesGrupo({ guardandoTodos, onAplicarLogros, onGuardarTodos }) {
+// Mientras se guarda el grupo: cuántos van y por qué tarda. Tapa la pantalla
+// para que nadie edite a mitad del guardado.
+function ProgresoGuardadoGrupo({ progreso }) {
+  const { guardados, total } = progreso;
+  const porcentaje = total > 0 ? Math.round((guardados / total) * 100) : 0;
+
   return (
-    <div className="rounded-lg border border-purple-100 bg-purple-50/60 p-4 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-purple-700">
-            Acciones del grupo
-          </p>
-          <h2 className="mt-1 text-lg font-bold text-gray-950">
-            Logros generales del periodo
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-guardando-grupo"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 p-4"
+    >
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <div className="flex items-center gap-3">
+          <span
+            className="h-6 w-6 shrink-0 rounded-full border-[3px] border-purple-200 border-t-purple-600 motion-safe:animate-spin"
+            aria-hidden="true"
+          />
+          <h2 id="titulo-guardando-grupo" className="text-lg font-bold text-gray-900">
+            Guardando el grupo…
           </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Usa el primer estudiante como plantilla, luego ajusta los casos individuales y guarda todo el grupo.
-          </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={onAplicarLogros}
-            className="rounded-md border border-purple-200 bg-white px-4 py-2.5 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-50"
-          >
-            Aplicar logros del primer estudiante
-          </button>
-          <button
-            type="button"
-            onClick={onGuardarTodos}
-            disabled={guardandoTodos}
-            className="rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 disabled:cursor-not-allowed disabled:bg-purple-300"
-          >
-            {guardandoTodos ? "Guardando grupo..." : "Guardar todo"}
-          </button>
+
+        <p className="mt-4 text-sm font-semibold text-gray-800">
+          Van {guardados} de {total} estudiantes
+        </p>
+        <div
+          role="progressbar"
+          aria-label="Estudiantes guardados"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={guardados}
+          className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-purple-100"
+        >
+          <div
+            className="h-full rounded-full bg-purple-600 transition-[width] duration-300"
+            style={{ width: `${porcentaje}%` }}
+          />
         </div>
+
+        <p className="mt-4 text-sm text-gray-600">
+          Esto tarda un poco porque es un proceso pesado: se guarda estudiante
+          por estudiante, cada uno con sus notas y sus logros. No cierres ni
+          cambies de página hasta que termine.
+        </p>
       </div>
     </div>
   );
@@ -252,6 +274,7 @@ function TarjetaEstudiante({
   onGuardar,
   onVerVistaPrevia,
   onObservacionChange,
+  plantilla = null,
 }) {
   const notasVisibles = estudiante.notas || [];
   const esDesarrollo = esEvaluacionDesarrollo(form.observaciones);
@@ -262,7 +285,12 @@ function TarjetaEstudiante({
     : null;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+    <div
+      className={`overflow-hidden rounded-lg border bg-white shadow ${
+        plantilla ? "border-purple-300 ring-1 ring-purple-200" : "border-gray-200"
+      }`}
+    >
+      {plantilla && <PasosPlantilla nombre={estudiante.nombre} />}
       <div className="border-b border-gray-200 bg-slate-50/70 px-4 py-4 sm:px-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -314,17 +342,17 @@ function TarjetaEstudiante({
               <button
                 type="button"
                 onClick={onVerVistaPrevia}
-                className="w-full rounded-md border border-purple-200 bg-white px-4 py-2.5 text-sm font-semibold text-purple-700 transition-colors hover:bg-purple-50 sm:w-auto"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-purple-200 bg-gradient-to-b from-white to-purple-50 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-purple-700 shadow-sm transition hover:-translate-y-px hover:border-purple-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 focus-visible:ring-offset-2 sm:w-auto"
               >
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-600 text-white shadow-sm transition-transform group-hover:scale-110"
+                  aria-hidden="true"
+                >
+                  <IconoOjo />
+                </span>
                 Ver cómo queda
               </button>
             )}
-            <button
-              onClick={onGuardar}
-              className="w-full rounded-md bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-800 sm:w-auto"
-            >
-              {estadoVisual.buttonText}
-            </button>
           </div>
         </div>
       </div>
@@ -347,7 +375,133 @@ function TarjetaEstudiante({
           </div>
         )}
       </div>
+
+      {plantilla ? (
+        // En la plantilla hay un solo botón grande (el del grupo): dos botones
+        // morados iguales, uno encima del otro, confundían a los profesores.
+        <CopiarAlGrupo
+          guardandoTodos={plantilla.guardandoTodos}
+          nombre={estudiante.nombre}
+          onCopiar={plantilla.onCopiar}
+          onGuardarSolo={onGuardar}
+        />
+      ) : (
+        // Guardar va al final: primero se escribe, luego se guarda. La nota
+        // sutil aclara que no guarda al grupo.
+        <div className="flex flex-col gap-1.5 border-t border-gray-100 bg-slate-50/60 px-4 py-3 sm:flex-row-reverse sm:items-center sm:justify-start sm:gap-3 sm:px-5">
+          <button
+            type="button"
+            onClick={onGuardar}
+            aria-describedby={`guarda-solo-${estudiante.estudiante_id}`}
+            className="w-full rounded-md bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-800 sm:w-auto"
+          >
+            {estadoVisual.buttonText}
+          </button>
+          <p
+            id={`guarda-solo-${estudiante.estudiante_id}`}
+            className="text-center text-xs text-gray-500 sm:text-right"
+          >
+            Solo guarda a {estudiante.nombre}
+          </p>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Arriba de la tarjeta del primer estudiante: el proceso completo, en tres pasos.
+function PasosPlantilla({ nombre }) {
+  const pasos = [
+    <>Escribe aquí los logros de <strong>{nombre}</strong>.</>,
+    <>Oprime <strong>«Copiar a todos y guardar»</strong>, abajo: se copian a los demás y se guarda todo el grupo.</>,
+    <>¿Alguien necesita algo distinto? Cámbialo en su tarjeta y guárdalo con su botón.</>,
+  ];
+
+  return (
+    <div className="border-b border-purple-200 bg-purple-50/80 px-4 py-4 sm:px-5">
+      <p className="text-xs font-bold uppercase tracking-wide text-purple-700">
+        Plantilla del grupo
+      </p>
+      <h2 className="mt-1 text-lg font-bold text-gray-950">
+        Escribe aquí los logros de todo el grupo
+      </h2>
+      <ol className="mt-3 grid gap-2 md:grid-cols-3">
+        {pasos.map((texto, indice) => (
+          <li key={indice} className="flex items-start gap-2 text-sm text-gray-700">
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-600 text-xs font-bold text-white"
+              aria-hidden="true"
+            >
+              {indice + 1}
+            </span>
+            <span className="pt-0.5">{texto}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+// Debajo de los logros del primer estudiante: el paso 2, con un solo botón
+// grande. Guardar solo a este estudiante queda como un enlace pequeño.
+function CopiarAlGrupo({ guardandoTodos, nombre, onCopiar, onGuardarSolo }) {
+  return (
+    <div className="border-t border-purple-200 bg-purple-50/80 px-4 py-4 sm:px-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="flex items-start gap-2 text-sm text-gray-700">
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-600 text-xs font-bold text-white"
+            aria-hidden="true"
+          >
+            2
+          </span>
+          <span className="pt-0.5">
+            ¿Listos los logros? Cópialos a los demás y guarda todo el grupo. Lo que
+            escribiste a mano para alguien no se toca.
+          </span>
+        </p>
+        <button
+          type="button"
+          onClick={onCopiar}
+          disabled={guardandoTodos}
+          className="shrink-0 whitespace-nowrap rounded-md bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-purple-800 disabled:cursor-not-allowed disabled:bg-purple-300"
+        >
+          {guardandoTodos ? "Guardando grupo..." : "Copiar a todos y guardar"}
+        </button>
+      </div>
+      {onGuardarSolo && (
+        <p className="mt-3 border-t border-purple-100 pt-3 text-center text-sm text-gray-500 sm:text-right">
+          ¿Solo cambiaste algo de {nombre}?{" "}
+          <button
+            type="button"
+            onClick={onGuardarSolo}
+            disabled={guardandoTodos}
+            className="font-semibold text-purple-700 underline underline-offset-2 hover:text-purple-900 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Guardar solo a {nombre}
+          </button>
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Ojo de "Ver cómo queda", dibujado a mano como los demás íconos de la app.
+function IconoOjo() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
   );
 }
 

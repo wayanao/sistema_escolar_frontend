@@ -12,6 +12,7 @@ import {
   construirPayloadBoletin,
   estudiantesConCambiosSinGuardar,
   mensajeCambiosSinGuardar,
+  mensajeCopiarLogros,
   mensajeGuardadoGrupoIncompleto,
   obtenerTextoLimpio,
 } from "../../utils/boletines/ingresoBoletin";
@@ -29,6 +30,8 @@ export default function useComandosIngresoBoletinProfesor({
   const [datosBoletin, setDatosBoletin] = useState(datosIniciales);
   const [estadoGuardado, setEstadoGuardado] = useState(estadoGuardadoInicial);
   const [guardandoTodos, setGuardandoTodos] = useState(false);
+  // Avance de "Copiar a todos y guardar": cuántos van de cuántos.
+  const [progresoGrupo, setProgresoGrupo] = useState(null);
   // Porcentajes, paso B4c (PB11): el aviso se acepta una vez por clase y
   // periodo; al cambiar de clase o periodo, vuelve a preguntar.
   const avisoAceptadoRef = useRef(false);
@@ -44,6 +47,9 @@ export default function useComandosIngresoBoletinProfesor({
   const [borradorRecuperado, setBorradorRecuperado] = useState(null);
   // Solo lo que hace el profesor va al borrador; lo que llega del servidor no.
   const cambioDelProfesorRef = useRef(false);
+  // Lo último guardado de cada estudiante (lo que trajo el servidor, y luego
+  // cada guardado). "Copiar a todos" lo usa para saber qué era una copia.
+  const ultimoGuardadoRef = useRef({});
 
   useEffect(() => {
     const borrador = leerBorrador(claveBorrador);
@@ -53,6 +59,7 @@ export default function useComandosIngresoBoletinProfesor({
       borrador,
     });
     cambioDelProfesorRef.current = false;
+    ultimoGuardadoRef.current = datosIniciales;
     setDatosBoletin(conBorrador.datosBoletin);
     setEstadoGuardado(conBorrador.estadoGuardado);
     setBorradorRecuperado(
@@ -174,89 +181,6 @@ export default function useComandosIngresoBoletinProfesor({
     }));
   };
 
-  const aplicarLogrosATodos = async (estudianteIdOrigen) => {
-    const origen = datosBoletin[estudianteIdOrigen];
-    const observacionesOrigen = origen?.observaciones || [];
-    const observacionesConTexto = observacionesOrigen.filter((observacion) =>
-      obtenerTextoLimpio(observacion.observacion),
-    );
-
-    if (observacionesConTexto.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Sin logros para copiar",
-        text: "Escribe al menos un logro en este estudiante antes de aplicarlo al grupo.",
-      });
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: "Aplicar logros al grupo",
-      text: "Se copiarán los logros de este estudiante a los demás estudiantes del periodo actual. Luego podrás modificar casos individuales antes de guardar.",
-      icon: "question",
-      showDenyButton: true,
-      showCancelButton: true,
-      confirmButtonText: "Solo campos vacíos",
-      denyButtonText: "Sobrescribir todos",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: MORADO_BOTON,
-      denyButtonColor: "#475569",
-    });
-
-    if (!result.isConfirmed && !result.isDenied) return;
-
-    const soloVacios = result.isConfirmed;
-    const {
-      datosBoletin: nuevosDatosBoletin,
-      estudiantesModificados,
-    } = aplicarLogrosEnGrupo(datosBoletin, estudianteIdOrigen, soloVacios);
-
-    if (estudiantesModificados.length === 0) {
-      Swal.fire({
-        icon: "info",
-        title: "Sin cambios",
-        text: soloVacios
-          ? "No había campos vacíos para completar."
-          : "Los estudiantes ya tienen esos mismos logros.",
-      });
-      return;
-    }
-
-    cambioDelProfesorRef.current = true;
-    setDatosBoletin(nuevosDatosBoletin);
-    setEstadoGuardado((actual) => {
-      const nuevo = { ...actual };
-      estudiantesModificados.forEach((estudianteId) => {
-        nuevo[estudianteId] = {
-          ...(nuevo[estudianteId] || {}),
-          modificado: true,
-        };
-      });
-      return nuevo;
-    });
-
-    Swal.fire({
-      icon: "success",
-      title: "Logros aplicados",
-      text: `Se actualizaron ${estudiantesModificados.length} estudiante(s). Puedes revisar y modificar casos especiales antes de guardar.`,
-      timer: 2200,
-      showConfirmButton: false,
-    });
-  };
-
-  const aplicarLogrosDelPrimerEstudiante = async () => {
-    if (!primerEstudianteConFormulario) {
-      Swal.fire({
-        icon: "warning",
-        title: "Sin estudiante base",
-        text: "Carga un curso con estudiantes antes de aplicar logros al grupo.",
-      });
-      return;
-    }
-
-    await aplicarLogrosATodos(primerEstudianteConFormulario.estudiante_id);
-  };
-
   const obtenerEstadoVisual = (estudianteId) => {
     const estado = estadoGuardado[estudianteId] || {};
 
@@ -303,6 +227,10 @@ export default function useComandosIngresoBoletinProfesor({
 
     try {
       await guardarBoletinProfesor(payload);
+      ultimoGuardadoRef.current = {
+        ...ultimoGuardadoRef.current,
+        [estudianteId]: datosBoletin[estudianteId],
+      };
       // Guardado: sale del borrador.
       cambioDelProfesorRef.current = true;
       setEstadoGuardado((actual) => ({
@@ -333,46 +261,34 @@ export default function useComandosIngresoBoletinProfesor({
     }
   };
 
-  const guardarTodosBoletines = async () => {
-    const estudiantesConDatos = estudiantes.filter(
-      (estudiante) => datosBoletin[estudiante.estudiante_id],
-    );
+  const estudiantesParaGuardar = (datos) =>
+    estudiantes.filter((estudiante) => datos[estudiante.estudiante_id]);
 
-    if (estudiantesConDatos.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Sin estudiantes para guardar",
-        text: "Carga un curso con estudiantes antes de guardar.",
-      });
-      return;
-    }
-
-    // Porcentajes, paso B4c (PB11): con porcentajes incompletos, el aviso va
-    // en esta misma confirmación para no abrir dos ventanas seguidas.
-    const avisarPorcentajes = porcentajesIncompletos && !avisoAceptadoRef.current;
-    const textoGrupo =
-      "Se guardará la información actual de cada estudiante. Las modificaciones individuales se conservarán.";
-    const result = await Swal.fire({
-      title: "Guardar todo el grupo",
-      text: avisarPorcentajes ? `${AVISO_PORCENTAJES_INCOMPLETOS} ${textoGrupo}` : textoGrupo,
-      icon: avisarPorcentajes ? "warning" : "question",
-      showCancelButton: true,
-      confirmButtonText: "Sí, guardar todo",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: MORADO_BOTON,
+  const avisarSinEstudiantes = () =>
+    Swal.fire({
+      icon: "warning",
+      title: "Sin estudiantes para guardar",
+      text: "Carga un curso con estudiantes antes de guardar.",
     });
 
-    if (!result.isConfirmed) return;
-    if (avisarPorcentajes) avisoAceptadoRef.current = true;
-
+  /**
+   * Guarda uno por uno a `estudiantesConDatos` con `datos`. Los que quedan
+   * guardados se marcan aunque el grupo se detenga a la mitad: así el
+   * profesor sabe cuáles faltan.
+   */
+  const guardarGrupo = async (datos, estudiantesConDatos) => {
     setGuardandoTodos(true);
+    setProgresoGrupo({ guardados: 0, total: estudiantesConDatos.length });
 
-    // Los que ya quedaron guardados se marcan aunque el grupo se detenga a
-    // la mitad: así el profesor sabe cuáles faltan.
     const guardadosIds = [];
     const marcarGuardados = () => {
       if (guardadosIds.length === 0) return;
       cambioDelProfesorRef.current = true;
+      const ultimo = { ...ultimoGuardadoRef.current };
+      guardadosIds.forEach((estudianteId) => {
+        ultimo[estudianteId] = datos[estudianteId];
+      });
+      ultimoGuardadoRef.current = ultimo;
       const guardadoEn = new Date().toLocaleTimeString("es-CO", {
         hour: "2-digit",
         minute: "2-digit",
@@ -394,7 +310,7 @@ export default function useComandosIngresoBoletinProfesor({
     try {
       for (const estudiante of estudiantesConDatos) {
         const payload = construirPayloadBoletin({
-          datosBoletin,
+          datosBoletin: datos,
           estudianteId: estudiante.estudiante_id,
           asignacionId,
           periodo,
@@ -404,6 +320,7 @@ export default function useComandosIngresoBoletinProfesor({
         estudianteEnCurso = estudiante;
         await guardarBoletinProfesor(payload);
         guardadosIds.push(estudiante.estudiante_id);
+        setProgresoGrupo({ guardados: guardadosIds.length, total: estudiantesConDatos.length });
       }
 
       marcarGuardados();
@@ -430,7 +347,72 @@ export default function useComandosIngresoBoletinProfesor({
       });
     } finally {
       setGuardandoTodos(false);
+      setProgresoGrupo(null);
     }
+  };
+
+  /**
+   * Un solo botón: copia los logros del primer estudiante a los demás (ver
+   * `aplicarLogrosEnGrupo`: llena vacíos, actualiza copias, respeta lo escrito
+   * a mano) y guarda todo el grupo, con una sola confirmación.
+   */
+  const copiarLogrosYGuardar = async () => {
+    const origen = primerEstudianteConFormulario;
+    if (!origen) {
+      avisarSinEstudiantes();
+      return;
+    }
+
+    const observacionesOrigen = datosBoletin[origen.estudiante_id]?.observaciones || [];
+    if (!observacionesOrigen.some((observacion) => obtenerTextoLimpio(observacion.observacion))) {
+      Swal.fire({
+        icon: "warning",
+        title: "Sin logros para copiar",
+        text: `Escribe al menos un logro en ${origen.nombre} para copiarlo a los demás.`,
+        confirmButtonColor: MORADO_BOTON,
+      });
+      return;
+    }
+
+    const estudiantesConDatos = estudiantesParaGuardar(datosBoletin);
+    const copia = aplicarLogrosEnGrupo(
+      datosBoletin,
+      origen.estudiante_id,
+      ultimoGuardadoRef.current[origen.estudiante_id]?.observaciones,
+    );
+    const avisarPorcentajes = porcentajesIncompletos && !avisoAceptadoRef.current;
+    const texto = mensajeCopiarLogros({
+      nombreOrigen: origen.nombre,
+      copiados: copia.estudiantesModificados.length,
+      conTextoPropio: copia.estudiantesConTextoPropio.length,
+      total: estudiantesConDatos.length,
+    });
+    const result = await Swal.fire({
+      title: "Copiar a todos y guardar",
+      text: avisarPorcentajes ? `${AVISO_PORCENTAJES_INCOMPLETOS} ${texto}` : texto,
+      icon: avisarPorcentajes ? "warning" : "question",
+      showCancelButton: true,
+      confirmButtonText: "Copiar y guardar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: MORADO_BOTON,
+    });
+
+    if (!result?.isConfirmed) return;
+    if (avisarPorcentajes) avisoAceptadoRef.current = true;
+
+    if (copia.estudiantesModificados.length > 0) {
+      cambioDelProfesorRef.current = true;
+      setDatosBoletin(copia.datosBoletin);
+      setEstadoGuardado((actual) => {
+        const nuevo = { ...actual };
+        copia.estudiantesModificados.forEach((estudianteId) => {
+          nuevo[estudianteId] = { ...(nuevo[estudianteId] || {}), modificado: true };
+        });
+        return nuevo;
+      });
+    }
+
+    await guardarGrupo(copia.datosBoletin, estudiantesConDatos);
   };
 
   return {
@@ -441,12 +423,11 @@ export default function useComandosIngresoBoletinProfesor({
     estadoGuardado,
     guardandoTodos,
     primerEstudianteConFormulario,
+    progresoGrupo,
     actualizarObservacion,
-    aplicarLogrosATodos,
-    aplicarLogrosDelPrimerEstudiante,
     confirmarDescartarCambios,
+    copiarLogrosYGuardar,
     guardarBoletinEstudiante,
-    guardarTodosBoletines,
     obtenerEstadoVisual,
   };
 }

@@ -18,6 +18,7 @@ import {
   hayPorcentajesIncompletos,
   MENSAJE_PORCENTAJES_INCOMPLETOS,
   mensajeCambiosSinGuardar,
+  mensajeCopiarLogros,
   mensajeGuardadoGrupoIncompleto,
   normalizarEstudiantesReferencia,
 } from "./ingresoBoletin";
@@ -87,11 +88,13 @@ describe("utilidades de ingreso docente a boletines", () => {
       },
     };
 
-    const resultado = aplicarLogrosEnGrupo(datos, 1, true);
+    const resultado = aplicarLogrosEnGrupo(datos, 1);
 
     expect(resultado.estudiantesModificados).toEqual(["2"]);
+    expect(resultado.estudiantesConTextoPropio).toEqual(["3"]);
     expect(resultado.datosBoletin[2].observaciones[0].observacion).toBe("Común");
     expect(resultado.datosBoletin[3]).toBe(datos[3]);
+    expect(resultado.datosBoletin[1]).toBe(datos[1]);
   });
 
   it("detecta formularios transitorios que pertenecen a otra carga", () => {
@@ -125,16 +128,62 @@ describe("utilidades de ingreso docente a boletines", () => {
     ).toBe(true);
   });
 
-  it("permite sobrescribir todos usando el índice como respaldo", () => {
+  it("usa la posición como respaldo cuando el tipo de nota no coincide", () => {
     const datos = {
       1: { observaciones: [{ referencia: "origen", observacion: "Común" }] },
-      2: { observaciones: [{ referencia: "distinta", observacion: "Individual" }] },
+      2: { observaciones: [{ referencia: "distinta", observacion: "" }] },
     };
 
-    const resultado = aplicarLogrosEnGrupo(datos, 1, false);
+    const resultado = aplicarLogrosEnGrupo(datos, 1);
 
     expect(resultado.estudiantesModificados).toEqual(["2"]);
     expect(resultado.datosBoletin[2].observaciones[0].observacion).toBe("Común");
+  });
+
+  it("una corrección en el primero llega a las copias, no a lo escrito a mano", () => {
+    const logro = (texto) => [{ referencia: "lectura", tipo_evaluacion: "numerica", observacion: texto }];
+    const datos = {
+      1: { observaciones: logro("Lee con fluidez y entonación") }, // corregido, sin guardar
+      2: { observaciones: logro("Lee con fluides") },              // copia de lo guardado antes
+      3: { observaciones: logro("Lee despacio pero comprende") },  // escrito a mano
+      4: { observaciones: logro("") },
+    };
+    const guardadoDelPrimero = logro("Lee con fluides");
+
+    const resultado = aplicarLogrosEnGrupo(datos, 1, guardadoDelPrimero);
+
+    expect(resultado.estudiantesModificados).toEqual(["2", "4"]);
+    expect(resultado.estudiantesConTextoPropio).toEqual(["3"]);
+    expect(resultado.datosBoletin[2].observaciones[0].observacion).toBe("Lee con fluidez y entonación");
+    expect(resultado.datosBoletin[3]).toBe(datos[3]);
+    expect(resultado.datosBoletin[4].observaciones[0].observacion).toBe("Lee con fluidez y entonación");
+  });
+
+  it("un campo vacío en el primero no borra nada en los demás", () => {
+    const datos = {
+      1: { observaciones: [{ referencia: "a", observacion: "" }, { referencia: "b", observacion: "Logro B" }] },
+      2: { observaciones: [{ referencia: "a", observacion: "Propio A" }, { referencia: "b", observacion: "" }] },
+    };
+
+    const resultado = aplicarLogrosEnGrupo(datos, 1, datos[1].observaciones);
+
+    expect(resultado.datosBoletin[2].observaciones.map((o) => o.observacion)).toEqual(["Propio A", "Logro B"]);
+    expect(resultado.estudiantesConTextoPropio).toEqual([]);
+  });
+
+  it("explica con números lo que hará Copiar a todos y guardar", () => {
+    expect(mensajeCopiarLogros({ nombreOrigen: "Ana", copiados: 27, conTextoPropio: 3, total: 30 })).toBe(
+      "Los logros de Ana se copiarán a 27 estudiantes. Lo que escribiste a mano para 3 estudiantes no se toca. Después se guarda todo el grupo (30 estudiantes).",
+    );
+    expect(mensajeCopiarLogros({ nombreOrigen: "Ana", copiados: 1, conTextoPropio: 0, total: 2 })).toBe(
+      "Los logros de Ana se copiarán a un estudiante. Después se guarda todo el grupo (2 estudiantes).",
+    );
+    expect(mensajeCopiarLogros({ nombreOrigen: "Ana", copiados: 0, conTextoPropio: 1, total: 2 })).toBe(
+      "Los demás ya tienen los logros de Ana o los escribiste a mano. Después se guarda todo el grupo (2 estudiantes).",
+    );
+    expect(mensajeCopiarLogros({ nombreOrigen: "Ana", copiados: 0, conTextoPropio: 0, total: 1 })).toBe(
+      "Los demás ya tienen los logros de Ana. Después se guarda todo el grupo (un estudiante).",
+    );
   });
 
   it("construye sin reinterpretar payloads numéricos y de desarrollo", () => {
@@ -528,14 +577,14 @@ describe("utilidades de ingreso docente a boletines", () => {
       );
     });
 
-    it("explica un Guardar todo incompleto, con la razón del servidor si la da", () => {
+    it("explica un guardado del grupo incompleto, con la razón del servidor si la da", () => {
       expect(
         mensajeGuardadoGrupoIncompleto({ guardados: 0, total: 30, nombreFallido: "Ana", error: new Error("x") }),
       ).toBe("No se pudo guardar el grupo. Revisa la conexión e intenta nuevamente.");
       expect(
         mensajeGuardadoGrupoIncompleto({ guardados: 14, total: 30, nombreFallido: "Ana Pérez" }),
       ).toBe(
-        "Se guardaron 14 de 30 estudiantes. Faltan 16, desde Ana Pérez: siguen marcados como no guardados. Revisa la conexión y oprime «Guardar todo» otra vez.",
+        "Se guardaron 14 de 30 estudiantes. Faltan 16, desde Ana Pérez: siguen marcados como no guardados. Revisa la conexión y vuelve a oprimir «Copiar a todos y guardar».",
       );
       expect(
         mensajeGuardadoGrupoIncompleto({

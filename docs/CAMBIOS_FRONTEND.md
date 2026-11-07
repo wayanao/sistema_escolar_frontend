@@ -1,5 +1,87 @@
 # Cambios Frontend
 
+## 2026-11-07 - Boletín final del profesor: plantilla del grupo y avance al guardar
+
+Pedido del usuario: que la caja de "copiar a todos y guardar" sea una con el
+primer estudiante, "que el profesor entienda todo el proceso", y que al
+guardar el grupo "explique que se demora porque el proceso es pesado". Luego,
+al ver dos botones morados iguales en esa tarjeta: "aquí se confunden… hay
+profesores que son mayores y no entienden".
+
+- La caja aparte "Logros generales del periodo" ya no existe. La **tarjeta del
+  primer estudiante es la plantilla del grupo** (borde morado): arriba, "Escribe
+  aquí los logros de todo el grupo" con tres pasos numerados (1 escribir aquí,
+  2 oprimir «Copiar a todos y guardar», 3 cambiar a quien necesite algo
+  distinto en su tarjeta); abajo de sus logros, el paso 2 con el botón.
+- En esa tarjeta hay **un solo botón grande**, "Copiar a todos y guardar". Guardar
+  solo a ese estudiante queda como un enlace pequeño debajo: "¿Solo cambiaste
+  algo de Ana? Guardar solo a Ana". Las demás tarjetas no cambian (su botón al
+  final, con "Solo guarda a …").
+- Mientras se guarda el grupo, una ventana tapa la pantalla con "Guardando el
+  grupo…", "Van 12 de 30 estudiantes", una barra de avance y la explicación:
+  "Esto tarda un poco porque es un proceso pesado: se guarda estudiante por
+  estudiante, cada uno con sus notas y sus logros. No cierres ni cambies de
+  página hasta que termine." (`progresoGrupo` en el hook de comandos).
+- Archivos: `VistaIngresoBoletinProfesor.jsx` (`PasosPlantilla`,
+  `CopiarAlGrupo`, `ProgresoGuardadoGrupo`; sale `AccionesGrupo`),
+  `useComandosIngresoBoletinProfesor.js` (`progresoGrupo`) y la página
+  (`idPrimerEstudiante`, `progresoGrupo`).
+- Verificación: 124 pruebas del boletín (vista, hooks, utilidades y página),
+  lint y build correctos. En el navegador, con servidor simulado que tarda en
+  cada guardado: se ve "Van 1 de 6", la ventana se cierra al terminar y sale
+  "Grupo guardado"; sin errores en la página. No se repitió la corrida
+  completa de `check:deploy` tras este cambio.
+
+## 2026-11-07 - Boletín final del profesor: un solo botón "Copiar a todos y guardar", sin "Guardar todo"
+
+Pedido del usuario: "¿se podría hacer un solo botón de replicar y guardar? Es
+que los profesores se embolatan". Antes eran cuatro decisiones: escribir en el
+primer estudiante, "Aplicar logros del primer estudiante", elegir entre "Solo
+campos vacíos" y "Sobrescribir todos", y "Guardar todo".
+
+- El botón "Aplicar logros del primer estudiante" se cambió por **"Copiar a
+  todos y guardar"**, con una sola confirmación que dice qué pasará: "Los
+  logros de Ana se copiarán a 2 estudiantes. Lo que escribiste a mano para un
+  estudiante no se toca. Después se guarda todo el grupo (4 estudiantes)."
+  Con porcentajes incompletos, el aviso va en esa misma confirmación.
+- Regla (`aplicarLogrosEnGrupo`): un campo vacío se llena; uno que tiene lo
+  último guardado del primero (una copia que nadie tocó) se actualiza, así una
+  corrección llega a todos; uno con otro texto se respeta. Un campo vacío en
+  el primero no borra nada. Lo último guardado de cada estudiante se recuerda
+  en el hook (lo que trajo el servidor y cada guardado).
+- **Quitado, con aprobación del usuario:** la opción "Sobrescribir todos".
+  Era la única que podía borrar lo escrito a mano para un estudiante; con la
+  regla nueva ya no hace falta.
+- **"Guardar todo" también se quitó**, a pedido del usuario: "quiero que ese
+  botón de guardar todo no esté, y que si alguien edita un estudiante en
+  particular se guarde con el botón que tiene cada estudiante". El grupo se
+  guarda solo con "Copiar a todos y guardar" (que ahora es el botón morado
+  lleno); un cambio en un estudiante, con el botón de su tarjeta. Si guardar
+  el grupo se detiene a la mitad, marca a los guardados y pide volver a
+  oprimir "Copiar a todos y guardar". La explicación del recuadro nombra al
+  primer estudiante y dice que cada cambio individual se guarda con su botón.
+- **Tarjeta de cada estudiante** (pedido del usuario): arriba solo la
+  definitiva y "Ver cómo queda"; el botón de guardar del estudiante pasó al
+  final, abajo a la derecha (en celular, a todo lo ancho), con una nota
+  pequeña y gris al lado: "Solo guarda a <estudiante>" (también es su
+  descripción accesible, `aria-describedby`). "Ver cómo queda"
+  es ahora una píldora con un ojo dibujado a mano (`IconoOjo`), fondo morado
+  muy claro y una sombra que crece al pasar el mouse.
+- Archivos: `utils/boletines/ingresoBoletin.js` (regla nueva y
+  `mensajeCopiarLogros`), `useComandosIngresoBoletinProfesor.js`
+  (`copiarLogrosYGuardar`; salen `aplicarLogrosATodos`,
+  `aplicarLogrosDelPrimerEstudiante` y `guardarTodosBoletines`), la vista y la
+  página.
+- Pruebas de la página: la primera espera de cada una tiene hasta 4 s
+  (`PRIMERA_CARGA`), porque con el equipo cargado la primera carga pasaba del
+  segundo por defecto.
+- Verificación: `pnpm run check:deploy` tardó 80 min por la carga del equipo:
+  3360 pruebas pasaron y 29 archivos no alcanzaron a arrancar; corridos aparte,
+  pasaron (133 pruebas). Total 408 archivos y 3493 pruebas. Lint y build
+  correctos. En el navegador, con servidor simulado: Ana corrige, Bruno (copia)
+  se actualiza, Carla (escrito a mano) se respeta, Diego (vacío) se llena, y
+  se guardan los 4; sin errores en la página.
+
 ## 2026-11-07 - Boletín final del profesor: borrador automático
 
 Pregunta del usuario: "yo creí que si uno se salía para algún otro lado del

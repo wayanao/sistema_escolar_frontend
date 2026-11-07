@@ -27,11 +27,12 @@ export default function IngresoBoletinProfesor() {
     descartarBorrador,
     estadoGuardado,
     guardandoTodos,
-    aplicarLogrosDelPrimerEstudiante,
+    primerEstudianteConFormulario,
+    progresoGrupo,
     actualizarObservacion,
     confirmarDescartarCambios,
+    copiarLogrosYGuardar,
     guardarBoletinEstudiante,
-    guardarTodosBoletines,
     obtenerEstadoVisual,
   } = useComandosIngresoBoletinProfesor({
     asignacionId,
@@ -75,8 +76,10 @@ export default function IngresoBoletinProfesor() {
       datosBoletin={datosBoletin}
       estudiantes={estudiantes}
       guardandoTodos={guardandoTodos}
+      idPrimerEstudiante={primerEstudianteConFormulario?.estudiante_id ?? null}
       periodo={periodo}
-      onAplicarLogros={aplicarLogrosDelPrimerEstudiante}
+      progresoGrupo={progresoGrupo}
+      onCopiarLogrosYGuardar={copiarLogrosYGuardar}
       errorAlumnos={errorAlumnos}
       errorClases={errorClases}
       onCambiarAsignacion={cambiarAsignacionConAviso}
@@ -85,7 +88,6 @@ export default function IngresoBoletinProfesor() {
       onReintentarAlumnos={recargarAlumnos}
       onReintentarClases={recargarClases}
       onGuardarEstudiante={guardarBoletinEstudiante}
-      onGuardarTodos={guardarTodosBoletines}
       onObservacionChange={actualizarObservacion}
       obtenerEstadoVisual={obtenerEstadoVisual}
       vistaPrevia={vistaPrevia}

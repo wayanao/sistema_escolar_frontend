@@ -864,7 +864,12 @@ Estado actual de componentes y paginas del frontend.
   Si falla la carga de clases o de estudiantes, muestra el aviso con
   "Reintentar" en vez de las tarjetas (2026-11-07). Si al entrar hay un
   borrador sin guardar, avisa "Recuperamos lo que no habías guardado" con
-  "Descartar" (2026-11-07; ver `useBorradorBoletinProfesor`).
+  "Descartar" (2026-11-07; ver `useBorradorBoletinProfesor`). Cada tarjeta:
+  arriba la definitiva y "Ver cómo queda"; abajo a la derecha, su botón de
+  guardar. Sin "Guardar todo": el grupo se guarda con "Copiar a todos y
+  guardar" (2026-11-07), que vive en la tarjeta del primer estudiante
+  ("Plantilla del grupo", con los pasos del proceso y un enlace "Guardar solo
+  a …"). Mientras guarda el grupo, `ProgresoGuardadoGrupo` muestra cuántos van.
 - `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo
   queda" del profesor. Usa el membrete real (`DocumentoImprimible` con
   `mostrarBarra={false}`, sin Descargar PDF ni Imprimir) y las piezas del

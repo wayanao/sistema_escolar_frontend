@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,7 +16,7 @@ import VistaIngresoBoletinProfesor from "./VistaIngresoBoletinProfesor";
 describe("VistaIngresoBoletinProfesor", () => {
   it("presenta el formulario y comunica edición y acciones", async () => {
     const user = userEvent.setup();
-    const onAplicarLogros = vi.fn();
+    const onCopiarLogrosYGuardar = vi.fn();
     const onGuardarEstudiante = vi.fn();
     const onObservacionChange = vi.fn();
     render(
@@ -50,12 +50,12 @@ describe("VistaIngresoBoletinProfesor", () => {
           },
         ]}
         guardandoTodos={false}
+        idPrimerEstudiante={101}
         periodo="1"
-        onAplicarLogros={onAplicarLogros}
+        onCopiarLogrosYGuardar={onCopiarLogrosYGuardar}
         onCambiarAsignacion={vi.fn()}
         onCambiarPeriodo={vi.fn()}
         onGuardarEstudiante={onGuardarEstudiante}
-        onGuardarTodos={vi.fn()}
         onObservacionChange={onObservacionChange}
         obtenerEstadoVisual={() => ({
           label: "Pendiente",
@@ -70,12 +70,12 @@ describe("VistaIngresoBoletinProfesor", () => {
     expect(screen.getByText("Logro Oral")).toHaveAttribute("translate", "no");
     await user.type(screen.getByRole("textbox"), "Avanza");
     await user.click(
-      screen.getByRole("button", { name: "Aplicar logros del primer estudiante" }),
+      screen.getByRole("button", { name: "Copiar a todos y guardar" }),
     );
-    await user.click(screen.getByRole("button", { name: "Guardar resumen" }));
+    await user.click(screen.getByRole("button", { name: "Guardar solo a Ana" }));
 
     expect(onObservacionChange).toHaveBeenLastCalledWith(101, 0, "a");
-    expect(onAplicarLogros).toHaveBeenCalledTimes(1);
+    expect(onCopiarLogrosYGuardar).toHaveBeenCalledTimes(1);
     expect(onGuardarEstudiante).toHaveBeenCalledWith(101);
   });
 
@@ -104,11 +104,10 @@ describe("VistaIngresoBoletinProfesor", () => {
       ],
       guardandoTodos: false,
       periodo: "1",
-      onAplicarLogros: vi.fn(),
+      onCopiarLogrosYGuardar: vi.fn(),
       onCambiarAsignacion: vi.fn(),
       onCambiarPeriodo: vi.fn(),
       onGuardarEstudiante: vi.fn(),
-      onGuardarTodos: vi.fn(),
       onObservacionChange: vi.fn(),
       obtenerEstadoVisual: () => ({
         label: "Pendiente",
@@ -191,11 +190,10 @@ describe("VistaIngresoBoletinProfesor", () => {
       ],
       guardandoTodos: false,
       periodo: "1",
-      onAplicarLogros: vi.fn(),
+      onCopiarLogrosYGuardar: vi.fn(),
       onCambiarAsignacion: vi.fn(),
       onCambiarPeriodo: vi.fn(),
       onGuardarEstudiante: vi.fn(),
-      onGuardarTodos: vi.fn(),
       onObservacionChange: vi.fn(),
       obtenerEstadoVisual: (estudianteId) => ({
         label: `Estado de ${estudianteId}`,
@@ -252,11 +250,10 @@ describe("VistaIngresoBoletinProfesor", () => {
         ]}
         guardandoTodos={false}
         periodo="1"
-        onAplicarLogros={vi.fn()}
+        onCopiarLogrosYGuardar={vi.fn()}
         onCambiarAsignacion={vi.fn()}
         onCambiarPeriodo={vi.fn()}
         onGuardarEstudiante={vi.fn()}
-        onGuardarTodos={vi.fn()}
         onObservacionChange={vi.fn()}
         obtenerEstadoVisual={() => ({
           label: "Pendiente",
@@ -285,11 +282,10 @@ describe("VistaIngresoBoletinProfesor", () => {
         estudiantes={[]}
         guardandoTodos={false}
         periodo="1"
-        onAplicarLogros={vi.fn()}
+        onCopiarLogrosYGuardar={vi.fn()}
         onCambiarAsignacion={vi.fn()}
         onCambiarPeriodo={vi.fn()}
         onGuardarEstudiante={vi.fn()}
-        onGuardarTodos={vi.fn()}
         onObservacionChange={vi.fn()}
         onReintentarAlumnos={onReintentarAlumnos}
         onReintentarClases={onReintentarClases}
@@ -303,7 +299,7 @@ describe("VistaIngresoBoletinProfesor", () => {
       expect.stringContaining("No se pudieron cargar los estudiantes de esta clase"),
     ]);
     expect(screen.queryByText(/No hay estudiantes en este curso/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Guardar todo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copiar a todos y guardar" })).not.toBeInTheDocument();
 
     const [reintentarClases, reintentarAlumnos] = screen.getAllByRole("button", { name: "Reintentar" });
     await user.click(reintentarClases);
@@ -332,12 +328,11 @@ describe("VistaIngresoBoletinProfesor", () => {
         ]}
         guardandoTodos={false}
         periodo="1"
-        onAplicarLogros={vi.fn()}
+        onCopiarLogrosYGuardar={vi.fn()}
         onCambiarAsignacion={vi.fn()}
         onCambiarPeriodo={vi.fn()}
         onDescartarBorrador={onDescartarBorrador}
         onGuardarEstudiante={vi.fn()}
-        onGuardarTodos={vi.fn()}
         onObservacionChange={vi.fn()}
         obtenerEstadoVisual={() => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar" })}
       />,
@@ -349,4 +344,147 @@ describe("VistaIngresoBoletinProfesor", () => {
     await user.click(screen.getByRole("button", { name: "Descartar" }));
     expect(onDescartarBorrador).toHaveBeenCalledTimes(1);
   });
+
+  describe("plantilla del grupo en la tarjeta del primer estudiante", () => {
+    const propiedades = (cambios = {}) => ({
+      asignacionId: "55",
+      cargando: false,
+      clases: [],
+      datosBoletin: {
+        101: { definitiva: "4.00", observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }] },
+        102: { definitiva: "3.00", observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }] },
+      },
+      estudiantes: [
+        { estudiante_id: 101, nombre: "Ana", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 4 }] },
+        { estudiante_id: 102, nombre: "Bruno", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 3 }] },
+      ],
+      guardandoTodos: false,
+      idPrimerEstudiante: 101,
+      periodo: "1",
+      onCopiarLogrosYGuardar: vi.fn(),
+      onCambiarAsignacion: vi.fn(),
+      onCambiarPeriodo: vi.fn(),
+      onGuardarEstudiante: vi.fn(),
+      onObservacionChange: vi.fn(),
+      obtenerEstadoVisual: () => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar resumen" }),
+      ...cambios,
+    });
+
+    it("solo la tarjeta del primero explica el proceso y lleva Copiar a todos y guardar", () => {
+      render(<VistaIngresoBoletinProfesor {...propiedades()} />);
+
+      const tarjetaAna = screen.getByRole("heading", { name: "Ana" }).closest(".rounded-lg");
+      const tarjetaBruno = screen.getByRole("heading", { name: "Bruno" }).closest(".rounded-lg");
+
+      expect(within(tarjetaAna).getByText("Plantilla del grupo")).toBeInTheDocument();
+      expect(within(tarjetaAna).getByRole("heading", { name: "Escribe aquí los logros de todo el grupo" })).toBeInTheDocument();
+      expect(within(tarjetaAna).getAllByRole("listitem").map((paso) => [paso.firstChild.textContent, paso.lastChild.textContent])).toEqual([
+        ["1", "Escribe aquí los logros de Ana."],
+        ["2", "Oprime «Copiar a todos y guardar», abajo: se copian a los demás y se guarda todo el grupo."],
+        ["3", "¿Alguien necesita algo distinto? Cámbialo en su tarjeta y guárdalo con su botón."],
+      ]);
+      expect(within(tarjetaAna).getByRole("button", { name: "Copiar a todos y guardar" })).toBeEnabled();
+
+      expect(within(tarjetaBruno).queryByText("Plantilla del grupo")).not.toBeInTheDocument();
+      expect(within(tarjetaBruno).queryByRole("button", { name: "Copiar a todos y guardar" })).not.toBeInTheDocument();
+      // No queda la caja aparte ni "Guardar todo".
+      expect(screen.getAllByRole("button", { name: "Copiar a todos y guardar" })).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: /Guardar todo/ })).not.toBeInTheDocument();
+    });
+
+    it("el botón del grupo va después de los logros del primero y antes de su guardar", () => {
+      render(<VistaIngresoBoletinProfesor {...propiedades()} />);
+      const tarjetaAna = screen.getByRole("heading", { name: "Ana" }).closest(".rounded-lg");
+      const despues = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+      const logro = within(tarjetaAna).getByRole("textbox");
+      const copiar = within(tarjetaAna).getByRole("button", { name: "Copiar a todos y guardar" });
+      const guardarAna = within(tarjetaAna).getByRole("button", { name: "Guardar solo a Ana" });
+      expect(despues(logro, copiar)).toBe(true);
+      expect(despues(copiar, guardarAna)).toBe(true);
+      // En la plantilla hay un solo botón grande: el de guardar normal no está.
+      expect(within(tarjetaAna).queryByRole("button", { name: "Guardar resumen" })).not.toBeInTheDocument();
+      // En las demás tarjetas, el de siempre.
+      const tarjetaBruno = screen.getByRole("heading", { name: "Bruno" }).closest(".rounded-lg");
+      expect(within(tarjetaBruno).getByRole("button", { name: "Guardar resumen" })).toHaveAccessibleDescription(
+        "Solo guarda a Bruno",
+      );
+    });
+
+    it("Guardar solo a Ana guarda solo a Ana, y se bloquea mientras guarda el grupo", async () => {
+      const user = userEvent.setup();
+      const onGuardarEstudiante = vi.fn();
+      const { rerender } = render(<VistaIngresoBoletinProfesor {...propiedades({ onGuardarEstudiante })} />);
+
+      await user.click(screen.getByRole("button", { name: "Guardar solo a Ana" }));
+      expect(onGuardarEstudiante).toHaveBeenCalledWith(101);
+      expect(screen.getByText(/¿Solo cambiaste algo de Ana\?/)).toBeInTheDocument();
+
+      rerender(<VistaIngresoBoletinProfesor {...propiedades({ onGuardarEstudiante, guardandoTodos: true })} />);
+      expect(screen.getByRole("button", { name: "Guardar solo a Ana" })).toBeDisabled();
+    });
+
+    it("mientras guarda el grupo, una ventana dice cuántos van y por qué tarda", () => {
+      render(
+        <VistaIngresoBoletinProfesor
+          {...propiedades({ guardandoTodos: true, progresoGrupo: { guardados: 12, total: 30 } })}
+        />,
+      );
+
+      const ventana = screen.getByRole("dialog", { name: "Guardando el grupo…" });
+      expect(within(ventana).getByText("Van 12 de 30 estudiantes")).toBeInTheDocument();
+      const barra = within(ventana).getByRole("progressbar", { name: "Estudiantes guardados" });
+      expect(barra).toHaveAttribute("aria-valuenow", "12");
+      expect(barra).toHaveAttribute("aria-valuemax", "30");
+      expect(barra.firstChild).toHaveStyle({ width: "40%" });
+      expect(within(ventana).getByText(/tarda un poco porque es un proceso pesado/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Guardando grupo..." })).toBeDisabled();
+    });
+
+    it("sin guardado en curso no hay ventana de avance", () => {
+      render(<VistaIngresoBoletinProfesor {...propiedades()} />);
+      expect(screen.queryByRole("dialog", { name: "Guardando el grupo…" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("arriba la definitiva y Ver cómo queda; guardar va al final de la tarjeta", () => {
+    render(
+      <VistaIngresoBoletinProfesor
+        asignacionId="55"
+        cargando={false}
+        clases={[]}
+        datosBoletin={{
+          101: {
+            definitiva: "4.20",
+            observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }],
+          },
+        }}
+        estudiantes={[
+          { estudiante_id: 101, nombre: "Ana", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 4.2 }] },
+        ]}
+        guardandoTodos={false}
+        periodo="1"
+        onCopiarLogrosYGuardar={vi.fn()}
+        onCambiarAsignacion={vi.fn()}
+        onCambiarPeriodo={vi.fn()}
+        onGuardarEstudiante={vi.fn()}
+        onObservacionChange={vi.fn()}
+        onVerVistaPrevia={vi.fn()}
+        obtenerEstadoVisual={() => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar resumen" })}
+      />,
+    );
+
+    const despues = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const definitiva = screen.getByText("4.2");
+    const verComoQueda = screen.getByRole("button", { name: "Ver cómo queda" });
+    const logro = screen.getByRole("textbox");
+    const guardar = screen.getByRole("button", { name: "Guardar resumen" });
+
+    expect(despues(definitiva, verComoQueda)).toBe(true);
+    expect(despues(verComoQueda, logro)).toBe(true);
+    expect(despues(logro, guardar)).toBe(true);
+    // Una nota sutil aclara que ese botón guarda solo a ese estudiante.
+    expect(guardar).toHaveAccessibleDescription("Solo guarda a Ana");
+  });
 });
+

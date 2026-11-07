@@ -20,6 +20,11 @@ vi.mock("sweetalert2", () => ({
 
 import IngresoBoletinProfesor from "./IngresoBoletinProfesor";
 
+// La primera carga de la página espera dos consultas simuladas y monta la
+// vista previa y el membrete; con el equipo cargado (check:deploy) puede pasar
+// del segundo que espera `findBy` por defecto.
+const PRIMERA_CARGA = { timeout: 4000 };
+
 const notasDe = (primeraObservacion, segundaObservacion) => [
   {
     tipo_nota: "logro_expresion_oral",
@@ -78,21 +83,18 @@ describe("IngresoBoletinProfesor", () => {
     });
     api.post.mockResolvedValue({ data: {} });
     Swal.fire.mockImplementation((opciones) => {
-      if (opciones?.title === "Aplicar logros al grupo") {
-        return Promise.resolve({ isConfirmed: true, isDenied: false });
-      }
-      if (opciones?.title === "Guardar todo el grupo") {
+      if (opciones?.title === "Copiar a todos y guardar") {
         return Promise.resolve({ isConfirmed: true });
       }
       return Promise.resolve({});
     });
   });
 
-  it("oculta campos técnicos, copia solo vacíos y conserva payloads individuales al guardar todo", async () => {
+  it("oculta campos técnicos y Copiar a todos y guardar llena vacíos, conserva lo individual y guarda", async () => {
     const user = userEvent.setup();
     render(<IngresoBoletinProfesor />);
 
-    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Bruno" })).toBeInTheDocument();
     expect(screen.queryByText("Mas Alto")).not.toBeInTheDocument();
 
@@ -104,21 +106,14 @@ describe("IngresoBoletinProfesor", () => {
     expect(observaciones[2]).toHaveValue("");
     expect(observaciones[3]).toHaveValue("Caso individual");
 
-    await user.click(
-      screen.getByRole("button", {
-        name: "Aplicar logros del primer estudiante",
-      }),
-    );
-
-    await waitFor(() => {
-      observaciones = screen.getAllByRole("textbox");
-      expect(observaciones[2]).toHaveValue("Logro común");
-      expect(observaciones[3]).toHaveValue("Caso individual");
-    });
-
-    await user.click(screen.getByRole("button", { name: "Guardar todo" }));
+    expect(screen.getByText("Plantilla del grupo")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Copiar a todos y guardar" }));
 
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
+    observaciones = screen.getAllByRole("textbox");
+    expect(observaciones[2]).toHaveValue("Logro común");
+    expect(observaciones[3]).toHaveValue("Caso individual");
+    expect(screen.queryByRole("button", { name: /Guardar todo/ })).not.toBeInTheDocument();
     expect(api.post).toHaveBeenNthCalledWith(1, "/boletines/guardar", {
       estudiante_id: 101,
       asignacion_id: 55,
@@ -206,7 +201,7 @@ describe("IngresoBoletinProfesor", () => {
 
     render(<IngresoBoletinProfesor />);
 
-    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
     expect(screen.getAllByRole("textbox")).toHaveLength(2);
 
     const selectorClase = screen.getAllByRole("combobox")[0];
@@ -239,7 +234,7 @@ describe("IngresoBoletinProfesor", () => {
     localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Lina Torres" }));
 
     render(<IngresoBoletinProfesor />);
-    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
 
     const [primerLogroDeAna] = screen.getAllByRole("textbox");
     await user.clear(primerLogroDeAna);
@@ -300,7 +295,7 @@ describe("IngresoBoletinProfesor", () => {
     });
 
     render(<IngresoBoletinProfesor />);
-    expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
     const [verAna] = screen.getAllByRole("button", { name: "Ver cómo queda" });
     await user.click(verAna);
 
@@ -335,7 +330,7 @@ describe("IngresoBoletinProfesor", () => {
       });
 
       render(<IngresoBoletinProfesor />);
-      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
 
       const selectorPeriodo = screen.getAllByRole("combobox")[1];
       await user.selectOptions(selectorPeriodo, "2");
@@ -346,7 +341,7 @@ describe("IngresoBoletinProfesor", () => {
       // Las tarjetas del periodo 1 ya no están: no hay nada que guardar en el 2.
       expect(screen.queryByRole("heading", { name: "Ana" })).not.toBeInTheDocument();
       expect(screen.queryByDisplayValue("Logro común")).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Guardar todo" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Copiar a todos y guardar" })).not.toBeInTheDocument();
       expect(api.post).not.toHaveBeenCalled();
 
       periodoDosFalla = false;
@@ -358,7 +353,7 @@ describe("IngresoBoletinProfesor", () => {
     it("si sale de la pantalla sin guardar y vuelve, encuentra lo que escribió", async () => {
       const user = userEvent.setup();
       const primera = render(<IngresoBoletinProfesor />);
-      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
       const [primerLogro] = screen.getAllByRole("textbox");
       await user.clear(primerLogro);
       await user.type(primerLogro, "Texto sin guardar");
@@ -383,7 +378,7 @@ describe("IngresoBoletinProfesor", () => {
       );
 
       render(<IngresoBoletinProfesor />);
-      expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
       const [primerLogro] = screen.getAllByRole("textbox");
       await user.clear(primerLogro);
       await user.type(primerLogro, "Texto del periodo 1");
@@ -422,7 +417,7 @@ describe("IngresoBoletinProfesor", () => {
 
       try {
         render(<IngresoBoletinProfesor />);
-        expect(await screen.findByRole("heading", { name: "Ana" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "Ana" }, PRIMERA_CARGA)).toBeInTheDocument();
         const [primerLogro] = screen.getAllByRole("textbox");
         await user.clear(primerLogro);
         await user.type(primerLogro, "Texto sin guardar");
