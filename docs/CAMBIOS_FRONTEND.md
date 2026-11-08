@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-11-07 - «Mi curso»: aviso de materias sin guardar, por profesor
+
+- Pedido del usuario: el aviso «Hay materias sin guardar» de «Mi curso»
+  (director de grupo) se veía desordenado: era un renglón corrido de
+  «MATERIA: faltan N por guardar (PROFESOR)» que se partía en cualquier parte
+  y repetía el nombre del profesor (una profesora salía 7 veces).
+- Ahora: encabezado con un reloj, el mismo aviso, una línea que explica
+  («Esto le falta guardar en el boletín a cada profesor») y un resumen
+  («11 materias · 4 profesores»). Debajo, una tarjeta por profesor (primero
+  quien tiene más materias pendientes; sin profesor, al final) con una
+  tablita «Materia · Guardados»: cada fila dice «0 de 15» y lleva una
+  barrita de avance (en celular no, para darle el espacio al nombre). Las
+  tarjetas van en dos columnas desde 1024 px y en tres en pantallas muy
+  anchas.
+- Profesores y materias siguen en MAYÚSCULAS, como se decidió el
+  2026-11-05.
+- `utils/boletines/miCurso.js`: `agruparPendientesPorProfesor`,
+  `textoAvanceMateria` y `porcentajeGuardado`; `textoMateriaPendiente`
+  («faltan N por guardar») se quitó porque ya no se usa.
+- Revisado con fotos del componente real con los estilos compilados, en PC
+  y celular, con datos como los de la captura del usuario.
+
 ## 2026-11-07 - Resumen del estudiante: carga con la tarjeta de espera
 
 - Pedido del usuario: que al abrir el resumen del estudiante (ficha de

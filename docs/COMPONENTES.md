@@ -880,6 +880,9 @@ Estado actual de componentes y paginas del frontend.
 - `components/boletin/MiCursoDirector.jsx`: ranking del curso del director
   (tabla en PC, tarjetas en celular), aviso de materias sin guardar y notas
   sin guardar en gris. Lo alimenta `hooks/boletines/useConsultaMiCursoDirector.js`.
+  El aviso (2026-11-07) va agrupado por profesor: una tarjeta por profesor
+  con sus materias y «X de N» guardados (`agruparPendientesPorProfesor`,
+  `textoAvanceMateria` y `porcentajeGuardado` en `utils/boletines/miCurso.js`).
   Desde el paso 4, cada estudiante tiene su caja de observación general con su
   botón (`hooks/boletines/useComandosObservacionesDirector.js`, con borrador).
 - `components/boletin/VistaPreviaBoletinProfesor.jsx`: ventana "Ver cómo

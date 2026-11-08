@@ -104,9 +104,34 @@ export const materiasPendientes = (materias) =>
     .filter((materia) => materia.guardados < materia.total)
     .map((materia) => ({ ...materia, faltan: materia.total - materia.guardados }));
 
-/** «Inglés: faltan 12 por guardar», «Arte: falta 1 por guardar». */
-export const textoMateriaPendiente = (materia) =>
-  `${materia.materia}: ${materia.faltan === 1 ? "falta 1" : `faltan ${materia.faltan}`} por guardar`;
+/**
+ * Las materias sin guardar, por profesor: a quién hay que recordarle y qué
+ * (rediseño del aviso, 2026-11-07). Primero quien tiene más materias
+ * pendientes; las materias, en el orden en que llegan (el del boletín). Las
+ * que no tienen profesor van al final.
+ */
+export const agruparPendientesPorProfesor = (pendientes) => {
+  const grupos = new Map();
+  (pendientes || []).forEach((materia) => {
+    const profesor = materia.profesor || "";
+    if (!grupos.has(profesor)) grupos.set(profesor, { profesor, materias: [] });
+    grupos.get(profesor).materias.push(materia);
+  });
+  return [...grupos.values()].sort((a, b) => {
+    if (Boolean(a.profesor) !== Boolean(b.profesor)) return a.profesor ? -1 : 1;
+    return b.materias.length - a.materias.length || a.profesor.localeCompare(b.profesor, "es");
+  });
+};
+
+/**
+ * «0 de 15»: boletines de la materia ya guardados. La palabra «guardados» va
+ * en el título de la columna, para que la fila quepa en una tarjeta angosta.
+ */
+export const textoAvanceMateria = (materia) => `${materia.guardados} de ${materia.total}`;
+
+/** Qué parte de la materia está guardada, de 0 a 100, para su barrita. */
+export const porcentajeGuardado = (materia) =>
+  materia.total > 0 ? Math.round((materia.guardados / materia.total) * 100) : 0;
 
 // ---------------------------------------------------------------------------
 // Observación general del boletín (paso 4)

@@ -62,11 +62,22 @@ describe("MiCursoDirector", () => {
     ]);
   });
 
-  it("avisa qué materias faltan por guardar y de quién son", () => {
+  it("avisa qué materias faltan por guardar, agrupadas por profesor", () => {
     renderizar();
-    expect(screen.getByText("Hay materias sin guardar: el puesto todavía puede cambiar.")).toBeInTheDocument();
-    expect(screen.getByText(/LENGUAJE: falta 1 por guardar/)).toHaveTextContent("(Lina Torres)");
-    expect(screen.queryByText(/INGLÉS: /)).not.toBeInTheDocument();
+    const aviso = screen.getByRole("region", {
+      name: "Hay materias sin guardar: el puesto todavía puede cambiar.",
+    });
+    expect(within(aviso).getByText("1 materia · 1 profesor")).toBeInTheDocument();
+
+    // Una tarjeta por profesor, con sus materias y cuánto lleva guardado.
+    const tarjeta = within(aviso).getByText("Lina Torres").closest("li");
+    expect(within(tarjeta).getByText("LENGUAJE")).toBeInTheDocument();
+    // «2 de 3» bajo el título «Guardados»; quien usa lector de pantalla oye «guardados».
+    expect(within(tarjeta).getByText("2 de 3", { exact: false })).toHaveTextContent("2 de 3 guardados");
+    // Inglés ya está completo: no sale.
+    expect(within(aviso).queryByText("INGLÉS")).not.toBeInTheDocument();
+    // Solo hay una tabla: la del ranking.
+    expect(screen.getAllByRole("table")).toHaveLength(1);
   });
 
   it("si todo está guardado, lo dice", () => {

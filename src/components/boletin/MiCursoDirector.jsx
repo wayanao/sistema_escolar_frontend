@@ -1,8 +1,10 @@
 import {
+  agruparPendientesPorProfesor,
   LARGO_MAXIMO_OBSERVACION,
   materiasPendientes,
+  porcentajeGuardado,
   presentarNota,
-  textoMateriaPendiente,
+  textoAvanceMateria,
 } from "../../utils/boletines/miCurso";
 
 /**
@@ -151,22 +153,108 @@ function AvisoPendientes({ pendientes, hayMaterias }) {
       </p>
     );
   }
+  // Rediseño del 2026-11-07 (el usuario lo veía desordenado): antes era un
+  // renglón corrido de «MATERIA: faltan N por guardar (PROFESOR)» que se
+  // partía en cualquier parte y repetía el nombre del profesor. Ahora, una
+  // tarjeta por profesor —a quién hay que recordarle— con sus materias en
+  // filas alineadas y cuánto lleva guardado cada una. Las tarjetas van en
+  // columnas para no empujar el ranking hacia abajo. Profesores y materias
+  // siguen en MAYÚSCULAS, como los guarda el colegio (decidido el 2026-11-05).
+  const grupos = agruparPendientesPorProfesor(pendientes);
+  const profesores = grupos.filter((grupo) => grupo.profesor).length;
+
   return (
-    <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 sm:px-5">
-      <p className="text-sm font-semibold text-amber-900">
-        Hay materias sin guardar: el puesto todavía puede cambiar.
-      </p>
-      <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-amber-900">
-        {pendientes.map((materia) => (
-          <li key={materia.asignacionId}>
-            {textoMateriaPendiente(materia)}
-            {materia.profesor && (
-              <span className="text-amber-700"> ({materia.profesor})</span>
-            )}
+    <section
+      aria-labelledby="titulo-materias-sin-guardar"
+      className="border-b border-amber-200 bg-amber-50/70 px-4 py-4 sm:px-5"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <IconoReloj />
+          <div>
+            <h3 id="titulo-materias-sin-guardar" className="text-sm font-bold text-amber-900">
+              Hay materias sin guardar: el puesto todavía puede cambiar.
+            </h3>
+            <p className="mt-0.5 text-sm text-amber-800">
+              Esto le falta guardar en el boletín a cada profesor.
+            </p>
+          </div>
+        </div>
+        <p className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">
+          {pendientes.length === 1 ? "1 materia" : `${pendientes.length} materias`}
+          {profesores > 0 && ` · ${profesores === 1 ? "1 profesor" : `${profesores} profesores`}`}
+        </p>
+      </div>
+
+      {/* Dos columnas desde 1024 px (tres en pantallas muy anchas): más
+          angostas, los nombres de las materias se partirían. */}
+      <ul className="-mb-3 mt-4 gap-3 lg:columns-2 2xl:columns-3">
+        {grupos.map((grupo) => (
+          <li
+            key={grupo.profesor || "sin-profesor"}
+            className="mb-3 break-inside-avoid rounded-lg border border-amber-200 bg-white p-3 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p className="min-w-0 text-sm font-semibold leading-snug text-gray-900">
+                {grupo.profesor || "Sin profesor asignado"}
+              </p>
+              <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                {grupo.materias.length === 1 ? "1 materia" : `${grupo.materias.length} materias`}
+              </span>
+            </div>
+            {/* Una tablita: los títulos dicen qué es cada número, así cada
+                fila solo lleva «0 de 15». */}
+            <div
+              aria-hidden="true"
+              className="mt-2 flex justify-between border-b border-gray-100 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400"
+            >
+              <span>Materia</span>
+              <span>Guardados</span>
+            </div>
+            <ul className="divide-y divide-gray-100">
+              {grupo.materias.map((materia) => (
+                <li key={materia.asignacionId} className="flex items-center gap-3 py-2">
+                  <span className="min-w-0 flex-1 text-sm leading-snug text-gray-700">
+                    {materia.materia}
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="whitespace-nowrap text-xs font-medium tabular-nums text-gray-600">
+                      {textoAvanceMateria(materia)}
+                      <span className="sr-only"> guardados</span>
+                    </span>
+                    {/* En el celular no va: le deja el espacio al nombre. */}
+                    <span
+                      aria-hidden="true"
+                      className="hidden h-1.5 w-12 overflow-hidden rounded-full bg-amber-100 sm:block"
+                    >
+                      <span
+                        className="block h-full rounded-full bg-amber-500"
+                        style={{ width: `${porcentajeGuardado(materia)}%` }}
+                      />
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
+  );
+}
+
+// Reloj dibujado a mano (sin librerías de íconos): algo que todavía falta.
+function IconoReloj() {
+  return (
+    <span
+      aria-hidden="true"
+      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700"
+    >
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5V12l3 2" />
+      </svg>
+    </span>
   );
 }
 

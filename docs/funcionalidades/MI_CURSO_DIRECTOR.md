@@ -28,7 +28,11 @@ el boletín.
   Inasistencias del periodo. Celular: una tarjeta por estudiante.
 - Preescolar: carita en vez de número, como en el boletín.
 - Aviso por materia sin guardar: «Inglés: faltan 12 por guardar», porque el
-  puesto sale de lo guardado.
+  puesto sale de lo guardado. **Rediseñado el 2026-11-07** (el usuario lo veía
+  desordenado: un renglón corrido que repetía al profesor): una tarjeta por
+  profesor, primero quien tiene más materias pendientes, con una tablita
+  «Materia · Guardados» («0 de 15» y una barrita de avance); en columnas
+  desde 1024 px. Profesores y materias siguen en MAYÚSCULAS.
 - Archivos previstos: `services/boletinesApi.js` (dos lecturas),
   `utils/boletines/` (normalizar la respuesta), un hook de consulta nuevo en
   `hooks/boletines/`, un componente nuevo en `components/boletin/` y la página

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  agruparPendientesPorProfesor,
   aplicarBorradorObservaciones,
   construirBorradorObservaciones,
   crearClaveBorradorObservaciones,
@@ -10,8 +11,9 @@ import {
   nombreDelEstudiante,
   normalizarCursosDirigidos,
   normalizarMiCurso,
+  porcentajeGuardado,
   presentarNota,
-  textoMateriaPendiente,
+  textoAvanceMateria,
 } from "./miCurso";
 
 const RESPUESTA = {
@@ -87,11 +89,36 @@ describe("«Mi curso» del director de grupo", () => {
     expect(presentarNota(5, { caritas: true })).toMatchObject({ tono: "caritas", carita: expect.any(String) });
   });
 
-  it("dice qué materias faltan por guardar, en singular y plural", () => {
+  it("dice qué materias faltan por guardar y cuánto lleva cada una", () => {
     const pendientes = materiasPendientes(normalizarMiCurso(RESPUESTA).materias);
     expect(pendientes.map((m) => [m.materia, m.faltan])).toEqual([["LENGUAJE", 1]]);
-    expect(textoMateriaPendiente(pendientes[0])).toBe("LENGUAJE: falta 1 por guardar");
-    expect(textoMateriaPendiente({ materia: "INGLÉS", faltan: 12 })).toBe("INGLÉS: faltan 12 por guardar");
+    expect(textoAvanceMateria(pendientes[0])).toBe("2 de 3");
+    expect(textoAvanceMateria({ guardados: 0, total: 15 })).toBe("0 de 15");
+    expect(porcentajeGuardado(pendientes[0])).toBe(67);
+    expect(porcentajeGuardado({ guardados: 0, total: 0 })).toBe(0);
+  });
+
+  it("agrupa las materias sin guardar por profesor: primero quien tiene más", () => {
+    const materia = (id, nombre, profesor) => ({ asignacionId: id, materia: nombre, profesor });
+    const grupos = agruparPendientesPorProfesor([
+      materia("1", "INGLÉS", "VALERIA BLANCO"),
+      materia("2", "MATEMÁTICAS", "LILIANA REBOLLEDO"),
+      materia("3", "ARTÍSTICA", "GABRIELA MANJARRES"),
+      materia("4", "ÉTICA", ""),
+      materia("5", "ESPAÑOL", "LILIANA REBOLLEDO"),
+      materia("6", "INFORMÁTICA", "GABRIELA MANJARRES"),
+      materia("7", "C. NATURALES", "LILIANA REBOLLEDO"),
+    ]);
+
+    expect(grupos.map((g) => [g.profesor, g.materias.map((m) => m.materia)])).toEqual([
+      // Las materias de cada profesor, en el orden en que llegan (el del boletín).
+      ["LILIANA REBOLLEDO", ["MATEMÁTICAS", "ESPAÑOL", "C. NATURALES"]],
+      ["GABRIELA MANJARRES", ["ARTÍSTICA", "INFORMÁTICA"]],
+      ["VALERIA BLANCO", ["INGLÉS"]],
+      // Sin profesor asignado, al final.
+      ["", ["ÉTICA"]],
+    ]);
+    expect(agruparPendientesPorProfesor([])).toEqual([]);
   });
 
   it("arma el nombre aunque falte una parte", () => {
