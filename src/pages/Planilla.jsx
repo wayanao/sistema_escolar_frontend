@@ -233,7 +233,9 @@ function Planilla() {
                     periodo={periodo}
                     onCambiarPeriodo={cambiarPeriodo}
                 >
-                    {!evaluacionForzada && !cargandoClases && (
+                    {/* Solo con una clase elegida cuyo curso no tiene nivel:
+                        sin clase no se sabe el nivel, y no debe ofrecerse. */}
+                    {claseSeleccionada && !evaluacionForzada && (
                         <SelectorTipoEvaluacion
                             value={tipoEvaluacion}
                             onChange={(valor) => {

@@ -780,6 +780,8 @@ describe("clase y período elegidos en la planilla", () => {
     expect(await screen.findByText("Elige arriba la clase que vas a calificar")).toBeInTheDocument();
     expect(window.alert).not.toHaveBeenCalled();
     expect(contarLlamadasPlanilla()).toBe(0);
+    // Sin clase no se sabe el nivel del curso: no se ofrece el tipo de calificación.
+    expect(screen.queryByText("Tipo de calificación")).not.toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Clase / grupo"), "77");
 
