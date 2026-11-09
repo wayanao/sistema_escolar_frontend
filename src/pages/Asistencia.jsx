@@ -1,57 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import AvisoSinClaseElegida from "../components/AvisoSinClaseElegida";
 import EncabezadoContextoCurso from "../components/EncabezadoContextoCurso";
+import SelectorClaseTrabajo from "../components/SelectorClaseTrabajo";
 import AvisoRegistroAsistencia from "../components/asistencia/AvisoRegistroAsistencia";
 import BarraGuardadoAsistencia from "../components/asistencia/BarraGuardadoAsistencia";
+import CampoFechaAsistencia from "../components/asistencia/CampoFechaAsistencia";
 import PanelAsistenciaProfesor from "../components/asistencia/PanelAsistenciaProfesor";
+import useClaseAsistenciaProfesor from "../hooks/asistencia/useClaseAsistenciaProfesor";
 import useComandosAsistenciaProfesor from "../hooks/asistencia/useComandosAsistenciaProfesor";
 import useConsultasAsistenciaProfesor from "../hooks/asistencia/useConsultasAsistenciaProfesor";
-import {
-  asistenciaRechazadaPorNivel,
-  MENSAJE_ASISTENCIA_REQUIERE_JORNADA,
-} from "../utils/nivelAcademico";
-import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
+import { fechaIsoColombia } from "../utils/fechaColombia";
 
-function Asistencia() {
-  const avisoSeleccionRef = useRef(false);
-  const avisoNivelRef = useRef(false);
-  const [fecha] = useState(localStorage.getItem("fechaAsistencia") || "");
-  const asignacionId = localStorage.getItem("asignacionId");
-  const periodo = obtenerPeriodoProfesor();
-  const profesorStorage = localStorage.getItem("profesor");
-  const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
-  const profesorId = profesor?.id;
+const AYUDA_PREESCOLAR =
+  "En preescolar la asistencia se toma una vez al día, con «Asistencia diaria».";
 
-  const pedirSeleccionClase = useCallback(() => {
-    if (avisoSeleccionRef.current) return;
-
-    avisoSeleccionRef.current = true;
-    alert("Selecciona una asignación primero en la página principal");
-    window.location.href = "/";
-  }, []);
-
-  const manejarClaseNoDisponible = useCallback(() => {
-    localStorage.removeItem("asignacionId");
-    alert("La clase seleccionada ya no está disponible. Selecciónala nuevamente.");
-    window.location.href = "/";
-  }, []);
-
-  // Detecta temprano -antes de mostrar la lista de estudiantes- que la clase
-  // elegida no sirve para tomar asistencia (curso preescolar con una materia
-  // que no es "Asistencia diaria"). El servidor sigue siendo quien de verdad
-  // garantiza esta regla al guardar; esto solo evita que el profesor marque
-  // a todo el curso para enterarse recién al final.
-  const manejarAsignacionInvalidaPorNivel = useCallback(() => {
-    if (avisoNivelRef.current) return;
-
-    avisoNivelRef.current = true;
-    alert(MENSAJE_ASISTENCIA_REQUIERE_JORNADA);
-    window.location.href = "/";
-  }, []);
-
-  const consultasHabilitadas = Boolean(profesorId && asignacionId && periodo);
+// La asistencia de una clase, un período y una fecha. La página la vuelve a
+// montar (con `key`) al cambiar de clase o de período: así no queda nada
+// marcado de la clase anterior.
+function AsistenciaDeLaClase({ asignacionId, periodo, fecha, onClaseNoDisponible, onCambiosPendientes }) {
   const {
     estudiantes,
-    clases,
     historial,
     cargandoHistorial,
     historialListo,
@@ -60,9 +28,8 @@ function Asistencia() {
   } = useConsultasAsistenciaProfesor({
     asignacionId,
     periodo,
-    profesorId,
-    habilitado: consultasHabilitadas,
-    onClaseNoDisponible: manejarClaseNoDisponible,
+    habilitado: true,
+    onClaseNoDisponible,
   });
 
   const {
@@ -90,39 +57,13 @@ function Asistencia() {
   });
 
   useEffect(() => {
-    if (!profesorId) {
-      window.location.href = "/login";
-      return;
-    }
+    onCambiosPendientes(hayCambiosSinGuardar);
+  }, [hayCambiosSinGuardar, onCambiosPendientes]);
 
-    if (!asignacionId || !periodo) {
-      pedirSeleccionClase();
-    }
-  }, [asignacionId, periodo, profesorId, pedirSeleccionClase]);
-
-  useEffect(() => {
-    const clase = clases.find((c) => c.id == asignacionId);
-    if (!clase) return;
-
-    if (asistenciaRechazadaPorNivel(clase.nivel, clase.materia)) {
-      manejarAsignacionInvalidaPorNivel();
-    }
-  }, [clases, asignacionId, manejarAsignacionInvalidaPorNivel]);
-
-  const claseSeleccionada = clases.find((clase) => clase.id == asignacionId);
+  useEffect(() => () => onCambiosPendientes(false), [onCambiosPendientes]);
 
   return (
-    <div className="w-full p-4 sm:p-6 md:p-8">
-      <EncabezadoContextoCurso
-        titulo="Gestión de asistencia"
-        etiqueta="Control diario"
-        descripcion="Registra la asistencia y acompaña el seguimiento de tus estudiantes."
-        materia={claseSeleccionada?.materia}
-        curso={claseSeleccionada?.curso}
-        periodo={periodo}
-        fecha={fecha}
-      />
-
+    <>
       <AvisoRegistroAsistencia
         visible={asistenciaDelDiaTomada}
         hayCambiosSinGuardar={hayCambiosSinGuardar}
@@ -154,6 +95,88 @@ function Asistencia() {
         puedeGuardar={puedeGuardar}
         onGuardar={guardarAsistencia}
       />
+    </>
+  );
+}
+
+function Asistencia() {
+  const profesorStorage = localStorage.getItem("profesor");
+  const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
+  const profesorId = profesor?.id;
+
+  // Siempre arranca en hoy; cambiarla es opcional y no se recuerda.
+  const hoy = fechaIsoColombia();
+  const [fecha, setFecha] = useState(hoy);
+
+  const {
+    opciones,
+    cargandoClases,
+    errorClases,
+    reintentarClases,
+    asignacionEfectiva,
+    cambiarAsignacion,
+    descartarAsignacion,
+    periodo,
+    cambiarPeriodo,
+    confirmarCambio,
+    informarCambiosPendientes,
+    esPreescolar,
+    sinClase,
+  } = useClaseAsistenciaProfesor(profesorId);
+
+  useEffect(() => {
+    if (!profesorId) window.location.href = "/login";
+  }, [profesorId]);
+
+  const cambiarFecha = async (valor) => {
+    if (valor === fecha) return;
+    if (await confirmarCambio()) setFecha(valor);
+  };
+
+  const manejarClaseNoDisponible = useCallback(() => descartarAsignacion(), [descartarAsignacion]);
+
+  return (
+    <div className="w-full p-4 sm:p-6 md:p-8">
+      <EncabezadoContextoCurso
+        titulo="Gestión de asistencia"
+        etiqueta="Control diario"
+        descripcion="Registra la asistencia y acompaña el seguimiento de tus estudiantes."
+        tituloContexto="¿De qué clase vas a tomar asistencia?"
+        subtituloContexto="La fecha es la de hoy. Cámbiala solo si vas a registrar otro día."
+        controles={
+          <SelectorClaseTrabajo
+            idPrefijo="asistencia"
+            opciones={opciones}
+            asignacionId={asignacionEfectiva}
+            onCambiarAsignacion={cambiarAsignacion}
+            cargando={cargandoClases}
+            error={errorClases}
+            onReintentar={reintentarClases}
+            ayudaClase={esPreescolar ? AYUDA_PREESCOLAR : ""}
+            periodo={periodo}
+            onCambiarPeriodo={cambiarPeriodo}
+          >
+            <CampoFechaAsistencia value={fecha} hoy={hoy} onChange={cambiarFecha} />
+          </SelectorClaseTrabajo>
+        }
+      />
+
+      {asignacionEfectiva ? (
+        <AsistenciaDeLaClase
+          key={`${asignacionEfectiva}|${periodo}`}
+          asignacionId={asignacionEfectiva}
+          periodo={periodo}
+          fecha={fecha}
+          onClaseNoDisponible={manejarClaseNoDisponible}
+          onCambiosPendientes={informarCambiosPendientes}
+        />
+      ) : (
+        <AvisoSinClaseElegida
+          titulo={sinClase?.titulo}
+          texto={sinClase?.texto}
+          cargando={cargandoClases}
+        />
+      )}
     </div>
   );
 }

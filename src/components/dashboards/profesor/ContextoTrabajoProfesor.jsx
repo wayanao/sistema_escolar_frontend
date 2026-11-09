@@ -4,7 +4,7 @@ import {
   obtenerJornadaClase,
 } from "../../../utils/dashboards/profesor";
 
-// Clase, período y fecha que otros módulos leen del almacenamiento local, más
+// Clase y período que otros módulos leen del almacenamiento local, más
 // el acceso directo a las planeaciones recientes de la clase elegida.
 function ContextoTrabajoProfesor({
   asignacionId,
@@ -19,8 +19,6 @@ function ContextoTrabajoProfesor({
   onAbrirPlaneacion,
   periodo,
   onCambiarPeriodo,
-  fecha,
-  onCambiarFecha,
 }) {
   return (
     <section className="mb-6 overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-sm">
@@ -28,12 +26,12 @@ function ContextoTrabajoProfesor({
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-purple-700">Contexto de trabajo</p>
         <h2 className="mt-1 text-lg font-bold text-gray-950">¿Con qué clase vas a trabajar?</h2>
         <p className="mt-1 text-sm text-gray-600">
-          La clase, el período y la fecha se conservarán al abrir los módulos académicos.
+          La clase y el período se conservarán al abrir los módulos académicos.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(10rem,0.55fr)_minmax(12rem,0.65fr)]">
-        <div className="sm:col-span-2 lg:col-span-1">
+      <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)]">
+        <div>
           <label htmlFor="clase-profesor" className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-700" aria-hidden="true">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -170,25 +168,6 @@ function ContextoTrabajoProfesor({
           </div>
         </div>
 
-        <div>
-          <label htmlFor="fecha-profesor" className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-800">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700" aria-hidden="true">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M8 2v4M16 2v4M3 10h18" />
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
-              </svg>
-            </span>
-            Fecha de trabajo
-          </label>
-          <input
-            id="fecha-profesor"
-            type="date"
-            value={fecha}
-            onChange={(e) => onCambiarFecha(e.target.value)}
-            className="min-h-12 w-full rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3 text-base font-semibold text-sky-950 shadow-sm outline-none transition hover:border-sky-300 hover:bg-sky-50 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-          />
-        </div>
       </div>
 
     </section>

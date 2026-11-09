@@ -1,17 +1,25 @@
+import { EtiquetaCampoTrabajo, FlechaSelect } from "../SelectorClaseTrabajo";
+
+// Va junto a la clase y el período (SelectorClaseTrabajo) y con su mismo
+// aspecto. Solo sale en cursos sin nivel definido.
 function SelectorTipoEvaluacion({ value, onChange }) {
     return (
-        <div className="min-w-0 py-1 sm:col-span-2 xl:col-span-1">
-            <label className="block text-[10px] font-black uppercase tracking-[0.14em] text-purple-700">
+        <div>
+            <EtiquetaCampoTrabajo htmlFor="planilla-tipo-calificacion" tono="violet" icono="lista">
                 Tipo de calificación
-            </label>
-            <select
-                className="mt-1 w-full rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-bold text-slate-900 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-            >
-                <option value="numerica">Numérica (1 a 5)</option>
-                <option value="desarrollo">Caritas / Desarrollo infantil</option>
-            </select>
+            </EtiquetaCampoTrabajo>
+            <div className="relative">
+                <select
+                    id="planilla-tipo-calificacion"
+                    className="min-h-12 w-full appearance-none rounded-xl border border-violet-200 bg-violet-50/60 py-3 pl-4 pr-11 text-base font-semibold text-violet-950 shadow-sm outline-none transition hover:border-violet-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                >
+                    <option value="numerica">Numérica (1 a 5)</option>
+                    <option value="desarrollo">Caritas / Desarrollo infantil</option>
+                </select>
+                <FlechaSelect className="text-violet-700" />
+            </div>
         </div>
     );
 }

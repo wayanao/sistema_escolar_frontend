@@ -22,10 +22,8 @@ function DashboardProfesor() {
     nombreProfesor,
     asignacionId,
     periodo,
-    fecha,
     cambiarAsignacion,
     cambiarPeriodo,
-    cambiarFecha,
     descartarAsignacionInvalida,
     exigirClaseElegida,
   } = useContextoProfesor();
@@ -114,8 +112,6 @@ function DashboardProfesor() {
         onAbrirPlaneacion={abrirPlaneacionReciente}
         periodo={periodo}
         onCambiarPeriodo={cambiarPeriodo}
-        fecha={fecha}
-        onCambiarFecha={cambiarFecha}
       />
 
       <CumpleanosSemana

@@ -34,19 +34,28 @@ responsive sin modificar cálculos ni reglas del backend.
   `NavProfesor.jsx` (escritorio y móvil) bajo "Control Académico".
 - Rol efectivo: profesor autenticado vía `ProtectedRoute` (usuario o profesor
   en `localStorage`); Planilla en particular solo usa `profesor`.
-- Contexto leído desde `localStorage`:
+- Desde el 2026-11-09 la clase y el período se eligen **en la misma página**
+  (`SelectorClaseTrabajo` dentro de `EncabezadoContextoCurso`, con el tipo de
+  calificación al lado cuando el curso no tiene nivel). Ya no hay alerta que
+  devuelva al dashboard: sin clase, la página muestra `AvisoSinClaseElegida`.
+  La planilla ya no muestra fecha: no la usa.
+- Contexto en `localStorage` (mismas claves que el panel y asistencia, vía
+  `hooks/useClaseDeTrabajo.js`):
   - `profesor` aporta `id`;
-  - `asignacionId` identifica la clase activa (leída una sola vez al montar,
-    en el `useState` inicial);
-  - `fechaAsistencia` se reutiliza para mostrar "Fecha de trabajo" en el
-    encabezado, aunque el nombre de la clave proviene del flujo de
-    asistencia;
+  - `asignacionId` identifica la clase elegida; se escribe al cambiarla aquí;
   - `periodo_profesor_<id>` (o `periodo` de respaldo, o `"1"`) vía
-    `obtenerPeriodoProfesor()`;
+    `obtenerPeriodoProfesor()`; se escribe al cambiarlo aquí;
   - `planillaTipoEvaluacion` conserva el tipo de calificación elegido
     (`numerica` por defecto).
-- `DashboardProfesor.jsx` sigue siendo el productor de asignación, período y
-  fecha; no se modifica en este módulo.
+- El selector no ofrece la «Asistencia diaria» de preescolar (no lleva
+  notas). Si era la clase guardada, la planilla pide elegir otra pero no la
+  borra: en Asistencia sigue sirviendo.
+- La planilla se pide a la vez que la lista de clases, con la clase guardada,
+  sin esperarla (misma cantidad de peticiones que antes). `/mis-clases` se
+  pide una sola vez, aunque cambie la clase.
+- La planilla de la clase se vuelve a montar (`key`) al cambiar de clase o de
+  período. Con notas que no se pudieron guardar, cambiar pregunta antes.
+- Un `403` olvida la clase guardada y la página lo explica, sin salir.
 
 ### Contratos HTTP vigentes
 

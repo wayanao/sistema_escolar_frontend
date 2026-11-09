@@ -274,7 +274,19 @@ Estado actual de componentes y paginas del frontend.
   "Valores de pago" al matricular (`anioLectivo/ValoresPagoMatriculaView.jsx`).
 - `components/EncabezadoContextoCurso.jsx` reúne en una sola tarjeta la
   composición compacta del encabezado y el contexto de materia, salón, período
-  y fecha. Planilla agrega allí mismo `Tipo de calificación`.
+  y fecha. Con `controles`, en vez de esos datos de solo lectura muestra los
+  campos para elegirlos (Planilla y Asistencia, desde el 2026-11-09).
+- `components/SelectorClaseTrabajo.jsx` (2026-11-09): «Clase / grupo» y
+  «Período», grandes, con el aspecto de la tarjeta del panel. Recibe las
+  opciones ya filtradas, lo elegido y qué hacer al cambiarlo; `children` son
+  los campos propios de cada pantalla (Planilla: `Tipo de calificación`;
+  Asistencia: `components/asistencia/CampoFechaAsistencia.jsx`, que arranca en
+  hoy y avisa «No es hoy» con «Volver a hoy»). Si la lista falla, ofrece
+  «Reintentar».
+- `components/AvisoSinClaseElegida.jsx` (2026-11-09): lo que se ve en lugar de
+  la planilla o la lista de asistencia mientras no hay clase: cargando, «Elige
+  arriba la clase…» o el motivo (ya no está asignada, preescolar sin
+  «Asistencia diaria»…).
 - Las acciones para agregar o eliminar tipos de evaluacion muestran spinner,
   bloquean temporalmente los controles y evitan envios duplicados mientras
   responde el backend. Cada boton aparece inmediatamente debajo de su campo

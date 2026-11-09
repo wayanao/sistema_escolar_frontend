@@ -17,7 +17,9 @@ Claves observadas:
 - `periodo`: periodo seleccionado.
 - `periodo_profesor_<id>`: ultimo periodo seleccionado por cada profesor en
   este navegador.
-- `fechaAsistencia`: fecha usada en asistencia.
+- `fechaAsistencia`: ya no se escribe ni se lee desde el 2026-11-09
+  (Asistencia arranca siempre en la fecha de hoy). Puede seguir en
+  navegadores que la guardaron antes; no tiene efecto.
 - `planillaTipoEvaluacion`: tipo de evaluacion usado en planilla.
 - `ultimo_codigo_colegio`: ultimo codigo de colegio usado en un login exitoso,
   solo para precargar el campo visual del formulario.
@@ -31,8 +33,9 @@ Claves observadas:
 Separacion importante:
 
 - `usuario`, `profesor` y `super_admin` son datos visuales de sesion.
-- `asignacionId`, `periodo`, `fechaAsistencia` y `planillaTipoEvaluacion` son
-  selecciones de trabajo del perfil profesor.
+- `asignacionId`, `periodo` y `planillaTipoEvaluacion` son selecciones de
+  trabajo del perfil profesor. Se eligen en el panel, en Planilla y en
+  Asistencia (`hooks/useClaseDeTrabajo.js`).
 - `periodo_profesor_<id>` es una preferencia local por docente. Permite que un
   profesor vuelva a entrar y recupere su ultimo periodo aunque el logout haya
   limpiado `periodo`.

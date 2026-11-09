@@ -7,15 +7,14 @@ import {
     primerNombreProfesor,
 } from "../../utils/dashboards/profesor";
 
-// Contexto de trabajo del profesor: la clase, el período y la fecha que otros
-// módulos leen del almacenamiento local. `fechaAsistencia` es la misma clave que
-// usa Asistencia.
+// Contexto de trabajo del profesor: la clase y el período que otros módulos
+// leen del almacenamiento local. La fecha ya no se elige aquí: Asistencia
+// arranca siempre en la de hoy y se cambia allí mismo.
 const useContextoProfesor = () => {
     const [asignacionId, setAsignacionId] = useState(
         localStorage.getItem("asignacionId") || "",
     );
     const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());
-    const [fecha, setFecha] = useState(localStorage.getItem("fechaAsistencia") || "");
 
     const profesorStorage = localStorage.getItem("profesor");
     const profesor = profesorStorage ? JSON.parse(profesorStorage) : null;
@@ -29,11 +28,6 @@ const useContextoProfesor = () => {
     const cambiarPeriodo = useCallback((valor) => {
         setPeriodo(valor);
         guardarPeriodoProfesor(valor);
-    }, []);
-
-    const cambiarFecha = useCallback((valor) => {
-        setFecha(valor);
-        localStorage.setItem("fechaAsistencia", valor);
     }, []);
 
     // La clase guardada que ya no está asignada se descarta. Se compara contra
@@ -70,10 +64,8 @@ const useContextoProfesor = () => {
         nombreProfesor: primerNombreProfesor(profesor),
         asignacionId,
         periodo,
-        fecha,
         cambiarAsignacion,
         cambiarPeriodo,
-        cambiarFecha,
         descartarAsignacionInvalida,
         exigirClaseElegida,
     };

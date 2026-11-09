@@ -27,27 +27,44 @@ hooks y componentes, conservando marcación, edición, historial y validaciones.
 - Ruta protegida: `/asistencia`, declarada en `src/App.jsx` y enlazada desde
   la navegación de profesor en escritorio y móvil.
 - Rol efectivo: profesor autenticado. La página redirige a `/login` cuando no
-  encuentra `profesor.id` y al dashboard `/` cuando falta asignación o período.
-- Contexto compartido desde `localStorage`:
+  encuentra `profesor.id`.
+- Desde el 2026-11-09 la clase, el período y la fecha se eligen **en la misma
+  página** (`SelectorClaseTrabajo` + `CampoFechaAsistencia` dentro de
+  `EncabezadoContextoCurso`). Ya no hay alerta que devuelva al dashboard: sin
+  clase, la página muestra `AvisoSinClaseElegida` con el motivo.
+- Contexto compartido desde `localStorage` (mismas claves que el panel y la
+  planilla, vía `hooks/useClaseDeTrabajo.js`):
   - `profesor` aporta `id`;
-  - `asignacionId` identifica la clase activa;
-  - `fechaAsistencia` conserva la fecha elegida en el dashboard;
-  - `periodo_profesor_<id>` tiene prioridad sobre `periodo`, con respaldo `1`.
-- `DashboardProfesor.jsx` es el productor actual de asignación, período y fecha;
-  no forma parte de la extracción de asistencia.
+  - `asignacionId` identifica la clase elegida; se escribe al cambiarla aquí;
+  - `periodo_profesor_<id>` tiene prioridad sobre `periodo`, con respaldo `1`;
+    se escribe al cambiarlo aquí.
+- **Fecha**: arranca siempre en la de hoy (hora de Colombia,
+  `fechaIsoColombia`) y no se recuerda. Si se cambia, el campo avisa «No es
+  hoy» con un botón «Volver a hoy». No admite fechas futuras. Cambiar la fecha
+  no vuelve a pedir datos: el historial del período ya trae todas las fechas.
+- **Preescolar**: si la clase guardada es una materia de un curso de
+  preescolar, la asistencia se toma con la «Asistencia diaria» del mismo curso
+  (`resolverAsignacionAsistencia` en `utils/claseDeTrabajo.js`) sin cambiar la
+  clase guardada; el selector solo ofrece «Asistencia diaria» en esos cursos.
+  Si esa asignación no es del profesor, la página lo explica.
+- Con asistencia sin guardar, cambiar clase, período o fecha pregunta antes
+  («Cambiar sin guardar» / «Seguir aquí»).
+- La lista de la clase se vuelve a montar (`key`) al cambiar de clase o de
+  período.
 
 ### Contratos HTTP vigentes
 
 | Método | Ruta | Contrato consumido o enviado |
 |---|---|---|
 | `GET` | `/planilla-excel/:asignacionId/:periodo` | Lee estudiantes desde `response.data.data`. Cada fila usa al menos `estudiante_id`, `nombre` y `apellido`. |
-| `GET` | `/mis-clases/:profesorId` | Lee un arreglo de clases; compara `id` con `asignacionId` y muestra `materia` y `curso`. |
+| `GET` | `/mis-clases/:profesorId` | Lee un arreglo de clases para el selector (una opción por `id`, con `materia`, `curso`, `curso_id` y `nivel`). Se pide una sola vez, a la vez que la lista de la clase guardada. |
 | `GET` | `/asistencia/historial/:asignacionId/:periodo` | Lee un arreglo por estudiante con `estudiante_id` e `historial`; cada registro usa `fecha` y `estado`. Reintenta una vez tras 700 ms. |
 | `POST` | `/asistencia` | Envía un arreglo completo con `{ estudiante_id, asignacion_id: Number, fecha, estado, periodo: Number }`. |
 
-- Un `403` al cargar estudiantes o historial limpia `asignacionId`, avisa que
-  la clase ya no está disponible y vuelve al dashboard.
-- Los demás errores de estudiantes y clases solo se registran en consola.
+- Un `403` al cargar estudiantes o historial limpia `asignacionId` y la
+  página explica que la clase ya no está asignada, sin salir de ella.
+- Un error de la lista de clases se muestra junto al selector con
+  «Reintentar»; los de estudiantes solo se registran en consola.
 - El error final del historial muestra un estado recuperable con botón
   `Reintentar`; un error de guardado usa `response.data.detail` cuando es texto.
 

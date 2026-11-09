@@ -38,13 +38,13 @@ describe("useContextoProfesor", () => {
         iniciarSesionProfesor();
         localStorage.setItem("asignacionId", "10");
         localStorage.setItem("periodo_profesor_7", "3");
-        localStorage.setItem("fechaAsistencia", "2026-08-07");
 
         const { result } = renderHook(() => useContextoProfesor());
 
         expect(result.current.asignacionId).toBe("10");
         expect(result.current.periodo).toBe("3");
-        expect(result.current.fecha).toBe("2026-08-07");
+        // La fecha ya no es parte del contexto del panel.
+        expect(result.current).not.toHaveProperty("fecha");
     });
 
     it("usa el período de respaldo cuando no hay uno guardado", () => {
@@ -68,10 +68,6 @@ describe("useContextoProfesor", () => {
         expect(result.current.periodo).toBe("4");
         expect(localStorage.getItem("periodo")).toBe("4");
         expect(localStorage.getItem("periodo_profesor_7")).toBe("4");
-
-        act(() => result.current.cambiarFecha("2026-08-08"));
-        expect(result.current.fecha).toBe("2026-08-08");
-        expect(localStorage.getItem("fechaAsistencia")).toBe("2026-08-08");
     });
 
     it("descarta la clase guardada que ya no está asignada", () => {

@@ -1,20 +1,17 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listarClasesMock, obtenerPlanillaMock } = vi.hoisted(() => ({
-    listarClasesMock: vi.fn(),
+const { obtenerPlanillaMock } = vi.hoisted(() => ({
     obtenerPlanillaMock: vi.fn(),
 }));
 
 vi.mock("../../services/planillaApi", () => ({
-    listarClasesProfesorPlanilla: listarClasesMock,
     obtenerPlanillaNotas: obtenerPlanillaMock,
 }));
 
 import useConsultasPlanillaProfesor from "./useConsultasPlanillaProfesor";
 
 const parametrosBase = {
-    profesorId: 12,
     asignacionId: "88",
     periodo: "3",
 };
@@ -31,7 +28,6 @@ function diferido() {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    listarClasesMock.mockResolvedValue([{ id: 88, materia: "Ciencias Naturales" }]);
     obtenerPlanillaMock.mockResolvedValue({
         columnas: ["quiz", "mas_alto"],
         data: [{ estudiante_id: 501, nombre: "Ana", apellido: "Ruiz", notas: { quiz: 4 } }],
@@ -45,7 +41,7 @@ afterEach(() => {
 });
 
 describe("useConsultasPlanillaProfesor", () => {
-    it("carga clases y planilla, filtra la columna interna y calcula el promedio", async () => {
+    it("carga la planilla, filtra la columna interna y calcula el promedio", async () => {
         const { result } = renderHook(() => useConsultasPlanillaProfesor({
             ...parametrosBase,
             onClaseNoDisponible: vi.fn(),
@@ -62,16 +58,14 @@ describe("useConsultasPlanillaProfesor", () => {
         ]));
 
         expect(result.current.columnas).toEqual(["quiz"]);
-        expect(result.current.clases).toEqual([{ id: 88, materia: "Ciencias Naturales" }]);
+        // La lista de clases la carga el selector de la pantalla, no este hook.
+        expect(result.current).not.toHaveProperty("clases");
         // Subnotas, paso A3: la planilla se pide con sus subnotas. Porcentajes,
         // paso B4a: y con sus porcentajes por tipo de nota.
         expect(obtenerPlanillaMock).toHaveBeenCalledWith("88", "3", {
             signal: expect.any(AbortSignal),
             conSubnotas: true,
             conPorcentajes: true,
-        });
-        expect(listarClasesMock).toHaveBeenCalledWith(12, {
-            signal: expect.any(AbortSignal),
         });
         expect(result.current.subnotasPorTipo).toEqual({});
         expect(result.current.porcentajesPorTipo).toEqual({});
@@ -147,17 +141,6 @@ describe("useConsultasPlanillaProfesor", () => {
             Cognitivo: [{ id: 7, nombre: "Taller 1" }, { id: 8, nombre: "Quiz" }],
         }));
         expect(result.current.estudiantes[0].subnotas).toEqual({ 7: 4 });
-    });
-
-    it("no consulta clases sin profesorId, pero sí consulta la planilla", async () => {
-        renderHook(() => useConsultasPlanillaProfesor({
-            ...parametrosBase,
-            profesorId: undefined,
-            onClaseNoDisponible: vi.fn(),
-        }));
-
-        await waitFor(() => expect(obtenerPlanillaMock).toHaveBeenCalledTimes(1));
-        expect(listarClasesMock).not.toHaveBeenCalled();
     });
 
     it("cancela una recarga de planilla en curso y descarta su respuesta obsoleta", async () => {

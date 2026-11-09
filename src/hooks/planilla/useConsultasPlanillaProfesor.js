@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-    listarClasesProfesorPlanilla,
-    obtenerPlanillaNotas,
-} from "../../services/planillaApi";
+import { obtenerPlanillaNotas } from "../../services/planillaApi";
 import {
     normalizarEstudiantesPlanilla,
     obtenerColumnasVisibles,
@@ -26,8 +23,10 @@ function solicitudVigente(ref, controller) {
     return ref.current === controller && !controller.signal.aborted;
 }
 
+// La lista de clases del profesor ya no se carga aquí: la carga el selector
+// de la pantalla (useClasePlanillaProfesor), una sola vez aunque cambie la
+// clase elegida.
 export default function useConsultasPlanillaProfesor({
-    profesorId,
     asignacionId,
     periodo,
     onClaseNoDisponible,
@@ -39,27 +38,12 @@ export default function useConsultasPlanillaProfesor({
     const [subnotasPorTipo, setSubnotasPorTipo] = useState({});
     // Porcentajes por tipo de nota (parte B, paso B4a): `{ "<tipo>": 40 }`.
     const [porcentajesPorTipo, setPorcentajesPorTipo] = useState({});
-    const [clases, setClases] = useState([]);
-    const clasesControllerRef = useRef(null);
     const planillaControllerRef = useRef(null);
     const onClaseNoDisponibleRef = useRef(onClaseNoDisponible);
 
     useEffect(() => {
         onClaseNoDisponibleRef.current = onClaseNoDisponible;
     }, [onClaseNoDisponible]);
-
-    const cargarClases = useCallback(async () => {
-        if (!profesorId) return;
-
-        const controller = iniciarSolicitud(clasesControllerRef);
-        const data = await listarClasesProfesorPlanilla(profesorId, {
-            signal: controller.signal,
-        });
-        if (!solicitudVigente(clasesControllerRef, controller)) return;
-
-        console.log("CLASES:", data);
-        setClases(data);
-    }, [profesorId]);
 
     const cargarPlanilla = useCallback(async () => {
         const controller = iniciarSolicitud(planillaControllerRef);
@@ -87,20 +71,9 @@ export default function useConsultasPlanillaProfesor({
         }
     }, [asignacionId, periodo]);
 
-    const cancelarSolicitudClases = useCallback(() => {
-        clasesControllerRef.current?.abort();
-    }, []);
-
     const cancelarSolicitudPlanilla = useCallback(() => {
         planillaControllerRef.current?.abort();
     }, []);
-
-    useEffect(() => {
-        if (profesorId && asignacionId && periodo) {
-            void cargarClases();
-        }
-        return cancelarSolicitudClases;
-    }, [profesorId, asignacionId, periodo, cargarClases, cancelarSolicitudClases]);
 
     useEffect(() => {
         if (asignacionId && periodo) {
@@ -127,7 +100,6 @@ export default function useConsultasPlanillaProfesor({
         porcentajesPorTipo,
         porcentajesActivos,
         sumaPorcentajes,
-        clases,
         cargarPlanilla,
         setEstudiantes,
         setColumnas,

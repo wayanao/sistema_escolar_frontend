@@ -98,6 +98,47 @@ describe("useComandosAsistenciaProfesor", () => {
     expect(result.current.hayCambiosSinGuardar).toBe(false);
   });
 
+  it("al cambiar la fecha descarta lo marcado y toma lo guardado de la nueva, sin recargar", async () => {
+    const historial = [
+      {
+        estudiante_id: 101,
+        historial: [{ fecha: "2026-07-30", estado: "ausente" }],
+      },
+      {
+        estudiante_id: 102,
+        historial: [{ fecha: "2026-07-30", estado: "presente" }],
+      },
+    ];
+    const recargarHistorial = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ fecha }) => useComandosAsistenciaProfesor({
+        ...parametrosBase,
+        fecha,
+        historial,
+        recargarHistorial,
+      }),
+      { initialProps: { fecha: "2026-07-31" } },
+    );
+
+    // El 31 no tiene asistencia guardada: se marca a mano.
+    act(() => result.current.marcar(101, "presente"));
+    expect(result.current.asistencia).toEqual({ 101: "presente" });
+
+    rerender({ fecha: "2026-07-30" });
+
+    await waitFor(() => expect(result.current.asistencia).toEqual({
+      101: "ausente",
+      102: "presente",
+    }));
+    expect(result.current.asistenciaDelDiaTomada).toBe(true);
+    expect(result.current.hayCambiosSinGuardar).toBe(false);
+    expect(recargarHistorial).not.toHaveBeenCalled();
+
+    rerender({ fecha: "2026-07-31" });
+    await waitFor(() => expect(result.current.asistencia).toEqual({}));
+    expect(result.current.asistenciaDelDiaTomada).toBe(false);
+  });
+
   it("confirma antes de reemplazar ausencias con la marcación masiva", async () => {
     const { result } = renderHook(() => useComandosAsistenciaProfesor({
       ...parametrosBase,

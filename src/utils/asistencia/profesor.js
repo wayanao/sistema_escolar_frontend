@@ -14,6 +14,21 @@ export function normalizarFechaAsistencia(valor) {
   return fechaParseada.toISOString().slice(0, 10);
 }
 
+/**
+ * `true` si el texto es una fecha completa (AAAA-MM-DD) que sirve para tomar
+ * asistencia: no posterior a `hoy`. Al escribir la fecha a mano, el campo
+ * pasa por años a medio escribir (0002, 0020, 0202...); exigir el año 2000 o
+ * después evita tomarlos como una fecha elegida.
+ */
+export function esFechaAsistenciaValida(valor, hoy) {
+  const texto = String(valor || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+  if (Number(texto.slice(0, 4)) < 2000) return false;
+  const fecha = new Date(`${texto}T00:00:00`);
+  if (Number.isNaN(fecha.getTime())) return false;
+  return !hoy || texto <= hoy;
+}
+
 export function indexarHistorialPorEstudiante(historial) {
   const mapa = new Map();
 

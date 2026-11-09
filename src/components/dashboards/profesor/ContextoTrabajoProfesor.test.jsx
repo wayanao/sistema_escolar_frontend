@@ -24,8 +24,6 @@ const propiedades = (extra = {}) => ({
     onAbrirPlaneacion: vi.fn(),
     periodo: "1",
     onCambiarPeriodo: vi.fn(),
-    fecha: "",
-    onCambiarFecha: vi.fn(),
     ...extra,
 });
 
@@ -77,13 +75,12 @@ describe("ContextoTrabajoProfesor", () => {
         ).not.toBeInTheDocument();
     });
 
-    it("informa los tres cambios del contexto de trabajo", () => {
+    it("informa los dos cambios del contexto de trabajo", () => {
         const onCambiarAsignacion = vi.fn();
         const onCambiarPeriodo = vi.fn();
-        const onCambiarFecha = vi.fn();
         render(
             <ContextoTrabajoProfesor
-                {...propiedades({ onCambiarAsignacion, onCambiarPeriodo, onCambiarFecha })}
+                {...propiedades({ onCambiarAsignacion, onCambiarPeriodo })}
             />,
         );
 
@@ -93,10 +90,8 @@ describe("ContextoTrabajoProfesor", () => {
         fireEvent.change(screen.getByLabelText("Período"), { target: { value: "3" } });
         expect(onCambiarPeriodo).toHaveBeenCalledWith("3");
 
-        fireEvent.change(screen.getByLabelText("Fecha de trabajo"), {
-            target: { value: "2026-08-07" },
-        });
-        expect(onCambiarFecha).toHaveBeenCalledWith("2026-08-07");
+        // La fecha ya no se elige en el panel: Asistencia arranca en hoy.
+        expect(screen.queryByLabelText("Fecha de trabajo")).not.toBeInTheDocument();
     });
 
     it("oculta las planeaciones recientes sin clase elegida", () => {

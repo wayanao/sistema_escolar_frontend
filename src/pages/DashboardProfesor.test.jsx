@@ -162,10 +162,8 @@ describe("DashboardProfesor", () => {
         expect(localStorage.getItem("periodo")).toBe("3");
         expect(localStorage.getItem(`periodo_profesor_${PROFESOR_ID}`)).toBe("3");
 
-        fireEvent.change(screen.getByLabelText("Fecha de trabajo"), {
-            target: { value: "2026-08-07" },
-        });
-        expect(localStorage.getItem("fechaAsistencia")).toBe("2026-08-07");
+        // La fecha ya no se elige en el panel: Asistencia arranca en hoy.
+        expect(screen.queryByLabelText("Fecha de trabajo")).not.toBeInTheDocument();
     });
 
     it("descarta la clase guardada que ya no está asignada", async () => {

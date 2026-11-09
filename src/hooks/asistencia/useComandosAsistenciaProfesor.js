@@ -27,6 +27,15 @@ export default function useComandosAsistenciaProfesor({
   const [guardando, setGuardando] = useState(false);
   const comandoEnCursoRef = useRef(false);
 
+  // La fecha se cambia en la misma pantalla. Lo marcado era para la fecha
+  // anterior: se descarta y se vuelve a tomar lo guardado de la nueva (el
+  // historial ya trae todas las fechas del período, no hace falta pedirlo).
+  const [fechaDeLaMarcacion, setFechaDeLaMarcacion] = useState(fecha);
+  if (fechaDeLaMarcacion !== fecha) {
+    setFechaDeLaMarcacion(fecha);
+    setAsistencia({});
+  }
+
   const historialPorEstudiante = useMemo(
     () => indexarHistorialPorEstudiante(historial),
     [historial],
@@ -121,7 +130,7 @@ export default function useComandosAsistenciaProfesor({
         await Swal.fire({
           icon: "warning",
           title: "Falta seleccionar la fecha",
-          text: "Regresa al dashboard, selecciona la fecha y vuelve a Asistencia.",
+          text: "Elige la fecha arriba, en «Fecha», y vuelve a guardar.",
           confirmButtonText: "Entendido",
           confirmButtonColor: MORADO_BOTON,
         });

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  listarClasesProfesorAsistencia,
   listarHistorialAsistencia,
   obtenerPlanillaAsistencia,
 } from "../../services/asistenciaApi";
@@ -34,10 +33,12 @@ function solicitudVigente(ref, controller) {
   return ref.current === controller && !controller.signal.aborted;
 }
 
+// La lista de clases del profesor ya no se carga aquí: la carga el selector
+// de la pantalla (useClaseAsistenciaProfesor), una sola vez aunque cambie la
+// clase elegida.
 export default function useConsultasAsistenciaProfesor({
   asignacionId,
   periodo,
-  profesorId,
   habilitado,
   onClaseNoDisponible,
 }) {
@@ -46,9 +47,7 @@ export default function useConsultasAsistenciaProfesor({
   const [historialListo, setHistorialListo] = useState(false);
   const [errorHistorial, setErrorHistorial] = useState("");
   const [estudiantes, setEstudiantes] = useState([]);
-  const [clases, setClases] = useState([]);
   const estudiantesControllerRef = useRef(null);
-  const clasesControllerRef = useRef(null);
   const historialControllerRef = useRef(null);
   const onClaseNoDisponibleRef = useRef(onClaseNoDisponible);
 
@@ -58,7 +57,6 @@ export default function useConsultasAsistenciaProfesor({
 
   const cancelarSolicitudes = useCallback(() => {
     estudiantesControllerRef.current?.abort();
-    clasesControllerRef.current?.abort();
     historialControllerRef.current?.abort();
   }, []);
 
@@ -81,25 +79,6 @@ export default function useConsultasAsistenciaProfesor({
       if (error.response?.status === 403) onClaseNoDisponibleRef.current?.();
     }
   }, [asignacionId, habilitado, periodo]);
-
-  const cargarClases = useCallback(async () => {
-    if (!habilitado || !profesorId) return;
-
-    const controller = iniciarSolicitud(clasesControllerRef);
-
-    try {
-      const data = await listarClasesProfesorAsistencia(profesorId, {
-        signal: controller.signal,
-      });
-      if (!solicitudVigente(clasesControllerRef, controller)) return;
-
-      setClases(data);
-    } catch (error) {
-      if (!solicitudVigente(clasesControllerRef, controller)) return;
-
-      console.error("Error cargando clases", error);
-    }
-  }, [habilitado, profesorId]);
 
   const cargarHistorial = useCallback(async () => {
     if (!habilitado || !asignacionId || !periodo) return;
@@ -159,7 +138,6 @@ export default function useConsultasAsistenciaProfesor({
     if (!habilitado) {
       cancelarSolicitudes();
       setEstudiantes([]);
-      setClases([]);
       setHistorial([]);
       setCargandoHistorial(false);
       setHistorialListo(false);
@@ -168,15 +146,13 @@ export default function useConsultasAsistenciaProfesor({
     }
 
     void cargarEstudiantes();
-    void cargarClases();
     void cargarHistorial();
 
     return cancelarSolicitudes;
-  }, [cancelarSolicitudes, cargarClases, cargarEstudiantes, cargarHistorial, habilitado]);
+  }, [cancelarSolicitudes, cargarEstudiantes, cargarHistorial, habilitado]);
 
   return {
     estudiantes,
-    clases,
     historial,
     cargandoHistorial,
     historialListo,

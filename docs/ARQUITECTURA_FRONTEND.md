@@ -636,9 +636,11 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 - Cada sección tiene su propio hook, su propio indicador de carga y su propio
   manejo de error, de modo que el fallo de una no bloquea a las demás. Es la
   invariante central del módulo.
-- El panel del profesor escribe `asignacionId` y `fechaAsistencia` en el
-  almacenamiento local; son el contrato de contexto que leen asistencia,
-  planilla, boletines y planeaciones. El período viaja por
+- El panel del profesor escribe `asignacionId` en el almacenamiento local;
+  es el contrato de contexto que leen asistencia, planilla, boletines y
+  planeaciones. Desde el 2026-11-09 Planilla y Asistencia lo eligen también en
+  su propia pantalla (`hooks/useClaseDeTrabajo.js`, con la lógica pura en
+  `utils/claseDeTrabajo.js`); la fecha ya no es parte del contexto. El período viaja por
   `utils/periodoProfesor.js`, utilidad transversal que el módulo no modifica.
 - El selector de clases deduplica por curso y materia; el horario semanal, en
   cambio, conserva cada franja. La jornada se deduce del texto recibido y, si no

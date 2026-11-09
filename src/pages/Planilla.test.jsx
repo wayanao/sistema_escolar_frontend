@@ -132,7 +132,8 @@ function contarLlamadasPlanilla() {
 
 async function abrirPlanilla({ clase = CLASE } = {}) {
   render(<Planilla />);
-  await screen.findByText(clase.materia);
+  // La clase ya no se muestra como texto: es la elegida en el selector.
+  await screen.findByDisplayValue(`${clase.materia} - ${clase.curso}`);
   await within(screen.getByRole("table")).findByText("Ruiz Ana");
 }
 
@@ -175,8 +176,10 @@ describe("flujo de planilla del profesor", () => {
       },
     );
 
-    expect(screen.getByText(CLASE.materia)).toBeInTheDocument();
-    expect(screen.getByText(CLASE.curso)).toBeInTheDocument();
+    expect(screen.getByLabelText("Clase / grupo")).toHaveDisplayValue(
+      `${CLASE.materia} - ${CLASE.curso}`,
+    );
+    expect(screen.getByLabelText("Período")).toHaveValue(String(PERIODO));
 
     const tabla = screen.getByRole("table");
     expect(within(tabla).getByText("Quiz")).toBeInTheDocument();
@@ -488,7 +491,7 @@ describe("flujo de planilla del profesor", () => {
     prepararApi({ estudiantes: ESTUDIANTES_MEDICION });
 
     render(<Planilla />);
-    await screen.findByText(CLASE.materia);
+    await screen.findByDisplayValue(`${CLASE.materia} - ${CLASE.curso}`);
     const tabla = screen.getByRole("table");
     await within(tabla).findByText("Apellido0 Nombre0");
 
@@ -736,5 +739,103 @@ describe("porcentajes por tipo de nota en la planilla", () => {
     );
     expect(screen.getByText("Porcentajes: 40 % de 100 %")).toBeInTheDocument();
     expect(screen.getByLabelText("Porcentaje (%)")).toHaveValue("");
+  });
+});
+
+// La clase y el período se eligen dentro de la planilla (antes solo en el
+// panel, y sin clase elegida una alerta devolvía al profesor al inicio).
+describe("clase y período elegidos en la planilla", () => {
+  const OTRA_CLASE = { id: 77, materia: "Matemáticas", curso: "4B", nivel: "primaria" };
+  const JORNADA_PREESCOLAR = {
+    id: 66,
+    materia: "ASISTENCIA DIARIA",
+    curso: "Transición A",
+    curso_id: 5,
+    nivel: "preescolar",
+  };
+
+  function prepararVariasClases(clases, { planillas = {}, rechazos = {} } = {}) {
+    apiMock.get.mockImplementation((url) => {
+      if (url === `/mis-clases/${PROFESOR_ID}`) return Promise.resolve({ data: clases });
+      if (rechazos[url]) return Promise.reject(rechazos[url]);
+      if (planillas[url]) return Promise.resolve({ data: planillas[url] });
+      return Promise.reject(new Error(`GET no simulado: ${url}`));
+    });
+  }
+
+  const planillaDe = (nombre) => ({
+    columnas: ["quiz"],
+    data: [{ estudiante_id: 900, nombre, apellido: "Prueba", notas: { quiz: 4 } }],
+  });
+
+  it("sin clase guardada pide elegirla en la misma pantalla, sin alerta, y al elegirla carga y la recuerda", async () => {
+    localStorage.removeItem("asignacionId");
+    prepararVariasClases([CLASE, OTRA_CLASE], {
+      planillas: { [`/planilla-excel/77/${PERIODO}`]: planillaDe("Sara") },
+    });
+    const user = userEvent.setup();
+
+    render(<Planilla />);
+
+    expect(await screen.findByText("Elige arriba la clase que vas a calificar")).toBeInTheDocument();
+    expect(window.alert).not.toHaveBeenCalled();
+    expect(contarLlamadasPlanilla()).toBe(0);
+
+    await user.selectOptions(screen.getByLabelText("Clase / grupo"), "77");
+
+    expect(await within(screen.getByRole("table")).findByText("Prueba Sara")).toBeInTheDocument();
+    expect(localStorage.getItem("asignacionId")).toBe("77");
+  });
+
+  it("no ofrece «Asistencia diaria» en la planilla y, si era la guardada, pide elegir otra", async () => {
+    localStorage.setItem("asignacionId", "66");
+    prepararVariasClases([CLASE, JORNADA_PREESCOLAR], {
+      planillas: { [`/planilla-excel/66/${PERIODO}`]: planillaDe("Nadie") },
+    });
+
+    render(<Planilla />);
+
+    expect(await screen.findByText("Elige arriba la clase que vas a calificar")).toBeInTheDocument();
+    const opciones = within(screen.getByLabelText("Clase / grupo"))
+      .getAllByRole("option")
+      .map((opcion) => opcion.textContent);
+    expect(opciones).toEqual(["Elige una clase", "Ciencias Naturales - 4B"]);
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    // La elección no se borra: en Asistencia sigue sirviendo.
+    expect(localStorage.getItem("asignacionId")).toBe("66");
+  });
+
+  it("al cambiar el período carga ese período y lo recuerda", async () => {
+    prepararVariasClases([CLASE], {
+      planillas: {
+        [PLANILLA_URL]: { columnas: ["quiz"], data: ESTUDIANTES_INICIALES },
+        [`/planilla-excel/${ASIGNACION_ID}/4`]: planillaDe("Periodo4"),
+      },
+    });
+    const user = userEvent.setup();
+
+    await abrirPlanilla();
+    await user.selectOptions(screen.getByLabelText("Período"), "4");
+
+    expect(await within(screen.getByRole("table")).findByText("Prueba Periodo4")).toBeInTheDocument();
+    expect(localStorage.getItem(`periodo_profesor_${PROFESOR_ID}`)).toBe("4");
+    expect(within(screen.getByRole("table")).queryByText("Ruiz Ana")).not.toBeInTheDocument();
+  });
+
+  it("si la clase guardada ya no es del profesor (403), la olvida y lo explica sin alerta", async () => {
+    // La clase sigue en la lista (la lista pudo estar desactualizada): lo
+    // que la descarta es la respuesta del servidor.
+    prepararVariasClases([CLASE, OTRA_CLASE], {
+      rechazos: { [PLANILLA_URL]: { response: { status: 403 } } },
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(<Planilla />);
+
+    expect(
+      await screen.findByText("La clase que tenías elegida ya no está asignada a ti. Elige otra arriba."),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem("asignacionId")).toBeNull();
+    expect(window.alert).not.toHaveBeenCalled();
   });
 });

@@ -118,15 +118,16 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
   acceso leyendo `localStorage`. Son dos capas de verificación superpuestas y
   las dos se conservan.
 - Almacenamiento local que el módulo lee o escribe: `usuario`, `profesor`,
-  `asignacionId`, `fechaAsistencia`, y `periodo`/`periodo_profesor_<id>` a
+  `asignacionId` y `periodo`/`periodo_profesor_<id>` a
   través de `utils/periodoProfesor.js`.
 - `src/utils/periodoProfesor.js` es una utilidad **transversal ya existente**,
   compartida con asistencia, planilla, boletines, malla curricular,
   planeaciones, observador y `Formulario`. El módulo la consume tal cual y no la
   mueve ni la modifica.
-- `asignacionId` y `fechaAsistencia` son el contrato de contexto que el panel
-  del profesor escribe y que otros módulos leen. El comentario de la propia
-  página lo dice: la fecha usa «la misma clave que Asistencia».
+- `asignacionId` es el contrato de contexto que el panel del profesor escribe
+  y que otros módulos leen. Desde el 2026-11-09 Planilla y Asistencia también
+  lo eligen y escriben en su propia pantalla. El panel ya no tiene «Fecha de
+  trabajo» ni escribe `fechaAsistencia`: Asistencia arranca siempre en hoy.
 - Ningún otro módulo consume los endpoints `/dashboard/*`; son exclusivos de
   este módulo.
 - Ninguna otra página importa estas seis, salvo `App.jsx`.
@@ -225,8 +226,8 @@ durante la migración:
 - El filtro de jornada solo aparece cuando **ambas** jornadas tienen clases; con
   una sola se muestra una insignia. Elegir una jornada vacía revierte a mostrar
   las disponibles.
-- Cambiar clase, período o fecha persiste de inmediato en `asignacionId`,
-  `periodo`/`periodo_profesor_<id>` y `fechaAsistencia`.
+- Cambiar clase o período persiste de inmediato en `asignacionId` y
+  `periodo`/`periodo_profesor_<id>`.
 - Si la clase guardada ya no está entre las asignadas, se borra de
   `localStorage` y el selector vuelve a la vista general.
 - El primer curso disponible se selecciona solo, y solo mientras no haya uno

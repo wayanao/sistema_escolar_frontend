@@ -2,17 +2,14 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  listarClasesMock,
   listarHistorialMock,
   obtenerPlanillaMock,
 } = vi.hoisted(() => ({
-  listarClasesMock: vi.fn(),
   listarHistorialMock: vi.fn(),
   obtenerPlanillaMock: vi.fn(),
 }));
 
 vi.mock("../../services/asistenciaApi", () => ({
-  listarClasesProfesorAsistencia: listarClasesMock,
   listarHistorialAsistencia: listarHistorialMock,
   obtenerPlanillaAsistencia: obtenerPlanillaMock,
 }));
@@ -22,7 +19,6 @@ import useConsultasAsistenciaProfesor from "./useConsultasAsistenciaProfesor";
 const parametrosBase = {
   asignacionId: "44",
   periodo: "2",
-  profesorId: 7,
   habilitado: true,
 };
 
@@ -39,7 +35,6 @@ beforeEach(() => {
   obtenerPlanillaMock.mockResolvedValue({
     data: [{ estudiante_id: 101, nombre: "Ana" }],
   });
-  listarClasesMock.mockResolvedValue([{ id: 44, materia: "Matemáticas" }]);
   listarHistorialMock.mockResolvedValue([{ estudiante_id: 101, historial: [] }]);
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -49,7 +44,7 @@ afterEach(() => {
 });
 
 describe("useConsultasAsistenciaProfesor", () => {
-  it("carga planilla, clases e historial y expone el historial listo", async () => {
+  it("carga planilla e historial y expone el historial listo", async () => {
     const onClaseNoDisponible = vi.fn();
     const { result } = renderHook(() => useConsultasAsistenciaProfesor({
       ...parametrosBase,
@@ -59,14 +54,12 @@ describe("useConsultasAsistenciaProfesor", () => {
     await waitFor(() => expect(result.current.historialListo).toBe(true));
 
     expect(result.current.estudiantes).toEqual([{ estudiante_id: 101, nombre: "Ana" }]);
-    expect(result.current.clases).toEqual([{ id: 44, materia: "Matemáticas" }]);
+    // La lista de clases la carga el selector de la pantalla, no este hook.
+    expect(result.current).not.toHaveProperty("clases");
     expect(result.current.historial).toEqual([{ estudiante_id: 101, historial: [] }]);
     expect(result.current.cargandoHistorial).toBe(false);
     expect(result.current.errorHistorial).toBe("");
     expect(obtenerPlanillaMock).toHaveBeenCalledWith("44", "2", {
-      signal: expect.any(AbortSignal),
-    });
-    expect(listarClasesMock).toHaveBeenCalledWith(7, {
       signal: expect.any(AbortSignal),
     });
     expect(listarHistorialMock).toHaveBeenCalledWith("44", "2", {

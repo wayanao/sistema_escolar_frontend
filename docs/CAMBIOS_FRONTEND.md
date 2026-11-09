@@ -1,5 +1,45 @@
 # Cambios Frontend
 
+## 2026-11-09 - Clase, período y fecha dentro de Planilla y Asistencia (paso 1)
+
+- Pedido del usuario: pasar el «Contexto de trabajo» del panel del profesor a
+  la planilla; que la elección sea la misma en asistencia y que en preescolar
+  la asistencia use sola la «Asistencia diaria». La fecha de asistencia, siempre
+  la de hoy al entrar (cambiarla es opcional); el período, el último elegido.
+- Planilla y Asistencia tienen arriba su selector de clase y período
+  (`components/SelectorClaseTrabajo.jsx`), que recuerda la elección en las
+  mismas claves de siempre (`asignacionId`, `periodo_profesor_<id>`): lo
+  elegido en una pantalla aparece elegido en la otra y en el panel.
+- Se acabaron las alertas «Selecciona una asignación primero…» y la de
+  preescolar que devolvían al panel: sin clase, la pantalla dice por qué
+  (`components/AvisoSinClaseElegida.jsx`).
+- Asistencia: la fecha arranca siempre en hoy (`fechaIsoColombia`) y no se
+  guarda; si se cambia, avisa «No es hoy» con «Volver a hoy»
+  (`components/asistencia/CampoFechaAsistencia.jsx`). Cambiarla no pide datos
+  otra vez (`useComandosAsistenciaProfesor` toma lo guardado de la nueva
+  fecha del historial ya cargado). No admite fechas futuras.
+- Preescolar: con una materia guardada, Asistencia usa la «Asistencia
+  diaria» del mismo curso sin cambiar la clase guardada; si no es del
+  profesor, lo explica. La planilla no ofrece «Asistencia diaria». Esas
+  opciones se rotulan con el curso primero («TRANSICIÓN A - ASISTENCIA
+  DIARIA»): en celular el texto se corta y el curso es lo que las distingue.
+- Con cambios sin guardar (asistencia marcada, o notas que fallaron),
+  cambiar clase, período o fecha pregunta antes.
+- El panel ya no tiene «Fecha de trabajo» (ya no servía para nada). La
+  tarjeta del panel se queda hasta que las demás pantallas (plan de clases,
+  planeador, observador) tengan su selector: pasos 2 y 3.
+- Lógica pura en `utils/claseDeTrabajo.js`; hook compartido
+  `hooks/useClaseDeTrabajo.js` (recibe el servicio de cada módulo) y uno por
+  módulo: `useClasePlanillaProfesor` y `useClaseAsistenciaProfesor`. La lista
+  de clases salió de `useConsultasPlanillaProfesor` y
+  `useConsultasAsistenciaProfesor`. `EncabezadoContextoCurso` acepta
+  `controles`.
+- Peticiones: iguales que antes al abrir (planilla o lista + clases, a la
+  vez); `/mis-clases` ya no se repite al cambiar de clase.
+- Verificación: pruebas nuevas de utilidades, hooks, componentes y de las dos
+  páginas; `pnpm run test` (3607 de 3609; las 2 que agotaron el tiempo por
+  carga pasan solas), `pnpm run lint` y `pnpm run build` sin errores.
+
 ## 2026-11-07 - «Mi curso»: aviso de materias sin guardar, por profesor
 
 - Pedido del usuario: el aviso «Hay materias sin guardar» de «Mi curso»

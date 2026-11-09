@@ -42,8 +42,12 @@ function DatoCurso({ label, value, tono, translateNo = false }) {
  * `datos`, el comportamiento es **exactamente** el de siempre.
  *
  * `tituloContexto` y `subtituloContexto` existen por lo mismo: "Contexto
- * seleccionado desde el dashboard" es cierto en planilla y asistencia, y falso
- * donde el curso se elige en la propia pantalla.
+ * seleccionado desde el dashboard" es falso donde el curso se elige en la
+ * propia pantalla.
+ *
+ * `controles` reemplaza los datos de solo lectura por campos para elegirlos
+ * (Planilla y Asistencia eligen la clase, el período y la fecha aquí mismo).
+ * Sin `controles`, el comportamiento es el de siempre.
  */
 function EncabezadoContextoCurso({
   titulo,
@@ -56,6 +60,7 @@ function EncabezadoContextoCurso({
   datos,
   tituloContexto = "Información de trabajo",
   subtituloContexto = "Contexto seleccionado desde el dashboard.",
+  controles,
   children,
 }) {
   const datosPorDefecto = [
@@ -85,18 +90,20 @@ function EncabezadoContextoCurso({
               <h2 className="text-sm font-bold text-slate-950">{tituloContexto}</h2>
               <p className="mt-0.5 text-xs text-slate-500">{subtituloContexto}</p>
             </div>
-            <div className={`grid grid-cols-1 gap-x-6 gap-y-3 ${gridClass}`}>
-              {datosVisibles.map((dato) => (
-                <DatoCurso
-                  key={dato.label}
-                  label={dato.label}
-                  value={dato.value}
-                  tono={dato.tono}
-                  translateNo={dato.translateNo}
-                />
-              ))}
-              {children}
-            </div>
+            {controles ?? (
+              <div className={`grid grid-cols-1 gap-x-6 gap-y-3 ${gridClass}`}>
+                {datosVisibles.map((dato) => (
+                  <DatoCurso
+                    key={dato.label}
+                    label={dato.label}
+                    value={dato.value}
+                    tono={dato.tono}
+                    translateNo={dato.translateNo}
+                  />
+                ))}
+                {children}
+              </div>
+            )}
           </div>
         </div>
       </div>

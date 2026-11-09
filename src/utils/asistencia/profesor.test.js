@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   construirPayloadAsistencia,
   crearMarcacionTodosPresentes,
+  esFechaAsistenciaValida,
   indexarHistorialPorEstudiante,
   normalizarFechaAsistencia,
   obtenerAsistenciaGuardadaEnFecha,
@@ -126,5 +127,21 @@ describe("contratos puros de asistencia del profesor", () => {
         periodo: 2,
       },
     ]);
+  });
+});
+
+describe("esFechaAsistenciaValida", () => {
+  const HOY = "2026-11-09";
+
+  it("acepta una fecha completa de hoy o anterior", () => {
+    expect(esFechaAsistenciaValida("2026-11-09", HOY)).toBe(true);
+    expect(esFechaAsistenciaValida("2026-11-03", HOY)).toBe(true);
+  });
+
+  it("rechaza fechas futuras, vacías o a medio escribir", () => {
+    expect(esFechaAsistenciaValida("2026-11-10", HOY)).toBe(false);
+    expect(esFechaAsistenciaValida("", HOY)).toBe(false);
+    expect(esFechaAsistenciaValida("0202-11-09", HOY)).toBe(false);
+    expect(esFechaAsistenciaValida("2026-11", HOY)).toBe(false);
   });
 });

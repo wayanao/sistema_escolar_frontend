@@ -850,8 +850,8 @@ Uso:
 - Muestra estado visual mientras carga historial de inasistencias.
 - Si existe asistencia guardada para la fecha seleccionada, precarga estados y
   muestra aviso `Asistencia del día ya tomada`.
-- La fecha no se modifica en esta pagina: se conserva desde el dashboard en
-  `localStorage.fechaAsistencia`.
+- La fecha se elige en esta pagina y arranca siempre en la de hoy (hora de
+  Colombia); no se guarda en `localStorage` (desde el 2026-11-09).
 - El mismo `POST /asistencia` crea o actualiza el registro completo de los
   estudiantes activos; la UI permite marcar todos presentes, corregir ausentes
   y editar una asistencia previamente guardada.
@@ -1251,7 +1251,8 @@ Actualizacion 2026-06-13:
 - Produccion depende de que `VITE_API_URL` este configurado en Vercel con la URL
   publica del backend.
 - La autorizacion final debe estar siempre en backend, no solo en la UI.
-- Los modulos del profesor dependen de `asignacionId`, `periodo` y
-  `fechaAsistencia` guardados como seleccion de trabajo en `localStorage`.
+- Los modulos del profesor dependen de `asignacionId` y `periodo` guardados
+  como seleccion de trabajo en `localStorage`. Planilla y Asistencia los
+  eligen en su propia pantalla; la fecha de asistencia ya no se guarda.
 - Si el backend responde lento en hosting gratuito, las pantallas deben mostrar
   estados de carga o reintento para no parecer vacias.

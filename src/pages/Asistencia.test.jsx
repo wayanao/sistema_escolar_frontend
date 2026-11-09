@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -30,10 +30,15 @@ vi.mock("sweetalert2", () => ({
 
 import Asistencia from "./Asistencia";
 import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../hooks/ventanaExito";
+import { fechaIsoColombia } from "../utils/fechaColombia";
 
 const ASIGNACION_ID = 44;
 const PERIODO = 2;
-const FECHA = "2026-07-31";
+// La asistencia arranca siempre en la fecha de hoy.
+const FECHA = fechaIsoColombia();
+const AYER = fechaIsoColombia(new Date(Date.now() - 24 * 60 * 60 * 1000));
+// Lo que dejaba guardado el panel antes: ya no se usa.
+const FECHA_VIEJA_DEL_PANEL = "2026-07-31";
 const ESTUDIANTES = [
   { estudiante_id: 101, nombre: "Ana", apellido: "Ruiz" },
   { estudiante_id: 102, nombre: "Luis", apellido: "Pérez" },
@@ -77,7 +82,7 @@ beforeEach(() => {
   localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Docente" }));
   localStorage.setItem("asignacionId", String(ASIGNACION_ID));
   localStorage.setItem("periodo_profesor_7", String(PERIODO));
-  localStorage.setItem("fechaAsistencia", FECHA);
+  localStorage.setItem("fechaAsistencia", FECHA_VIEJA_DEL_PANEL);
 
   apiMock.get.mockReset();
   apiMock.post.mockReset();
@@ -112,8 +117,10 @@ describe("flujo de asistencia del profesor", () => {
       "/mis-clases/7",
       { signal: expect.any(AbortSignal) },
     );
-    expect(screen.getByText("Matemáticas")).toBeInTheDocument();
-    expect(screen.getByText("5A")).toBeInTheDocument();
+    expect(screen.getByLabelText("Clase / grupo")).toHaveDisplayValue("Matemáticas - 5A");
+    expect(screen.getByLabelText("Período")).toHaveValue(String(PERIODO));
+    expect(screen.getByLabelText("Fecha")).toHaveValue(FECHA);
+    expect(screen.getByText("Es la fecha de hoy.")).toBeInTheDocument();
     expect(screen.getByText("Inasistencias: 1")).toBeInTheDocument();
   });
 
@@ -222,37 +229,96 @@ describe("flujo de asistencia del profesor", () => {
     );
   });
 
-  it("bloquea temprano y avisa si el curso es preescolar y la clase no es la asignación de jornada", async () => {
-    const CLASE_PREESCOLAR = {
+  it("en preescolar toma la asistencia con la «Asistencia diaria» del mismo curso, sin alerta y sin cambiar la clase guardada", async () => {
+    const MATERIA_PREESCOLAR = {
       id: ASIGNACION_ID,
-      materia: "Matemáticas",
+      materia: "DIMENSIÓN COMUNICATIVA",
       curso: "Transición A",
+      curso_id: 5,
+      nivel: "preescolar",
+    };
+    const JORNADA = {
+      id: 45,
+      materia: "ASISTENCIA DIARIA",
+      curso: "Transición A",
+      curso_id: 5,
       nivel: "preescolar",
     };
     apiMock.get.mockImplementation((url) => {
-      if (url === `/planilla-excel/${ASIGNACION_ID}/${PERIODO}`) {
+      if (url.startsWith("/planilla-excel/")) {
         return Promise.resolve({ data: { data: ESTUDIANTES } });
       }
-      if (url === `/asistencia/historial/${ASIGNACION_ID}/${PERIODO}`) {
+      if (url.startsWith("/asistencia/historial/")) {
         return Promise.resolve({ data: [] });
       }
       if (url === "/mis-clases/7") {
-        return Promise.resolve({ data: [CLASE_PREESCOLAR] });
+        return Promise.resolve({ data: [MATERIA_PREESCOLAR, JORNADA] });
       }
       return Promise.reject(new Error(`Consulta no simulada: ${url}`));
     });
     apiMock.post.mockResolvedValue({ data: {} });
+    const user = userEvent.setup();
 
     render(<Asistencia />);
 
     await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith(
-        'Este curso es de preescolar. Usa la asignación "Asistencia diaria" para registrar asistencia.',
+      expect(screen.getByLabelText("Clase / grupo")).toHaveDisplayValue(
+        "Transición A - ASISTENCIA DIARIA",
       ),
     );
+    await screen.findByText("Ruiz Ana");
+    await screen.findByText("Historial actualizado");
+    expect(
+      screen.getByText("En preescolar la asistencia se toma una vez al día, con «Asistencia diaria»."),
+    ).toBeInTheDocument();
+    // La materia no se ofrece para asistencia: solo la de jornada.
+    const opciones = within(screen.getByLabelText("Clase / grupo"))
+      .getAllByRole("option")
+      .map((opcion) => opcion.textContent);
+    expect(opciones).toEqual(["Elige una clase", "Transición A - ASISTENCIA DIARIA"]);
+
+    await user.click(screen.getByRole("button", { name: "✔ Marcar todos presentes" }));
+    await user.click(screen.getByRole("button", { name: "Guardar asistencia" }));
+
+    await waitFor(() => expect(apiMock.post).toHaveBeenCalledTimes(1));
+    expect(apiMock.post.mock.calls[0][1].every((fila) => fila.asignacion_id === 45)).toBe(true);
+    expect(window.alert).not.toHaveBeenCalled();
+    // Al volver a la planilla sigue su materia.
+    expect(localStorage.getItem("asignacionId")).toBe(String(ASIGNACION_ID));
   });
 
-  it("no bloquea cuando la clase sí es la asignación de jornada en preescolar", async () => {
+  it("en preescolar sin «Asistencia diaria» a nombre del profesor lo explica en vez de mostrar la lista", async () => {
+    const MATERIA_PREESCOLAR = {
+      id: ASIGNACION_ID,
+      materia: "DIMENSIÓN COMUNICATIVA",
+      curso: "Transición A",
+      curso_id: 5,
+      nivel: "preescolar",
+    };
+    apiMock.get.mockImplementation((url) => {
+      if (url.startsWith("/planilla-excel/")) {
+        return Promise.resolve({ data: { data: ESTUDIANTES } });
+      }
+      if (url.startsWith("/asistencia/historial/")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url === "/mis-clases/7") {
+        return Promise.resolve({ data: [MATERIA_PREESCOLAR] });
+      }
+      return Promise.reject(new Error(`Consulta no simulada: ${url}`));
+    });
+
+    render(<Asistencia />);
+
+    expect(
+      await screen.findByText("Este curso toma asistencia con «Asistencia diaria»"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/la asistencia de Transición A se toma una vez al día/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Guardar asistencia" })).not.toBeInTheDocument();
+    expect(window.alert).not.toHaveBeenCalled();
+  });
+
+  it("muestra la lista cuando la clase guardada ya es la «Asistencia diaria» de preescolar", async () => {
     const CLASE_JORNADA = {
       id: ASIGNACION_ID,
       materia: "Asistencia diaria",
@@ -276,7 +342,76 @@ describe("flujo de asistencia del profesor", () => {
     await abrirAsistencia();
 
     expect(window.alert).not.toHaveBeenCalled();
-    expect(screen.getByText("Asistencia diaria")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByLabelText("Clase / grupo")).toHaveDisplayValue(
+        "Transición A - Asistencia diaria",
+      ),
+    );
+  });
+
+  it("sin clase guardada pide elegirla en la misma pantalla y al elegirla carga la lista", async () => {
+    localStorage.removeItem("asignacionId");
+    prepararApi();
+    const user = userEvent.setup();
+
+    render(<Asistencia />);
+
+    expect(await screen.findByText("Elige arriba la clase")).toBeInTheDocument();
+    expect(window.alert).not.toHaveBeenCalled();
+
+    await user.selectOptions(screen.getByLabelText("Clase / grupo"), String(ASIGNACION_ID));
+
+    await screen.findByText("Ruiz Ana");
+    expect(localStorage.getItem("asignacionId")).toBe(String(ASIGNACION_ID));
+  });
+
+  it("cambiar la fecha guarda con esa fecha, avisa que no es hoy y deja volver a hoy", async () => {
+    prepararApi();
+    const user = userEvent.setup();
+
+    await abrirAsistencia();
+
+    fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: AYER } });
+
+    expect(await screen.findByText("No es hoy.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "✔ Marcar todos presentes" }));
+    await user.click(screen.getByRole("button", { name: "Guardar asistencia" }));
+
+    await waitFor(() => expect(apiMock.post).toHaveBeenCalledTimes(1));
+    expect(apiMock.post.mock.calls[0][1].every((fila) => fila.fecha === AYER)).toBe(true);
+    // La fecha no se recuerda: el panel ya no la usa.
+    expect(localStorage.getItem("fechaAsistencia")).toBe(FECHA_VIEJA_DEL_PANEL);
+
+    await user.click(screen.getByRole("button", { name: "Volver a hoy" }));
+    await waitFor(() => expect(screen.getByLabelText("Fecha")).toHaveValue(FECHA));
+    expect(screen.getByText("Es la fecha de hoy.")).toBeInTheDocument();
+  });
+
+  it("con asistencia sin guardar pregunta antes de cambiar la fecha y respeta «Seguir aquí»", async () => {
+    prepararApi();
+    const user = userEvent.setup();
+
+    await abrirAsistencia();
+    await user.click(screen.getByRole("button", { name: "Marcar ausente a Ruiz Ana" }));
+
+    swalFireMock.mockResolvedValueOnce({ isConfirmed: false });
+    fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: AYER } });
+
+    await waitFor(() =>
+      expect(swalFireMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Tienes asistencia sin guardar",
+          confirmButtonText: "Cambiar sin guardar",
+          cancelButtonText: "Seguir aquí",
+        }),
+      ),
+    );
+    fireEvent.blur(screen.getByLabelText("Fecha"));
+    expect(screen.getByLabelText("Fecha")).toHaveValue(FECHA);
+    expect(screen.getByRole("button", { name: "Marcar ausente a Ruiz Ana" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("reintenta una vez la carga del historial antes de mostrarlo", async () => {
