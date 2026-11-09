@@ -1,5 +1,4 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import ContextoTrabajoProfesor from "../components/dashboards/profesor/ContextoTrabajoProfesor";
 import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
 import FiltroRendimiento from "../components/dashboards/profesor/FiltroRendimiento";
 import HorarioSemanal from "../components/dashboards/profesor/HorarioSemanal";
@@ -10,28 +9,19 @@ import useClasesProfesor from "../hooks/dashboards/useClasesProfesor";
 import useContextoProfesor from "../hooks/dashboards/useContextoProfesor";
 import useCumpleanosProfesor from "../hooks/dashboards/useCumpleanosProfesor";
 import useInasistenciasProfesor from "../hooks/dashboards/useInasistenciasProfesor";
-import usePlaneacionesRecientes from "../hooks/dashboards/usePlaneacionesRecientes";
 import useRendimientoProfesor from "../hooks/dashboards/useRendimientoProfesor";
 import { RUTA_RANKING_BAJO, RUTA_RANKING_MEJOR } from "../utils/dashboards/profesor";
 
 function DashboardProfesor() {
   const navigate = useNavigate();
-  const {
-    sesionInvalida,
-    profesorId,
-    nombreProfesor,
-    asignacionId,
-    periodo,
-    cambiarAsignacion,
-    cambiarPeriodo,
-    descartarAsignacionInvalida,
-  } = useContextoProfesor();
+  // Desde el 2026-11-09 el panel no elige clase ni período: cada pantalla
+  // (Planilla, Asistencia, Planeador anual, rankings) los elige arriba.
+  const { sesionInvalida, profesorId, nombreProfesor } = useContextoProfesor();
 
   const {
     loadingClases,
     errorClases,
     clasesUnicas,
-    claseSeleccionada,
     cursosProfesor,
     clasesConHorario,
     clasesPorJornada,
@@ -40,7 +30,7 @@ function DashboardProfesor() {
     setFiltroJornada,
     hayDosJornadas,
     jornadasVisibles,
-  } = useClasesProfesor(profesorId, asignacionId, descartarAsignacionInvalida);
+  } = useClasesProfesor(profesorId);
 
   const { inasistencias, loadingInasistencias, errorInasistencias } =
     useInasistenciasProfesor(profesorId);
@@ -61,18 +51,6 @@ function DashboardProfesor() {
     cambiarCurso,
     setMateriaFiltro,
   } = useRendimientoProfesor(profesorId, clasesUnicas, cursosProfesor);
-
-  const {
-    planeacionesRecientes,
-    loadingPlaneacionesRecientes,
-    errorPlaneacionesRecientes,
-    rutaDePlaneacion,
-  } = usePlaneacionesRecientes(asignacionId, claseSeleccionada, loadingClases);
-
-  const abrirPlaneacionReciente = (planId) => {
-    const ruta = rutaDePlaneacion(planId);
-    if (ruta) navigate(ruta);
-  };
 
   const irARanking = (ruta) => {
     // El ranking deja elegir la clase allí mismo (desde el 2026-11-09).
@@ -98,21 +76,6 @@ function DashboardProfesor() {
           </span>
         </p>
       </div>
-
-      <ContextoTrabajoProfesor
-        asignacionId={asignacionId}
-        onCambiarAsignacion={cambiarAsignacion}
-        loadingClases={loadingClases}
-        errorClases={errorClases}
-        clasesUnicas={clasesUnicas}
-        claseSeleccionada={claseSeleccionada}
-        planeacionesRecientes={planeacionesRecientes}
-        loadingPlaneacionesRecientes={loadingPlaneacionesRecientes}
-        errorPlaneacionesRecientes={errorPlaneacionesRecientes}
-        onAbrirPlaneacion={abrirPlaneacionReciente}
-        periodo={periodo}
-        onCambiarPeriodo={cambiarPeriodo}
-      />
 
       <CumpleanosSemana
         className="mb-6"

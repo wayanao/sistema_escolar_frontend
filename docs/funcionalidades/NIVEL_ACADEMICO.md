@@ -86,6 +86,11 @@ toma por materia, lo que en preescolar duplica el trabajo.
 
 ## El "modo jornada" de Asistencia no requirió código
 
+> **Actualización 2026-11-09:** Asistencia ya tiene su propio selector y, en
+> preescolar, usa sola la «Asistencia diaria» del mismo curso
+> (`resolverAsignacionAsistencia` en `utils/claseDeTrabajo.js`). El panel ya
+> no tiene `ContextoTrabajoProfesor.jsx`. Lo que sigue es cómo era antes.
+
 Se investigó cómo el profesor llega a una asignación en `Asistencia.jsx` y
 se encontró que la página **no tiene selector propio**: lee `asignacionId`
 de `localStorage`, puesto ahí por `ContextoTrabajoProfesor.jsx` (el

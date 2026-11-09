@@ -175,10 +175,11 @@ Estado actual de componentes y paginas del frontend.
   asignados al profesor, consumiendo
   `/dashboard/cumpleanos/profesor/{profesor_id}?dias=7`.
 - Carga `GET /mis-clases/{profesor_id}` una sola vez y reutiliza esa respuesta
-  para selector de clases y horario semanal.
-- El bloque `Contexto de trabajo` conserva los selectores nativos de clase y
-  periodo junto con la fecha, pero los presenta en una tarjeta responsive con
-  controles tactiles, foco visible y estados de carga o lista vacia.
+  para el horario semanal y el filtro de rendimiento.
+- Desde el 2026-11-09 ya no tiene el bloque `Contexto de trabajo` (clase,
+  período y fecha) ni el selector de planeaciones recientes que iba debajo:
+  cada pantalla elige su clase y su período arriba (`SelectorClaseTrabajo`).
+  Lo que sigue describe ese bloque como era antes.
 - Al seleccionar una clase, debajo del control principal aparece un selector
   de las cinco planeaciones más recientes de esa materia y curso. La consulta
   es independiente, limitada y reutiliza una caché temporal por asignación;
@@ -1449,7 +1450,6 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - `components/dashboards/CumpleanosSemana.jsx`
 - `components/dashboards/admin/AccesosAdmin.jsx`
 - `components/dashboards/admin/TarjetaCarteraVencida.jsx`
-- `components/dashboards/profesor/ContextoTrabajoProfesor.jsx`
 - `components/dashboards/profesor/FiltroRendimiento.jsx`
 - `components/dashboards/profesor/HorarioSemanal.jsx`
 - `components/dashboards/profesor/PanelJornada.jsx`

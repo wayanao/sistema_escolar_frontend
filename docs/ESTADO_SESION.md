@@ -34,8 +34,9 @@ Separacion importante:
 
 - `usuario`, `profesor` y `super_admin` son datos visuales de sesion.
 - `asignacionId`, `periodo` y `planillaTipoEvaluacion` son selecciones de
-  trabajo del perfil profesor. Se eligen en el panel, en Planilla y en
-  Asistencia (`hooks/useClaseDeTrabajo.js`).
+  trabajo del perfil profesor. Se eligen arriba de Planilla, Asistencia,
+  Planeador anual y rankings (`hooks/useClaseDeTrabajo.js`); desde el
+  2026-11-09 el panel ya no los elige.
 - `periodo_profesor_<id>` es una preferencia local por docente. Permite que un
   profesor vuelva a entrar y recupere su ultimo periodo aunque el logout haya
   limpiado `periodo`.

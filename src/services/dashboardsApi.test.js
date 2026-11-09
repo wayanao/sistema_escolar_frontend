@@ -11,7 +11,6 @@ import {
     obtenerInasistenciasProfesor,
     obtenerNotasAltasProfesor,
     obtenerNotasBajasProfesor,
-    obtenerPlaneacionesRecientes,
     obtenerRankingBajoRendimiento,
     obtenerRankingMejorRendimiento,
     obtenerResumenCarteraParaDashboard,
@@ -78,19 +77,6 @@ describe("dashboardsApi", () => {
 
         expect(api.get).toHaveBeenNthCalledWith(1, "/dashboard/notas-bajas/7", { params });
         expect(api.get).toHaveBeenNthCalledWith(2, "/dashboard/notas-altas/7", { params });
-    });
-
-    it("consulta las planeaciones recientes de una asignación", async () => {
-        const planeaciones = [{ id: 900 }];
-        api.get.mockResolvedValue({ data: planeaciones });
-
-        await expect(
-            obtenerPlaneacionesRecientes(10, { limit: 5, offset: 0 }),
-        ).resolves.toBe(planeaciones);
-
-        expect(api.get).toHaveBeenCalledWith("/plan-de-clases/10", {
-            params: { limit: 5, offset: 0 },
-        });
     });
 
     it("consulta los dos rankings por asignación y período", async () => {

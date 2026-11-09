@@ -42,11 +42,6 @@ const notasAltas = [
     { nombre: "Zoe Zapata", promedio: 4.876, curso: "5A", materia: "Matemáticas" },
 ];
 
-const planeaciones = [
-    { id: 900, tema: "Fracciones", fecha: "2026-08-05T00:00:00" },
-    { id: 901, tema: "", fecha: "2026-08-03" },
-];
-
 const iniciarSesionProfesor = () => {
     localStorage.setItem(
         "profesor",
@@ -58,7 +53,6 @@ const responder = ({
     clasesResueltas = clases,
     inasistenciasResueltas = inasistencias,
     cumpleanosResueltos = [],
-    planeacionesResueltas = planeaciones,
 } = {}) => {
     apiMock.get.mockImplementation((url) => {
         if (url === `/mis-clases/${PROFESOR_ID}`) return Promise.resolve({ data: clasesResueltas });
@@ -70,17 +64,16 @@ const responder = ({
         }
         if (url === `/dashboard/notas-bajas/${PROFESOR_ID}`) return Promise.resolve({ data: notasBajas });
         if (url === `/dashboard/notas-altas/${PROFESOR_ID}`) return Promise.resolve({ data: notasAltas });
-        if (url.startsWith("/plan-de-clases/")) return Promise.resolve({ data: planeacionesResueltas });
         throw new Error(`GET inesperado: ${url}`);
     });
 };
 
-const selectClase = () => screen.getByLabelText("Clase / grupo");
 const selectCurso = () => within(screen.getByText("Curso").closest("div")).getByRole("combobox");
 const selectMateria = () => within(screen.getByText("Materia").closest("div")).getByRole("combobox");
 
+// Las clases ya cargaron cuando el filtro de rendimiento ofrece sus cursos.
 const esperarClasesCargadas = () =>
-    screen.findByRole("option", { name: "Matemáticas - 5A - ☀ Mañana" });
+    screen.findByRole("option", { name: "5A - Mañana" });
 
 const esperarRendimiento = () =>
     waitFor(() => {
@@ -130,51 +123,6 @@ describe("DashboardProfesor", () => {
             screen.getByRole("heading", { level: 1, name: "Panel del Profesor" }),
         ).toBeInTheDocument();
         await esperarClasesCargadas();
-    });
-
-    it("deduplica el selector de clases por curso y materia", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        const opciones = within(selectClase())
-            .getAllByRole("option")
-            .map((opcion) => opcion.textContent);
-        expect(opciones).toEqual([
-            "Vista general de clases",
-            "Matemáticas - 5A - ☀ Mañana",
-            "Español - 5A - ☀ Mañana",
-            "Sociales - 6B - ◐ Tarde",
-        ]);
-    });
-
-    it("guarda el contexto de trabajo en el almacenamiento local", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        fireEvent.change(selectClase(), { target: { value: "11" } });
-        expect(localStorage.getItem("asignacionId")).toBe("11");
-
-        fireEvent.change(screen.getByLabelText("Período"), { target: { value: "3" } });
-        expect(localStorage.getItem("periodo")).toBe("3");
-        expect(localStorage.getItem(`periodo_profesor_${PROFESOR_ID}`)).toBe("3");
-
-        // La fecha ya no se elige en el panel: Asistencia arranca en hoy.
-        expect(screen.queryByLabelText("Fecha de trabajo")).not.toBeInTheDocument();
-    });
-
-    it("descarta la clase guardada que ya no está asignada", async () => {
-        iniciarSesionProfesor();
-        localStorage.setItem("asignacionId", "999");
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        await waitFor(() => expect(localStorage.getItem("asignacionId")).toBeNull());
-        expect(selectClase()).toHaveValue("");
     });
 
     it("selecciona el primer curso y consulta el rendimiento sin materia", async () => {
@@ -296,8 +244,7 @@ describe("DashboardProfesor", () => {
 
         render(<DashboardProfesor />);
 
-        expect(await screen.findByRole("option", { name: "Sin clases asignadas" })).toBeInTheDocument();
-        expect(screen.getByText("No tienes clases con horario asignado todavía.")).toBeInTheDocument();
+        expect(await screen.findByText("No tienes clases con horario asignado todavía.")).toBeInTheDocument();
         expect(screen.getByRole("option", { name: "Sin cursos asignados" })).toBeInTheDocument();
         expect(llamadasA(`/dashboard/notas-bajas/${PROFESOR_ID}`)).toHaveLength(0);
         expect(llamadasA(`/dashboard/notas-altas/${PROFESOR_ID}`)).toHaveLength(0);
@@ -332,8 +279,10 @@ describe("DashboardProfesor", () => {
 
         render(<DashboardProfesor />);
 
-        expect(await screen.findByRole("option", { name: "Arte - 7C - ◐ Tarde" })).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "Música - 7C - ☀ Mañana" })).toBeInTheDocument();
+        // Arte no trae jornada y empieza a las 2 p. m.: tarde. Música dice
+        // «manana»: mañana. Con las dos, el horario ofrece el filtro.
+        expect(await screen.findByRole("option", { name: "7C - Tarde" })).toBeInTheDocument();
+        expect(screen.getByRole("group", { name: "Filtrar horario por jornada" })).toBeInTheDocument();
     });
 
     it("muestra la insignia de jornada única cuando no hay dos jornadas", async () => {
@@ -345,7 +294,7 @@ describe("DashboardProfesor", () => {
         });
 
         render(<DashboardProfesor />);
-        await screen.findByRole("option", { name: "Arte - 7C - ☀ Mañana" });
+        await screen.findByRole("option", { name: "7C - Mañana" });
 
         expect(
             screen.queryByRole("group", { name: "Filtrar horario por jornada" }),
@@ -365,83 +314,18 @@ describe("DashboardProfesor", () => {
         expect(screen.getAllByText("1:00 PM - 2:00 PM").length).toBeGreaterThan(0);
     });
 
-    it("consulta las planeaciones recientes de la clase elegida y las cachea", async () => {
+    it("ya no tiene la tarjeta de clase ni las planeaciones recientes, y no toca la clase guardada", async () => {
         iniciarSesionProfesor();
+        localStorage.setItem("asignacionId", "999");
 
         render(<DashboardProfesor />);
         await esperarClasesCargadas();
 
-        fireEvent.change(selectClase(), { target: { value: "10" } });
-
-        await waitFor(() => {
-            expect(apiMock.get).toHaveBeenCalledWith("/plan-de-clases/10", {
-                params: { limit: 5, offset: 0 },
-            });
-        });
-        expect(
-            await screen.findByRole("option", { name: "Fracciones — 5 de ago de 2026" }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("option", { name: "Sin tema registrado — 3 de ago de 2026" }),
-        ).toBeInTheDocument();
-
-        fireEvent.change(selectClase(), { target: { value: "11" } });
-        await waitFor(() => expect(llamadasA("/plan-de-clases/11")).toHaveLength(1));
-
-        fireEvent.change(selectClase(), { target: { value: "10" } });
-        await waitFor(() =>
-            expect(screen.getByRole("option", { name: "Fracciones — 5 de ago de 2026" })).toBeInTheDocument(),
-        );
-        expect(llamadasA("/plan-de-clases/10")).toHaveLength(1);
-    });
-
-    it("no consulta planeaciones sin clase elegida", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        expect(apiMock.get.mock.calls.some(([url]) => url.startsWith("/plan-de-clases/"))).toBe(false);
+        expect(screen.queryByText("¿Con qué clase vas a trabajar?")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Clase / grupo")).not.toBeInTheDocument();
         expect(screen.queryByLabelText(/Planeaciones recientes/)).not.toBeInTheDocument();
-    });
-
-    it("avisa cuando las planeaciones recientes fallan", async () => {
-        iniciarSesionProfesor();
-        apiMock.get.mockImplementation((url) => {
-            if (url === `/mis-clases/${PROFESOR_ID}`) return Promise.resolve({ data: clases });
-            if (url === `/dashboard/inasistencias/${PROFESOR_ID}`) return Promise.resolve({ data: inasistencias });
-            if (url === `/dashboard/cumpleanos/profesor/${PROFESOR_ID}`) return Promise.resolve({ data: [] });
-            if (url === `/dashboard/notas-bajas/${PROFESOR_ID}`) return Promise.resolve({ data: notasBajas });
-            if (url === `/dashboard/notas-altas/${PROFESOR_ID}`) return Promise.resolve({ data: notasAltas });
-            if (url.startsWith("/plan-de-clases/")) return Promise.reject(new Error("500"));
-            throw new Error(`GET inesperado: ${url}`);
-        });
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        fireEvent.change(selectClase(), { target: { value: "10" } });
-
-        expect(
-            await screen.findByText("No se pudieron cargar las planeaciones recientes."),
-        ).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "No se pudieron cargar" })).toBeInTheDocument();
-    });
-
-    it("abre la planeación reciente en modo presentación", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        fireEvent.change(selectClase(), { target: { value: "10" } });
-        const selectPlaneacion = await screen.findByLabelText(/Planeaciones recientes/);
-
-        fireEvent.change(selectPlaneacion, { target: { value: "900" } });
-
-        expect(navigateMock).toHaveBeenCalledWith(
-            "/plan-de-clases?asignacion_id=10&fecha=2026-08-05&presentacion=1",
-        );
+        expect(apiMock.get.mock.calls.some(([url]) => url.startsWith("/plan-de-clases/"))).toBe(false);
+        expect(localStorage.getItem("asignacionId")).toBe("999");
     });
 
     it("abre los rankings aunque no haya clase elegida: allí se elige", async () => {

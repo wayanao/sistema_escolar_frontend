@@ -5,7 +5,6 @@ import {
     MENSAJE_ERROR_CLASES,
     agruparClasesPorJornada,
     agruparHorarioPorJornada,
-    buscarClasePorAsignacion,
     construirHorarioProfesor,
     deduplicarClases,
     normalizarClases,
@@ -20,7 +19,7 @@ import {
 // deja sin cursos al filtro de rendimiento, así que publica su error para que
 // las tres secciones que dependen de él puedan distinguirlo de «no tienes
 // clases».
-const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida) => {
+const useClasesProfesor = (profesorId) => {
     const [clases, setClases] = useState([]);
     const [horarioAsignado, setHorarioAsignado] = useState([]);
     const [loadingClases, setLoadingClases] = useState(true);
@@ -41,7 +40,6 @@ const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida
             const data = normalizarClases(await obtenerClasesProfesor(profesorId));
             if (!vigente()) return;
             setClases(data);
-            descartarAsignacionInvalida(data);
             setHorarioAsignado(construirHorarioProfesor(data));
         } catch (error) {
             console.error("Error cargando clases", error);
@@ -52,7 +50,7 @@ const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida
         } finally {
             if (vigente()) setLoadingClases(false);
         }
-    }, [descartarAsignacionInvalida, profesorId]);
+    }, [profesorId]);
 
     useEffect(() => {
         cargarClases();
@@ -60,10 +58,6 @@ const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida
 
     // El selector deduplica por curso y materia; el horario sí pinta cada franja.
     const clasesUnicas = useMemo(() => deduplicarClases(clases), [clases]);
-    const claseSeleccionada = useMemo(
-        () => buscarClasePorAsignacion(clasesUnicas, asignacionId),
-        [asignacionId, clasesUnicas],
-    );
     const cursosProfesor = useMemo(() => obtenerCursosProfesor(clases), [clases]);
 
     const clasesConHorario = useMemo(
@@ -85,7 +79,6 @@ const useClasesProfesor = (profesorId, asignacionId, descartarAsignacionInvalida
         loadingClases,
         errorClases,
         clasesUnicas,
-        claseSeleccionada,
         cursosProfesor,
         clasesConHorario,
         clasesPorJornada,

@@ -15,10 +15,8 @@ const clases = [
     { id: 12, horario_id: 504, materia: "Sociales", curso: "6B", curso_id: 200, jornada: "Tarde", dia: "Jueves", hora_inicio: "13:00", hora_fin: "14:00" },
 ];
 
-const descartar = vi.fn();
-
-const montarCargado = async (asignacionId = "") => {
-    const hook = renderHook(() => useClasesProfesor(7, asignacionId, descartar));
+const montarCargado = async () => {
+    const hook = renderHook(() => useClasesProfesor(7));
     await waitFor(() => expect(hook.result.current.loadingClases).toBe(false));
     return hook;
 };
@@ -26,12 +24,11 @@ const montarCargado = async (asignacionId = "") => {
 describe("useClasesProfesor", () => {
     beforeEach(() => {
         vi.spyOn(console, "error").mockImplementation(() => {});
-        descartar.mockClear();
         serviceMock.obtenerClasesProfesor.mockResolvedValue(clases);
     });
 
     it("no consulta cuando no hay profesor", () => {
-        const { result } = renderHook(() => useClasesProfesor(undefined, "", descartar));
+        const { result } = renderHook(() => useClasesProfesor(undefined));
 
         expect(serviceMock.obtenerClasesProfesor).not.toHaveBeenCalled();
         expect(result.current.clasesUnicas).toEqual([]);
@@ -57,24 +54,6 @@ describe("useClasesProfesor", () => {
         expect(result.current.horarioPorJornada["Tarde"].Jueves).toHaveLength(1);
     });
 
-    it("pide descartar la clase guardada al terminar la carga", async () => {
-        await montarCargado();
-
-        expect(descartar).toHaveBeenCalledWith(clases);
-    });
-
-    it("resuelve la clase seleccionada por su identificador", async () => {
-        const { result } = await montarCargado("11");
-
-        expect(result.current.claseSeleccionada.materia).toBe("Español");
-    });
-
-    it("deja la clase seleccionada en nulo cuando no existe", async () => {
-        const { result } = await montarCargado("999");
-
-        expect(result.current.claseSeleccionada).toBeNull();
-    });
-
     it("ofrece el filtro de jornada y respeta la elegida", async () => {
         const { result } = await montarCargado();
 
@@ -96,6 +75,5 @@ describe("useClasesProfesor", () => {
         expect(result.current.clasesConHorario).toEqual([]);
         expect(result.current.hayDosJornadas).toBe(false);
         expect(result.current.errorClases).toBe("No se pudieron cargar tus clases.");
-        expect(descartar).not.toHaveBeenCalled();
     });
 });

@@ -56,6 +56,14 @@ dashboards por rol sin cambiar accesos, métricas ni navegación.
 
 ### Dashboard del profesor
 
+> **2026-11-09:** se quitó del panel la tarjeta «¿Con qué clase vas a
+> trabajar?» (`ContextoTrabajoProfesor.jsx`) y el selector de planeaciones
+> recientes (`usePlaneacionesRecientes`, `obtenerPlaneacionesRecientes` y sus
+> utilidades). Cada pantalla elige su clase y su período arriba.
+> `useContextoProfesor` quedó con la sesión y el saludo; `useClasesProfesor`
+> ya no resuelve ni descarta una clase elegida. Las secciones de abajo que los
+> mencionan son el registro de cómo era.
+
 - `src/pages/DashboardProfesor.jsx`, 1005 líneas. Es el archivo más grande del
   módulo y la raíz de la ruta `/`.
 - Reúne en un solo archivo: el contexto de trabajo (clase, período y fecha), el
@@ -124,10 +132,9 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
   compartida con asistencia, planilla, boletines, malla curricular,
   planeaciones, observador y `Formulario`. El módulo la consume tal cual y no la
   mueve ni la modifica.
-- `asignacionId` es el contrato de contexto que el panel del profesor escribe
-  y que otros módulos leen. Desde el 2026-11-09 Planilla y Asistencia también
-  lo eligen y escriben en su propia pantalla. El panel ya no tiene «Fecha de
-  trabajo» ni escribe `fechaAsistencia`: Asistencia arranca siempre en hoy.
+- `asignacionId` ya no lo escribe el panel: desde el 2026-11-09 lo eligen y
+  escriben Planilla, Asistencia, Planeador anual y rankings. Asistencia
+  arranca siempre en la fecha de hoy.
 - Ningún otro módulo consume los endpoints `/dashboard/*`; son exclusivos de
   este módulo.
 - Ninguna otra página importa estas seis, salvo `App.jsx`.
@@ -143,7 +150,6 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 | `GET` | `/dashboard/cumpleanos/profesor/:profesorId` con `params: { dias: 7 }` | Cumpleaños de los cursos asignados. |
 | `GET` | `/dashboard/notas-bajas/:profesorId` con `params: { curso_id, asignacion_id? }` | Estudiantes con bajo rendimiento. |
 | `GET` | `/dashboard/notas-altas/:profesorId` con `params: { curso_id, asignacion_id? }` | Mejores estudiantes. |
-| `GET` | `/plan-de-clases/:asignacionId` con `params: { limit: 5, offset: 0 }` | Planeaciones recientes de la clase elegida. |
 | `GET` | `/dashboard/ranking/:asignacionId/:periodo` | Ranking de bajo rendimiento. |
 | `GET` | `/dashboard/ranking-mejor/:asignacionId/:periodo` | Ranking de mejores estudiantes. |
 | `GET` | `/super-admin/tenants` | Lista de colegios. |
@@ -178,7 +184,6 @@ durante la migración:
 ## Invariantes
 
 - Contenido y accesos según rol.
-- Contexto de trabajo del profesor.
 - Cumpleaños, inasistencias y rendimiento como secciones independientes.
 - Rankings por curso.
 - Estados parciales de carga y error.
@@ -226,21 +231,12 @@ durante la migración:
 - El filtro de jornada solo aparece cuando **ambas** jornadas tienen clases; con
   una sola se muestra una insignia. Elegir una jornada vacía revierte a mostrar
   las disponibles.
-- Cambiar clase o período persiste de inmediato en `asignacionId` y
-  `periodo`/`periodo_profesor_<id>`.
-- Si la clase guardada ya no está entre las asignadas, se borra de
-  `localStorage` y el selector vuelve a la vista general.
 - El primer curso disponible se selecciona solo, y solo mientras no haya uno
   elegido. Los cursos se ordenan por nombre.
 - Cambiar de curso devuelve la materia a `todas`.
 - El rendimiento consulta notas bajas y altas **en paralelo**, con
   `{ curso_id }` y, solo si hay materia concreta, `{ asignacion_id }`.
 - Sin curso seleccionado el rendimiento se vacía **sin llamar al backend**.
-- Las planeaciones recientes solo se consultan cuando hay clase elegida y las
-  clases ya cargaron. El resultado se recorta a cinco y se guarda en una caché
-  por asignación que evita la segunda consulta.
-- Elegir una planeación navega a
-  `/plan-de-clases?asignacion_id=<id>&fecha=<AAAA-MM-DD>&presentacion=1`.
 - Los dos botones de ranking navegan siempre: desde el 2026-11-09 la clase se
   elige en el propio ranking (antes exigían una clase elegida en el panel).
 - Una inasistencia devuelta como objeto suelto —y no como arreglo— se envuelve

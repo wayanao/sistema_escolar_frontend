@@ -4,20 +4,14 @@ import {
     MATERIA_TODAS,
     agruparClasesPorJornada,
     agruparHorarioPorJornada,
-    buscarClasePorAsignacion,
-    buscarPlaneacion,
     capitalizarInicial,
     construirHorarioProfesor,
     construirParametrosRendimiento,
-    construirRutaPlaneacion,
-    contieneAsignacion,
     deduplicarClases,
     claseNotaBaja,
     etiquetaPuestoMejorRendimiento,
-    formatearFechaPlaneacion,
     formatearHora12,
     formatearPromedio,
-    iconoJornada,
     jornadaUnicaDe,
     nombreCompletoProfesor,
     nombreCursoFiltro,
@@ -25,7 +19,6 @@ import {
     normalizarClases,
     normalizarInasistencias,
     normalizarNotas,
-    normalizarPlaneacionesRecientes,
     obtenerCursosProfesor,
     obtenerEstiloHorarioDia,
     obtenerJornadaClase,
@@ -120,19 +113,6 @@ describe("capitalizarInicial y nombres del profesor", () => {
     });
 });
 
-describe("formatearFechaPlaneacion", () => {
-    it("formatea la fecha con y sin marca de tiempo", () => {
-        expect(formatearFechaPlaneacion("2026-08-05")).toBe("5 de ago de 2026");
-        expect(formatearFechaPlaneacion("2026-08-05T00:00:00")).toBe("5 de ago de 2026");
-    });
-
-    it("avisa cuando no hay fecha y devuelve el valor cuando no es interpretable", () => {
-        expect(formatearFechaPlaneacion("")).toBe("Sin fecha");
-        expect(formatearFechaPlaneacion(null)).toBe("Sin fecha");
-        expect(formatearFechaPlaneacion("sin-fecha")).toBe("sin-fecha");
-    });
-});
-
 describe("formatearPromedio", () => {
     it("siempre muestra dos decimales", () => {
         expect(formatearPromedio(2.345)).toBe("2.35");
@@ -154,22 +134,6 @@ describe("normalizaciones de respuestas", () => {
         expect(normalizarInasistencias(null)).toEqual([]);
     });
 
-    it("recorta las planeaciones recientes a cinco", () => {
-        const seis = Array.from({ length: 6 }, (_, index) => ({ id: index }));
-
-        expect(normalizarPlaneacionesRecientes(seis)).toHaveLength(5);
-        expect(normalizarPlaneacionesRecientes(null)).toEqual([]);
-        expect(normalizarPlaneacionesRecientes({ id: 1 })).toEqual([]);
-    });
-});
-
-describe("contieneAsignacion", () => {
-    it("compara como texto los identificadores", () => {
-        expect(contieneAsignacion(clases, 10)).toBe(true);
-        expect(contieneAsignacion(clases, "10")).toBe(true);
-        expect(contieneAsignacion(clases, "999")).toBe(false);
-        expect(contieneAsignacion([], "10")).toBe(false);
-    });
 });
 
 describe("construirHorarioProfesor", () => {
@@ -212,17 +176,6 @@ describe("deduplicarClases", () => {
         ];
 
         expect(deduplicarClases(sinCursoId).map((clase) => clase.id)).toEqual([1, 2]);
-    });
-});
-
-describe("buscarClasePorAsignacion", () => {
-    it("encuentra la clase por texto y devuelve null cuando no existe", () => {
-        const unicas = deduplicarClases(clases);
-
-        expect(buscarClasePorAsignacion(unicas, "11").materia).toBe("Español");
-        expect(buscarClasePorAsignacion(unicas, 11).materia).toBe("Español");
-        expect(buscarClasePorAsignacion(unicas, "999")).toBeNull();
-        expect(buscarClasePorAsignacion(unicas, "")).toBeNull();
     });
 });
 
@@ -342,42 +295,12 @@ describe("construirParametrosRendimiento", () => {
     });
 });
 
-describe("planeaciones recientes", () => {
-    const planeaciones = [
-        { id: 900, tema: "Fracciones", fecha: "2026-08-05T00:00:00" },
-        { id: 901, tema: "Sin fecha" },
-    ];
-
-    it("busca la planeación comparando como texto", () => {
-        expect(buscarPlaneacion(planeaciones, "900").tema).toBe("Fracciones");
-        expect(buscarPlaneacion(planeaciones, 900).tema).toBe("Fracciones");
-        expect(buscarPlaneacion(planeaciones, "999")).toBeUndefined();
-    });
-
-    it("arma la ruta en modo presentación recortando la parte horaria", () => {
-        expect(construirRutaPlaneacion("10", planeaciones[0])).toBe(
-            "/plan-de-clases?asignacion_id=10&fecha=2026-08-05&presentacion=1",
-        );
-    });
-
-    it("no arma ruta sin planeación o sin fecha", () => {
-        expect(construirRutaPlaneacion("10", planeaciones[1])).toBe("");
-        expect(construirRutaPlaneacion("10", undefined)).toBe("");
-    });
-});
-
 describe("reglas de clase", () => {
     it("da a cada jornada su paleta y su horario institucional", () => {
         expect(JORNADA_ESTILOS["Mañana"].rango).toBe("06:30 - 12:30");
         expect(JORNADA_ESTILOS["Tarde"].rango).toBe("12:30 - 18:30");
         expect(JORNADA_ESTILOS["Mañana"].badge).toContain("sky");
         expect(JORNADA_ESTILOS["Tarde"].badge).toContain("orange");
-    });
-
-    it("da a cada jornada su icono en el selector", () => {
-        expect(iconoJornada("Mañana")).toBe("☀");
-        expect(iconoJornada("Tarde")).toBe("◐");
-        expect(iconoJornada("Noche")).toBeUndefined();
     });
 
     it("da a cada día de la semana escolar su paleta", () => {

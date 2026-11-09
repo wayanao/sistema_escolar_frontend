@@ -81,8 +81,7 @@ Estado documentado del frontend `frontend-react`.
   compartido por dos roles del módulo de dashboards.
 - `src/components/dashboards/admin/`: tarjeta de cartera vencida y rejilla de
   accesos principales del panel de administración.
-- `src/components/dashboards/profesor/`: contexto de trabajo, horario semanal
-  por jornada, filtro de rendimiento, las tres tarjetas de resultados y las dos
+- `src/components/dashboards/profesor/`: horario semanal por jornada, filtro de rendimiento, las tres tarjetas de resultados y las dos
   tablas de ranking.
 - `src/components/dashboards/superAdmin/`: resumen por estado y tabla de tenants
   de la plataforma.
@@ -125,8 +124,8 @@ Estado documentado del frontend `frontend-react`.
   de egresos por rango de fechas, carga de profesores con historial de préstamos
   bajo demanda, y los tres comandos de pago, egreso y préstamo.
 - `src/hooks/dashboards/`: un hook por sección independiente —cartera y
-  cumpleaños del admin; contexto de trabajo, clases, inasistencias, cumpleaños,
-  rendimiento y planeaciones recientes del profesor; rankings; y la lista,
+  cumpleaños del admin; sesión, clases, inasistencias, cumpleaños y
+  rendimiento del profesor; rankings; y la lista,
   alta y cambio de estado de tenants—, de modo que el fallo de una sección no
   bloquee a las demás.
 - `src/hooks/pagos/`: consultas, estado editable y comandos de pagos normales,
@@ -612,16 +611,15 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
 
 ## Dashboards y rankings
 
-- `/` monta `pages/DashboardProfesor.jsx` bajo `ProtectedRoute` y conserva el
-  contexto de trabajo del profesor —clase, período y fecha—, el horario semanal
-  por jornada, el filtro de rendimiento por curso y materia, y las tarjetas de
+- `/` monta `pages/DashboardProfesor.jsx` bajo `ProtectedRoute` con el horario
+  semanal por jornada, el filtro de rendimiento por curso y materia, y las tarjetas de
   inasistencias, bajo rendimiento y mejores estudiantes.
 - `/dashboard-admin` monta `pages/AdminDashboard.jsx` bajo `AdminRoute` y
   conserva la tarjeta de cartera vencida, los cuatro accesos principales y los
   cumpleaños de la semana.
 - `/ranking-rendimiento` y `/ranking-mejor-rendimiento` montan las dos pantallas
-  de ranking bajo `ProtectedRoute`. Solo se alcanzan desde el panel del profesor
-  y leen su `asignacionId` y su período del almacenamiento local.
+  de ranking bajo `ProtectedRoute`. Se abren desde el panel del profesor y
+  eligen allí mismo la clase y el período (desde el 2026-11-09).
 - `/super-admin` monta `pages/SuperAdminDashboard.jsx` bajo `SuperAdminRoute`,
   fuera del `Layout` común, con el resumen por estado, la tabla de tenants, el
   alta de colegios y el cambio de estado con motivo y auditoría.
@@ -629,24 +627,23 @@ Función de producto documentada en `docs/funcionalidades/ANIO_LECTIVO.md`
   Importan solo `react-router-dom`, sus componentes, sus hooks y las constantes
   de las rutas a las que navegan.
 - `services/dashboardsApi.js` es la única frontera HTTP del módulo y concentra
-  sus catorce contratos. `GET /mis-clases/:id`, `GET /plan-de-clases/:id` y
-  `GET /cartera/mora/resumen` se consumen desde allí en modo lectura: el módulo
+  sus contratos. `GET /mis-clases/:id` y `GET /cartera/mora/resumen` se
+  consumen desde allí en modo lectura: el módulo
   posee su transporte en lugar de reutilizar el de planeaciones y cartera, con
   el mismo criterio que ya aplican `pagosApi.js` e `inventarioVentasApi.js`.
 - Cada sección tiene su propio hook, su propio indicador de carga y su propio
   manejo de error, de modo que el fallo de una no bloquea a las demás. Es la
   invariante central del módulo.
-- El panel del profesor escribe `asignacionId` en el almacenamiento local;
-  es el contrato de contexto que leen asistencia, planilla, boletines y
-  planeaciones. Desde el 2026-11-09 Planilla y Asistencia lo eligen también en
-  su propia pantalla (`hooks/useClaseDeTrabajo.js`, con la lógica pura en
-  `utils/claseDeTrabajo.js`); la fecha ya no es parte del contexto. El período viaja por
+- Desde el 2026-11-09 el panel del profesor ya no elige clase, período ni
+  fecha (se quitó la tarjeta «¿Con qué clase vas a trabajar?» y sus
+  planeaciones recientes). Planilla, Asistencia, Planeador anual y rankings los
+  eligen arriba de su pantalla (`hooks/useClaseDeTrabajo.js`,
+  `hooks/useClaseDeMateria.js`, lógica pura en `utils/claseDeTrabajo.js`) y los
+  recuerdan en `asignacionId` y `periodo_profesor_<id>`, que también leen
+  boletines y plan de clases. El período viaja por
   `utils/periodoProfesor.js`, utilidad transversal que el módulo no modifica.
-- El selector de clases deduplica por curso y materia; el horario semanal, en
-  cambio, conserva cada franja. La jornada se deduce del texto recibido y, si no
+- El horario semanal conserva cada franja. La jornada se deduce del texto recibido y, si no
   lo trae, de la hora de inicio con el corte en las 12:30.
-- Las planeaciones recientes se cachean por asignación durante la vida de la
-  página; una planeación creada en otra pantalla no aparece hasta recargarla.
 - El módulo no adopta las capacidades que el backend ofrece y el frontend nunca
   usó: un rango de cumpleaños distinto de siete días, el parámetro `fecha` y el
   `limit` de hasta cincuenta de las planeaciones, ni las consultas de

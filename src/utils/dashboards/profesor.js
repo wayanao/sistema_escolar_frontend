@@ -16,16 +16,6 @@ export const FILTRO_JORNADA_AMBAS = "Ambas";
 
 export const MATERIA_TODAS = "todas";
 
-export const LIMITE_PLANEACIONES_RECIENTES = 5;
-
-export const PARAMETROS_PLANEACIONES_RECIENTES = {
-    limit: LIMITE_PLANEACIONES_RECIENTES,
-    offset: 0,
-};
-
-export const MENSAJE_ERROR_PLANEACIONES_RECIENTES =
-    "No se pudieron cargar las planeaciones recientes.";
-
 export const MENSAJE_ERROR_CLASES = "No se pudieron cargar tus clases.";
 
 export const MENSAJE_ERROR_INASISTENCIAS = "No se pudieron cargar las inasistencias.";
@@ -91,18 +81,6 @@ export const primerNombreProfesor = (profesor) =>
         (profesor?.nombre || nombreCompletoProfesor(profesor) || "profe").trim().split(/\s+/)[0],
     );
 
-export const formatearFechaPlaneacion = (valor) => {
-    if (!valor) return "Sin fecha";
-    const fechaPlaneacion = new Date(String(valor).includes("T") ? valor : `${valor}T00:00:00`);
-    if (Number.isNaN(fechaPlaneacion.getTime())) return String(valor);
-
-    return new Intl.DateTimeFormat("es-CO", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    }).format(fechaPlaneacion);
-};
-
 export const formatearPromedio = (valor) => Number(valor).toFixed(2);
 
 export const normalizarClases = (data) => data || [];
@@ -111,9 +89,6 @@ export const normalizarNotas = (data) => data || [];
 
 export const normalizarInasistencias = (data) =>
     Array.isArray(data) ? data : data ? [data] : [];
-
-export const contieneAsignacion = (clases, asignacionId) =>
-    new Set(clases.map((clase) => String(clase.id))).has(String(asignacionId));
 
 export const construirHorarioProfesor = (clases) =>
     clases.map((asignacion) => ({
@@ -141,9 +116,6 @@ export const deduplicarClases = (clases) => {
     }
     return Array.from(vistos.values());
 };
-
-export const buscarClasePorAsignacion = (clasesUnicas, asignacionId) =>
-    clasesUnicas.find((clase) => String(clase.id) === String(asignacionId)) || null;
 
 export const obtenerCursosProfesor = (clases) => {
     const vistos = new Map();
@@ -222,24 +194,6 @@ export const construirParametrosRendimiento = (cursoId, materiaId) => {
     return params;
 };
 
-export const normalizarPlaneacionesRecientes = (data) =>
-    Array.isArray(data) ? data.slice(0, LIMITE_PLANEACIONES_RECIENTES) : [];
-
-export const buscarPlaneacion = (planeaciones, planId) =>
-    planeaciones.find((item) => String(item.id) === String(planId));
-
-export const construirRutaPlaneacion = (asignacionId, plan) => {
-    if (!plan?.fecha) return "";
-
-    const params = new URLSearchParams({
-        asignacion_id: String(asignacionId),
-        fecha: String(plan.fecha).split("T")[0],
-        presentacion: "1",
-    });
-
-    return `/plan-de-clases?${params.toString()}`;
-};
-
 const MEDALLAS_PODIO = ["🥇 1", "🥈 2", "🥉 3"];
 
 export const etiquetaPuestoMejorRendimiento = (index) => MEDALLAS_PODIO[index] ?? index + 1;
@@ -260,13 +214,6 @@ export const JORNADA_ESTILOS = {
         rango: "12:30 - 18:30",
     },
 };
-
-const JORNADA_SELECTOR_ESTILOS = {
-    Mañana: { icono: "☀" },
-    Tarde: { icono: "◐" },
-};
-
-export const iconoJornada = (jornada) => JORNADA_SELECTOR_ESTILOS[jornada]?.icono;
 
 const HORARIO_DIA_ESTILOS = {
     Lunes: {

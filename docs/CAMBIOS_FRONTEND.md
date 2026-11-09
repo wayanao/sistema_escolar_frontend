@@ -1,5 +1,28 @@
 # Cambios Frontend
 
+## 2026-11-09 - Panel del profesor sin «Contexto de trabajo» ni planeaciones recientes (paso 3)
+
+- Pedido del usuario: quitar del panel la tarjeta «¿Con qué clase vas a
+  trabajar?» y el selector «Planeaciones recientes» que iba dentro. La clase y
+  el período ya se eligen en cada pantalla (pasos 1 y 2).
+- Se borraron `components/dashboards/profesor/ContextoTrabajoProfesor.jsx`,
+  `hooks/dashboards/usePlaneacionesRecientes.js` (y sus pruebas),
+  `obtenerPlaneacionesRecientes` de `dashboardsApi.js` y las utilidades que
+  solo usaban ellos (`formatearFechaPlaneacion`, `contieneAsignacion`,
+  `buscarClasePorAsignacion`, `normalizarPlaneacionesRecientes`,
+  `buscarPlaneacion`, `construirRutaPlaneacion`, `iconoJornada` y las
+  constantes de planeaciones recientes). El endpoint del backend sigue igual.
+- `useContextoProfesor` quedó con la sesión y el saludo; `useClasesProfesor`
+  ya no resuelve ni descarta una clase elegida. El panel ya no borra una clase
+  guardada que no esté asignada: cada pantalla lo resuelve (pide elegir otra).
+- Observador: las anotaciones nuevas siguen tomando el último período
+  elegido; ahora ese período se elige en Planilla, Asistencia, Planeador o
+  rankings. La pantalla ya lo dice («Se guardará en el Periodo X, el que
+  tienes activo»). Solo cambió el comentario.
+- Sin tocar: `pages/Formulario.jsx` (sin ruta) sigue pendiente de decidir.
+- Verificación: `pnpm run check:deploy` completo (416 archivos, 3575 pruebas;
+  42 menos por las pruebas de lo que se quitó; lint y build sin errores).
+
 ## 2026-11-09 - Clase y período dentro del Planeador anual y los rankings (paso 2)
 
 - Pedido del usuario: llevar el selector de clase y período a las demás

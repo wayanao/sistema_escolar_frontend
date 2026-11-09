@@ -45,12 +45,6 @@ export const obtenerNotasAltasProfesor = async (profesorId, params) => {
     return response.data;
 };
 
-// Dependencia de solo lectura del módulo de planeaciones.
-export const obtenerPlaneacionesRecientes = async (asignacionId, params) => {
-    const response = await api.get(`/plan-de-clases/${asignacionId}`, { params });
-    return response.data;
-};
-
 // ── Rankings del profesor ───────────────────────────────────────────────────
 
 export const obtenerRankingBajoRendimiento = async (asignacionId, periodo) => {

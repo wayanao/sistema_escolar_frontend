@@ -48,9 +48,11 @@ const NUEVA = "nueva";
 
 function Observador() {
   const profesorId = leerProfesorId();
-  // El periodo que se le pega a una anotación nueva sale del que el profesor
-  // eligió en el Dashboard, decidido con el usuario el 2026-09-09. Es distinto
-  // del selector de la pantalla, que solo filtra lo que se ve.
+  // El periodo que se le pega a una anotación nueva es el último que el
+  // profesor eligió (decidido con el usuario el 2026-09-09; desde el
+  // 2026-11-09 se elige en Planilla, Asistencia, Planeador o rankings, ya no
+  // en el panel). Es distinto del selector de la pantalla, que solo filtra lo
+  // que se ve.
   const periodoEscritura = Number.parseInt(obtenerPeriodoProfesor(), 10) || 1;
 
   const [busqueda, setBusqueda] = useState("");
@@ -150,7 +152,7 @@ function Observador() {
 
     cerrarFormulario();
 
-    // Una anotación nueva nace con el periodo del Dashboard. Si el selector
+    // Una anotación nueva nace con el último periodo elegido. Si el selector
     // está filtrando otro, lo recién escrito no aparecería y la profesora
     // creería que no se guardó: se pasa a "Todos", que además nunca oculta
     // nada. Cambiar el selector ya dispara la recarga, así que sigue siendo
