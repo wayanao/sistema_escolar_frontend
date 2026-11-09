@@ -283,6 +283,11 @@ Estado actual de componentes y paginas del frontend.
   Asistencia: `components/asistencia/CampoFechaAsistencia.jsx`, que arranca en
   hoy y avisa «No es hoy» con «Volver a hoy»). Si la lista falla, ofrece
   «Reintentar».
+- El mismo selector va en el Planeador anual (dentro de
+  `components/mallaCurricular/EncabezadoMallaCurricular.jsx`, que recibe
+  `selector` y `estadoVisual`) y en los rankings
+  (`components/dashboards/profesor/SeleccionClaseRanking.jsx`), desde el
+  2026-11-09.
 - `components/AvisoSinClaseElegida.jsx` (2026-11-09): lo que se ve en lugar de
   la planilla o la lista de asistencia mientras no hay clase: cargando, «Elige
   arriba la clase…» o el motivo (ya no está asignada, preescolar sin

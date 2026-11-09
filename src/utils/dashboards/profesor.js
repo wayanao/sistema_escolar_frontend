@@ -34,12 +34,6 @@ export const MENSAJE_ERROR_RENDIMIENTO = "No se pudo cargar el rendimiento del c
 
 export const MENSAJE_ERROR_RANKING = "No se pudo cargar el ranking.";
 
-export const MENSAJE_RANKING_SIN_CLASE =
-    "Por favor, selecciona un salón (materia) primero para ver el ranking.";
-
-export const MENSAJE_RANKING_SIN_ASIGNACION =
-    "Selecciona una clase en el Dashboard para ver el ranking.";
-
 export const RUTA_RANKING_BAJO = "/ranking-rendimiento";
 
 export const RUTA_RANKING_MEJOR = "/ranking-mejor-rendimiento";

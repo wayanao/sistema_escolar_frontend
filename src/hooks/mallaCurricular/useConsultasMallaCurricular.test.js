@@ -1,13 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  obtenerAsignacionesProfesor,
-  obtenerPlaneadoresAnuales,
-} from "../../services/mallaCurricularApi";
+import { obtenerPlaneadoresAnuales } from "../../services/mallaCurricularApi";
 import { useConsultasMallaCurricular } from "./useConsultasMallaCurricular";
 
 vi.mock("../../services/mallaCurricularApi", () => ({
-  obtenerAsignacionesProfesor: vi.fn(),
   obtenerPlaneadoresAnuales: vi.fn(),
 }));
 
@@ -19,27 +15,23 @@ const crearCallbacks = () => ({
   onPlaneadoresCargados: vi.fn(),
 });
 
+// La clase y el período llegan de la página (useClasePlaneadorProfesor).
 const renderConsultas = (callbacks = crearCallbacks()) => ({
   callbacks,
-  ...renderHook(() => useConsultasMallaCurricular({
+  ...renderHook(({ periodo }) => useConsultasMallaCurricular({
     asignacionId: "42",
-    profesorId: 7,
+    periodo,
     ...callbacks,
-  })),
+  }), { initialProps: { periodo: "2" } }),
 });
 
 describe("useConsultasMallaCurricular", () => {
   beforeEach(() => {
-    localStorage.clear();
-    localStorage.setItem("profesor", JSON.stringify({ id: 7 }));
-    localStorage.setItem("periodo_profesor_7", "2");
-    obtenerAsignacionesProfesor.mockReset();
     obtenerPlaneadoresAnuales.mockReset();
-    obtenerAsignacionesProfesor.mockResolvedValue([asignacion]);
     obtenerPlaneadoresAnuales.mockResolvedValue({ planeadores: [] });
   });
 
-  it("carga la asignación y entrega las filas normalizadas del periodo persistido", async () => {
+  it("entrega las filas normalizadas del periodo recibido", async () => {
     obtenerPlaneadoresAnuales.mockResolvedValue({
       planeadores: [{
         slot: 3,
@@ -54,9 +46,9 @@ describe("useConsultasMallaCurricular", () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(obtenerAsignacionesProfesor).toHaveBeenCalledWith(7);
     expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "2");
-    expect(result.current.asignacion).toEqual(asignacion);
+    // La lista de clases ya no se carga aquí.
+    expect(result.current).not.toHaveProperty("asignacion");
     expect(callbacks.onInicioPlaneadores).toHaveBeenCalledTimes(1);
     expect(callbacks.onPlaneadoresCargados).toHaveBeenCalledWith(expect.objectContaining({
       guardado: true,
@@ -90,20 +82,15 @@ describe("useConsultasMallaCurricular", () => {
     );
   });
 
-  it("persiste un cambio de periodo y consulta sus filas", async () => {
-    const { result } = renderConsultas();
+  it("al recibir otro periodo consulta sus filas", async () => {
+    const { result, rerender } = renderConsultas();
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
-      result.current.cambiarPeriodo("3");
-    });
+    rerender({ periodo: "3" });
 
     await waitFor(() => {
       expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "3");
     });
-    expect(result.current.periodo).toBe("3");
-    expect(localStorage.getItem("periodo")).toBe("3");
-    expect(localStorage.getItem("periodo_profesor_7")).toBe("3");
   });
 
   it("expone una recarga para consultar nuevamente el periodo actual", async () => {
@@ -126,14 +113,12 @@ describe("useConsultasMallaCurricular", () => {
       if (periodo === "2") resolverPeriodoDos = resolve;
       if (periodo === "3") resolverPeriodoTres = resolve;
     }));
-    const { callbacks, result } = renderConsultas();
+    const { callbacks, rerender } = renderConsultas();
 
     await waitFor(() => {
       expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "2");
     });
-    act(() => {
-      result.current.cambiarPeriodo("3");
-    });
+    rerender({ periodo: "3" });
     await waitFor(() => {
       expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "3");
     });

@@ -27,8 +27,8 @@ const leerAsignacionGuardada = () => localStorage.getItem(CLAVE_ASIGNACION_PROFE
 export default function useClaseDeTrabajo({
     profesorId,
     listarClases,
-    tituloCambiosPendientes,
-    textoCambiosPendientes,
+    tituloCambiosPendientes = "Hay cambios sin guardar",
+    textoCambiosPendientes = "Si cambias la clase o el período, se pierden.",
 }) {
     const [asignacionId, setAsignacionId] = useState(leerAsignacionGuardada);
     const [periodo, setPeriodo] = useState(() => obtenerPeriodoProfesor());

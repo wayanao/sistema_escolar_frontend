@@ -94,26 +94,6 @@ describe("useContextoProfesor", () => {
         expect(localStorage.getItem("asignacionId")).toBe("10");
     });
 
-    it("exige una clase elegida antes de abrir un ranking", () => {
-        iniciarSesionProfesor();
-
-        const { result } = renderHook(() => useContextoProfesor());
-
-        expect(result.current.exigirClaseElegida()).toBe(false);
-        expect(swalFireMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                icon: "warning",
-                text: "Por favor, selecciona un salón (materia) primero para ver el ranking.",
-            }),
-        );
-
-        act(() => result.current.cambiarAsignacion("10"));
-        swalFireMock.mockClear();
-
-        expect(result.current.exigirClaseElegida()).toBe(true);
-        expect(swalFireMock).not.toHaveBeenCalled();
-    });
-
     it("no hace nada cuando no hay clase guardada", () => {
         iniciarSesionProfesor();
 

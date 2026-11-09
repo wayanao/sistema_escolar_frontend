@@ -6,11 +6,3 @@ export function CargandoMallaCurricular() {
     </div>
   );
 }
-
-export function SinAsignacionMallaCurricular() {
-  return (
-    <div className="p-6 text-center">
-      Selecciona una asignación en el Dashboard primero.
-    </div>
-  );
-}

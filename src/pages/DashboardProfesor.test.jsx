@@ -444,7 +444,7 @@ describe("DashboardProfesor", () => {
         );
     });
 
-    it("exige una clase antes de abrir los rankings", async () => {
+    it("abre los rankings aunque no haya clase elegida: allí se elige", async () => {
         iniciarSesionProfesor();
 
         render(<DashboardProfesor />);
@@ -455,16 +455,7 @@ describe("DashboardProfesor", () => {
         });
 
         fireEvent.click(rankingBajo);
-        expect(swalFireMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                icon: "warning",
-                text: "Por favor, selecciona un salón (materia) primero para ver el ranking.",
-            }),
-        );
-        expect(navigateMock).not.toHaveBeenCalled();
-
-        fireEvent.change(selectClase(), { target: { value: "10" } });
-        fireEvent.click(rankingBajo);
+        expect(swalFireMock).not.toHaveBeenCalled();
         expect(navigateMock).toHaveBeenCalledWith("/ranking-rendimiento");
 
         fireEvent.click(rankingAlto);

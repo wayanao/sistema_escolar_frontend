@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-    asignacionParaPlanilla,
+    asignacionDeMateria,
     buscarClase,
     clasesParaAsistencia,
-    clasesParaPlanilla,
+    clasesDeMateria,
     clasesPorAsignacion,
     mensajeSinClase,
     opcionesDeClase,
@@ -40,11 +40,11 @@ describe("clasesPorAsignacion", () => {
     });
 });
 
-describe("clasesParaPlanilla y clasesParaAsistencia", () => {
+describe("clasesDeMateria y clasesParaAsistencia", () => {
     const todas = [MATE_5A, COMUNICATIVA_TA, JORNADA_TA];
 
     it("la planilla no ofrece «Asistencia diaria»: no lleva notas", () => {
-        expect(clasesParaPlanilla(todas)).toEqual([MATE_5A, COMUNICATIVA_TA]);
+        expect(clasesDeMateria(todas)).toEqual([MATE_5A, COMUNICATIVA_TA]);
     });
 
     it("la asistencia de preescolar solo ofrece «Asistencia diaria»; primaria, todas", () => {
@@ -52,16 +52,16 @@ describe("clasesParaPlanilla y clasesParaAsistencia", () => {
     });
 });
 
-describe("asignacionParaPlanilla", () => {
+describe("asignacionDeMateria", () => {
     it("conserva la clase guardada si se califica", () => {
-        expect(asignacionParaPlanilla([MATE_5A], "10")).toBe("10");
-        expect(asignacionParaPlanilla([MATE_5A], 10)).toBe("10");
+        expect(asignacionDeMateria([MATE_5A], "10")).toBe("10");
+        expect(asignacionDeMateria([MATE_5A], 10)).toBe("10");
     });
 
     it("descarta «Asistencia diaria» y las clases que ya no están asignadas", () => {
-        expect(asignacionParaPlanilla([MATE_5A, JORNADA_TA], "21")).toBe("");
-        expect(asignacionParaPlanilla([MATE_5A], "999")).toBe("");
-        expect(asignacionParaPlanilla([MATE_5A], "")).toBe("");
+        expect(asignacionDeMateria([MATE_5A, JORNADA_TA], "21")).toBe("");
+        expect(asignacionDeMateria([MATE_5A], "999")).toBe("");
+        expect(asignacionDeMateria([MATE_5A], "")).toBe("");
     });
 });
 

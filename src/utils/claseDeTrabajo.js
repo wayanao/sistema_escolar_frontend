@@ -33,8 +33,10 @@ export const clasesPorAsignacion = (clases) => {
     return [...vistas.values()];
 };
 
-/** Las clases que se califican: todas menos "Asistencia diaria". */
-export const clasesParaPlanilla = (clases) =>
+/** Las clases de una materia real: todas menos "Asistencia diaria", que no
+ * se califica, no se planea y no tiene ranking (Planilla, Planeador anual,
+ * rankings). */
+export const clasesDeMateria = (clases) =>
     clasesPorAsignacion(clases).filter((clase) => !esAsignacionDeJornada(clase.materia));
 
 /** Las clases con las que se toma asistencia: en preescolar, solo
@@ -57,10 +59,10 @@ const mismoCurso = (a, b) => {
     return normalizarTexto(a.curso) === normalizarTexto(b.curso);
 };
 
-/** La clase guardada si se puede calificar; si no (por ejemplo, es
+/** La clase guardada si es de una materia real; si no (por ejemplo, es
  * "Asistencia diaria" o ya no está asignada), ninguna. */
-export const asignacionParaPlanilla = (clases, asignacionId) => {
-    const clase = buscarClase(clasesParaPlanilla(clases), asignacionId);
+export const asignacionDeMateria = (clases, asignacionId) => {
+    const clase = buscarClase(clasesDeMateria(clases), asignacionId);
     return clase ? String(clase.id) : "";
 };
 

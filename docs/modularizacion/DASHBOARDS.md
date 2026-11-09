@@ -241,8 +241,8 @@ durante la migración:
   por asignación que evita la segunda consulta.
 - Elegir una planeación navega a
   `/plan-de-clases?asignacion_id=<id>&fecha=<AAAA-MM-DD>&presentacion=1`.
-- Los dos botones de ranking exigen clase elegida: sin ella avisan con
-  `window.alert` y no navegan.
+- Los dos botones de ranking navegan siempre: desde el 2026-11-09 la clase se
+  elige en el propio ranking (antes exigían una clase elegida en el panel).
 - Una inasistencia devuelta como objeto suelto —y no como arreglo— se envuelve
   en una lista de un elemento.
 - Los promedios se pintan con `toFixed(2)` y el color del bajo rendimiento sale
@@ -282,13 +282,16 @@ durante la migración:
 
 #### Rankings
 
-- Los dos leen `asignacionId` y el período **una sola vez**, en el render, desde
-  `localStorage`. El período sale de `obtenerPeriodoProfesor()`, que prefiere la
-  clave por profesor, luego `periodo` y finalmente `"1"`.
-- Sin `profesor` recargan hacia `/login` sin avisar ni consultar.
-- Con profesor pero sin clase elegida avisan con `window.alert` y vuelven a `/`
-  sin consultar.
-- Mientras cargan pintan el círculo giratorio a pantalla completa y nada más.
+- Desde el 2026-11-09 la clase y el período se eligen **en el propio ranking**
+  (`useClaseRankingProfesor` + `SelectorClaseTrabajo` dentro de
+  `SeleccionClaseRanking`), con las mismas claves de `localStorage` que el
+  panel, Planilla y Asistencia. No se ofrece la «Asistencia diaria» de
+  preescolar. `useRankingProfesor(consulta, { asignacionId, periodo })` recibe
+  la elección de la página y descarta respuestas de una elección anterior.
+- Sin `profesor` redirigen a `/login` sin consultar.
+- Sin clase elegida ya no avisan ni vuelven a `/`: piden elegirla
+  (`AvisoSinClaseElegida`).
+- Mientras cargan pintan el círculo giratorio debajo del selector.
 - Un fallo de la consulta deja la lista vacía: la pantalla muestra el mismo
   estado vacío que cuando no hay estudiantes. No hay estado de error.
 - El ranking de mejores marca el podio con `🥇 1`, `🥈 2`, `🥉 3` y numera al

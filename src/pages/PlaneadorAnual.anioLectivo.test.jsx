@@ -189,7 +189,7 @@ describe("PlaneadorAnual: traer el planeador del año pasado", () => {
     await abrir();
     await screen.findByRole("button", BOTON);
 
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "3" } });
+    fireEvent.change(screen.getByLabelText("Período"), { target: { value: "3" } });
 
     await waitFor(() => {
       expect(obtenerPlaneadoresAnuales).toHaveBeenLastCalledWith("42", "3");

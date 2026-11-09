@@ -1,5 +1,31 @@
 # Cambios Frontend
 
+## 2026-11-09 - Clase y período dentro del Planeador anual y los rankings (paso 2)
+
+- Pedido del usuario: llevar el selector de clase y período a las demás
+  pantallas que lo tomaban del panel. El Observador no: es general, solo usa
+  el período para las anotaciones nuevas.
+- Planeador anual: elige clase y período arriba (`SelectorClaseTrabajo`
+  dentro de su encabezado); el selector de período viejo se quitó. Sin clase
+  pide elegirla; antes se quedaba en «Cargando...» para siempre. Con cambios
+  sin guardar, cambiar clase o período pregunta antes.
+- Rankings de bajo y mejor rendimiento: el mismo selector en una tarjeta
+  (`components/dashboards/profesor/SeleccionClaseRanking.jsx`). Sin clase ya
+  no avisan y devuelven al panel: piden elegirla. El panel ya no exige una
+  clase elegida antes de abrirlos.
+- Ninguno ofrece la «Asistencia diaria» de preescolar.
+- `hooks/useClaseDeMateria.js` reúne lo común de Planilla, Planeador y
+  rankings; `clasesParaPlanilla`/`asignacionParaPlanilla` pasaron a llamarse
+  `clasesDeMateria`/`asignacionDeMateria`.
+- `useContextoProfesor` lee el profesor una vez al montar: al quitar
+  `exigirClaseElegida`, el compilador de React avisaba que no podía conservar
+  estables sus funciones si lo leía en cada render.
+- Sin tocar: `pages/Formulario.jsx` también pide clase, pero ya no tiene ruta
+  (`/Formulario` redirige al Observador); queda pendiente decidir si se borra.
+- Verificación: `pnpm run check:deploy` completo (418 archivos, 3617 pruebas;
+  lint y build sin errores). Fotos en PC y celular del planeador (con y sin
+  clase) y del ranking.
+
 ## 2026-11-09 - Clase, período y fecha dentro de Planilla y Asistencia (paso 1)
 
 - Pedido del usuario: pasar el «Contexto de trabajo» del panel del profesor a

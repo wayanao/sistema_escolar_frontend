@@ -23,6 +23,23 @@ const ranking = [
     { id: 12, nombre: "Beto Bravo", promedio: 1.8 },
 ];
 
+// La página pide también la lista de clases para su selector.
+const CLASES = [
+    { id: 44, materia: "MATEMÁTICAS", curso: "5A", curso_id: 1 },
+    { id: 45, materia: "ESPAÑOL", curso: "5A", curso_id: 1 },
+];
+
+function simularServidor({ datosRanking = ranking, fallaRanking = null } = {}) {
+    apiMock.get.mockImplementation((url) => {
+        if (url === "/mis-clases/7") return Promise.resolve({ data: CLASES });
+        if (fallaRanking) return Promise.reject(fallaRanking);
+        return Promise.resolve({ data: datosRanking });
+    });
+}
+
+const llamadasRanking = () =>
+    apiMock.get.mock.calls.filter(([url]) => url.startsWith("/dashboard/")).length;
+
 const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "3" } = {}) => {
     localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Ana" }));
     if (asignacionId) localStorage.setItem("asignacionId", asignacionId);
@@ -34,7 +51,7 @@ describe("RankingRendimiento", () => {
         localStorage.clear();
         swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
-        apiMock.get.mockResolvedValue({ data: ranking });
+        simularServidor();
     });
 
     it("redirige a login y no consulta cuando no hay profesor", () => {
@@ -47,20 +64,36 @@ describe("RankingRendimiento", () => {
         expect(navigateMock).not.toHaveBeenCalled();
     });
 
-    it("avisa y vuelve al dashboard cuando no hay clase seleccionada", async () => {
+    it("sin clase guardada pide elegirla en la misma pantalla y al elegirla consulta", async () => {
         iniciarSesionProfesor({ asignacionId: "" });
 
         render(<RankingRendimiento />);
 
-        expect(swalFireMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                icon: "warning",
-                text: "Selecciona una clase en el Dashboard para ver el ranking.",
-            }),
-        );
-        // Se navega solo después de que el aviso se cierra.
-        await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/"));
-        expect(apiMock.get).not.toHaveBeenCalled();
+        expect(await screen.findByText("Elige arriba la clase")).toBeInTheDocument();
+        expect(swalFireMock).not.toHaveBeenCalled();
+        expect(navigateMock).not.toHaveBeenCalled();
+        expect(llamadasRanking()).toBe(0);
+
+        fireEvent.change(screen.getByLabelText("Clase / grupo"), { target: { value: "44" } });
+
+        await waitFor(() => {
+            expect(apiMock.get).toHaveBeenCalledWith("/dashboard/ranking/44/3");
+        });
+        expect(localStorage.getItem("asignacionId")).toBe("44");
+    });
+
+    it("cambiar el período en la misma pantalla consulta ese período y lo recuerda", async () => {
+        iniciarSesionProfesor();
+
+        render(<RankingRendimiento />);
+        await screen.findByDisplayValue("MATEMÁTICAS - 5A");
+
+        fireEvent.change(screen.getByLabelText("Período"), { target: { value: "4" } });
+
+        await waitFor(() => {
+            expect(apiMock.get).toHaveBeenCalledWith("/dashboard/ranking/44/4");
+        });
+        expect(localStorage.getItem("periodo_profesor_7")).toBe("4");
     });
 
     it("consulta el ranking con la asignación y el período del profesor", async () => {
@@ -71,7 +104,8 @@ describe("RankingRendimiento", () => {
         await waitFor(() => {
             expect(apiMock.get).toHaveBeenCalledWith("/dashboard/ranking/44/3");
         });
-        expect(apiMock.get).toHaveBeenCalledTimes(1);
+        // Una sola consulta del ranking (y una de la lista de clases).
+        expect(llamadasRanking()).toBe(1);
     });
 
     it("usa el período de respaldo cuando el profesor no tiene uno guardado", async () => {
@@ -110,7 +144,7 @@ describe("RankingRendimiento", () => {
 
     it("muestra el estado vacío cuando no hay estudiantes en riesgo", async () => {
         iniciarSesionProfesor();
-        apiMock.get.mockResolvedValue({ data: [] });
+        simularServidor({ datosRanking: [] });
 
         render(<RankingRendimiento />);
 
@@ -124,7 +158,7 @@ describe("RankingRendimiento", () => {
 
     it("avisa del fallo en vez de mostrar el estado vacío", async () => {
         iniciarSesionProfesor();
-        apiMock.get.mockRejectedValue(new Error("500"));
+        simularServidor({ fallaRanking: new Error("500") });
 
         render(<RankingRendimiento />);
 

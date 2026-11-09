@@ -355,3 +355,23 @@ validaciones de filas, fechas y eliminación implícita de registros vacíos.
   registrada.
 - Mensaje sugerido para el único commit:
   `refactor(malla-curricular): modularizar el flujo completo`.
+
+## 2026-11-09: clase y período en la misma pantalla
+
+- El planeador ya no lee la clase del panel: `useClasePlaneadorProfesor`
+  (sobre `hooks/useClaseDeMateria.js`) carga la lista con
+  `obtenerAsignacionesProfesor` y el profesor elige clase y período en
+  `SelectorClaseTrabajo`, dentro de `EncabezadoMallaCurricular` (que dejó de
+  recibir `asignacion`, `periodo` y `onPeriodoChange`; ahora recibe `selector` y
+  `estadoVisual`). No se ofrece la «Asistencia diaria» de preescolar.
+- `useConsultasMallaCurricular` recibe `periodo` y ya no carga la asignación
+  ni guarda el período: eso lo hace el selector, en las mismas claves de
+  siempre.
+- Sin clase, la página muestra `AvisoSinClaseElegida`. Antes mostraba
+  «Cargando...» para siempre, porque `loading` nunca bajaba sin asignación;
+  `SinAsignacionMallaCurricular` («Selecciona una asignación en el Dashboard
+  primero») se quitó: ya no tenía uso.
+- El planeador de la clase se vuelve a montar (`key`) solo al cambiar de
+  clase; el período cambia dentro, así que no se vuelve a preguntar si se puede
+  traer el planeador del año pasado.
+- Con cambios sin guardar, cambiar clase o período pregunta antes.

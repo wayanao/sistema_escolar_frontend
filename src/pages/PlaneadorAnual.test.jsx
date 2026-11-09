@@ -72,9 +72,10 @@ describe("comportamiento de PlaneadorAnual", () => {
 
     await screen.findByRole("heading", { name: "Planeador Anual de Clases" });
 
-    expect(obtenerAsignacionesProfesor).toHaveBeenCalledWith(7);
+    expect(obtenerAsignacionesProfesor).toHaveBeenCalledWith(7, { signal: expect.any(AbortSignal) });
     expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "2");
-    expect(screen.getByRole("combobox")).toHaveValue("2");
+    expect(screen.getByLabelText("Clase / grupo")).toHaveDisplayValue("Ciencias - 6A");
+    expect(screen.getByLabelText("Período")).toHaveValue("2");
     expect(container.querySelector('[name="unidad_tematica-0"]')).toHaveValue("Primera");
     expect(container.querySelector('[name="unidad_tematica-1"]')).toHaveValue("");
     expect(container.querySelector('[name="unidad_tematica-2"]')).toHaveValue("Tercera");
@@ -149,6 +150,61 @@ describe("comportamiento de PlaneadorAnual", () => {
     fireEvent.click(regresar);
 
     expect(screen.getByRole("heading", { name: "Planeador Anual de Clases" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toHaveValue("2");
+    expect(screen.getByLabelText("Período")).toHaveValue("2");
+  });
+});
+
+// La clase y el período se eligen en el propio planeador (antes se leían del
+// panel; sin clase, la página se quedaba en "Cargando..." para siempre).
+describe("PlaneadorAnual: clase y período en la misma pantalla", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    localStorage.setItem("profesor", JSON.stringify({ id: 7 }));
+    localStorage.setItem("periodo_profesor_7", "2");
+    guardarPlaneadoresAnuales.mockResolvedValue({ status: 200 });
+  });
+
+  it("sin clase guardada pide elegirla y no ofrece «Asistencia diaria»", async () => {
+    configurarServicio();
+    obtenerAsignacionesProfesor.mockResolvedValue([
+      { id: 42, curso: "6A", materia: "Ciencias" },
+      { id: 43, curso: "TRANSICIÓN A", materia: "ASISTENCIA DIARIA", nivel: "preescolar" },
+    ]);
+
+    render(<PlaneadorAnual />);
+
+    expect(await screen.findByText("Elige arriba la clase que vas a planear")).toBeInTheDocument();
+    expect(obtenerPlaneadoresAnuales).not.toHaveBeenCalled();
+    const opciones = Array.from(screen.getByLabelText("Clase / grupo").options).map((o) => o.textContent);
+    expect(opciones).toEqual(["Elige una clase", "Ciencias - 6A"]);
+
+    fireEvent.change(screen.getByLabelText("Clase / grupo"), { target: { value: "42" } });
+
+    await waitFor(() => expect(obtenerPlaneadoresAnuales).toHaveBeenCalledWith("42", "2"));
+    expect(localStorage.getItem("asignacionId")).toBe("42");
+  });
+
+  it("con cambios sin guardar pregunta antes de cambiar de período y respeta «Seguir aquí»", async () => {
+    localStorage.setItem("asignacionId", "42");
+    configurarServicio();
+    const { container } = render(<PlaneadorAnual />);
+    await screen.findByRole("heading", { name: "Planeador Anual de Clases" });
+    await screen.findByLabelText("Período");
+
+    fireEvent.change(container.querySelector('[name="contenido-0"]'), {
+      target: { value: "Lo que estoy escribiendo" },
+    });
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: false });
+    fireEvent.change(screen.getByLabelText("Período"), { target: { value: "3" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Tienes cambios sin guardar",
+      confirmButtonText: "Cambiar sin guardar",
+      cancelButtonText: "Seguir aquí",
+    })));
+    expect(screen.getByLabelText("Período")).toHaveValue("2");
+    expect(obtenerPlaneadoresAnuales).not.toHaveBeenCalledWith("42", "3");
+    expect(container.querySelector('[name="contenido-0"]')).toHaveValue("Lo que estoy escribiendo");
   });
 });

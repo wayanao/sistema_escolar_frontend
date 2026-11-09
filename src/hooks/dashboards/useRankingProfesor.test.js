@@ -5,9 +5,7 @@ import useRankingProfesor, {
     useRankingMejorRendimiento,
 } from "./useRankingProfesor";
 
-const { navigateMock, serviceMock, swalFireMock } = vi.hoisted(() => ({
-    navigateMock: vi.fn(),
-    swalFireMock: vi.fn(),
+const { serviceMock } = vi.hoisted(() => ({
     serviceMock: {
         obtenerRankingBajoRendimiento: vi.fn(),
         obtenerRankingMejorRendimiento: vi.fn(),
@@ -16,61 +14,55 @@ const { navigateMock, serviceMock, swalFireMock } = vi.hoisted(() => ({
 
 vi.mock("../../services/dashboardsApi", () => serviceMock);
 
-vi.mock("sweetalert2", () => ({ default: { fire: swalFireMock } }));
-
-vi.mock("react-router-dom", async (importOriginal) => ({
-    ...(await importOriginal()),
-    useNavigate: () => navigateMock,
-}));
-
 const ranking = [{ id: 11, nombre: "Ana", promedio: 2.3 }];
 
 const consultarRanking = vi.fn();
 
-const iniciarSesionProfesor = ({ asignacionId = "44", periodo = "3" } = {}) => {
+const iniciarSesionProfesor = () => {
     localStorage.setItem("profesor", JSON.stringify({ id: 7, nombre: "Ana" }));
-    if (asignacionId) localStorage.setItem("asignacionId", asignacionId);
-    if (periodo) localStorage.setItem("periodo_profesor_7", periodo);
 };
 
+function diferido() {
+    let resolve;
+    const promise = new Promise((resolver) => {
+        resolve = resolver;
+    });
+    return { promise, resolve };
+}
+
+// La clase y el período los elige la página (useClaseRankingProfesor).
 describe("useRankingProfesor", () => {
     beforeEach(() => {
         localStorage.clear();
-        swalFireMock.mockResolvedValue({ isConfirmed: true });
         vi.spyOn(console, "error").mockImplementation(() => {});
         consultarRanking.mockReset();
         consultarRanking.mockResolvedValue(ranking);
     });
 
     it("informa que no hay sesión y no consulta", () => {
-        const { result } = renderHook(() => useRankingProfesor(consultarRanking));
+        const { result } = renderHook(() =>
+            useRankingProfesor(consultarRanking, { asignacionId: "44", periodo: "3" }));
 
         expect(result.current.sesionInvalida).toBe(true);
         expect(consultarRanking).not.toHaveBeenCalled();
-        expect(swalFireMock).not.toHaveBeenCalled();
-        expect(navigateMock).not.toHaveBeenCalled();
     });
 
-    it("avisa y vuelve al dashboard cuando no hay clase elegida", async () => {
-        iniciarSesionProfesor({ asignacionId: "" });
+    it("sin clase elegida no consulta ni avisa: la página pide elegirla", () => {
+        iniciarSesionProfesor();
 
-        renderHook(() => useRankingProfesor(consultarRanking));
+        const { result } = renderHook(() =>
+            useRankingProfesor(consultarRanking, { asignacionId: "", periodo: "3" }));
 
-        expect(swalFireMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                icon: "warning",
-                text: "Selecciona una clase en el Dashboard para ver el ranking.",
-            }),
-        );
-        // Se navega solo después de que el aviso se cierra.
-        await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/"));
+        expect(result.current.loading).toBe(false);
+        expect(result.current.ranking).toEqual([]);
         expect(consultarRanking).not.toHaveBeenCalled();
     });
 
-    it("consulta con la asignación y el período del profesor", async () => {
+    it("consulta con la clase y el período recibidos, cargando desde el primer momento", async () => {
         iniciarSesionProfesor();
 
-        const { result } = renderHook(() => useRankingProfesor(consultarRanking));
+        const { result } = renderHook(() =>
+            useRankingProfesor(consultarRanking, { asignacionId: "44", periodo: "3" }));
 
         expect(result.current.loading).toBe(true);
 
@@ -78,24 +70,36 @@ describe("useRankingProfesor", () => {
 
         expect(consultarRanking).toHaveBeenCalledWith("44", "3");
         expect(result.current.ranking).toEqual(ranking);
-        expect(result.current.periodo).toBe("3");
     });
 
-    it("usa el período de respaldo cuando no hay uno guardado", async () => {
-        iniciarSesionProfesor({ periodo: "" });
+    it("al cambiar el período vuelve a consultar y descarta la respuesta anterior", async () => {
+        iniciarSesionProfesor();
+        const lenta = diferido();
+        consultarRanking
+            .mockImplementationOnce(() => lenta.promise)
+            .mockResolvedValueOnce([{ id: 99, nombre: "Nuevo", promedio: 2 }]);
 
-        const { result } = renderHook(() => useRankingProfesor(consultarRanking));
+        const { result, rerender } = renderHook(
+            ({ periodo }) => useRankingProfesor(consultarRanking, { asignacionId: "44", periodo }),
+            { initialProps: { periodo: "3" } },
+        );
 
+        rerender({ periodo: "4" });
         await waitFor(() => expect(result.current.loading).toBe(false));
-        expect(consultarRanking).toHaveBeenCalledWith("44", "1");
-        expect(result.current.periodo).toBe("1");
+        expect(result.current.ranking).toEqual([{ id: 99, nombre: "Nuevo", promedio: 2 }]);
+
+        lenta.resolve(ranking);
+        await lenta.promise;
+        expect(result.current.ranking).toEqual([{ id: 99, nombre: "Nuevo", promedio: 2 }]);
+        expect(consultarRanking).toHaveBeenLastCalledWith("44", "4");
     });
 
     it("deja el ranking vacío cuando la consulta falla", async () => {
         iniciarSesionProfesor();
         consultarRanking.mockRejectedValue(new Error("500"));
 
-        const { result } = renderHook(() => useRankingProfesor(consultarRanking));
+        const { result } = renderHook(() =>
+            useRankingProfesor(consultarRanking, { asignacionId: "44", periodo: "3" }));
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.ranking).toEqual([]);
@@ -106,14 +110,15 @@ describe("useRankingProfesor", () => {
         iniciarSesionProfesor();
         serviceMock.obtenerRankingBajoRendimiento.mockResolvedValue(ranking);
         serviceMock.obtenerRankingMejorRendimiento.mockResolvedValue([]);
+        const seleccion = { asignacionId: "44", periodo: "3" };
 
-        const bajo = renderHook(() => useRankingBajoRendimiento());
+        const bajo = renderHook(() => useRankingBajoRendimiento(seleccion));
         await waitFor(() => expect(bajo.result.current.loading).toBe(false));
         expect(serviceMock.obtenerRankingBajoRendimiento).toHaveBeenCalledWith("44", "3");
         expect(serviceMock.obtenerRankingMejorRendimiento).not.toHaveBeenCalled();
         expect(bajo.result.current.ranking).toEqual(ranking);
 
-        const mejor = renderHook(() => useRankingMejorRendimiento());
+        const mejor = renderHook(() => useRankingMejorRendimiento(seleccion));
         await waitFor(() => expect(mejor.result.current.loading).toBe(false));
         expect(serviceMock.obtenerRankingMejorRendimiento).toHaveBeenCalledWith("44", "3");
     });

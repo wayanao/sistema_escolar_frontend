@@ -25,7 +25,6 @@ function DashboardProfesor() {
     cambiarAsignacion,
     cambiarPeriodo,
     descartarAsignacionInvalida,
-    exigirClaseElegida,
   } = useContextoProfesor();
 
   const {
@@ -76,7 +75,8 @@ function DashboardProfesor() {
   };
 
   const irARanking = (ruta) => {
-    if (exigirClaseElegida()) navigate(ruta);
+    // El ranking deja elegir la clase allí mismo (desde el 2026-11-09).
+    navigate(ruta);
   };
 
   if (sesionInvalida) {
