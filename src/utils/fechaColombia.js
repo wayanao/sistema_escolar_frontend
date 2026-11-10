@@ -21,3 +21,40 @@ export const fechaIsoColombia = (ahora = new Date()) => {
   );
   return `${partes.year}-${partes.month}-${partes.day}`;
 };
+
+const formatoHoraColombia = new Intl.DateTimeFormat("en-GB", {
+  timeZone: ZONA_HORARIA_COLOMBIA,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+const formatoDiaSemanaColombia = new Intl.DateTimeFormat("es-CO", {
+  timeZone: ZONA_HORARIA_COLOMBIA,
+  weekday: "long",
+});
+
+const formatoFechaLargaColombia = new Intl.DateTimeFormat("es-CO", {
+  timeZone: ZONA_HORARIA_COLOMBIA,
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
+const conMayuscula = (texto) => (texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : texto);
+
+/** Minutos desde la medianoche en Colombia (7:30 a. m. → 450). */
+export const minutosDelDiaColombia = (ahora = new Date()) => {
+  const partes = Object.fromEntries(
+    formatoHoraColombia.formatToParts(ahora).map(({ type, value }) => [type, value]),
+  );
+  return Number(partes.hour) * 60 + Number(partes.minute);
+};
+
+/** El día de la semana en Colombia, con mayúscula inicial: «Lunes», «Miércoles», «Sábado». */
+export const diaSemanaColombia = (ahora = new Date()) =>
+  conMayuscula(formatoDiaSemanaColombia.format(ahora));
+
+/** «Martes, 10 de noviembre», en Colombia. */
+export const fechaLargaColombia = (ahora = new Date()) =>
+  conMayuscula(formatoFechaLargaColombia.format(ahora));

@@ -49,20 +49,16 @@ describe("useClasesProfesor", () => {
         const { result } = await montarCargado();
 
         expect(result.current.clasesConHorario).toHaveLength(4);
-        expect(result.current.clasesPorJornada["Mañana"]).toHaveLength(3);
-        expect(result.current.clasesPorJornada["Tarde"]).toHaveLength(1);
-        expect(result.current.horarioPorJornada["Tarde"].Jueves).toHaveLength(1);
     });
 
-    it("ofrece el filtro de jornada y respeta la elegida", async () => {
+    it("agrupa las clases por día, ordenadas por hora, y sabe si hay dos jornadas", async () => {
         const { result } = await montarCargado();
 
         expect(result.current.hayDosJornadas).toBe(true);
-        expect(result.current.filtroJornada).toBe("Ambas");
-        expect(result.current.jornadasVisibles).toEqual(["Mañana", "Tarde"]);
-
-        result.current.setFiltroJornada("Tarde");
-        await waitFor(() => expect(result.current.jornadasVisibles).toEqual(["Tarde"]));
+        expect(result.current.clasesPorDia.Lunes.map((clase) => clase.horario_id)).toEqual([501]);
+        expect(result.current.clasesPorDia.Miércoles.map((clase) => clase.horario_id)).toEqual([502]);
+        expect(result.current.clasesPorDia.Jueves[0].materia).toBe("Sociales");
+        expect(result.current.clasesPorDia.Viernes).toEqual([]);
     });
 
     it("deja todo vacío cuando la consulta falla", async () => {

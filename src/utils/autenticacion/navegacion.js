@@ -92,8 +92,9 @@ export const PROFESOR_DESKTOP_ITEMS = [
 ];
 
 // En el celular el profesor tiene abajo las pantallas de todos los días; las
-// demás quedan en «Más». Decidido con el usuario el 2026-11-04.
-export const PROFESOR_BARRA_INFERIOR = ["dashboard", "planilla", "asistencia", "observador"];
+// demás quedan en «Más». Decidido con el usuario el 2026-11-04; el 2026-11-10
+// pidió Plan de clases abajo y el Observador en «Más».
+export const PROFESOR_BARRA_INFERIOR = ["dashboard", "planilla", "asistencia", "plan-clases"];
 
 export function esRutaNavegacionActiva(item, pathname) {
   if (item.type === "group") {

@@ -12,7 +12,7 @@ describe("TarjetaInasistencias", () => {
         render(<TarjetaInasistencias inasistencias={inasistencias} loading={false} />);
 
         expect(
-            screen.getByRole("heading", { name: "Ranking de inasistencias por curso" }),
+            screen.getByRole("heading", { name: "Los que más faltan" }),
         ).toBeInTheDocument();
         expect(screen.getByText("#1")).toBeInTheDocument();
         expect(screen.getByText("Ana Arias")).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe("TarjetaInasistencias", () => {
     it("muestra el estado vacío sin inasistencias", () => {
         render(<TarjetaInasistencias inasistencias={[]} loading={false} />);
 
-        expect(screen.getByText("No hay datos disponibles")).toBeInTheDocument();
+        expect(screen.getByText("Nadie tiene fallas registradas.")).toBeInTheDocument();
     });
 
     it("distingue el fallo de carga del estado vacío", () => {
@@ -45,6 +45,6 @@ describe("TarjetaInasistencias", () => {
         );
 
         expect(screen.getByText("No se pudieron cargar las inasistencias.")).toBeInTheDocument();
-        expect(screen.queryByText("No hay datos disponibles")).not.toBeInTheDocument();
+        expect(screen.queryByText("Nadie tiene fallas registradas.")).not.toBeInTheDocument();
     });
 });

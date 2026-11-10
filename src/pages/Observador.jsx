@@ -20,7 +20,7 @@ import {
   titularObservador,
 } from "../utils/observador/anotaciones";
 import { anotacionesParaImprimir } from "../utils/observador/impresion";
-import { obtenerPeriodoProfesor } from "../utils/periodoProfesor";
+import { guardarPeriodoProfesor, obtenerPeriodoProfesor } from "../utils/periodoProfesor";
 
 /**
  * Observador del estudiante unificado: la bitácora acumulativa de un alumno,
@@ -48,12 +48,18 @@ const NUEVA = "nueva";
 
 function Observador() {
   const profesorId = leerProfesorId();
-  // El periodo que se le pega a una anotación nueva es el último que el
-  // profesor eligió (decidido con el usuario el 2026-09-09; desde el
-  // 2026-11-09 se elige en Planilla, Asistencia, Planeador o rankings, ya no
-  // en el panel). Es distinto del selector de la pantalla, que solo filtra lo
-  // que se ve.
-  const periodoEscritura = Number.parseInt(obtenerPeriodoProfesor(), 10) || 1;
+  // El periodo que se le pega a una anotación nueva es el período de trabajo
+  // del profesor (decidido con el usuario el 2026-09-09). Desde el
+  // 2026-11-10 se ve y se elige en el mismo formulario: arranca en el último
+  // que eligió (aquí o en Planilla, Asistencia...) y, si lo cambia, queda
+  // elegido también en las demás pantallas. Es distinto del selector de la
+  // pantalla, que solo filtra lo que se ve.
+  const [periodoEscritura, setPeriodoEscritura] = useState(
+    () => Number.parseInt(obtenerPeriodoProfesor(), 10) || 1,
+  );
+  const cambiarPeriodoEscritura = useCallback((valor) => {
+    setPeriodoEscritura(Number.parseInt(guardarPeriodoProfesor(valor), 10) || 1);
+  }, []);
 
   const [busqueda, setBusqueda] = useState("");
   const [seleccionado, setSeleccionado] = useState(null);
@@ -189,9 +195,11 @@ function Observador() {
       guardando={guardando}
       puedeGuardar={formulario.puedeGuardar}
       error={errorGuardado}
+      periodo={editando === NUEVA ? periodoEscritura : null}
+      onCambiarPeriodo={editando === NUEVA ? cambiarPeriodoEscritura : undefined}
       periodoTexto={
         editando === NUEVA
-          ? `Se guardará en el Periodo ${periodoEscritura}, el que tienes activo.`
+          ? "Es tu período de trabajo: si lo cambias aquí, queda elegido también en Planilla y Asistencia."
           : "Al corregir no cambia el periodo ni el estudiante."
       }
     />

@@ -110,6 +110,7 @@ prueba que exige que aparezca en los dos.
 > **Ya no aplica desde el 2026-11-04:** el menú lateral arma PC, tablet y
 > celular con `PROFESOR_DESKTOP_ITEMS`, y `NavProfesorView.jsx` se borró. En el
 > celular el Observador va en la barra de abajo (`PROFESOR_BARRA_INFERIOR`).
+> Desde el 2026-11-10 va en «Más» y abajo queda Plan de clases.
 
 La pantalla lista **solo los nombres** de sus alumnos —una petición— y al pulsar
 uno abre su bitácora completa con **una sola petición más**.

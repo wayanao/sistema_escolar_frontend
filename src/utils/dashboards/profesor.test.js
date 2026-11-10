@@ -3,7 +3,6 @@ import {
     JORNADA_ESTILOS,
     MATERIA_TODAS,
     agruparClasesPorJornada,
-    agruparHorarioPorJornada,
     capitalizarInicial,
     construirHorarioProfesor,
     construirParametrosRendimiento,
@@ -12,7 +11,6 @@ import {
     etiquetaPuestoMejorRendimiento,
     formatearHora12,
     formatearPromedio,
-    jornadaUnicaDe,
     nombreCompletoProfesor,
     nombreCursoFiltro,
     nombreMateriaFiltro,
@@ -20,10 +18,7 @@ import {
     normalizarInasistencias,
     normalizarNotas,
     obtenerCursosProfesor,
-    obtenerEstiloHorarioDia,
     obtenerJornadaClase,
-    obtenerJornadasDisponibles,
-    obtenerJornadasVisibles,
     obtenerMateriasDelCurso,
     obtenerOrdenDia,
     ordenarClasesConHorario,
@@ -155,7 +150,13 @@ describe("construirHorarioProfesor", () => {
             dia: "Lunes",
             hora_inicio: "07:00",
             hora_fin: "08:00",
+            nivel: null,
         });
+    });
+
+    it("conserva el nivel del curso", () => {
+        const [clase] = construirHorarioProfesor([{ id: 1, nivel: "preescolar", dia: "Lunes" }]);
+        expect(clase.nivel).toBe("preescolar");
     });
 });
 
@@ -242,24 +243,9 @@ describe("agrupación del horario", () => {
         expect(porJornada["Tarde"].map((clase) => clase.id)).toEqual([12]);
     });
 
-    it("reparte cada jornada en los cinco días de la semana", () => {
-        const porJornada = agruparClasesPorJornada(ordenarClasesConHorario(clases));
-        const horario = agruparHorarioPorJornada(porJornada);
-
-        expect(Object.keys(horario["Mañana"])).toEqual([
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-        ]);
-        expect(horario["Mañana"].Lunes).toHaveLength(1);
-        expect(horario["Mañana"].Jueves).toHaveLength(0);
-        expect(horario["Tarde"].Jueves).toHaveLength(1);
-    });
 });
 
-describe("filtro de jornadas", () => {
+describe("dos jornadas", () => {
     const porJornada = agruparClasesPorJornada(ordenarClasesConHorario(clases));
     const soloManana = agruparClasesPorJornada(
         ordenarClasesConHorario(clases.filter((clase) => clase.jornada === "Mañana")),
@@ -270,16 +256,6 @@ describe("filtro de jornadas", () => {
         expect(tieneDosJornadas(soloManana)).toBe(false);
     });
 
-    it("lista solo las jornadas con clases", () => {
-        expect(obtenerJornadasDisponibles(porJornada)).toEqual(["Mañana", "Tarde"]);
-        expect(obtenerJornadasDisponibles(soloManana)).toEqual(["Mañana"]);
-    });
-
-    it("muestra ambas jornadas, la elegida, o revierte si la elegida está vacía", () => {
-        expect(obtenerJornadasVisibles("Ambas", porJornada)).toEqual(["Mañana", "Tarde"]);
-        expect(obtenerJornadasVisibles("Tarde", porJornada)).toEqual(["Tarde"]);
-        expect(obtenerJornadasVisibles("Tarde", soloManana)).toEqual(["Mañana"]);
-    });
 });
 
 describe("construirParametrosRendimiento", () => {
@@ -301,28 +277,6 @@ describe("reglas de clase", () => {
         expect(JORNADA_ESTILOS["Tarde"].rango).toBe("12:30 - 18:30");
         expect(JORNADA_ESTILOS["Mañana"].badge).toContain("sky");
         expect(JORNADA_ESTILOS["Tarde"].badge).toContain("orange");
-    });
-
-    it("da a cada día de la semana escolar su paleta", () => {
-        expect(obtenerEstiloHorarioDia("Lunes").panel).toContain("purple");
-        expect(obtenerEstiloHorarioDia("Viernes").panel).toContain("slate");
-    });
-
-    it("usa la paleta base para un día desconocido", () => {
-        expect(obtenerEstiloHorarioDia("Sábado").panel).toBe("border-gray-200 bg-gray-50");
-        expect(obtenerEstiloHorarioDia(undefined).headerMobile).toBe("text-gray-800");
-    });
-
-    it("resuelve la jornada única del encabezado", () => {
-        const soloManana = agruparClasesPorJornada(
-            ordenarClasesConHorario(clases.filter((clase) => clase.jornada === "Mañana")),
-        );
-        const soloTarde = agruparClasesPorJornada(
-            ordenarClasesConHorario(clases.filter((clase) => clase.jornada === "Tarde")),
-        );
-
-        expect(jornadaUnicaDe(soloManana)).toBe("Mañana");
-        expect(jornadaUnicaDe(soloTarde)).toBe("Tarde");
     });
 
     it("colorea el promedio bajo según el campo del backend", () => {

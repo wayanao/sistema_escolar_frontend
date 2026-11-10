@@ -1,5 +1,87 @@
 # Cambios Frontend
 
+## 2026-11-10 - Observador: elegir el período de la anotación nueva
+
+- Pedido del usuario: que el Observador guarde la anotación en el período en
+  que están trabajando. Antes solo decía «Se guardará en el Periodo X, el que
+  tienes activo» (el último elegido en otra pantalla) y no dejaba cambiarlo;
+  sin el selector del panel, podía quedar en un período que no era.
+- Ahora el formulario de una anotación nueva tiene «Período de esta
+  anotación», que arranca en el período de trabajo. Si se cambia, la anotación
+  se guarda en ese y queda como período de trabajo también en Planilla y
+  Asistencia (`guardarPeriodoProfesor`). Al corregir no hay selector: no cambia
+  el período.
+- Verificación: pruebas del Observador (página, componentes y hooks) y lint.
+
+## 2026-11-10 - Panel del profesor rediseñado y Plan de clases en la barra de abajo
+
+- Pedido del usuario: arriba el día, el período y los cumpleaños; el horario
+  más moderno, en tarjetas desde las que se entra directo a la clase, muy bien
+  en tablet mini; los rankings bien definidos y entendibles. En la barra de
+  abajo (celular y tablet vertical), Plan de clases en vez del Observador, que
+  pasa a «Más».
+- Arriba: «Hola, Ana», la fecha de hoy (hora de Colombia), «Período de
+  trabajo» (el último elegido) y los cumpleaños de la semana en una línea; el
+  de hoy resaltado. Ya no ocupa una tarjeta grande cuando no hay cumpleaños.
+- Horario: un día a la vez, con pestañas Lun–Vie. Al entrar se ve hoy (en fin
+  de semana, el lunes con un aviso). Cada clase es una tarjeta con su hora, su
+  duración, la materia con un color fijo, el curso y, solo hoy, «Ahora»,
+  «Siguiente» (con «Empieza en 25 min») o «Terminó». Desde la tarjeta se entra:
+  «Tomar asistencia» o «Planilla» abren la pantalla con esa clase ya elegida.
+  En preescolar, «Asistencia diaria» solo toma asistencia y sus materias solo
+  abren la planilla. Con clases en las dos jornadas, el día se parte por
+  jornada.
+- Tablet mini (600–767 px): dos columnas de tarjetas; si los botones no caben,
+  cada uno va en su fila, sin partir el texto.
+- Ajuste pedido después: tarjetas más compactas y **pintadas por estado** para
+  que se note de lejos: rojo «Ya se dio», verde «Ahora», morado «Siguiente» y
+  blanco las demás. Con clases en las dos jornadas, hoy sale de primera la
+  jornada en curso (mañana hasta las 12:30, tarde después) con «En curso».
+  Cuatro tarjetas por fila en pantallas muy anchas (`2xl`).
+- Más ajustes del mismo día: cada jornada va en su propio bloque con su barra
+  (al final, dos pasteles de la misma intensidad, «amanecer y atardecer»:
+  durazno con sol naranja la mañana y lavanda con luna morada la tarde, letra
+  oscura; el ámbar con gris oscuro «no tenía simetría»), con su hora, cuántas
+  clases y «En curso» en verde lleno; se quitó la franja vertical de color por
+  materia (confundía) y el curso va en gris; los colores de estado subieron
+  un tono con etiqueta sólida; la tarjeta de «Ahora» late (fondo y halo verde,
+  `tarjeta-clase-ahora` en `src/index.css`; quieta con «reducir
+  movimiento»); la barra de días tiene el día elegido en morado lleno.
+- La barra de cada jornada lleva dibujos de niños y útiles escolares
+  (`components/dashboards/profesor/DibujosJornada.jsx`, SVG hecho a mano, solo
+  adorno con `aria-hidden`): en la mañana lápiz, manzana, morral, niños
+  saludando, libro y cubo «A»; en la tarde estrellas, avión de papel, pelota,
+  morral, regla y niños. En celular y tablet se ven las figuras de la derecha;
+  desde `xl`, la escena completa. Alto fijo para no tapar el título.
+- El encabezado dejó de verse plano: fondo claro, casi blanco, con útiles
+  escolares en trazo fino repetidos por todo el fondo y muy suaves (lápiz,
+  libro, estrella, manzana, avión de papel, regla, carita, corazón; un patrón
+  SVG, solo adorno). «Hola, Ana 👋» grande, la fecha en una píldora y el
+  período en una tarjeta blanca con el número en morado; los cumpleaños en la
+  franja de abajo. (Se probó un fondo morado y no le gustó al usuario.)
+- Después, a pedido del usuario, el encabezado quedó **sin caja**: saludo,
+  fecha y cumpleaños sueltos sobre el fondo de la página y el período en una
+  tarjeta flotante; el horario y los resultados flotan encima en sus tarjetas
+  blancas. El fondo es el que ya tiene toda la app (`fondo-aula` en
+  `src/index.css`, con dibujos escolares, desde el 2026-11-05): un fondo
+  propio del panel que se probó dejaba un corte visible donde se juntaba con
+  el de la app, y se quitó. Los bloques de jornada ya no
+  llevan el borde grueso de color: borde gris fino y sombra suave.
+- Resultados («Cómo van tus estudiantes»): «Necesitan refuerzo» (promedio por
+  debajo de 3.0), «Mejores promedios» y «Los que más faltan» (de todos los
+  cursos), con el mismo molde: qué mide en una línea, hasta 5 estudiantes y
+  «Ver todos». El botón dice «Ver ranking por clase».
+- Sin peticiones nuevas al servidor.
+- Verificación: pruebas nuevas de la hora de Colombia, del horario
+  (`utils/dashboards/horario.js`), del encabezado, de las tarjetas y del panel
+  con la hora fijada. `pnpm run check:deploy`: 3573 de 3574; la que falló
+  (`paletaMorados`: el botón de la tarjeta debía ir a `purple-800` al pasar el
+  mouse) se corrigió y pasa; lint y build sin errores. Fotos en PC, tablet
+  mini y celular.
+- Nota para correr pruebas en Windows: si vitest arranca con la ruta en
+  minúscula (`c:/Users/...`), las simulaciones de módulos fallan en muchas
+  pruebas; correrlas desde `C:\Users\...`.
+
 ## 2026-11-09 - Panel del profesor sin «Contexto de trabajo» ni planeaciones recientes (paso 3)
 
 - Pedido del usuario: quitar del panel la tarjeta «¿Con qué clase vas a

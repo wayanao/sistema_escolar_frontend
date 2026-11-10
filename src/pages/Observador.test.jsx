@@ -7,6 +7,7 @@ const {
   editarAnotacionMock,
   firmarAnotacionMock,
   firmarAnotacionesDelPeriodoMock,
+  guardarPeriodoProfesorMock,
   listarMisEstudiantesMock,
   obtenerFirmantesSugeridosMock,
   obtenerObservadorMock,
@@ -15,6 +16,7 @@ const {
   editarAnotacionMock: vi.fn(),
   firmarAnotacionMock: vi.fn(),
   firmarAnotacionesDelPeriodoMock: vi.fn(),
+  guardarPeriodoProfesorMock: vi.fn(),
   listarMisEstudiantesMock: vi.fn(),
   obtenerFirmantesSugeridosMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
@@ -33,6 +35,10 @@ vi.mock("../services/observadorApi", () => ({
 // El profesor eligio el periodo 3 en el Dashboard.
 vi.mock("../utils/periodoProfesor", () => ({
   obtenerPeriodoProfesor: () => "3",
+  guardarPeriodoProfesor: (valor) => {
+    guardarPeriodoProfesorMock(valor);
+    return String(valor);
+  },
 }));
 
 // Guardar una anotación abre la tarjeta de espera y la pasa a éxito
@@ -182,15 +188,14 @@ describe("página del Observador", () => {
     await user.click(screen.getByRole("button", { name: "Nueva anotación" }));
   }
 
-  it("guarda una anotación nueva con el periodo del Dashboard y el texto corregido", async () => {
+  it("guarda una anotación nueva con el período de trabajo y el texto corregido", async () => {
     const user = userEvent.setup();
     render(<Observador />);
     await abrirAnaYAnotar(user);
 
-    // El periodo se le queda pegado para siempre, así que se dice antes.
-    expect(
-      screen.getByText("Se guardará en el Periodo 3, el que tienes activo."),
-    ).toBeInTheDocument();
+    // El periodo se le queda pegado para siempre, así que se ve y se elige
+    // antes de guardar; arranca en el de trabajo.
+    expect(screen.getByLabelText("Período de esta anotación")).toHaveValue("3");
 
     await user.type(screen.getByLabelText("Conductual"), "se para mucho.hace desorden");
     await user.click(screen.getByRole("button", { name: "Guardar" }));
@@ -198,13 +203,28 @@ describe("página del Observador", () => {
     await waitFor(() => expect(crearAnotacionMock).toHaveBeenCalledTimes(1));
     expect(crearAnotacionMock).toHaveBeenCalledWith({
       estudiante_id: 11,
-      // El 3 sale del Dashboard, no del selector de la pantalla, que está en
-      // "Todos".
+      // El 3 es el período de trabajo, no el del selector de la pantalla, que
+      // está en "Todos".
       periodo: 3,
       conductual: "Se para mucho. Hace desorden",
       cognitivo: "",
       lenguaje: "",
     });
+  });
+
+  it("si cambia el período en el formulario, la anotación se guarda en ese y queda como período de trabajo", async () => {
+    const user = userEvent.setup();
+    render(<Observador />);
+    await abrirAnaYAnotar(user);
+
+    await user.selectOptions(screen.getByLabelText("Período de esta anotación"), "4");
+    expect(guardarPeriodoProfesorMock).toHaveBeenCalledWith("4");
+
+    await user.type(screen.getByLabelText("Cognitivo"), "Mejoró en las tablas.");
+    await user.click(screen.getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(crearAnotacionMock).toHaveBeenCalledTimes(1));
+    expect(crearAnotacionMock.mock.calls[0][0].periodo).toBe(4);
   });
 
   it("después de guardar cierra el formulario y refresca la bitácora una vez", async () => {

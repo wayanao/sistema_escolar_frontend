@@ -20,7 +20,7 @@ describe("TarjetaMejorRendimiento", () => {
     it("lista los mejores promedios con color fijo", () => {
         render(<TarjetaMejorRendimiento {...propiedades()} />);
 
-        expect(screen.getByRole("heading", { name: "Mejores Estudiantes" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Mejores promedios" })).toBeInTheDocument();
         expect(screen.getByText("4.88")).toHaveClass("text-green-600");
         expect(screen.getByText("4.10")).toHaveClass("text-green-600");
     });
@@ -53,7 +53,7 @@ describe("TarjetaMejorRendimiento", () => {
             screen.getByText("No se pudo cargar el rendimiento del curso."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("No hay estudiantes con notas altas aún"),
+            screen.queryByText("Todavía no hay promedios altos en este curso."),
         ).not.toBeInTheDocument();
     });
 
@@ -61,9 +61,9 @@ describe("TarjetaMejorRendimiento", () => {
         const onVerRanking = vi.fn();
         render(<TarjetaMejorRendimiento {...propiedades({ notasAltas: [], onVerRanking })} />);
 
-        expect(screen.getByText("No hay estudiantes con notas altas aún")).toBeInTheDocument();
+        expect(screen.getByText("Todavía no hay promedios altos en este curso.")).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "Ver ranking por materia" }));
+        fireEvent.click(screen.getByRole("button", { name: "Ver ranking por clase" }));
         expect(onVerRanking).toHaveBeenCalled();
     });
 });

@@ -1,41 +1,50 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
+import EncabezadoPanelProfesor from "../components/dashboards/profesor/EncabezadoPanelProfesor";
 import FiltroRendimiento from "../components/dashboards/profesor/FiltroRendimiento";
-import HorarioSemanal from "../components/dashboards/profesor/HorarioSemanal";
+import HorarioDelDia from "../components/dashboards/profesor/HorarioDelDia";
 import TarjetaBajoRendimiento from "../components/dashboards/profesor/TarjetaBajoRendimiento";
 import TarjetaInasistencias from "../components/dashboards/profesor/TarjetaInasistencias";
 import TarjetaMejorRendimiento from "../components/dashboards/profesor/TarjetaMejorRendimiento";
+import useAhora from "../hooks/dashboards/useAhora";
 import useClasesProfesor from "../hooks/dashboards/useClasesProfesor";
 import useContextoProfesor from "../hooks/dashboards/useContextoProfesor";
 import useCumpleanosProfesor from "../hooks/dashboards/useCumpleanosProfesor";
+import useEntrarAClaseProfesor, {
+  RUTA_ASISTENCIA,
+  RUTA_PLANILLA,
+} from "../hooks/dashboards/useEntrarAClaseProfesor";
 import useInasistenciasProfesor from "../hooks/dashboards/useInasistenciasProfesor";
 import useRendimientoProfesor from "../hooks/dashboards/useRendimientoProfesor";
 import { RUTA_RANKING_BAJO, RUTA_RANKING_MEJOR } from "../utils/dashboards/profesor";
+import {
+  diaSemanaColombia,
+  fechaLargaColombia,
+  minutosDelDiaColombia,
+} from "../utils/fechaColombia";
 
+// Panel del profesor (rediseño del 2026-11-10), de arriba abajo: el día, el
+// período y los cumpleaños; el horario en tarjetas desde las que se entra a
+// la clase; y cómo van sus estudiantes. Sin peticiones nuevas: el horario
+// sale de `/mis-clases`, que ya se cargaba.
 function DashboardProfesor() {
   const navigate = useNavigate();
-  // Desde el 2026-11-09 el panel no elige clase ni período: cada pantalla
-  // (Planilla, Asistencia, Planeador anual, rankings) los elige arriba.
-  const { sesionInvalida, profesorId, nombreProfesor } = useContextoProfesor();
+  const ahora = useAhora();
+  const { sesionInvalida, profesorId, nombreProfesor, periodo } = useContextoProfesor();
+  const entrarAClase = useEntrarAClaseProfesor();
 
   const {
     loadingClases,
     errorClases,
     clasesUnicas,
     cursosProfesor,
-    clasesConHorario,
-    clasesPorJornada,
-    horarioPorJornada,
-    filtroJornada,
-    setFiltroJornada,
+    clasesPorDia,
     hayDosJornadas,
-    jornadasVisibles,
   } = useClasesProfesor(profesorId);
 
   const { inasistencias, loadingInasistencias, errorInasistencias } =
     useInasistenciasProfesor(profesorId);
 
-  const { cumpleanos, loadingCumpleanos, errorCumpleanos, diasRangoCumpleanos } =
+  const { cumpleanos, loadingCumpleanos, errorCumpleanos } =
     useCumpleanosProfesor(profesorId);
 
   const {
@@ -52,88 +61,80 @@ function DashboardProfesor() {
     setMateriaFiltro,
   } = useRendimientoProfesor(profesorId, clasesUnicas, cursosProfesor);
 
-  const irARanking = (ruta) => {
-    // El ranking deja elegir la clase allí mismo (desde el 2026-11-09).
-    navigate(ruta);
-  };
-
   if (sesionInvalida) {
     return <Navigate to="/login" />;
   }
 
   return (
+    // Sin fondo propio: el de la app (`fondo-aula`, con dibujos escolares) se
+    // ve detrás del encabezado, que va sin caja.
     <div className="min-h-screen p-4 sm:p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          Panel del Profesor
-        </h1>
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-700">
-          <span>
-            Hola, <strong className="font-bold text-gray-950">{nombreProfesor}</strong>
-          </span>
-          <span className="text-sm text-gray-600">
-            📚 Prepara tu jornada y acompaña cada avance con calma.
-          </span>
-        </p>
-      </div>
-
-      <CumpleanosSemana
-        className="mb-6"
-        estudiantes={cumpleanos}
-        loading={loadingCumpleanos}
-        error={errorCumpleanos}
-        diasRango={diasRangoCumpleanos}
-        emptyText="Esta semana no hay estudiantes de tus cursos asignados cumpliendo años."
+      <EncabezadoPanelProfesor
+        nombreProfesor={nombreProfesor}
+        fechaDeHoy={fechaLargaColombia(ahora)}
+        periodo={periodo}
+        cumpleanos={cumpleanos}
+        loadingCumpleanos={loadingCumpleanos}
+        errorCumpleanos={errorCumpleanos}
+        ahora={ahora}
       />
 
-      <HorarioSemanal
+      <HorarioDelDia
         loadingClases={loadingClases}
         errorClases={errorClases}
-        clasesConHorario={clasesConHorario}
-        clasesPorJornada={clasesPorJornada}
-        horarioPorJornada={horarioPorJornada}
+        clasesPorDia={clasesPorDia}
         hayDosJornadas={hayDosJornadas}
-        filtroJornada={filtroJornada}
-        onCambiarJornada={setFiltroJornada}
-        jornadasVisibles={jornadasVisibles}
+        hoy={diaSemanaColombia(ahora)}
+        minutosAhora={minutosDelDiaColombia(ahora)}
+        onTomarAsistencia={(clase) => entrarAClase(clase, RUTA_ASISTENCIA)}
+        onAbrirPlanilla={(clase) => entrarAClase(clase, RUTA_PLANILLA)}
       />
 
-      <FiltroRendimiento
-        loadingClases={loadingClases}
-        errorClases={errorClases}
-        cursosProfesor={cursosProfesor}
-        cursoFiltro={cursoFiltro}
-        onCambiarCurso={cambiarCurso}
-        materiasDelCurso={materiasDelCurso}
-        materiaFiltro={materiaFiltro}
-        onCambiarMateria={setMateriaFiltro}
-      />
+      <section aria-labelledby="resultados-titulo">
+        <div className="mb-3 px-1">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-purple-700">Tus estudiantes</p>
+          <h2 id="resultados-titulo" className="mt-1 text-xl font-bold text-slate-950 sm:text-2xl">
+            Cómo van tus estudiantes
+          </h2>
+        </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <TarjetaInasistencias
-          inasistencias={inasistencias}
-          loading={loadingInasistencias}
-          error={errorInasistencias}
+        <FiltroRendimiento
+          loadingClases={loadingClases}
+          errorClases={errorClases}
+          cursosProfesor={cursosProfesor}
+          cursoFiltro={cursoFiltro}
+          onCambiarCurso={cambiarCurso}
+          materiasDelCurso={materiasDelCurso}
+          materiaFiltro={materiaFiltro}
+          onCambiarMateria={setMateriaFiltro}
         />
 
-        <TarjetaBajoRendimiento
-          notasBajas={notasBajas}
-          loading={loadingRendimiento}
-          error={errorRendimiento}
-          cursoFiltroNombre={cursoFiltroNombre}
-          materiaFiltroNombre={materiaFiltroNombre}
-          onVerRanking={() => irARanking(RUTA_RANKING_BAJO)}
-        />
+        <div className="grid grid-cols-1 gap-4 min-[600px]:grid-cols-2 xl:grid-cols-3">
+          <TarjetaBajoRendimiento
+            notasBajas={notasBajas}
+            loading={loadingRendimiento}
+            error={errorRendimiento}
+            cursoFiltroNombre={cursoFiltroNombre}
+            materiaFiltroNombre={materiaFiltroNombre}
+            onVerRanking={() => navigate(RUTA_RANKING_BAJO)}
+          />
 
-        <TarjetaMejorRendimiento
-          notasAltas={notasAltas}
-          loading={loadingRendimiento}
-          error={errorRendimiento}
-          cursoFiltroNombre={cursoFiltroNombre}
-          materiaFiltroNombre={materiaFiltroNombre}
-          onVerRanking={() => irARanking(RUTA_RANKING_MEJOR)}
-        />
-      </div>
+          <TarjetaMejorRendimiento
+            notasAltas={notasAltas}
+            loading={loadingRendimiento}
+            error={errorRendimiento}
+            cursoFiltroNombre={cursoFiltroNombre}
+            materiaFiltroNombre={materiaFiltroNombre}
+            onVerRanking={() => navigate(RUTA_RANKING_MEJOR)}
+          />
+
+          <TarjetaInasistencias
+            inasistencias={inasistencias}
+            loading={loadingInasistencias}
+            error={errorInasistencias}
+          />
+        </div>
+      </section>
     </div>
   );
 }

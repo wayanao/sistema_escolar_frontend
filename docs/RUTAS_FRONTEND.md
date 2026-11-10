@@ -187,9 +187,9 @@ El menú lateral (`MenuLateralView`, con `PROFESOR_DESKTOP_ITEMS` de
   estudiante, no una tarea de la clase elegida.
 - Ingreso de boletin.
 
-En celular, abajo van Dashboard, Planilla, Asistencia y Observador
-(`PROFESOR_BARRA_INFERIOR`); «Más» abre Plan de clases, Malla Curricular,
-Boletín Final y «Cerrar sesión».
+En celular, abajo van Dashboard, Planilla, Asistencia y Plan de clases
+(`PROFESOR_BARRA_INFERIOR`, desde el 2026-11-10); «Más» abre Malla Curricular,
+Observador, Boletín Final y «Cerrar sesión».
 
 Notas de UX por ruta profesor:
 

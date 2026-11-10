@@ -12,8 +12,6 @@ export const JORNADA_MANANA = "Mañana";
 
 export const JORNADA_TARDE = "Tarde";
 
-export const FILTRO_JORNADA_AMBAS = "Ambas";
-
 export const MATERIA_TODAS = "todas";
 
 export const MENSAJE_ERROR_CLASES = "No se pudieron cargar tus clases.";
@@ -29,7 +27,7 @@ export const RUTA_RANKING_BAJO = "/ranking-rendimiento";
 export const RUTA_RANKING_MEJOR = "/ranking-mejor-rendimiento";
 
 // El corte institucional entre jornadas son las 12:30.
-const MINUTOS_CORTE_JORNADA = 12 * 60 + 30;
+export const MINUTOS_CORTE_JORNADA = 12 * 60 + 30;
 
 export const obtenerOrdenDia = (dia) => {
     const orden = DIAS_SEMANA.indexOf(dia);
@@ -101,6 +99,9 @@ export const construirHorarioProfesor = (clases) =>
         dia: asignacion.dia,
         hora_inicio: asignacion.hora_inicio,
         hora_fin: asignacion.hora_fin,
+        // El horario decide con el nivel qué se puede hacer desde cada clase
+        // (en preescolar, la asistencia va por «Asistencia diaria»).
+        nivel: asignacion.nivel ?? null,
     }));
 
 // Una asignación repetida en varios días ocupa una sola opción del selector.
@@ -166,25 +167,8 @@ export const agruparClasesPorJornada = (clasesConHorario) =>
         return acc;
     }, {});
 
-export const agruparHorarioPorJornada = (clasesPorJornada) =>
-    JORNADAS.reduce((acc, jornada) => {
-        acc[jornada] = DIAS_SEMANA.reduce((dias, dia) => {
-            dias[dia] = clasesPorJornada[jornada].filter((clase) => clase.dia === dia);
-            return dias;
-        }, {});
-        return acc;
-    }, {});
-
 export const tieneDosJornadas = (clasesPorJornada) =>
     JORNADAS.every((jornada) => clasesPorJornada[jornada].length > 0);
-
-export const obtenerJornadasDisponibles = (clasesPorJornada) =>
-    JORNADAS.filter((jornada) => clasesPorJornada[jornada].length > 0);
-
-export const obtenerJornadasVisibles = (filtroJornada, clasesPorJornada) =>
-    filtroJornada === FILTRO_JORNADA_AMBAS || !clasesPorJornada[filtroJornada]?.length
-        ? obtenerJornadasDisponibles(clasesPorJornada)
-        : [filtroJornada];
 
 export const construirParametrosRendimiento = (cursoId, materiaId) => {
     const params = { curso_id: cursoId };
@@ -214,59 +198,6 @@ export const JORNADA_ESTILOS = {
         rango: "12:30 - 18:30",
     },
 };
-
-const HORARIO_DIA_ESTILOS = {
-    Lunes: {
-        panel: "border-purple-400 bg-purple-50/20",
-        header: "bg-purple-700",
-        headerMobile: "text-purple-900",
-        card: "border-l-purple-600 hover:border-purple-300",
-        time: "text-purple-700",
-    },
-    Martes: {
-        panel: "border-emerald-400 bg-emerald-50/20",
-        header: "bg-emerald-700",
-        headerMobile: "text-emerald-900",
-        card: "border-l-emerald-600 hover:border-emerald-300",
-        time: "text-emerald-700",
-    },
-    Miércoles: {
-        panel: "border-amber-400 bg-amber-50/20",
-        header: "bg-amber-600",
-        headerMobile: "text-amber-900",
-        card: "border-l-amber-600 hover:border-amber-300",
-        time: "text-amber-700",
-    },
-    Jueves: {
-        panel: "border-rose-400 bg-rose-50/20",
-        header: "bg-rose-700",
-        headerMobile: "text-rose-900",
-        card: "border-l-rose-600 hover:border-rose-300",
-        time: "text-rose-700",
-    },
-    Viernes: {
-        panel: "border-slate-400 bg-slate-50/40",
-        header: "bg-slate-700",
-        headerMobile: "text-slate-900",
-        card: "border-l-slate-600 hover:border-slate-400",
-        time: "text-slate-700",
-    },
-};
-
-const HORARIO_DIA_ESTILO_BASE = {
-    panel: "border-gray-200 bg-gray-50",
-    header: "bg-purple-700",
-    headerMobile: "text-gray-800",
-    card: "border-l-purple-500 hover:border-purple-200",
-    time: "text-purple-700",
-};
-
-export const obtenerEstiloHorarioDia = (dia) =>
-    HORARIO_DIA_ESTILOS[dia] || HORARIO_DIA_ESTILO_BASE;
-
-// Con una sola jornada, la insignia del encabezado toma la que tenga clases.
-export const jornadaUnicaDe = (clasesPorJornada) =>
-    clasesPorJornada[JORNADA_MANANA].length > 0 ? JORNADA_MANANA : JORNADA_TARDE;
 
 // El color del promedio bajo lo decide el campo `color` que envía el backend.
 export const claseNotaBaja = (color) =>

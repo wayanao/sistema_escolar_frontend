@@ -56,6 +56,21 @@ dashboards por rol sin cambiar accesos, métricas ni navegación.
 
 ### Dashboard del profesor
 
+> **2026-11-10, rediseño:** arriba `EncabezadoPanelProfesor` (saludo, día,
+> período de trabajo y cumpleaños); luego `HorarioDelDia` (un día a la vez,
+> tarjetas `TarjetaClaseHorario` que entran a la clase: guardan `asignacionId`
+> con `useEntrarAClaseProfesor` y abren Asistencia o Planilla), con su lógica
+> pura en `utils/dashboards/horario.js` y la hora de Colombia en
+> `utils/fechaColombia.js`; `useAhora` refresca la hora cada minuto para
+> «Ahora / Siguiente». Debajo, «Cómo van tus estudiantes»: el filtro y las
+> tres tarjetas sobre `TarjetaResultadoProfesor`. `useClasesProfesor` entrega
+> `clasesPorDia` y `hayDosJornadas`; ya no tiene el filtro de jornada.
+> Se borraron `HorarioSemanal`, `PanelJornada` y sus utilidades
+> (`agruparHorarioPorJornada`, `obtenerJornadasVisibles`,
+> `obtenerJornadasDisponibles`, `jornadaUnicaDe`, `obtenerEstiloHorarioDia`,
+> `FILTRO_JORNADA_AMBAS`). Sin peticiones nuevas: todo sale de lo que ya se
+> cargaba.
+
 > **2026-11-09:** se quitó del panel la tarjeta «¿Con qué clase vas a
 > trabajar?» (`ContextoTrabajoProfesor.jsx`) y el selector de planeaciones
 > recientes (`usePlaneacionesRecientes`, `obtenerPlaneacionesRecientes` y sus

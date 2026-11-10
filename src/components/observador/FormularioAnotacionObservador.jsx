@@ -10,6 +10,9 @@ import { DIMENSIONES_OBSERVADOR } from "../../utils/observador/anotaciones";
  * jamás en cada tecla: corregir letra por letra hace saltar el cursor y el
  * usuario siente que la pantalla pelea con él.
  *
+ * En una anotación nueva (`onCambiarPeriodo`) se elige el período en que se
+ * guarda; arranca en el período de trabajo (2026-11-10). Al corregir, no.
+ *
  * Presentacional: sin hooks propios y sin HTTP.
  */
 export default function FormularioAnotacionObservador({
@@ -22,6 +25,8 @@ export default function FormularioAnotacionObservador({
   puedeGuardar,
   error,
   periodoTexto,
+  periodo = null,
+  onCambiarPeriodo,
   titulo,
 }) {
   return (
@@ -49,6 +54,23 @@ export default function FormularioAnotacionObservador({
           />
         </label>
       ))}
+
+      {onCambiarPeriodo && (
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-slate-700">Período de esta anotación</span>
+          <select
+            value={String(periodo ?? "")}
+            onChange={(event) => onCambiarPeriodo(event.target.value)}
+            disabled={guardando}
+            className="w-full max-w-xs rounded-lg border border-purple-200 bg-purple-50/60 p-2 text-sm font-semibold text-purple-950"
+          >
+            <option value="1">Período 1</option>
+            <option value="2">Período 2</option>
+            <option value="3">Período 3</option>
+            <option value="4">Período 4</option>
+          </select>
+        </label>
+      )}
 
       {periodoTexto && (
         <p className="text-xs text-slate-500">{periodoTexto}</p>

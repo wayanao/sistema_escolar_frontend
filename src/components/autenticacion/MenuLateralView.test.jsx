@@ -378,7 +378,7 @@ describe("MenuLateralView del profesor", () => {
     const barra = menuProfesor();
 
     expect(screen.queryByRole("button", { name: "Abrir menú" })).not.toBeInTheDocument();
-    expect(destinosVisibles(barra)).toStrictEqual(["/", "/planilla", "/asistencia", "/observador"]);
+    expect(destinosVisibles(barra)).toStrictEqual(["/", "/planilla", "/asistencia", "/plan-de-clases"]);
     expect(within(barra).getByRole("link", { name: "Planilla" })).toHaveAttribute("aria-current", "page");
     expect(within(barra).getByRole("button", { name: "Más" })).toHaveAttribute("aria-expanded", "false");
     expect(barra).toHaveClass("fixed", "bottom-0", "print:hidden");
@@ -400,7 +400,7 @@ describe("MenuLateralView del profesor", () => {
 
     expect(within(hoja).getByRole("button", { name: "Cerrar más opciones" })).toHaveFocus();
     expect(document.body.style.overflow).toBe("hidden");
-    expect(destinosVisibles(hoja)).toStrictEqual(["/plan-de-clases", "/planeador-anual", "/ingreso-boletin"]);
+    expect(destinosVisibles(hoja)).toStrictEqual(["/planeador-anual", "/observador", "/ingreso-boletin"]);
     expect(within(hoja).getByText("Ana Ruiz")).toBeInTheDocument();
 
     await user.click(within(hoja).getByRole("button", { name: "Cerrar sesión" }));
@@ -426,7 +426,7 @@ describe("MenuLateralView del profesor", () => {
     await user.click(mas);
     await user.click(
       within(screen.getByRole("dialog", { name: "Más opciones" })).getByRole("link", {
-        name: "Plan de Clases",
+        name: "Observador",
       }),
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -447,7 +447,7 @@ describe("MenuLateralView del profesor", () => {
   });
 
   it("«Más» se marca cuando la página actual vive ahí", () => {
-    renderMenuProfesor({ modo: "celular", ruta: "/plan-de-clases" });
+    renderMenuProfesor({ modo: "celular", ruta: "/observador" });
     const barra = menuProfesor();
 
     expect(within(barra).getByRole("button", { name: "Más" })).toHaveClass("text-purple-700");

@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { obtenerClasesProfesor } from "../../services/dashboardsApi";
+import { agruparClasesPorDia } from "../../utils/dashboards/horario";
 import {
-    FILTRO_JORNADA_AMBAS,
     MENSAJE_ERROR_CLASES,
     agruparClasesPorJornada,
-    agruparHorarioPorJornada,
     construirHorarioProfesor,
     deduplicarClases,
     normalizarClases,
     obtenerCursosProfesor,
-    obtenerJornadasVisibles,
     ordenarClasesConHorario,
     tieneDosJornadas,
 } from "../../utils/dashboards/profesor";
@@ -24,7 +22,6 @@ const useClasesProfesor = (profesorId) => {
     const [horarioAsignado, setHorarioAsignado] = useState([]);
     const [loadingClases, setLoadingClases] = useState(true);
     const [errorClases, setErrorClases] = useState("");
-    const [filtroJornada, setFiltroJornada] = useState(FILTRO_JORNADA_AMBAS);
     // Hoy solo carga al montar, pero se numera igual que el resto del módulo:
     // ninguna respuesta tardía puede pisar a la vigente.
     const peticionRef = useRef(0);
@@ -68,12 +65,12 @@ const useClasesProfesor = (profesorId) => {
         () => agruparClasesPorJornada(clasesConHorario),
         [clasesConHorario],
     );
-    const horarioPorJornada = useMemo(
-        () => agruparHorarioPorJornada(clasesPorJornada),
-        [clasesPorJornada],
+    // El horario del panel muestra un día a la vez (desde el 2026-11-10).
+    const clasesPorDia = useMemo(
+        () => agruparClasesPorDia(clasesConHorario),
+        [clasesConHorario],
     );
     const hayDosJornadas = tieneDosJornadas(clasesPorJornada);
-    const jornadasVisibles = obtenerJornadasVisibles(filtroJornada, clasesPorJornada);
 
     return {
         loadingClases,
@@ -81,12 +78,8 @@ const useClasesProfesor = (profesorId) => {
         clasesUnicas,
         cursosProfesor,
         clasesConHorario,
-        clasesPorJornada,
-        horarioPorJornada,
-        filtroJornada,
-        setFiltroJornada,
+        clasesPorDia,
         hayDosJornadas,
-        jornadasVisibles,
     };
 };
 

@@ -36,7 +36,8 @@ Estado actual de componentes y paginas del frontend.
   del profesor (`siempreAbierto`) son títulos con sus páginas debajo, y en el
   riel una línea los separa. En celular, el admin tiene barra oscura arriba y
   un menú que se desliza; el profesor (`barraInferior`) tiene abajo Dashboard,
-  Planilla, Asistencia, Observador y «Más», que abre una hoja con el resto y
+  Planilla, Asistencia, Plan de clases y «Más», que abre una hoja con el resto
+  (Malla Curricular, Observador, Boletín Final; desde el 2026-11-10) y
   «Cerrar sesión». Arriba del contenido, desde tablet, una barra blanca con
   la ubicación, el año (`renderSelectorAnio`, solo admin) y la campana
   (`renderNotificaciones`); los dos reciben `{ tono }` para pintarse según la
@@ -776,8 +777,8 @@ Estado actual de componentes y paginas del frontend.
   Escape, con la X o tocando fuera, y «Cerrar sesión» va a la vista abajo.
   Un celular acostado (menos de 560 px de alto) también usa este menú.
   El profesor, en cambio, tiene una barra abajo con Dashboard, Planilla,
-  Asistencia, Observador y «Más» (una hoja con Plan de Clases, Malla
-  Curricular, Boletín Final y «Cerrar sesión»). La página deja libre ese alto
+  Asistencia, Plan de Clases y «Más» (una hoja con Malla Curricular,
+  Observador, Boletín Final y «Cerrar sesión»; desde el 2026-11-10). La página deja libre ese alto
   y «Guardar asistencia» queda encima de la barra (`--alto-barra-inferior`).
 - `DocumentoImprimible.jsx`: recibe `className` para marcar documentos que
   necesitan comportamiento especial de pantalla. Los documentos marcados como
@@ -1451,8 +1452,10 @@ Firma del acudiente (2026-10-27, `docs/funcionalidades/FIRMA_OBSERVADOR.md`):
 - `components/dashboards/admin/AccesosAdmin.jsx`
 - `components/dashboards/admin/TarjetaCarteraVencida.jsx`
 - `components/dashboards/profesor/FiltroRendimiento.jsx`
-- `components/dashboards/profesor/HorarioSemanal.jsx`
-- `components/dashboards/profesor/PanelJornada.jsx`
+- `components/dashboards/profesor/EncabezadoPanelProfesor.jsx`
+- `components/dashboards/profesor/HorarioDelDia.jsx`
+- `components/dashboards/profesor/TarjetaClaseHorario.jsx`
+- `components/dashboards/profesor/TarjetaResultadoProfesor.jsx`
 - `components/dashboards/profesor/TablaRankingBajo.jsx`
 - `components/dashboards/profesor/TablaRankingMejor.jsx`
 - `components/dashboards/profesor/TarjetaBajoRendimiento.jsx`
@@ -1471,8 +1474,20 @@ Notas:
   componente: difieren en la columna de puesto, los colores, la insignia y el
   estado vacío. Lo mismo ocurre con `TarjetaBajoRendimiento`, cuyo color de
   promedio lo decide el backend, y `TarjetaMejorRendimiento`, donde es fijo.
-- `PanelJornada` pinta una jornada completa con su vista móvil apilada y su
-  rejilla de cinco días en escritorio.
+- Panel del profesor (2026-11-10): `EncabezadoPanelProfesor` reúne saludo,
+  fecha de hoy, período de trabajo y cumpleaños de la semana (en una línea de
+  chips; el de hoy resaltado). `HorarioDelDia` muestra un día a la vez con
+  pestañas Lun–Vie («Hoy» marcado y elegido al entrar; en fin de semana, el
+  lunes con aviso); cada clase es una `TarjetaClaseHorario` con color fijo por
+  materia, la tarjeta pintada por estado solo hoy (rojo «Ya se dio», verde
+  «Ahora», morado «Siguiente»; la jornada en curso de primera), y botones para
+  entrar: «Tomar asistencia» (lleno) y «Planilla» (claro). En preescolar,
+  «Asistencia diaria» solo toma asistencia y sus materias solo abren la
+  planilla. Rejilla de 1 columna en celular, 2 desde 600 px y 3 en `xl`; en
+  tarjetas angostas los botones pasan a una fila cada uno, sin partir el
+  texto. Las tres tarjetas de resultados usan `TarjetaResultadoProfesor`:
+  título en palabras simples, qué mide, hasta 5 filas con «Ver todos».
+  Reemplazan a `HorarioSemanal` y `PanelJornada`, que se borraron.
 - `AccesosAdmin` incluye la hoja de estilos de la animación de sus tarjetas, que
   respeta `prefers-reduced-motion`.
 

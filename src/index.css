@@ -735,3 +735,29 @@
     padding: 0;
   }
 }
+
+/* Panel del profesor: la clase que va «Ahora» late (pedido del usuario el
+   2026-11-10). El fondo se aviva y se apaga y un halo verde sale del borde,
+   para que se vea de lejos sin parpadear de golpe. Con «reducir movimiento»
+   se queda quieta, resaltada con su anillo. */
+@keyframes claseAhoraLatido {
+  0%, 100% {
+    background-color: rgb(209 250 229);
+    box-shadow: 0 0 0 2px rgb(110 231 183), 0 0 0 0 rgb(16 185 129 / 0.55);
+  }
+  50% {
+    background-color: rgb(167 243 208);
+    box-shadow: 0 0 0 2px rgb(52 211 153), 0 0 0 10px rgb(16 185 129 / 0);
+  }
+}
+
+.tarjeta-clase-ahora {
+  animation: claseAhoraLatido 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(110 231 183);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-clase-ahora {
+    animation: none;
+  }
+}

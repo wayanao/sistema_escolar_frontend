@@ -28,13 +28,20 @@ describe("useContextoProfesor", () => {
         expect(result.current.nombreProfesor).toBe("Ana");
     });
 
-    it("ya no maneja clase ni período ni toca lo guardado: cada pantalla los elige", () => {
+    it("muestra el último período elegido, sin elegir clase ni tocar lo guardado", () => {
         iniciarSesionProfesor();
         localStorage.setItem("asignacionId", "999");
+        localStorage.setItem("periodo_profesor_7", "4");
 
         const { result } = renderHook(() => useContextoProfesor());
 
-        expect(Object.keys(result.current).sort()).toEqual(["nombreProfesor", "profesorId", "sesionInvalida"]);
+        expect(Object.keys(result.current).sort()).toEqual([
+            "nombreProfesor",
+            "periodo",
+            "profesorId",
+            "sesionInvalida",
+        ]);
+        expect(result.current.periodo).toBe("4");
         expect(localStorage.getItem("asignacionId")).toBe("999");
     });
 });

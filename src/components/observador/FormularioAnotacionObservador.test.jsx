@@ -108,3 +108,23 @@ describe("FormularioAnotacionObservador", () => {
     expect(botones.some((texto) => /borrar|eliminar/i.test(texto))).toBe(false);
   });
 });
+
+describe("FormularioAnotacionObservador: período de la anotación nueva", () => {
+    it("deja elegir el período, que arranca en el de trabajo", async () => {
+        const user = userEvent.setup();
+        const onCambiarPeriodo = vi.fn();
+        pintar({ periodo: 3, onCambiarPeriodo });
+
+        const selector = screen.getByLabelText("Período de esta anotación");
+        expect(selector).toHaveValue("3");
+
+        await user.selectOptions(selector, "2");
+        expect(onCambiarPeriodo).toHaveBeenCalledWith("2");
+    });
+
+    it("al corregir no hay selector de período", () => {
+        pintar({ periodoTexto: "Al corregir no cambia el periodo ni el estudiante." });
+
+        expect(screen.queryByLabelText("Período de esta anotación")).not.toBeInTheDocument();
+    });
+});

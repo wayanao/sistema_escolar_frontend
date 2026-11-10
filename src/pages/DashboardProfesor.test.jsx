@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DashboardProfesor from "./DashboardProfesor";
 
 const { apiMock, navigateMock, swalFireMock } = vi.hoisted(() => ({
@@ -119,9 +119,8 @@ describe("DashboardProfesor", () => {
         render(<DashboardProfesor />);
 
         expect(screen.getByText("Ana")).toBeInTheDocument();
-        expect(
-            screen.getByRole("heading", { level: 1, name: "Panel del Profesor" }),
-        ).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 1, name: "Hola, Ana" })).toBeInTheDocument();
+        expect(screen.getByText("Panel del profesor")).toBeInTheDocument();
         await esperarClasesCargadas();
     });
 
@@ -250,70 +249,6 @@ describe("DashboardProfesor", () => {
         expect(llamadasA(`/dashboard/notas-altas/${PROFESOR_ID}`)).toHaveLength(0);
     });
 
-    it("agrupa el horario por jornada y ofrece el filtro cuando hay dos", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        expect(screen.getByText("4 clases")).toBeInTheDocument();
-        expect(screen.getByText("3 en la mañana · 1 en la tarde")).toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "Filtrar horario por jornada" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Jornada mañana" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Jornada tarde" })).toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole("button", { name: "Tarde" }));
-
-        expect(screen.queryByRole("heading", { name: "Jornada mañana" })).not.toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Jornada tarde" })).toBeInTheDocument();
-    });
-
-    it("deduce la jornada por la hora cuando la asignación no la trae", async () => {
-        iniciarSesionProfesor();
-        responder({
-            clasesResueltas: [
-                { id: 20, horario_id: 601, materia: "Arte", curso: "7C", curso_id: 300, jornada: "", dia: "Lunes", hora_inicio: "14:00", hora_fin: "15:00" },
-                { id: 21, horario_id: 602, materia: "Música", curso: "7C", curso_id: 300, jornada: "manana", dia: "Martes", hora_inicio: "16:00", hora_fin: "17:00" },
-            ],
-        });
-
-        render(<DashboardProfesor />);
-
-        // Arte no trae jornada y empieza a las 2 p. m.: tarde. Música dice
-        // «manana»: mañana. Con las dos, el horario ofrece el filtro.
-        expect(await screen.findByRole("option", { name: "7C - Tarde" })).toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "Filtrar horario por jornada" })).toBeInTheDocument();
-    });
-
-    it("muestra la insignia de jornada única cuando no hay dos jornadas", async () => {
-        iniciarSesionProfesor();
-        responder({
-            clasesResueltas: [
-                { id: 20, horario_id: 601, materia: "Arte", curso: "7C", curso_id: 300, jornada: "Mañana", dia: "Lunes", hora_inicio: "07:00", hora_fin: "08:00" },
-            ],
-        });
-
-        render(<DashboardProfesor />);
-        await screen.findByRole("option", { name: "7C - Mañana" });
-
-        expect(
-            screen.queryByRole("group", { name: "Filtrar horario por jornada" }),
-        ).not.toBeInTheDocument();
-        // La insignia del encabezado más el título del único panel de jornada.
-        expect(screen.getAllByText("Jornada mañana")).toHaveLength(2);
-        expect(screen.queryByRole("heading", { name: "Jornada tarde" })).not.toBeInTheDocument();
-    });
-
-    it("muestra las franjas del horario en formato de 12 horas", async () => {
-        iniciarSesionProfesor();
-
-        render(<DashboardProfesor />);
-        await esperarClasesCargadas();
-
-        expect(screen.getAllByText("7:00 AM - 8:00 AM").length).toBeGreaterThan(0);
-        expect(screen.getAllByText("1:00 PM - 2:00 PM").length).toBeGreaterThan(0);
-    });
-
     it("ya no tiene la tarjeta de clase ni las planeaciones recientes, y no toca la clase guardada", async () => {
         iniciarSesionProfesor();
         localStorage.setItem("asignacionId", "999");
@@ -335,7 +270,7 @@ describe("DashboardProfesor", () => {
         await esperarClasesCargadas();
 
         const [rankingBajo, rankingAlto] = screen.getAllByRole("button", {
-            name: "Ver ranking por materia",
+            name: "Ver ranking por clase",
         });
 
         fireEvent.click(rankingBajo);
@@ -352,9 +287,131 @@ describe("DashboardProfesor", () => {
         render(<DashboardProfesor />);
 
         expect(
-            await screen.findByText(
-                "Esta semana no hay estudiantes de tus cursos asignados cumpliendo años.",
-            ),
+            await screen.findByText("Esta semana no hay cumpleaños en tus cursos."),
         ).toBeInTheDocument();
+    });
+});
+
+// El horario muestra un día a la vez y entra a la clase (2026-11-10). La
+// hora se fija para no depender del día en que corran las pruebas.
+describe("DashboardProfesor: horario en tarjetas", () => {
+    const LUNES_7_30 = new Date("2026-11-09T12:30:00Z");
+
+    beforeEach(() => {
+        localStorage.clear();
+        swalFireMock.mockResolvedValue({ isConfirmed: true });
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        navigateMock.mockClear();
+        responder();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    const abrirEl = async (fecha) => {
+        vi.useFakeTimers({ now: fecha, shouldAdvanceTime: true });
+        iniciarSesionProfesor();
+        render(<DashboardProfesor />);
+        await esperarClasesCargadas();
+    };
+
+    it("al entrar muestra hoy, marca la clase en curso y entra directo a ella", async () => {
+        await abrirEl(LUNES_7_30);
+
+        expect(screen.getByRole("heading", { name: "Tus clases de hoy" })).toBeInTheDocument();
+        expect(screen.getByRole("tab", { name: "Lunes, hoy: 1 clase" })).toHaveAttribute("aria-selected", "true");
+        const tarjeta = screen.getByRole("article", { name: /Matemáticas, curso 5A/ });
+        expect(within(tarjeta).getByText("7:00 AM – 8:00 AM")).toBeInTheDocument();
+        expect(within(tarjeta).getByText("Ahora")).toBeInTheDocument();
+
+        fireEvent.click(within(tarjeta).getByRole("button", { name: "Tomar asistencia" }));
+        expect(localStorage.getItem("asignacionId")).toBe("10");
+        expect(navigateMock).toHaveBeenLastCalledWith("/asistencia");
+
+        fireEvent.click(within(tarjeta).getByRole("button", { name: "Planilla" }));
+        expect(navigateMock).toHaveBeenLastCalledWith("/planilla");
+    });
+
+    it("cambiar de día muestra sus clases, con la jornada cuando el profesor tiene las dos", async () => {
+        await abrirEl(LUNES_7_30);
+
+        fireEvent.click(screen.getByRole("tab", { name: "Jueves: 1 clase" }));
+
+        expect(screen.getByRole("heading", { name: "Tus clases del jueves" })).toBeInTheDocument();
+        expect(screen.getByRole("article", { name: /Sociales, curso 6B/ })).toBeInTheDocument();
+        expect(screen.getByText("Jornada tarde")).toBeInTheDocument();
+        // Otro día no marca «Ahora» ni «Siguiente».
+        expect(screen.queryByText("Ahora")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("tab", { name: "Viernes: 0 clases" }));
+        expect(screen.getByText("No tienes clases el viernes")).toBeInTheDocument();
+    });
+
+    it("con una sola jornada no pone títulos de jornada", async () => {
+        responder({
+            clasesResueltas: [
+                { id: 20, horario_id: 601, materia: "Arte", curso: "7C", curso_id: 300, jornada: "Mañana", dia: "Lunes", hora_inicio: "07:00", hora_fin: "08:00" },
+            ],
+        });
+        vi.useFakeTimers({ now: LUNES_7_30, shouldAdvanceTime: true });
+        iniciarSesionProfesor();
+        render(<DashboardProfesor />);
+        await screen.findByRole("option", { name: "7C - Mañana" });
+
+        expect(screen.getByRole("article", { name: /Arte, curso 7C/ })).toBeInTheDocument();
+        expect(screen.queryByText(/^Jornada /)).not.toBeInTheDocument();
+    });
+
+    it("en la tarde la jornada de la tarde va primero y la clase de la mañana sale como «Ya se dio»", async () => {
+        responder({
+            clasesResueltas: [
+                { id: 10, horario_id: 501, materia: "Matemáticas", curso: "5A", curso_id: 100, jornada: "Mañana", dia: "Lunes", hora_inicio: "07:00", hora_fin: "08:00" },
+                { id: 12, horario_id: 504, materia: "Sociales", curso: "6B", curso_id: 200, jornada: "Tarde", dia: "Lunes", hora_inicio: "13:00", hora_fin: "14:00" },
+            ],
+        });
+        // Lunes 1:30 p. m. en Colombia.
+        await abrirEl(new Date("2026-11-09T18:30:00Z"));
+
+        const titulos = screen.getAllByText(/^Jornada (mañana|tarde)$/).map((nodo) => nodo.textContent);
+        expect(titulos).toEqual(["Jornada tarde", "Jornada mañana"]);
+        expect(screen.getByText("En curso")).toBeInTheDocument();
+
+        const ya = screen.getByRole("article", { name: /Matemáticas, curso 5A/ });
+        expect(ya).toHaveAttribute("data-estado", "terminada");
+        expect(ya).toHaveClass("bg-rose-100");
+        expect(within(ya).getByText("Ya se dio")).toBeInTheDocument();
+        const ahora = screen.getByRole("article", { name: /Sociales, curso 6B/ });
+        expect(ahora).toHaveAttribute("data-estado", "ahora");
+        // La de «Ahora» late para que se vea de lejos.
+        expect(ahora).toHaveClass("tarjeta-clase-ahora");
+        expect(ya).not.toHaveClass("tarjeta-clase-ahora");
+    });
+
+    it("en fin de semana muestra el lunes y lo avisa", async () => {
+        await abrirEl(new Date("2026-11-14T15:00:00Z"));
+
+        expect(screen.getByRole("tab", { name: "Lunes: 1 clase" })).toHaveAttribute("aria-selected", "true");
+        expect(screen.getByText("Hoy es sábado: no hay clases. Te mostramos el horario del lunes.")).toBeInTheDocument();
+    });
+
+    it("en preescolar, «Asistencia diaria» solo toma asistencia y sus materias solo abren la planilla", async () => {
+        responder({
+            clasesResueltas: [
+                { id: 30, horario_id: 701, materia: "ASISTENCIA DIARIA", curso: "Transición A", curso_id: 400, jornada: "Mañana", dia: "Lunes", hora_inicio: "06:30", hora_fin: "12:30", nivel: "preescolar" },
+                { id: 31, horario_id: 702, materia: "DIMENSIÓN COMUNICATIVA", curso: "Transición A", curso_id: 400, jornada: "Mañana", dia: "Lunes", hora_inicio: "08:00", hora_fin: "09:00", nivel: "preescolar" },
+            ],
+        });
+        vi.useFakeTimers({ now: LUNES_7_30, shouldAdvanceTime: true });
+        iniciarSesionProfesor();
+        render(<DashboardProfesor />);
+        const jornada = await screen.findByRole("article", { name: /ASISTENCIA DIARIA/ });
+        const materia = screen.getByRole("article", { name: /DIMENSIÓN COMUNICATIVA/ });
+
+        expect(within(jornada).getByRole("button", { name: "Tomar asistencia del día" })).toBeInTheDocument();
+        expect(within(jornada).queryByRole("button", { name: "Planilla" })).not.toBeInTheDocument();
+        expect(within(materia).getByRole("button", { name: "Planilla" })).toBeInTheDocument();
+        expect(within(materia).queryByRole("button", { name: /asistencia/i })).not.toBeInTheDocument();
+        expect(within(materia).getByText("Siguiente")).toBeInTheDocument();
     });
 });

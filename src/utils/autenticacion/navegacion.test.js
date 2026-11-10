@@ -217,11 +217,11 @@ describe("contratos puros de navegacion", () => {
       "/",
       "/planilla",
       "/asistencia",
-      "/observador",
+      "/plan-de-clases",
     ]);
     expect(resto.map((destino) => destino.to)).toStrictEqual([
-      "/plan-de-clases",
       "/planeador-anual",
+      "/observador",
       "/ingreso-boletin",
     ]);
   });

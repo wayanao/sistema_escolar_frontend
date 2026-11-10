@@ -63,7 +63,7 @@ describe("TarjetaBajoRendimiento", () => {
             screen.getByText("No se pudo cargar el rendimiento del curso."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText("No hay estudiantes con bajo rendimiento"),
+            screen.queryByText("Nadie está por debajo de 3.0 en este curso."),
         ).not.toBeInTheDocument();
     });
 
@@ -71,9 +71,9 @@ describe("TarjetaBajoRendimiento", () => {
         const onVerRanking = vi.fn();
         render(<TarjetaBajoRendimiento {...propiedades({ notasBajas: [], onVerRanking })} />);
 
-        expect(screen.getByText("No hay estudiantes con bajo rendimiento")).toBeInTheDocument();
+        expect(screen.getByText("Nadie está por debajo de 3.0 en este curso.")).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "Ver ranking por materia" }));
+        fireEvent.click(screen.getByRole("button", { name: "Ver ranking por clase" }));
         expect(onVerRanking).toHaveBeenCalled();
     });
 });
