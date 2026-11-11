@@ -1,20 +1,31 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { guardarPorcentajeTipoMock, swalFireMock } = vi.hoisted(() => ({
+const { guardarPorcentajeTipoMock, swalFireMock, swalUpdateMock } = vi.hoisted(() => ({
     guardarPorcentajeTipoMock: vi.fn(),
     swalFireMock: vi.fn(),
+    swalUpdateMock: vi.fn(),
 }));
 
 vi.mock("../../services/planillaApi", () => ({
     guardarPorcentajeTipo: guardarPorcentajeTipoMock,
 }));
 
+// La espera pasa a éxito en la misma ventana y la cierra un reloj
+// (ventanaExito.js).
 vi.mock("sweetalert2", () => ({
-    default: { fire: swalFireMock },
+    default: {
+        fire: swalFireMock,
+        update: swalUpdateMock,
+        getFooter: vi.fn(),
+        getPopup: vi.fn(),
+        isVisible: vi.fn(),
+        close: vi.fn(),
+    },
 }));
 
 import useComandosPorcentajesPlanilla from "./useComandosPorcentajesPlanilla";
+import { opcionesExitoTrasEspera, opcionesVentanaEspera } from "../ventanaExito";
 
 const COLUMNAS = ["Cognitivo", "Procedimental", "Actitudinal"];
 
@@ -157,5 +168,31 @@ describe("useComandosPorcentajesPlanilla (parte B, paso B4a)", () => {
             await primero;
         });
         expect(guardarPorcentajeTipoMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("muestra la tarjeta de espera y dice qué quedó guardado o quitado", async () => {
+        guardarPorcentajeTipoMock.mockResolvedValue({ tipo_nota: "Actitudinal", porcentaje: 20 });
+        const { result } = renderHook(() => useComandosPorcentajesPlanilla(crearParametros()));
+
+        await act(async () => {
+            await result.current.guardarPorcentaje("Actitudinal", "20");
+        });
+
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaEspera({ title: "Guardando el porcentaje…" }));
+        expect(swalUpdateMock).toHaveBeenCalledWith(opcionesExitoTrasEspera({
+            title: "Porcentaje guardado",
+            text: "Actitudinal quedó en 20 %.",
+        }));
+
+        guardarPorcentajeTipoMock.mockResolvedValue({ tipo_nota: "Cognitivo", porcentaje: null });
+        await act(async () => {
+            await result.current.guardarPorcentaje("Cognitivo", "");
+        });
+
+        expect(swalFireMock).toHaveBeenCalledWith(opcionesVentanaEspera({ title: "Quitando el porcentaje…" }));
+        expect(swalUpdateMock).toHaveBeenLastCalledWith(opcionesExitoTrasEspera({
+            title: "Porcentaje quitado",
+            text: "Cognitivo quedó sin porcentaje.",
+        }));
     });
 });

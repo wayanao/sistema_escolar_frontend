@@ -1,5 +1,16 @@
 # Cambios Frontend
 
+## 2026-11-11 - Planilla: el porcentaje de la cápsula avisa que guardó
+
+- Pedido del usuario: al guardar el porcentaje en la cápsula de un tipo de
+  nota no se veía que guardaba (solo se bloqueaba un momento y se cerraba).
+- Ahora usa la misma tarjeta de espera del resto de la app (`mostrarEspera`):
+  «Guardando el porcentaje…» y, al terminar, «Porcentaje guardado · Quiz quedó
+  en 40 %», que se cierra sola. Al borrar el número: «Quitando el
+  porcentaje…» y «Porcentaje quitado · Quiz quedó sin porcentaje». Si falla,
+  la ventana de error de siempre la reemplaza.
+- `hooks/planilla/useComandosPorcentajesPlanilla.js` y su prueba.
+
 ## 2026-11-10 - Observador: elegir el período de la anotación nueva
 
 - Pedido del usuario: que el Observador guarde la anotación en el período en

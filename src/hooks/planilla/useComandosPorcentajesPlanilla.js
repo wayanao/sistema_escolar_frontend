@@ -1,12 +1,14 @@
 import { useCallback, useState } from "react";
 import Swal from "sweetalert2";
 import { guardarPorcentajeTipo } from "../../services/planillaApi";
+import { formatearEtiquetaColumna } from "../../utils/planilla/notas";
 import {
     aplicarPorcentajeGuardado,
     construirPayloadPorcentaje,
     validarPorcentajeNuevo,
 } from "../../utils/planilla/porcentajes";
 import { mensajeDelServidor } from "../../utils/planilla/subnotas";
+import { mostrarEspera } from "../ventanaExito";
 
 /**
  * Comandos de los porcentajes por tipo de nota de la planilla.
@@ -50,6 +52,14 @@ export default function useComandosPorcentajesPlanilla({
         if ((porcentajesPorTipo[tipo] ?? null) === validado.porcentaje) return true;
 
         setTipoGuardando(tipo);
+        // La misma tarjeta de espera del resto de la app (ventanaExito): antes
+        // la cápsula solo se bloqueaba un momento y no decía que había
+        // guardado (pedido del usuario el 2026-11-11).
+        const quitar = validado.porcentaje === null;
+        const etiqueta = formatearEtiquetaColumna(tipo);
+        const espera = mostrarEspera({
+            title: quitar ? "Quitando el porcentaje…" : "Guardando el porcentaje…",
+        });
         try {
             const respuesta = await guardarPorcentajeTipo(construirPayloadPorcentaje({
                 asignacionId,
@@ -58,6 +68,9 @@ export default function useComandosPorcentajesPlanilla({
                 porcentaje: validado.porcentaje,
             }));
             setPorcentajesPorTipo((actuales) => aplicarPorcentajeGuardado(actuales, respuesta));
+            espera.exito(quitar
+                ? { title: "Porcentaje quitado", text: `${etiqueta} quedó sin porcentaje.` }
+                : { title: "Porcentaje guardado", text: `${etiqueta} quedó en ${validado.porcentaje} %.` });
             return true;
         } catch (error) {
             console.error("Error guardando el porcentaje", error);
