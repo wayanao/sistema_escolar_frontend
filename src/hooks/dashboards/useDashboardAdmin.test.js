@@ -65,6 +65,29 @@ describe("useDashboardAdmin", () => {
         expect(serviceMock.obtenerCumpleanosAdmin).toHaveBeenCalledWith({ dias: 7 });
     });
 
+    it("marca la cartera como cargando hasta que llega el resumen", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+
+        const { result } = renderHook(() => useDashboardAdmin());
+
+        // Mientras carga no se sabe si hay deuda: no puede leerse como «al día».
+        expect(result.current.cargandoCartera).toBe(true);
+        expect(result.current.resumenCartera).toBeNull();
+
+        await waitFor(() => expect(result.current.cargandoCartera).toBe(false));
+        expect(result.current.resumenCartera).toEqual(resumen);
+    });
+
+    it("deja de cargar también cuando falla la cartera", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+        serviceMock.obtenerResumenCarteraParaDashboard.mockRejectedValue(new Error("500"));
+
+        const { result } = renderHook(() => useDashboardAdmin());
+
+        await waitFor(() => expect(result.current.cargandoCartera).toBe(false));
+        expect(result.current.errorCartera).toBe("No se pudo cargar la cartera vencida.");
+    });
+
     it("no vuelve a consultar aunque el componente se rerenderice", async () => {
         localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
 

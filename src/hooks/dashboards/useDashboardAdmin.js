@@ -24,6 +24,9 @@ const useDashboardAdmin = () => {
     // este booleano, cuya identidad sí es estable.
     const esAdministrador = esAdmin(usuario);
     const [resumenCartera, setResumenCartera] = useState(null);
+    // Mientras llega el resumen no se sabe si hay deuda: sin esta bandera, la
+    // espera se pintaba como «Cartera al día».
+    const [cargandoCartera, setCargandoCartera] = useState(true);
     const [errorCartera, setErrorCartera] = useState("");
     const [cumpleanos, setCumpleanos] = useState([]);
     const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
@@ -40,6 +43,9 @@ const useDashboardAdmin = () => {
             .catch((err) => {
                 console.error("Error cargando resumen cartera:", err);
                 if (activo) setErrorCartera(MENSAJE_ERROR_CARTERA);
+            })
+            .finally(() => {
+                if (activo) setCargandoCartera(false);
             });
 
         return () => {
@@ -77,6 +83,7 @@ const useDashboardAdmin = () => {
         esAdministrador,
         nombreAdmin: primerNombreAdmin(usuario?.nombre),
         resumenCartera,
+        cargandoCartera,
         errorCartera,
         cumpleanos,
         loadingCumpleanos,

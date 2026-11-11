@@ -1,5 +1,42 @@
 # Cambios Frontend
 
+## 2026-11-11 - Panel del admin rediseñado (paso 1: con lo que ya llega)
+
+- Pedido del usuario: en el panel del admin, los 5 estudiantes que más deben y
+  los que pagan siempre a tiempo, con un diseño moderno. Eligió la maqueta
+  «Mosaico». Este paso arma lo que no necesita cambios en el servidor; «pagan
+  a tiempo», el ranking por curso y los cumpleaños con globos vienen en pasos
+  aparte.
+- Arriba: «Hola, Carlos», la fecha de hoy (Colombia) y el botón «Ocultar
+  valores», que tapa todos los montos con `$ •••••••`. No se guarda: al volver
+  a entrar se ven.
+- «Por cobrar este año»: el total, entre cuántos estudiantes y de dónde sale
+  (mensualidades y cobros, ventas sin pagar, mora). En el backend la deuda de
+  cada concepto ya trae su mora, así que se resta de `total_academico` para no
+  contarla dos veces. La deuda de años anteriores va en una línea aparte: el
+  backend no la suma al total del año.
+- «Los 5 que más deben» (`top_5`): curso, por qué deben (cuotas vencidas,
+  ventas sin pagar, años anteriores), una barrita frente al mayor y «Cobrar»,
+  que abre Gestión de Pagos con ese estudiante (`state.estudiante_id`, como
+  desde Cartera vencida). Quien solo debe de años anteriores no entra en esta
+  lista; se ve en Cartera vencida.
+- «Deuda por curso» (`distribucion_cursos`): los 5 cursos que más deben.
+- «Accesos rápidos»: los mismos cuatro accesos, con sus rutas y su orden, más
+  pequeños y como botones de verdad.
+- Arreglo: mientras cargaba la cartera, la tarjeta vieja decía «Cartera al
+  día». Ahora dice «Cargando la cartera…» (`cargandoCartera` en
+  `useDashboardAdmin`).
+- Peticiones: las mismas dos de antes (`/cartera/mora/resumen` y
+  `/dashboard/cumpleanos/admin`), ninguna nueva. Lo protege la prueba de la
+  página.
+- `TarjetaCarteraVencida.jsx` y su prueba quedan sin uso; no se borraron.
+- Archivos: `utils/dashboards/admin.js`, `hooks/dashboards/useDashboardAdmin.js`,
+  `components/dashboards/admin/` (`EncabezadoPanelAdmin`, `TarjetaPorCobrar`,
+  `TarjetaMayoresDeudores`, `TarjetaDeudaPorCurso` y `AccesosAdmin`),
+  `pages/AdminDashboard.jsx` y sus pruebas.
+- Verificación: `pnpm run check:deploy` (pruebas, lint y build) pasó. Fotos de
+  PC y celular con datos de ejemplo.
+
 ## 2026-11-11 - Planilla: el porcentaje de la cápsula avisa que guardó
 
 - Pedido del usuario: al guardar el porcentaje en la cápsula de un tipo de

@@ -158,7 +158,7 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 
 | Método | Ruta | Uso actual |
 |---|---|---|
-| `GET` | `/cartera/mora/resumen` | Tarjeta de cartera vencida del panel de admin. |
+| `GET` | `/cartera/mora/resumen` | «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso» del panel de admin (desde el 2026-11-11; antes, la tarjeta de cartera vencida). |
 | `GET` | `/dashboard/cumpleanos/admin` con `params: { dias: 7 }` | Cumpleaños de la semana, vista admin. |
 | `GET` | `/mis-clases/:profesorId` | Clases y horario del profesor. |
 | `GET` | `/dashboard/inasistencias/:profesorId` | Ranking de inasistencias por curso. |
@@ -212,15 +212,20 @@ durante la migración:
   llama `navigate("/login")`, devuelve `null` y **no dispara ninguna consulta**.
 - Las dos consultas son independientes: cartera no cancela y cumpleaños sí usa
   una bandera `activo`. El fallo de una no afecta a la otra ni a las tarjetas.
-- La tarjeta de cartera decide por `total_estudiantes > 0`. En mora pinta `⚠️`,
-  la deuda formateada, `«N estudiantes en mora · Mora: <monto>»` y la insignia
-  `«N en mora»`. Al día pinta `✅`, `Cartera al día` y
-  `No hay estudiantes en mora actualmente.`.
+- Desde el 2026-11-11 (rediseño, paso 1) la cartera se reparte en tres
+  tarjetas: «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso».
+  Cargando, error y cartera al día son estados distintos: mientras carga dicen
+  `Cargando la cartera…` y un fallo nunca se lee como `Cartera al día`. La
+  mora se resta de `total_academico` (el backend ya la incluye en la deuda de
+  cada concepto) y `total_anios_anteriores` va aparte. «Cobrar» navega a
+  `/admin/pagos` con `state: { estudiante_id }`. «Ocultar valores» tapa los
+  montos con `$ •••••••` y no se guarda. Antes había una sola tarjeta de
+  cartera vencida (`TarjetaCarteraVencida`, sin uso desde ese día).
 - Los cuatro accesos conservan su orden y sus rutas: `/admin/pagos`,
   `/admin/estudiantes`, `/admin` y `/admin/reportes`.
-- Las tarjetas son `role="button"` con `tabIndex={0}` y responden a `Enter` y
-  espacio; cualquier otra tecla no navega. La accesibilidad de teclado es
-  comportamiento vigente y queda protegida.
+- Desde el 2026-11-11 los accesos son `<button type="button">` y siguen
+  respondiendo a `Enter` y espacio con su propio manejador; cualquier otra
+  tecla no navega. La accesibilidad de teclado queda protegida.
 - El saludo usa el primer nombre con la inicial en mayúscula y **no** baja el
   resto a minúsculas, a diferencia del panel del profesor.
 - `CumpleanosSemana` recibe `diasRango={7}` y el texto
