@@ -66,5 +66,26 @@ salió de 900 × 231 px y 49,5 KB, en 108 ms. El trazo del recuadro salió de
    dedo" y, con firma, "Quitar firma" (pregunta antes). La foto muestra "Así va
    a salir:" antes de guardar. **Construido el 2026-11-12, sin commit.**
 3. «Mi curso»: "Guardar mi firma" para el director de grupo.
-4. Boletín: cada firma sobre su raya; sin firma, la raya vacía y un aviso.
+4. **Boletín** (adelantado al 3 a pedido del usuario). **Construido el
+   2026-11-12, sin commit.**
+   - `utils/boletines/firmasBoletin.js`: las dos firmas y los avisos.
+     - Debajo de la raya va el nombre y el cargo cuando se saben: el
+       firmante de Identidad institucional, y el director de grupo con
+       "Director(a) de grupo".
+     - Sin nombre, lo de siempre ("Director(a)", "Director de Grupo").
+   - Quién firma por el colegio lo lee `utils/firmanteInstitucional.js`, que
+     comparten boletín y certificados (antes vivía en los utils de
+     certificados).
+   - `DocumentoImprimible`: cada firma acepta `imagen`.
+     - `.di-firmas__imagen` la pone sobre la raya con posición absoluta,
+       hasta 64 px de alto.
+     - En el boletín, 24 de los 40 px de aire antes de las firmas pasaron a
+       ser relleno, para que la imagen quede dentro del bloque que no se parte
+       entre hojas. El alto total es el mismo; los demás impresos no
+       cambiaron.
+   - Aviso amarillo arriba de la hoja (`no-print`) cuando falta la firma del
+     rector(a) o la del director de grupo. Sin director asignado, no se le
+     pide.
+   - Visto con Edge oculto: las dos firmas se apoyan sobre su raya, sin tocar
+     la observación general.
 5. Certificados: la firma del rector(a), opcional.

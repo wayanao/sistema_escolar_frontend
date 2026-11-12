@@ -20,8 +20,12 @@ import "../../styles/print.css";
  *   - tipo (string, requerido)
  *   - titulo (string)         titulo del documento (ej. "Boletin de Notas")
  *   - subtitulo (string)
- *   - firmas (array)          [{nombre, documento, cargo}, ...] - se ocultan si la plantilla
- *                             las desactiva; `documento` es opcional ("C.C. ... de ...")
+ *   - firmas (array)          [{nombre, documento, cargo, imagen}, ...] - se ocultan si la plantilla
+ *                             las desactiva; `documento` es opcional ("C.C. ... de ...").
+ *                             `imagen` (opcional, 2026-11-12) es la firma guardada
+ *                             (data URL): va sobre la raya, en el aire que queda para
+ *                             firmar a mano, sin cambiar el alto de la hoja
+ *                             (docs/funcionalidades/FIRMAS_BOLETIN.md).
  *   - children                contenido especifico del impreso
  *   - mostrarBarra (bool)     botones Descargar PDF / Imprimir; por defecto si.
  *                             La vista previa del profesor los oculta: alli el
@@ -237,6 +241,13 @@ export default function DocumentoImprimible({
                     {listaFirmas.map((f, i) => (
                       <div key={i} className="di-firmas__bloque">
                         <div className="di-firmas__linea">
+                          {f.imagen && (
+                            <img
+                              className="di-firmas__imagen"
+                              src={f.imagen}
+                              alt={`Firma de ${f.nombre}`}
+                            />
+                          )}
                           <strong>{f.nombre}</strong>
                           {f.documento && <div>{f.documento}</div>}
                           {f.cargo && <div>{f.cargo}</div>}

@@ -1,3 +1,4 @@
+import { firmanteInstitucional } from "../firmanteInstitucional";
 import { formatearPesos } from "../formatoPesos";
 import { nombreEstudiante } from "./certificados";
 
@@ -98,17 +99,15 @@ export function fraseExpedicion({ ciudad, fecha }) {
 
 // Lo que se configura en Diseño de impresos → Identidad institucional
 // (`configuracion_extra`). Sin cargo, la firma dice "Director(a)", como antes.
+// Quién firma lo lee `firmanteInstitucional`, que también usa el boletín
+// (2026-11-12, FIRMAS_BOLETIN.md).
 export function datosInstitucionalesCertificado(branding) {
   const extra = branding?.configuracion_extra || {};
   const leer = (clave) => (typeof extra[clave] === "string" ? extra[clave].trim() : "");
   return {
     encabezado: leer("certificado_encabezado"),
     ciudad: leer("ciudad_expedicion"),
-    firma: {
-      nombre: leer("firmante_nombre"),
-      documento: leer("firmante_documento"),
-      cargo: leer("firmante_cargo") || "Director(a)",
-    },
+    firma: firmanteInstitucional(branding),
   };
 }
 

@@ -330,6 +330,27 @@ describe("DocumentoImprimible", () => {
     ]);
   });
 
+  it("la firma guardada va sobre su raya; sin imagen, la raya queda como siempre", () => {
+    render(
+      <DocumentoImprimible
+        tipo="boletin"
+        firmas={[
+          { nombre: "Laura Gómez", cargo: "Rectora", imagen: "data:image/png;base64,firma" },
+          { nombre: "Director de Grupo", imagen: null },
+        ]}
+      >
+        <p>Contenido</p>
+      </DocumentoImprimible>,
+    );
+
+    const imagen = screen.getByRole("img", { name: "Firma de Laura Gómez" });
+    expect(imagen).toHaveAttribute("src", "data:image/png;base64,firma");
+    expect(imagen).toHaveClass("di-firmas__imagen");
+    expect(imagen.closest(".di-firmas__linea")).toHaveTextContent("Laura GómezRectora");
+    const sinFirma = screen.getByText("Director de Grupo").closest(".di-firmas__linea");
+    expect(sinFirma.querySelector("img")).toBeNull();
+  });
+
   it("oculta Descargar PDF e Imprimir solo cuando se pide (vista previa del profesor)", () => {
     const { rerender } = render(
       <DocumentoImprimible tipo="boletin">

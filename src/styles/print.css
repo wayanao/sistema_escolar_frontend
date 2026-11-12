@@ -289,11 +289,28 @@
 }
 
 .di-firmas__linea {
+  position: relative;
   border-top: 1px solid #1f2937;
   margin-top: 40px;
   padding-top: 4px;
   font-size: 0.85em;
   color: var(--di-color-texto-secundario, #526775);
+}
+
+/* La firma guardada (docs/funcionalidades/FIRMAS_BOLETIN.md) va encima de la
+   raya, en el aire que queda para firmar a mano: los 40 px de la raya y, en el
+   boletin, los 24 del relleno de .di-firmas, 64 en total. Posicion absoluta: la hoja no
+   cambia de alto, asi el boletin sigue cabiendo en dos hojas. Baja 4 px,
+   hasta la raya, como una firma de verdad; la imagen trae unos pixeles
+   transparentes abajo, asi que la tinta toca la raya sin tapar el nombre. */
+.di-firmas__imagen {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 4px);
+  transform: translateX(-50%);
+  max-width: 100%;
+  max-height: 64px;
+  object-fit: contain;
 }
 
 /* Separadores entre los datos del estudiante en el boletin (Grado, Jornada,
@@ -315,8 +332,12 @@
 .di-documento--boletin .di-subtitulo { margin: 0 0 8px; }
 .di-documento--boletin .di-cuerpo { margin: 0; }
 /* Aire entre la observacion general y las rayas de firma: 40 px de aqui mas
-   los 40 px de .di-firmas__linea (unos 21 mm para firmar a mano). */
-.di-documento--boletin .di-firmas { margin-top: 40px; }
+   los 40 px de .di-firmas__linea (unos 21 mm para firmar a mano). Desde el
+   2026-11-12, 24 de los 40 van por dentro (padding): la firma guardada sube
+   hasta 64 px sobre la raya y asi queda dentro del bloque que no se parte
+   entre hojas. Lo de antes de las firmas no tiene margen abajo, asi que el
+   alto total es el mismo. */
+.di-documento--boletin .di-firmas { margin-top: 16px; padding-top: 24px; }
 /* Rayas de firma y del pie iguales a las de arriba (membrete y escala):
    1 px y color primario, en vez de negro y color secundario. */
 .di-documento--boletin .di-firmas__linea,

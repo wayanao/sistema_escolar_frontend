@@ -8,6 +8,7 @@ import {
   valoracionDesdePromedio,
   VALORACIONES_DESARROLLO,
 } from "../../utils/boletines/generacionBoletin";
+import { avisosDeFirmas, firmasDelBoletin } from "../../utils/boletines/firmasBoletin";
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import BarraCertificado from "../certificadosImpresion/BarraCertificado";
 
@@ -39,6 +40,7 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
     boletinData.jornada && ["Jornada", boletinData.jornada],
     ["Fecha", new Date().toLocaleDateString("es-CO")],
   ].filter(Boolean);
+  const avisos = avisosDeFirmas(boletinData);
 
   return (
     <div className="bg-gray-100 min-h-screen py-10 px-4 md:px-8 relative">
@@ -46,15 +48,24 @@ export default function BoletinImprimible({ boletinData, onVolver }) {
           esquina de la pantalla quedaba encima del menú lateral (2026-11-07). */}
       <BarraCertificado onBack={onVolver} />
 
+      {/* Qué firma falta (FIRMAS_BOLETIN.md, paso 4): solo en pantalla. */}
+      {avisos.length > 0 && (
+        <div
+          role="status"
+          className="no-print mx-auto mt-3 w-full max-w-[215.9mm] space-y-1 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          {avisos.map((aviso) => (
+            <p key={aviso}>{aviso}</p>
+          ))}
+        </div>
+      )}
+
       <DocumentoImprimible
         tipo="boletin"
         className="di-documento--boletin"
         titulo="Boletín Académico Informativo"
         subtitulo={`Periodo ${boletinData.periodo} · Año Lectivo ${new Date().getFullYear()}`}
-        firmas={[
-          { nombre: "Director(a)" },
-          { nombre: "Director de Grupo" },
-        ]}
+        firmas={(branding) => firmasDelBoletin(boletinData, branding)}
       >
         <FichaEstudianteBoletin
           nombre={<>{boletinData.estudiante_apellido} {boletinData.estudiante_nombre}</>}

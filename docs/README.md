@@ -83,8 +83,9 @@ continuacion para retomarla en otro chat u otro LLM.
   (pestaña y ranking) y 4 (observación general) construidos el 2026-11-07.**
 - `funcionalidades/FIRMAS_BOLETIN.md`: firmas guardadas para el boletín, la
   del rector(a) y la de cada director de grupo. Módulo `firmas`: cómo se limpia
-  la foto o el trazo. El documento principal está en el backend. **Paso 2
-  (Identidad institucional) construido el 2026-11-12, sin commit.**
+  la foto o el trazo. El documento principal está en el backend. **Pasos 2
+  (Identidad institucional) y 4 (boletín) construidos el 2026-11-12, sin
+  commit.**
 
 ## Control SaaS
 
