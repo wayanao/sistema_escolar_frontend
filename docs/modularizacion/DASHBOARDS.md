@@ -159,6 +159,7 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 | Método | Ruta | Uso actual |
 |---|---|---|
 | `GET` | `/cartera/mora/resumen` | «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso» del panel de admin (desde el 2026-11-11; antes, la tarjeta de cartera vencida). |
+| `GET` | `/cartera/puntualidad` | «Pagan siempre a tiempo» y «Los que mejor pagan» del panel de admin (desde el 2026-11-11, paso 4). Sin parámetros; solo admin y solo lee. |
 | `GET` | `/dashboard/cumpleanos/admin` con `params: { dias: 7 }` | Cumpleaños de la semana, vista admin. |
 | `GET` | `/mis-clases/:profesorId` | Clases y horario del profesor. |
 | `GET` | `/dashboard/inasistencias/:profesorId` | Ranking de inasistencias por curso. |
@@ -173,9 +174,9 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 | `GET` | `/super-admin/tenants/:id/estado-auditoria` | Historial de cambios de estado. |
 | `POST` | `/super-admin/tenants/:id/pagos` | Registrar el pago: mueve la fecha de próximo pago (desde el 2026-10-26). |
 
-Son quince contratos, los quince protegidos por la caracterización de la
-página. El último se agregó después del cierre de la capa (ver la última
-sección).
+Son dieciséis contratos, protegidos por la caracterización de la página.
+`POST /super-admin/tenants/:id/pagos` y `GET /cartera/puntualidad` se
+agregaron después del cierre de la capa.
 
 Contratos de escritura protegidos:
 
@@ -210,8 +211,22 @@ durante la migración:
 
 - Sin `usuario` en almacenamiento, o con un rol distinto de `admin`, la página
   llama `navigate("/login")`, devuelve `null` y **no dispara ninguna consulta**.
-- Las dos consultas son independientes: cartera no cancela y cumpleaños sí usa
-  una bandera `activo`. El fallo de una no afecta a la otra ni a las tarjetas.
+- Las consultas son independientes (cartera, puntualidad y cumpleaños, cada
+  una con su bandera `activo`). El fallo de una no afecta a las otras ni a las
+  tarjetas. Desde el paso 4 (2026-11-11) son tres: se sumó
+  `GET /cartera/puntualidad`.
+- Orden de la maqueta Mosaico (paso 4, 2026-11-11): «Por cobrar este año» con
+  «Pagan siempre a tiempo»; «Los 5 que más deben» con «Los que mejor pagan»;
+  «Deuda por curso» con «Accesos rápidos»; el muro de cumpleaños al final.
+- «Pagan siempre a tiempo» (anillo) y «Los que mejor pagan» (botones «Todo el
+  colegio» / «Por curso»; al tocar un curso se abren ahí mismo sus mejores,
+  con oro, plata y bronce; 5 cursos y «Ver los N cursos») solo pintan lo que
+  manda el backend: qué es a tiempo, quién entra al ranking y el orden se
+  deciden allá (`app/services/puntualidad.py`). Cargando
+  (`Calculando quién paga a tiempo…`), error y «todavía no vence ninguna
+  mensualidad» son estados distintos. El porcentaje va sin decimales y nunca
+  dice 100 % si alguien se atrasó ni 0 % si alguien paga a tiempo. «Ocultar
+  valores» no los toca: no tienen montos.
 - Desde el 2026-11-11 (rediseño, paso 1) la cartera se reparte en tres
   tarjetas: «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso».
   Cargando, error y cartera al día son estados distintos: mientras carga dicen

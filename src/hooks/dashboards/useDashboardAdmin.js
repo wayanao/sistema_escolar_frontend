@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
     obtenerCumpleanosAdmin,
+    obtenerPuntualidadParaDashboard,
     obtenerResumenCarteraParaDashboard,
 } from "../../services/dashboardsApi";
 import {
@@ -14,9 +15,14 @@ import {
     construirParametrosCumpleanos,
     normalizarCumpleanos,
 } from "../../utils/dashboards/cumpleanos";
+import {
+    MENSAJE_ERROR_PUNTUALIDAD,
+    normalizarPuntualidad,
+} from "../../utils/dashboards/puntualidad";
 
-// Cartera y cumpleaños son dos secciones independientes: cada una tiene su
-// propio efecto y el fallo de una no afecta a la otra ni a los accesos.
+// Cartera, puntualidad y cumpleaños son secciones independientes: cada una
+// tiene su propio efecto y el fallo de una no afecta a las otras ni a los
+// accesos.
 const useDashboardAdmin = () => {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     // `usuario` se relee del almacenamiento en cada render, así que es un objeto
@@ -28,6 +34,9 @@ const useDashboardAdmin = () => {
     // espera se pintaba como «Cartera al día».
     const [cargandoCartera, setCargandoCartera] = useState(true);
     const [errorCartera, setErrorCartera] = useState("");
+    const [puntualidad, setPuntualidad] = useState(null);
+    const [cargandoPuntualidad, setCargandoPuntualidad] = useState(true);
+    const [errorPuntualidad, setErrorPuntualidad] = useState("");
     const [cumpleanos, setCumpleanos] = useState([]);
     const [loadingCumpleanos, setLoadingCumpleanos] = useState(true);
     const [errorCumpleanos, setErrorCumpleanos] = useState("");
@@ -46,6 +55,27 @@ const useDashboardAdmin = () => {
             })
             .finally(() => {
                 if (activo) setCargandoCartera(false);
+            });
+
+        return () => {
+            activo = false;
+        };
+    }, [esAdministrador]);
+
+    useEffect(() => {
+        if (!esAdministrador) return;
+
+        let activo = true;
+        obtenerPuntualidadParaDashboard()
+            .then((data) => {
+                if (activo) setPuntualidad(normalizarPuntualidad(data));
+            })
+            .catch((err) => {
+                console.error("Error cargando la puntualidad de pagos:", err);
+                if (activo) setErrorPuntualidad(MENSAJE_ERROR_PUNTUALIDAD);
+            })
+            .finally(() => {
+                if (activo) setCargandoPuntualidad(false);
             });
 
         return () => {
@@ -85,6 +115,9 @@ const useDashboardAdmin = () => {
         resumenCartera,
         cargandoCartera,
         errorCartera,
+        puntualidad,
+        cargandoPuntualidad,
+        errorPuntualidad,
         cumpleanos,
         loadingCumpleanos,
         errorCumpleanos,

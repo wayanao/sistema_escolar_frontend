@@ -5,7 +5,9 @@ import AccesosAdmin from "../components/dashboards/admin/AccesosAdmin";
 import EncabezadoPanelAdmin from "../components/dashboards/admin/EncabezadoPanelAdmin";
 import TarjetaDeudaPorCurso from "../components/dashboards/admin/TarjetaDeudaPorCurso";
 import TarjetaMayoresDeudores from "../components/dashboards/admin/TarjetaMayoresDeudores";
+import TarjetaMejoresPagadores from "../components/dashboards/admin/TarjetaMejoresPagadores";
 import TarjetaPorCobrar from "../components/dashboards/admin/TarjetaPorCobrar";
+import TarjetaPuntualidad from "../components/dashboards/admin/TarjetaPuntualidad";
 import useDashboardAdmin from "../hooks/dashboards/useDashboardAdmin";
 import {
   RUTA_CARTERA_VENCIDA,
@@ -23,6 +25,9 @@ function Admin() {
     resumenCartera,
     cargandoCartera,
     errorCartera,
+    puntualidad,
+    cargandoPuntualidad,
+    errorPuntualidad,
     cumpleanos,
     loadingCumpleanos,
     errorCumpleanos,
@@ -37,7 +42,11 @@ function Admin() {
   }
 
   const estadoCartera = { cargando: cargandoCartera, error: errorCartera, valoresOcultos };
+  const estadoPuntualidad = { puntualidad, cargando: cargandoPuntualidad, error: errorPuntualidad };
 
+  // Orden de la maqueta Mosaico (aprobada el 2026-11-11): lo que se debe junto
+  // a quién paga a tiempo; los que más deben junto a los que mejor pagan; la
+  // deuda por curso junto a los accesos; y el muro de cumpleaños al final.
   return (
     <div className="min-h-screen p-4 sm:p-6">
       <div className="mx-auto w-full max-w-[1200px]">
@@ -51,7 +60,7 @@ function Admin() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap gap-5">
             <TarjetaPorCobrar className="flex-[2_1_520px]" resumen={resumenCartera} {...estadoCartera} />
-            <TarjetaDeudaPorCurso className="flex-[1_1_300px]" cursos={deudaPorCurso(resumenCartera)} {...estadoCartera} />
+            <TarjetaPuntualidad className="flex-[1_1_280px]" {...estadoPuntualidad} />
           </div>
 
           <div className="flex flex-wrap gap-5">
@@ -62,6 +71,11 @@ function Admin() {
               onCobrar={(estudianteId) => navigate(RUTA_PAGOS, { state: { estudiante_id: estudianteId } })}
               onVerCartera={() => navigate(RUTA_CARTERA_VENCIDA)}
             />
+            <TarjetaMejoresPagadores className="flex-[1_1_420px]" {...estadoPuntualidad} />
+          </div>
+
+          <div className="flex flex-wrap gap-5">
+            <TarjetaDeudaPorCurso className="flex-[1_1_300px]" cursos={deudaPorCurso(resumenCartera)} {...estadoCartera} />
             <AccesosAdmin className="flex-[1_1_300px]" onAbrir={navigate} />
           </div>
 

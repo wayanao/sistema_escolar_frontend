@@ -11,6 +11,7 @@ import {
     obtenerInasistenciasProfesor,
     obtenerNotasAltasProfesor,
     obtenerNotasBajasProfesor,
+    obtenerPuntualidadParaDashboard,
     obtenerRankingBajoRendimiento,
     obtenerRankingMejorRendimiento,
     obtenerResumenCarteraParaDashboard,
@@ -44,6 +45,16 @@ describe("dashboardsApi", () => {
         expect(api.get).toHaveBeenNthCalledWith(2, "/dashboard/cumpleanos/admin", {
             params: { dias: 7 },
         });
+    });
+
+    it("consulta quién paga a tiempo para el panel de admin, sin parámetros", async () => {
+        const puntualidad = { total_estudiantes: 3, siempre_a_tiempo: 2, mejores: [], cursos: [] };
+        api.get.mockResolvedValueOnce({ data: puntualidad });
+
+        await expect(obtenerPuntualidadParaDashboard()).resolves.toBe(puntualidad);
+
+        expect(api.get).toHaveBeenCalledWith("/cartera/puntualidad");
+        expect(api.get.mock.calls[0]).toHaveLength(1);
     });
 
     it("consulta clases, inasistencias y cumpleaños del profesor", async () => {

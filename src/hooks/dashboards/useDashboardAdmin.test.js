@@ -5,6 +5,7 @@ import useDashboardAdmin from "./useDashboardAdmin";
 const { serviceMock } = vi.hoisted(() => ({
     serviceMock: {
         obtenerResumenCarteraParaDashboard: vi.fn(),
+        obtenerPuntualidadParaDashboard: vi.fn(),
         obtenerCumpleanosAdmin: vi.fn(),
     },
 }));
@@ -13,12 +14,19 @@ vi.mock("../../services/dashboardsApi", () => serviceMock);
 
 const resumen = { total_estudiantes: 3, total_deuda: 1250000, total_mora: 80000 };
 const cumpleanos = [{ estudiante_id: 5, nombre: "Ana" }];
+const puntualidad = {
+    total_estudiantes: 4,
+    siempre_a_tiempo: 3,
+    mejores: [{ estudiante_id: 8, nombre: "luz", apellido: "mar", curso_nombre: "1A", cuotas_vencidas: 9, cuotas_a_tiempo: 9 }],
+    cursos: [],
+};
 
 describe("useDashboardAdmin", () => {
     beforeEach(() => {
         localStorage.clear();
         vi.spyOn(console, "error").mockImplementation(() => {});
         serviceMock.obtenerResumenCarteraParaDashboard.mockResolvedValue(resumen);
+        serviceMock.obtenerPuntualidadParaDashboard.mockResolvedValue(puntualidad);
         serviceMock.obtenerCumpleanosAdmin.mockResolvedValue(cumpleanos);
     });
 
@@ -27,6 +35,7 @@ describe("useDashboardAdmin", () => {
 
         expect(result.current.esAdministrador).toBe(false);
         expect(serviceMock.obtenerResumenCarteraParaDashboard).not.toHaveBeenCalled();
+        expect(serviceMock.obtenerPuntualidadParaDashboard).not.toHaveBeenCalled();
         expect(serviceMock.obtenerCumpleanosAdmin).not.toHaveBeenCalled();
     });
 
@@ -37,7 +46,51 @@ describe("useDashboardAdmin", () => {
 
         expect(result.current.esAdministrador).toBe(false);
         expect(serviceMock.obtenerResumenCarteraParaDashboard).not.toHaveBeenCalled();
+        expect(serviceMock.obtenerPuntualidadParaDashboard).not.toHaveBeenCalled();
         expect(serviceMock.obtenerCumpleanosAdmin).not.toHaveBeenCalled();
+    });
+
+    it("carga quién paga a tiempo, ya normalizado", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+
+        const { result } = renderHook(() => useDashboardAdmin());
+
+        // Mientras carga no se sabe nada: no puede leerse como «nadie».
+        expect(result.current.cargandoPuntualidad).toBe(true);
+        expect(result.current.puntualidad).toBeNull();
+
+        await waitFor(() => expect(result.current.cargandoPuntualidad).toBe(false));
+        expect(result.current.puntualidad.totalEstudiantes).toBe(4);
+        expect(result.current.puntualidad.siempreATiempo).toBe(3);
+        expect(result.current.puntualidad.mejores[0].nombre).toBe("Luz Mar");
+        expect(result.current.errorPuntualidad).toBe("");
+        expect(serviceMock.obtenerPuntualidadParaDashboard).toHaveBeenCalledWith();
+    });
+
+    it("el fallo de la puntualidad publica su error y no toca cartera ni cumpleaños", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+        serviceMock.obtenerPuntualidadParaDashboard.mockRejectedValue(new Error("404"));
+
+        const { result } = renderHook(() => useDashboardAdmin());
+
+        await waitFor(() => expect(result.current.cargandoPuntualidad).toBe(false));
+        expect(result.current.errorPuntualidad).toBe("No se pudo cargar quién paga a tiempo.");
+        expect(result.current.puntualidad).toBeNull();
+        await waitFor(() => expect(result.current.loadingCumpleanos).toBe(false));
+        expect(result.current.resumenCartera).toEqual(resumen);
+        expect(result.current.errorCartera).toBe("");
+        expect(result.current.cumpleanos).toEqual(cumpleanos);
+    });
+
+    it("el fallo de la cartera no impide cargar la puntualidad", async () => {
+        localStorage.setItem("usuario", JSON.stringify({ id: 1, rol: "admin" }));
+        serviceMock.obtenerResumenCarteraParaDashboard.mockRejectedValue(new Error("500"));
+
+        const { result } = renderHook(() => useDashboardAdmin());
+
+        await waitFor(() => expect(result.current.cargandoPuntualidad).toBe(false));
+        expect(result.current.puntualidad.totalEstudiantes).toBe(4);
+        expect(result.current.errorPuntualidad).toBe("");
     });
 
     it("expone el saludo del administrador y el rango de cumpleaños", () => {
@@ -102,6 +155,7 @@ describe("useDashboardAdmin", () => {
         rerender();
 
         expect(serviceMock.obtenerResumenCarteraParaDashboard).toHaveBeenCalledTimes(1);
+        expect(serviceMock.obtenerPuntualidadParaDashboard).toHaveBeenCalledTimes(1);
         expect(serviceMock.obtenerCumpleanosAdmin).toHaveBeenCalledTimes(1);
     });
 

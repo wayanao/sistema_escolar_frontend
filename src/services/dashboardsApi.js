@@ -13,6 +13,13 @@ export const obtenerResumenCarteraParaDashboard = async () => {
     return response.data;
 };
 
+// Quién paga a tiempo sus mensualidades del año activo: «Pagan siempre a
+// tiempo» y «Los que mejor pagan». Solo lee; solo para el admin.
+export const obtenerPuntualidadParaDashboard = async () => {
+    const response = await api.get("/cartera/puntualidad");
+    return response.data;
+};
+
 export const obtenerCumpleanosAdmin = async (params) => {
     const response = await api.get("/dashboard/cumpleanos/admin", { params });
     return response.data;

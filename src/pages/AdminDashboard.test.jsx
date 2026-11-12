@@ -69,15 +69,44 @@ const cumpleanos = [
     { estudiante_id: 5, nombre: "Ana", apellido: "Arias", curso: "5A", fecha_nacimiento: "2012-08-07" },
 ];
 
+// Forma real de `GET /cartera/puntualidad`.
+const lucia = {
+    estudiante_id: 11,
+    nombre: "lucía",
+    apellido: "fernández",
+    curso_id: 10,
+    curso_nombre: "DÉCIMO",
+    cuotas_vencidas: 10,
+    cuotas_a_tiempo: 10,
+    dias_antes_promedio: 6,
+    siempre_a_tiempo: true,
+};
+const puntualidad = {
+    fecha_corte: "2026-11-11",
+    total_estudiantes: 3,
+    siempre_a_tiempo: 1,
+    porcentaje: 33.3,
+    mejores: [lucia],
+    cursos: [
+        { curso_id: 10, curso_nombre: "DÉCIMO", estudiantes: 2, siempre_a_tiempo: 1, porcentaje: 50, mejores: [lucia] },
+        { curso_id: 5, curso_nombre: "QUINTO", estudiantes: 1, siempre_a_tiempo: 0, porcentaje: 0, mejores: [] },
+    ],
+};
+
 const ERROR_CARTERA = "No se pudo cargar la cartera vencida.";
+const ERROR_PUNTUALIDAD = "No se pudo cargar quién paga a tiempo.";
 
 const iniciarSesionAdmin = () => {
     localStorage.setItem("usuario", JSON.stringify({ id: 1, nombre: "carlos gómez", rol: "admin" }));
 };
 
-const responder = ({ resumen = resumenConDeuda, cumples = cumpleanos } = {}) => {
+// Cada consulta responde con su dato, o con una promesa propia (que falle o
+// que nunca termine) si la prueba la pasa.
+const responder = ({ resumen = resumenConDeuda, cumples = cumpleanos, puntuales = puntualidad, respuestas = {} } = {}) => {
     apiMock.get.mockImplementation((url) => {
+        if (url in respuestas) return respuestas[url]();
         if (url === "/cartera/mora/resumen") return Promise.resolve({ data: resumen });
+        if (url === "/cartera/puntualidad") return Promise.resolve({ data: puntuales });
         if (url === "/dashboard/cumpleanos/admin") return Promise.resolve({ data: cumples });
         throw new Error(`GET inesperado: ${url}`);
     });
@@ -112,7 +141,7 @@ describe("AdminDashboard", () => {
         expect(apiMock.get).not.toHaveBeenCalled();
     });
 
-    it("hace las mismas dos consultas de antes, ni una más", async () => {
+    it("hace tres consultas: la cartera, quién paga a tiempo y los cumpleaños", async () => {
         iniciarSesionAdmin();
 
         render(<AdminDashboard />);
@@ -120,10 +149,73 @@ describe("AdminDashboard", () => {
         await waitFor(() => {
             expect(apiMock.get).toHaveBeenCalledWith("/cartera/mora/resumen");
         });
+        expect(apiMock.get).toHaveBeenCalledWith("/cartera/puntualidad");
         expect(apiMock.get).toHaveBeenCalledWith("/dashboard/cumpleanos/admin", {
             params: { dias: 7 },
         });
-        expect(apiMock.get).toHaveBeenCalledTimes(2);
+        expect(apiMock.get).toHaveBeenCalledTimes(3);
+    });
+
+    it("ordena los cuadros como en la maqueta Mosaico, con el muro al final", () => {
+        iniciarSesionAdmin();
+
+        render(<AdminDashboard />);
+
+        const enOrden = [
+            "Por cobrar este año",
+            "Pagan siempre a tiempo",
+            "Los 5 que más deben",
+            "Los que mejor pagan",
+            "Deuda por curso",
+            "Accesos rápidos",
+            "Cumpleaños de la semana",
+        ].map((nombre) => screen.getByRole("region", { name: nombre }));
+        // Todas las secciones de la página, en el orden en que se pintan.
+        expect(screen.getAllByRole("region")).toEqual(enOrden);
+    });
+
+    it("muestra quién paga siempre a tiempo y los que mejor pagan", async () => {
+        iniciarSesionAdmin();
+
+        render(<AdminDashboard />);
+
+        const anillo = screen.getByRole("region", { name: "Pagan siempre a tiempo" });
+        await waitFor(() => expect(anillo).toHaveTextContent("33 %"));
+        expect(anillo).toHaveTextContent("1 de 3");
+
+        const mejores = screen.getByRole("region", { name: "Los que mejor pagan" });
+        expect(mejores).toHaveTextContent("Lucía Fernández");
+        expect(mejores).toHaveTextContent("Suele pagar 6 días antes");
+
+        fireEvent.click(screen.getByRole("button", { name: "Por curso" }));
+        fireEvent.click(screen.getByRole("button", { name: /^1\s*DÉCIMO/ }));
+        expect(mejores).toHaveTextContent("Quien mejor paga en DÉCIMO");
+        expect(mejores).toHaveTextContent("Nadie más paga siempre a tiempo.");
+    });
+
+    it("«Ocultar valores» no cambia los cuadros de puntualidad, que no tienen montos", async () => {
+        iniciarSesionAdmin();
+
+        render(<AdminDashboard />);
+        const anillo = screen.getByRole("region", { name: "Pagan siempre a tiempo" });
+        await waitFor(() => expect(anillo).toHaveTextContent("33 %"));
+
+        fireEvent.click(screen.getByRole("button", { name: "Ocultar valores" }));
+
+        expect(anillo).toHaveTextContent("33 %");
+        expect(screen.getByRole("region", { name: "Los que mejor pagan" })).toHaveTextContent("Lucía Fernández");
+    });
+
+    it("si falla quién paga a tiempo, la cartera y los cumpleaños siguen", async () => {
+        iniciarSesionAdmin();
+        responder({ respuestas: { "/cartera/puntualidad": () => Promise.reject(new Error("404")) } });
+
+        render(<AdminDashboard />);
+
+        await waitFor(() => expect(screen.getAllByText(ERROR_PUNTUALIDAD)).toHaveLength(2));
+        await waitFor(() => expect(porCobrar().textContent).toContain("1.250.000"));
+        expect(await screen.findByText("Ana Arias")).toBeInTheDocument();
+        expect(screen.queryByText(ERROR_CARTERA)).not.toBeInTheDocument();
     });
 
     it("saluda con el primer nombre capitalizado", () => {
@@ -213,11 +305,7 @@ describe("AdminDashboard", () => {
 
     it("mientras carga la cartera no dice que está al día", () => {
         iniciarSesionAdmin();
-        apiMock.get.mockImplementation((url) => {
-            if (url === "/cartera/mora/resumen") return new Promise(() => {});
-            if (url === "/dashboard/cumpleanos/admin") return Promise.resolve({ data: cumpleanos });
-            throw new Error(`GET inesperado: ${url}`);
-        });
+        responder({ respuestas: { "/cartera/mora/resumen": () => new Promise(() => {}) } });
 
         render(<AdminDashboard />);
 
@@ -228,11 +316,7 @@ describe("AdminDashboard", () => {
 
     it("conserva las demás secciones cuando falla el resumen de cartera", async () => {
         iniciarSesionAdmin();
-        apiMock.get.mockImplementation((url) => {
-            if (url === "/cartera/mora/resumen") return Promise.reject(new Error("500"));
-            if (url === "/dashboard/cumpleanos/admin") return Promise.resolve({ data: cumpleanos });
-            throw new Error(`GET inesperado: ${url}`);
-        });
+        responder({ respuestas: { "/cartera/mora/resumen": () => Promise.reject(new Error("500")) } });
 
         render(<AdminDashboard />);
 
@@ -242,15 +326,15 @@ describe("AdminDashboard", () => {
         expect(screen.queryByText("Cartera al día")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Abrir Gestión de Pagos" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Ver toda la cartera vencida" })).toBeInTheDocument();
+        // Quién paga a tiempo es otra consulta: no cae con la cartera.
+        await waitFor(() =>
+            expect(screen.getByRole("region", { name: "Pagan siempre a tiempo" })).toHaveTextContent("33 %"),
+        );
     });
 
     it("conserva las demás secciones cuando fallan los cumpleaños", async () => {
         iniciarSesionAdmin();
-        apiMock.get.mockImplementation((url) => {
-            if (url === "/cartera/mora/resumen") return Promise.resolve({ data: resumenConDeuda });
-            if (url === "/dashboard/cumpleanos/admin") return Promise.reject(new Error("500"));
-            throw new Error(`GET inesperado: ${url}`);
-        });
+        responder({ respuestas: { "/dashboard/cumpleanos/admin": () => Promise.reject(new Error("500")) } });
 
         render(<AdminDashboard />);
 
