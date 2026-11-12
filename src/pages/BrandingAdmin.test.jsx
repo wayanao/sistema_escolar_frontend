@@ -2,8 +2,26 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { cacheMock, serviceMock } = vi.hoisted(() => ({
+const { cacheMock, firmasMock, prepararFirmaMock, serviceMock, sweet } = vi.hoisted(() => ({
   cacheMock: vi.fn(),
+  // Firma del rector(a) para el boletín (FIRMAS_BOLETIN.md, paso 2).
+  firmasMock: {
+    obtenerFirmaInstitucional: vi.fn(),
+    guardarFirmaInstitucional: vi.fn(),
+    quitarFirmaInstitucional: vi.fn(),
+    obtenerMiFirma: vi.fn(),
+    guardarMiFirma: vi.fn(),
+    quitarMiFirma: vi.fn(),
+  },
+  prepararFirmaMock: vi.fn(),
+  sweet: {
+    fire: vi.fn(),
+    update: vi.fn(),
+    getFooter: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+  },
   serviceMock: {
     activarPlantilla: vi.fn(),
     actualizarPlantilla: vi.fn(),
@@ -18,6 +36,10 @@ const { cacheMock, serviceMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../services/printingService", () => serviceMock);
+vi.mock("../services/firmasApi", () => firmasMock);
+// jsdom no abre imágenes ni dibuja: la foto ya "limpia" sale de aquí.
+vi.mock("../hooks/firmas/lienzoFirma", () => ({ prepararFirma: prepararFirmaMock }));
+vi.mock("sweetalert2", () => ({ default: sweet }));
 vi.mock("../hooks/certificadosImpresion/usePrintConfig", () => ({
   invalidatePrintCache: cacheMock,
 }));
@@ -67,6 +89,11 @@ beforeEach(() => {
   serviceMock.actualizarPlantilla.mockResolvedValue({ ok: true });
   serviceMock.duplicarPlantilla.mockResolvedValue({ ok: true });
   serviceMock.eliminarPlantilla.mockResolvedValue({ ok: true });
+  firmasMock.obtenerFirmaInstitucional.mockResolvedValue({ imagen: null, actualizado_en: null });
+  firmasMock.guardarFirmaInstitucional.mockImplementation((imagen) =>
+    Promise.resolve({ imagen, actualizado_en: "2026-11-12T15:30:00+00:00" }),
+  );
+  prepararFirmaMock.mockResolvedValue("data:image/png;base64,limpia");
   vi.stubGlobal("prompt", vi.fn(() => "Copia personalizada"));
   vi.stubGlobal("confirm", vi.fn(() => true));
   vi.spyOn(console, "error").mockImplementation(() => {});
@@ -107,6 +134,27 @@ describe("BrandingAdmin", () => {
     expect(confirm).toHaveBeenCalledWith("¿Eliminar el logo principal?");
     expect(serviceMock.deleteLogo).toHaveBeenCalledWith("principal");
     await waitFor(() => expect(cacheMock).toHaveBeenCalledTimes(3));
+  });
+
+  it("la firma del rector(a) se sube con una foto y se guarda sola, sin «Guardar cambios»", async () => {
+    const user = userEvent.setup();
+    render(<BrandingAdmin />);
+
+    expect(await screen.findByRole("heading", { name: "Firma del rector(a)" })).toBeInTheDocument();
+    expect(firmasMock.obtenerFirmaInstitucional).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("Sin firma")).toBeInTheDocument();
+
+    const foto = new File(["foto"], "firma.jpg", { type: "image/jpeg" });
+    await user.upload(screen.getByTestId("entrada-foto-firma"), foto);
+    expect(prepararFirmaMock).toHaveBeenCalledWith(foto, undefined);
+    expect(await screen.findByText("Así va a salir:")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Guardar firma" }));
+
+    expect(firmasMock.guardarFirmaInstitucional).toHaveBeenCalledWith("data:image/png;base64,limpia");
+    expect(serviceMock.updateBranding).not.toHaveBeenCalled();
+    expect(await screen.findByText("Guardada el 12 de noviembre de 2026.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Quitar firma" })).toBeInTheDocument();
   });
 
   it("conserva comandos y configuración de plantillas desde la página", async () => {

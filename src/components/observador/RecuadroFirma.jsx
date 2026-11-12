@@ -15,6 +15,10 @@ import { useEffect, useRef, useState } from "react";
  * oscuros sobre blanco, pesa pocos KB, lejos del límite de 100 KB del servidor.
  *
  * Para empezar de cero con otra anotación, quien lo usa le cambia la `key`.
+ *
+ * Desde el 2026-11-12 también lo usan las firmas guardadas para el boletín
+ * (`components/firmas/CuadroFirma.jsx`): `etiqueta` es el nombre que leen los
+ * lectores de pantalla; por defecto, el del acudiente.
  */
 
 export const ANCHO_LIENZO = 900;
@@ -31,7 +35,11 @@ function pintarFondo(lienzo) {
   contexto.fillRect(0, 0, lienzo.width, lienzo.height);
 }
 
-export default function RecuadroFirma({ onCambio, deshabilitado = false }) {
+export default function RecuadroFirma({
+  onCambio,
+  deshabilitado = false,
+  etiqueta = "Recuadro para la firma del acudiente",
+}) {
   const lienzoRef = useRef(null);
   const trazandoRef = useRef(false);
   const [hayTrazo, setHayTrazo] = useState(false);
@@ -103,7 +111,7 @@ export default function RecuadroFirma({ onCambio, deshabilitado = false }) {
         width={ANCHO_LIENZO}
         height={ALTO_LIENZO}
         role="img"
-        aria-label="Recuadro para la firma del acudiente"
+        aria-label={etiqueta}
         onPointerDown={empezar}
         onPointerMove={seguir}
         onPointerUp={terminar}

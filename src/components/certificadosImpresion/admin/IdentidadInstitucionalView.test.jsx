@@ -91,4 +91,26 @@ describe("IdentidadInstitucionalView", () => {
       expect(onCambiarCampo).toHaveBeenLastCalledWith(clave, `${valor} nuevo`);
     }
   });
+
+  it("pone el cuadro de la firma del boletín debajo de los logos (FIRMAS_BOLETIN.md)", () => {
+    render(
+      <IdentidadInstitucionalView
+        branding={{ nombre_institucion: "Colegio Central" }}
+        cuadroFirma={<section aria-label="Cuadro de la firma" />}
+        guardando={false}
+        loading={false}
+        mensaje={null}
+        onCambiarCampo={vi.fn()}
+        onEliminarLogo={vi.fn()}
+        onGuardar={vi.fn()}
+        onSubirLogo={vi.fn()}
+      />,
+    );
+
+    const logos = screen.getByRole("heading", { name: "Logos / Escudos" }).closest("section");
+    const firma = screen.getByRole("region", { name: "Cuadro de la firma" });
+    const datos = screen.getByRole("heading", { name: "Datos institucionales" }).closest("section");
+    expect(logos.nextElementSibling).toBe(firma);
+    expect(firma.nextElementSibling).toBe(datos);
+  });
 });

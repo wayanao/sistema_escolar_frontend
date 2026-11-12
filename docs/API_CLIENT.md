@@ -1242,6 +1242,27 @@ Notas frontend sin cambio de API:
 - `Descargar PDF` e `Imprimir` usan `window.print()`. La generacion/guardado
   del PDF depende del navegador del usuario.
 
+## Firmas guardadas para el boletin (2026-11-12)
+
+Documento principal en el backend: `sistema_escolar_api/docs/funcionalidades/FIRMAS_BOLETIN.md`;
+aqui, `docs/funcionalidades/FIRMAS_BOLETIN.md`. Unica frontera HTTP:
+`src/services/firmasApi.js`.
+
+- `GET`, `PUT`, `DELETE /firmas/institucional`: la firma del rector(a). **Solo
+  admin**, tambien para leer (un profesor recibe `403`). La firma no viaja en
+  `GET /branding`.
+- `GET`, `PUT`, `DELETE /firmas/mia`: la firma del profesor de la sesion.
+  **Solo profesor**; el servidor usa el id de la sesion, asi que el frontend no
+  envia ninguno.
+- `PUT` manda `{imagen}`: PNG como `data:image/png;base64,...`, de hasta 100
+  KB. El frontend lo arma antes (`hooks/firmas/lienzoFirma.js`): deja solo la
+  tinta sobre fondo transparente, recorta y achica. Un `422` trae la razon en
+  `detail[0].msg` ("Value error, ..."), que `mensajeErrorFirmaGuardada` limpia.
+- Todas responden `{imagen, actualizado_en}`; sin firma, los dos en `null`.
+- `GET /boletines/admin/generar/...` trae ademas `firma_institucional` y
+  `firma_director_grupo` (data URL o `null`). Los usa el boletin impreso desde
+  el paso 4.
+
 ## Riesgos pendientes observados
 
 Actualizacion 2026-06-13:

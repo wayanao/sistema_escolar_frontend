@@ -64,8 +64,13 @@ const CAMPOS_CERTIFICADOS = [
   },
 ];
 
+// `cuadroFirma` (2026-11-12): el cuadro de la firma del rector(a) para el
+// boletín, ya armado por la página (docs/funcionalidades/FIRMAS_BOLETIN.md).
+// Va debajo de los logos porque, como ellos, se guarda solo, sin «Guardar
+// cambios».
 export default function IdentidadInstitucionalView({
   branding,
+  cuadroFirma = null,
   guardando,
   loading,
   mensaje,
@@ -128,6 +133,8 @@ export default function IdentidadInstitucionalView({
           Formatos: PNG, JPG, WebP. Tamaño máximo 2MB.
         </p>
       </section>
+
+      {cuadroFirma}
 
       <section className="bg-white rounded-lg shadow border border-slate-200 p-6">
         <h2 className="text-xl font-bold text-slate-800 mb-4">Datos institucionales</h2>

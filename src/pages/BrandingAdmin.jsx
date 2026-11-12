@@ -1,8 +1,11 @@
 import { useState } from "react";
 import IdentidadInstitucionalView from "../components/certificadosImpresion/admin/IdentidadInstitucionalView";
 import PlantillasAdminView from "../components/certificadosImpresion/admin/PlantillasAdminView";
+import CuadroFirma from "../components/firmas/CuadroFirma";
 import useIdentidadInstitucional from "../hooks/certificadosImpresion/useIdentidadInstitucional";
 import usePlantillasAdmin from "../hooks/certificadosImpresion/usePlantillasAdmin";
+import useEditorFirma from "../hooks/firmas/useEditorFirma";
+import useFirmaGuardada from "../hooks/firmas/useFirmaGuardada";
 
 const TABS = [
   { key: "identidad", label: "Identidad institucional" },
@@ -49,6 +52,7 @@ function IdentidadInstitucionalPanel() {
   return (
     <IdentidadInstitucionalView
       branding={identidad.branding}
+      cuadroFirma={<FirmaInstitucionalPanel />}
       guardando={identidad.guardando}
       loading={identidad.loading}
       mensaje={identidad.mensaje}
@@ -56,6 +60,36 @@ function IdentidadInstitucionalPanel() {
       onEliminarLogo={identidad.eliminarLogo}
       onGuardar={identidad.guardar}
       onSubirLogo={identidad.subirLogo}
+    />
+  );
+}
+
+// La firma del rector(a) para el boletín (docs/funcionalidades/FIRMAS_BOLETIN.md,
+// paso 2). Se guarda sola, aparte de «Guardar cambios».
+function FirmaInstitucionalPanel() {
+  const firma = useFirmaGuardada("institucional");
+  const editor = useEditorFirma();
+
+  const guardar = async () => {
+    const resultado = await firma.guardar(editor.imagen);
+    if (resultado.estado === "exito") editor.cerrar();
+  };
+
+  return (
+    <CuadroFirma
+      titulo="Firma del rector(a)"
+      descripcion="Sale en los boletines, sobre la raya «Director(a)». Solo la ven los administradores."
+      firma={firma.firma}
+      cargando={firma.cargando}
+      guardando={firma.guardando}
+      mensajeError={firma.mensajeError}
+      editor={editor}
+      onElegirFoto={editor.elegirFoto}
+      onAbrirDibujo={editor.abrirDibujo}
+      onCambiarDibujo={editor.cambiarDibujo}
+      onGuardar={guardar}
+      onCancelar={editor.cerrar}
+      onQuitar={firma.quitar}
     />
   );
 }
