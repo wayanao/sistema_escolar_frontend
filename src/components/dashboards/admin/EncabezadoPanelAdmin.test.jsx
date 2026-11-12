@@ -17,6 +17,15 @@ describe("EncabezadoPanelAdmin", () => {
         expect(screen.getByText("Miércoles, 11 de noviembre")).toBeInTheDocument();
     });
 
+    it("junto al nombre va la manito que saluda, como adorno", () => {
+        render(<EncabezadoPanelAdmin nombreAdmin="Carlos" fechaDeHoy="Hoy" onAlternarValores={vi.fn()} />);
+
+        const titulo = screen.getByRole("heading", { level: 1, name: "Hola, Carlos" });
+        const manito = screen.getByTestId("manito-saludo");
+        expect(titulo).toContainElement(manito);
+        expect(manito).toHaveAttribute("aria-hidden", "true");
+    });
+
     it("el botón dice lo que va a hacer y avisa al tocarlo", () => {
         const onAlternarValores = vi.fn();
         const { rerender } = render(

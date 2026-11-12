@@ -842,3 +842,63 @@
     animation: none;
   }
 }
+
+/* Manito de caricatura junto al nombre del admin (ManitoSaludo, pedido del
+   usuario el 2026-11-12). Gira desde la muñeca (la mangita, en unidades del
+   dibujo de 64 × 64): cuatro vaivenes que se van calmando. Las rayitas de
+   movimiento solo se ven mientras saluda; con «reducir movimiento» la mano se
+   queda quieta y las rayitas quedan visibles para que se lea el saludo. */
+.manito-saludo {
+  transform-origin: 35px 62px;
+  animation: manitoSaludo 2.2s ease-in-out 0.3s both;
+}
+
+.manito-rayas {
+  animation: manitoRayas 2.2s ease-in-out 0.3s both;
+}
+
+@keyframes manitoSaludo {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(18deg);
+  }
+  22% {
+    transform: rotate(-10deg);
+  }
+  34% {
+    transform: rotate(18deg);
+  }
+  46% {
+    transform: rotate(-10deg);
+  }
+  58% {
+    transform: rotate(14deg);
+  }
+  70% {
+    transform: rotate(-4deg);
+  }
+  82% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes manitoRayas {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  8%,
+  85% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manito-saludo,
+  .manito-rayas {
+    animation: none;
+  }
+}

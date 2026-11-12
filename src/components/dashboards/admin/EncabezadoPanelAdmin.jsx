@@ -1,3 +1,5 @@
+import ManitoSaludo from "../ManitoSaludo";
+
 function IconoOjo({ tachado }) {
   return (
     <svg
@@ -39,7 +41,12 @@ function EncabezadoPanelAdmin({ nombreAdmin, fechaDeHoy, valoresOcultos = false,
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-purple-700">Panel de administración</p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
-          Hola, <span translate="no">{nombreAdmin}</span>
+          Hola,{" "}
+          {/* La manito va pegada al nombre: si no cabe, bajan juntos de línea. */}
+          <span className="whitespace-nowrap">
+            <span translate="no">{nombreAdmin}</span>
+            <ManitoSaludo className="ml-2 h-[1.25em] w-[1.25em] -translate-y-[0.08em] align-middle" />
+          </span>
         </h1>
         <p className="mt-1 text-sm text-slate-600 sm:text-base">Así van los pagos del colegio hoy.</p>
       </div>

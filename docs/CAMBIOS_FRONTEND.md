@@ -1,5 +1,21 @@
 # Cambios Frontend
 
+## 2026-11-12 - Panel del admin: manito que saluda junto al nombre
+
+- Pedido del usuario: «ponle una manito al nombre del admin como una
+  caricatura».
+- `ManitoSaludo` (nuevo, `components/dashboards/`): una mano amarilla de
+  dibujo animado, con contorno morado oscuro, mangita morada y rayitas de
+  movimiento, dibujada en SVG (sin emoji, se ve igual en todos los equipos).
+  Saluda al abrir el panel (2,2 s, cuatro vaivenes que se calman) y otra vez
+  al pasarle el ratón o tocarla. Con «reducir movimiento» se queda quieta.
+- Va pegada al nombre en «Hola, Carlos»: si no cabe, bajan juntos de línea.
+  Es un adorno: el título sigue siendo «Hola, Carlos» para los lectores de
+  pantalla.
+- Archivos: `components/dashboards/ManitoSaludo.jsx` (nuevo),
+  `components/dashboards/admin/EncabezadoPanelAdmin.jsx`, `src/index.css` y
+  sus pruebas.
+
 ## 2026-11-12 - Paneles: el caminito que se llena en cada cuadro mientras carga
 
 - Pedido del usuario: mientras cargan los datos del panel, «el caminito

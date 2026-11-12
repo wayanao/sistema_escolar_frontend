@@ -254,6 +254,10 @@ durante la migración:
   tecla no navega. La accesibilidad de teclado queda protegida.
 - El saludo usa el primer nombre con la inicial en mayúscula y **no** baja el
   resto a minúsculas, a diferencia del panel del profesor.
+- Desde el 2026-11-12, junto al nombre va `ManitoSaludo`, una manito de
+  caricatura que saluda al abrir y al pasarle el ratón (quieta con «reducir
+  movimiento»). Es `aria-hidden`: el nombre del título sigue siendo
+  `Hola, <nombre>`.
 - Desde el 2026-11-11 los cumpleaños van en `MuroCumpleanos` (ver «Muro de
   cumpleaños», abajo), al final del panel, con el texto
   `Esta semana no hay estudiantes activos de cumpleaños.`. Antes iban en
