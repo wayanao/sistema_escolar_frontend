@@ -62,7 +62,9 @@ describe("MuroCumpleanos", () => {
 
     it("dice cuando busca, cuando falla y cuando no hay cumpleaños", () => {
         const { rerender } = pintar({ loading: true });
-        expect(screen.getByText("Buscando cumpleaños de la semana…")).toBeInTheDocument();
+        // Mientras busca, el caminito que se llena, sin letras.
+        expect(screen.getByRole("progressbar", { name: "Buscando cumpleaños de la semana" })).toBeInTheDocument();
+        expect(screen.queryByText(/buscando/i)).not.toBeInTheDocument();
 
         rerender(
             <MuroCumpleanos

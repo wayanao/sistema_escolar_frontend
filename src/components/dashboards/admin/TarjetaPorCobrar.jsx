@@ -1,4 +1,5 @@
 import { composicionDeuda, montoVisible, textoEstudiantes } from "../../../utils/dashboards/admin";
+import CaminitoCargando from "../CaminitoCargando";
 
 // Las tres partes de la deuda del año, en el orden en que se pintan.
 const PARTES = [
@@ -35,7 +36,7 @@ function TarjetaPorCobrar({ resumen, cargando = false, error = "", valoresOculto
       </div>
 
       {cargando ? (
-        <p className="text-sm text-slate-500">Cargando la cartera…</p>
+        <CaminitoCargando etiqueta="Cargando la cartera" className="my-2" />
       ) : error ? (
         <p role="alert" className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
           {error}

@@ -149,7 +149,8 @@ describe("TarjetaMejoresPagadores", () => {
 
     it("cargando, error y «todavía no vence nada» no muestran los botones", () => {
         const { rerender } = render(<TarjetaMejoresPagadores puntualidad={null} cargando />);
-        expect(screen.getByText("Calculando quién paga a tiempo…")).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "Calculando quién paga a tiempo" })).toBeInTheDocument();
+        expect(screen.queryByText(/calculando/i)).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Por curso" })).not.toBeInTheDocument();
 
         rerender(<TarjetaMejoresPagadores puntualidad={null} error="No se pudo cargar quién paga a tiempo." />);

@@ -25,6 +25,14 @@ describe("TarjetaDeudaPorCurso", () => {
         expect(screen.getAllByText(VALOR_OCULTO)).toHaveLength(2);
     });
 
+    it("mientras carga muestra el caminito, sin letras", () => {
+        render(<TarjetaDeudaPorCurso cursos={[]} cargando />);
+
+        expect(screen.getByRole("progressbar", { name: "Cargando la cartera" })).toBeInTheDocument();
+        expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
+        expect(screen.queryByText("Ningún curso debe este año.")).not.toBeInTheDocument();
+    });
+
     it("dice cuando ningún curso debe, y distingue el error", () => {
         const { unmount } = render(<TarjetaDeudaPorCurso cursos={[]} />);
         expect(screen.getByText("Ningún curso debe este año.")).toBeInTheDocument();

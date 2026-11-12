@@ -543,8 +543,12 @@
   border: 0;
 }
 
+/* `.caminito-cargando` es la misma barrita de la espera, dentro de cada cuadro
+   de los paneles mientras llegan sus datos (CaminitoCargando, pedido del
+   usuario el 2026-11-12: «el caminito cargando en cada tarjeta», sin letras). */
 .ventana-exito__barra,
-.ventana-espera__barra {
+.ventana-espera__barra,
+.caminito-cargando {
   width: 100%;
   height: 0.625rem;
   overflow: hidden;
@@ -553,7 +557,8 @@
 }
 
 .ventana-exito__barra > div,
-.ventana-espera__barra > div {
+.ventana-espera__barra > div,
+.caminito-cargando > div {
   height: 100%;
   border-radius: 9999px;
   background: rgb(var(--purple-600));
@@ -594,7 +599,8 @@
 /* Rápido al comienzo y cada vez más despacio, sin llegar al final: no se
    sabe cuánto tarda el servidor. Va por la mitad a medio segundo y casi por
    las tres cuartas partes al segundo (el usuario la vio lenta dos veces). */
-.ventana-espera__barra > div {
+.ventana-espera__barra > div,
+.caminito-cargando > div {
   width: 90%;
   animation: ventana-espera-llenado 3s cubic-bezier(0.1, 0.7, 0.3, 1) both;
 }
@@ -619,7 +625,8 @@
     animation: none;
   }
 
-  .ventana-espera__barra > div {
+  .ventana-espera__barra > div,
+  .caminito-cargando > div {
     animation: none;
     width: 60%;
   }

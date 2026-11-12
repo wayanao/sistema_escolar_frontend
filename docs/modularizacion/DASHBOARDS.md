@@ -215,6 +215,13 @@ durante la migración:
   una con su bandera `activo`). El fallo de una no afecta a las otras ni a las
   tarjetas. Desde el paso 4 (2026-11-11) son tres: se sumó
   `GET /cartera/puntualidad`.
+- Mientras llegan sus datos, cada cuadro (y el muro de cumpleaños, también en
+  el panel del profesor) muestra el «caminito» (`CaminitoCargando`): la
+  barrita morada que se llena de la tarjeta de espera, dentro del cuadro y
+  sin letras (pedido del usuario el 2026-11-12; descartó una tarjeta de espera
+  general sobre todo el panel). Es un `role="progressbar"` sin valor, con el
+  nombre para lectores de pantalla (`Cargando la cartera`, `Calculando quién
+  paga a tiempo`, `Buscando cumpleaños de la semana`).
 - Orden (maqueta Mosaico, paso 4, 2026-11-11, sin el anillo «Pagan siempre a
   tiempo», que el usuario pidió quitar el 2026-11-12): «Por cobrar este año»
   con «Accesos rápidos»; «Los 5 que más deben» con «Los que mejor pagan»;
@@ -225,15 +232,16 @@ durante la migración:
   curso se abren ahí mismo sus mejores, con oro, plata y bronce; 5 cursos y
   «Ver los N cursos») solo pinta lo que manda el backend: qué es a tiempo,
   quién entra al ranking y el orden se deciden allá
-  (`app/services/puntualidad.py`). Cargando
-  (`Calculando quién paga a tiempo…`), error y «todavía no vence ninguna
+  (`app/services/puntualidad.py`). Cargando (el caminito, con nombre
+  `Calculando quién paga a tiempo`), error y «todavía no vence ninguna
   mensualidad» son estados distintos. Los porcentajes van sin decimales y
   nunca dicen 100 % si alguien se atrasó ni 0 % si alguien paga a tiempo.
   «Ocultar valores» no lo toca: no tiene montos.
 - Desde el 2026-11-11 (rediseño, paso 1) la cartera se reparte en tres
   tarjetas: «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso».
-  Cargando, error y cartera al día son estados distintos: mientras carga dicen
-  `Cargando la cartera…` y un fallo nunca se lee como `Cartera al día`. La
+  Cargando, error y cartera al día son estados distintos: mientras carga cada
+  una muestra el caminito (nombre `Cargando la cartera`) y un fallo nunca se
+  lee como `Cartera al día`. La
   mora se resta de `total_academico` (el backend ya la incluye en la deuda de
   cada concepto) y `total_anios_anteriores` va aparte. «Cobrar» navega a
   `/admin/pagos` con `state: { estudiante_id }`. «Ocultar valores» tapa los

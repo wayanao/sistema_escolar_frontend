@@ -2,6 +2,7 @@ import { useRef } from "react";
 import useFuenteGotica from "../../hooks/dashboards/useFuenteGotica";
 import { MAX_GLOBOS_SUELTOS, globosDeCumpleanos } from "../../utils/dashboards/cumpleanos";
 import { banderinesMuro, sombraContorno } from "../../utils/dashboards/globos";
+import CaminitoCargando from "./CaminitoCargando";
 import GloboCumpleanos from "./GloboCumpleanos";
 import GloboDeHoy from "./GloboDeHoy";
 
@@ -92,7 +93,7 @@ function MuroCumpleanos({ estudiantes = [], loading = false, error = "", emptyTe
       </p>
 
       {loading ? (
-        <p className="relative mt-4 text-center text-sm text-slate-600">Buscando cumpleaños de la semana…</p>
+        <CaminitoCargando etiqueta="Buscando cumpleaños de la semana" className="relative mx-auto mb-2 mt-6 max-w-sm" />
       ) : error ? (
         <p role="alert" className="relative mx-auto mt-4 w-fit rounded-xl border border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">
           {error}

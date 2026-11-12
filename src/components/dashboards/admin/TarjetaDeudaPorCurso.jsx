@@ -1,4 +1,5 @@
 import { montoVisible, textoEstudiantes } from "../../../utils/dashboards/admin";
+import CaminitoCargando from "../CaminitoCargando";
 
 /**
  * «Deuda por curso»: los cursos que más deben, con cuántos estudiantes deben en
@@ -25,7 +26,7 @@ function TarjetaDeudaPorCurso({ cursos = [], cargando = false, error = "", valor
       </div>
 
       {cargando ? (
-        <p className="mt-4 text-sm text-slate-500">Cargando la cartera…</p>
+        <CaminitoCargando etiqueta="Cargando la cartera" className="mt-5" />
       ) : error ? (
         <p role="alert" className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
           {error}

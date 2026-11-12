@@ -80,7 +80,8 @@ describe("TarjetaMayoresDeudores", () => {
         const { unmount } = render(
             <TarjetaMayoresDeudores deudores={[]} cargando onCobrar={vi.fn()} onVerCartera={vi.fn()} />,
         );
-        expect(screen.getByText("Cargando la cartera…")).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "Cargando la cartera" })).toBeInTheDocument();
+        expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
         expect(screen.queryByText("Nadie debe este año.")).not.toBeInTheDocument();
         unmount();
 

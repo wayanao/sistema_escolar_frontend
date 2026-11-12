@@ -6,6 +6,7 @@ import {
   textoCursoPuntual,
   textoDespuesDelRanking,
 } from "../../../utils/dashboards/puntualidad";
+import CaminitoCargando from "../CaminitoCargando";
 
 const VISTAS = [
   { clave: "colegio", etiqueta: "Todo el colegio", subtitulo: "Los más puntuales del colegio" },
@@ -215,7 +216,9 @@ function TarjetaMejoresPagadores({ puntualidad, cargando = false, error = "", cl
       </div>
 
       {cargando ? (
-        <p className="px-5 py-4 text-sm text-slate-500 sm:px-6">Calculando quién paga a tiempo…</p>
+        <div className="px-5 py-5 sm:px-6">
+          <CaminitoCargando etiqueta="Calculando quién paga a tiempo" />
+        </div>
       ) : error ? (
         <p role="alert" className="mx-5 my-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 sm:mx-6">
           {error}

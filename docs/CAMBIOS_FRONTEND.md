@@ -1,5 +1,21 @@
 # Cambios Frontend
 
+## 2026-11-12 - Paneles: el caminito que se llena en cada cuadro mientras carga
+
+- Pedido del usuario: mientras cargan los datos del panel, «el caminito
+  cargando» en cada tarjeta, no una espera general ni el texto «Cargando…».
+- `CaminitoCargando` (nuevo, `components/dashboards/`): la misma barrita
+  morada de la tarjeta de espera (`.ventana-espera__barra`; la clase
+  `.caminito-cargando` comparte sus reglas en `src/index.css`), que se llena
+  rápido al comienzo y cada vez más despacio. Sin letras: el nombre lo leen
+  los lectores de pantalla. Con «reducir movimiento» queda quieta a la mitad.
+- Lo usan «Por cobrar este año», «Los 5 que más deben», «Deuda por curso»,
+  «Los que mejor pagan» y el muro de cumpleaños (que también está en el panel
+  del profesor). Los demás cuadros del profesor siguen igual.
+- Archivos: `components/dashboards/CaminitoCargando.jsx` (nuevo),
+  `MuroCumpleanos.jsx`, `components/dashboards/admin/` (cuatro cuadros),
+  `src/index.css` y sus pruebas.
+
 ## 2026-11-11 - Panel del admin: quién paga a tiempo (paso 4)
 
 - Pedido del usuario: los que pagan siempre a tiempo y un ranking de los que

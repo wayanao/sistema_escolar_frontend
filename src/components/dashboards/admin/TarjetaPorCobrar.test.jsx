@@ -47,10 +47,11 @@ describe("TarjetaPorCobrar", () => {
         expect(screen.getAllByText(VALOR_OCULTO)).toHaveLength(5);
     });
 
-    it("mientras carga no dice que la cartera está al día", () => {
+    it("mientras carga muestra el caminito, sin letras, y no dice que la cartera está al día", () => {
         render(<TarjetaPorCobrar resumen={null} cargando />);
 
-        expect(screen.getByText("Cargando la cartera…")).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "Cargando la cartera" })).toBeInTheDocument();
+        expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
         expect(screen.queryByText("Cartera al día")).not.toBeInTheDocument();
     });
 

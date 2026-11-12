@@ -307,9 +307,24 @@ describe("AdminDashboard", () => {
 
         render(<AdminDashboard />);
 
-        expect(screen.getAllByText("Cargando la cartera…")).toHaveLength(3);
+        // Un caminito en cada cuadro de la cartera, sin letras de «Cargando…».
+        expect(screen.getAllByRole("progressbar", { name: "Cargando la cartera" })).toHaveLength(3);
+        expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
         expect(screen.queryByText("Cartera al día")).not.toBeInTheDocument();
         expect(screen.queryByText("Nadie debe este año.")).not.toBeInTheDocument();
+    });
+
+    it("al abrir, cada cuadro que espera datos muestra su caminito, y se van cuando llegan", async () => {
+        iniciarSesionAdmin();
+
+        render(<AdminDashboard />);
+
+        expect(screen.getAllByRole("progressbar", { name: "Cargando la cartera" })).toHaveLength(3);
+        expect(screen.getByRole("progressbar", { name: "Calculando quién paga a tiempo" })).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "Buscando cumpleaños de la semana" })).toBeInTheDocument();
+
+        await waitFor(() => expect(screen.queryAllByRole("progressbar")).toHaveLength(0));
+        expect(porCobrar().textContent).toContain("1.250.000");
     });
 
     it("conserva las demás secciones cuando falla el resumen de cartera", async () => {

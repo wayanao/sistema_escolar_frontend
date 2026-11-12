@@ -1,4 +1,5 @@
 import { montoVisible } from "../../../utils/dashboards/admin";
+import CaminitoCargando from "../CaminitoCargando";
 
 /**
  * «Los 5 que más deben» este año, de mayor a menor. Cada fila trae su barrita
@@ -36,7 +37,9 @@ function TarjetaMayoresDeudores({
       </div>
 
       {cargando ? (
-        <p className="px-5 py-4 text-sm text-slate-500 sm:px-6">Cargando la cartera…</p>
+        <div className="px-5 py-5 sm:px-6">
+          <CaminitoCargando etiqueta="Cargando la cartera" />
+        </div>
       ) : error ? (
         <p role="alert" className="mx-5 my-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 sm:mx-6">
           {error}
