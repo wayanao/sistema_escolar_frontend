@@ -1,5 +1,40 @@
 # Cambios Frontend
 
+## 2026-11-11 - Muro de cumpleaños con globos (paso 2), admin y profesor
+
+- Pedido del usuario: los cumpleaños como un «muro de fiestas» al final del
+  panel, con globos realistas que traigan todo adentro y letra gótica estilo
+  anime; que el globo de quien cumple hoy se suelte del muro y pasee al azar
+  por todo el panel siguiendo la vista, que se mueva de lado a lado al tocarlo,
+  y que los demás se queden quietos. Lo mismo en el panel del profesor.
+- El muro (`MuroCumpleanos`): banderines con «CUMPLEAÑOS», la cinta «de la
+  semana», serpentinas y confeti. Un globo por estudiante con el día («Hoy»,
+  «Mañana», «Viernes 13»), el nombre, el curso y los años. Los demás se quedan
+  quietos, un poco ladeados.
+- El globo de hoy (`GloboDeHoy` + `useGloboSuelto`): espera 1,4 s meciéndose,
+  se suelta y pasea sin parar por una curva al azar dentro de lo que se ve, así
+  que acompaña al que baja o sube. Si el muro no se ve, entra por el borde de
+  abajo. Pasa por debajo del encabezado, la barra de abajo del celular y los
+  menús; solo el globo recibe clics y lo de debajo se sigue usando. Al tocarlo
+  o pasarle el ratón se zarandea. En el muro queda su silueta con «¡Salió a
+  volar!». Hasta tres globos sueltos. Con «reducir movimiento» se queda en el
+  muro.
+- Colores de fiesta sin rosado ni azul: la ficha no guarda si es niña o niño.
+  Personalizarlo así necesita ese dato nuevo en el backend.
+- Letra gótica Grenze Gotisch, pedida a Google Fonts solo cuando aparece el
+  muro (`useFuenteGotica`, igual que las del login).
+- Profesor: los cumpleaños salieron del encabezado y van en el muro, al final.
+- Peticiones: las mismas de antes, ninguna nueva.
+- `CumpleanosSemana.jsx` y su prueba quedan sin uso; no se borraron.
+- Archivos: `components/dashboards/` (`MuroCumpleanos`, `GloboCumpleanos`,
+  `GloboDeHoy`), `hooks/dashboards/` (`useGloboSuelto`, `useFuenteGotica`),
+  `utils/dashboards/` (`cumpleanos.js`, `globos.js` nuevo),
+  `components/dashboards/profesor/EncabezadoPanelProfesor.jsx`,
+  `pages/AdminDashboard.jsx`, `pages/DashboardProfesor.jsx`, `src/index.css` y
+  sus pruebas.
+- Verificación: `pnpm run check:deploy` (pruebas, lint y build). Fotos de PC y
+  celular con datos de ejemplo, con el globo quieto y ya suelto.
+
 ## 2026-11-11 - Panel del admin rediseñado (paso 1: con lo que ya llega)
 
 - Pedido del usuario: en el panel del admin, los 5 estudiantes que más deben y

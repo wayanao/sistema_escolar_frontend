@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import CumpleanosSemana from "../components/dashboards/CumpleanosSemana";
+import MuroCumpleanos from "../components/dashboards/MuroCumpleanos";
 import AccesosAdmin from "../components/dashboards/admin/AccesosAdmin";
 import EncabezadoPanelAdmin from "../components/dashboards/admin/EncabezadoPanelAdmin";
 import TarjetaDeudaPorCurso from "../components/dashboards/admin/TarjetaDeudaPorCurso";
@@ -26,7 +26,6 @@ function Admin() {
     cumpleanos,
     loadingCumpleanos,
     errorCumpleanos,
-    diasRangoCumpleanos,
   } = useDashboardAdmin();
   // «Ocultar valores» tapa los montos cuando hay alguien al lado mirando la
   // pantalla. No se guarda: al volver a entrar se ven de nuevo.
@@ -66,11 +65,10 @@ function Admin() {
             <AccesosAdmin className="flex-[1_1_300px]" onAbrir={navigate} />
           </div>
 
-          <CumpleanosSemana
+          <MuroCumpleanos
             estudiantes={cumpleanos}
             loading={loadingCumpleanos}
             error={errorCumpleanos}
-            diasRango={diasRangoCumpleanos}
             emptyText="Esta semana no hay estudiantes activos de cumpleaños."
           />
         </div>

@@ -761,3 +761,77 @@
     animation: none;
   }
 }
+
+/* Muro de cumpleaños (pedido del usuario, 2026-11-11), al final del panel del
+   admin y del profesor: confeti de fondo, letra gótica (la pide
+   `useFuenteGotica`) y el movimiento de los globos. El de hoy flota en el muro
+   y, suelto, se mece; al tocarlo se zarandea. Los demás quedan quietos. Con
+   «reducir movimiento» nada se mueve. */
+.muro-fiesta {
+  background-color: #fff8fd;
+  background-image:
+    radial-gradient(rgb(236 72 153 / 20%) 1.6px, transparent 2px),
+    radial-gradient(rgb(124 58 237 / 18%) 1.6px, transparent 2px),
+    radial-gradient(rgb(245 158 11 / 26%) 1.6px, transparent 2px),
+    radial-gradient(rgb(14 165 233 / 18%) 1.6px, transparent 2px);
+  background-size: 52px 52px;
+  background-position: 0 0, 13px 26px, 26px 8px, 39px 34px;
+}
+
+.letra-gotica {
+  font-family: "Grenze Gotisch", Georgia, serif;
+}
+
+@keyframes globoFlotar {
+  from {
+    transform: translateY(0) rotate(-3deg);
+  }
+  to {
+    transform: translateY(-7px) rotate(3deg);
+  }
+}
+
+@keyframes globoVaiven {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes globoMeneo {
+  0% { transform: translateX(0) rotate(0); }
+  15% { transform: translateX(14px) rotate(18deg); }
+  32% { transform: translateX(-12px) rotate(-16deg); }
+  50% { transform: translateX(9px) rotate(12deg); }
+  66% { transform: translateX(-6px) rotate(-8deg); }
+  82% { transform: translateX(3px) rotate(4deg); }
+  100% { transform: translateX(0) rotate(0); }
+}
+
+.globo-flotar,
+.globo-vaiven,
+.globo-meneo {
+  transform-origin: 50% 72%;
+}
+
+.globo-flotar {
+  animation: globoFlotar 1.6s ease-in-out infinite alternate;
+}
+
+.globo-vaiven {
+  animation: globoVaiven 1.6s ease-in-out infinite alternate;
+}
+
+.globo-meneo {
+  animation: globoMeneo 0.96s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globo-flotar,
+  .globo-vaiven,
+  .globo-meneo {
+    animation: none;
+  }
+}

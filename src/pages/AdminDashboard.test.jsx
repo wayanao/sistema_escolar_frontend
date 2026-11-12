@@ -261,7 +261,18 @@ describe("AdminDashboard", () => {
         expect(screen.getByRole("button", { name: "Abrir Reportes" })).toBeInTheDocument();
     });
 
-    it("pasa a cumpleaños el rango y el texto vacío del panel de admin", async () => {
+    it("pinta los cumpleaños en el muro, al final del panel", async () => {
+        iniciarSesionAdmin();
+
+        render(<AdminDashboard />);
+
+        const muro = screen.getByRole("region", { name: "Cumpleaños de la semana" });
+        expect(await screen.findByText("Ana Arias")).toBeInTheDocument();
+        expect(muro).toHaveTextContent("Ana Arias");
+        expect(muro).toHaveTextContent("5A");
+    });
+
+    it("pasa al muro el texto vacío del panel de admin", async () => {
         iniciarSesionAdmin();
         responder({ cumples: [] });
 
@@ -270,7 +281,6 @@ describe("AdminDashboard", () => {
         expect(
             await screen.findByText("Esta semana no hay estudiantes activos de cumpleaños."),
         ).toBeInTheDocument();
-        expect(screen.getByText("🎂 0 en 7 días")).toBeInTheDocument();
     });
 
     it("mantiene los cuatro accesos con sus rutas", () => {

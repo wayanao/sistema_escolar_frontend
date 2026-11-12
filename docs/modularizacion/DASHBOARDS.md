@@ -228,8 +228,10 @@ durante la migración:
   tecla no navega. La accesibilidad de teclado queda protegida.
 - El saludo usa el primer nombre con la inicial en mayúscula y **no** baja el
   resto a minúsculas, a diferencia del panel del profesor.
-- `CumpleanosSemana` recibe `diasRango={7}` y el texto
-  `Esta semana no hay estudiantes activos de cumpleaños.`.
+- Desde el 2026-11-11 los cumpleaños van en `MuroCumpleanos` (ver «Muro de
+  cumpleaños», abajo), al final del panel, con el texto
+  `Esta semana no hay estudiantes activos de cumpleaños.`. Antes iban en
+  `CumpleanosSemana`, que quedó sin uso.
 
 #### Panel del profesor
 
@@ -264,8 +266,32 @@ durante la migración:
 - Los promedios se pintan con `toFixed(2)` y el color del bajo rendimiento sale
   del campo `color` que envía el backend.
 - El saludo capitaliza la inicial y **baja el resto a minúsculas**.
-- `CumpleanosSemana` recibe el texto
-  `Esta semana no hay estudiantes de tus cursos asignados cumpliendo años.`.
+- Desde el 2026-11-11 los cumpleaños salieron del encabezado
+  (`EncabezadoPanelProfesor` ya no los recibe) y van en `MuroCumpleanos`, al
+  final del panel, con el texto `Esta semana no hay cumpleaños en tus cursos.`.
+
+#### Muro de cumpleaños (admin y profesor, desde el 2026-11-11)
+
+- `components/dashboards/MuroCumpleanos.jsx`: banderines con «CUMPLEAÑOS», la
+  cinta «de la semana» y un globo por estudiante (`GloboCumpleanos`) con el
+  día («Hoy», «Mañana», «Viernes 13»), el nombre, el curso y los años. Los
+  datos salen de `globosDeCumpleanos` (`utils/dashboards/cumpleanos.js`); sin
+  peticiones nuevas.
+- Los de hoy (hasta `MAX_GLOBOS_SUELTOS = 3`) son `GloboDeHoy`: esperan 1,4 s
+  meciéndose en el muro, se sueltan y pasean sin parar por una curva cerrada al
+  azar dentro de lo que se ve (`useGloboSuelto` + `utils/dashboards/globos.js`,
+  con `offset-path` y `element.animate`). Van en un portal fijo a la pantalla,
+  con `z-20`: por debajo del encabezado del celular (`z-40`), la barra de abajo
+  (`z-30`) y los menús (`z-50`). Solo el globo recibe clics; al tocarlo o
+  pasarle el ratón se zarandea. En el muro queda su silueta con «¡Salió a
+  volar!». Sin `offset-path`, sin `element.animate` (como en las pruebas) o con
+  «reducir movimiento», se queda en el muro.
+- Colores de fiesta sin rosado ni azul (`PALETAS_GLOBO`): la ficha del
+  estudiante no guarda si es niña o niño.
+- La letra gótica (Grenze Gotisch) se pide a Google Fonts al aparecer el muro
+  (`useFuenteGotica`, como `useFuentesLogin`); mientras llega, letra con
+  serifa. Estilos y movimientos en `src/index.css` (`muro-fiesta`,
+  `letra-gotica`, `globo-flotar`, `globo-vaiven`, `globo-meneo`).
 
 #### Panel del super admin
 

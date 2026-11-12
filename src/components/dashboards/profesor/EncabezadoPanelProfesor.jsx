@@ -1,62 +1,12 @@
-import {
-  nombreCompletoEstudiante,
-  obtenerInfoCumpleanos,
-  ordenarCumpleanos,
-} from "../../../utils/dashboards/cumpleanos";
-
-function CumpleanosDeLaSemana({ estudiantes, loading, error, ahora }) {
-  if (loading) {
-    return <p className="text-sm text-slate-500">Buscando cumpleaños de la semana…</p>;
-  }
-  if (error) {
-    return <p className="text-sm font-semibold text-red-700">{error}</p>;
-  }
-  if (!estudiantes.length) {
-    return <p className="text-sm text-slate-500">Esta semana no hay cumpleaños en tus cursos.</p>;
-  }
-
-  return (
-    <ul className="flex flex-wrap gap-2" aria-label="Cumpleaños de la semana">
-      {ordenarCumpleanos(estudiantes, ahora).map((estudiante) => {
-        const info = obtenerInfoCumpleanos(estudiante.fecha_nacimiento, ahora);
-        const esHoy = info?.dias === 0;
-        return (
-          <li
-            key={estudiante.estudiante_id || estudiante.id}
-            className={`inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
-              esHoy ? "border-amber-300 bg-amber-100 text-amber-950 shadow-sm" : "border-amber-200 bg-white/90 text-slate-800 shadow-sm"
-            }`}
-          >
-            <span aria-hidden="true">{esHoy ? "🎉" : "🎈"}</span>
-            <span className="truncate font-semibold" translate="no">{nombreCompletoEstudiante(estudiante)}</span>
-            <span className="shrink-0 text-xs font-medium text-slate-500">
-              {estudiante.curso ? `${estudiante.curso} · ` : ""}
-              {info?.etiqueta || ""}
-              {info?.edad ? ` · ${info.edad} años` : ""}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 /**
- * Lo primero del panel del profesor (2026-11-10): el saludo, el día de hoy,
- * el período con el que está trabajando y los cumpleaños de la semana, en una
- * va suelto sobre el fondo de la app (`fondo-aula`), sin caja: a la
- * izquierda el saludo y la fecha, a la derecha el período en una tarjeta
- * flotante y, debajo, los cumpleaños. Solo presenta: todo llega por props.
+ * Lo primero del panel del profesor (2026-11-10): el saludo, el día de hoy y
+ * el período con el que está trabajando. Va suelto sobre el fondo de la app
+ * (`fondo-aula`), sin caja: a la izquierda el saludo y la fecha, a la derecha
+ * el período en una tarjeta flotante. Los cumpleaños de la semana salieron de
+ * aquí el 2026-11-11: ahora van en el muro de cumpleaños, al final del panel.
+ * Solo presenta: todo llega por props.
  */
-function EncabezadoPanelProfesor({
-  nombreProfesor,
-  fechaDeHoy,
-  periodo,
-  cumpleanos = [],
-  loadingCumpleanos = false,
-  errorCumpleanos = "",
-  ahora,
-}) {
+function EncabezadoPanelProfesor({ nombreProfesor, fechaDeHoy, periodo }) {
   return (
     <header className="mb-7 px-1 pt-1 sm:pt-2">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -84,20 +34,6 @@ function EncabezadoPanelProfesor({
             <p className="text-lg font-extrabold text-slate-950">Período {periodo}</p>
             <p className="text-xs text-slate-500">El último que elegiste</p>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-5 text-slate-800">
-        <div className="flex flex-col gap-2 min-[600px]:flex-row min-[600px]:items-start min-[600px]:gap-3">
-          <p className="flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-amber-100/80 px-3 py-1.5 text-sm font-bold text-amber-900">
-            <span aria-hidden="true">🎂</span> Cumpleaños de la semana
-          </p>
-          <CumpleanosDeLaSemana
-            estudiantes={cumpleanos}
-            loading={loadingCumpleanos}
-            error={errorCumpleanos}
-            ahora={ahora}
-          />
         </div>
       </div>
     </header>

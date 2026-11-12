@@ -1,4 +1,5 @@
 import { Navigate, useNavigate } from "react-router-dom";
+import MuroCumpleanos from "../components/dashboards/MuroCumpleanos";
 import EncabezadoPanelProfesor from "../components/dashboards/profesor/EncabezadoPanelProfesor";
 import FiltroRendimiento from "../components/dashboards/profesor/FiltroRendimiento";
 import HorarioDelDia from "../components/dashboards/profesor/HorarioDelDia";
@@ -22,10 +23,11 @@ import {
   minutosDelDiaColombia,
 } from "../utils/fechaColombia";
 
-// Panel del profesor (rediseño del 2026-11-10), de arriba abajo: el día, el
-// período y los cumpleaños; el horario en tarjetas desde las que se entra a
-// la clase; y cómo van sus estudiantes. Sin peticiones nuevas: el horario
-// sale de `/mis-clases`, que ya se cargaba.
+// Panel del profesor (rediseño del 2026-11-10), de arriba abajo: el día y el
+// período; el horario en tarjetas desde las que se entra a la clase; cómo van
+// sus estudiantes; y, al final, el muro de cumpleaños (2026-11-11, el mismo del
+// admin), del que se suelta el globo de quien cumple hoy. Sin peticiones
+// nuevas: el horario sale de `/mis-clases`, que ya se cargaba.
 function DashboardProfesor() {
   const navigate = useNavigate();
   const ahora = useAhora();
@@ -73,10 +75,6 @@ function DashboardProfesor() {
         nombreProfesor={nombreProfesor}
         fechaDeHoy={fechaLargaColombia(ahora)}
         periodo={periodo}
-        cumpleanos={cumpleanos}
-        loadingCumpleanos={loadingCumpleanos}
-        errorCumpleanos={errorCumpleanos}
-        ahora={ahora}
       />
 
       <HorarioDelDia
@@ -135,6 +133,15 @@ function DashboardProfesor() {
           />
         </div>
       </section>
+
+      <MuroCumpleanos
+        className="mt-6"
+        estudiantes={cumpleanos}
+        loading={loadingCumpleanos}
+        error={errorCumpleanos}
+        ahora={ahora}
+        emptyText="Esta semana no hay cumpleaños en tus cursos."
+      />
     </div>
   );
 }

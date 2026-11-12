@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
     DIAS_RANGO_CUMPLEANOS,
+    PALETAS_GLOBO,
     construirParametrosCumpleanos,
+    etiquetaDiaGlobo,
+    globosDeCumpleanos,
     nombreCompletoEstudiante,
     normalizarCumpleanos,
     obtenerInfoCumpleanos,
     ordenarCumpleanos,
+    textoDatosGlobo,
 } from "./cumpleanos";
 
 const AHORA = new Date(2026, 7, 7, 9, 30, 0);
@@ -104,5 +108,72 @@ describe("ordenarCumpleanos", () => {
         ordenarCumpleanos(estudiantes, AHORA);
 
         expect(estudiantes.map((item) => item.id)).toEqual([1, 2]);
+    });
+});
+
+describe("etiquetaDiaGlobo", () => {
+    // AHORA es el viernes 7 de agosto de 2026.
+    it("dice Hoy, Mañana o el día con su número", () => {
+        expect(etiquetaDiaGlobo({ dias: 0 }, AHORA)).toBe("Hoy");
+        expect(etiquetaDiaGlobo({ dias: 1 }, AHORA)).toBe("Mañana");
+        expect(etiquetaDiaGlobo({ dias: 3 }, AHORA)).toBe("Lunes 10");
+    });
+
+    it("no inventa una etiqueta sin datos", () => {
+        expect(etiquetaDiaGlobo(null, AHORA)).toBe("");
+    });
+});
+
+describe("globosDeCumpleanos", () => {
+    it("arma un globo por estudiante, primero el de hoy, con colores que se turnan", () => {
+        const globos = globosDeCumpleanos(
+            [
+                { id: 1, nombre: "ZOE", apellido: "zapata", curso: "5A", fecha_nacimiento: "2015-08-10" },
+                { estudiante_id: 2, nombre: "ana", apellido: "arias", curso: "3B", fecha_nacimiento: "2017-08-07" },
+            ],
+            AHORA,
+        );
+
+        expect(globos).toEqual([
+            {
+                id: 2,
+                nombre: "Ana Arias",
+                curso: "3B",
+                edad: 9,
+                esHoy: true,
+                etiqueta: "Hoy",
+                paleta: PALETAS_GLOBO[0],
+            },
+            {
+                id: 1,
+                nombre: "Zoe Zapata",
+                curso: "5A",
+                edad: 11,
+                esHoy: false,
+                etiqueta: "Lunes 10",
+                paleta: PALETAS_GLOBO[1],
+            },
+        ]);
+    });
+
+    it("deja fuera a quien no tiene una fecha utilizable y tolera lo que no es lista", () => {
+        expect(globosDeCumpleanos([{ id: 3, nombre: "Sin", apellido: "Fecha" }], AHORA)).toEqual([]);
+        expect(globosDeCumpleanos(null, AHORA)).toEqual([]);
+    });
+
+    it("no usa rosado ni azul: la ficha no dice si es niña o niño", () => {
+        PALETAS_GLOBO.forEach((paleta) => {
+            expect(["#ec4899", "#f472b6", "#2563eb", "#3b82f6"]).not.toContain(paleta.base);
+        });
+    });
+});
+
+describe("textoDatosGlobo", () => {
+    it("une el curso y los años que cumple, lo que haya", () => {
+        // «9 años» lleva un espacio que no se parte.
+        expect(textoDatosGlobo({ curso: "3B", edad: 9 })).toBe("3B · 9\u00a0años");
+        expect(textoDatosGlobo({ curso: "", edad: 9 })).toBe("9\u00a0años");
+        expect(textoDatosGlobo({ curso: "3B", edad: null })).toBe("3B");
+        expect(textoDatosGlobo(null)).toBe("");
     });
 });
