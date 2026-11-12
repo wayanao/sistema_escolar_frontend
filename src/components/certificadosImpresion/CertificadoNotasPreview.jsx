@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import DocumentoImprimible from "../impresion/DocumentoImprimible";
 import {
   PERIODOS_NUMERICOS,
@@ -9,8 +11,14 @@ import {
 import { datosInstitucionalesCertificado } from "../../utils/certificadosImpresion/certificadosFormales";
 import BarraCertificado from "./BarraCertificado";
 import DatoCertificado from "./DatoCertificado";
+import OpcionFirmaRector from "./OpcionFirmaRector";
 
-export default function CertificadoNotasPreview({ certificado, onBack }) {
+// `firmaRector`: la firma guardada del rector(a), que trae la página; sale en
+// el certificado solo si se marca «Con la firma del rector(a)»
+// (FIRMAS_BOLETIN.md, paso 5).
+export default function CertificadoNotasPreview({ certificado, firmaRector, onBack }) {
+  const [conFirma, setConFirma] = useState(false);
+  const imagenFirma = conFirma ? firmaRector?.imagen || null : null;
   const filasMaterias = obtenerFilasMaterias(certificado);
   const notas = filasMaterias
     .flatMap((fila) => Object.values(fila.notasPorPeriodo))
@@ -36,7 +44,9 @@ export default function CertificadoNotasPreview({ certificado, onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
-      <BarraCertificado onBack={onBack} />
+      <BarraCertificado onBack={onBack}>
+        <OpcionFirmaRector firmaRector={firmaRector} marcada={conFirma} onCambiar={setConFirma} />
+      </BarraCertificado>
 
       <DocumentoImprimible
         tipo="reporte_estudiante"
@@ -44,7 +54,7 @@ export default function CertificadoNotasPreview({ certificado, onBack }) {
         titulo="Certificado de Notas"
         subtitulo={`${periodoTexto} · Año Lectivo ${new Date().getFullYear()}`}
         firmas={(branding) => [
-          datosInstitucionalesCertificado(branding).firma,
+          { ...datosInstitucionalesCertificado(branding).firma, imagen: imagenFirma },
           { nombre: "", cargo: "Secretaria academica" },
         ]}
       >

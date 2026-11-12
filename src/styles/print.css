@@ -338,6 +338,10 @@
    entre hojas. Lo de antes de las firmas no tiene margen abajo, asi que el
    alto total es el mismo. */
 .di-documento--boletin .di-firmas { margin-top: 16px; padding-top: 24px; }
+/* Lo mismo en los certificados, que desde el paso 5 pueden llevar la firma del
+   rector(a): 50 px de aire, como siempre, 24 de ellos por dentro. Lo de antes
+   de las firmas no tiene margen abajo, asi que el alto total no cambia. */
+.di-documento--certificado .di-firmas { margin-top: 26px; padding-top: 24px; }
 /* Rayas de firma y del pie iguales a las de arriba (membrete y escala):
    1 px y color primario, en vez de negro y color secundario. */
 .di-documento--boletin .di-firmas__linea,

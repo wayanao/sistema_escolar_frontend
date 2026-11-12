@@ -18,6 +18,11 @@ const { certificadosApiMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../services/certificadosImpresionApi", () => certificadosApiMock);
+// La firma del rector(a) para «Con la firma del rector(a)» (FIRMAS_BOLETIN.md,
+// paso 5): sin firma guardada.
+vi.mock("../services/firmasApi", () => ({
+  obtenerFirmaInstitucional: vi.fn(() => Promise.resolve({ imagen: null, actualizado_en: null })),
+}));
 
 // `children` puede ser una función del branding (certificados con el formato
 // de los modelos); aquí, sin branding.

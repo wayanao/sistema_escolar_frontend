@@ -14,7 +14,7 @@ vi.mock("../impresion/DocumentoImprimible", () => ({
       <div data-testid="documento" data-titulo={titulo} data-subtitulo={subtitulo}>
         {contenido}
         {lista.map((f) => (
-          <div key={f.cargo} data-testid="firma">
+          <div key={f.cargo} data-testid="firma" data-imagen={f.imagen || ""}>
             {[f.nombre, f.documento, f.cargo].filter(Boolean).join(" | ")}
           </div>
         ))}
@@ -130,6 +130,74 @@ describe("vistas imprimibles de certificados", () => {
     expect(screen.getAllByTestId("firma").map((f) => f.textContent)).toEqual(["Director(a)"]);
     // Sin frase configurada, la hoja empieza en «CERTIFICA:».
     expect(screen.queryByText(/SUSCRITA/)).not.toBeInTheDocument();
+  });
+
+  describe("«Con la firma del rector(a)» (FIRMAS_BOLETIN.md, paso 5)", () => {
+    const FIRMA = { imagen: "data:image/png;base64,rector", cargando: false, error: false };
+    const imagenes = () => screen.getAllByTestId("firma").map((f) => f.getAttribute("data-imagen"));
+
+    it("en un certificado formal sale desmarcada y la firma solo va al marcarla", async () => {
+      const user = userEvent.setup();
+      render(<CertificadoMatriculaPreview certificado={CERTIFICADO} firmaRector={FIRMA} onBack={vi.fn()} />);
+
+      const casilla = screen.getByRole("checkbox", { name: "Con la firma del rector(a)" });
+      expect(casilla).not.toBeChecked();
+      expect(imagenes()).toEqual([""]);
+
+      await user.click(casilla);
+      expect(imagenes()).toEqual(["data:image/png;base64,rector"]);
+
+      await user.click(casilla);
+      expect(imagenes()).toEqual([""]);
+    });
+
+    it("en el de notas, solo la raya del rector(a) lleva la firma, no la de secretaría", async () => {
+      const user = userEvent.setup();
+      render(
+        <CertificadoNotasPreview
+          certificado={{ estudiante_nombre: "Sara", materias: [], periodo: 1 }}
+          firmaRector={FIRMA}
+          onBack={vi.fn()}
+        />,
+      );
+
+      await user.click(screen.getByRole("checkbox", { name: "Con la firma del rector(a)" }));
+
+      expect(imagenes()).toEqual(["data:image/png;base64,rector", ""]);
+    });
+
+    it("sin firma guardada no se puede marcar y dice dónde subirla", () => {
+      render(
+        <CertificadoMatriculaPreview
+          certificado={CERTIFICADO}
+          firmaRector={{ imagen: null, cargando: false, error: false }}
+          onBack={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("checkbox", { name: "Con la firma del rector(a)" })).toBeDisabled();
+      expect(screen.getByText(/No hay firma guardada\. Súbela en Diseño de impresos/)).toBeInTheDocument();
+    });
+
+    it("mientras la trae no dice nada; si no la pudo traer, lo dice", () => {
+      const { rerender } = render(
+        <CertificadoMatriculaPreview
+          certificado={CERTIFICADO}
+          firmaRector={{ imagen: null, cargando: true, error: false }}
+          onBack={vi.fn()}
+        />,
+      );
+      expect(screen.queryByText(/firma guardada/)).not.toBeInTheDocument();
+
+      rerender(
+        <CertificadoMatriculaPreview
+          certificado={CERTIFICADO}
+          firmaRector={{ imagen: null, cargando: false, error: true }}
+          onBack={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("No se pudo cargar la firma guardada.")).toBeInTheDocument();
+    });
   });
 
   it("cambia el texto con «En el texto decir», sin imprimir la opción", async () => {

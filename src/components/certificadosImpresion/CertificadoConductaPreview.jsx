@@ -16,11 +16,12 @@ const OPCIONES_DESEMPENO = [
 
 // El sistema no guarda la conducta: se elige al imprimir. Sin elegir, el
 // desempeño sale en una raya, para llenarlo a mano.
-export default function CertificadoConductaPreview({ certificado, onBack }) {
+export default function CertificadoConductaPreview({ certificado, firmaRector, onBack }) {
   const [desempeno, setDesempeno] = useState("");
 
   return (
     <CertificadoFormal
+      firmaRector={firmaRector}
       onBack={onBack}
       opciones={(
         <OpcionCertificado

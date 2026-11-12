@@ -11,7 +11,7 @@ const CLASE_CAMPO = "rounded border border-dashed border-slate-400 bg-purple-50/
 // Los costos se editan sobre la misma hoja, donde se imprimen (pedido del
 // usuario): en pantalla son campos; en el papel, el texto ("Matrícula:
 // $ 280.000"). Lo editado es solo para esta impresión.
-export default function CertificadoCostosPreview({ certificado, onBack }) {
+export default function CertificadoCostosPreview({ certificado, firmaRector, onBack }) {
   const { costos, agregarCosto, cambiarCosto, quitarCosto } = useCostosCertificado(
     certificado.costos,
   );
@@ -70,6 +70,7 @@ export default function CertificadoCostosPreview({ certificado, onBack }) {
 
   return (
     <CertificadoFormal
+      firmaRector={firmaRector}
       onBack={onBack}
       opciones={(
         <p className="max-w-xs pb-2 text-xs text-slate-600">

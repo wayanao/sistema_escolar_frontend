@@ -8,6 +8,7 @@ import {
   fraseExpedicion,
 } from "../../utils/certificadosImpresion/certificadosFormales";
 import BarraCertificado from "./BarraCertificado";
+import OpcionFirmaRector from "./OpcionFirmaRector";
 
 const OPCIONES_TRATAMIENTO = TRATAMIENTOS.map(({ value, label }) => ({ value, label }));
 
@@ -38,16 +39,21 @@ export function OpcionCertificado({ etiqueta, valor, opciones, onCambiar }) {
 // párrafo de cada uno y `despuesDelParrafo`, lo que va debajo (la lista de
 // costos); quién firma, la frase de arriba y la ciudad salen de la identidad
 // institucional. "En el texto decir" vive aquí y no en un hook: es solo para
-// esta impresión y vuelve a "el(la) estudiante" con cada estudiante.
+// esta impresión y vuelve a "el(la) estudiante" con cada estudiante. Lo mismo
+// «Con la firma del rector(a)» (FIRMAS_BOLETIN.md, paso 5): desmarcada en
+// cada certificado; `firmaRector` es la firma guardada, que trae la página.
 export default function CertificadoFormal({
   construirParrafo,
   despuesDelParrafo,
   opciones,
+  firmaRector,
   onBack,
 }) {
   const [tratamiento, setTratamiento] = useState(TRATAMIENTO_INICIAL);
+  const [conFirma, setConFirma] = useState(false);
   const parrafo = construirParrafo(tratamiento);
   const fecha = new Date();
+  const imagenFirma = conFirma ? firmaRector?.imagen || null : null;
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8 md:px-8">
@@ -59,12 +65,15 @@ export default function CertificadoFormal({
           onCambiar={setTratamiento}
         />
         {opciones}
+        <OpcionFirmaRector firmaRector={firmaRector} marcada={conFirma} onCambiar={setConFirma} />
       </BarraCertificado>
 
       <DocumentoImprimible
         tipo="reporte_estudiante"
         className="di-documento--certificado"
-        firmas={(branding) => [datosInstitucionalesCertificado(branding).firma]}
+        firmas={(branding) => [
+          { ...datosInstitucionalesCertificado(branding).firma, imagen: imagenFirma },
+        ]}
       >
         {(branding) => {
           const { encabezado, ciudad } = datosInstitucionalesCertificado(branding);

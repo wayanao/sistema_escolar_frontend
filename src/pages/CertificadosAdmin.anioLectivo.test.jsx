@@ -11,6 +11,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../utils/api", () => ({ default: mocks.apiMock }));
+// La firma del rector(a) del paso 5 de FIRMAS_BOLETIN.md: sin firma guardada.
+vi.mock("../services/firmasApi", () => ({
+  obtenerFirmaInstitucional: vi.fn(() => Promise.resolve({ imagen: null, actualizado_en: null })),
+}));
 vi.mock("../hooks/anioLectivo/useAnioLectivo", () => ({
   default: () => mocks.anioLectivo,
 }));

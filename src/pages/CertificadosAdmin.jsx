@@ -10,6 +10,7 @@ import ReporteParcialPreview from "../components/certificadosImpresion/ReportePa
 import SeleccionCertificados from "../components/certificadosImpresion/SeleccionCertificados";
 import useAnioLectivo from "../hooks/anioLectivo/useAnioLectivo";
 import useConsultasCertificadosAdmin from "../hooks/certificadosImpresion/useConsultasCertificadosAdmin";
+import useFirmaParaImprimir from "../hooks/firmas/useFirmaParaImprimir";
 import { ESTADO_CERRADO } from "../utils/anioLectivo";
 
 // Certificados con el formato de los modelos del colegio, por tipo.
@@ -31,11 +32,17 @@ export default function CertificadosAdmin() {
     anioLectivoPropuesto: anioSeleccionado?.anio,
     anioCerrado: anioSeleccionado?.estado === ESTADO_CERRADO,
   });
+  // La firma del rector(a), por si el admin la marca en el certificado
+  // (FIRMAS_BOLETIN.md, paso 5). Se pide al abrir el primer certificado.
+  const firmaRector = useFirmaParaImprimir({
+    activo: Boolean(consultas.certificado || consultas.certificadoFormal),
+  });
 
   if (consultas.certificado) {
     return (
       <CertificadoNotasPreview
         certificado={consultas.certificado}
+        firmaRector={firmaRector}
         onBack={consultas.limpiarCertificado}
       />
     );
@@ -46,6 +53,7 @@ export default function CertificadosAdmin() {
     return (
       <VistaCertificado
         certificado={consultas.certificadoFormal}
+        firmaRector={firmaRector}
         onBack={consultas.limpiarCertificadoFormal}
       />
     );

@@ -99,4 +99,15 @@ salió de 900 × 231 px y 49,5 KB, en 108 ms. El trazo del recuadro salió de
      pide.
    - Visto con Edge oculto: las dos firmas se apoyan sobre su raya, sin tocar
      la observación general.
-5. Certificados: la firma del rector(a), opcional.
+5. **Certificados.** **Construido el 2026-11-12, sin commit.**
+   - Casilla «Con la firma del rector(a)» (`OpcionFirmaRector`) en la barra de
+     arriba, **desmarcada en cada certificado** (lo recomendado; el usuario
+     dijo "sigue lo que recomiendas").
+   - Está en los cinco formales (matrícula, conducta, aprobado, paz y salvo,
+     costos) y en el de notas; en el de notas, solo en la raya del rector(a).
+     El reporte parcial no la lleva: sus rayas son de Coordinación y Dirección.
+   - `useFirmaParaImprimir` pide la firma al abrir el primer certificado, no
+     en la lista, y una sola vez por visita.
+   - Sin firma guardada, la casilla no se puede marcar y dice dónde subirla.
+   - En los certificados, 24 de los 50 px antes de las firmas pasaron a
+     relleno, como en el boletín. El alto total es el mismo.
