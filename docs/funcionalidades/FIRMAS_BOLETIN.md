@@ -65,7 +65,18 @@ salió de 900 × 231 px y 49,5 KB, en 108 ms. El trazo del recuadro salió de
    «Guardar cambios». Botones: "Subir foto de la firma", "Firmar aquí con el
    dedo" y, con firma, "Quitar firma" (pregunta antes). La foto muestra "Así va
    a salir:" antes de guardar. **Construido el 2026-11-12, sin commit.**
-3. «Mi curso»: "Guardar mi firma" para el director de grupo.
+3. **«Mi curso»** (`pages/IngresoBoletinProfesor.jsx`, `MiFirmaPanel`).
+   **Construido el 2026-11-12, sin commit.**
+   - Cuadro "Tu firma para los boletines" arriba del ranking.
+   - Solo se monta con «Mi curso» abierto: los profesores que no dirigen curso
+     no hacen ninguna petición de más.
+   - `CuadroFirma` con `variante="profesor"`, pensado para profesores mayores:
+     - sin firma: un solo botón grande, "Firmar con el dedo", y la foto como
+       enlace ("o subir una foto de tu firma");
+     - con firma: un renglón con la firma, "✓ Tu firma ya sale en los
+       boletines de tu curso", "Cambiar mi firma" y "Quitar mi firma";
+     - firmando: "Guardar mi firma" y el enlace "¿Prefieres una foto de tu
+       firma? Súbela aquí".
 4. **Boletín** (adelantado al 3 a pedido del usuario). **Construido el
    2026-11-12, sin commit.**
    - `utils/boletines/firmasBoletin.js`: las dos firmas y los avisos.

@@ -3,7 +3,10 @@ import useConsultaIngresoBoletinProfesor from "../hooks/boletines/useConsultaIng
 import useComandosObservacionesDirector from "../hooks/boletines/useComandosObservacionesDirector";
 import useConsultaMiCursoDirector from "../hooks/boletines/useConsultaMiCursoDirector";
 import useVistaPreviaBoletinProfesor from "../hooks/boletines/useVistaPreviaBoletinProfesor";
+import useEditorFirma from "../hooks/firmas/useEditorFirma";
+import useFirmaGuardada from "../hooks/firmas/useFirmaGuardada";
 import VistaIngresoBoletinProfesor from "../components/boletin/VistaIngresoBoletinProfesor";
+import CuadroFirma from "../components/firmas/CuadroFirma";
 
 export default function IngresoBoletinProfesor() {
   const {
@@ -95,6 +98,7 @@ export default function IngresoBoletinProfesor() {
         onMostrarMiCurso: miCurso.mostrarMiCurso,
         onMostrarMisMaterias: miCurso.mostrarMisMaterias,
         onReintentar: miCurso.reintentar,
+        cuadroFirma: <MiFirmaPanel />,
         observaciones: {
           estadoDe: observaciones.estadoDe,
           onCambiar: observaciones.cambiarObservacion,
@@ -120,6 +124,38 @@ export default function IngresoBoletinProfesor() {
       onCerrarVistaPrevia={cerrarVistaPrevia}
       onVistaPreviaAnterior={verAnterior}
       onVistaPreviaSiguiente={verSiguiente}
+    />
+  );
+}
+
+// La firma del director de grupo para el boletín (docs/funcionalidades/
+// FIRMAS_BOLETIN.md, paso 3). La pone él mismo: el servidor guarda la del
+// profesor de la sesión. Se monta solo con «Mi curso» abierto.
+function MiFirmaPanel() {
+  const firma = useFirmaGuardada("mia");
+  const editor = useEditorFirma();
+
+  const guardar = async () => {
+    const resultado = await firma.guardar(editor.imagen);
+    if (resultado.estado === "exito") editor.cerrar();
+  };
+
+  return (
+    <CuadroFirma
+      titulo="Tu firma para los boletines"
+      descripcion="Sale en los boletines de tu curso, sobre la raya «Director de Grupo». Solo la ven tú y los administradores."
+      variante="profesor"
+      firma={firma.firma}
+      cargando={firma.cargando}
+      guardando={firma.guardando}
+      mensajeError={firma.mensajeError}
+      editor={editor}
+      onElegirFoto={editor.elegirFoto}
+      onAbrirDibujo={editor.abrirDibujo}
+      onCambiarDibujo={editor.cambiarDibujo}
+      onGuardar={guardar}
+      onCancelar={editor.cerrar}
+      onQuitar={firma.quitar}
     />
   );
 }

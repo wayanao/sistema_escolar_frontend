@@ -1,9 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import api from "../utils/api";
 import Swal from "sweetalert2";
+import { instalarLienzoFalso } from "../test/lienzoFalso";
 
 vi.mock("../utils/api", () => ({
   default: {
@@ -12,10 +13,23 @@ vi.mock("../utils/api", () => ({
   },
 }));
 
+// `update`, `getPopup`, `isVisible`, `close` y `getFooter`: la ventana de
+// espera y éxito al guardar la firma (ventanaExito.js).
 vi.mock("sweetalert2", () => ({
   default: {
     fire: vi.fn(),
+    update: vi.fn(),
+    getPopup: vi.fn(),
+    isVisible: vi.fn(),
+    close: vi.fn(),
+    getFooter: vi.fn(),
   },
+}));
+
+// jsdom no abre imágenes ni lee píxeles: el trazo ya "limpio" sale de aquí
+// (la limpieza tiene sus propias pruebas).
+vi.mock("../hooks/firmas/lienzoFirma", () => ({
+  prepararFirma: vi.fn(() => Promise.resolve("data:image/png;base64,limpia")),
 }));
 
 import IngresoBoletinProfesor from "./IngresoBoletinProfesor";
@@ -77,6 +91,11 @@ describe("IngresoBoletinProfesor", () => {
             },
           ],
         });
+      }
+
+      // La firma del director (FIRMAS_BOLETIN.md, paso 3): sin guardar.
+      if (url === "/firmas/mia") {
+        return Promise.resolve({ data: { imagen: null, actualizado_en: null } });
       }
 
       return Promise.reject(new Error(`GET inesperado: ${url}`));
@@ -528,6 +547,53 @@ describe("IngresoBoletinProfesor", () => {
       const [cajaBrunoOtraVez] = await screen.findAllByLabelText("Observación general del boletín · Gil Bruno");
       expect(cajaBrunoOtraVez).toHaveValue("Sin guardar todavía.");
       expect(screen.getByText("Recuperamos observaciones que no habías guardado")).toBeInTheDocument();
+    });
+
+    it("el director firma con el dedo arriba de Mi curso y su firma queda guardada", async () => {
+      instalarLienzoFalso();
+      const user = userEvent.setup();
+      const getOriginal = api.get.getMockImplementation();
+      api.get.mockImplementation((url) => {
+        if (url === "/director-grupo/cursos") {
+          return Promise.resolve({ data: [{ id: 5, nombre: "QUINTO A" }] });
+        }
+        if (url === "/director-grupo/cursos/5/1") {
+          return Promise.resolve({
+            data: { curso: { id: 5, nombre: "QUINTO A" }, periodo: 1, total_rankeados: 0, materias: [], estudiantes: [] },
+          });
+        }
+        return getOriginal(url);
+      });
+      api.put = vi.fn((url, cuerpo) =>
+        Promise.resolve({ data: { imagen: cuerpo.imagen, actualizado_en: "2026-11-12T15:30:00+00:00" } }),
+      );
+
+      try {
+        render(<IngresoBoletinProfesor />);
+        // Antes de abrir Mi curso no se pide la firma.
+        await screen.findByRole("tab", { name: "Mi curso (director de grupo)" }, PRIMERA_CARGA);
+        expect(api.get).not.toHaveBeenCalledWith("/firmas/mia", expect.anything());
+
+        await user.click(screen.getByRole("tab", { name: "Mi curso (director de grupo)" }));
+        expect(await screen.findByRole("heading", { name: "Tu firma para los boletines" })).toBeInTheDocument();
+        // Un solo botón grande; la foto es un enlace aparte.
+        await user.click(await screen.findByRole("button", { name: "Firmar con el dedo" }));
+
+        const lienzo = screen.getByRole("img", { name: "Recuadro para firmar" });
+        fireEvent.pointerDown(lienzo, { pointerId: 1, clientX: 10, clientY: 10 });
+        fireEvent.pointerMove(lienzo, { pointerId: 1, clientX: 40, clientY: 20 });
+        fireEvent.pointerUp(lienzo, { pointerId: 1, clientX: 40, clientY: 20 });
+
+        const guardar = screen.getByRole("button", { name: "Guardar mi firma" });
+        await waitFor(() => expect(guardar).toBeEnabled());
+        await user.click(guardar);
+
+        expect(api.put).toHaveBeenCalledWith("/firmas/mia", { imagen: "data:image/png;base64,limpia" });
+        expect(await screen.findByText("✓ Tu firma ya sale en los boletines de tu curso.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Cambiar mi firma" })).toBeInTheDocument();
+      } finally {
+        vi.restoreAllMocks();
+      }
     });
 
     it("quien no dirige ningún curso no ve la pestaña", async () => {

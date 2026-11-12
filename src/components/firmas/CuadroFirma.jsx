@@ -10,14 +10,23 @@ import RecuadroFirma from "../observador/RecuadroFirma";
  * acciones llegan por props desde `useFirmaGuardada` y `useEditorFirma`.
  *
  * Tres momentos:
- * - la firma guardada (o "sin firma"), como saldría sobre la raya, con los
- *   botones para cambiarla o quitarla;
+ * - la firma guardada (o "sin firma"), con los botones para cambiarla o
+ *   quitarla;
  * - "dibujo": el recuadro para firmar con el dedo;
  * - "foto": cómo va a salir la foto ya limpia, antes de guardarla.
+ *
+ * `variante`:
+ * - "admin" (Identidad institucional): la firma sobre la raya, como sale en el
+ *   boletín, y dos botones, foto o dedo.
+ * - "profesor" («Mi curso», paso 3): pensado para profesores mayores, que se
+ *   confunden con dos botones parecidos. Un solo botón grande, "Firmar con el
+ *   dedo", y la foto como enlace pequeño. Ya guardada, el cuadro es un renglón
+ *   para no ocupar la pantalla cada vez que entran.
  */
 export default function CuadroFirma({
   titulo,
   descripcion,
+  variante = "admin",
   firma,
   cargando = false,
   guardando = false,
@@ -31,6 +40,8 @@ export default function CuadroFirma({
   onQuitar,
 }) {
   const entradaFotoRef = useRef(null);
+  const esProfesor = variante === "profesor";
+  const textoGuardar = esProfesor ? "Guardar mi firma" : "Guardar firma";
 
   const abrirFoto = () => entradaFotoRef.current?.click();
   const fotoElegida = (evento) => {
@@ -39,8 +50,10 @@ export default function CuadroFirma({
     if (archivo) onElegirFoto(archivo);
   };
 
+  const Guardada = esProfesor ? FirmaGuardadaProfesor : FirmaGuardadaAdmin;
+
   return (
-    <section className="bg-white rounded-lg shadow border border-slate-200 p-6">
+    <section className="bg-white rounded-lg shadow border border-slate-200 p-4 sm:p-6">
       <h2 className="text-xl font-bold text-slate-800 mb-1">{titulo}</h2>
       {descripcion && <p className="text-sm text-slate-600 mb-4">{descripcion}</p>}
 
@@ -53,7 +66,7 @@ export default function CuadroFirma({
       {cargando ? (
         <CaminitoCargando etiqueta="Cargando la firma" className="max-w-sm" />
       ) : !editor.modo ? (
-        <FirmaGuardada
+        <Guardada
           firma={firma}
           guardando={guardando}
           onSubirFoto={abrirFoto}
@@ -68,11 +81,15 @@ export default function CuadroFirma({
             <BotonPrincipal
               onClick={onGuardar}
               disabled={!editor.imagen || editor.preparando || guardando}
+              grande={esProfesor}
             >
-              Guardar firma
+              {textoGuardar}
             </BotonPrincipal>
             <BotonSecundario onClick={onCancelar}>Cancelar</BotonSecundario>
           </Acciones>
+          {esProfesor && (
+            <EnlaceFoto onClick={abrirFoto}>¿Prefieres una foto de tu firma? Súbela aquí</EnlaceFoto>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -92,8 +109,9 @@ export default function CuadroFirma({
             <BotonPrincipal
               onClick={onGuardar}
               disabled={!editor.imagen || editor.preparando || guardando}
+              grande={esProfesor}
             >
-              Guardar firma
+              {textoGuardar}
             </BotonPrincipal>
             <BotonSecundario onClick={abrirFoto}>Elegir otra foto</BotonSecundario>
             <BotonSecundario onClick={onCancelar}>Cancelar</BotonSecundario>
@@ -113,7 +131,7 @@ export default function CuadroFirma({
   );
 }
 
-function FirmaGuardada({ firma, guardando, onSubirFoto, onAbrirDibujo, onQuitar }) {
+function FirmaGuardadaAdmin({ firma, guardando, onSubirFoto, onAbrirDibujo, onQuitar }) {
   return (
     <div className="space-y-3">
       <MuestraFirma imagen={firma?.imagen} />
@@ -129,16 +147,7 @@ function FirmaGuardada({ firma, guardando, onSubirFoto, onAbrirDibujo, onQuitar 
         <BotonSecundario onClick={onAbrirDibujo} disabled={guardando}>
           {firma ? "Cambiar firmando aquí" : "Firmar aquí con el dedo"}
         </BotonSecundario>
-        {firma && (
-          <button
-            type="button"
-            onClick={onQuitar}
-            disabled={guardando}
-            className="rounded px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
-          >
-            Quitar firma
-          </button>
-        )}
+        {firma && <BotonQuitar onClick={onQuitar} disabled={guardando}>Quitar firma</BotonQuitar>}
       </Acciones>
       <p className="text-xs text-slate-500">
         Para la foto: firma con lapicero oscuro en una hoja blanca y tómale la foto de cerca,
@@ -148,13 +157,58 @@ function FirmaGuardada({ firma, guardando, onSubirFoto, onAbrirDibujo, onQuitar 
   );
 }
 
-/** La firma sobre una raya, como sale en el boletín. */
-function MuestraFirma({ imagen }) {
+function FirmaGuardadaProfesor({ firma, guardando, onSubirFoto, onAbrirDibujo, onQuitar }) {
+  if (!firma) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-700">
+          Todavía no has guardado tu firma: los boletines de tu curso salen con la raya vacía.
+        </p>
+        <BotonPrincipal onClick={onAbrirDibujo} disabled={guardando} grande>
+          Firmar con el dedo
+        </BotonPrincipal>
+        <div>
+          <EnlaceFoto onClick={onSubirFoto} disabled={guardando}>
+            o subir una foto de tu firma
+          </EnlaceFoto>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="max-w-sm rounded-lg border border-slate-200 bg-white px-6 pt-3 pb-4">
-      <div className="flex h-24 items-end justify-center">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <MuestraFirma imagen={firma.imagen} compacta />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-emerald-800">
+          ✓ Tu firma ya sale en los boletines de tu curso.
+        </p>
+        <p className="text-xs text-slate-500">Guardada el {formatearFechaFirma(firma.actualizado_en)}.</p>
+      </div>
+      <Acciones>
+        <BotonSecundario onClick={onAbrirDibujo} disabled={guardando}>
+          Cambiar mi firma
+        </BotonSecundario>
+        <BotonQuitar onClick={onQuitar} disabled={guardando}>Quitar mi firma</BotonQuitar>
+      </Acciones>
+    </div>
+  );
+}
+
+/** La firma sobre una raya, como sale en el boletín. */
+function MuestraFirma({ imagen, compacta = false }) {
+  return (
+    <div
+      className={`rounded-lg border border-slate-200 bg-white ${
+        compacta ? "w-full max-w-[220px] shrink-0 px-4 pt-2 pb-2" : "max-w-sm px-6 pt-3 pb-4"
+      }`}
+    >
+      <div className={`flex items-end justify-center ${compacta ? "h-14" : "h-24"}`}>
         {imagen ? (
-          <img src={imagen} alt="Firma" className="max-h-24 max-w-full object-contain" />
+          <img
+            src={imagen}
+            alt="Firma"
+            className={`max-w-full object-contain ${compacta ? "max-h-14" : "max-h-24"}`}
+          />
         ) : (
           <span className="self-center text-sm text-slate-400">Sin firma</span>
         )}
@@ -176,11 +230,13 @@ function Acciones({ children }) {
   return <div className="flex flex-wrap items-center gap-2">{children}</div>;
 }
 
-function BotonPrincipal({ children, ...props }) {
+function BotonPrincipal({ children, grande = false, ...props }) {
   return (
     <button
       type="button"
-      className="rounded bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-800 disabled:opacity-50"
+      className={`rounded bg-purple-600 font-semibold text-white shadow hover:bg-purple-800 disabled:opacity-50 ${
+        grande ? "w-full px-6 py-3 text-base sm:w-auto" : "px-4 py-2 text-sm"
+      }`}
       {...props}
     >
       {children}
@@ -193,6 +249,31 @@ function BotonSecundario({ children, ...props }) {
     <button
       type="button"
       className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BotonQuitar({ children, ...props }) {
+  return (
+    <button
+      type="button"
+      className="rounded px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** La foto como opción secundaria: un enlace, no otro botón igual. */
+function EnlaceFoto({ children, ...props }) {
+  return (
+    <button
+      type="button"
+      className="text-sm font-semibold text-purple-700 underline underline-offset-2 hover:text-purple-900 disabled:opacity-50"
       {...props}
     >
       {children}

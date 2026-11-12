@@ -116,6 +116,56 @@ describe("CuadroFirma", () => {
     });
   });
 
+  describe("versión del profesor («Mi curso»)", () => {
+    it("sin firma: un solo botón grande para el dedo, y la foto como enlace", async () => {
+      pintar({ variante: "profesor" });
+
+      expect(screen.getByText(/no has guardado tu firma/)).toBeInTheDocument();
+      const botones = screen.getAllByRole("button");
+      expect(botones.map((boton) => boton.textContent)).toEqual([
+        "Firmar con el dedo",
+        "o subir una foto de tu firma",
+      ]);
+      expect(botones[0]).toHaveClass("py-3", "text-base");
+
+      await userEvent.click(botones[0]);
+      expect(acciones.onAbrirDibujo).toHaveBeenCalled();
+    });
+
+    it("el enlace de la foto abre el selector de fotos", async () => {
+      pintar({ variante: "profesor" });
+      const abrir = vi.spyOn(screen.getByTestId("entrada-foto-firma"), "click");
+
+      await userEvent.click(screen.getByRole("button", { name: "o subir una foto de tu firma" }));
+
+      expect(abrir).toHaveBeenCalled();
+    });
+
+    it("ya guardada, un renglón: la firma, que ya sale, y cambiar o quitar", async () => {
+      pintar({ variante: "profesor", firma: GUARDADA });
+
+      expect(screen.getByRole("img", { name: "Firma" })).toHaveAttribute("src", IMAGEN);
+      expect(screen.getByText("✓ Tu firma ya sale en los boletines de tu curso.")).toBeInTheDocument();
+      expect(screen.getByText("Guardada el 12 de noviembre de 2026.")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Firmar con el dedo" })).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Cambiar mi firma" }));
+      expect(acciones.onAbrirDibujo).toHaveBeenCalled();
+      await userEvent.click(screen.getByRole("button", { name: "Quitar mi firma" }));
+      expect(acciones.onQuitar).toHaveBeenCalled();
+    });
+
+    it("firmando, «Guardar mi firma» y la opción de la foto", () => {
+      instalarLienzoFalso();
+      pintar({ variante: "profesor", editor: { ...EDITOR_CERRADO, modo: "dibujo", imagen: IMAGEN } });
+
+      expect(screen.getByRole("button", { name: "Guardar mi firma" })).toBeEnabled();
+      expect(
+        screen.getByRole("button", { name: "¿Prefieres una foto de tu firma? Súbela aquí" }),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe("con una foto", () => {
     it("mientras la prepara, el caminito y sin guardar", () => {
       pintar({ editor: { ...EDITOR_CERRADO, modo: "foto", preparando: true } });

@@ -84,8 +84,8 @@ continuacion para retomarla en otro chat u otro LLM.
 - `funcionalidades/FIRMAS_BOLETIN.md`: firmas guardadas para el boletín, la
   del rector(a) y la de cada director de grupo. Módulo `firmas`: cómo se limpia
   la foto o el trazo. El documento principal está en el backend. **Pasos 2
-  (Identidad institucional) y 4 (boletín) construidos el 2026-11-12, sin
-  commit.**
+  (Identidad institucional), 3 («Mi curso») y 4 (boletín) construidos el
+  2026-11-12, sin commit; falta el 5 (certificados).**
 
 ## Control SaaS
 

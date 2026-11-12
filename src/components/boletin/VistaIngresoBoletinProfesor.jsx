@@ -99,18 +99,24 @@ export default function VistaIngresoBoletinProfesor({
       )}
 
       {miCurso?.vistaMiCurso ? (
-        <MiCursoDirector
-          cursos={miCurso.cursos}
-          cursoId={miCurso.cursoId}
-          datos={miCurso.datos}
-          cargando={miCurso.cargando}
-          error={miCurso.error}
-          periodo={periodo}
-          onCambiarCurso={miCurso.onCambiarCurso}
-          onCambiarPeriodo={onCambiarPeriodo}
-          onReintentar={miCurso.onReintentar}
-          observaciones={miCurso.observaciones}
-        />
+        <>
+          {/* La firma del director para el boletín (FIRMAS_BOLETIN.md, paso
+              3), ya armada por la página. Solo existe con «Mi curso»
+              abierto, así que solo entonces se pide al servidor. */}
+          {miCurso.cuadroFirma && <div className="mb-6">{miCurso.cuadroFirma}</div>}
+          <MiCursoDirector
+            cursos={miCurso.cursos}
+            cursoId={miCurso.cursoId}
+            datos={miCurso.datos}
+            cargando={miCurso.cargando}
+            error={miCurso.error}
+            periodo={periodo}
+            onCambiarCurso={miCurso.onCambiarCurso}
+            onCambiarPeriodo={onCambiarPeriodo}
+            onReintentar={miCurso.onReintentar}
+            observaciones={miCurso.observaciones}
+          />
+        </>
       ) : (
         <>
           {errorClases && (
