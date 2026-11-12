@@ -1,7 +1,7 @@
-// Contratos puros de «Pagan siempre a tiempo» y «Los que mejor pagan» (panel
-// del admin), a partir de `GET /cartera/puntualidad`. Qué cuenta como «a
-// tiempo», quién entra al ranking y el orden los decide el backend
-// (`app/services/puntualidad.py`); aquí solo se normaliza y se arma el texto.
+// Contratos puros de «Los que mejor pagan» (panel del admin), a partir de
+// `GET /cartera/puntualidad`. Qué cuenta como «a tiempo», quién entra al
+// ranking y el orden los decide el backend (`app/services/puntualidad.py`);
+// aquí solo se normaliza y se arma el texto.
 import { capitalizarNombreVisible } from "../nombres";
 import { inicialesDe } from "./admin";
 
@@ -63,11 +63,6 @@ export const normalizarPuntualidad = (data) => ({
 });
 
 const plural = (cantidad, singular, varios) => (cantidad === 1 ? singular : varios);
-
-// Lo que sigue a «142 de 286» en el anillo. Sin verbo, sirve igual para 0, 1
-// o muchos.
-export const textoSinAtrasos = (total) =>
-    `${plural(total, "estudiante", "estudiantes")} sin atrasarse ni un mes este año.`;
 
 // «12 de 20 pagan siempre a tiempo», en la fila de cada curso.
 export const textoCursoPuntual = (curso) =>

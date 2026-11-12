@@ -5,27 +5,29 @@
 - Pedido del usuario: los que pagan siempre a tiempo y un ranking de los que
   mejor pagan, también por curso, «ahí mismo al darle clic». Cierra la maqueta
   Mosaico.
-- «Pagan siempre a tiempo»: un anillo con el porcentaje y «142 de 286
-  estudiantes sin atrasarse ni un mes este año». Sin decimales; nunca dice
-  100 % si alguien se atrasó ni 0 % si alguien paga a tiempo.
 - «Los que mejor pagan»: botones «Todo el colegio» y «Por curso». El colegio,
   hasta 6 tarjetas con curso, «✓ 10 de 10» y cuántos días antes suele pagar
   (o cuántas cuotas pagó tarde). Por curso, de mayor a menor porcentaje (5 y
   «Ver los N cursos»); al tocar uno se abren ahí mismo sus 5 mejores con oro,
-  plata y bronce.
-- El panel quedó en el orden exacto de la maqueta: «Por cobrar» con el anillo;
-  «Los 5 que más deben» con «Los que mejor pagan»; «Deuda por curso» con los
-  accesos; el muro de cumpleaños al final.
+  plata y bronce. Los porcentajes van sin decimales; nunca dicen 100 % si
+  alguien se atrasó ni 0 % si alguien paga a tiempo.
+- El anillo «Pagan siempre a tiempo» de la maqueta se construyó, pero el
+  usuario pidió quitarlo (2026-11-12) y poner «Accesos rápidos» en su lugar.
+  Orden final: «Por cobrar» con los accesos; «Los 5 que más deben» con «Los
+  que mejor pagan»; «Deuda por curso» sola, a todo lo ancho; el muro de
+  cumpleaños al final. El cuadro del anillo (`TarjetaPuntualidad`), su prueba
+  y su texto (`textoSinAtrasos`) se borraron con su visto bueno: eran nuevos
+  de este paso y nunca se publicaron.
 - Petición nueva: `GET /cartera/puntualidad` (backend, paso 3). Ahora son tres
   y van en paralelo; si esta falla, la cartera y los cumpleaños siguen.
-  **Necesita el backend publicado**: sin él, los dos cuadros dicen «No se pudo
-  cargar quién paga a tiempo.».
+  **Necesita el backend publicado**: sin él, «Los que mejor pagan» dice «No
+  se pudo cargar quién paga a tiempo.».
 - Qué es «a tiempo», quién entra al ranking y el orden los decide el backend;
   el frontend solo pinta.
 - Archivos: `services/dashboardsApi.js`, `utils/dashboards/puntualidad.js`
   (nuevo), `hooks/dashboards/useDashboardAdmin.js`,
-  `components/dashboards/admin/` (`TarjetaPuntualidad` y
-  `TarjetaMejoresPagadores`, nuevos), `pages/AdminDashboard.jsx` y sus pruebas.
+  `components/dashboards/admin/TarjetaMejoresPagadores.jsx` (nuevo),
+  `pages/AdminDashboard.jsx` y sus pruebas.
 
 ## 2026-11-11 - Muro de cumpleaños con globos (paso 2), admin y profesor
 

@@ -156,35 +156,33 @@ describe("AdminDashboard", () => {
         expect(apiMock.get).toHaveBeenCalledTimes(3);
     });
 
-    it("ordena los cuadros como en la maqueta Mosaico, con el muro al final", () => {
+    it("ordena los cuadros: el Mosaico sin anillo, con los accesos arriba y el muro al final", () => {
         iniciarSesionAdmin();
 
         render(<AdminDashboard />);
 
+        // El usuario pidió el 2026-11-12 quitar el anillo «Pagan siempre a
+        // tiempo» y poner los accesos en su lugar.
+        expect(screen.queryByRole("region", { name: "Pagan siempre a tiempo" })).not.toBeInTheDocument();
         const enOrden = [
             "Por cobrar este año",
-            "Pagan siempre a tiempo",
+            "Accesos rápidos",
             "Los 5 que más deben",
             "Los que mejor pagan",
             "Deuda por curso",
-            "Accesos rápidos",
             "Cumpleaños de la semana",
         ].map((nombre) => screen.getByRole("region", { name: nombre }));
         // Todas las secciones de la página, en el orden en que se pintan.
         expect(screen.getAllByRole("region")).toEqual(enOrden);
     });
 
-    it("muestra quién paga siempre a tiempo y los que mejor pagan", async () => {
+    it("muestra los que mejor pagan, del colegio y por curso", async () => {
         iniciarSesionAdmin();
 
         render(<AdminDashboard />);
 
-        const anillo = screen.getByRole("region", { name: "Pagan siempre a tiempo" });
-        await waitFor(() => expect(anillo).toHaveTextContent("33 %"));
-        expect(anillo).toHaveTextContent("1 de 3");
-
         const mejores = screen.getByRole("region", { name: "Los que mejor pagan" });
-        expect(mejores).toHaveTextContent("Lucía Fernández");
+        await waitFor(() => expect(mejores).toHaveTextContent("Lucía Fernández"));
         expect(mejores).toHaveTextContent("Suele pagar 6 días antes");
 
         fireEvent.click(screen.getByRole("button", { name: "Por curso" }));
@@ -193,17 +191,17 @@ describe("AdminDashboard", () => {
         expect(mejores).toHaveTextContent("Nadie más paga siempre a tiempo.");
     });
 
-    it("«Ocultar valores» no cambia los cuadros de puntualidad, que no tienen montos", async () => {
+    it("«Ocultar valores» no cambia «Los que mejor pagan», que no tiene montos", async () => {
         iniciarSesionAdmin();
 
         render(<AdminDashboard />);
-        const anillo = screen.getByRole("region", { name: "Pagan siempre a tiempo" });
-        await waitFor(() => expect(anillo).toHaveTextContent("33 %"));
+        const mejores = screen.getByRole("region", { name: "Los que mejor pagan" });
+        await waitFor(() => expect(mejores).toHaveTextContent("Lucía Fernández"));
 
         fireEvent.click(screen.getByRole("button", { name: "Ocultar valores" }));
 
-        expect(anillo).toHaveTextContent("33 %");
-        expect(screen.getByRole("region", { name: "Los que mejor pagan" })).toHaveTextContent("Lucía Fernández");
+        expect(mejores).toHaveTextContent("Lucía Fernández");
+        expect(mejores).toHaveTextContent("10 de 10 cuotas a tiempo");
     });
 
     it("si falla quién paga a tiempo, la cartera y los cumpleaños siguen", async () => {
@@ -212,7 +210,7 @@ describe("AdminDashboard", () => {
 
         render(<AdminDashboard />);
 
-        await waitFor(() => expect(screen.getAllByText(ERROR_PUNTUALIDAD)).toHaveLength(2));
+        expect(await screen.findByText(ERROR_PUNTUALIDAD)).toBeInTheDocument();
         await waitFor(() => expect(porCobrar().textContent).toContain("1.250.000"));
         expect(await screen.findByText("Ana Arias")).toBeInTheDocument();
         expect(screen.queryByText(ERROR_CARTERA)).not.toBeInTheDocument();
@@ -328,7 +326,7 @@ describe("AdminDashboard", () => {
         expect(screen.getByRole("button", { name: "Ver toda la cartera vencida" })).toBeInTheDocument();
         // Quién paga a tiempo es otra consulta: no cae con la cartera.
         await waitFor(() =>
-            expect(screen.getByRole("region", { name: "Pagan siempre a tiempo" })).toHaveTextContent("33 %"),
+            expect(screen.getByRole("region", { name: "Los que mejor pagan" })).toHaveTextContent("Lucía Fernández"),
         );
     });
 

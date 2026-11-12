@@ -636,9 +636,9 @@ Uso:
 
 - El dashboard admin reparte el resumen en «Por cobrar este año», «Los 5 que
   más deben» y «Deuda por curso». Desde el 2026-11-11 pide además
-  `GET /cartera/puntualidad` (sin parámetros, solo admin, solo lee) para
-  «Pagan siempre a tiempo» y «Los que mejor pagan»; la regla de qué es «a
-  tiempo» y quién entra al ranking es del backend.
+  `GET /cartera/puntualidad` (sin parámetros, solo admin, solo lee) para «Los
+  que mejor pagan»; la regla de qué es «a tiempo» y quién entra al ranking es
+  del backend.
 - La pantalla de cartera vencida carga KPIs, filtros y reportes imprimibles por
   estudiante o curso.
 - La informacion respeta la regla central de cobros del backend, incluyendo

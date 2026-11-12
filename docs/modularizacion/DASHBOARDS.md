@@ -159,7 +159,7 @@ ni utilidades propias, y **ninguno de los siete archivos tenía pruebas**.
 | Método | Ruta | Uso actual |
 |---|---|---|
 | `GET` | `/cartera/mora/resumen` | «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso» del panel de admin (desde el 2026-11-11; antes, la tarjeta de cartera vencida). |
-| `GET` | `/cartera/puntualidad` | «Pagan siempre a tiempo» y «Los que mejor pagan» del panel de admin (desde el 2026-11-11, paso 4). Sin parámetros; solo admin y solo lee. |
+| `GET` | `/cartera/puntualidad` | «Los que mejor pagan» del panel de admin (desde el 2026-11-11, paso 4). Sin parámetros; solo admin y solo lee. |
 | `GET` | `/dashboard/cumpleanos/admin` con `params: { dias: 7 }` | Cumpleaños de la semana, vista admin. |
 | `GET` | `/mis-clases/:profesorId` | Clases y horario del profesor. |
 | `GET` | `/dashboard/inasistencias/:profesorId` | Ranking de inasistencias por curso. |
@@ -215,18 +215,21 @@ durante la migración:
   una con su bandera `activo`). El fallo de una no afecta a las otras ni a las
   tarjetas. Desde el paso 4 (2026-11-11) son tres: se sumó
   `GET /cartera/puntualidad`.
-- Orden de la maqueta Mosaico (paso 4, 2026-11-11): «Por cobrar este año» con
-  «Pagan siempre a tiempo»; «Los 5 que más deben» con «Los que mejor pagan»;
-  «Deuda por curso» con «Accesos rápidos»; el muro de cumpleaños al final.
-- «Pagan siempre a tiempo» (anillo) y «Los que mejor pagan» (botones «Todo el
-  colegio» / «Por curso»; al tocar un curso se abren ahí mismo sus mejores,
-  con oro, plata y bronce; 5 cursos y «Ver los N cursos») solo pintan lo que
-  manda el backend: qué es a tiempo, quién entra al ranking y el orden se
-  deciden allá (`app/services/puntualidad.py`). Cargando
+- Orden (maqueta Mosaico, paso 4, 2026-11-11, sin el anillo «Pagan siempre a
+  tiempo», que el usuario pidió quitar el 2026-11-12): «Por cobrar este año»
+  con «Accesos rápidos»; «Los 5 que más deben» con «Los que mejor pagan»;
+  «Deuda por curso» sola, a todo lo ancho; el muro de cumpleaños al final.
+  El anillo (`TarjetaPuntualidad`) se borró con su visto bueno; nunca se
+  publicó.
+- «Los que mejor pagan» (botones «Todo el colegio» / «Por curso»; al tocar un
+  curso se abren ahí mismo sus mejores, con oro, plata y bronce; 5 cursos y
+  «Ver los N cursos») solo pinta lo que manda el backend: qué es a tiempo,
+  quién entra al ranking y el orden se deciden allá
+  (`app/services/puntualidad.py`). Cargando
   (`Calculando quién paga a tiempo…`), error y «todavía no vence ninguna
-  mensualidad» son estados distintos. El porcentaje va sin decimales y nunca
-  dice 100 % si alguien se atrasó ni 0 % si alguien paga a tiempo. «Ocultar
-  valores» no los toca: no tienen montos.
+  mensualidad» son estados distintos. Los porcentajes van sin decimales y
+  nunca dicen 100 % si alguien se atrasó ni 0 % si alguien paga a tiempo.
+  «Ocultar valores» no lo toca: no tiene montos.
 - Desde el 2026-11-11 (rediseño, paso 1) la cartera se reparte en tres
   tarjetas: «Por cobrar este año», «Los 5 que más deben» y «Deuda por curso».
   Cargando, error y cartera al día son estados distintos: mientras carga dicen

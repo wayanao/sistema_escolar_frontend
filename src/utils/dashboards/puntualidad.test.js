@@ -9,7 +9,6 @@ import {
     textoCuotasATiempo,
     textoCursoPuntual,
     textoDespuesDelRanking,
-    textoSinAtrasos,
 } from "./puntualidad";
 
 // Forma real de `GET /cartera/puntualidad` (docs/API_ENDPOINTS.md del backend).
@@ -130,11 +129,6 @@ describe("porcentajeVisible", () => {
 });
 
 describe("textos", () => {
-    it("el anillo sirve para uno o muchos", () => {
-        expect(textoSinAtrasos(1)).toBe("estudiante sin atrasarse ni un mes este año.");
-        expect(textoSinAtrasos(286)).toBe("estudiantes sin atrasarse ni un mes este año.");
-    });
-
     it("la fila de cada curso concuerda en singular y plural", () => {
         expect(textoCursoPuntual({ siempreATiempo: 1, estudiantes: 3 })).toBe("1 de 3 paga siempre a tiempo");
         expect(textoCursoPuntual({ siempreATiempo: 12, estudiantes: 20 })).toBe("12 de 20 pagan siempre a tiempo");
