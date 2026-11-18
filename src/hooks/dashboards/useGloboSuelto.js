@@ -45,7 +45,8 @@ const zonaDePaseo = (rectArea) => {
 };
 
 /**
- * El globo de quien cumple hoy se suelta del muro y pasea por la pantalla.
+ * El globo que vuela (`globoVuela`: el de hoy y el aviso del día anterior) se
+ * suelta del muro y pasea por la pantalla.
  *
  * Pasado `retraso`, mide dónde está el globo en el muro (`origenRef`) y arma
  * su camino; entonces devuelve `true` y quien lo usa pinta el globo suelto

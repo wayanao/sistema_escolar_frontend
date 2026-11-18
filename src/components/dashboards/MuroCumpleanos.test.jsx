@@ -52,6 +52,24 @@ describe("MuroCumpleanos", () => {
         expect(screen.getAllByText("Ana Sofía Mejía")).toHaveLength(1);
     });
 
+    it("el globo de mañana también sale a volar; el de pasado mañana se queda quieto", () => {
+        const { container } = pintar({
+            estudiantes: [
+                ...estudiantes,
+                { id: 3, nombre: "luis", apellido: "gómez", curso: "CUARTO", fecha_nacimiento: "2016-11-12" },
+            ],
+        });
+
+        const globos = [...container.querySelectorAll("li")];
+        expect(globos.map((globo) => globo.textContent.includes("Luis Gómez"))).toEqual([false, true, false]);
+        // Los que van a volar se mecen en el muro (`globo-flotar`) hasta soltarse.
+        expect(globos[0].querySelector(".globo-flotar")).not.toBeNull();
+        expect(globos[1]).toHaveTextContent("Mañana");
+        expect(globos[1].querySelector(".globo-flotar")).not.toBeNull();
+        expect(globos[2]).toHaveTextContent("Viernes 13");
+        expect(globos[2].querySelector(".globo-flotar")).toBeNull();
+    });
+
     it("pide la letra gótica una sola vez", () => {
         const { unmount } = pintar();
         unmount();

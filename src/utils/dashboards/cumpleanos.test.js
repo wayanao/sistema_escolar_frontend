@@ -4,6 +4,7 @@ import {
     PALETAS_GLOBO,
     construirParametrosCumpleanos,
     etiquetaDiaGlobo,
+    globoVuela,
     globosDeCumpleanos,
     nombreCompletoEstudiante,
     normalizarCumpleanos,
@@ -124,6 +125,37 @@ describe("etiquetaDiaGlobo", () => {
     });
 });
 
+describe("globoVuela", () => {
+    const MIERCOLES = new Date(2026, 10, 11, 9, 0);
+    const JUEVES = new Date(2026, 10, 12, 9, 0);
+    const VIERNES = new Date(2026, 10, 13, 9, 0);
+    const SABADO = new Date(2026, 10, 14, 9, 0);
+
+    it("vuela el día del cumpleaños y el día anterior, para avisar", () => {
+        expect(globoVuela({ dias: 0 }, MIERCOLES)).toBe(true);
+        expect(globoVuela({ dias: 1 }, MIERCOLES)).toBe(true);
+        expect(globoVuela({ dias: 2 }, MIERCOLES)).toBe(false);
+        // El jueves todavía no avisa del sábado.
+        expect(globoVuela({ dias: 2 }, JUEVES)).toBe(false);
+    });
+
+    it("el viernes también vuelan los del sábado, el domingo y el lunes", () => {
+        expect(globoVuela({ dias: 1 }, VIERNES)).toBe(true);
+        expect(globoVuela({ dias: 2 }, VIERNES)).toBe(true);
+        expect(globoVuela({ dias: 3 }, VIERNES)).toBe(true);
+        expect(globoVuela({ dias: 4 }, VIERNES)).toBe(false);
+    });
+
+    it("el fin de semana sigue la regla del día anterior", () => {
+        expect(globoVuela({ dias: 1 }, SABADO)).toBe(true);
+        expect(globoVuela({ dias: 2 }, SABADO)).toBe(false);
+    });
+
+    it("sin datos no vuela", () => {
+        expect(globoVuela(null, MIERCOLES)).toBe(false);
+    });
+});
+
 describe("globosDeCumpleanos", () => {
     it("arma un globo por estudiante, primero el de hoy, con colores que se turnan", () => {
         const globos = globosDeCumpleanos(
@@ -141,6 +173,7 @@ describe("globosDeCumpleanos", () => {
                 curso: "3B",
                 edad: 9,
                 esHoy: true,
+                vuela: true,
                 etiqueta: "Hoy",
                 paleta: PALETAS_GLOBO[0],
             },
@@ -150,6 +183,8 @@ describe("globosDeCumpleanos", () => {
                 curso: "5A",
                 edad: 11,
                 esHoy: false,
+                // AHORA es viernes: el del lunes ya sale a volar para avisar.
+                vuela: true,
                 etiqueta: "Lunes 10",
                 paleta: PALETAS_GLOBO[1],
             },

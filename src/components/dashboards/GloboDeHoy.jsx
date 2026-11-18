@@ -8,7 +8,9 @@ const RETRASO_ENTRE_GLOBOS = 900;
 const FORMA_GLOBO = "50% 50% 50% 50% / 42% 42% 58% 58%";
 
 /**
- * El globo de quien cumple hoy (pedido del usuario, 2026-11-11). Espera un
+ * El globo que sale a volar: el de quien cumple hoy (pedido del usuario,
+ * 2026-11-11) y, desde el 2026-11-18, también el del día anterior para avisar
+ * (`globoVuela` en `utils/dashboards/cumpleanos.js`). Espera un
  * momento en el muro meciéndose, se suelta y pasea por la parte de la pantalla
  * que se está viendo; en el muro queda su silueta con «¡Salió a volar!». Al
  * tocarlo o pasarle el ratón se zarandea de lado a lado. Va en una capa fija

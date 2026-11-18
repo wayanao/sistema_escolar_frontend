@@ -307,8 +307,14 @@ durante la migración:
   día («Hoy», «Mañana», «Viernes 13»), el nombre, el curso y los años. Los
   datos salen de `globosDeCumpleanos` (`utils/dashboards/cumpleanos.js`); sin
   peticiones nuevas.
-- Los de hoy (hasta `MAX_GLOBOS_SUELTOS = 3`) son `GloboDeHoy`: esperan 1,4 s
-  meciéndose en el muro, se sueltan y pasean sin parar por una curva cerrada al
+- Qué globos vuelan lo decide `globoVuela` (`utils/dashboards/cumpleanos.js`,
+  desde el 2026-11-18): el de hoy y el de mañana, para avisar un día antes; y
+  el viernes también los del sábado, el domingo y el lunes, porque ese aviso
+  caería en fin de semana. No tiene en cuenta los festivos. El de mañana vuela
+  con su etiqueta «Mañana»; solo el de hoy lleva la etiqueta blanca.
+- Los que vuelan (hasta `MAX_GLOBOS_SUELTOS = 3`, primero los más cercanos)
+  son `GloboDeHoy` (los que no caben se quedan quietos en el muro): esperan
+  1,4 s meciéndose en el muro, se sueltan y pasean sin parar por una curva cerrada al
   azar dentro de lo que se ve (`useGloboSuelto` + `utils/dashboards/globos.js`,
   con `offset-path` y `element.animate`). Van en un portal fijo a la pantalla,
   con `z-20`: por debajo del encabezado del celular (`z-40`), la barra de abajo

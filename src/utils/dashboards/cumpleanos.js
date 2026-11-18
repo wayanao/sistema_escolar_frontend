@@ -61,9 +61,23 @@ export const ordenarCumpleanos = (estudiantes, ahora) =>
 
 // --- Muro de cumpleaños (2026-11-11) -----------------------------------------
 
-// Cuántos globos de hoy se sueltan a pasear; si hay más, los demás se quedan en
-// el muro para no llenar la pantalla.
+// Cuántos globos se sueltan a pasear; si hay más, los demás se quedan en el
+// muro para no llenar la pantalla. Se sueltan primero los más cercanos.
 export const MAX_GLOBOS_SUELTOS = 3;
+
+const VIERNES = 5;
+// Del viernes al lunes: sábado (1), domingo (2) y lunes (3).
+const DIAS_DEL_VIERNES_AL_LUNES = 3;
+
+// El globo sale a volar el día del cumpleaños y también el día anterior, para
+// avisar (pedido del usuario, 2026-11-18). El viernes vuelan además los del
+// sábado, el domingo y el lunes: ese aviso caería en fin de semana y nadie lo
+// vería. No tiene en cuenta los festivos.
+export const globoVuela = (info, ahora) => {
+    if (!info) return false;
+    if (info.dias <= 1) return true;
+    return ahora.getDay() === VIERNES && info.dias <= DIAS_DEL_VIERNES_AL_LUNES;
+};
 
 // Colores de fiesta. La ficha todavía no guarda si el estudiante es niña o
 // niño, así que no se usa el rosado ni el azul: ningún color sugiere eso.
@@ -99,6 +113,7 @@ export const globosDeCumpleanos = (estudiantes, ahora) =>
             curso: estudiante.curso || "",
             edad: info.edad,
             esHoy: info.dias === 0,
+            vuela: globoVuela(info, ahora),
             etiqueta: etiquetaDiaGlobo(info, ahora),
             paleta: PALETAS_GLOBO[indice % PALETAS_GLOBO.length],
         }));

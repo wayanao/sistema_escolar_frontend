@@ -1,5 +1,25 @@
 # Cambios Frontend
 
+## 2026-11-18 - Muro de cumpleaños: el globo sale a volar un día antes
+
+- Pedido del usuario: en el panel del profesor y en el del admin, que el globo
+  empiece a volar un día antes del cumpleaños para avisar. Eligió que el
+  viernes también avisen los cumpleaños del sábado, el domingo y el lunes.
+- `globoVuela` (nuevo, `utils/dashboards/cumpleanos.js`): vuela el globo de
+  hoy y el de mañana; el viernes, además, los que faltan hasta el lunes (1 a 3
+  días). El fin de semana sigue la regla del día anterior. No tiene en cuenta
+  los festivos. `globosDeCumpleanos` agrega `vuela` a cada globo, y
+  `MuroCumpleanos` suelta los que tienen `vuela` en vez de solo los de hoy.
+- Siguen siendo hasta tres globos sueltos (`MAX_GLOBOS_SUELTOS`), primero los
+  más cercanos; los demás se quedan quietos en el muro con su día. El de
+  mañana conserva su etiqueta «Mañana»: la etiqueta blanca sigue siendo solo
+  para el de hoy. Sin peticiones nuevas ni cambios en el backend: el rango de 7
+  días ya traía los de mañana.
+- Archivos: `utils/dashboards/cumpleanos.js`,
+  `components/dashboards/MuroCumpleanos.jsx`, comentarios en `GloboDeHoy.jsx`
+  y `hooks/dashboards/useGloboSuelto.js`, y sus pruebas
+  (`cumpleanos.test.js`, `MuroCumpleanos.test.jsx`).
+
 ## 2026-11-12 - Panel del admin: manito que saluda junto al nombre
 
 - Pedido del usuario: «ponle una manito al nombre del admin como una

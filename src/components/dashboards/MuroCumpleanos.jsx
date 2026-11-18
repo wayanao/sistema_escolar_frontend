@@ -63,8 +63,10 @@ function Banderines() {
  * Muro de fiestas con los cumpleaños de la semana (pedido del usuario,
  * 2026-11-11), al final del panel del admin y del profesor: banderines de
  * «CUMPLEAÑOS», la cinta «de la semana» y un globo por estudiante con el día,
- * el nombre, el curso y los años. Los de hoy se sueltan y pasean por la
- * pantalla (`GloboDeHoy`, hasta tres); los demás se quedan quietos.
+ * el nombre, el curso y los años. Los que vuelan (`globoVuela`: hoy, mañana y,
+ * los viernes, el fin de semana y el lunes) se sueltan y pasean por la
+ * pantalla (`GloboDeHoy`, hasta tres, primero los más cercanos); los demás se
+ * quedan quietos.
  */
 function MuroCumpleanos({ estudiantes = [], loading = false, error = "", emptyText, ahora = new Date(), className = "" }) {
   useFuenteGotica();
@@ -104,7 +106,7 @@ function MuroCumpleanos({ estudiantes = [], loading = false, error = "", emptyTe
         <ul className="relative mt-2.5 flex flex-wrap items-start justify-evenly gap-x-1.5 gap-y-1">
           {globos.map((globo, indice) => {
             const desfase = DESFASES[indice % DESFASES.length];
-            if (globo.esHoy && sueltos < MAX_GLOBOS_SUELTOS) {
+            if (globo.vuela && sueltos < MAX_GLOBOS_SUELTOS) {
               sueltos += 1;
               return (
                 <GloboDeHoy
