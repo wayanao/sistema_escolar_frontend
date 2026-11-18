@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import ModalSubnotasPlanilla from "./ModalSubnotasPlanilla";
 
 const SUBNOTAS = [
@@ -152,6 +152,9 @@ describe("ModalSubnotasPlanilla", () => {
         expect(screen.getByLabelText("Taller 1")).toBeDisabled();
         expect(screen.getByRole("button", { name: "Guardando..." })).toBeDisabled();
         expect(screen.getByRole("button", { name: "Cerrar" })).toBeDisabled();
+        // La barra de abajo ya no está dentro del fieldset: se apaga por su cuenta.
+        expect(screen.getByRole("button", { name: "Siguiente →" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "← Anterior" })).toBeDisabled();
         fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
         fireEvent.click(screen.getByTestId("fondo-modal-subnotas"));
         expect(onCerrar).not.toHaveBeenCalled();
@@ -256,5 +259,64 @@ describe("ModalSubnotasPlanilla", () => {
 
         expect(screen.getByRole("status")).toHaveTextContent("Agregando...");
         expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
+    });
+});
+
+describe("ModalSubnotasPlanilla con muchas subnotas (tablet, 2026-11-18)", () => {
+    afterEach(() => {
+        delete Element.prototype.scrollIntoView;
+    });
+
+    it("las subnotas se desplazan por dentro y la barra de abajo queda siempre a la vista", () => {
+        renderModal();
+
+        // El fieldset ya no reparte el alto: con varias subnotas el diálogo
+        // crecía por debajo de la pantalla y no dejaba desplazarse.
+        const cuerpo = screen.getByLabelText("Taller 1").closest(".overflow-y-auto");
+        expect(cuerpo).toHaveClass("min-h-0", "flex-1");
+        expect(cuerpo.parentElement).toBe(screen.getByRole("dialog"));
+
+        const guardar = screen.getByRole("button", { name: "Guardar" });
+        expect(guardar.closest("fieldset")).toBeNull();
+        expect(cuerpo).not.toContainElement(guardar);
+        // Red de seguridad: el fondo también se desplaza.
+        expect(screen.getByTestId("fondo-modal-subnotas")).toHaveClass("overflow-y-auto");
+    });
+
+    it("al agregar una subnota baja hasta «Nueva subnota» para seguir agregando", () => {
+        const scrollIntoView = vi.fn();
+        Element.prototype.scrollIntoView = scrollIntoView;
+        const props = {
+            estudiante: ANA,
+            tipo: "Cognitivo",
+            tipoEvaluacion: "numerica",
+            subnotas: SUBNOTAS,
+            borrador: {},
+            posicion: 1,
+            total: 30,
+            onCambiarCalificacion: vi.fn(),
+            onGuardar: vi.fn(),
+            onSiguiente: vi.fn(),
+            onAnterior: vi.fn(),
+            onCerrar: vi.fn(),
+            onCrearSubnota: vi.fn(),
+            onRenombrarSubnota: vi.fn(),
+            onBorrarSubnota: vi.fn(),
+        };
+        const { rerender } = render(<ModalSubnotasPlanilla {...props} />);
+        // Abrir la ventana no mueve nada.
+        expect(scrollIntoView).not.toHaveBeenCalled();
+
+        rerender(<ModalSubnotasPlanilla {...props} subnotas={[...SUBNOTAS, { id: 10, nombre: "Taller 2" }]} />);
+
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+        expect(scrollIntoView.mock.contexts[0]).toBe(
+            screen.getByLabelText("Nueva subnota (para todo el curso)").closest("form"),
+        );
+
+        // Borrar una no mueve la vista.
+        rerender(<ModalSubnotasPlanilla {...props} subnotas={SUBNOTAS} />);
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
     });
 });

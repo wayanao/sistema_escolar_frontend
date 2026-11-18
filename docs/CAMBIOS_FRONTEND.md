@@ -1,5 +1,24 @@
 # Cambios Frontend
 
+## 2026-11-18 - Planilla: el modal de subnotas se desplaza en tablet
+
+- Reporte del usuario: en el perfil del profesor, en tablet, al agregar varias
+  subnotas el modal no dejaba desplazarse.
+- Causa: en pantallas `sm` en adelante el diálogo tiene `max-h-[90vh]`, y quien
+  repartía ese alto entre la lista y la barra de abajo era el `<fieldset>`.
+  Algunos navegadores no encogen un `<fieldset>` como contenedor flexible: el
+  diálogo crecía por debajo de la pantalla, la lista no se desplazaba por
+  dentro y el fondo tampoco. En celular no pasaba porque el diálogo tiene alto
+  fijo. Es el mismo caso de la ventana de firma del observador (2026-10-27).
+- `ModalSubnotasPlanilla.jsx`: la zona que se desplaza
+  (`min-h-0 flex-1 overflow-y-auto`) es hija directa del diálogo y lleva el
+  `<fieldset>` dentro; la barra de abajo queda fuera y sus tres botones se
+  apagan por su cuenta mientras algo se guarda; el fondo tiene
+  `overflow-y-auto` como red de seguridad. Al agregar una subnota, la vista
+  baja hasta «Nueva subnota» (`scrollIntoView`, `block: "nearest"`).
+- Pruebas nuevas en `ModalSubnotasPlanilla.test.jsx`; la de «mientras guarda,
+  nada se puede tocar» ahora revisa también Anterior y Siguiente.
+
 ## 2026-11-18 - Observador impreso: firma del director de grupo y del acudiente
 
 - Pedido del usuario: que la firma del profesor salga en el observador que

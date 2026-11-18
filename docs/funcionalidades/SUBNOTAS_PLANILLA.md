@@ -88,6 +88,15 @@ guarda donde siempre.
 - Preescolar: cada subnota se califica con los mismos cuatro botones de
   caritas de la planilla, y el promedio se muestra como carita.
 - En celular el modal ocupa toda la pantalla, con los botones abajo.
+- **Con muchas subnotas (corregido el 2026-11-18):** la lista se desplaza por
+  dentro y la barra de abajo (promedio, Anterior, Guardar, Siguiente) queda
+  siempre a la vista. En tablet, con varias subnotas, el modal crecía por
+  debajo de la pantalla y no dejaba desplazarse: el `<fieldset>` que apaga todo
+  mientras se guarda era quien repartía el alto, y algunos navegadores no lo
+  encogen. Ahora va dentro de la zona que se desplaza, la barra de abajo se
+  apaga por su cuenta y el fondo también se desplaza, como red de seguridad;
+  es la misma corrección que la ventana de firma del observador. Al agregar
+  una subnota, la vista baja hasta «Nueva subnota» para seguir agregando.
 - Accesibilidad: `role="dialog"` y `aria-modal="true"`, como
   `components/nominaEgresosPrestamos/ModalPagoNomina.jsx`; el foco entra en la
   primera subnota y vuelve a la celda al cerrar.

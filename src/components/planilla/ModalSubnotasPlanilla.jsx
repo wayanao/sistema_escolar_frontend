@@ -66,6 +66,8 @@ function ModalSubnotasPlanilla({
     const idNueva = useId();
     const dialogoRef = useRef(null);
     const camposRef = useRef(new Map());
+    const formNuevaRef = useRef(null);
+    const cantidadSubnotasRef = useRef(subnotas.length);
     const [nuevoNombre, setNuevoNombre] = useState("");
     const [editando, setEditando] = useState(null);
 
@@ -96,6 +98,16 @@ function ModalSubnotasPlanilla({
         // mover el foco.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [estudianteId]);
+
+    // Al agregar una subnota, la lista crece por encima de «Nueva subnota» y la
+    // empuja hacia abajo: se baja hasta ella para que siga a la vista y se
+    // pueda agregar la siguiente sin buscarla (2026-11-18).
+    useEffect(() => {
+        if (subnotas.length > cantidadSubnotasRef.current) {
+            formNuevaRef.current?.scrollIntoView?.({ block: "nearest" });
+        }
+        cantidadSubnotasRef.current = subnotas.length;
+    }, [subnotas.length]);
 
     const registrarCampo = (clave) => (elemento) => {
         if (elemento) camposRef.current.set(clave, elemento);
@@ -150,8 +162,11 @@ function ModalSubnotasPlanilla({
     };
 
     return (
+        // El fondo también se desplaza, como red de seguridad: si algún
+        // navegador deja crecer el diálogo más que la pantalla, se llega igual
+        // a los botones de abajo.
         <div
-            className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4"
+            className="fixed inset-0 z-50 flex items-stretch justify-center overflow-y-auto bg-black/50 sm:items-center sm:p-4"
             onClick={alPulsarFondo}
             data-testid="fondo-modal-subnotas"
         >
@@ -187,8 +202,16 @@ function ModalSubnotasPlanilla({
                     </button>
                 </div>
 
-                <fieldset disabled={ocupado} className="flex min-h-0 min-w-0 flex-1 flex-col">
-                    <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+                {/* El cuerpo se desplaza por dentro y la barra de abajo queda
+                    siempre a la vista. El `<fieldset>` -que deshabilita todo
+                    mientras se guarda- va DENTRO de la zona que se desplaza y no
+                    es él quien reparte el alto: como contenedor flexible, algunos
+                    navegadores no lo encogen, y con varias subnotas el diálogo
+                    crecía por debajo de la pantalla sin dejar desplazarse (visto
+                    en tablet el 2026-11-18; lo mismo le pasó a la ventana de
+                    firma del observador el 2026-10-27). */}
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+                    <fieldset disabled={ocupado} className="min-w-0 space-y-4">
                         {notaAMano && (
                             <p role="note" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
                                 Nota escrita a mano: <strong translate="no">{notaEscrita}</strong>. Al guardar
@@ -344,7 +367,11 @@ function ModalSubnotasPlanilla({
                             </ul>
                         )}
 
-                        <form onSubmit={agregar} className="rounded-lg border border-dashed border-violet-300 p-3">
+                        <form
+                            ref={formNuevaRef}
+                            onSubmit={agregar}
+                            className="rounded-lg border border-dashed border-violet-300 p-3"
+                        >
                             <label htmlFor={idNueva} className="mb-1 block text-sm font-medium text-gray-700">
                                 Nueva subnota (para todo el curso)
                             </label>
@@ -373,57 +400,59 @@ function ModalSubnotasPlanilla({
                                 </p>
                             )}
                         </form>
-                    </div>
+                    </fieldset>
+                </div>
 
-                    <div className="shrink-0 border-t border-gray-200 px-5 py-3">
-                        {accionEnCurso && accionEnCurso !== "guardar" && (
-                            <p className="mb-2 inline-flex items-center gap-2 text-sm text-purple-700" role="status">
-                                <Spinner />
-                                {TEXTO_ACCION[accionEnCurso]}
-                            </p>
-                        )}
-                        <p className="mb-3 text-sm text-gray-700" aria-live="polite">
-                            Promedio:{" "}
-                            <strong className="text-base text-gray-900" translate="no">
-                                {desarrollo
-                                    ? vistaPrevia?.valoracion
-                                        ? `${vistaPrevia.valoracion.emoji} ${vistaPrevia.valoracion.label}`
-                                        : "—"
-                                    : vistaPrevia
-                                        ? formatearNotaCalculada(vistaPrevia.nota)
-                                        : "—"}
-                            </strong>{" "}
-                            <span className="text-gray-500">→ pasa a la celda</span>
+                {/* Fuera del fieldset: cada botón se apaga por su cuenta
+                    mientras algo se guarda. */}
+                <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3 sm:rounded-b-lg">
+                    {accionEnCurso && accionEnCurso !== "guardar" && (
+                        <p className="mb-2 inline-flex items-center gap-2 text-sm text-purple-700" role="status">
+                            <Spinner />
+                            {TEXTO_ACCION[accionEnCurso]}
                         </p>
-                        <div className="flex items-center justify-between gap-2">
-                            <button
-                                type="button"
-                                onClick={onAnterior}
-                                disabled={!hayAnterior}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                ← Anterior
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onGuardar}
-                                disabled={!hayCambios}
-                                className="inline-flex items-center gap-2 rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {accionEnCurso === "guardar" && <Spinner />}
-                                {accionEnCurso === "guardar" ? TEXTO_ACCION.guardar : "Guardar"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onSiguiente}
-                                disabled={!haySiguiente}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Siguiente →
-                            </button>
-                        </div>
+                    )}
+                    <p className="mb-3 text-sm text-gray-700" aria-live="polite">
+                        Promedio:{" "}
+                        <strong className="text-base text-gray-900" translate="no">
+                            {desarrollo
+                                ? vistaPrevia?.valoracion
+                                    ? `${vistaPrevia.valoracion.emoji} ${vistaPrevia.valoracion.label}`
+                                    : "—"
+                                : vistaPrevia
+                                    ? formatearNotaCalculada(vistaPrevia.nota)
+                                    : "—"}
+                        </strong>{" "}
+                        <span className="text-gray-500">→ pasa a la celda</span>
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                        <button
+                            type="button"
+                            onClick={onAnterior}
+                            disabled={!hayAnterior || ocupado}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            ← Anterior
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onGuardar}
+                            disabled={!hayCambios || ocupado}
+                            className="inline-flex items-center gap-2 rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {accionEnCurso === "guardar" && <Spinner />}
+                            {accionEnCurso === "guardar" ? TEXTO_ACCION.guardar : "Guardar"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onSiguiente}
+                            disabled={!haySiguiente || ocupado}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Siguiente →
+                        </button>
                     </div>
-                </fieldset>
+                </div>
             </div>
         </div>
     );
