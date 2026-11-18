@@ -187,12 +187,9 @@ function Indicadores({ boletinData, usaDesarrolloInfantil }) {
           </span>
         )}
       </Indicador>
+      {/* Solo el puesto, sin «de 12» (pedido del usuario, 2026-11-18). */}
       {hayPuesto && (
-        <Indicador
-          titulo="Puesto"
-          detalle={`de ${boletinData.total_estudiantes}`}
-          conSeparador
-        >
+        <Indicador titulo="Puesto" conSeparador>
           {boletinData.puesto}
         </Indicador>
       )}
@@ -209,8 +206,10 @@ function Indicador({ titulo, detalle, conSeparador = false, children }) {
         {titulo}
       </span>
       <span className="text-2xl font-black leading-none my-0.5">{children}</span>
+      {/* Sin detalle, el renglón queda en blanco pero ocupa su lugar: así
+          «Puesto» sigue a la misma altura que «Promedio». */}
       <span className="text-[8.5px] uppercase tracking-widest font-semibold opacity-80">
-        {detalle}
+        {detalle || " "}
       </span>
     </div>
   );

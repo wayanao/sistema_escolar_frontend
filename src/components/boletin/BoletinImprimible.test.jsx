@@ -113,6 +113,27 @@ describe("BoletinImprimible", () => {
     expect(screen.getByText("Ana Gómez")).toBeInTheDocument();
   });
 
+  it("el puesto sale solo, sin «de» y el total de estudiantes", () => {
+    render(
+      <BoletinImprimible
+        boletinData={{
+          estudiante_nombre: "Sara",
+          estudiante_apellido: "López",
+          curso: "Quinto",
+          periodo: 1,
+          puesto: 12,
+          total_estudiantes: 12,
+          materias: [],
+        }}
+        onVolver={vi.fn()}
+      />,
+    );
+
+    const puesto = screen.getByText("Puesto").parentElement;
+    expect(puesto).toHaveTextContent("12");
+    expect(puesto.textContent).not.toMatch(/de\s*12/);
+  });
+
   it("muestra la jornada del curso cuando llega en los datos del boletín", () => {
     render(
       <BoletinImprimible

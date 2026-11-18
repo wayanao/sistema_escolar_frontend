@@ -1,5 +1,21 @@
 # Cambios Frontend
 
+## 2026-11-18 - Boletín: el puesto sale solo, sin «de 12»
+
+- Pedido del usuario: en el boletín, el puesto decía «12 de 12»; que salga
+  solo el puesto.
+- `BoletinImprimible.jsx` (`Indicadores`): el recuadro «Puesto» ya no lleva
+  `de ${total_estudiantes}` debajo del número. El renglón de abajo queda en
+  blanco pero conserva su alto, para que «Puesto» siga alineado con
+  «Promedio». El puesto sigue saliendo solo cuando hay puesto y
+  `total_estudiantes > 0`, como antes. Sin cambios en el backend ni en «Mi
+  curso» del director, que ya mostraba solo el puesto (`12°`).
+- Prueba nueva en `BoletinImprimible.test.jsx`.
+- Nota para correr pruebas sueltas en Windows: desde una ruta con la unidad en
+  minúscula (`c:\…`, como abre VS Code) los `vi.mock` no se aplican y fallan
+  pruebas que están bien. Correrlas desde `C:\Users\…`, en mayúscula, o con la
+  suite completa (`pnpm run test`).
+
 ## 2026-11-18 - Muro de cumpleaños: el globo sale a volar un día antes
 
 - Pedido del usuario: en el panel del profesor y en el del admin, que el globo
