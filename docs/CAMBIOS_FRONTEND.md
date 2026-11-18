@@ -1,5 +1,27 @@
 # Cambios Frontend
 
+## 2026-11-18 - Observador impreso: firma del director de grupo y del acudiente
+
+- Pedido del usuario: que la firma del profesor salga en el observador que
+  imprime el admin desde la ficha del estudiante. Confirmó que es la del
+  director de grupo, que el admin pueda verla también ahí, y que en el mismo
+  cambio salgan las firmas del acudiente (paso 3 de
+  `docs/funcionalidades/FIRMA_OBSERVADOR.md`, que estaba pendiente).
+- **Ficha del admin:** la raya «Firma del Director de Grupo» lleva el nombre
+  del director y su firma guardada desde «Mi curso». Sin firma guardada, su
+  nombre y un aviso antes de imprimir; sin director, la raya de siempre.
+- **Admin y profesor:** bajo cada anotación firmada en pantalla va la firma
+  del acudiente, con su nombre, parentesco, documento completo, fecha y ante
+  quién. La raya «Firma del Acudiente» del pie se queda.
+- Nuevos: `components/observador/ImpresionObservador.jsx` (conector que solo
+  existe mientras se imprime) y `hooks/observador/useFirmasImpresionObservador.js`.
+  `obtenerFirmasParaImprimir` en `services/observadorApi.js` y
+  `obtenerFirmaDirectorGrupo` en `services/firmasApi.js`.
+  `ObservadorImprimible` sigue siendo presentacional.
+- Necesita el backend con `GET /firmas/director-grupo/{estudiante_id}`. Si el
+  frontend se publica antes, el impreso sale igual, con la raya del director
+  vacía y el aviso «No se pudieron cargar las firmas».
+
 ## 2026-11-18 - Boletín: el puesto sale solo, sin «de 12»
 
 - Pedido del usuario: en el boletín, el puesto decía «12 de 12»; que salga

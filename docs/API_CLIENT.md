@@ -913,6 +913,10 @@ GET /observador/{estudiante_id}/firmantes-sugeridos
   la pantalla vuelve a pedir la bitacora.
 - `obtenerFirmantesSugeridos(estudianteId, { signal })`: el padre y la madre de
   la ficha. Si responde `403` o falla, la ventana se llena a mano.
+- `obtenerFirmasParaImprimir(estudianteId, { periodo, parametrosAnio, signal })`
+  (2026-11-18): `GET /observador/{estudiante_id}/firmas`, las firmas del
+  acudiente con imagen y documento completo. Solo al abrir el impreso
+  (`useFirmasImpresionObservador`), con los mismos filtros que la bitacora.
 - `GET /observador/{estudiante_id}` trae ahora, por anotacion, `version`,
   `puede_firmar` (decide si se pinta el boton) y `firma` (el sello, con el
   documento enmascarado). Sigue siendo una sola peticion.
@@ -1262,6 +1266,11 @@ aqui, `docs/funcionalidades/FIRMAS_BOLETIN.md`. Unica frontera HTTP:
 - `GET /boletines/admin/generar/...` trae ademas `firma_institucional` y
   `firma_director_grupo` (data URL o `null`). Los usa el boletin impreso desde
   el paso 4.
+- `obtenerFirmaDirectorGrupo(estudianteId, { parametrosAnio, signal })`
+  (2026-11-18): `GET /firmas/director-grupo/{estudiante_id}`, **solo admin**.
+  Responde `{director_grupo, imagen, actualizado_en}`. La pide el observador
+  impreso de la ficha del admin para la raya del director de grupo; con el año
+  activo (`{}`) no manda parametros.
 
 ## Riesgos pendientes observados
 

@@ -20,7 +20,7 @@ institucional y «Mi curso»):
 
 | Capa | Archivo | Qué hace |
 | --- | --- | --- |
-| Servicio | `services/firmasApi.js` | `/firmas/institucional` y `/firmas/mia`: leer, guardar, quitar. |
+| Servicio | `services/firmasApi.js` | `/firmas/institucional` y `/firmas/mia`: leer, guardar, quitar. Desde el 2026-11-18, `obtenerFirmaDirectorGrupo`: la del director de grupo de un estudiante, para el observador que imprime el admin (ver `FIRMA_OBSERVADOR.md`, paso 3). |
 | Reglas puras | `utils/firmas/imagenFirma.js` | Qué es tinta, quitar motas, recorte, tamaño, peso, fecha, mensajes. |
 | Navegador | `hooks/firmas/lienzoFirma.js` | Abre la foto o el trazo y mueve los píxeles en un canvas. |
 | Consulta y comando | `hooks/firmas/useFirmaGuardada.js` | Carga la firma guardada; la guarda o la quita, con la ventana de espera y éxito de siempre. |

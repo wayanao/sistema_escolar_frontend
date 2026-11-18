@@ -10,6 +10,7 @@
 
 import { esAnotacionPropia } from "./formulario";
 import { periodoParaConsulta } from "./anotaciones";
+import { formatearFechaHoraFirma } from "./firma";
 
 /** Las anotaciones de todos los profesores. Es el documento oficial que va a la
  * carpeta del alumno. */
@@ -50,6 +51,8 @@ export function anotacionesParaImprimir(anotaciones, opcion, profesorId) {
   return lista.filter((anotacion) => esAnotacionPropia(anotacion, profesorId));
 }
 
+const CARGO_FIRMA_DIRECTOR = "Firma del Director de Grupo";
+
 /**
  * Las firmas del pie, que **cambian según el reporte**. Decidido con el
  * usuario.
@@ -58,10 +61,18 @@ export function anotacionesParaImprimir(anotaciones, opcion, profesorId) {
  * lo imprime. En los dos casos firma también el acudiente.
  *
  * `nombre` es el papel y `cargo` la etiqueta bajo la raya, igual que en la
- * pantalla vieja: el documento se firma a mano, así que del director de grupo
- * no hace falta saber el nombre.
+ * pantalla vieja.
+ *
+ * `firmaDirector` (2026-11-18) solo llega en el impreso del admin:
+ * `{ director_grupo, imagen }` de `GET /firmas/director-grupo/{id}`. Con él, la
+ * raya lleva el nombre del director y, si la guardó en «Mi curso», su firma
+ * encima. Sin él, la raya de siempre, para firmar a mano.
+ *
+ * La raya del acudiente se queda aunque haya firmado anotaciones en pantalla:
+ * su firma de cada anotación va junto a ella, y la del pie es la del documento
+ * completo.
  */
-export function firmasObservador(opcion, profesor) {
+export function firmasObservador(opcion, profesor, firmaDirector = null) {
   const acudiente = { nombre: "Acudiente", cargo: "Firma del Acudiente" };
 
   if (opcion === IMPRIMIR_MIAS) {
@@ -72,10 +83,59 @@ export function firmasObservador(opcion, profesor) {
     ];
   }
 
+  const director = String(firmaDirector?.director_grupo ?? "").trim();
   return [
-    { nombre: "Director de grupo", cargo: "Firma del Director de Grupo" },
+    director
+      ? { nombre: director, cargo: CARGO_FIRMA_DIRECTOR, imagen: firmaDirector?.imagen || null }
+      : { nombre: "Director de grupo", cargo: CARGO_FIRMA_DIRECTOR },
     acudiente,
   ];
+}
+
+// --- Firmas guardadas en el impreso (2026-11-18) ------------------------------
+
+export const MENSAJE_CARGANDO_FIRMAS = "Cargando las firmas…";
+
+export const MENSAJE_ERROR_FIRMAS =
+  "No se pudieron cargar las firmas. Si imprimes ahora, salen las rayas vacías para firmar a mano.";
+
+/** Las firmas del acudiente para imprimir, por `anotacion_id`. Lo que no sea
+ * una lista queda en un objeto vacío: el impreso sale sin firmas, como antes. */
+export function firmasPorAnotacion(firmas) {
+  const porAnotacion = {};
+  (Array.isArray(firmas) ? firmas : []).forEach((firma) => {
+    if (firma?.anotacion_id != null) porAnotacion[firma.anotacion_id] = firma;
+  });
+  return porAnotacion;
+}
+
+/**
+ * Lo que va junto a la firma del acudiente en el papel: quién firmó, con su
+ * documento **completo**, cuándo y ante quién.
+ *
+ * En pantalla el documento sale enmascarado (`textoSelloFirma`); el impreso es
+ * el documento oficial que va a la carpeta, y lleva el documento entero (P3 de
+ * `FIRMA_OBSERVADOR.md`).
+ */
+export function textoFirmaImpresa(firma) {
+  if (!firma) return "";
+  return [
+    `Firmó ${firma.firmante_nombre} (${firma.firmante_parentesco})`,
+    [firma.firmante_tipo_documento, firma.firmante_documento].filter(Boolean).join(" "),
+    formatearFechaHoraFirma(firma.firmada_en),
+    firma.tomada_por_nombre ? `ante ${firma.tomada_por_nombre}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** El aviso para el admin, antes de imprimir y solo en pantalla, cuando el
+ * director de grupo no ha guardado su firma. Sin director asignado no hay a
+ * quién pedírsela: no avisa. */
+export function avisoSinFirmaDirector(firmaDirector) {
+  const director = String(firmaDirector?.director_grupo ?? "").trim();
+  if (!director || firmaDirector?.imagen) return "";
+  return `Sale sin la firma del director de grupo (${director}). Cada director de grupo pone la suya desde «Mi curso».`;
 }
 
 /**

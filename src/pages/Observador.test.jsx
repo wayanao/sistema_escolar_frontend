@@ -9,7 +9,9 @@ const {
   firmarAnotacionesDelPeriodoMock,
   guardarPeriodoProfesorMock,
   listarMisEstudiantesMock,
+  obtenerFirmaDirectorGrupoMock,
   obtenerFirmantesSugeridosMock,
+  obtenerFirmasParaImprimirMock,
   obtenerObservadorMock,
 } = vi.hoisted(() => ({
   crearAnotacionMock: vi.fn(),
@@ -18,7 +20,9 @@ const {
   firmarAnotacionesDelPeriodoMock: vi.fn(),
   guardarPeriodoProfesorMock: vi.fn(),
   listarMisEstudiantesMock: vi.fn(),
+  obtenerFirmaDirectorGrupoMock: vi.fn(),
   obtenerFirmantesSugeridosMock: vi.fn(),
+  obtenerFirmasParaImprimirMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
 }));
 
@@ -29,7 +33,12 @@ vi.mock("../services/observadorApi", () => ({
   firmarAnotacionesDelPeriodo: firmarAnotacionesDelPeriodoMock,
   listarMisEstudiantes: listarMisEstudiantesMock,
   obtenerFirmantesSugeridos: obtenerFirmantesSugeridosMock,
+  obtenerFirmasParaImprimir: obtenerFirmasParaImprimirMock,
   obtenerObservador: obtenerObservadorMock,
+}));
+
+vi.mock("../services/firmasApi", () => ({
+  obtenerFirmaDirectorGrupo: obtenerFirmaDirectorGrupoMock,
 }));
 
 // El profesor eligio el periodo 3 en el Dashboard.
@@ -69,6 +78,7 @@ beforeEach(() => {
   crearAnotacionMock.mockResolvedValue({ id: 31 });
   editarAnotacionMock.mockResolvedValue({ id: 12 });
   listarMisEstudiantesMock.mockResolvedValue(ESTUDIANTES);
+  obtenerFirmasParaImprimirMock.mockResolvedValue([]);
   obtenerObservadorMock.mockResolvedValue({
     nivel: "primaria",
     anotaciones: [
@@ -379,8 +389,13 @@ describe("página del Observador", () => {
       screen.getByText("Estudiante: Ana Rojas · Primaria · Año completo"),
     ).toBeInTheDocument();
     expect(screen.getByText("Director de grupo")).toBeInTheDocument();
-    // Imprimir tampoco vuelve a preguntarle nada al servidor.
+    // Imprimir no vuelve a pedir la bitácora: solo las firmas del acudiente,
+    // que traen imágenes y no van con ella (2026-11-18).
     expect(obtenerObservadorMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(obtenerFirmasParaImprimirMock).toHaveBeenCalledTimes(1));
+    expect(obtenerFirmasParaImprimirMock.mock.calls[0][0]).toBe(ESTUDIANTES[0].estudiante_id);
+    // La firma guardada de un profesor solo la ve el admin.
+    expect(obtenerFirmaDirectorGrupoMock).not.toHaveBeenCalled();
   });
 
   it("«Solo mis anotaciones» deja fuera las de otros profesores", async () => {

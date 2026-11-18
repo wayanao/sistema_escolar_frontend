@@ -160,3 +160,60 @@ describe("ObservadorImprimible", () => {
     expect(botones.some((t) => /borrar|eliminar|editar/i.test(t))).toBe(false);
   });
 });
+
+describe("ObservadorImprimible con firmas guardadas (2026-11-18)", () => {
+  const FIRMA_ACUDIENTE = "data:image/png;base64,QUNVRElFTlRF";
+  const firmasAcudiente = {
+    12: {
+      anotacion_id: 12,
+      firmante_nombre: "Pedro Rojas",
+      firmante_tipo_documento: "Cédula",
+      firmante_documento: "1234567",
+      firmante_parentesco: "padre",
+      firmada_en: "2026-10-27T15:15:00Z",
+      tomada_por_nombre: "Ana Gómez",
+      integra: true,
+      imagen: FIRMA_ACUDIENTE,
+    },
+  };
+
+  it("por fecha, la firma del acudiente va una vez bajo su anotación", () => {
+    pintar({ agrupacion: AGRUPACION_FECHA, firmasAcudiente });
+
+    expect(screen.getAllByRole("img", { name: "Firma de Pedro Rojas" })).toHaveLength(1);
+    expect(screen.getByText(/Firmó Pedro Rojas \(padre\) · Cédula 1234567/)).toBeInTheDocument();
+  });
+
+  it("por dimensión, va en cada bloque de la anotación firmada, como el sello en pantalla", () => {
+    pintar({ firmasAcudiente });
+
+    // La anotación 12 tiene texto en dos dimensiones; la 13 no está firmada.
+    expect(screen.getAllByRole("img", { name: "Firma de Pedro Rojas" })).toHaveLength(2);
+  });
+
+  it("si el texto ya no es el que se firmó, lo dice también en el papel", () => {
+    pintar({
+      agrupacion: AGRUPACION_FECHA,
+      firmasAcudiente: { 12: { ...firmasAcudiente[12], integra: false } },
+    });
+
+    expect(
+      screen.getByText("⚠ El texto de esta anotación ya no coincide con lo que se firmó."),
+    ).toBeInTheDocument();
+  });
+
+  it("mientras cargan las firmas lo dice, solo en pantalla", () => {
+    pintar({ cargandoFirmas: true });
+
+    const aviso = screen.getByRole("status");
+    expect(aviso).toHaveTextContent("Cargando las firmas…");
+    expect(aviso).toHaveClass("no-print");
+  });
+
+  it("sin firmas, sale como antes: sin imágenes ni avisos", () => {
+    pintar();
+
+    expect(screen.queryByRole("img", { name: /Firma de/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+});

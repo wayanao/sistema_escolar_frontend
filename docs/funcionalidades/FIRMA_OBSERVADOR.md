@@ -77,7 +77,38 @@ Errores:
 - Las imágenes se piden una sola vez, al imprimir
   (`GET /observador/{estudiante_id}/firmas`), y no al pintar la bitácora.
 - El pie (`firmasObservador`) se decide en el paso 3 (P2 del documento
-  principal).
+  principal). **Decidido al construirlo: la raya «Firma del Acudiente» se
+  queda.**
+
+## Avance del paso 3 (2026-11-18)
+
+Construido junto con la firma del director de grupo en el impreso del admin
+(`docs/funcionalidades/FIRMAS_BOLETIN.md`, "Ampliación"), sin cambios en el
+backend para esta parte.
+
+- **`ImpresionObservador`** (nuevo, conector): solo se monta mientras se
+  imprime y usa **`useFirmasImpresionObservador`** (nuevo), que pide las firmas
+  cada vez que se abre el impreso. Una firma tomada hace un momento ya sale.
+  `ObservadorImprimible` sigue siendo presentacional y recibe
+  `firmasAcudiente`, `firmaDirector`, `cargandoFirmas` y `errorFirmas`.
+- **Firma del acudiente:** bajo cada anotación firmada, la imagen y
+  «Firmó Pedro Rojas (padre) · Cédula 1234567 · 27/oct/2026, 10:15 · ante Sara
+  Díaz» (`textoFirmaImpresa`). En papel, el documento va **completo**; en
+  pantalla, enmascarado (P3). En la vista por dimensión va en cada bloque de la
+  anotación, igual que el sello en pantalla. Si `integra` es `false`, el papel
+  también lo advierte.
+- **Firma del director de grupo** (solo la ficha del admin, `conFirmaDirector`):
+  `GET /firmas/director-grupo/{estudiante_id}`, con el año que mira el admin.
+  Con firma, la raya lleva su nombre y su firma; sin firma, su nombre y un
+  aviso antes de imprimir; sin director, la raya de siempre. El profesor nunca
+  la pide.
+- **Avisos, solo en pantalla** (`no-print`): «Cargando las firmas…» mientras
+  llegan; si una consulta falla, el impreso sale con las rayas vacías y lo
+  dice. Cada consulta cae por su lado (`Promise.allSettled`).
+- Pruebas: `useFirmasImpresionObservador.test.js` (nuevo) y casos nuevos en
+  `impresion.test.js`, `ObservadorImprimible.test.jsx`,
+  `ObservadorEnFichaAdmin.test.jsx`, `pages/Observador.test.jsx`,
+  `observadorApi.test.js` y `firmasApi.test.js`.
 
 ## Dónde va el código (patrón del proyecto)
 

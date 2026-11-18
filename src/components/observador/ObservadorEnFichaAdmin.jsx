@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ObservadorImprimible from "./ObservadorImprimible";
+import ImpresionObservador from "./ImpresionObservador";
 import VentanaFirmaAnotacion from "./VentanaFirmaAnotacion";
 import VistaObservadorEstudiante from "./VistaObservadorEstudiante";
 import useAnioLectivo from "../../hooks/anioLectivo/useAnioLectivo";
@@ -70,8 +70,14 @@ export default function ObservadorEnFichaAdmin({ estudiante }) {
       : "No se pudo consultar el observador. Intenta de nuevo.")
     : null;
 
+  // Al imprimir, la raya del director de grupo lleva su firma guardada
+  // (2026-11-18): la firma de un profesor solo la ve el admin, en los
+  // documentos que imprime el colegio.
   return imprimiendo ? (
-    <ObservadorImprimible
+    <ImpresionObservador
+      estudianteId={estudiante?.id}
+      parametrosAnio={parametros}
+      conFirmaDirector
       alumno={alumno}
       periodo={periodo}
       agrupacion={agrupacion}

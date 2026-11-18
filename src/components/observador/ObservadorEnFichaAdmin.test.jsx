@@ -5,13 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   firmarAnotacionMock,
   firmarAnotacionesDelPeriodoMock,
+  obtenerFirmaDirectorGrupoMock,
   obtenerFirmantesSugeridosMock,
+  obtenerFirmasParaImprimirMock,
   obtenerObservadorMock,
   usePrintConfigMock,
 } = vi.hoisted(() => ({
   firmarAnotacionMock: vi.fn(),
   firmarAnotacionesDelPeriodoMock: vi.fn(),
+  obtenerFirmaDirectorGrupoMock: vi.fn(),
   obtenerFirmantesSugeridosMock: vi.fn(),
+  obtenerFirmasParaImprimirMock: vi.fn(),
   obtenerObservadorMock: vi.fn(),
   usePrintConfigMock: vi.fn(),
 }));
@@ -20,7 +24,12 @@ vi.mock("../../services/observadorApi", () => ({
   firmarAnotacion: firmarAnotacionMock,
   firmarAnotacionesDelPeriodo: firmarAnotacionesDelPeriodoMock,
   obtenerFirmantesSugeridos: obtenerFirmantesSugeridosMock,
+  obtenerFirmasParaImprimir: obtenerFirmasParaImprimirMock,
   obtenerObservador: obtenerObservadorMock,
+}));
+
+vi.mock("../../services/firmasApi", () => ({
+  obtenerFirmaDirectorGrupo: obtenerFirmaDirectorGrupoMock,
 }));
 
 vi.mock("../../hooks/certificadosImpresion/usePrintConfig", () => ({
@@ -62,8 +71,14 @@ const BITACORA = {
   ],
 };
 
+const SIN_DIRECTOR = { director_grupo: null, imagen: null, actualizado_en: null };
+const FIRMA_DIRECTOR = "data:image/png;base64,RElSRUNUT1I=";
+const FIRMA_ACUDIENTE = "data:image/png;base64,QUNVRElFTlRF";
+
 beforeEach(() => {
   obtenerObservadorMock.mockReset().mockResolvedValue(BITACORA);
+  obtenerFirmasParaImprimirMock.mockReset().mockResolvedValue([]);
+  obtenerFirmaDirectorGrupoMock.mockReset().mockResolvedValue(SIN_DIRECTOR);
   usePrintConfigMock.mockReturnValue({
     branding: { nombre_institucion: "Colegio de Prueba" },
     plantilla: { config_json: {} },
@@ -136,6 +151,82 @@ describe("ObservadorEnFichaAdmin", () => {
     expect(screen.getByText("Director de grupo")).toBeInTheDocument();
     expect(screen.getByText("Participa mucho.")).toBeInTheDocument();
     expect(screen.getByText("Avanza bien.")).toBeInTheDocument();
+  });
+
+  it("al imprimir, la raya del director lleva su firma guardada y cada anotación firmada la del acudiente", async () => {
+    obtenerFirmaDirectorGrupoMock.mockResolvedValue({
+      director_grupo: "Marta Ruiz",
+      imagen: FIRMA_DIRECTOR,
+      actualizado_en: "2026-11-12T15:30:00+00:00",
+    });
+    obtenerFirmasParaImprimirMock.mockResolvedValue([
+      {
+        anotacion_id: 12,
+        firmante_nombre: "Pedro Rojas",
+        firmante_tipo_documento: "Cédula",
+        firmante_documento: "1234567",
+        firmante_parentesco: "padre",
+        firmada_en: "2026-10-27T15:15:00Z",
+        tomada_por_nombre: "Sara Díaz",
+        integra: true,
+        imagen: FIRMA_ACUDIENTE,
+      },
+    ]);
+    const user = userEvent.setup();
+    render(<ObservadorEnFichaAdmin estudiante={ESTUDIANTE} />);
+    await screen.findByText("Participa mucho.");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+
+    expect(await screen.findByRole("img", { name: "Firma de Marta Ruiz" })).toHaveAttribute(
+      "src",
+      FIRMA_DIRECTOR,
+    );
+    expect(screen.getByText("Marta Ruiz")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Firma de Pedro Rojas" })).toHaveAttribute(
+      "src",
+      FIRMA_ACUDIENTE,
+    );
+    // En papel, el documento completo; en pantalla iba enmascarado.
+    expect(screen.getByText(/Firmó Pedro Rojas \(padre\) · Cédula 1234567 · .* · ante Sara Díaz/)).toBeInTheDocument();
+    expect(obtenerFirmaDirectorGrupoMock).toHaveBeenCalledWith(11, expect.anything());
+    expect(obtenerFirmasParaImprimirMock).toHaveBeenCalledWith(11, expect.anything());
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("si el director no ha guardado su firma, avisa antes de imprimir y deja la raya con su nombre", async () => {
+    obtenerFirmaDirectorGrupoMock.mockResolvedValue({
+      director_grupo: "Marta Ruiz",
+      imagen: null,
+      actualizado_en: null,
+    });
+    const user = userEvent.setup();
+    render(<ObservadorEnFichaAdmin estudiante={ESTUDIANTE} />);
+    await screen.findByText("Participa mucho.");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Sale sin la firma del director de grupo (Marta Ruiz). Cada director de grupo pone la suya desde «Mi curso».",
+    );
+    expect(screen.getByText("Marta Ruiz")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /Firma de/ })).not.toBeInTheDocument();
+  });
+
+  it("si fallan las firmas, el impreso sale igual con las rayas vacías y lo avisa", async () => {
+    obtenerFirmasParaImprimirMock.mockRejectedValue(new Error("red"));
+    obtenerFirmaDirectorGrupoMock.mockRejectedValue(new Error("red"));
+    const user = userEvent.setup();
+    render(<ObservadorEnFichaAdmin estudiante={ESTUDIANTE} />);
+    await screen.findByText("Participa mucho.");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: /Imprimir/ }), "todo");
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "No se pudieron cargar las firmas. Si imprimes ahora, salen las rayas vacías para firmar a mano.",
+    );
+    expect(screen.getByText("Director de grupo")).toBeInTheDocument();
+    expect(screen.getByText("Participa mucho.")).toBeInTheDocument();
   });
 
   it("conserva el cambio de vista y el selector de periodo", async () => {

@@ -15,6 +15,7 @@ vi.mock("../utils/api", () => ({
 import {
   guardarFirmaInstitucional,
   guardarMiFirma,
+  obtenerFirmaDirectorGrupo,
   obtenerFirmaInstitucional,
   obtenerMiFirma,
   quitarFirmaInstitucional,
@@ -56,6 +57,24 @@ describe("contrato HTTP de las firmas guardadas", () => {
     expect(apiMock.get).toHaveBeenCalledWith("/firmas/mia");
     expect(apiMock.put).toHaveBeenCalledWith("/firmas/mia", { imagen: IMAGEN });
     expect(apiMock.delete).toHaveBeenCalledWith("/firmas/mia");
+  });
+
+  it("la del director de grupo se lee por estudiante y con el año que se mira", async () => {
+    const { signal } = new AbortController();
+    const respuesta = { director_grupo: "Marta Ruiz", ...RESPUESTA };
+    apiMock.get.mockResolvedValue({ data: respuesta });
+
+    await expect(
+      obtenerFirmaDirectorGrupo(11, { parametrosAnio: { anio_lectivo_id: 3 }, signal }),
+    ).resolves.toEqual(respuesta);
+    await obtenerFirmaDirectorGrupo(11, { parametrosAnio: {} });
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/firmas/director-grupo/11", {
+      params: { anio_lectivo_id: 3 },
+      signal,
+    });
+    // Con el año activo (`{}`) no manda parámetros.
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/firmas/director-grupo/11", {});
   });
 
   it("las lecturas se pueden cancelar", async () => {

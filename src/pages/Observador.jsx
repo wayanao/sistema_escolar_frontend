@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import FormularioAnotacionObservador from "../components/observador/FormularioAnotacionObservador";
 import ListaAlumnosObservador from "../components/observador/ListaAlumnosObservador";
-import ObservadorImprimible from "../components/observador/ObservadorImprimible";
+import ImpresionObservador from "../components/observador/ImpresionObservador";
 import VentanaFirmaAnotacion from "../components/observador/VentanaFirmaAnotacion";
 import VistaObservadorEstudiante from "../components/observador/VistaObservadorEstudiante";
 import useComandosObservador from "../hooks/observador/useComandosObservador";
@@ -209,7 +209,8 @@ function Observador() {
   // compilador de React no puede conservar la memoizacion si el componente
   // vuelve antes de tiempo, y `pnpm run lint` lo rechaza.
   return imprimiendo ? (
-    <ObservadorImprimible
+    <ImpresionObservador
+      estudianteId={seleccionado?.estudiante_id}
       alumno={tituloAlumno}
       periodo={periodo}
       agrupacion={agrupacion}

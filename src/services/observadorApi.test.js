@@ -19,6 +19,7 @@ import {
   firmarAnotacionesDelPeriodo,
   listarMisEstudiantes,
   obtenerFirmantesSugeridos,
+  obtenerFirmasParaImprimir,
   obtenerObservador,
 } from "./observadorApi";
 
@@ -184,6 +185,27 @@ describe("contrato HTTP del observador del estudiante", () => {
     });
   });
 
+  it("pide las firmas para imprimir con los mismos filtros que la bitácora", async () => {
+    const firmas = [{ anotacion_id: 12, imagen: "data:image/png;base64,AAA=" }];
+    const controller = new AbortController();
+    apiMock.get.mockResolvedValue({ data: firmas });
+
+    await expect(
+      obtenerFirmasParaImprimir(11, {
+        periodo: 2,
+        parametrosAnio: { anio_lectivo_id: 3 },
+        signal: controller.signal,
+      }),
+    ).resolves.toBe(firmas);
+    await obtenerFirmasParaImprimir(11);
+
+    expect(apiMock.get).toHaveBeenNthCalledWith(1, "/observador/11/firmas", {
+      params: { periodo: 2, anio_lectivo_id: 3 },
+      signal: controller.signal,
+    });
+    expect(apiMock.get).toHaveBeenNthCalledWith(2, "/observador/11/firmas", {});
+  });
+
   it("no expone ningún contrato de borrado", async () => {
     const modulo = await import("./observadorApi");
 
@@ -197,6 +219,7 @@ describe("contrato HTTP del observador del estudiante", () => {
       "firmarAnotacionesDelPeriodo",
       "listarMisEstudiantes",
       "obtenerFirmantesSugeridos",
+      "obtenerFirmasParaImprimir",
       "obtenerObservador",
     ]);
     expect(apiMock).not.toHaveProperty("delete");

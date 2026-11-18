@@ -138,3 +138,27 @@ export async function obtenerFirmantesSugeridos(estudianteId, { signal } = {}) {
   );
   return data;
 }
+
+/**
+ * Las firmas del acudiente **con su imagen y el documento completo**, para el
+ * observador impreso: `[{ anotacion_id, firmante_nombre,
+ * firmante_tipo_documento, firmante_documento, firmante_parentesco,
+ * firmada_en, tomada_por_nombre, integra, imagen }]`.
+ *
+ * Se pide **solo al imprimir**, nunca al pintar la bitácora: es la única
+ * lectura que trae imágenes (invariante 7 de `FIRMA_OBSERVADOR.md`). Lleva los
+ * mismos filtros que la bitácora -periodo y año-, porque se imprime lo que se
+ * ve.
+ */
+export async function obtenerFirmasParaImprimir(
+  estudianteId,
+  { periodo, signal, parametrosAnio } = {},
+) {
+  const config = {};
+  if (periodo) config.params = { periodo };
+  if (parametrosAnio) config.params = { ...config.params, ...parametrosAnio };
+  if (signal) config.signal = signal;
+
+  const { data } = await api.get(`/observador/${estudianteId}/firmas`, config);
+  return data;
+}

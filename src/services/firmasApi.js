@@ -7,6 +7,9 @@ import api from "../utils/api";
 // - `/firmas/institucional`: la del rector(a). Solo el admin, también para leer.
 // - `/firmas/mia`: la del profesor de la sesión. Solo profesores; el servidor
 //   usa siempre el id de la sesión, así que no se envía ninguno.
+// - `/firmas/director-grupo/{estudianteId}` (2026-11-18): la del director de
+//   grupo del curso del estudiante, con su nombre (`director_grupo`), para el
+//   observador que imprime el admin. Solo el admin; solo se lee.
 
 const RUTA_INSTITUCIONAL = "/firmas/institucional";
 const RUTA_MIA = "/firmas/mia";
@@ -48,4 +51,17 @@ export function guardarMiFirma(imagen) {
 
 export function quitarMiFirma() {
   return quitar(RUTA_MIA);
+}
+
+/** `{ director_grupo, imagen, actualizado_en }`. `parametrosAnio` es el año
+ * que mira el admin: el curso sale de la matrícula de ese año. */
+export async function obtenerFirmaDirectorGrupo(estudianteId, { parametrosAnio, signal } = {}) {
+  const config = {};
+  if (parametrosAnio && Object.keys(parametrosAnio).length > 0) {
+    config.params = { ...parametrosAnio };
+  }
+  if (signal) config.signal = signal;
+
+  const { data } = await api.get(`/firmas/director-grupo/${estudianteId}`, config);
+  return data;
 }

@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import { PERIODO_TODOS } from "./anotaciones";
 import {
   anotacionesParaImprimir,
+  avisoSinFirmaDirector,
   etiquetaPeriodoImpreso,
   firmasObservador,
+  firmasPorAnotacion,
   IMPRIMIR_MIAS,
   IMPRIMIR_TODO,
   OPCIONES_IMPRESION,
   subtituloImpresion,
+  textoFirmaImpresa,
   tituloImpresion,
 } from "./impresion";
 
@@ -107,5 +110,79 @@ describe("títulos del impreso", () => {
 
   it("aguanta que no llegue nada", () => {
     expect(subtituloImpresion()).toContain("Año completo");
+  });
+});
+
+describe("firmas guardadas en el impreso (2026-11-18)", () => {
+  const FIRMA = "data:image/png;base64,RElSRUNUT1I=";
+  const acudiente = {
+    anotacion_id: 12,
+    firmante_nombre: "Pedro Rojas",
+    firmante_tipo_documento: "Cédula",
+    firmante_documento: "1234567",
+    firmante_parentesco: "padre",
+    firmada_en: "2026-10-27T15:15:00Z",
+    tomada_por_nombre: "Sara Díaz",
+    integra: true,
+    imagen: FIRMA,
+  };
+
+  it("con la firma guardada del director, su raya lleva su nombre y su firma", () => {
+    expect(
+      firmasObservador(IMPRIMIR_TODO, null, { director_grupo: "Marta Ruiz", imagen: FIRMA })[0],
+    ).toStrictEqual({ nombre: "Marta Ruiz", cargo: "Firma del Director de Grupo", imagen: FIRMA });
+  });
+
+  it("sin firma guardada, la raya lleva el nombre del director y queda para firmar a mano", () => {
+    expect(
+      firmasObservador(IMPRIMIR_TODO, null, { director_grupo: "Marta Ruiz", imagen: null })[0],
+    ).toStrictEqual({ nombre: "Marta Ruiz", cargo: "Firma del Director de Grupo", imagen: null });
+  });
+
+  it("sin director asignado, o sin consultarlo, la raya de siempre", () => {
+    const deSiempre = { nombre: "Director de grupo", cargo: "Firma del Director de Grupo" };
+    expect(firmasObservador(IMPRIMIR_TODO, null, { director_grupo: null, imagen: null })[0]).toStrictEqual(deSiempre);
+    expect(firmasObservador(IMPRIMIR_TODO, null)[0]).toStrictEqual(deSiempre);
+  });
+
+  it("el reporte propio del profesor no usa la firma del director", () => {
+    expect(
+      firmasObservador(IMPRIMIR_MIAS, { nombre: "Ana" }, { director_grupo: "Marta Ruiz", imagen: FIRMA }),
+    ).toStrictEqual([
+      { nombre: "Ana", cargo: "Firma del Profesor" },
+      { nombre: "Acudiente", cargo: "Firma del Acudiente" },
+    ]);
+  });
+
+  it("la raya del acudiente se queda aunque haya firmado en pantalla", () => {
+    expect(
+      firmasObservador(IMPRIMIR_TODO, null, { director_grupo: "Marta Ruiz", imagen: FIRMA })[1],
+    ).toStrictEqual({ nombre: "Acudiente", cargo: "Firma del Acudiente" });
+  });
+
+  it("ordena las firmas del acudiente por anotación y tolera lo que no es lista", () => {
+    expect(firmasPorAnotacion([acudiente, { anotacion_id: 14 }, {}])).toStrictEqual({
+      12: acudiente,
+      14: { anotacion_id: 14 },
+    });
+    expect(firmasPorAnotacion(null)).toStrictEqual({});
+    expect(firmasPorAnotacion({ anotacion_id: 12 })).toStrictEqual({});
+  });
+
+  it("en papel la firma del acudiente lleva el documento completo, cuándo y ante quién", () => {
+    expect(textoFirmaImpresa(acudiente)).toMatch(
+      /^Firmó Pedro Rojas \(padre\) · Cédula 1234567 · \d{1,2}\/\w+\/2026, \d{2}:\d{2} · ante Sara Díaz$/,
+    );
+    expect(textoFirmaImpresa({ ...acudiente, tomada_por_nombre: "" })).not.toContain("ante");
+    expect(textoFirmaImpresa(null)).toBe("");
+  });
+
+  it("avisa solo cuando hay director y le falta guardar su firma", () => {
+    expect(avisoSinFirmaDirector({ director_grupo: "Marta Ruiz", imagen: null })).toBe(
+      "Sale sin la firma del director de grupo (Marta Ruiz). Cada director de grupo pone la suya desde «Mi curso».",
+    );
+    expect(avisoSinFirmaDirector({ director_grupo: "Marta Ruiz", imagen: FIRMA })).toBe("");
+    expect(avisoSinFirmaDirector({ director_grupo: null, imagen: null })).toBe("");
+    expect(avisoSinFirmaDirector(null)).toBe("");
   });
 });
