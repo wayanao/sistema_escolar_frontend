@@ -345,6 +345,43 @@ describe("VistaIngresoBoletinProfesor", () => {
     expect(onDescartarBorrador).toHaveBeenCalledTimes(1);
   });
 
+  it("avisa cuando la planilla cambió después de guardar (2026-11-23)", () => {
+    const propiedades = {
+      asignacionId: "55",
+      cargando: false,
+      clases: [],
+      datosBoletin: {
+        101: {
+          definitiva: "4.00",
+          observaciones: [{ referencia: "lectura", observacion: "", tipo_evaluacion: "numerica" }],
+        },
+      },
+      estudiantes: [
+        { estudiante_id: 101, nombre: "Ana", notas: [{ tipo_nota: "lectura", tipo_evaluacion: "numerica", valor: 4 }] },
+      ],
+      guardandoTodos: false,
+      periodo: "1",
+      onCambiarAsignacion: vi.fn(),
+      onCambiarPeriodo: vi.fn(),
+      onGuardarEstudiante: vi.fn(),
+      onObservacionChange: vi.fn(),
+      obtenerEstadoVisual: () => ({ label: "", detail: "", badgeClass: "", dotClass: "", buttonText: "Guardar" }),
+    };
+    const { rerender } = render(
+      <VistaIngresoBoletinProfesor {...propiedades} cantidadPlanillaCambiada={3} />,
+    );
+
+    const aviso = screen.getByRole("status");
+    expect(aviso).toHaveTextContent("La planilla cambió después de guardar el boletín en 3 estudiantes");
+    expect(aviso).toHaveTextContent("vuelve a guardar");
+
+    rerender(<VistaIngresoBoletinProfesor {...propiedades} cantidadPlanillaCambiada={1} />);
+    expect(screen.getByRole("status")).toHaveTextContent("en un estudiante");
+
+    rerender(<VistaIngresoBoletinProfesor {...propiedades} cantidadPlanillaCambiada={0} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
   describe("plantilla del grupo en la tarjeta del primer estudiante", () => {
     const propiedades = (cambios = {}) => ({
       asignacionId: "55",

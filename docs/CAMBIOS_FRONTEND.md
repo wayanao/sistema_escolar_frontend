@@ -1,5 +1,30 @@
 # Cambios Frontend
 
+## 2026-11-23 - Boletín final avisa cuando la planilla cambió después de guardar
+
+- Caso real (Jardín A, periodo 4): se cambiaron caritas en la planilla después
+  de guardar el boletín. El puesto y el boletín impreso salen de lo
+  **guardado**, así que siguieron con las caritas viejas, y la tarjeta del
+  estudiante decía "Guardado". Nadie lo notó.
+- Ahora el servidor manda, en `GET /boletines/referencia/...`, lo guardado de
+  cada estudiante (`guardado: {definitiva, detalles}`; ver
+  `sistema_escolar_api/docs/CAMBIOS_BACKEND.md`). `planillaCambioDespuesDeGuardar`
+  (`utils/boletines/ingresoBoletin.js`) lo compara, posición por posición, con
+  las notas que se guardarían: la carita en desarrollo y el número en lo demás.
+  Una cantidad distinta también cuenta.
+- Si no coinciden, la tarjeta dice **"La planilla cambió"** (naranja), con
+  "Revisa los textos y vuelve a guardar" y el botón "Volver a guardar". Arriba
+  aparece un aviso con cuántos estudiantes están así. Al guardar vuelve a
+  "Guardado". Si además hay textos editados, manda "Cambios sin guardar".
+- Límite: si una tarjeta solo cambió de lugar y las caritas quedaron iguales en
+  cada posición, no se nota. El boletín no guarda de qué tarjeta es cada texto.
+  Desde el mismo día, el backend ya no mueve las tarjetas al cambiar una nota.
+- Con un servidor que todavía no manda `guardado`, todo sigue como antes y no
+  aparece el aviso. Publicar el backend primero.
+- Pruebas: `ingresoBoletin.test.js` (comparación y conteo),
+  `useComandosIngresoBoletinProfesor.test.js` (estado visual y vuelta a
+  "Guardado" al guardar) y `VistaIngresoBoletinProfesor.test.jsx` (aviso).
+
 ## 2026-11-18 - Planilla: el modal de subnotas se desplaza en tablet
 
 - Reporte del usuario: en el perfil del profesor, en tablet, al agregar varias

@@ -88,6 +88,50 @@ describe("useComandosIngresoBoletinProfesor", () => {
     );
   });
 
+  it("dice «La planilla cambió» y, al volver a guardar, vuelve a «Guardado» (2026-11-23)", async () => {
+    // Las propiedades se arman una vez: un objeto nuevo en cada render haría
+    // que el hook se resincronice sin parar.
+    const propiedades = {
+      ...crearPropiedades(),
+      estadoGuardadoInicial: {
+        ...estadoGuardadoInicial,
+        101: { guardado: true, modificado: false, guardadoEn: null, desactualizado: true },
+      },
+    };
+    const { result } = renderHook(() => useComandosIngresoBoletinProfesor(propiedades));
+
+    expect(result.current.cantidadPlanillaCambiada).toBe(1);
+    expect(result.current.obtenerEstadoVisual(101)).toMatchObject({
+      label: "La planilla cambió",
+      buttonText: "Volver a guardar",
+    });
+
+    await act(async () => {
+      await result.current.guardarBoletinEstudiante(101);
+    });
+
+    expect(result.current.cantidadPlanillaCambiada).toBe(0);
+    expect(result.current.obtenerEstadoVisual(101).label).toBe("Guardado");
+  });
+
+  it("si además se editó, manda «Cambios sin guardar» y sigue contando para el aviso", () => {
+    // Las propiedades se arman una vez: un objeto nuevo en cada render haría
+    // que el hook se resincronice sin parar.
+    const propiedades = {
+      ...crearPropiedades(),
+      estadoGuardadoInicial: {
+        ...estadoGuardadoInicial,
+        101: { guardado: true, modificado: false, guardadoEn: null, desactualizado: true },
+      },
+    };
+    const { result } = renderHook(() => useComandosIngresoBoletinProfesor(propiedades));
+
+    act(() => result.current.actualizarObservacion(101, 0, "Otro texto"));
+
+    expect(result.current.obtenerEstadoVisual(101).label).toBe("Cambios sin guardar");
+    expect(result.current.cantidadPlanillaCambiada).toBe(1);
+  });
+
   describe("Copiar a todos y guardar", () => {
     const textos = (result) =>
       Object.fromEntries(

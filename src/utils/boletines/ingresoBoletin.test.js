@@ -11,6 +11,7 @@ import {
   correspondeFormularioAEstudiante,
   crearClaveBorradorBoletin,
   crearDatosBoletinInicial,
+  contarPlanillaCambiada,
   crearEstadoGuardadoInicial,
   deduplicarClases,
   estudiantesConCambiosSinGuardar,
@@ -21,6 +22,7 @@ import {
   mensajeCopiarLogros,
   mensajeGuardadoGrupoIncompleto,
   normalizarEstudiantesReferencia,
+  planillaCambioDespuesDeGuardar,
 } from "./ingresoBoletin";
 
 describe("utilidades de ingreso docente a boletines", () => {
@@ -64,7 +66,7 @@ describe("utilidades de ingreso docente a boletines", () => {
       },
     });
     expect(crearEstadoGuardadoInicial(visibles)).toEqual({
-      7: { guardado: true, modificado: false, guardadoEn: null },
+      7: { guardado: true, modificado: false, guardadoEn: null, desactualizado: false },
     });
     expect(formatearEtiquetaNota("actividad_uno-extra")).toBe("Actividad Uno Extra");
   });
@@ -706,5 +708,83 @@ describe("utilidades de ingreso docente a boletines", () => {
         expect(resultado.recuperados).toEqual([]);
       }
     });
+  });
+});
+
+describe("la planilla cambió después de guardar el boletín (2026-11-23)", () => {
+  const carita = (tipo_nota, valoracion, observacion_guardada = "Texto") => ({
+    tipo_nota, valor: null, tipo_evaluacion: "desarrollo", valoracion, observacion_guardada,
+  });
+  const guardadas = (...valoraciones) => ({
+    definitiva: 4.8,
+    detalles: valoraciones.map((valoracion) => ({ valor: null, valoracion })),
+  });
+
+  it("avisa cuando una carita guardada ya no es la de la planilla (Jardín A)", () => {
+    // La planilla ya dice ⭐ en Fam 10; el boletín guardó 😀.
+    const moises = {
+      estudiante_id: 608,
+      notas: [carita("Del 1al9", "destacado"), carita("Fam 10", "destacado")],
+      guardado: guardadas("destacado", "logrado"),
+    };
+
+    expect(planillaCambioDespuesDeGuardar(moises)).toBe(true);
+    expect(crearEstadoGuardadoInicial([moises])[608]).toEqual({
+      guardado: true, modificado: false, guardadoEn: null, desactualizado: true,
+    });
+  });
+
+  it("no avisa si lo guardado coincide con la planilla", () => {
+    const estudiante = {
+      notas: [carita("Del 1al9", "destacado"), carita("Fam 10", "logrado")],
+      guardado: guardadas("destacado", "logrado"),
+    };
+
+    expect(planillaCambioDespuesDeGuardar(estudiante)).toBe(false);
+  });
+
+  it("avisa si la planilla tiene otra cantidad de notas", () => {
+    const estudiante = {
+      notas: [carita("Del 1al9", "destacado"), carita("Fam 10", "logrado"), carita("Sumas", "destacado")],
+      guardado: guardadas("destacado", "logrado"),
+    };
+
+    expect(planillaCambioDespuesDeGuardar(estudiante)).toBe(true);
+  });
+
+  it("en notas numéricas compara el número, sin ruido de decimales", () => {
+    const numerica = (valor) => ({ tipo_nota: "Parcial", valor, tipo_evaluacion: "numerica", valoracion: null });
+    const guardado = { definitiva: 4.2, detalles: [{ valor: 4.2, valoracion: null }] };
+
+    expect(planillaCambioDespuesDeGuardar({ notas: [numerica(4.2000001)], guardado })).toBe(false);
+    expect(planillaCambioDespuesDeGuardar({ notas: [numerica(3.8)], guardado })).toBe(true);
+  });
+
+  it("sin nada guardado, o con un servidor viejo que no manda `guardado`, no avisa", () => {
+    const notas = [carita("Del 1al9", "destacado")];
+
+    expect(planillaCambioDespuesDeGuardar({ notas, guardado: null })).toBe(false);
+    expect(planillaCambioDespuesDeGuardar({ notas })).toBe(false);
+    expect(planillaCambioDespuesDeGuardar({ notas, guardado: { definitiva: null, detalles: [] } })).toBe(false);
+  });
+
+  it("solo marca a quien tiene textos guardados: el resto sigue Pendiente", () => {
+    const sinTextos = {
+      estudiante_id: 9,
+      notas: [carita("Del 1al9", "destacado", "")],
+      guardado: guardadas("logrado"),
+    };
+
+    expect(crearEstadoGuardadoInicial([sinTextos])[9].desactualizado).toBe(false);
+  });
+
+  it("cuenta los estudiantes con la planilla cambiada", () => {
+    expect(contarPlanillaCambiada({
+      1: { desactualizado: true },
+      2: { desactualizado: false },
+      3: { guardado: true },
+      4: { desactualizado: true, modificado: true },
+    })).toBe(2);
+    expect(contarPlanillaCambiada(undefined)).toBe(0);
   });
 });

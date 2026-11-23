@@ -28,6 +28,7 @@ export default function IngresoBoletinProfesor() {
   } = useConsultaIngresoBoletinProfesor();
   const {
     borradorRecuperado,
+    cantidadPlanillaCambiada,
     datosBoletin,
     descartarBorrador,
     estadoGuardado,
@@ -80,6 +81,7 @@ export default function IngresoBoletinProfesor() {
     <VistaIngresoBoletinProfesor
       asignacionId={asignacionId}
       borradorRecuperado={borradorRecuperado}
+      cantidadPlanillaCambiada={cantidadPlanillaCambiada}
       cargando={cargando}
       clases={clasesUnicas}
       datosBoletin={datosBoletin}

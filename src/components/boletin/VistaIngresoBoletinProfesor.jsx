@@ -14,6 +14,7 @@ import VistaPreviaBoletinProfesor from "./VistaPreviaBoletinProfesor";
 export default function VistaIngresoBoletinProfesor({
   asignacionId,
   borradorRecuperado = null,
+  cantidadPlanillaCambiada = 0,
   cargando,
   clases,
   datosBoletin,
@@ -137,6 +138,9 @@ export default function VistaIngresoBoletinProfesor({
             />
           ) : estudiantes.length > 0 ? (
             <div className="space-y-6">
+              {cantidadPlanillaCambiada > 0 && (
+                <AvisoPlanillaCambiada cantidad={cantidadPlanillaCambiada} />
+              )}
               {borradorRecuperado && (
                 <AvisoBorrador
                   borrador={borradorRecuperado}
@@ -266,6 +270,23 @@ function AvisoBorrador({ borrador, onDescartar }) {
           Descartar
         </button>
       )}
+    </div>
+  );
+}
+
+// 2026-11-23: notas o caritas que cambiaron en la planilla después de guardar
+// el boletín. El puesto y el boletín impreso salen de lo guardado, así que
+// hasta volver a guardar siguen con lo viejo (así pasó en Jardín A).
+function AvisoPlanillaCambiada({ cantidad }) {
+  const quienes = cantidad === 1 ? "un estudiante" : `${cantidad} estudiantes`;
+
+  return (
+    <div role="status" className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+      <p className="text-sm text-orange-900">
+        <span className="font-bold">La planilla cambió después de guardar el boletín</span>{" "}
+        en {quienes}. El puesto y el boletín impreso todavía tienen lo anterior: revisa
+        que cada texto esté en la tarjeta que le corresponde y vuelve a guardar.
+      </p>
     </div>
   );
 }

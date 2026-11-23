@@ -10,6 +10,7 @@ import {
   aplicarLogrosEnGrupo,
   construirBorrador,
   construirPayloadBoletin,
+  contarPlanillaCambiada,
   estudiantesConCambiosSinGuardar,
   mensajeCambiosSinGuardar,
   mensajeCopiarLogros,
@@ -192,6 +193,18 @@ export default function useComandosIngresoBoletinProfesor({
         badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
         dotClass: "bg-amber-500",
         buttonText: "Guardar cambios",
+      };
+    }
+
+    // 2026-11-23: lo guardado ya no coincide con la planilla. Decir "Guardado"
+    // aquí hizo que nadie notara caritas viejas en el boletín (Jardín A).
+    if (estado.desactualizado) {
+      return {
+        label: "La planilla cambió",
+        detail: "Revisa los textos y vuelve a guardar",
+        badgeClass: "border-orange-200 bg-orange-50 text-orange-800",
+        dotClass: "bg-orange-500",
+        buttonText: "Volver a guardar",
       };
     }
 
@@ -413,6 +426,8 @@ export default function useComandosIngresoBoletinProfesor({
   return {
     // Se avisa mientras quede algo recuperado sin guardar.
     borradorRecuperado: cantidadConCambios > 0 ? borradorRecuperado : null,
+    // Estudiantes cuya planilla cambió después de guardar (2026-11-23).
+    cantidadPlanillaCambiada: contarPlanillaCambiada(estadoGuardado),
     datosBoletin,
     descartarBorrador,
     estadoGuardado,

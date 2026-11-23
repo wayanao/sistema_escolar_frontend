@@ -197,6 +197,12 @@ boletines sin cambiar cálculos, textos guardados ni formato imprimible.
 - `useComandosIngresoBoletinProfesor.js` administra estado editable,
   modificación de observaciones, estados visuales por estudiante, copia masiva,
   guardado individual, `Guardar todo`, confirmaciones y progreso del grupo.
+  Desde 2026-11-23 hay un cuarto estado visual, **"La planilla cambió"**
+  (`desactualizado`, de `crearEstadoGuardadoInicial` con
+  `planillaCambioDespuesDeGuardar`): lo guardado en el boletín ya no coincide
+  con la planilla. Va después de "Cambios sin guardar" y antes de "Guardado", y
+  se va al volver a guardar. El hook expone `cantidadPlanillaCambiada` para el
+  aviso de arriba. Ver `CAMBIOS_FRONTEND.md`.
 - `useComandosOrdenBoletin.js` administra la copia editable del orden,
   movimientos, posición directa, orden alfabético, persistencia y mensajes del
   comando.

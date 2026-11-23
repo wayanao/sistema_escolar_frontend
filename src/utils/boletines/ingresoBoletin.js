@@ -239,6 +239,41 @@ export const crearDatosBoletinInicial = (estudiantes) => {
   return estadoInicial;
 };
 
+const mismaNota = (a, b) => {
+  const x = a === null || a === undefined || a === "" ? null : Number(a);
+  const y = b === null || b === undefined || b === "" ? null : Number(b);
+  if (x === null || y === null) return x === y;
+  return Math.abs(x - y) < 0.005;
+};
+
+/**
+ * La planilla cambió después de guardar el boletín (2026-11-23).
+ *
+ * El servidor manda en `guardado.detalles` lo que quedó guardado, en su orden.
+ * Se compara, posición por posición, con las notas de la planilla que se
+ * verían al guardar (ya sin las columnas internas): la carita en desarrollo, el
+ * número en lo demás. Una cantidad distinta también cuenta. El puesto y el
+ * boletín impreso salen de lo guardado; si no coincide, hay que volver a
+ * guardar. Sin nada guardado, o con un servidor que no manda `guardado`,
+ * devuelve `false`.
+ *
+ * Límite: si una tarjeta solo cambió de lugar y las caritas quedaron iguales en
+ * cada posición, no se nota: el boletín no guarda de qué tarjeta es cada texto.
+ */
+export const planillaCambioDespuesDeGuardar = (estudiante) => {
+  const detalles = estudiante?.guardado?.detalles;
+  if (!Array.isArray(detalles) || detalles.length === 0) return false;
+  const notas = estudiante.notas || [];
+  if (notas.length !== detalles.length) return true;
+  return notas.some((nota, indice) => {
+    const detalle = detalles[indice] || {};
+    if ((nota.tipo_evaluacion || "numerica") === "desarrollo") {
+      return (nota.valoracion || null) !== (detalle.valoracion || null);
+    }
+    return !mismaNota(nota.valor, detalle.valor);
+  });
+};
+
 export const crearEstadoGuardadoInicial = (estudiantes) => {
   const estadoInicial = {};
 
@@ -250,11 +285,17 @@ export const crearEstadoGuardadoInicial = (estudiantes) => {
       guardado: tieneObservacionesGuardadas,
       modificado: false,
       guardadoEn: null,
+      // Solo importa si hay algo guardado; al volver a guardar se va.
+      desactualizado: tieneObservacionesGuardadas && planillaCambioDespuesDeGuardar(estudiante),
     };
   });
 
   return estadoInicial;
 };
+
+/** Cuántos estudiantes tienen la planilla cambiada después de guardar. */
+export const contarPlanillaCambiada = (estadoGuardado) =>
+  Object.values(estadoGuardado || {}).filter((estado) => estado?.desactualizado).length;
 
 export const correspondeFormularioAEstudiante = (form, estudiante) => {
   const observaciones = form?.observaciones;
